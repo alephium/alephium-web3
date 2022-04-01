@@ -23,8 +23,7 @@ artifacts/
 # Config files
 license-header.js
 jestconfig.json
-tsconfig.json
-!templates/tsconfig.json
+/tsconfig.json
 default.nix
 
 # Tests
