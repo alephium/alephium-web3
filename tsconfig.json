@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./typings/",
+    "outDir": "dist/",
     "baseUrl": ".",
     "module": "commonjs",
     "target": "ES2015",
@@ -13,8 +13,7 @@
     "declarationMap": true,
     "noFallthroughCasesInSwitch": true,
     "strictFunctionTypes": true,
-    "esModuleInterop": true,
-    "typeRoots": ["./typings/**", "./node_modules/@types"]
+    "esModuleInterop": true
   },
-  "exclude": ["node_modules", "templates", "typings"],
+  "exclude": ["node_modules", "templates"],
 }
