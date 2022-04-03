@@ -84,12 +84,12 @@ export class CliqueClient extends Api<null> {
 
   async getBalance(address: string) {
     const clientIndex = this.getClientIndex(address)
-    return await this.clients[clientIndex].getBalance(address)
+    return await this.clients[`${clientIndex}`].getBalance(address)
   }
 
   getWebSocket(node_i: number) {
     if (this.clique.nodes) {
-      const node = this.clique.nodes[node_i]
+      const node = this.clique.nodes[`${node_i}`]
       return new WebSocket('ws://' + node.address + ':' + node.wsPort + '/events')
     }
   }
@@ -104,17 +104,17 @@ export class CliqueClient extends Api<null> {
     gasPrice?: string
   ) {
     const clientIndex = this.getClientIndex(fromAddress)
-    return await this.clients[clientIndex].transactionCreate(fromPublicKey, toAddress, amount, lockTime, gas, gasPrice)
+    return await this.clients[`${clientIndex}`].transactionCreate(fromPublicKey, toAddress, amount, lockTime, gas, gasPrice)
   }
 
   async transactionConsolidateUTXOs(fromPublicKey: string, fromAddress: string, toAddress: string) {
     const clientIndex = this.getClientIndex(fromAddress)
-    return await this.clients[clientIndex].transactionConsolidateUTXOs(fromPublicKey, toAddress)
+    return await this.clients[`${clientIndex}`].transactionConsolidateUTXOs(fromPublicKey, toAddress)
   }
 
   async transactionSend(fromAddress: string, tx: string, signature: string) {
     const clientIndex = this.getClientIndex(fromAddress)
-    return await this.clients[clientIndex].transactionSend(tx, signature)
+    return await this.clients[`${clientIndex}`].transactionSend(tx, signature)
   }
 
   transactionSign(txHash: string, privateKey: string) {

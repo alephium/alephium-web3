@@ -20,7 +20,6 @@ import EC from 'elliptic'
 import assert from 'assert'
 
 import * as utils from '../lib/utils'
-import NodeStorage from '../lib/storage-node'
 
 describe('utils', function () {
   it('should throw an error when decoding invalid signature', () => {
@@ -76,11 +75,6 @@ describe('utils', function () {
       const signature = utils.signatureEncode(ec, keyPair.sign(sha256))
       assert.deepStrictEqual(signature, signatureExpected)
     })
-  })
-
-  it('should return a node storage', () => {
-    const storage = utils.getStorage()
-    expect(storage).toBeInstanceOf(NodeStorage)
   })
 
   it('should calculate the group of addresses', () => {

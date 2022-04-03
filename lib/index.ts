@@ -24,14 +24,6 @@ export * from './explorer'
 export * from './address'
 export * from './signer'
 export * from './contract'
-export {
-  formatAmountForDisplay,
-  calAmountDelta,
-  convertAlphToSet,
-  addApostrophes,
-  convertSetToAlph,
-  BILLION
-} from './numbers'
 export * from './constants'
 export * as node from '../api/api-alephium'
 export * as explorer from '../api/api-explorer'

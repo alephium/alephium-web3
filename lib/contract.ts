@@ -87,7 +87,7 @@ export abstract class Common {
       return contractStr.replace(Common.variableRegex, (match) => {
         const variableName = match.split(/(\s+)/)[2]
         if (variableName in variables) {
-          return variables[variableName].toString()
+          return variables[`${variableName}`].toString()
         } else {
           throw new Error(`The value of variable ${variableName} is not provided`)
         }
@@ -300,7 +300,7 @@ export class Contract extends Common {
       }
 
       if (args.length === func.argTypes.length) {
-        return args.map((arg, index) => toApiVal(arg, func.argTypes[index]))
+        return args.map((arg, index) => toApiVal(arg, func.argTypes[`${index}`]))
       } else {
         throw new Error(`Invalid number of arguments: ${args}`)
       }
@@ -408,7 +408,7 @@ export class Contract extends Common {
 
   async fromTestContractResult(methodIndex: number, result: api.TestContractResult): Promise<TestContractResult> {
     return {
-      returns: fromApiVals(result.returns, this.functions[methodIndex].returnTypes),
+      returns: fromApiVals(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
       contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
       txOutputs: result.txOutputs.map(fromApiOutput),
@@ -654,7 +654,7 @@ function _fromApiVal(vals: api.Val[], valIndex: number, tpe: string): [result: V
     throw new Error('Not enough Vals')
   }
 
-  const firstVal = vals[valIndex]
+  const firstVal = vals[`${valIndex}`]
   if (tpe === 'Bool' && firstVal.type === tpe) {
     return [firstVal.value as boolean, valIndex + 1]
   } else if ((tpe === 'U256' || tpe === 'I256') && firstVal.type === tpe) {
@@ -757,7 +757,7 @@ function toApiContractState(state: ContractState, address: string): api.Contract
 
 function toApiFields(fields: Val[], fieldTypes: string[]): api.Val[] {
   if (fields.length === fieldTypes.length) {
-    return fields.map((field, index) => toApiVal(field, fieldTypes[index]))
+    return fields.map((field, index) => toApiVal(field, fieldTypes[`${index}`]))
   } else {
     throw new Error(`Invalid number of fields: ${fields}`)
   }
