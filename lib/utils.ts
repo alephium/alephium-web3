@@ -20,8 +20,6 @@ import * as EC from 'elliptic'
 import BN from 'bn.js'
 import bs58 from './bs58'
 
-import NodeStorage from './storage-node'
-import BrowserStorage from './storage-browser'
 import { TOTAL_NUMBER_OF_GROUPS } from './constants'
 import djb2 from './djb2'
 
@@ -54,12 +52,6 @@ export const signatureDecode = (ec: EC.ec, signature: string) => {
   } else {
     throw new Error('The signature is not normalized')
   }
-}
-
-export const getStorage = (): BrowserStorage | NodeStorage => {
-  const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'
-
-  return isBrowser ? new BrowserStorage() : new NodeStorage()
 }
 
 const xorByte = (intValue: number) => {

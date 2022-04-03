@@ -1,17 +1,20 @@
 {
-  "include": ["lib/**/*", "cli/**/*"],
-  "exclude": ["node_modules", "test"],
   "compilerOptions": {
-    "target": "es6",
-    "allowJs": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
+    "outDir": "./typings/",
+    "baseUrl": ".",
     "module": "commonjs",
+    "target": "ES2015",
+    "lib": ["dom", "es2016"],
     "declaration": true,
-    "outDir": "dist",
-    "moduleResolution": "node",
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "declarationMap": true,
+    "noFallthroughCasesInSwitch": true,
+    "strictFunctionTypes": true,
+    "esModuleInterop": true,
+    "typeRoots": ["./typings/**", "./node_modules/@types"]
+  },
+  "exclude": ["node_modules", "templates", "typings"],
 }
