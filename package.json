@@ -118,5 +118,15 @@
     "singleQuote": false,
     "jsxBracketSameLine": false,
     "trailingComma": "none"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(t|j)sx?$": "ts-jest"
+    },
+    "testMatch": ["<rootDir>/test/*-test.ts"],
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+    "collectCoverage": true,
+    "coverageDirectory": "./coverage/",
+    "collectCoverageFrom": ["lib/**/*.ts"]
   }
 }
