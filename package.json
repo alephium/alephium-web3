@@ -21,7 +21,6 @@
       ]
     }
   },
-  "type": "commonjs",
   "repository": {
     "type": "git",
     "url": "git@github.com:alephium/alephium-web3.git"
@@ -123,10 +122,21 @@
     "transform": {
       "^.+\\.(t|j)sx?$": "ts-jest"
     },
-    "testMatch": ["<rootDir>/test/*-test.ts"],
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+    "testMatch": [
+      "<rootDir>/test/*-test.ts"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
     "collectCoverage": true,
     "coverageDirectory": "./coverage/",
-    "collectCoverageFrom": ["lib/**/*.ts"]
+    "collectCoverageFrom": [
+      "lib/**/*.ts"
+    ]
   }
 }

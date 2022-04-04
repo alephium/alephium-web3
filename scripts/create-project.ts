@@ -71,11 +71,12 @@ copy('dev', ['user.conf'])
 copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
 copy('contracts', ['greeter.ral', 'greeter-main.ral'])
 fsExtra.mkdirSync(path.join(projectRoot, 'src'))
-fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
-fsExtra.copySync(path.join(packageRoot, 'templates', 'package.json'), path.join(projectRoot, 'package.json'))
-fsExtra.copySync(path.join(packageRoot, 'templates', 'tsconfig.json'), path.join(projectRoot, 'tsconfig.json'))
-fsExtra.copySync(path.join(packageRoot, 'templates', 'README.md'), path.join(projectRoot, 'README.md'))
-fsExtra.copySync(path.join(packageRoot, 'templates', 'greeter.ts'), path.join(projectRoot, 'src', 'greeter.ts'))
+fsExtra.copySync(path.join(packageRoot, 'templates'), projectRoot)
+if (fsExtra.existsSync(path.join(packageRoot, '.gitignore'))) {
+  fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
+} else {
+  fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
+}
 
 console.log('✅ Done.')
 console.log()
