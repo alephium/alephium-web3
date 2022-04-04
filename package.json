@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "description": "Alephium Web3.js",
   "license": "GPL",
-  "main": "dist/lib/index.js",
-  "types": "dist/lib/index.d.ts",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/lib/index.js",
+    ".": "./dist/src/index.js",
     "./api/alephium": "./dist/api/api-alephium.js",
     "./api/explorer": "./dist/api/api-explorer.js"
   },
@@ -130,7 +130,7 @@
     "collectCoverage": true,
     "coverageDirectory": "./coverage/",
     "collectCoverageFrom": [
-      "lib/**/*.ts"
+      "src/**/*.ts"
     ]
   }
 }
