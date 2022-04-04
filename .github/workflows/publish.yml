@@ -21,6 +21,6 @@ jobs:
       - name: Publish to npm
         run: |
           npm ci
-          npm publish --access public --tag ${{ needs.get_dist_tag.outputs.DIST_TAG }}
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
