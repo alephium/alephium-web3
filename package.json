@@ -48,9 +48,9 @@
     "prepack": "node scripts/rename-gitignore.js .gitignore gitignore",
     "postpack": "node scripts/rename-gitignore.js gitignore .gitignore",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    "devnet-start": "node scripts/start-devnet.js ${npm_package_config_alephium_version}",
-    "devnet-restart": "npm run devnet:start",
-    "devnet-stop": "node scripts/stop-devnet.js"
+    "start-devnet": "node scripts/start-devnet.js ${npm_package_config_alephium_version}",
+    "restart-devnet": "npm run start-devnet",
+    "stop-devnet": "node scripts/stop-devnet.js"
   },
   "bin": {
     "alephium": "dist/cli/create-project.js"
