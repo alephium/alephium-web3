@@ -16,9 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { CliqueClient } from '../lib/clique'
-import { Signer } from '../lib/signer'
-import { Contract, Script, TestContractParams } from '../lib/contract'
+import { CliqueClient } from '../src/clique'
+import { Signer } from '../src/signer'
+import { Contract, Script, TestContractParams } from '../src/contract'
 
 describe('contract', function () {
   async function testSuite1() {

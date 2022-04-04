@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import bs58 from './bs58'
-import djb2 from '../lib/djb2'
+import djb2 from './djb2'
 
 export function addressToGroup(address: string, totalNumberOfGroups: number): number {
   const bytes = bs58.decode(address).slice(1)

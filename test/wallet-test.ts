@@ -18,9 +18,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as bip32 from 'bip32'
 
-import * as walletUtils from '../lib/wallet'
-import { addressToGroup } from '../lib/address'
-import { TOTAL_NUMBER_OF_GROUPS } from '../lib/constants'
+import * as walletUtils from '../src/wallet'
+import { addressToGroup } from '../src/address'
+import { TOTAL_NUMBER_OF_GROUPS } from '../src/constants'
 
 import wallets from './fixtures/wallets.json'
 import genesis from './fixtures/genesis.json'
