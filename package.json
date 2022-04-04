@@ -1,7 +1,7 @@
 {
-  "name": "@alephium/sdk",
-  "version": "0.0.2",
-  "description": "A JS/TS library to interact with the Alephium platform",
+  "name": "alephium-web3",
+  "version": "0.0.1",
+  "description": "Alephium Web3.js",
   "license": "GPL",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -20,7 +20,6 @@
       ]
     }
   },
-  "type": "commonjs",
   "repository": {
     "type": "git",
     "url": "git@github.com:alephium/js-sdk.git"
