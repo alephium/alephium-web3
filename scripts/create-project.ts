@@ -66,16 +66,16 @@ function copy(dir: string, files: string[]) {
   }
 }
 
-copy('', ['.gitattributes'])
+copy('', ['.gitattributes', '.editorconfig', '.eslintignore', '.eslintrc.json', '.prettierrc.json'])
 copy('dev', ['user.conf'])
 copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
 copy('contracts', ['greeter.ral', 'greeter-main.ral'])
 fsExtra.mkdirSync(path.join(projectRoot, 'src'))
 fsExtra.copySync(path.join(packageRoot, 'templates'), projectRoot)
-if (fsExtra.existsSync(path.join(packageRoot, '.gitignore'))) {
-  fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
-} else {
+if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
   fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
+} else {
+  fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
 }
 
 console.log('✅ Done.')
