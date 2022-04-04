@@ -3,11 +3,11 @@
   "version": "0.0.3",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
-  "main": "dist/lib/index.js",
+  "main": "dist/src/index.js",
   "browser": "dist/alephium-web3.min.js",
-  "types": "dist/lib/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/lib/index.js",
+    ".": "./dist/src/index.js",
     "./api/alephium": "./dist/api/api-alephium.js",
     "./api/explorer": "./dist/api/api-explorer.js"
   },
@@ -137,7 +137,7 @@
     "collectCoverage": true,
     "coverageDirectory": "./coverage/",
     "collectCoverageFrom": [
-      "lib/**/*.ts"
+      "src/**/*.ts"
     ]
   }
 }
