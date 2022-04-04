@@ -30,12 +30,12 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "1.3.0-rc9",
+    "alephium_version": "1.3.2",
     "explorer_backend_version": "1.6.0-rc8"
   },
   "scripts": {
     "build": "rm -rf dist/ && npx tsc --build .",
-    "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
+    "update-schemas": "npm run update-schema-alephium && npm run update-schema-explorer",
     "update-schema-alephium": "npx swagger-typescript-api -t ./api -o ./api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
     "update-schema-explorer": "npx swagger-typescript-api -t ./api -o ./api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
     "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}",
@@ -47,7 +47,7 @@
     "prepublishOnly": "npm run compile",
     "prepack": "node scripts/rename-gitignore.js .gitignore gitignore",
     "postpack": "node scripts/rename-gitignore.js gitignore .gitignore",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "devnet-start": "node scripts/start-devnet.js ${npm_package_config_alephium_version}",
     "devnet-restart": "npm run devnet:start",
     "devnet-stop": "node scripts/stop-devnet.js"
@@ -104,10 +104,11 @@
     "npm": ">=7.0.0"
   },
   "prettier": {
+    "printWidth": 120,
     "tabWidth": 2,
     "useTabs": false,
     "semi": false,
-    "singleQuote": false,
+    "singleQuote": true,
     "jsxBracketSameLine": false,
     "trailingComma": "none"
   },
@@ -115,10 +116,21 @@
     "transform": {
       "^.+\\.(t|j)sx?$": "ts-jest"
     },
-    "testMatch": ["<rootDir>/test/*-test.ts"],
-    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+    "testMatch": [
+      "<rootDir>/test/*-test.ts"
+    ],
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
     "collectCoverage": true,
     "coverageDirectory": "./coverage/",
-    "collectCoverageFrom": ["lib/**/*.ts"]
+    "collectCoverageFrom": [
+      "lib/**/*.ts"
+    ]
   }
 }
