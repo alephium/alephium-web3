@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { decrypt } from '../lib/password-crypto'
+import { decrypt } from '../src/password-crypto'
 
 describe('password-crypto', () => {
   it('should raise an error if payload version is not 1', () => {

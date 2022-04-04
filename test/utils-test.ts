@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import EC from 'elliptic'
 import assert from 'assert'
 
-import * as utils from '../lib/utils'
+import * as utils from '../src/utils'
 
 describe('utils', function () {
   it('should throw an error when decoding invalid signature', () => {
