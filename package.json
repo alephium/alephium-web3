@@ -115,7 +115,7 @@
       "^.+\\.(t|j)sx?$": "ts-jest"
     },
     "testMatch": [
-      "<rootDir>/test/*-test.ts"
+      "<rootDir>/test/*.test.ts"
     ],
     "moduleFileExtensions": [
       "ts",
