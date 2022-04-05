@@ -9,4 +9,8 @@ TxContract Add(mut result : U256) {
         result = result + array[0] + array[1]
         return [result, sub.sub(array)]
     }
+
+    fn addPrivate(subAddress: ByteVec, array: [U256; 2]) -> ([U256; 2]) {
+        return add(subAddress, array)
+    }
 }
