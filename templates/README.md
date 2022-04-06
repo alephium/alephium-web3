@@ -11,7 +11,7 @@ npm install
 Compile the TypeScript files into JavaScript:
 
 ```
-npm run compile
+npm run build
 ```
 
 ## Start a devnet

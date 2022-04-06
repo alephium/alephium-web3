@@ -1,6 +1,6 @@
 {
   "name": "alephium-web3",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Alephium Web3.js",
   "license": "GPL",
   "main": "dist/src/index.js",
@@ -43,8 +43,8 @@
     "lint:fix": "eslint . --fix --ext ts",
     "jest": "jest",
     "test": "npm run build && npm run jest",
-    "test:watch": "npm run compile && npm run jest -- --watch",
-    "prepublishOnly": "npm run compile",
+    "test:watch": "npm run build && npm run jest -- --watch",
+    "prepublishOnly": "npm run build",
     "prepack": "node scripts/rename-gitignore.js .gitignore gitignore",
     "postpack": "node scripts/rename-gitignore.js gitignore .gitignore",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
