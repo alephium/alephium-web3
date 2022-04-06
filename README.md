@@ -132,5 +132,5 @@ npm run test:watch
 [npm-link]: https://www.npmjs.org/package/@alephium/web3
 [prettier-badge]: https://img.shields.io/badge/code_style-prettier-ff69b4.svg
 [prettier-link]: https://github.com/prettier/prettier
-[release-notes]: https://github.com/alephium/alephium-web3/releases
+[release-notes]: https://github.com/alephium-web3/alephium-web3/releases
 [1]: https://github.com/facebook/create-react-app/blob/2da5517689b7510ff8d8b0148ce372782cb285d7/packages/react-scripts/scripts/init.js#L264-L278
