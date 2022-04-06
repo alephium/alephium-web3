@@ -1,6 +1,6 @@
 {
   "name": "alephium-web3",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Alephium Web3.js",
   "license": "GPL",
   "main": "dist/src/index.js",
@@ -24,9 +24,9 @@
     "type": "git",
     "url": "git@github.com:alephium-web3/alephium-web3.git"
   },
-  "homepage": "https://github.com/alephium/alephium-web3",
+  "homepage": "https://github.com/alephium-web3/alephium-web3",
   "bugs": {
-    "url": "https://github.com/alephium/alephium-web3/issues"
+    "url": "https://github.com/alephium-web3/alephium-web3/issues"
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
