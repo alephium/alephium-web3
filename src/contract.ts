@@ -278,37 +278,42 @@ export class Contract extends Common {
     return address
   }
 
-  private async _test(client: CliqueClient, funcName: string, params: TestContractParams): Promise<api.TestContractResult> {
+  private async _test(
+    client: CliqueClient,
+    funcName: string,
+    params: TestContractParams,
+    checkCodeHash: (result: api.TestContractResult) => boolean,
+    accessType: string
+  ): Promise<TestContractResult> {
     this._contractAddresses.clear()
     const apiParams: api.TestContract = this.toTestContract(funcName, params)
     const response = await client.contracts.postContractsTestContract(apiParams)
-    return response.data
-  }
+    const apiResult = response.data
 
-  async testPublicMethod(client: CliqueClient, funcName: string, params: TestContractParams): Promise<TestContractResult> {
-    const apiResult = await this._test(client, funcName, params)
-
-    if (apiResult.originalCodeHash == apiResult.testCodeHash) {
+    if (checkCodeHash(apiResult)) {
       const methodIndex = params.testMethodIndex ? params.testMethodIndex : this.getMethodIndex(funcName)
       const result = await this.fromTestContractResult(methodIndex, apiResult)
       this._contractAddresses.clear()
       return result
     } else {
-      throw new Error(`The test method ${funcName} is not public`)
+      throw new Error(`The test method ${funcName} is not ${accessType}`)
     }
   }
 
-  async testPrivateMethod(client: CliqueClient, funcName: string, params: TestContractParams): Promise<TestContractResult> {
-    const apiResult = await this._test(client, funcName, params)
+  async testPublicMethod(
+    client: CliqueClient,
+    funcName: string,
+    params: TestContractParams
+  ): Promise<TestContractResult> {
+    return this._test(client, funcName, params, (result) => result.originalCodeHash == result.testCodeHash, 'public')
+  }
 
-    if (apiResult.originalCodeHash != apiResult.testCodeHash) {
-      const methodIndex = params.testMethodIndex ? params.testMethodIndex : this.getMethodIndex(funcName)
-      const result = await this.fromTestContractResult(methodIndex, apiResult)
-      this._contractAddresses.clear()
-      return result
-    } else {
-      throw new Error(`The test method ${funcName} is not private`)
-    }
+  async testPrivateMethod(
+    client: CliqueClient,
+    funcName: string,
+    params: TestContractParams
+  ): Promise<TestContractResult> {
+    return this._test(client, funcName, params, (result) => result.originalCodeHash != result.testCodeHash, 'private')
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
