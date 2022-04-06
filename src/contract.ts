@@ -305,7 +305,7 @@ export class Contract extends Common {
     funcName: string,
     params: TestContractParams
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, (result) => result.originalCodeHash == result.testCodeHash, 'public')
+    return this._test(client, funcName, params, (result) => result.originalCodeHash === result.testCodeHash, 'public')
   }
 
   async testPrivateMethod(
@@ -313,7 +313,7 @@ export class Contract extends Common {
     funcName: string,
     params: TestContractParams
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, (result) => result.originalCodeHash != result.testCodeHash, 'private')
+    return this._test(client, funcName, params, (result) => result.originalCodeHash !== result.testCodeHash, 'private')
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
