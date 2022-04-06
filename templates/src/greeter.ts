@@ -27,7 +27,7 @@ async function greet() {
   const testParams: TestContractParams = {
     initialFields: [1]
   }
-  const testResult = await greeter.test(client, 'greet', testParams)
+  const testResult = await greeter.testPublicMethod(client, 'greet', testParams)
   console.log(testResult)
 
   const signer = Signer.testSigner(client)
