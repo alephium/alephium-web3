@@ -35,7 +35,8 @@ describe('contract', function () {
       testArgs: [subTestAddress, [2, 1]],
       existingContracts: [subState]
     }
-    const testResult = await add.test(client, 'add', testParams)
+    const testResult = await add.testPublicMethod(client, 'add', testParams)
+    expect(testResult.testCodeHash).toEqual(add.codeHash)
     expect(testResult.returns).toEqual([[3, 1]])
     expect(testResult.contracts[0].fileName).toEqual('sub.ral')
     expect(testResult.contracts[0].fields).toEqual([1])
@@ -46,6 +47,10 @@ describe('contract', function () {
     expect(events[0].fields).toEqual([2, 1])
     expect(events[1].name).toEqual('Sub')
     expect(events[1].fields).toEqual([2, 1])
+
+    const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams)
+    expect(testResultPrivate.testCodeHash).not.toEqual(add.codeHash)
+    expect(testResultPrivate.returns).toEqual([[3, 1]])
 
     const signer = Signer.testSigner(client)
 
@@ -83,7 +88,8 @@ describe('contract', function () {
     const testParams: TestContractParams = {
       initialFields: [1]
     }
-    const testResult = await greeter.test(client, 'greet', testParams)
+    const testResult = await greeter.testPublicMethod(client, 'greet', testParams)
+    expect(testResult.testCodeHash).toEqual(greeter.codeHash)
     expect(testResult.returns).toEqual([1])
     expect(testResult.contracts[0].fileName).toEqual('greeter.ral')
     expect(testResult.contracts[0].fields).toEqual([1])

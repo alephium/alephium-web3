@@ -278,14 +278,42 @@ export class Contract extends Common {
     return address
   }
 
-  async test(client: CliqueClient, funcName: string, params: TestContractParams): Promise<TestContractResult> {
+  private async _test(
+    client: CliqueClient,
+    funcName: string,
+    params: TestContractParams,
+    checkCodeHash: (result: api.TestContractResult) => boolean,
+    accessType: string
+  ): Promise<TestContractResult> {
     this._contractAddresses.clear()
     const apiParams: api.TestContract = this.toTestContract(funcName, params)
     const response = await client.contracts.postContractsTestContract(apiParams)
-    const methodIndex = params.testMethodIndex ? params.testMethodIndex : this.getMethodIndex(funcName)
-    const result = await this.fromTestContractResult(methodIndex, response.data)
-    this._contractAddresses.clear()
-    return result
+    const apiResult = response.data
+
+    if (checkCodeHash(apiResult)) {
+      const methodIndex = params.testMethodIndex ? params.testMethodIndex : this.getMethodIndex(funcName)
+      const result = await this.fromTestContractResult(methodIndex, apiResult)
+      this._contractAddresses.clear()
+      return result
+    } else {
+      throw new Error(`The test method ${funcName} is not ${accessType}`)
+    }
+  }
+
+  async testPublicMethod(
+    client: CliqueClient,
+    funcName: string,
+    params: TestContractParams
+  ): Promise<TestContractResult> {
+    return this._test(client, funcName, params, (result) => result.originalCodeHash == result.testCodeHash, 'public')
+  }
+
+  async testPrivateMethod(
+    client: CliqueClient,
+    funcName: string,
+    params: TestContractParams
+  ): Promise<TestContractResult> {
+    return this._test(client, funcName, params, (result) => result.originalCodeHash != result.testCodeHash, 'private')
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
@@ -363,15 +391,16 @@ export class Contract extends Common {
     return Contract.getContract(codeHash).then((contract) => contract.fields.types)
   }
 
-  async fromApiContractState(state: api.ContractState): Promise<ContractState> {
-    const contract = await Contract.getContract(state.codeHash)
+  async fromApiContractState(apiResult: api.TestContractResult, state: api.ContractState): Promise<ContractState> {
+    const codeHash = state.codeHash === apiResult.testCodeHash ? apiResult.originalCodeHash : state.codeHash
+    const contract = await Contract.getContract(codeHash)
     return {
       fileName: contract.fileName,
       address: state.address,
       bytecode: state.bytecode,
-      codeHash: state.codeHash,
+      codeHash: codeHash,
       fields: fromApiVals(state.fields, contract.fields.types),
-      fieldTypes: await Contract.getFieldTypes(state.codeHash),
+      fieldTypes: await Contract.getFieldTypes(codeHash),
       asset: fromApiAsset(state.asset)
     }
   }
@@ -408,9 +437,10 @@ export class Contract extends Common {
 
   async fromTestContractResult(methodIndex: number, result: api.TestContractResult): Promise<TestContractResult> {
     return {
+      testCodeHash: result.testCodeHash,
       returns: fromApiVals(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
-      contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
+      contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(result, contract))),
       txOutputs: result.txOutputs.map(fromApiOutput),
       events: await Promise.all(
         result.events.map((event) => {
@@ -800,6 +830,7 @@ export interface TxScriptEvent {
 }
 
 export interface TestContractResult {
+  testCodeHash: string
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]

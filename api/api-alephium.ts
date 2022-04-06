@@ -541,6 +541,8 @@ export interface TestContract {
 }
 
 export interface TestContractResult {
+  originalCodeHash: string
+  testCodeHash: string
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]
