@@ -94,8 +94,8 @@ npm run test:watch
 [test-link]: https://github.com/alephium-web3/alephium-web3/actions/workflows/test.yml
 [coverage-badge]: https://codecov.io/gh/alephium-web3/alephium-web3/branch/master/graph/badge.svg
 [coverage-link]: https://codecov.io/gh/alephium-web3/alephium-web3
-[npm-badge]: https://img.shields.io/npm/v/@alephium/sdk.svg
-[npm-link]: https://www.npmjs.org/package/@alephium/sdk
+[npm-badge]: https://img.shields.io/npm/v/alephium-web3.svg
+[npm-link]: https://www.npmjs.org/package/alephium-web3
 [prettier-badge]: https://img.shields.io/badge/code_style-prettier-ff69b4.svg
 [prettier-link]: https://github.com/prettier/prettier
 [release-notes]: https://github.com/alephium-web3/alephium-web3/releases
