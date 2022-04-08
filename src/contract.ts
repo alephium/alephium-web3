@@ -34,6 +34,7 @@ export abstract class Common {
 
   static readonly importRegex = new RegExp('^import "[a-z][a-z_0-9]*.ral"', 'mg')
   static readonly contractRegex = new RegExp('^TxContract [A-Z][a-zA-Z0-9]*\\(', 'mg')
+  static readonly interfaceRegex = new RegExp('^Interface [A-Z][a-zA-Z0-9]* \\{', 'mg')
   static readonly scriptRegex = new RegExp('^TxScript [A-Z][a-zA-Z0-9]* \\{', 'mg')
   static readonly variableRegex = new RegExp('\\{\\{\\s+[a-z][a-zA-Z0-9]*\\s+\\}\\}', 'g')
 
@@ -171,6 +172,11 @@ export class Contract extends Common {
   }
 
   static checkCodeType(fileName: string, contractStr: string): void {
+    const interfaceMatches = contractStr.match(Contract.interfaceRegex)
+    if (interfaceMatches) {
+      return
+    }
+
     const contractMatches = contractStr.match(Contract.contractRegex)
     if (contractMatches === null) {
       throw new Error(`No contract found in: ${fileName}`)
