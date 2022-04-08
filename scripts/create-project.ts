@@ -69,7 +69,7 @@ function copy(dir: string, files: string[]) {
 copy('', ['.gitattributes', '.editorconfig', '.eslintignore', '.eslintrc.json', '.prettierrc.json'])
 copy('dev', ['user.conf'])
 copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
-copy('contracts', ['greeter.ral', 'greeter-main.ral'])
+copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
 fsExtra.mkdirSync(path.join(projectRoot, 'src'))
 fsExtra.copySync(path.join(packageRoot, 'templates'), projectRoot)
 if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {

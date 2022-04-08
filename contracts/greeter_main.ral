@@ -1,0 +1,11 @@
+import "greeter.ral"
+
+TxScript Main {
+    pub payable fn main() -> () {
+        let greeter0 = Greeter(#{{ greeterAddress }})
+        assert!(greeter0.greet() == 1)
+
+        let greeter1 = GreeterInterface(#{{ greeterAddress }})
+        assert!(greeter1.greet() == 1)
+    }
+}

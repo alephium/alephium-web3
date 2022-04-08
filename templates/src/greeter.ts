@@ -38,7 +38,7 @@ async function greet() {
   const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
   console.log(submitResult)
 
-  const main = await Script.from(client, 'greeter-main.ral', { greeterAddress: deployTx.contractAddress })
+  const main = await Script.from(client, 'greeter_main.ral', { greeterAddress: deployTx.contractAddress })
 
   const mainScriptTx = await main.transactionForDeployment(signer)
   console.log(mainScriptTx.group)
