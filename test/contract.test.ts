@@ -104,7 +104,7 @@ describe('contract', function () {
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterAddress = deployTx.contractAddress
-    const main = await Script.from(client, 'greeter-main.ral', { greeterAddress: greeterAddress })
+    const main = await Script.from(client, 'greeter_main.ral', { greeterAddress: greeterAddress })
 
     const mainScriptTx = await main.transactionForDeployment(signer)
     expect(mainScriptTx.group).toEqual(3)

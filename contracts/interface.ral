@@ -1,3 +1,0 @@
-Interface Foo {
-    pub fn foo() -> U256
-}

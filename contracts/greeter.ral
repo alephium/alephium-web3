@@ -1,10 +1,6 @@
-import "interface.ral"
+import "greeter_interface.ral"
 
-TxContract Greeter(btcPrice: U256) extends Foo {
-    pub fn foo() -> U256 {
-        return btcPrice
-    }
-
+TxContract Greeter(btcPrice: U256) extends GreeterInterface {
     pub fn greet() -> U256 {
         return btcPrice
     }
