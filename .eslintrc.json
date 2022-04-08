@@ -1,5 +1,5 @@
 {
-  "plugins": ["security"],
+  "plugins": ["security", "header"],
   "extends": ["prettier", "plugin:security/recommended"],
   "parserOptions": {
     "project": "tsconfig.json",
@@ -7,6 +7,9 @@
     "sourceType": "module"
   },
   "parser": "@typescript-eslint/parser",
+  "rules": {
+    "header/header": [2, "header.js"]
+  },
   "overrides": [
     {
       "files": ["*.ts"],
