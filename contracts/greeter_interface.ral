@@ -1,0 +1,3 @@
+Interface GreeterInterface {
+    pub fn greet() -> U256
+}
