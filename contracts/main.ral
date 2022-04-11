@@ -1,8 +1,8 @@
 import "add.ral"
 
-TxScript Main {
+TxScript Main<addContractId: ByteVec, subContractId: ByteVec> {
     pub payable fn main() -> () {
-        let add = Add(#{{ addAddress }})
-        add.add(#{{ subAddress }}, [2, 1])
+        let add = Add(addContractId)
+        add.add(subContractId, [2, 1])
     }
 }

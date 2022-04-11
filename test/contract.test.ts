@@ -36,7 +36,7 @@ describe('contract', function () {
       existingContracts: [subState]
     }
     const testResult = await add.testPublicMethod(client, 'add', testParams)
-    expect(testResult.testCodeHash).toEqual(add.codeHash)
+    expect(testResult.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResult.returns).toEqual([[3, 1]])
     expect(testResult.contracts[0].fileName).toEqual('sub.ral')
     expect(testResult.contracts[0].fields).toEqual([1])
@@ -49,7 +49,7 @@ describe('contract', function () {
     expect(events[1].fields).toEqual([2, 1])
 
     const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams)
-    expect(testResultPrivate.testCodeHash).not.toEqual(add.codeHash)
+    expect(testResultPrivate.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
     const signer = Signer.testSigner(client)
@@ -68,11 +68,11 @@ describe('contract', function () {
     expect(addSubmitResult.toGroup).toEqual(3)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
 
-    const subAddress = subDeployTx.contractAddress
-    const addAddress = addDeployTx.contractAddress
-    const main = await Script.from(client, 'main.ral', { addAddress: addAddress, subAddress: subAddress })
+    const subContractId = subDeployTx.contractId
+    const addContractId = addDeployTx.contractId
+    const main = await Script.from(client, 'main.ral')
 
-    const mainScriptTx = await main.transactionForDeployment(signer)
+    const mainScriptTx = await main.transactionForDeployment(signer, { addContractId: addContractId, subContractId: subContractId })
     expect(mainScriptTx.group).toEqual(3)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(3)
@@ -89,7 +89,7 @@ describe('contract', function () {
       initialFields: [1]
     }
     const testResult = await greeter.testPublicMethod(client, 'greet', testParams)
-    expect(testResult.testCodeHash).toEqual(greeter.codeHash)
+    expect(testResult.artifactId).toEqual(greeter.sourceCodeSha256)
     expect(testResult.returns).toEqual([1])
     expect(testResult.contracts[0].fileName).toEqual('greeter.ral')
     expect(testResult.contracts[0].fields).toEqual([1])
@@ -103,10 +103,10 @@ describe('contract', function () {
     expect(submitResult.toGroup).toEqual(3)
     expect(submitResult.txId).toEqual(deployTx.txId)
 
-    const greeterAddress = deployTx.contractAddress
-    const main = await Script.from(client, 'greeter_main.ral', { greeterAddress: greeterAddress })
+    const greeterContractId = deployTx.contractId
+    const main = await Script.from(client, 'greeter_main.ral')
 
-    const mainScriptTx = await main.transactionForDeployment(signer)
+    const mainScriptTx = await main.transactionForDeployment(signer, { greeterContractId: greeterContractId })
     expect(mainScriptTx.group).toEqual(3)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(3)
