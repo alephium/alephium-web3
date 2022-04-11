@@ -109,10 +109,10 @@ describe('utils', function () {
   })
 
   it('should extract token id from addresses', () => {
-    expect(utils.tokenIdFromAddress('wCTeteGBeSEC54GpkS8jWBzYiYNTBUuTW3WzxGd9yExT')).toBe(
+    expect(utils.binToHex(utils.tokenIdFromAddress('wCTeteGBeSEC54GpkS8jWBzYiYNTBUuTW3WzxGd9yExT'))).toBe(
       '25469eb0d0d0a55deea832924547b7b166c70a3554fe321e81886d3c18f19d64'
     ),
-      expect(utils.tokenIdFromAddress('xrY8dxgVm38QCQXhiUFcivFutLFUNMoo8qu8vYf7wJps')).toBe(
+      expect(utils.binToHex(utils.tokenIdFromAddress('xrY8dxgVm38QCQXhiUFcivFutLFUNMoo8qu8vYf7wJps'))).toBe(
         '3de370f893cb1383c828c0eb22c89aceb13fa56ddced1848db27ce7fa419c80c'
       ),
       expect(() => utils.tokenIdFromAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toThrow(

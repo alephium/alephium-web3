@@ -1,11 +1,11 @@
 import "greeter.ral"
 
-TxScript Main {
+TxScript Main<greeterContractId: ByteVec> {
     pub payable fn main() -> () {
-        let greeter0 = Greeter(#{{ greeterAddress }})
+        let greeter0 = Greeter(greeterContractId)
         assert!(greeter0.greet() == 1)
 
-        let greeter1 = GreeterInterface(#{{ greeterAddress }})
+        let greeter1 = GreeterInterface(greeterContractId)
         assert!(greeter1.greet() == 1)
     }
 }
