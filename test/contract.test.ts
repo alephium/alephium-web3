@@ -25,8 +25,8 @@ describe('contract', function () {
     const client = new CliqueClient({ baseUrl: 'http://127.0.0.1:22973' })
     await client.init(false)
 
-    const add = await Contract.from(client, 'add.ral')
-    const sub = await Contract.from(client, 'sub.ral')
+    const add = await Contract.fromSource(client, 'add.ral')
+    const sub = await Contract.fromSource(client, 'sub.ral')
 
     const subState = sub.toState([0], { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
@@ -71,7 +71,7 @@ describe('contract', function () {
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
 
     const addContractId = addDeployTx.contractId
-    const main = await Script.from(client, 'main.ral')
+    const main = await Script.fromSource(client, 'main.ral')
 
     const mainScriptTx = await main.transactionForDeployment(signer, { addContractId: addContractId })
     expect(mainScriptTx.group).toEqual(3)
@@ -84,7 +84,7 @@ describe('contract', function () {
     const client = new CliqueClient({ baseUrl: 'http://127.0.0.1:22973' })
     await client.init(false)
 
-    const greeter = await Contract.from(client, 'greeter.ral')
+    const greeter = await Contract.fromSource(client, 'greeter.ral')
 
     const testParams: TestContractParams = {
       initialFields: [1]
@@ -105,7 +105,7 @@ describe('contract', function () {
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
-    const main = await Script.from(client, 'greeter_main.ral')
+    const main = await Script.fromSource(client, 'greeter_main.ral')
 
     const mainScriptTx = await main.transactionForDeployment(signer, { greeterContractId: greeterContractId })
     expect(mainScriptTx.group).toEqual(3)
