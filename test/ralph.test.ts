@@ -59,6 +59,7 @@ describe('contract', function () {
     fail(BigInt('-57896044618658097711785492504343953926634992332820282019728792003956564819969'))
     fail(BigInt('-57896044618658097711785492504343953926634992332820282019728792003956564819970'))
   })
+
   it('should encode U256', async () => {
     function test(u256: bigint, expected: string) {
       expect(utils.binToHex(ralph.encodeU256(u256))).toEqual(expected)
@@ -94,14 +95,30 @@ describe('contract', function () {
     fail(BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639936'))
     fail(BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639937'))
   })
+
   it('should encode ByteVec', async () => {
     const bytes = 'b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae'
     const bytecode = ralph.encodeTemplateVariableAsString('ByteVec', bytes)
     expect(bytecode).toEqual('144020b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae')
   })
+
   it('should test buildByteCode', async () => {
     const variables = {x: true, y: 0x05, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'}
     const bytecode = ralph.buildByteCode('-{x:Bool}-{y:U256}-{z:ByteVec}-{a:Address}-', variables)
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
+  })
+
+  it('should test buildByteCode', async () => {
+    const compiled = {
+      type: "TemplateContractByteCode",
+      filedLength: 1,
+      methodsByteCode: [
+        "01000203021205160016015f{subContractId:ByteVec}1702a00016002a16012aa100a000160016011602010002",
+        "00000202020416001601000002"
+      ]
+    }
+    const variables = {subContractId: '55834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b'}
+    const bytecode = ralph.buildContractByteCode(compiled, variables)
+    expect(bytecode).toEqual('01024046405301000203021205160016015f14402055834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b1702a00016002a16012aa100a00016001601160201000200000202020416001601000002')
   })
 })

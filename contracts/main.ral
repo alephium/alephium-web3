@@ -3,6 +3,6 @@ import "add.ral"
 TxScript Main<addContractId: ByteVec, subContractId: ByteVec> {
     pub payable fn main() -> () {
         let add = Add(addContractId)
-        add.add(subContractId, [2, 1])
+        add.add([2, 1])
     }
 }

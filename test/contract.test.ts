@@ -32,10 +32,10 @@ describe('contract', function () {
     const subState = sub.toState([0], { alphAmount: BigInt('1000000000000000000') }, subTestAddress)
     const testParams: TestContractParams = {
       initialFields: [0],
-      testArgs: [subTestAddress, [2, 1]],
+      testArgs: [[2, 1]],
       existingContracts: [subState]
     }
-    const testResult = await add.testPublicMethod(client, 'add', testParams)
+    const testResult = await add.testPublicMethod(client, 'add', testParams, { subContractId: subState.contractId })
     expect(testResult.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResult.returns).toEqual([[3, 1]])
     expect(testResult.contracts[0].fileName).toEqual('sub.ral')
@@ -48,31 +48,31 @@ describe('contract', function () {
     expect(events[1].name).toEqual('Sub')
     expect(events[1].fields).toEqual([2, 1])
 
-    const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams)
+    const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams, { subContractId: subState.contractId } )
     expect(testResultPrivate.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
     const signer = Signer.testSigner(client)
 
     const subDeployTx = await sub.transactionForDeployment(signer, [0])
+    const subContractId = subDeployTx.contractId
     expect(subDeployTx.group).toEqual(3)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
     expect(subSubmitResult.fromGroup).toEqual(3)
     expect(subSubmitResult.toGroup).toEqual(3)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
-    const addDeployTx = await add.transactionForDeployment(signer, [0])
+    const addDeployTx = await add.transactionForDeployment(signer, [0], undefined, { subContractId: subContractId })
     expect(addDeployTx.group).toEqual(3)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
     expect(addSubmitResult.fromGroup).toEqual(3)
     expect(addSubmitResult.toGroup).toEqual(3)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
 
-    const subContractId = subDeployTx.contractId
     const addContractId = addDeployTx.contractId
     const main = await Script.from(client, 'main.ral')
 
-    const mainScriptTx = await main.transactionForDeployment(signer, { addContractId: addContractId, subContractId: subContractId })
+    const mainScriptTx = await main.transactionForDeployment(signer, { addContractId: addContractId })
     expect(mainScriptTx.group).toEqual(3)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(3)
