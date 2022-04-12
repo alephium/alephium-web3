@@ -683,6 +683,9 @@ export interface TestContract {
 }
 
 export interface TestContractResult {
+  /** @format address */
+  address: string
+
   /** @format 32-byte-hash */
   artifactId: string
   returns: Val[]
