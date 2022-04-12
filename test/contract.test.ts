@@ -28,8 +28,7 @@ describe('contract', function () {
     const add = await Contract.from(client, 'add.ral')
     const sub = await Contract.from(client, 'sub.ral')
 
-    const subTestAddress = Contract.randomAddress()
-    const subState = sub.toState([0], { alphAmount: BigInt('1000000000000000000') }, subTestAddress)
+    const subState = sub.toState([0], { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
       initialFields: [0],
       testArgs: [[2, 1]],
@@ -38,9 +37,9 @@ describe('contract', function () {
     const testResult = await add.testPublicMethod(client, 'add', testParams, { subContractId: subState.contractId })
     expect(testResult.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResult.returns).toEqual([[3, 1]])
-    expect(testResult.contracts[0].fileName).toEqual('sub.ral')
+    expect(testResult.contracts[0].artifactId).toEqual(sub.sourceCodeSha256)
     expect(testResult.contracts[0].fields).toEqual([1])
-    expect(testResult.contracts[1].fileName).toEqual('add.ral')
+    expect(testResult.contracts[1].artifactId).toEqual(add.sourceCodeSha256)
     expect(testResult.contracts[1].fields).toEqual([3])
     const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
     expect(events[0].name).toEqual('Add')
@@ -93,7 +92,7 @@ describe('contract', function () {
     const testResult = await greeter.testPublicMethod(client, 'greet', testParams)
     expect(testResult.artifactId).toEqual(greeter.sourceCodeSha256)
     expect(testResult.returns).toEqual([1])
-    expect(testResult.contracts[0].fileName).toEqual('greeter.ral')
+    expect(testResult.contracts[0].artifactId).toEqual(greeter.sourceCodeSha256)
     expect(testResult.contracts[0].fields).toEqual([1])
 
     const signer = Signer.testSigner(client)
