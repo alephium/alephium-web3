@@ -37,11 +37,7 @@ export abstract class Common {
   static readonly interfaceRegex = new RegExp('^Interface [A-Z][a-zA-Z0-9]* \\{', 'mg')
   static readonly scriptRegex = new RegExp('^TxScript [A-Z][a-zA-Z0-9]*', 'mg')
 
-  constructor(
-    fileName: string,
-    sourceCodeSha256: string,
-    functions: api.FunctionSig[]
-  ) {
+  constructor(fileName: string, sourceCodeSha256: string, functions: api.FunctionSig[]) {
     this.fileName = fileName
     this.sourceCodeSha256 = sourceCodeSha256
     this.functions = functions
@@ -171,7 +167,7 @@ export class Contract extends Common {
   }
 
   static async loadContractStr(fileName: string, importsCache: string[]): Promise<string> {
-    return  Common._loadContractStr(fileName, importsCache, (code) => Contract.checkCodeType(fileName, code))
+    return Common._loadContractStr(fileName, importsCache, (code) => Contract.checkCodeType(fileName, code))
   }
 
   static async from(client: CliqueClient, fileName: string): Promise<Contract> {
@@ -546,7 +542,11 @@ export class Script extends Common {
     )
   }
 
-  async transactionForDeployment(signer: Signer, templateVariables?: any, params?: BuildScriptTx): Promise<BuildScriptTxResult> {
+  async transactionForDeployment(
+    signer: Signer,
+    templateVariables?: any,
+    params?: BuildScriptTx
+  ): Promise<BuildScriptTxResult> {
     const apiParams: api.BuildScriptTx = {
       fromPublicKey: await signer.getPublicKey(),
       bytecode: this.buildByteCode(templateVariables),
@@ -909,7 +909,7 @@ export interface DeployContractTransaction {
 }
 
 function fromApiDeployContractUnsignedTx(result: api.BuildContractDeployScriptTxResult): DeployContractTransaction {
-  return {...result, contractId: binToHex(contractIdFromAddress(result.contractAddress))}
+  return { ...result, contractId: binToHex(contractIdFromAddress(result.contractAddress)) }
 }
 
 export interface BuildScriptTx {

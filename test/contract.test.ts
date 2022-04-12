@@ -48,7 +48,9 @@ describe('contract', function () {
     expect(events[1].name).toEqual('Sub')
     expect(events[1].fields).toEqual([2, 1])
 
-    const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams, { subContractId: subState.contractId } )
+    const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams, {
+      subContractId: subState.contractId
+    })
     expect(testResultPrivate.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 

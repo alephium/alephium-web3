@@ -61,24 +61,24 @@ export function encodeI256(i256: bigint): Uint8Array {
 
 // n should be positive
 function toByteArray(n: bigint, signed: boolean, notBit: boolean): Uint8Array {
-    let hex = n.toString(16)
-    if (hex.length % 2 === 1) {
-        hex = '0' + hex
-    } else if (signed && (hex[0] >= '8')) {
-      hex = '00' + hex // add the byte for sign
-    }
+  let hex = n.toString(16)
+  if (hex.length % 2 === 1) {
+    hex = '0' + hex
+  } else if (signed && hex[0] >= '8') {
+    hex = '00' + hex // add the byte for sign
+  }
 
-    const byteLength = hex.length / 2
-    const bytes = new Uint8Array(byteLength + 1)
-    for (let index = 0; index < byteLength; index++) {
-      const offset = index * 2
-      const byte = parseInt(hex.slice(offset, offset + 2), 16)
-      bytes[`${index + 1}`] = notBit ? ~byte : byte
-    }
+  const byteLength = hex.length / 2
+  const bytes = new Uint8Array(byteLength + 1)
+  for (let index = 0; index < byteLength; index++) {
+    const offset = index * 2
+    const byte = parseInt(hex.slice(offset, offset + 2), 16)
+    bytes[`${index + 1}`] = notBit ? ~byte : byte
+  }
 
-    const header = (byteLength - 4) + CompactInt.multiBytePrefix
-    bytes[0] = header
-    return bytes
+  const header = byteLength - 4 + CompactInt.multiBytePrefix
+  bytes[0] = header
+  return bytes
 }
 
 function encodeI256Positive(i256: bigint): Uint8Array {
@@ -89,12 +89,7 @@ function encodeI256Positive(i256: bigint): Uint8Array {
     return new Uint8Array([(num >> 8) + CompactInt.twoBytePrefix, num & 0xff])
   } else if (i256 < Signed.fourByteBound) {
     const num = Number(i256)
-    return new Uint8Array([
-      (num >> 24) + CompactInt.fourBytePrefix,
-      (num >> 16) & 0xff,
-      (num >> 8) & 0xff,
-      num & 0xff
-    ])
+    return new Uint8Array([(num >> 24) + CompactInt.fourBytePrefix, (num >> 16) & 0xff, (num >> 8) & 0xff, num & 0xff])
   } else if (i256 < Signed.i256UpperBound) {
     return toByteArray(i256, true, false)
   } else {
@@ -190,7 +185,7 @@ enum Instruction {
   i256Const = 18,
   u256Const = 19,
   bytesConst = 20,
-  addressConst = 21,
+  addressConst = 21
 }
 
 // TODO: optimize
@@ -209,32 +204,32 @@ export function encodeTemplateVariableAsString(tpe: string, value: any): string 
 
 export function encodeTemplateVariable(tpe: string, value: any): Uint8Array {
   switch (tpe) {
-    case "Bool":
+    case 'Bool':
       if (typeof value === 'boolean') {
         const byte = value ? Instruction.trueConst : Instruction.falseConst
         return new Uint8Array([byte])
       }
       break
-    case "I256":
+    case 'I256':
       if (typeof value === 'number' && Number.isInteger(value)) {
         return encodeI256Variable(BigInt(value))
       } else if (typeof value === 'bigint') {
         return encodeI256Variable(value)
       }
       break
-    case "U256":
+    case 'U256':
       if (typeof value === 'number' && Number.isInteger(value)) {
         return encodeU256Variable(BigInt(value))
       } else if (typeof value === 'bigint') {
         return encodeU256Variable(value)
       }
       break
-    case "ByteVec":
+    case 'ByteVec':
       if (typeof value === 'string') {
         return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(value)])
       }
       break
-    case "Address":
+    case 'Address':
       if (typeof value === 'string') {
         return new Uint8Array([Instruction.addressConst, ...encodeAddress(value)])
       }
@@ -259,14 +254,16 @@ export function buildByteCode(templateByteCode: string, templateVariables: any):
 }
 
 export function buildContractByteCode(compiled: api.TemplateContractByteCode, templateVariables: any): string {
-  const methodsBuilt = compiled.methodsByteCode.map(template => buildByteCode(template, templateVariables))
+  const methodsBuilt = compiled.methodsByteCode.map((template) => buildByteCode(template, templateVariables))
   let count = 0
-  const methodIndexes = methodsBuilt.map(hex => {
+  const methodIndexes = methodsBuilt.map((hex) => {
     count += hex.length / 2
     return count
   })
-  return binToHex(encodeI256(BigInt(compiled.filedLength))) +
+  return (
+    binToHex(encodeI256(BigInt(compiled.filedLength))) +
     binToHex(encodeI256(BigInt(methodIndexes.length))) +
-    methodIndexes.map(index => binToHex(encodeI256(BigInt(index)))).join('') +
+    methodIndexes.map((index) => binToHex(encodeI256(BigInt(index)))).join('') +
     methodsBuilt.join('')
+  )
 }
