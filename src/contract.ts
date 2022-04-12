@@ -241,6 +241,7 @@ export class Contract extends Common {
     return {
       fileName: this.fileName,
       address: address,
+      contractId: binToHex(contractIdFromAddress(address)),
       bytecode: this.buildByteCode(templateVariables),
       artifactId: this.sourceCodeSha256,
       fields: fields,
@@ -266,10 +267,11 @@ export class Contract extends Common {
     funcName: string,
     params: TestContractParams,
     expectPublic: Boolean,
-    accessType: string
+    accessType: string,
+    templateVariables?: any
   ): Promise<TestContractResult> {
     this._contractAddresses.clear()
-    const apiParams: api.TestContract = this.toTestContract(funcName, params)
+    const apiParams: api.TestContract = this.toTestContract(funcName, params, templateVariables)
     const response = await client.contracts.postContractsTestContract(apiParams)
     const apiResult = response.data
 
@@ -287,17 +289,19 @@ export class Contract extends Common {
   async testPublicMethod(
     client: CliqueClient,
     funcName: string,
-    params: TestContractParams
+    params: TestContractParams,
+    templateVariables?: any
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, true, 'public')
+    return this._test(client, funcName, params, true, 'public', templateVariables)
   }
 
   async testPrivateMethod(
     client: CliqueClient,
     funcName: string,
-    params: TestContractParams
+    params: TestContractParams,
+    templateVariables?: any
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, false, 'private')
+    return this._test(client, funcName, params, false, 'private', templateVariables)
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
@@ -381,6 +385,7 @@ export class Contract extends Common {
     return {
       fileName: contract.fileName,
       address: state.address,
+      contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
       artifactId: state.artifactId,
       fields: fromApiVals(state.fields, contract.fields.types),
@@ -459,7 +464,10 @@ export class Contract extends Common {
         }
         return (this.compiled as api.SimpleContractByteCode).bytecode
       case 'TemplateContractByteCode':
-        throw Error('Not implemented')
+        if (typeof templateVariables === 'undefined') {
+          throw Error('The contract needs template variable')
+        }
+        return ralph.buildContractByteCode(this.compiled as api.TemplateContractByteCode, templateVariables)
       default:
         throw Error(`Unknown bytecode type: ${this.compiled.type}`)
     }
@@ -556,12 +564,12 @@ export class Script extends Common {
     switch (this.compiled.type) {
       case 'SimpleScriptByteCode':
         if (typeof templateVariables !== 'undefined') {
-          throw Error('The contract does not need template variable')
+          throw Error('The script does not need template variable')
         }
         return (this.compiled as api.SimpleScriptByteCode).bytecode
       case 'TemplateScriptByteCode':
         if (typeof templateVariables === 'undefined') {
-          throw Error('The contract needs template variable')
+          throw Error('The script needs template variable')
         }
         return ralph.buildByteCode((this.compiled as api.TemplateScriptByteCode).templateByteCode, templateVariables!)
       default:
@@ -784,6 +792,7 @@ export interface InputAsset {
 export interface ContractState {
   fileName: string
   address: string
+  contractId: string
   bytecode: string
   artifactId: string
   fields: Val[]

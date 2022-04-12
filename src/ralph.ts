@@ -17,10 +17,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import bs58 from './bs58'
-import { isHexString, tokenIdFromAddress } from './utils'
+import { binToHex, isHexString } from './utils'
+import * as api from '../api/api-alephium'
 
 const bigIntZero = BigInt(0)
-
 
 class UnSigned {
   static readonly oneByteBound = BigInt(0x40)
@@ -246,18 +246,27 @@ export function encodeTemplateVariable(tpe: string, value: any): Uint8Array {
 
 const templateVariableRegex = /\{([a-z][a-zA-Z0-9]*):([A-Z][a-zA-Z0-9]*)\}/g
 export function buildByteCode(templateByteCode: string, templateVariables: any): string {
-  const replaced = templateByteCode.replace(templateVariableRegex, (match, p1, p2) => {
+  return templateByteCode.replace(templateVariableRegex, (match, p1, p2) => {
     const variableName = p1
     const variableType = p2
     if (variableName in templateVariables) {
       const variableValue = templateVariables[`${variableName}`]
-      const x = encodeTemplateVariableAsString(variableType, variableValue)
-      console.log(`====== ${variableName}, ${variableType}, ${variableValue}, ${x}`)
-      return x
+      return encodeTemplateVariableAsString(variableType, variableValue)
     } else {
       throw new Error(`The value of variable ${variableName} is not provided`)
     }
   })
-  console.log(`======= \n${templateByteCode}\n${replaced}\n`)
-  return replaced
+}
+
+export function buildContractByteCode(compiled: api.TemplateContractByteCode, templateVariables: any): string {
+  const methodsBuilt = compiled.methodsByteCode.map(template => buildByteCode(template, templateVariables))
+  let count = 0
+  const methodIndexes = methodsBuilt.map(hex => {
+    count += hex.length / 2
+    return count
+  })
+  return binToHex(encodeI256(BigInt(compiled.filedLength))) +
+    binToHex(encodeI256(BigInt(methodIndexes.length))) +
+    methodIndexes.map(index => binToHex(encodeI256(BigInt(index)))).join('') +
+    methodsBuilt.join('')
 }
