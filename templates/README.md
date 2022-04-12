@@ -17,14 +17,14 @@ npm run build
 ## Start a devnet
 
 ```
-npm run devnet:start // this will start a devnet for smart contract tests
+npm run start-devnet // this will start a devnet for smart contract tests
 ```
 
 ## Stop/restart devnet
 
 ```
-npm run devnet:stop
-npm run devnet:restart
+npm run stop-devnet
+npm run restart-devnet
 ```
 
 ## Testing
