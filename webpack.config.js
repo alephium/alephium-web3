@@ -16,14 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+const path = require('path')
 const webpack = require('webpack')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   mode: 'production',
   entry: {
-    alephium: './dist/lib/index.js'
+    alephium: './dist/src/index.js'
   },
   plugins: [
+    new CleanWebpackPlugin(),
+    new HtmlWebpackPlugin({ title: 'Caching' }),
     new webpack.SourceMapDevToolPlugin({ filename: '[file].map' }),
     new webpack.ProvidePlugin({
       Buffer: ['buffer', 'Buffer']
@@ -35,8 +40,17 @@ module.exports = {
       }
     })
   ],
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        exclude: /node_modules/
+      }
+    ]
+  },
   resolve: {
-    extensions: ['.js'],
+    extensions: ['.tsx', '.ts', '.js'],
     fallback: {
       fs: false,
       stream: require.resolve('stream-browserify'),
@@ -46,6 +60,7 @@ module.exports = {
   },
   output: {
     filename: 'alephium-web3.min.js',
+    path: path.resolve(__dirname, 'dist'),
     library: {
       name: 'alephium',
       type: 'umd'
