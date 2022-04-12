@@ -122,18 +122,12 @@ function encodeI256Negative(i256: bigint): Uint8Array {
 export function encodeU256(u256: bigint): Uint8Array {
   if (u256 < bigIntZero) {
     throw Error(`Negative number for U256: ${u256}`)
-  }
-
-  if (u256 < UnSigned.oneByteBound) {
+  } else if (u256 < UnSigned.oneByteBound) {
     return new Uint8Array([Number(u256) + CompactInt.oneBytePrefix])
-  }
-
-  if (u256 < UnSigned.twoByteBound) {
+  } else if (u256 < UnSigned.twoByteBound) {
     const num = Number(u256)
     return new Uint8Array([((num >> 8) & 0xff) + CompactInt.twoBytePrefix, num & 0xff])
-  }
-
-  if (u256 < UnSigned.fourByteBound) {
+  } else if (u256 < UnSigned.fourByteBound) {
     const num = Number(u256)
     return new Uint8Array([
       ((num >> 24) & 0xff) + CompactInt.fourBytePrefix,
@@ -143,9 +137,9 @@ export function encodeU256(u256: bigint): Uint8Array {
     ])
   } else if (u256 < UnSigned.u256UpperBound) {
     return toByteArray(u256, false, false)
+  } else {
+    throw Error(`Too large number for U256: ${u256}`)
   }
-
-  throw Error(`Too large number for U256: ${u256}`)
 }
 
 export function encodeByteVec(bytes: string): Uint8Array {
