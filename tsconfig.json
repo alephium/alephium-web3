@@ -5,15 +5,16 @@
     "module": "commonjs",
     "target": "ES2015",
     "lib": ["dom", "es2016"],
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "inlineSourceMap": true,
-    "inlineSources": true,
     "declarationMap": true,
     "noFallthroughCasesInSwitch": true,
     "strictFunctionTypes": true,
     "esModuleInterop": true
   },
+  "include": ["src/**/*", "script/**/*"],
   "exclude": ["node_modules", "templates"]
 }
