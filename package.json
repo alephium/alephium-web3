@@ -55,6 +55,7 @@
     "restart-devnet": "npm run start-devnet",
     "stop-devnet": "node scripts/stop-devnet.js"
   },
+  "type": "commonjs",
   "bin": {
     "alephium": "dist/scripts/create-project.js"
   },
