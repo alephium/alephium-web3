@@ -22,6 +22,7 @@ import process from 'process'
 import path from 'path'
 import findup from 'find-up'
 import chalk from 'chalk'
+import { execSync } from 'child_process'
 
 function getPackageRoot(): string {
   const packageJsonPath = findup.sync('package.json', { cwd: path.dirname(__filename) })
@@ -51,7 +52,7 @@ function extractProjectType(): string {
   const projectType = process.argv[3]
   if (typeof projectType === 'undefined') {
     return 'base'
-  } else if (['base', 'react'].includes(projectName)) {
+  } else if (['base', 'react'].includes(projectType)) {
     return projectType
   } else {
     console.log(`Invalid project type: ${projectType}, expect: base or react`)
@@ -72,27 +73,24 @@ function extractProjectRoot(): string {
 function copy(dir: string, files: string[]) {
   const packageDevDir = path.join(packageRoot, dir)
   const projectDevDir = path.join(projectRoot, dir)
-  fsExtra.mkdirSync(projectDevDir)
+  if (!fsExtra.existsSync(projectDevDir)) {
+    fsExtra.mkdirSync(projectDevDir)
+  }
   for (const file of files) {
     fsExtra.copyFileSync(path.join(packageDevDir, file), path.join(projectDevDir, file))
   }
 }
 
-function prepareBase(packageRoot, projectRoot) {
-  copy('', [
-    '.editorconfig',
-    '.eslintignore',
-    '.eslintrc.json',
-    '.gitattributes',
-    '.prettierrc.json',
-    'LICENSE',
-    'webpack.config.js'
-  ])
+function prepareShared(packageRoot: string, projectRoot: string) {
+  console.log('Copying files')
+  console.log(`  from ${packageRoot}`)
+  console.log(`  to ${projectRoot}`)
+  console.log('...')
+
+  fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
+  copy('', ['.editorconfig', '.eslintignore', '.gitattributes', '.prettierrc.json', 'LICENSE'])
   copy('dev', ['user.conf'])
   copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
-  copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
-  fsExtra.mkdirSync(path.join(projectRoot, 'src'))
-  fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
   if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
     fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
   } else {
@@ -100,7 +98,20 @@ function prepareBase(packageRoot, projectRoot) {
   }
 }
 
-function prepareReact(packageRoot, projectRoot) {
+function prepareBase(packageRoot: string, projectRoot: string) {
+  prepareShared(packageRoot, projectRoot)
+  copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
+  fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
+}
+
+function prepareReact(packageRoot: string, projectRoot: string, projectName: string) {
+  console.log('Creating the react app')
+  execSync(`npx create-react-app ${projectName} --template typescript`)
+  prepareShared(packageRoot, projectRoot)
+  fsExtra.copySync(path.join(packageRoot, 'templates/react'), projectRoot)
+  execSync(
+    `npm install --save-dev --package-lock-only --no-package-lock react-app-rewired crypto-browserify stream-browserify buffer process`
+  )
   return
 }
 
@@ -108,17 +119,13 @@ const packageRoot = getPackageRoot()
 const projectParent = process.cwd()
 const projectName = extractProjectName()
 const projectRoot = extractProjectRoot()
-console.log('Copying files')
-console.log(`  from ${packageRoot}`)
-console.log(`  to ${projectRoot}`)
-console.log('...')
 
 switch (extractProjectType()) {
   case 'base':
     prepareBase(packageRoot, projectRoot)
     break
   case 'react':
-    prepareReact(packageRoot, projectRoot)
+    prepareReact(packageRoot, projectRoot, projectName)
     break
 }
 

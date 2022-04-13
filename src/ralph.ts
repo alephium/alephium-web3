@@ -48,7 +48,7 @@ class CompactInt {
   static readonly multiBytePrefix = 0xc0
 }
 
-export function encodeBool(bool: Boolean): Uint8Array {
+export function encodeBool(bool: boolean): Uint8Array {
   return bool ? Uint8Array.from([1]) : Uint8Array.from([0])
 }
 
