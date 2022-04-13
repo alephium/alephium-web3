@@ -168,7 +168,7 @@ export class Contract extends Common {
     const contractMatches = contractStr.match(Contract.contractRegex)
     if (contractMatches === null) {
       throw new Error(`No contract found in: ${fileName}`)
-    } else if (contractMatches!.length > 1) {
+    } else if (contractMatches.length > 1) {
       throw new Error(`Multiple contracts in: ${fileName}`)
     } else {
       return
@@ -567,7 +567,7 @@ export class Script extends Common {
         if (typeof templateVariables === 'undefined') {
           throw Error('The script needs template variable')
         }
-        return ralph.buildByteCode((this.compiled as api.TemplateScriptByteCode).templateByteCode, templateVariables!)
+        return ralph.buildByteCode((this.compiled as api.TemplateScriptByteCode).templateByteCode, templateVariables)
       default:
         throw Error(`Unknown bytecode type: ${this.compiled.type}`)
     }
