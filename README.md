@@ -10,7 +10,7 @@ A JavaScript/TypeScript library for building decentralized applications on the A
 You could run the following command to scaffold a skeleton project for smart contract development.
 
 ```
-npx alephium-web3 [name]
+npx alephium-web3 <project-dir> [-t template-name]
 ```
 
 ## Install
