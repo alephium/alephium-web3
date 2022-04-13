@@ -23,7 +23,7 @@ const saltByteLength = 64
 const ivByteLength = 64
 const authTagLength = 16
 
-export const encrypt = (password: string, dataRaw: string) => {
+export const encrypt = (password: string, dataRaw: string): string => {
   const data = Buffer.from(dataRaw, 'utf8')
 
   const salt = randomBytes(saltByteLength)
@@ -42,7 +42,7 @@ export const encrypt = (password: string, dataRaw: string) => {
   return JSON.stringify(payload)
 }
 
-export const decrypt = (password: string, payloadRaw: string) => {
+export const decrypt = (password: string, payloadRaw: string): string => {
   const payload = JSON.parse(payloadRaw)
 
   const version = payload.version

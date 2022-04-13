@@ -24,7 +24,7 @@ import { Buffer } from 'buffer/'
 import { TOTAL_NUMBER_OF_GROUPS } from './constants'
 import djb2 from './djb2'
 
-export const signatureEncode = (ec: EC.ec, signature: EC.ec.Signature) => {
+export const signatureEncode = (ec: EC.ec, signature: EC.ec.Signature): string => {
   let sNormalized = signature.s
   if (ec.n && signature.s.cmp(ec.nh) === 1) {
     sNormalized = ec.n.sub(signature.s)
@@ -36,7 +36,7 @@ export const signatureEncode = (ec: EC.ec, signature: EC.ec.Signature) => {
 }
 
 // the signature should be in hex string format for 64 bytes
-export const signatureDecode = (ec: EC.ec, signature: string) => {
+export const signatureDecode = (ec: EC.ec, signature: string): EC.SignatureInput => {
   if (signature.length !== 128) {
     throw new Error('Invalid signature length')
   }
