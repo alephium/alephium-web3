@@ -4,7 +4,6 @@ web/
 .vscode
 .DS_Store
 coverage/
-dev/logs
-dev/network*
-dev/alephium*
+dev/
+!dev/user.conf
 artifacts/

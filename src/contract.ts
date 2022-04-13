@@ -38,7 +38,7 @@ export abstract class Common {
   static readonly scriptRegex = new RegExp('^TxScript [A-Z][a-zA-Z0-9]*', 'mg')
 
   private static _artifactCache: Map<string, Contract | Script> = new Map<string, Contract | Script>()
-  static artifactCacheCapacity: number = 20
+  static artifactCacheCapacity = 20
   protected static _getArtifactFromCache(artifactId: string): Contract | Script | undefined {
     return this._artifactCache.get(artifactId)
   }
@@ -265,7 +265,7 @@ export class Contract extends Common {
     client: CliqueClient,
     funcName: string,
     params: TestContractParams,
-    expectPublic: Boolean,
+    expectPublic: boolean,
     accessType: string,
     templateVariables?: any
   ): Promise<TestContractResult> {

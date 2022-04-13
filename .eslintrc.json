@@ -1,9 +1,14 @@
 {
   "plugins": ["security", "header"],
-  "extends": ["prettier", "plugin:security/recommended"],
+  "extends": [
+    "prettier",
+    "plugin:prettier/recommended",
+    "plugin:security/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "parserOptions": {
     "project": "tsconfig.json",
-    "ecmaVersion": 2017,
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "parser": "@typescript-eslint/parser",
