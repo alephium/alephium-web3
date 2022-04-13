@@ -4,6 +4,6 @@ web/
 .vscode
 .DS_Store
 coverage/
-dev/
+/dev/
 !dev/user.conf
-artifacts/
+/artifacts/
