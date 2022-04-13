@@ -33,29 +33,41 @@ function getPackageRoot(): string {
   }
 }
 
-const packageRoot = getPackageRoot()
-const projectParent = process.cwd()
+function extractProjectName(): string {
+  const projectName = process.argv[2]
+  if (!projectName) {
+    console.log('Please provide a project name')
+    console.log(`  ${chalk.cyan('alephium')} ${chalk.green('<project-name>')}`)
+    console.log()
+    console.log('For example:')
+    console.log(`  ${chalk.cyan('alephium')} ${chalk.green('my-alephium-dapp')}`)
+    console.log()
+    process.exit(1)
+  }
+  return projectName
+}
 
-const projectName = process.argv[2]
-if (!projectName) {
-  console.log('Please provide a project name')
-  console.log(`  ${chalk.cyan('alephium')} ${chalk.green('<project-name>')}`)
-  console.log()
-  console.log('For example:')
-  console.log(`  ${chalk.cyan('alephium')} ${chalk.green('my-alephium-dapp')}`)
-  console.log()
-  process.exit(1)
+function extractProjectType(): string {
+  const projectType = process.argv[3]
+  if (typeof projectType === 'undefined') {
+    return 'base'
+  } else if (['base', 'react'].includes(projectName)) {
+    return projectType
+  } else {
+    console.log(`Invalid project type: ${projectType}, expect: base or react`)
+    process.exit(1)
+  }
 }
-const projectRoot = path.join(projectParent, projectName)
-if (fsExtra.existsSync(projectRoot)) {
-  console.log(`Project ${projectName} already exists. Try a different name.`)
-  console.log()
-  process.exit(1)
+
+function extractProjectRoot(): string {
+  const projectRoot = path.join(projectParent, projectName)
+  if (fsExtra.existsSync(projectRoot)) {
+    console.log(`Project ${projectName} already exists. Try a different name.`)
+    console.log()
+    process.exit(1)
+  }
+  return projectRoot
 }
-console.log('Copying files')
-console.log(`  from ${packageRoot}`)
-console.log(`  to ${projectRoot}`)
-console.log('...')
 
 function copy(dir: string, files: string[]) {
   const packageDevDir = path.join(packageRoot, dir)
@@ -66,16 +78,48 @@ function copy(dir: string, files: string[]) {
   }
 }
 
-copy('', ['.editorconfig', '.eslintignore', '.eslintrc.json', '.gitattributes', '.prettierrc.json', 'LICENSE', 'webpack.config.js'])
-copy('dev', ['user.conf'])
-copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
-copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
-fsExtra.mkdirSync(path.join(projectRoot, 'src'))
-fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
-if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
-  fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
-} else {
-  fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
+function prepareBase(packageRoot, projectRoot) {
+  copy('', [
+    '.editorconfig',
+    '.eslintignore',
+    '.eslintrc.json',
+    '.gitattributes',
+    '.prettierrc.json',
+    'LICENSE',
+    'webpack.config.js'
+  ])
+  copy('dev', ['user.conf'])
+  copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
+  copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
+  fsExtra.mkdirSync(path.join(projectRoot, 'src'))
+  fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
+  if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
+    fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
+  } else {
+    fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
+  }
+}
+
+function prepareReact(packageRoot, projectRoot) {
+  return
+}
+
+const packageRoot = getPackageRoot()
+const projectParent = process.cwd()
+const projectName = extractProjectName()
+const projectRoot = extractProjectRoot()
+console.log('Copying files')
+console.log(`  from ${packageRoot}`)
+console.log(`  to ${projectRoot}`)
+console.log('...')
+
+switch (extractProjectType()) {
+  case 'base':
+    prepareBase(packageRoot, projectRoot)
+    break
+  case 'react':
+    prepareReact(packageRoot, projectRoot)
+    break
 }
 
 console.log('✅ Done.')
