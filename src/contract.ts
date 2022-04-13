@@ -487,7 +487,7 @@ export class Script extends Common {
     }
   }
 
-  static async loadContractStr(fileName: string, importsCache: string[]): Promise<string> {
+  private static async loadContractStr(fileName: string, importsCache: string[]): Promise<string> {
     return Common._loadContractStr(fileName, importsCache, (code) => Script.checkCodeType(fileName, code))
   }
 
@@ -512,14 +512,18 @@ export class Script extends Common {
     return artifact
   }
 
-  static async loadContract(fileName: string): Promise<Script> {
-    const artifactPath = Common._artifactPath(fileName)
-    const content = await fsPromises.readFile(artifactPath)
-    const artifact = JSON.parse(content.toString())
+  static fromJson(artifact: any): Script {
     if (artifact.compiled == null || artifact.functions == null) {
       throw new Event('= Compilation did not return the right data')
     }
     return new Script(artifact.sourceCodeSha256, artifact.compiled, artifact.functions)
+  }
+
+  static async fromArtifactFile(fileName: string): Promise<Script> {
+    const artifactPath = Common._artifactPath(fileName)
+    const content = await fsPromises.readFile(artifactPath)
+    const artifact = JSON.parse(content.toString())
+    return this.fromJson(artifact)
   }
 
   toString(): string {
