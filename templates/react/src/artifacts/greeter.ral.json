@@ -1,0 +1,20 @@
+{
+  "sourceCodeSha256": "10fe90ccf08b6b3fd2a653bd4258628f5dd165788cc48a83f9d6ff8039404588",
+  "compiled": {
+    "type": "SimpleContractByteCode",
+    "bytecode": "010109010000000102a00002"
+  },
+  "fields": {
+    "signature": "TxContract Greeter(btcPrice:U256)",
+    "types": ["U256"]
+  },
+  "functions": [
+    {
+      "name": "greet",
+      "signature": "pub greet()->(U256)",
+      "argTypes": [],
+      "returnTypes": ["U256"]
+    }
+  ],
+  "events": []
+}
