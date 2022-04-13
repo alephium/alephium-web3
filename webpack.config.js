@@ -19,7 +19,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 const path = require('path')
 const webpack = require('webpack')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   mode: 'production',
@@ -28,7 +27,7 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
-    new HtmlWebpackPlugin({ title: 'Caching' }),
+    new webpack.SourceMapDevToolPlugin({ filename: "[file].map" }),
     new webpack.IgnorePlugin({ contextRegExp: /^\.\/wordlists\/(?!english)/, resourceRegExp: /bip39\/src$/ })
   ],
   module: {
@@ -49,7 +48,7 @@ module.exports = {
     }
   },
   output: {
-    filename: '[name].min.js',
+    filename: 'alephium-web3.min.js',
     path: path.resolve(__dirname, 'dist'),
     library: 'alephium-web3',
     libraryTarget: 'umd'
