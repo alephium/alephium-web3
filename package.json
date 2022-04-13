@@ -99,6 +99,7 @@
     "rewire": "^6.0.0",
     "shelljs": "^0.8.5",
     "swagger-typescript-api": "^9.2.0",
+    "terser-webpack-plugin": "^5.3.1",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
     "tslib": "^2.3.1",

@@ -19,6 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 const path = require('path')
 const webpack = require('webpack')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 
 module.exports = {
   mode: 'production',
@@ -27,7 +28,7 @@ module.exports = {
   },
   plugins: [
     new CleanWebpackPlugin(),
-    new webpack.SourceMapDevToolPlugin({ filename: "[file].map" }),
+    new webpack.SourceMapDevToolPlugin({ filename: '[file].map' }),
     new webpack.IgnorePlugin({ contextRegExp: /^\.\/wordlists\/(?!english)/, resourceRegExp: /bip39\/src$/ })
   ],
   module: {
@@ -52,5 +53,19 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     library: 'alephium-web3',
     libraryTarget: 'umd'
+  },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false
+          },
+          compress: true
+        },
+        extractComments: false
+      })
+    ]
   }
 }
