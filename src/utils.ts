@@ -62,6 +62,10 @@ const xorByte = (intValue: number) => {
   return (byte0 ^ byte1 ^ byte2 ^ byte3) & 0xff
 }
 
+export function isHexString(input: string): boolean {
+  return input.length % 2 === 0 && /[0-9a-f]*$/.test(input)
+}
+
 enum AddressType {
   P2PKH = 0x00,
   P2MPKH = 0x01,
@@ -117,7 +121,15 @@ const groupOfP2shAddress = (address: Uint8Array): number => {
   return groupOfAddressBytes(address)
 }
 
-export function tokenIdFromAddress(address: string): string {
+export function contractIdFromAddress(address: string): Uint8Array {
+  return idFromAddress(address)
+}
+
+export function tokenIdFromAddress(address: string): Uint8Array {
+  return idFromAddress(address)
+}
+
+function idFromAddress(address: string): Uint8Array {
   const decoded = bs58.decode(address)
 
   if (decoded.length == 0) throw new Error('Address string is empty')
@@ -125,8 +137,16 @@ export function tokenIdFromAddress(address: string): string {
   const addressBody = decoded.slice(1)
 
   if (addressType == AddressType.P2C) {
-    return Buffer.from(addressBody).toString('hex')
+    return addressBody
   } else {
     throw new Error(`Invalid contract address type: ${addressType}`)
   }
+}
+
+export function hexToBinUnsafe(hex: string): Uint8Array {
+  return Buffer.from(hex, 'hex')
+}
+
+export function binToHex(bin: Uint8Array): string {
+  return Buffer.from(bin).toString('hex')
 }
