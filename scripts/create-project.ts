@@ -88,7 +88,7 @@ function prepareShared(packageRoot: string, projectRoot: string) {
   console.log('...')
 
   fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
-  copy('', ['.editorconfig', '.eslintignore', '.gitattributes', '.prettierrc.json', 'LICENSE'])
+  copy('', ['.editorconfig', '.eslintignore', '.gitattributes', 'LICENSE'])
   copy('dev', ['user.conf'])
   copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
   if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
@@ -105,7 +105,7 @@ function prepareBase(packageRoot: string, projectRoot: string) {
 }
 
 function prepareReact(packageRoot: string, projectRoot: string, projectName: string) {
-  console.log('Creating the react app')
+  console.log('Creating the React app')
   execSync(`npx create-react-app ${projectName} --template typescript`)
   prepareShared(packageRoot, projectRoot)
   fsExtra.copySync(path.join(packageRoot, 'templates/react'), projectRoot)
@@ -133,9 +133,5 @@ console.log('✅ Done.')
 console.log()
 console.log('✨ Project is initialized!')
 console.log()
-console.log('Next steps:')
-console.log(`  ${chalk.cyan(`cd ${projectName}`)}`)
-console.log(`  ${chalk.cyan('npm install')}`)
-console.log(`  ${chalk.cyan('npm run build')}`)
-console.log(`  ${chalk.cyan('npm run devnet:start')}`)
-console.log(`  ${chalk.cyan('node dist/greeter.js')}`)
+console.log('Next step: checkout the readme under ${projectName}')
+console.log()
