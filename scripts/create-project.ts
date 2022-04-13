@@ -22,6 +22,8 @@ import process from 'process'
 import path from 'path'
 import findup from 'find-up'
 import chalk from 'chalk'
+import { execSync } from 'child_process'
+import commander from 'commander'
 
 function getPackageRoot(): string {
   const packageJsonPath = findup.sync('package.json', { cwd: path.dirname(__filename) })
@@ -33,58 +35,103 @@ function getPackageRoot(): string {
   }
 }
 
-const packageRoot = getPackageRoot()
-const projectParent = process.cwd()
+function extractProjectType(projectType: string): string {
+  if (typeof projectType === 'undefined') {
+    return 'base'
+  } else if (['base', 'react'].includes(projectType)) {
+    return projectType
+  } else {
+    console.log(`Invalid project type: ${projectType}, expect: base or react`)
+    process.exit(1)
+  }
+}
 
-const projectName = process.argv[2]
-if (!projectName) {
-  console.log('Please provide a project name')
-  console.log(`  ${chalk.cyan('alephium')} ${chalk.green('<project-name>')}`)
-  console.log()
-  console.log('For example:')
-  console.log(`  ${chalk.cyan('alephium')} ${chalk.green('my-alephium-dapp')}`)
-  console.log()
-  process.exit(1)
+function extractProjectRoot(): string {
+  const projectRoot = path.join(projectParent, projectName)
+  if (fsExtra.existsSync(projectRoot)) {
+    console.log(`Project ${projectName} already exists. Try a different name.`)
+    console.log()
+    process.exit(1)
+  }
+  return projectRoot
 }
-const projectRoot = path.join(projectParent, projectName)
-if (fsExtra.existsSync(projectRoot)) {
-  console.log(`Project ${projectName} already exists. Try a different name.`)
-  console.log()
-  process.exit(1)
-}
-console.log('Copying files')
-console.log(`  from ${packageRoot}`)
-console.log(`  to ${projectRoot}`)
-console.log('...')
 
 function copy(dir: string, files: string[]) {
   const packageDevDir = path.join(packageRoot, dir)
   const projectDevDir = path.join(projectRoot, dir)
-  fsExtra.mkdirSync(projectDevDir)
+  if (!fsExtra.existsSync(projectDevDir)) {
+    fsExtra.mkdirSync(projectDevDir)
+  }
   for (const file of files) {
     fsExtra.copyFileSync(path.join(packageDevDir, file), path.join(projectDevDir, file))
   }
 }
 
-copy('', ['.gitattributes', '.editorconfig', '.eslintignore', '.eslintrc.json', '.prettierrc.json'])
-copy('dev', ['user.conf'])
-copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
-copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
-fsExtra.mkdirSync(path.join(projectRoot, 'src'))
-fsExtra.copySync(path.join(packageRoot, 'templates'), projectRoot)
-if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
-  fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
-} else {
-  fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
+function prepareShared(packageRoot: string, projectRoot: string) {
+  console.log('Copying files')
+  console.log(`  from ${packageRoot}`)
+  console.log(`  to ${projectRoot}`)
+  console.log('...')
+
+  fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
+  copy('', ['.editorconfig', '.eslintignore', '.gitattributes', 'LICENSE'])
+  copy('dev', ['user.conf'])
+  copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
+  if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
+    fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
+  } else {
+    fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
+  }
+
+  console.log()
+}
+
+function prepareBase(packageRoot: string, projectRoot: string) {
+  prepareShared(packageRoot, projectRoot)
+  copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
+  fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
+}
+
+function prepareReact(packageRoot: string, projectRoot: string, projectName: string) {
+  console.log('Creating the React app')
+  execSync(`npx create-react-app ${projectName} --template typescript`)
+
+  prepareShared(packageRoot, projectRoot)
+  fsExtra.copySync(path.join(packageRoot, 'templates/react'), projectRoot)
+
+  console.log('Initialize the project')
+  execSync(`cd ${projectName}`)
+  execSync(
+    `npm install --save-dev react-app-rewired crypto-browserify stream-browserify buffer process eslint-config-prettier eslint-plugin-header eslint-plugin-prettier eslint-plugin-react`
+  )
+  execSync('npm install && npm run prettier')
+  console.log()
+}
+
+const program = new commander.Command('Create sample project')
+  .arguments('<project-directory>')
+  .option('-t, --template <path-to-template>', 'specify a template for the project: either base or react')
+  .parse(process.argv)
+
+const projectName = program.processedArgs[0]
+const projectType = program.opts()['template']
+
+const packageRoot = getPackageRoot()
+const projectParent = process.cwd()
+const projectRoot = extractProjectRoot()
+
+switch (extractProjectType(projectType)) {
+  case 'base':
+    prepareBase(packageRoot, projectRoot)
+    break
+  case 'react':
+    prepareReact(packageRoot, projectRoot, projectName)
+    break
 }
 
 console.log('✅ Done.')
 console.log()
 console.log('✨ Project is initialized!')
 console.log()
-console.log('Next steps:')
-console.log(`  ${chalk.cyan(`cd ${projectName}`)}`)
-console.log(`  ${chalk.cyan('npm install')}`)
-console.log(`  ${chalk.cyan('npm run build')}`)
-console.log(`  ${chalk.cyan('npm run devnet:start')}`)
-console.log(`  ${chalk.cyan('node dist/greeter.js')}`)
+console.log(`Next step: checkout the readme under <${projectName}>`)
+console.log()

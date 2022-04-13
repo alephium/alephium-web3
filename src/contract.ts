@@ -38,11 +38,11 @@ export abstract class Common {
   static readonly scriptRegex = new RegExp('^TxScript [A-Z][a-zA-Z0-9]*', 'mg')
 
   private static _artifactCache: Map<string, Contract | Script> = new Map<string, Contract | Script>()
-  static artifactCacheCapacity: number = 20
+  static artifactCacheCapacity = 20
   protected static _getArtifactFromCache(artifactId: string): Contract | Script | undefined {
     return this._artifactCache.get(artifactId)
   }
-  protected static _putArtifactToCache(artifactId: string, contract: Contract) {
+  protected static _putArtifactToCache(artifactId: string, contract: Contract): void {
     if (!this._artifactCache.has(artifactId)) {
       if (this._artifactCache.size >= this.artifactCacheCapacity) {
         const keyToDelete = this._artifactCache.keys().next().value
@@ -168,7 +168,7 @@ export class Contract extends Common {
     const contractMatches = contractStr.match(Contract.contractRegex)
     if (contractMatches === null) {
       throw new Error(`No contract found in: ${fileName}`)
-    } else if (contractMatches!.length > 1) {
+    } else if (contractMatches.length > 1) {
       throw new Error(`Multiple contracts in: ${fileName}`)
     } else {
       return
@@ -265,7 +265,7 @@ export class Contract extends Common {
     client: CliqueClient,
     funcName: string,
     params: TestContractParams,
-    expectPublic: Boolean,
+    expectPublic: boolean,
     accessType: string,
     templateVariables?: any
   ): Promise<TestContractResult> {
@@ -302,7 +302,7 @@ export class Contract extends Common {
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
-    return fields ? toApiFields(fields!, this.fields.types) : []
+    return fields ? toApiFields(fields, this.fields.types) : []
   }
 
   toApiArgs(funcName: string, args?: Val[]): api.Val[] {
@@ -428,7 +428,7 @@ export class Contract extends Common {
       events: await Promise.all(
         result.events.map((event) => {
           const contractAddress = (event as api.ContractEvent).contractAddress
-          return Contract.fromApiEvent(event, addressToArtifactId.get(contractAddress)!)
+          return Contract.fromApiEvent(event, addressToArtifactId.get(contractAddress))
         })
       )
     }
@@ -567,7 +567,7 @@ export class Script extends Common {
         if (typeof templateVariables === 'undefined') {
           throw Error('The script needs template variable')
         }
-        return ralph.buildByteCode((this.compiled as api.TemplateScriptByteCode).templateByteCode, templateVariables!)
+        return ralph.buildByteCode((this.compiled as api.TemplateScriptByteCode).templateByteCode, templateVariables)
       default:
         throw Error(`Unknown bytecode type: ${this.compiled.type}`)
     }

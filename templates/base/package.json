@@ -1,9 +1,9 @@
 {
   "name": "my-dapp-template",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "GPL",
   "config": {
-    "alephium_version": "1.3.0"
+    "alephium_version": "1.4.0-alpha3"
   },
   "scripts": {
     "build": "rm -rf dist && npx tsc --build .",
@@ -12,7 +12,7 @@
     "stop-devnet": "node scripts/stop-devnet.js"
   },
   "dependencies": {
-    "alephium-web3": "0.1.2"
+    "alephium-web3": "0.2.0-alpha2"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
