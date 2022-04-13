@@ -21,7 +21,6 @@ import fsExtra from 'fs-extra'
 import process from 'process'
 import path from 'path'
 import findup from 'find-up'
-import chalk from 'chalk'
 import { execSync } from 'child_process'
 import commander from 'commander'
 
