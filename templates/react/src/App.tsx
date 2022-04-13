@@ -5,7 +5,7 @@ import { explorer, Contract, Script } from 'alephium-web3'
 import contractJson from './artifacts/greeter.ral.json'
 import scriptJson from './artifacts/greeter_main.ral.json'
 
-class Block extends React.Component<{}, { blocks: string; contract: string; script: string }> {
+class Block extends React.Component<Record<string, never>, { blocks: string; contract: string; script: string }> {
   readonly api = new explorer.Api<null>({ baseUrl: 'https://mainnet-backend.alephium.org' })
   state = { blocks: '', contract: '', script: '' }
 

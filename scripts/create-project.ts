@@ -96,6 +96,8 @@ function prepareShared(packageRoot: string, projectRoot: string) {
   } else {
     fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
   }
+
+  console.log()
 }
 
 function prepareBase(packageRoot: string, projectRoot: string) {
@@ -107,12 +109,17 @@ function prepareBase(packageRoot: string, projectRoot: string) {
 function prepareReact(packageRoot: string, projectRoot: string, projectName: string) {
   console.log('Creating the React app')
   execSync(`npx create-react-app ${projectName} --template typescript`)
+
   prepareShared(packageRoot, projectRoot)
   fsExtra.copySync(path.join(packageRoot, 'templates/react'), projectRoot)
+
+  console.log('Initialize the project')
+  execSync(`cd ${projectName}`)
   execSync(
-    `npm install --save-dev --package-lock-only --no-package-lock react-app-rewired crypto-browserify stream-browserify buffer process`
+    `npm install --save-dev react-app-rewired crypto-browserify stream-browserify buffer process eslint-config-prettier eslint-plugin-header eslint-plugin-prettier eslint-plugin-react`
   )
-  return
+  execSync('npm install && npm run prettier')
+  console.log()
 }
 
 const packageRoot = getPackageRoot()
@@ -133,5 +140,5 @@ console.log('✅ Done.')
 console.log()
 console.log('✨ Project is initialized!')
 console.log()
-console.log('Next step: checkout the readme under ${projectName}')
+console.log(`Next step: checkout the readme under ${projectName}`)
 console.log()
