@@ -42,7 +42,7 @@ export abstract class Common {
   protected static _getArtifactFromCache(artifactId: string): Contract | Script | undefined {
     return this._artifactCache.get(artifactId)
   }
-  protected static _putArtifactToCache(artifactId: string, contract: Contract) {
+  protected static _putArtifactToCache(artifactId: string, contract: Contract): void {
     if (!this._artifactCache.has(artifactId)) {
       if (this._artifactCache.size >= this.artifactCacheCapacity) {
         const keyToDelete = this._artifactCache.keys().next().value
@@ -302,7 +302,7 @@ export class Contract extends Common {
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
-    return fields ? toApiFields(fields!, this.fields.types) : []
+    return fields ? toApiFields(fields, this.fields.types) : []
   }
 
   toApiArgs(funcName: string, args?: Val[]): api.Val[] {
@@ -428,7 +428,7 @@ export class Contract extends Common {
       events: await Promise.all(
         result.events.map((event) => {
           const contractAddress = (event as api.ContractEvent).contractAddress
-          return Contract.fromApiEvent(event, addressToArtifactId.get(contractAddress)!)
+          return Contract.fromApiEvent(event, addressToArtifactId.get(contractAddress))
         })
       )
     }
