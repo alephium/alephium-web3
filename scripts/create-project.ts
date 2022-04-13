@@ -23,6 +23,7 @@ import path from 'path'
 import findup from 'find-up'
 import chalk from 'chalk'
 import { execSync } from 'child_process'
+import commander from 'commander'
 
 function getPackageRoot(): string {
   const packageJsonPath = findup.sync('package.json', { cwd: path.dirname(__filename) })
@@ -34,22 +35,7 @@ function getPackageRoot(): string {
   }
 }
 
-function extractProjectName(): string {
-  const projectName = process.argv[2]
-  if (!projectName) {
-    console.log('Please provide a project name')
-    console.log(`  ${chalk.cyan('alephium')} ${chalk.green('<project-name>')}`)
-    console.log()
-    console.log('For example:')
-    console.log(`  ${chalk.cyan('alephium')} ${chalk.green('my-alephium-dapp')}`)
-    console.log()
-    process.exit(1)
-  }
-  return projectName
-}
-
-function extractProjectType(): string {
-  const projectType = process.argv[3]
+function extractProjectType(projectType: string): string {
   if (typeof projectType === 'undefined') {
     return 'base'
   } else if (['base', 'react'].includes(projectType)) {
@@ -122,12 +108,19 @@ function prepareReact(packageRoot: string, projectRoot: string, projectName: str
   console.log()
 }
 
+const program = new commander.Command('Create sample project')
+  .arguments('<project-directory>')
+  .option('-t, --template <path-to-template>', 'specify a template for the project: either base or react')
+  .parse(process.argv)
+
+const projectName = program.processedArgs[0]
+const projectType = program.opts()['template']
+
 const packageRoot = getPackageRoot()
 const projectParent = process.cwd()
-const projectName = extractProjectName()
 const projectRoot = extractProjectRoot()
 
-switch (extractProjectType()) {
+switch (extractProjectType(projectType)) {
   case 'base':
     prepareBase(packageRoot, projectRoot)
     break
@@ -140,5 +133,5 @@ console.log('✅ Done.')
 console.log()
 console.log('✨ Project is initialized!')
 console.log()
-console.log(`Next step: checkout the readme under ${projectName}`)
+console.log(`Next step: checkout the readme under <${projectName}>`)
 console.log()
