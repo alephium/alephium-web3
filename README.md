@@ -54,13 +54,13 @@ npm run build
 #### via UNPKG CDN
 
 ```html
-<script src="https://unpkg.com/@alephium/web3@X.Y.Z/dist/alephium-web3.min.js"></script>
+<script src="https://unpkg.com/@alephium/web3@X.Y.Z/web/alephium-web3.min.js"></script>
 ```
 
 #### via jsDelivr CDN
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@alephium/web3@X.Y.Z/dist/alephium-web3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@alephium/web3@X.Y.Z/web/alephium-web3.min.js"></script>
 ```
 
 ## Development
