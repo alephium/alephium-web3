@@ -10,13 +10,13 @@ A JavaScript/TypeScript library for building decentralized applications on the A
 You could run the following command to scaffold a skeleton project for smart contract development.
 
 ```
-npx @alephium/sdk [name]
+npx alephium-web3 [name]
 ```
 
 ## Install
 
 ```shell
-npm install @alephium/sdk
+npm install alephium-web3
 ```
 
 💥 Until our SDK is stable, breaking changes will be introduced in **minor** versions (instead of the traditional major versions of semver). We recommend allowing patch-level updates and to always read the [release notes][release-notes] for breaking changes.
@@ -25,7 +25,7 @@ npm install @alephium/sdk
 // package.json
 {
    "dependencies": {
-      "@alephium/sdk": "~X.Y.Z"
+      "alephium-web3": "X.Y.Z"
    }
 }
 ```
