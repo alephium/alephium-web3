@@ -50,7 +50,7 @@ module.exports = {
   },
   output: {
     filename: 'alephium-web3.min.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'web'),
     library: 'alephium-web3',
     libraryTarget: 'umd'
   },
@@ -62,7 +62,9 @@ module.exports = {
           format: {
             comments: false
           },
-          compress: true
+          compress: true,
+          keep_classnames: true,
+          keep_fnames: true
         },
         extractComments: false
       })
