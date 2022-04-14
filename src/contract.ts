@@ -273,7 +273,8 @@ export class Contract extends Common {
     const response = await client.contracts.postContractsTestContract(apiParams)
     const apiResult = response.data
 
-    const methodIndex = params.testMethodIndex ? params.testMethodIndex : this.getMethodIndex(funcName)
+    const methodIndex =
+      typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
     const isPublic = this.functions[`${methodIndex}`].signature.indexOf('pub ') !== -1
     if (isPublic === expectPublic) {
       const result = await this.fromTestContractResult(methodIndex, apiResult)
@@ -302,7 +303,7 @@ export class Contract extends Common {
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
-    return fields ? toApiFields(fields, this.fields.types) : []
+    return typeof fields !== 'undefined' ? toApiFields(fields, this.fields.types) : []
   }
 
   toApiArgs(funcName: string, args?: Val[]): api.Val[] {
@@ -327,7 +328,7 @@ export class Contract extends Common {
   }
 
   toApiContractStates(states?: ContractState[]): api.ContractState[] | undefined {
-    return states ? states.map((state) => toApiContractState(state)) : undefined
+    return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
   }
 
   toTestContract(funcName: string, params: TestContractParams, templateVariables?: any): api.TestContract {
@@ -337,7 +338,7 @@ export class Contract extends Common {
       bytecode: this.buildByteCode(templateVariables),
       artifactId: this.sourceCodeSha256,
       initialFields: this.toApiFields(params.initialFields),
-      initialAsset: params.initialAsset ? toApiAsset(params.initialAsset) : undefined,
+      initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
       testMethodIndex: this.getMethodIndex(funcName),
       testArgs: this.toApiArgs(funcName, params.testArgs),
       existingContracts: this.toApiContractStates(params.existingContracts),
@@ -548,15 +549,21 @@ export class Script extends Common {
     templateVariables?: any,
     params?: BuildScriptTx
   ): Promise<BuildScriptTxResult> {
-    const apiParams: api.BuildScriptTx = {
-      fromPublicKey: await signer.getPublicKey(),
-      bytecode: this.buildByteCode(templateVariables),
-      alphAmount: params && params.alphAmount ? extractNumber256(params.alphAmount) : undefined,
-      tokens: params && params.tokens ? params.tokens.map(toApiToken) : undefined,
-      gas: params && params.gas ? params.gas : undefined,
-      gasPrice: params && params.gasPrice ? extractNumber256(params.gasPrice) : undefined,
-      utxosLimit: params && params.utxosLimit ? params.utxosLimit : undefined
-    }
+    const apiParams: api.BuildScriptTx =
+      typeof params !== 'undefined'
+        ? {
+            fromPublicKey: await signer.getPublicKey(),
+            bytecode: this.buildByteCode(templateVariables),
+            alphAmount: typeof params.alphAmount !== 'undefined' ? extractNumber256(params.alphAmount) : undefined,
+            tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
+            gas: typeof params.gas !== 'undefined' ? params.gas : undefined,
+            gasPrice: typeof params.gasPrice !== 'undefined' ? extractNumber256(params.gasPrice) : undefined,
+            utxosLimit: typeof params.utxosLimit !== 'undefined' ? params.utxosLimit : undefined
+          }
+        : {
+            fromPublicKey: await signer.getPublicKey(),
+            bytecode: this.buildByteCode(templateVariables)
+          }
     const response = await signer.client.contracts.postContractsUnsignedTxBuildScript(apiParams)
     return CliqueClient.convert(response)
   }
@@ -774,14 +781,14 @@ function fromApiToken(token: api.Token): Token {
 function toApiAsset(asset: Asset): api.AssetState {
   return {
     alphAmount: extractNumber256(asset.alphAmount),
-    tokens: asset.tokens ? asset.tokens.map(toApiToken) : []
+    tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(toApiToken) : []
   }
 }
 
 function fromApiAsset(asset: api.AssetState): Asset {
   return {
     alphAmount: decodeNumber256(asset.alphAmount),
-    tokens: asset.tokens ? asset.tokens.map(fromApiToken) : undefined
+    tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(fromApiToken) : undefined
   }
 }
 
@@ -823,7 +830,7 @@ function toApiInputAsset(inputAsset: InputAsset): api.InputAsset {
 }
 
 function toApiInputAssets(inputAssets?: InputAsset[]): api.InputAsset[] | undefined {
-  return inputAssets ? inputAssets.map(toApiInputAsset) : undefined
+  return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 
 export interface TestContractParams {
