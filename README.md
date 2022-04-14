@@ -80,7 +80,7 @@ npm run build
 ## Testing
 
 ```shell
-npm run devnet:start # this will start a devnet for smart contract tests
+npm run start-devnet # this will start a devnet for smart contract tests
 npm test
 ```
 

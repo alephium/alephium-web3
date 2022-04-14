@@ -428,7 +428,12 @@ export class Contract extends Common {
       events: await Promise.all(
         result.events.map((event) => {
           const contractAddress = (event as api.ContractEvent).contractAddress
-          return Contract.fromApiEvent(event, addressToArtifactId.get(contractAddress))
+          const artifactId = addressToArtifactId.get(contractAddress)
+          if (typeof artifactId !== 'undefined') {
+            return Contract.fromApiEvent(event, artifactId)
+          } else {
+            throw Error(`Cannot find artifact id for the contract address: ${contractAddress}`)
+          }
         })
       )
     }

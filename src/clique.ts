@@ -91,6 +91,8 @@ export class CliqueClient extends Api<null> {
     if (this.clique.nodes) {
       const node = this.clique.nodes[`${node_i}`]
       return new WebSocket('ws://' + node.address + ':' + node.wsPort + '/events')
+    } else {
+      throw Error('Clique is not initialized')
     }
   }
 
