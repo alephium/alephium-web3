@@ -26,7 +26,7 @@ import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
 import { Signer } from './signer'
 import * as ralph from './ralph'
-import { binToHex, contractIdFromAddress } from './utils'
+import { binToHex, convertHttpResponse, contractIdFromAddress } from './utils'
 
 export abstract class Common {
   readonly sourceCodeSha256: string
@@ -457,7 +457,7 @@ export class Contract extends Common {
       issueTokenAmount: issueTokenAmount
     }
     const response = await signer.client.contracts.postContractsUnsignedTxBuildContract(params)
-    return fromApiDeployContractUnsignedTx(CliqueClient.convert(response))
+    return fromApiDeployContractUnsignedTx(convertHttpResponse(response))
   }
 
   buildByteCode(templateVariables?: ralph.TemplateVariables): string {
@@ -569,7 +569,7 @@ export class Script extends Common {
             bytecode: this.buildByteCode(templateVariables)
           }
     const response = await signer.client.contracts.postContractsUnsignedTxBuildScript(apiParams)
-    return CliqueClient.convert(response)
+    return convertHttpResponse(response)
   }
 
   buildByteCode(templateVariables?: ralph.TemplateVariables): string {

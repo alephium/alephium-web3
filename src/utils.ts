@@ -23,6 +23,18 @@ import { Buffer } from 'buffer/'
 
 import { TOTAL_NUMBER_OF_GROUPS } from './constants'
 import djb2 from './djb2'
+import * as node from '../api/api-alephium'
+import * as explorer from '../api/api-explorer'
+
+export function convertHttpResponse<T>(
+  response: node.HttpResponse<T, { detail: string }> | explorer.HttpResponse<T, { detail: string }>
+): T {
+  if (response.error) {
+    throw new Error(response.error.detail)
+  } else {
+    return response.data
+  }
+}
 
 export const signatureEncode = (ec: EC.ec, signature: EC.ec.Signature): string => {
   let sNormalized = signature.s

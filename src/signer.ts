@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
+import { convertHttpResponse } from './utils'
 
 export class Signer {
   client: CliqueClient
@@ -41,21 +42,21 @@ export class Signer {
       return this._publicKey
     } else {
       const response = await this.client.wallets.getWalletsWalletNameAddressesAddress(this.walletName, this.address)
-      this._publicKey = CliqueClient.convert(response).publicKey
+      this._publicKey = convertHttpResponse(response).publicKey
       return this._publicKey
     }
   }
 
   async sign(hash: string): Promise<string> {
     const response = await this.client.wallets.postWalletsWalletNameSign(this.walletName, { data: hash })
-    return CliqueClient.convert(response).signature
+    return convertHttpResponse(response).signature
   }
 
   async submitTransaction(unsignedTx: string, txHash: string): Promise<SubmissionResult> {
     const signature = await this.sign(txHash)
     const params: api.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
     const response = await this.client.transactions.postTransactionsSubmit(params)
-    return fromApiSubmissionResult(CliqueClient.convert(response))
+    return fromApiSubmissionResult(convertHttpResponse(response))
   }
 }
 
