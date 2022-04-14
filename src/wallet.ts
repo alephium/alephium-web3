@@ -99,7 +99,7 @@ const deriveAddressAndKeys = (seed: Buffer, addressIndex?: number): AddressAndKe
   const keyPair = masterKey.derive(getPath(addressIndex))
 
   if (keyPair.privateKey === null || keyPair.publicKey === null) {
-    throw new Error(`Invalid key pair`)
+    throw new Error(`Empty key pair`)
   }
 
   const publicKey = binToHex(keyPair.publicKey)

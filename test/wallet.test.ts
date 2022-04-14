@@ -88,11 +88,11 @@ describe('Wallet', function () {
     const hdKey = HDKey.fromMasterSeed(seed)
     const mockedDerivePath = jest.fn()
     hdKey.derive = mockedDerivePath
-    mockedDerivePath.mockReturnValue({ privateKey: undefined })
+    mockedDerivePath.mockReturnValue({ privateKey: null })
 
     jest.spyOn(HDKey, 'fromMasterSeed').mockImplementationOnce(() => hdKey)
 
-    expect(() => walletUtils.walletImport(importedWallet.mnemonic)).toThrow('Missing private key')
+    expect(() => walletUtils.walletImport(importedWallet.mnemonic)).toThrow('Empty private key')
   })
 
   describe('should derive a new address', () => {
