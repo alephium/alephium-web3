@@ -205,6 +205,7 @@ export class Contract extends Common {
     return artifact
   }
 
+  // TODO: safely parse json
   static fromJson(artifact: any): Contract {
     if (artifact.compiled == null || artifact.fields == null || artifact.functions == null || artifact.events == null) {
       throw new Event('The artifact JSON is incomplete')
@@ -522,6 +523,7 @@ export class Script extends Common {
     return artifact
   }
 
+  // TODO: safely parse json
   static fromJson(artifact: any): Script {
     if (artifact.compiled == null || artifact.functions == null) {
       throw new Event('= Compilation did not return the right data')
