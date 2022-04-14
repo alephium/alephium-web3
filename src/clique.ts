@@ -33,7 +33,7 @@ export class CliqueClient extends Api<null> {
   clique!: SelfClique
   clients!: NodeClient[]
 
-  async init(isMultiNodesClique: boolean) {
+  async init(isMultiNodesClique: boolean): Promise<void> {
     this.clients = []
 
     const res = await this.selfClique()
