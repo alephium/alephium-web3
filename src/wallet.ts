@@ -59,7 +59,7 @@ export class Wallet {
     this.mnemonic = mnemonic
   }
 
-  encrypt = (password: string) => {
+  encrypt = (password: string): string => {
     const storedState = new StoredState({
       mnemonic: this.mnemonic
     })
@@ -67,7 +67,7 @@ export class Wallet {
   }
 }
 
-export const getPath = (addressIndex?: number) => {
+export const getPath = (addressIndex?: number): string => {
   if (
     addressIndex !== undefined &&
     (addressIndex < 0 || !Number.isInteger(addressIndex) || addressIndex.toString().includes('e'))
@@ -150,19 +150,19 @@ export const deriveNewAddressData = (
   return newAddressData
 }
 
-export const walletGenerate = () => {
+export const walletGenerate = (): Wallet => {
   const mnemonic = bip39.generateMnemonic(256)
   return getWalletFromMnemonic(mnemonic)
 }
 
-export const walletImport = (mnemonic: string) => {
+export const walletImport = (mnemonic: string): Wallet => {
   if (!bip39.validateMnemonic(mnemonic)) {
     throw new Error('Invalid seed phrase')
   }
   return getWalletFromMnemonic(mnemonic)
 }
 
-export const walletOpen = (password: string, encryptedWallet: string) => {
+export const walletOpen = (password: string, encryptedWallet: string): Wallet => {
   const dataDecrypted = decrypt(password, encryptedWallet)
   const config = JSON.parse(dataDecrypted) as StoredState
 
