@@ -98,7 +98,9 @@ const deriveAddressAndKeys = (seed: Buffer, addressIndex?: number): AddressAndKe
   const masterKey = HDKey.fromMasterSeed(seed)
   const keyPair = masterKey.derive(getPath(addressIndex))
 
-  if (!keyPair.privateKey) throw new Error('Missing private key')
+  if (keyPair.privateKey === null || keyPair.publicKey === null) {
+    throw new Error(`Invalid key pair`)
+  }
 
   const publicKey = binToHex(keyPair.publicKey)
   const privateKey = binToHex(keyPair.privateKey)
