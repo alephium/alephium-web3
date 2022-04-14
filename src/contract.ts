@@ -138,7 +138,7 @@ export abstract class Common {
     return fsPromises.writeFile(artifactPath, this.toString())
   }
 
-  abstract buildByteCode(templateVariables?: any): string
+  abstract buildByteCode(templateVariables?: ralph.TemplateVariables): string
 }
 
 export class Contract extends Common {
@@ -242,7 +242,7 @@ export class Contract extends Common {
     )
   }
 
-  toState(fields: Val[], asset: Asset, address?: string, templateVariables?: any): ContractState {
+  toState(fields: Val[], asset: Asset, address?: string, templateVariables?: ralph.TemplateVariables): ContractState {
     const addressDef = typeof address !== 'undefined' ? address : Contract.randomAddress()
     return {
       address: addressDef,
@@ -267,7 +267,7 @@ export class Contract extends Common {
     params: TestContractParams,
     expectPublic: boolean,
     accessType: string,
-    templateVariables?: any
+    templateVariables?: ralph.TemplateVariables
   ): Promise<TestContractResult> {
     const apiParams: api.TestContract = this.toTestContract(funcName, params, templateVariables)
     const response = await client.contracts.postContractsTestContract(apiParams)
@@ -288,7 +288,7 @@ export class Contract extends Common {
     client: CliqueClient,
     funcName: string,
     params: TestContractParams,
-    templateVariables?: any
+    templateVariables?: ralph.TemplateVariables
   ): Promise<TestContractResult> {
     return this._test(client, funcName, params, true, 'public', templateVariables)
   }
@@ -297,7 +297,7 @@ export class Contract extends Common {
     client: CliqueClient,
     funcName: string,
     params: TestContractParams,
-    templateVariables?: any
+    templateVariables?: ralph.TemplateVariables
   ): Promise<TestContractResult> {
     return this._test(client, funcName, params, false, 'private', templateVariables)
   }
@@ -331,7 +331,11 @@ export class Contract extends Common {
     return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
   }
 
-  toTestContract(funcName: string, params: TestContractParams, templateVariables?: any): api.TestContract {
+  toTestContract(
+    funcName: string,
+    params: TestContractParams,
+    templateVariables?: ralph.TemplateVariables
+  ): api.TestContract {
     return {
       group: params.group,
       address: params.address,
@@ -444,7 +448,7 @@ export class Contract extends Common {
     signer: Signer,
     initialFields?: Val[],
     issueTokenAmount?: string,
-    templateVariables?: any
+    templateVariables?: ralph.TemplateVariables
   ): Promise<DeployContractTransaction> {
     const params: api.BuildContractDeployScriptTx = {
       fromPublicKey: await signer.getPublicKey(),
@@ -456,7 +460,7 @@ export class Contract extends Common {
     return fromApiDeployContractUnsignedTx(CliqueClient.convert(response))
   }
 
-  buildByteCode(templateVariables?: any): string {
+  buildByteCode(templateVariables?: ralph.TemplateVariables): string {
     switch (this.compiled.type) {
       case 'SimpleContractByteCode':
         if (typeof templateVariables !== 'undefined') {
@@ -546,7 +550,7 @@ export class Script extends Common {
 
   async transactionForDeployment(
     signer: Signer,
-    templateVariables?: any,
+    templateVariables?: ralph.TemplateVariables,
     params?: BuildScriptTx
   ): Promise<BuildScriptTxResult> {
     const apiParams: api.BuildScriptTx =
@@ -568,7 +572,7 @@ export class Script extends Common {
     return CliqueClient.convert(response)
   }
 
-  buildByteCode(templateVariables?: any): string {
+  buildByteCode(templateVariables?: ralph.TemplateVariables): string {
     switch (this.compiled.type) {
       case 'SimpleScriptByteCode':
         if (typeof templateVariables !== 'undefined') {
