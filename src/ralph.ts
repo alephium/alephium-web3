@@ -157,7 +157,7 @@ export function encodeAddress(address: string): Uint8Array {
   return bs58.decode(address)
 }
 
-function invalidTemplateVariable(tpe: string, value: any): Error {
+function invalidTemplateVariable(tpe: string, value: TemplateVariable): Error {
   return Error(`Invalid template value ${value} for type ${tpe}`)
 }
 
@@ -193,11 +193,11 @@ function encodeU256Variable(value: bigint): Uint8Array {
   return new Uint8Array([Instruction.u256Const, ...encodeU256(value)])
 }
 
-export function encodeTemplateVariableAsString(tpe: string, value: any): string {
+export function encodeTemplateVariableAsString(tpe: string, value: TemplateVariable): string {
   return Buffer.from(encodeTemplateVariable(tpe, value)).toString('hex')
 }
 
-export function encodeTemplateVariable(tpe: string, value: any): Uint8Array {
+export function encodeTemplateVariable(tpe: string, value: TemplateVariable): Uint8Array {
   switch (tpe) {
     case 'Bool':
       if (typeof value === 'boolean') {
@@ -235,8 +235,11 @@ export function encodeTemplateVariable(tpe: string, value: any): Uint8Array {
 }
 
 const templateVariableRegex = /\{([a-z][a-zA-Z0-9]*):([A-Z][a-zA-Z0-9]*)\}/g
-export function buildByteCode(templateByteCode: string, templateVariables: any): string {
-  return templateByteCode.replace(templateVariableRegex, (match, p1, p2) => {
+type TemplateVariable = boolean | number | bigint | string
+export type TemplateVariables = Record<string, TemplateVariable>
+
+export function buildByteCode(templateByteCode: string, templateVariables: TemplateVariables): string {
+  return templateByteCode.replace(templateVariableRegex, (_, p1, p2) => {
     const variableName = p1
     const variableType = p2
     if (variableName in templateVariables) {
@@ -248,7 +251,10 @@ export function buildByteCode(templateByteCode: string, templateVariables: any):
   })
 }
 
-export function buildContractByteCode(compiled: api.TemplateContractByteCode, templateVariables: any): string {
+export function buildContractByteCode(
+  compiled: api.TemplateContractByteCode,
+  templateVariables: TemplateVariables
+): string {
   const methodsBuilt = compiled.methodsByteCode.map((template) => buildByteCode(template, templateVariables))
   let count = 0
   const methodIndexes = methodsBuilt.map((hex) => {

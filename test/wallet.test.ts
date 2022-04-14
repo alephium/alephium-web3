@@ -92,7 +92,7 @@ describe('Wallet', function () {
 
     jest.spyOn(HDKey, 'fromMasterSeed').mockImplementationOnce(() => hdKey)
 
-    expect(() => walletUtils.walletImport(importedWallet.mnemonic)).toThrow('Empty private key')
+    expect(() => walletUtils.walletImport(importedWallet.mnemonic)).toThrow('Empty key pair')
   })
 
   describe('should derive a new address', () => {
