@@ -73,7 +73,7 @@ function prepareShared(packageRoot: string, projectRoot: string) {
   console.log('...')
 
   fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
-  copy('', ['.editorconfig', '.eslintignore', '.gitattributes', '.prettierrc.json', 'LICENSE'])
+  copy('', ['.editorconfig', '.eslintignore', '.gitattributes', 'LICENSE'])
   copy('dev', ['user.conf'])
   copy('scripts', ['start-devnet.js', 'stop-devnet.js'])
   if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {

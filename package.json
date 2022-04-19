@@ -115,6 +115,15 @@
     "node": ">=14.0.0",
     "npm": ">=7.0.0"
   },
+  "prettier": {
+    "printWidth": 120,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": false,
+    "singleQuote": true,
+    "bracketSameLine": false,
+    "trailingComma": "none"
+  },
   "jest": {
     "transform": {
       "^.+\\.(t|j)sx?$": "ts-jest"
