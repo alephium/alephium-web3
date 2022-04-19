@@ -5,7 +5,7 @@ import { explorer, Contract, Script } from 'alephium-web3'
 import contractJson from './artifacts/greeter.ral.json'
 import scriptJson from './artifacts/greeter_main.ral.json'
 
-const Dashboard = () => {
+function Dashboard() {
   const api = new explorer.Api<null>({ baseUrl: 'https://mainnet-backend.alephium.org' })
   const contract = Contract.fromJson(contractJson).toString()
   const script = Script.fromJson(scriptJson).toString()
