@@ -99,11 +99,11 @@ function prepareReact(packageRoot: string, projectRoot: string, projectName: str
   fsExtra.copySync(path.join(packageRoot, 'templates/react'), projectRoot)
 
   console.log('Initialize the project')
-  execSync(`cd ${projectName}`)
   execSync(
-    `npm install --save-dev react-app-rewired crypto-browserify stream-browserify buffer process eslint-config-prettier eslint-plugin-header eslint-plugin-prettier eslint-plugin-react`
+    'npm install --save-dev react-app-rewired crypto-browserify stream-browserify buffer process eslint-config-prettier eslint-plugin-header eslint-plugin-prettier eslint-plugin-react',
+    { cwd: projectRoot }
   )
-  execSync('npm install && npm run prettier')
+  execSync('npm install && npm run prettier', { cwd: projectRoot })
   console.log()
 }
 
