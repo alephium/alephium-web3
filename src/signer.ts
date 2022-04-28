@@ -31,6 +31,13 @@ export interface SignResult {
 }
 export type SubmitTx = { submitTx?: boolean }
 type Extended<Params> = Params & SubmitTx
+export interface Account {
+  address: string
+  pubkey: string
+  group: number
+}
+export type GetAccountsParams = undefined
+export type GetAccountsResult = Account[]
 export type SignTransferTxParams = Extended<api.BuildTransaction>
 export type SignTransferTxResult = SignResult
 export type SignContractCreationTxParams = Extended<api.BuildContractDeployScriptTx>
@@ -45,6 +52,7 @@ export type SignMessageParams = { message: string }
 export type SignMessageResult = Pick<SignResult, 'signature'>
 
 export interface SignerProvider {
+  getAccounts(): Promise<Account[]>
   signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
   signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult>
   signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult>
@@ -83,6 +91,10 @@ export abstract class SingleAddressSigner implements SignerProvider {
 
   private shouldSubmitTx(params: SubmitTx): boolean {
     return this.alwaysSubmitTx || (params.submitTx ? params.submitTx : false)
+  }
+
+  async getAccounts(): Promise<GetAccountsResult> {
+    return [{ address: this.address, pubkey: this.publicKey, group: this.group }]
   }
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
@@ -130,10 +142,12 @@ export abstract class SingleAddressSigner implements SignerProvider {
     const signature = await this.signRaw(response.txId)
     // submit the tx if required
     if (submitTx) {
-      await this.client.transactions.postTransactionsSubmit({
-        unsignedTx: response.unsignedTx,
-        signature: signature
-      })
+      convertHttpResponse(
+        await this.client.transactions.postTransactionsSubmit({
+          unsignedTx: response.unsignedTx,
+          signature: signature
+        })
+      )
     }
     // return the signature back to the provider
     return {
