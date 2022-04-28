@@ -60,7 +60,7 @@ export abstract class SingleAddressSigner implements SignerProvider {
   readonly group: number
   alwaysSubmitTx: boolean
 
-  constructor(client: CliqueClient, address: string, publicKey: string, alwaysSubmitTx = true) {
+  constructor(client: CliqueClient, address: string, publicKey: string, alwaysSubmitTx: boolean) {
     this.client = client
     this.address = address
     this.publicKey = publicKey
@@ -171,13 +171,18 @@ export class NodeSigner extends SingleAddressSigner {
     return NodeSigner.init(client, walletName, address)
   }
 
-  static async init(client: CliqueClient, walletName: string, address: string): Promise<NodeSigner> {
+  static async init(
+    client: CliqueClient,
+    walletName: string,
+    address: string,
+    alwaysSubmitTx = true
+  ): Promise<NodeSigner> {
     const publicKey = await NodeSigner.fetchPublicKey(client, walletName, address)
-    return new NodeSigner(client, walletName, address, publicKey)
+    return new NodeSigner(client, walletName, address, publicKey, alwaysSubmitTx)
   }
 
-  constructor(client: CliqueClient, walletName: string, address: string, publicKey: string) {
-    super(client, address, publicKey)
+  constructor(client: CliqueClient, walletName: string, address: string, publicKey: string, alwaysSubmitTx: boolean) {
+    super(client, address, publicKey, alwaysSubmitTx)
     this.walletName = walletName
   }
 
@@ -190,15 +195,15 @@ export class NodeSigner extends SingleAddressSigner {
 export class PrivateKeySigner extends SingleAddressSigner {
   readonly privateKey: string
 
-  static createRandom(client: CliqueClient): PrivateKeySigner {
+  static createRandom(client: CliqueClient, alwaysSubmitTx = true): PrivateKeySigner {
     const keyPair = ec.genKeyPair()
-    return new PrivateKeySigner(client, keyPair.getPrivate().toString('hex'))
+    return new PrivateKeySigner(client, keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
   }
 
-  constructor(client: CliqueClient, privateKey: string) {
+  constructor(client: CliqueClient, privateKey: string, alwaysSubmitTx = true) {
     const publicKey = utils.publicKeyFromPrivateKey(privateKey)
     const address = utils.addressFromPublicKey(publicKey)
-    super(client, address, publicKey)
+    super(client, address, publicKey, alwaysSubmitTx)
     this.privateKey = privateKey
   }
 
