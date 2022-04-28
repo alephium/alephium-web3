@@ -32,7 +32,7 @@ describe('node', function () {
     const balance = await client.getBalance('0x0')
 
     expect(client.addresses.getAddressesAddressBalance).toHaveBeenCalledTimes(1)
-    expect(balance).toEqual(balanceMockData)
+    expect(balance).toEqual(balanceMockData.data)
   })
 
   it('should build a transaction', async () => {

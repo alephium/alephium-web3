@@ -61,7 +61,6 @@ export class CliqueClient extends Api<null> {
 
   static convert<T>(response: api.HttpResponse<T, { detail: string }>): T {
     if (response.error) {
-      console.log(response.error.detail)
       throw new Error(response.error.detail)
     } else {
       return response.data
@@ -82,7 +81,7 @@ export class CliqueClient extends Api<null> {
     return group % this.clients.length
   }
 
-  async getBalance(address: string) {
+  async getBalance(address: string): Promise<api.Balance> {
     const clientIndex = this.getClientIndex(address)
     return await this.clients[`${clientIndex}`].getBalance(address)
   }
@@ -130,7 +129,7 @@ export class CliqueClient extends Api<null> {
     const keyPair = ec.keyFromPrivate(privateKey)
     const signature = keyPair.sign(txHash)
 
-    return utils.signatureEncode(ec, signature)
+    return utils.signatureEncode(signature)
   }
 
   transactionVerifySignature(txHash: string, publicKey: string, signature: string): boolean {

@@ -452,7 +452,7 @@ export class Contract extends Common {
     templateVariables?: ralph.TemplateVariables
   ): Promise<DeployContractTransaction> {
     const params: api.BuildContractDeployScriptTx = {
-      fromPublicKey: await signer.getPublicKey(),
+      fromPublicKey: signer.publicKey,
       bytecode: this.buildByteCode(templateVariables),
       initialFields: this.toApiFields(initialFields),
       issueTokenAmount: issueTokenAmount
@@ -558,7 +558,7 @@ export class Script extends Common {
     const apiParams: api.BuildScriptTx =
       typeof params !== 'undefined'
         ? {
-            fromPublicKey: await signer.getPublicKey(),
+            fromPublicKey: signer.publicKey,
             bytecode: this.buildByteCode(templateVariables),
             alphAmount: typeof params.alphAmount !== 'undefined' ? extractNumber256(params.alphAmount) : undefined,
             tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
@@ -567,7 +567,7 @@ export class Script extends Common {
             utxosLimit: typeof params.utxosLimit !== 'undefined' ? params.utxosLimit : undefined
           }
         : {
-            fromPublicKey: await signer.getPublicKey(),
+            fromPublicKey: signer.publicKey,
             bytecode: this.buildByteCode(templateVariables)
           }
     const response = await signer.client.contracts.postContractsUnsignedTxBuildScript(apiParams)
