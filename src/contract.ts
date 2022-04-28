@@ -24,7 +24,7 @@ import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
-import { Signer } from './signer'
+import { SingleAddressSigner } from './signer'
 import * as ralph from './ralph'
 import { binToHex, convertHttpResponse, contractIdFromAddress } from './utils'
 
@@ -446,7 +446,7 @@ export class Contract extends Common {
   }
 
   async transactionForDeployment(
-    signer: Signer,
+    signer: SingleAddressSigner,
     initialFields?: Val[],
     issueTokenAmount?: string,
     templateVariables?: ralph.TemplateVariables
@@ -551,7 +551,7 @@ export class Script extends Common {
   }
 
   async transactionForDeployment(
-    signer: Signer,
+    signer: SingleAddressSigner,
     templateVariables?: ralph.TemplateVariables,
     params?: BuildScriptTx
   ): Promise<BuildScriptTxResult> {

@@ -31,11 +31,11 @@ export interface SignResult {
 }
 export type SubmitTx = { submitTx?: boolean }
 type Extended<Params> = Params & SubmitTx
-export type SignTransferTxParams = Omit<Extended<api.BuildTransaction>, 'fromPublicKey'>
+export type SignTransferTxParams = Extended<api.BuildTransaction>
 export type SignTransferTxResult = SignResult
-export type SignContractCreationTxParams = Omit<Extended<api.BuildContractDeployScriptTx>, 'fromPublicKey'>
+export type SignContractCreationTxParams = Extended<api.BuildContractDeployScriptTx>
 export type SignContractCreationTxResult = SignResult & { contractId: string; contractAddress: string }
-export type SignScriptTxParams = Omit<Extended<api.BuildScriptTx>, 'fromPublicKey'>
+export type SignScriptTxParams = Extended<api.BuildScriptTx>
 export type SignScriptTxResult = SignResult
 export type SignUnsignedTxParams = Extended<{ unsignedTx: string }>
 export type SignUnsignedTxResult = SignResult
@@ -44,7 +44,16 @@ export type SignHexStringResult = Pick<SignResult, 'signature'>
 export type SignMessageParams = { message: string }
 export type SignMessageResult = Pick<SignResult, 'signature'>
 
-export abstract class Signer {
+export interface SignerProvider {
+  signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
+  signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult>
+  signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult>
+  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  signHexString(params: SignHexStringParams): Promise<SignHexStringResult>
+  signMessage(params: SignMessageParams): Promise<SignMessageResult>
+}
+
+export abstract class SingleAddressSigner implements SignerProvider {
   readonly client: CliqueClient
   readonly address: string
   readonly publicKey: string
@@ -63,7 +72,13 @@ export abstract class Signer {
     const signature = await this.signRaw(txHash)
     const params: api.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
     const response = await this.client.transactions.postTransactionsSubmit(params)
-    return fromApiSubmissionResult(convertHttpResponse(response))
+    return convertHttpResponse(response)
+  }
+
+  private checkFromPublicKey(params: { fromPublicKey: string }): void {
+    if (params.fromPublicKey !== this.publicKey) {
+      throw new Error('Unmatched public key')
+    }
   }
 
   private shouldSubmitTx(params: SubmitTx): boolean {
@@ -71,6 +86,8 @@ export abstract class Signer {
   }
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
+    this.checkFromPublicKey(params)
+
     const response = convertHttpResponse(
       await this.client.transactions.postTransactionsBuild({ ...params, fromPublicKey: this.publicKey })
     )
@@ -78,6 +95,8 @@ export abstract class Signer {
   }
 
   async signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
+    this.checkFromPublicKey(params)
+
     const response = convertHttpResponse(
       await this.client.contracts.postContractsUnsignedTxBuildContract({ ...params, fromPublicKey: this.publicKey })
     )
@@ -91,13 +110,15 @@ export abstract class Signer {
   }
 
   async signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult> {
+    this.checkFromPublicKey(params)
+
     const response = convertHttpResponse(
       await this.client.contracts.postContractsUnsignedTxBuildScript({ ...params, fromPublicKey: this.publicKey })
     )
     return this.handleSign(response, this.shouldSubmitTx(params))
   }
 
-  async handleSignUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
+  async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
     // in general, wallet should show the decoded information to user for confirmation
     const decoded = convertHttpResponse(await this.client.transactions.postTransactionsDecodeUnsignedTx(data))
@@ -122,38 +143,21 @@ export abstract class Signer {
     }
   }
 
+  protected abstract signRaw(hexString: string): Promise<string>
+
   async signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
     const signature = await this.signRaw(params.hexString)
     return { signature: signature }
   }
 
-  protected abstract signRaw(hexString: string): Promise<string>
-  static verifyRaw(hexString: string, publicKey: string, signature: string): boolean {
-    try {
-      const key = ec.keyFromPublic(publicKey, 'hex')
-      return key.verify(hexString, utils.signatureDecode(ec, signature))
-    } catch (error) {
-      return false
-    }
-  }
-
-  private static extendMessage(message: string): string {
-    return 'Alephium Signed Message: ' + message
-  }
-
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
-    const extendedMessage = Signer.extendMessage(params.message)
+    const extendedMessage = extendMessage(params.message)
     const signature = await this.signRaw(utils.stringToHex(extendedMessage))
     return { signature: signature }
   }
-
-  async verifySignedMessage(message: string, publicKey: string, signature: string): Promise<boolean> {
-    const extendedMessage = Signer.extendMessage(message)
-    return Signer.verifyRaw(utils.stringToHex(extendedMessage), publicKey, signature)
-  }
 }
 
-export class NodeSigner extends Signer {
+export class NodeSigner extends SingleAddressSigner {
   readonly walletName: string
 
   private static async fetchPublicKey(client: CliqueClient, walletName: string, address: string): Promise<string> {
@@ -161,7 +165,7 @@ export class NodeSigner extends Signer {
     return convertHttpResponse(response).publicKey
   }
 
-  static async testSigner(client: CliqueClient): Promise<Signer> {
+  static async testSigner(client: CliqueClient): Promise<NodeSigner> {
     const walletName = 'alephium-web3-test-only-wallet'
     const address = '12LgGdbjE6EtnTKw5gdBwV2RRXuXPtzYM7SDZ45YJTRht'
     return NodeSigner.init(client, walletName, address)
@@ -183,7 +187,7 @@ export class NodeSigner extends Signer {
   }
 }
 
-export class PrivateKeySigner extends Signer {
+export class PrivateKeySigner extends SingleAddressSigner {
   readonly privateKey: string
 
   static createRandom(client: CliqueClient): PrivateKeySigner {
@@ -211,6 +215,20 @@ export interface SubmissionResult {
   toGroup: number
 }
 
-function fromApiSubmissionResult(result: api.TxResult): SubmissionResult {
-  return result
+export function verifyHexString(hexString: string, publicKey: string, signature: string): boolean {
+  try {
+    const key = ec.keyFromPublic(publicKey, 'hex')
+    return key.verify(hexString, utils.signatureDecode(ec, signature))
+  } catch (error) {
+    return false
+  }
+}
+
+function extendMessage(message: string): string {
+  return 'Alephium Signed Message: ' + message
+}
+
+export function verifySignedMessage(message: string, publicKey: string, signature: string): boolean {
+  const extendedMessage = extendMessage(message)
+  return verifyHexString(utils.stringToHex(extendedMessage), publicKey, signature)
 }
