@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { CliqueClient } from '../src/clique'
-import { Signer } from '../src/signer'
+import { NodeSigner } from '../src/signer'
 import { Contract, Script, TestContractParams } from '../src/contract'
 
 describe('contract', function () {
@@ -53,7 +53,7 @@ describe('contract', function () {
     expect(testResultPrivate.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
-    const signer = Signer.testSigner(client)
+    const signer = await NodeSigner.testSigner(client)
 
     const subDeployTx = await sub.transactionForDeployment(signer, [0])
     const subContractId = subDeployTx.contractId
@@ -95,7 +95,7 @@ describe('contract', function () {
     expect(testResult.contracts[0].artifactId).toEqual(greeter.sourceCodeSha256)
     expect(testResult.contracts[0].fields).toEqual([1])
 
-    const signer = Signer.testSigner(client)
+    const signer = await NodeSigner.testSigner(client)
 
     const deployTx = await greeter.transactionForDeployment(signer, [1])
     expect(deployTx.group).toEqual(3)

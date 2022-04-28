@@ -16,15 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Api } from '../api/api-alephium'
+import { Api, Balance } from '../api/api-alephium'
+import { convertHttpResponse } from './utils'
 
 /**
  * Node client
  */
 
 export class NodeClient extends Api<null> {
-  async getBalance(address: string) {
-    return await this.addresses.getAddressesAddressBalance(address)
+  async getBalance(address: string): Promise<Balance> {
+    return convertHttpResponse(await this.addresses.getAddressesAddressBalance(address))
   }
 
   async transactionCreate(
