@@ -36,13 +36,14 @@ export interface Account {
 }
 export type SubmitTx = { submitTx?: boolean }
 export type SignerAddress = { signerAddress: string }
+type TxBuildParams<T> = Omit<T, 'fromPublicKey'> & SignerAddress & SubmitTx
 export type GetAccountsParams = undefined
 export type GetAccountsResult = Account[]
-export type SignTransferTxParams = api.BuildTransaction & SubmitTx
+export type SignTransferTxParams = TxBuildParams<api.BuildTransaction>
 export type SignTransferTxResult = SignResult
-export type SignContractCreationTxParams = api.BuildContractDeployScriptTx & SubmitTx
+export type SignContractCreationTxParams = TxBuildParams<api.BuildContractDeployScriptTx>
 export type SignContractCreationTxResult = SignResult & { contractId: string; contractAddress: string }
-export type SignScriptTxParams = api.BuildScriptTx & SubmitTx
+export type SignScriptTxParams = TxBuildParams<api.BuildScriptTx>
 export type SignScriptTxResult = SignResult
 export type SignUnsignedTxParams = { unsignedTx: string } & SubmitTx & SignerAddress
 export type SignUnsignedTxResult = SignResult
@@ -68,9 +69,6 @@ function checkParams(target: any, propertyKey: string, descriptor: PropertyDescr
 
   const originalFn = descriptor.value
   descriptor.value = function (params: any) {
-    if (typeof params.fromPublicKey !== 'undefined' && params.fromPublicKey !== this['publicKey']) {
-      throw new Error('Unmatched public key')
-    }
     if (typeof params.signerAddress !== 'undefined' && params.signerAddress !== this['address']) {
       throw new Error('Unmatched address')
     }
@@ -108,10 +106,23 @@ export abstract class SingleAddressSigner implements SignerProvider {
     return [{ address: this.address, pubkey: this.publicKey, group: this.group }]
   }
 
+  private async usePublicKey<T extends SignerAddress>(
+    params: T
+  ): Promise<Omit<T, 'signerAddress'> & { fromPublicKey: string }> {
+    const { signerAddress, ...restParams } = params
+    const allAccounts = await this.getAccounts()
+    const signerAccount = allAccounts.find((account) => account.address === signerAddress)
+    if (typeof signerAccount === 'undefined') {
+      throw new Error('Unknown signer address')
+    } else {
+      return { fromPublicKey: signerAccount.pubkey, ...restParams }
+    }
+  }
+
   @checkParams
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const response = convertHttpResponse(
-      await this.client.transactions.postTransactionsBuild({ ...params, fromPublicKey: this.publicKey })
+      await this.client.transactions.postTransactionsBuild(await this.usePublicKey(params))
     )
     return this.handleSign(response, this.shouldSubmitTx(params))
   }
@@ -119,7 +130,7 @@ export abstract class SingleAddressSigner implements SignerProvider {
   @checkParams
   async signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
     const response = convertHttpResponse(
-      await this.client.contracts.postContractsUnsignedTxBuildContract({ ...params, fromPublicKey: this.publicKey })
+      await this.client.contracts.postContractsUnsignedTxBuildContract(await this.usePublicKey(params))
     )
     const result = await this.handleSign(response, this.shouldSubmitTx(params))
     const decoded = convertHttpResponse(
@@ -133,7 +144,7 @@ export abstract class SingleAddressSigner implements SignerProvider {
   @checkParams
   async signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult> {
     const response = convertHttpResponse(
-      await this.client.contracts.postContractsUnsignedTxBuildScript({ ...params, fromPublicKey: this.publicKey })
+      await this.client.contracts.postContractsUnsignedTxBuildScript(await this.usePublicKey(params))
     )
     return this.handleSign(response, this.shouldSubmitTx(params))
   }
