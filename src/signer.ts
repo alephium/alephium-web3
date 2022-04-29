@@ -119,16 +119,14 @@ export abstract class Signer implements SignerProvider {
 
   async signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
     const response = await this.buildContractCreationTx(params)
+    console.log(`======== address: ${response.contractAddress}`)
+    console.log(`======= id: ${utils.binToHex(utils.contractIdFromAddress(response.contractAddress))}`)
     const result = await this.handleSign(
       { signerAddress: params.signerAddress, ...response },
       this.shouldSubmitTx(params)
     )
-    const decoded = convertHttpResponse(
-      await this.client.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: result.unsignedTx })
-    )
-    const contractId = utils.contractIdFromTx(result.txId, decoded.fixedOutputs.length)
-    const contractAddress = utils.addressFromContractId(contractId)
-    return { ...result, contractId: contractId, contractAddress: contractAddress }
+    const contractId = utils.binToHex(utils.contractIdFromAddress(response.contractAddress))
+    return { ...result, contractId: contractId, contractAddress: response.contractAddress }
   }
 
   @checkParams
