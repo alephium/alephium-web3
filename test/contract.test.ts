@@ -76,7 +76,9 @@ describe('contract', function () {
     const addContractId = addDeployTx.contractId
     const main = await Script.fromSource(client, 'main.ral')
 
-    const mainScriptTx = await main.transactionForDeployment(signer, { addContractId: addContractId })
+    const mainScriptTx = await main.transactionForDeployment(signer, {
+      templateVariables: { addContractId: addContractId }
+    })
     expect(mainScriptTx.group).toEqual(3)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(3)
