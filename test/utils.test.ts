@@ -135,4 +135,8 @@ describe('utils', function () {
       '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
     )
   })
+
+  it('should convert from string to hex', () => {
+    expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
+  })
 })

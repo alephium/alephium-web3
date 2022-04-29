@@ -21,6 +21,7 @@ import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
 import { convertHttpResponse } from './utils'
 import * as utils from './utils'
+import blake from 'blakejs'
 
 const ec = new EC('secp256k1')
 
@@ -194,7 +195,8 @@ export abstract class Signer implements SignerProvider {
   @checkParams
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
     const extendedMessage = extendMessage(params.message)
-    const signature = await this.signRaw(params.signerAddress, utils.stringToHex(extendedMessage))
+    const messageHash = blake.blake2b(extendedMessage, undefined, 32)
+    const signature = await this.signRaw(params.signerAddress, utils.binToHex(messageHash))
     return { signature: signature }
   }
 }
@@ -298,5 +300,6 @@ function extendMessage(message: string): string {
 
 export function verifySignedMessage(message: string, publicKey: string, signature: string): boolean {
   const extendedMessage = extendMessage(message)
-  return verifyHexString(utils.stringToHex(extendedMessage), publicKey, signature)
+  const messageHash = blake.blake2b(extendedMessage, undefined, 32)
+  return verifyHexString(utils.binToHex(messageHash), publicKey, signature)
 }
