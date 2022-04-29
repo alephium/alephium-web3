@@ -606,7 +606,7 @@ export class Script extends Common {
   }
 }
 
-export type Number256 = number | bigint
+export type Number256 = number | bigint | string
 export type Val = Number256 | boolean | string | Val[]
 
 function extractBoolean(v: Val): boolean {
