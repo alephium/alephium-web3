@@ -185,7 +185,7 @@ export function addressFromContractId(contractId: string): string {
 export function contractIdFromTx(txId: string, outputIndex: number): string {
   const txIdBin = hexToBinUnsafe(txId)
   const data = Buffer.concat([txIdBin, Buffer.from([outputIndex])])
-  const hash = blake.blake2b(data)
+  const hash = blake.blake2b(data, undefined, 32)
   return binToHex(hash)
 }
 
