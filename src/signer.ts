@@ -63,10 +63,6 @@ export interface SignerProvider {
 }
 
 function checkParams(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  if (!propertyKey.startsWith('sign')) {
-    throw new Error('The decorator `checkParams` should be applied to sign methods')
-  }
-
   const originalFn = descriptor.value
   descriptor.value = function (params: any) {
     if (typeof params.signerAddress !== 'undefined' && params.signerAddress !== this['address']) {
@@ -111,19 +107,18 @@ export abstract class Signer implements SignerProvider {
     }
   }
 
-  @checkParams
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
-    const response = convertHttpResponse(
-      await this.client.transactions.postTransactionsBuild(await this.usePublicKey(params))
-    )
+    const response = await this.buildTransferTx(params)
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
   @checkParams
+  async buildTransferTx(params: SignTransferTxParams): Promise<api.BuildTransactionResult> {
+    return convertHttpResponse(await this.client.transactions.postTransactionsBuild(await this.usePublicKey(params)))
+  }
+
   async signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
-    const response = convertHttpResponse(
-      await this.client.contracts.postContractsUnsignedTxBuildContract(await this.usePublicKey(params))
-    )
+    const response = await this.buildContractCreationTx(params)
     const result = await this.handleSign(
       { signerAddress: params.signerAddress, ...response },
       this.shouldSubmitTx(params)
@@ -137,11 +132,22 @@ export abstract class Signer implements SignerProvider {
   }
 
   @checkParams
+  async buildContractCreationTx(params: SignContractCreationTxParams): Promise<api.BuildContractDeployScriptTxResult> {
+    return convertHttpResponse(
+      await this.client.contracts.postContractsUnsignedTxBuildContract(await this.usePublicKey(params))
+    )
+  }
+
   async signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult> {
-    const response = convertHttpResponse(
+    const response = await this.buildScriptTx(params)
+    return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
+  }
+
+  @checkParams
+  async buildScriptTx(params: SignScriptTxParams): Promise<api.BuildScriptTxResult> {
+    return convertHttpResponse(
       await this.client.contracts.postContractsUnsignedTxBuildScript(await this.usePublicKey(params))
     )
-    return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
   // in general, wallet should show the decoded information to user for confirmation

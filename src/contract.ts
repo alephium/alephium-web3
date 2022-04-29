@@ -24,7 +24,7 @@ import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
-import { SingleAddressSigner } from './signer'
+import { SignContractCreationTxParams, SignScriptTxParams, SingleAddressSigner } from './signer'
 import * as ralph from './ralph'
 import { binToHex, convertHttpResponse, contractIdFromAddress } from './utils'
 
@@ -447,18 +447,21 @@ export class Contract extends Common {
 
   async transactionForDeployment(
     signer: SingleAddressSigner,
-    initialFields?: Val[],
-    issueTokenAmount?: string,
-    templateVariables?: ralph.TemplateVariables
+    params: BuildContractDeployTx
   ): Promise<DeployContractTransaction> {
-    const params: api.BuildContractDeployScriptTx = {
-      fromPublicKey: signer.publicKey,
-      bytecode: this.buildByteCode(templateVariables),
-      initialFields: this.toApiFields(initialFields),
-      issueTokenAmount: issueTokenAmount
+    const signerAddress =
+      typeof params.signerAddress !== 'undefined' ? params.signerAddress : await signer.getAccounts()[0].address
+    const signerParams: SignContractCreationTxParams = {
+      signerAddress: signerAddress,
+      bytecode: this.buildByteCode(params.templateVariables),
+      initialFields: this.toApiFields(params.initialFields),
+      alphAmount: extractOptionalNumber256(params.alphAmount),
+      issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
+      gas: params.gas,
+      gasPrice: extractOptionalNumber256(params.gasPrice)
     }
-    const response = await signer.client.contracts.postContractsUnsignedTxBuildContract(params)
-    return fromApiDeployContractUnsignedTx(convertHttpResponse(response))
+    const response = await signer.buildContractCreationTx(signerParams)
+    return fromApiDeployContractUnsignedTx(response)
   }
 
   buildByteCode(templateVariables?: ralph.TemplateVariables): string {
@@ -550,28 +553,18 @@ export class Script extends Common {
     )
   }
 
-  async transactionForDeployment(
-    signer: SingleAddressSigner,
-    templateVariables?: ralph.TemplateVariables,
-    params?: BuildScriptTx
-  ): Promise<BuildScriptTxResult> {
-    const apiParams: api.BuildScriptTx =
-      typeof params !== 'undefined'
-        ? {
-            fromPublicKey: signer.publicKey,
-            bytecode: this.buildByteCode(templateVariables),
-            alphAmount: typeof params.alphAmount !== 'undefined' ? extractNumber256(params.alphAmount) : undefined,
-            tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
-            gas: typeof params.gas !== 'undefined' ? params.gas : undefined,
-            gasPrice: typeof params.gasPrice !== 'undefined' ? extractNumber256(params.gasPrice) : undefined,
-            utxosLimit: typeof params.utxosLimit !== 'undefined' ? params.utxosLimit : undefined
-          }
-        : {
-            fromPublicKey: signer.publicKey,
-            bytecode: this.buildByteCode(templateVariables)
-          }
-    const response = await signer.client.contracts.postContractsUnsignedTxBuildScript(apiParams)
-    return convertHttpResponse(response)
+  async transactionForDeployment(signer: SingleAddressSigner, params: BuildScriptTx): Promise<BuildScriptTxResult> {
+    const signerAddress =
+      typeof params.signerAddress !== 'undefined' ? params.signerAddress : await signer.getAccounts()[0].address
+    const signerParams: SignScriptTxParams = {
+      signerAddress: signerAddress,
+      bytecode: this.buildByteCode(params.templateVariables),
+      alphAmount: extractOptionalNumber256(params.alphAmount),
+      tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
+      gas: params.gas,
+      gasPrice: extractOptionalNumber256(params.gasPrice)
+    }
+    return await signer.buildScriptTx(signerParams)
   }
 
   buildByteCode(templateVariables?: ralph.TemplateVariables): string {
@@ -612,6 +605,10 @@ function extractNumber256(v: Val): string {
   } else {
     throw new Error(`Invalid 256 bit number: ${v}`)
   }
+}
+
+function extractOptionalNumber256(v?: Val): string | undefined {
+  return typeof v !== 'undefined' ? extractNumber256(v) : undefined
 }
 
 // TODO: check hex string
@@ -927,12 +924,23 @@ function fromApiDeployContractUnsignedTx(result: api.BuildContractDeployScriptTx
   return { ...result, contractId: binToHex(contractIdFromAddress(result.contractAddress)) }
 }
 
+export interface BuildContractDeployTx {
+  signerAddress?: string
+  templateVariables?: ralph.TemplateVariables
+  initialFields?: Val[]
+  issueTokenAmount?: Number256
+  alphAmount?: Number256
+  gas?: number
+  gasPrice?: Number256
+}
+
 export interface BuildScriptTx {
+  signerAddress?: string
+  templateVariables?: ralph.TemplateVariables
   alphAmount?: Number256
   tokens?: Token[]
   gas?: number
   gasPrice?: Number256
-  utxosLimit?: number
 }
 
 export interface BuildScriptTxResult {

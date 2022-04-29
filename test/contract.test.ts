@@ -55,7 +55,7 @@ describe('contract', function () {
 
     const signer = await NodeSigner.testSigner(client)
 
-    const subDeployTx = await sub.transactionForDeployment(signer, [0])
+    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: [0] })
     const subContractId = subDeployTx.contractId
     expect(subDeployTx.group).toEqual(3)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
@@ -63,7 +63,10 @@ describe('contract', function () {
     expect(subSubmitResult.toGroup).toEqual(3)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
-    const addDeployTx = await add.transactionForDeployment(signer, [0], undefined, { subContractId: subContractId })
+    const addDeployTx = await add.transactionForDeployment(signer, {
+      initialFields: [0],
+      templateVariables: { subContractId: subContractId }
+    })
     expect(addDeployTx.group).toEqual(3)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
     expect(addSubmitResult.fromGroup).toEqual(3)
@@ -97,7 +100,7 @@ describe('contract', function () {
 
     const signer = await NodeSigner.testSigner(client)
 
-    const deployTx = await greeter.transactionForDeployment(signer, [1])
+    const deployTx = await greeter.transactionForDeployment(signer, { initialFields: [1] })
     expect(deployTx.group).toEqual(3)
     const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
     expect(submitResult.fromGroup).toEqual(3)
@@ -107,7 +110,9 @@ describe('contract', function () {
     const greeterContractId = deployTx.contractId
     const main = await Script.fromSource(client, 'greeter_main.ral')
 
-    const mainScriptTx = await main.transactionForDeployment(signer, { greeterContractId: greeterContractId })
+    const mainScriptTx = await main.transactionForDeployment(signer, {
+      templateVariables: { greeterContractId: greeterContractId }
+    })
     expect(mainScriptTx.group).toEqual(3)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(3)
