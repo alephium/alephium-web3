@@ -445,10 +445,10 @@ export class Contract extends Common {
     }
   }
 
-  async transactionForDeployment(
+  async paramsForDeployment(
     signer: SingleAddressSigner,
     params: BuildContractDeployTx
-  ): Promise<DeployContractTransaction> {
+  ): Promise<SignContractCreationTxParams> {
     let signerAddress: string
     if (typeof params.signerAddress !== 'undefined') {
       signerAddress = params.signerAddress
@@ -464,6 +464,14 @@ export class Contract extends Common {
       gas: params.gas,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
+    return signerParams
+  }
+
+  async transactionForDeployment(
+    signer: SingleAddressSigner,
+    params: BuildContractDeployTx
+  ): Promise<DeployContractTransaction> {
+    const signerParams = await this.paramsForDeployment(signer, params)
     const response = await signer.buildContractCreationTx(signerParams)
     return fromApiDeployContractUnsignedTx(response)
   }
@@ -557,7 +565,7 @@ export class Script extends Common {
     )
   }
 
-  async transactionForDeployment(signer: SingleAddressSigner, params: BuildScriptTx): Promise<BuildScriptTxResult> {
+  async paramsForDeployment(signer: SingleAddressSigner, params: BuildScriptTx): Promise<SignScriptTxParams> {
     let signerAddress: string
     if (typeof params.signerAddress !== 'undefined') {
       signerAddress = params.signerAddress
@@ -572,6 +580,11 @@ export class Script extends Common {
       gas: params.gas,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
+    return signerParams
+  }
+
+  async transactionForDeployment(signer: SingleAddressSigner, params: BuildScriptTx): Promise<BuildScriptTxResult> {
+    const signerParams = await this.paramsForDeployment(signer, params)
     return await signer.buildScriptTx(signerParams)
   }
 
