@@ -229,7 +229,7 @@ export class Contract extends Common {
     return Contract.fromJson(artifact)
   }
 
-  toString(): string {
+  override toString(): string {
     return JSON.stringify(
       {
         sourceCodeSha256: this.sourceCodeSha256,
@@ -449,8 +449,12 @@ export class Contract extends Common {
     signer: SingleAddressSigner,
     params: BuildContractDeployTx
   ): Promise<DeployContractTransaction> {
-    const signerAddress =
-      typeof params.signerAddress !== 'undefined' ? params.signerAddress : await signer.getAccounts()[0].address
+    let signerAddress: string
+    if (typeof params.signerAddress !== 'undefined') {
+      signerAddress = params.signerAddress
+    } else {
+      signerAddress = (await signer.getAccounts())[0].address
+    }
     const signerParams: SignContractCreationTxParams = {
       signerAddress: signerAddress,
       bytecode: this.buildByteCode(params.templateVariables),
@@ -541,7 +545,7 @@ export class Script extends Common {
     return this.fromJson(artifact)
   }
 
-  toString(): string {
+  override toString(): string {
     return JSON.stringify(
       {
         sourceCodeSha256: this.sourceCodeSha256,
@@ -554,8 +558,12 @@ export class Script extends Common {
   }
 
   async transactionForDeployment(signer: SingleAddressSigner, params: BuildScriptTx): Promise<BuildScriptTxResult> {
-    const signerAddress =
-      typeof params.signerAddress !== 'undefined' ? params.signerAddress : await signer.getAccounts()[0].address
+    let signerAddress: string
+    if (typeof params.signerAddress !== 'undefined') {
+      signerAddress = params.signerAddress
+    } else {
+      signerAddress = (await signer.getAccounts())[0].address
+    }
     const signerParams: SignScriptTxParams = {
       signerAddress: signerAddress,
       bytecode: this.buildByteCode(params.templateVariables),

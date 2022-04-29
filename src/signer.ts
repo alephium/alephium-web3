@@ -217,7 +217,7 @@ export abstract class SingleAddressSigner extends Signer {
     return [{ address: this.address, pubkey: this.publicKey, group: this.group }]
   }
 
-  async submitTransaction(unsignedTx: string, txHash: string): Promise<SubmissionResult> {
+  override async submitTransaction(unsignedTx: string, txHash: string): Promise<SubmissionResult> {
     return super.submitTransaction(unsignedTx, txHash, this.address)
   }
 }
