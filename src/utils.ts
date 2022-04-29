@@ -26,7 +26,6 @@ import { TOTAL_NUMBER_OF_GROUPS } from './constants'
 import djb2 from './djb2'
 import * as node from '../api/api-alephium'
 import * as explorer from '../api/api-explorer'
-import { buffer } from 'stream/consumers'
 
 const ec = new EC('secp256k1')
 
