@@ -34,7 +34,6 @@ module.exports = {
     }),
     new webpack.IgnorePlugin({
       checkResource(resource) {
-        // The "bip39/src/wordlists" node module consists of json files for multiple languages. We only need English.
         return /.*\/wordlists\/(?!english).*\.json/.test(resource)
       }
     })
