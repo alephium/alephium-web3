@@ -72,7 +72,7 @@ describe('utils', function () {
 
       const message = vector[0]
       const sha256 = ec.hash().update(message).digest()
-      const signature = utils.signatureEncode(ec, keyPair.sign(sha256))
+      const signature = utils.signatureEncode(keyPair.sign(sha256))
       assert.deepStrictEqual(signature, signatureExpected)
     })
   })
@@ -119,5 +119,24 @@ describe('utils', function () {
         'Invalid contract address type: 2'
       ),
       expect(() => utils.tokenIdFromAddress('..')).toThrow('Non-base58 character')
+  })
+
+  it('should compute public key from private key', () => {
+    expect(utils.publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
+      '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
+    )
+  })
+
+  it('should compute address from public key', () => {
+    expect(utils.publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
+      '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
+    )
+    expect(utils.addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
+      '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
+    )
+  })
+
+  it('should convert from string to hex', () => {
+    expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
   })
 })

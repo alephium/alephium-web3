@@ -29,7 +29,11 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new webpack.SourceMapDevToolPlugin({ filename: '[file].map' }),
-    new webpack.IgnorePlugin({ contextRegExp: /^\.\/wordlists\/(?!english)/, resourceRegExp: /bip39\/src$/ })
+    new webpack.IgnorePlugin({
+      checkResource(resource) {
+        return /.*\/wordlists\/(?!english).*\.json/.test(resource)
+      }
+    })
   ],
   module: {
     rules: [

@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { CliqueClient } from '../src/clique'
-import { Signer } from '../src/signer'
+import { NodeSigner } from '../src/signer'
 import { Contract, Script, TestContractParams } from '../src/contract'
 
 describe('contract', function () {
@@ -53,9 +53,9 @@ describe('contract', function () {
     expect(testResultPrivate.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
-    const signer = Signer.testSigner(client)
+    const signer = await NodeSigner.testSigner(client)
 
-    const subDeployTx = await sub.transactionForDeployment(signer, [0])
+    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: [0] })
     const subContractId = subDeployTx.contractId
     expect(subDeployTx.group).toEqual(3)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
@@ -63,7 +63,10 @@ describe('contract', function () {
     expect(subSubmitResult.toGroup).toEqual(3)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
-    const addDeployTx = await add.transactionForDeployment(signer, [0], undefined, { subContractId: subContractId })
+    const addDeployTx = await add.transactionForDeployment(signer, {
+      initialFields: [0],
+      templateVariables: { subContractId: subContractId }
+    })
     expect(addDeployTx.group).toEqual(3)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
     expect(addSubmitResult.fromGroup).toEqual(3)
@@ -73,7 +76,9 @@ describe('contract', function () {
     const addContractId = addDeployTx.contractId
     const main = await Script.fromSource(client, 'main.ral')
 
-    const mainScriptTx = await main.transactionForDeployment(signer, { addContractId: addContractId })
+    const mainScriptTx = await main.transactionForDeployment(signer, {
+      templateVariables: { addContractId: addContractId }
+    })
     expect(mainScriptTx.group).toEqual(3)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(3)
@@ -95,9 +100,9 @@ describe('contract', function () {
     expect(testResult.contracts[0].artifactId).toEqual(greeter.sourceCodeSha256)
     expect(testResult.contracts[0].fields).toEqual([1])
 
-    const signer = Signer.testSigner(client)
+    const signer = await NodeSigner.testSigner(client)
 
-    const deployTx = await greeter.transactionForDeployment(signer, [1])
+    const deployTx = await greeter.transactionForDeployment(signer, { initialFields: [1] })
     expect(deployTx.group).toEqual(3)
     const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
     expect(submitResult.fromGroup).toEqual(3)
@@ -107,7 +112,9 @@ describe('contract', function () {
     const greeterContractId = deployTx.contractId
     const main = await Script.fromSource(client, 'greeter_main.ral')
 
-    const mainScriptTx = await main.transactionForDeployment(signer, { greeterContractId: greeterContractId })
+    const mainScriptTx = await main.transactionForDeployment(signer, {
+      templateVariables: { greeterContractId: greeterContractId }
+    })
     expect(mainScriptTx.group).toEqual(3)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(3)

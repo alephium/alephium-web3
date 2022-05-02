@@ -13,6 +13,8 @@
     "declaration": true,
     "outDir": "dist",
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "noImplicitOverride": true
   }
 }

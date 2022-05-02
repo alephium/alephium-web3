@@ -16,8 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import * as EC from 'elliptic'
+import { ec as EC, SignatureInput } from 'elliptic'
 import BN from 'bn.js'
+import blake from 'blakejs'
 import bs58 from './bs58'
 import { Buffer } from 'buffer/'
 
@@ -25,6 +26,8 @@ import { TOTAL_NUMBER_OF_GROUPS } from './constants'
 import djb2 from './djb2'
 import * as node from '../api/api-alephium'
 import * as explorer from '../api/api-explorer'
+
+const ec = new EC('secp256k1')
 
 export function convertHttpResponse<T>(
   response: node.HttpResponse<T, { detail: string }> | explorer.HttpResponse<T, { detail: string }>
@@ -36,7 +39,7 @@ export function convertHttpResponse<T>(
   }
 }
 
-export const signatureEncode = (ec: EC.ec, signature: EC.ec.Signature): string => {
+export function signatureEncode(signature: EC.Signature): string {
   let sNormalized = signature.s
   if (ec.n && signature.s.cmp(ec.nh) === 1) {
     sNormalized = ec.n.sub(signature.s)
@@ -48,7 +51,7 @@ export const signatureEncode = (ec: EC.ec, signature: EC.ec.Signature): string =
 }
 
 // the signature should be in hex string format for 64 bytes
-export const signatureDecode = (ec: EC.ec, signature: string): EC.SignatureInput => {
+export const signatureDecode = (ec: EC, signature: string): SignatureInput => {
   if (signature.length !== 128) {
     throw new Error('Invalid signature length')
   }
@@ -158,4 +161,38 @@ export function hexToBinUnsafe(hex: string): Uint8Array {
 
 export function binToHex(bin: Uint8Array): string {
   return Buffer.from(bin).toString('hex')
+}
+
+export function publicKeyFromPrivateKey(privateKey: string): string {
+  const key = ec.keyFromPrivate(privateKey)
+  return key.getPublic(true, 'hex')
+}
+
+export function addressFromPublicKey(publicKey: string): string {
+  const addressType = Buffer.from([AddressType.P2PKH])
+  const hash = blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32)
+  const bytes = Buffer.concat([addressType, hash])
+  return bs58.encode(bytes)
+}
+
+export function addressFromContractId(contractId: string): string {
+  const addressType = Buffer.from([AddressType.P2C])
+  const hash = blake.blake2b(Buffer.from(contractId, 'hex'), undefined, 32)
+  const bytes = Buffer.concat([addressType, hash])
+  return bs58.encode(bytes)
+}
+
+export function contractIdFromTx(txId: string, outputIndex: number): string {
+  const txIdBin = hexToBinUnsafe(txId)
+  const data = Buffer.concat([txIdBin, Buffer.from([outputIndex])])
+  const hash = blake.blake2b(data, undefined, 32)
+  return binToHex(hash)
+}
+
+export function stringToHex(str: string): string {
+  let hex = ''
+  for (let i = 0; i < str.length; i++) {
+    hex += '' + str.charCodeAt(i).toString(16)
+  }
+  return hex
 }
