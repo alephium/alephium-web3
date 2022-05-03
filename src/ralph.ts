@@ -149,7 +149,7 @@ export function encodeByteVec(bytes: string): Uint8Array {
   }
 
   const buffer0 = Buffer.from(bytes, 'hex')
-  const buffer1 = encodeI256(BigInt(buffer0.length))
+  const buffer1 = Buffer.from(encodeI256(BigInt(buffer0.length)))
   return Buffer.concat([buffer1, buffer0])
 }
 
