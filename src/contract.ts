@@ -383,7 +383,7 @@ export class Contract extends Common {
       contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
       artifactId: state.artifactId,
-      fields: fromApiVals(state.fields, contract.fields.types),
+      fields: state.fields ? fromApiVals(state.fields, contract.fields.types) : [],
       fieldTypes: await Contract.getFieldTypes(state),
       asset: fromApiAsset(state.asset)
     }
