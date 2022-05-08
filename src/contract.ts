@@ -675,7 +675,7 @@ export function extractArray(tpe: string, v: Val): api.Val {
   }
 }
 
-function toApiVal(v: Val, tpe: string): api.Val {
+export function toApiVal(v: Val, tpe: string): api.Val {
   if (tpe === 'Bool') {
     return { value: extractBoolean(v), type: tpe }
   } else if (tpe === 'U256' || tpe === 'I256') {
