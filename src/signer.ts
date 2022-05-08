@@ -230,7 +230,7 @@ export class NodeSigner extends SingleAddressSigner {
 
   static async testSigner(client: CliqueClient): Promise<NodeSigner> {
     const walletName = 'alephium-web3-test-only-wallet'
-    const address = '12LgGdbjE6EtnTKw5gdBwV2RRXuXPtzYM7SDZ45YJTRht'
+    const address = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
     return NodeSigner.init(client, walletName, address)
   }
 

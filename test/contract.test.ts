@@ -57,20 +57,20 @@ describe('contract', function () {
 
     const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: [0] })
     const subContractId = subDeployTx.contractId
-    expect(subDeployTx.group).toEqual(3)
+    expect(subDeployTx.group).toEqual(0)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
-    expect(subSubmitResult.fromGroup).toEqual(3)
-    expect(subSubmitResult.toGroup).toEqual(3)
+    expect(subSubmitResult.fromGroup).toEqual(0)
+    expect(subSubmitResult.toGroup).toEqual(0)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: [0],
       templateVariables: { subContractId: subContractId }
     })
-    expect(addDeployTx.group).toEqual(3)
+    expect(addDeployTx.group).toEqual(0)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
-    expect(addSubmitResult.fromGroup).toEqual(3)
-    expect(addSubmitResult.toGroup).toEqual(3)
+    expect(addSubmitResult.fromGroup).toEqual(0)
+    expect(addSubmitResult.toGroup).toEqual(0)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
 
     const addContractId = addDeployTx.contractId
@@ -79,10 +79,10 @@ describe('contract', function () {
     const mainScriptTx = await main.transactionForDeployment(signer, {
       templateVariables: { addContractId: addContractId }
     })
-    expect(mainScriptTx.group).toEqual(3)
+    expect(mainScriptTx.group).toEqual(0)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
-    expect(mainSubmitResult.fromGroup).toEqual(3)
-    expect(mainSubmitResult.toGroup).toEqual(3)
+    expect(mainSubmitResult.fromGroup).toEqual(0)
+    expect(mainSubmitResult.toGroup).toEqual(0)
   }
 
   async function testSuite2() {
@@ -103,10 +103,10 @@ describe('contract', function () {
     const signer = await NodeSigner.testSigner(client)
 
     const deployTx = await greeter.transactionForDeployment(signer, { initialFields: [1] })
-    expect(deployTx.group).toEqual(3)
+    expect(deployTx.group).toEqual(0)
     const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
-    expect(submitResult.fromGroup).toEqual(3)
-    expect(submitResult.toGroup).toEqual(3)
+    expect(submitResult.fromGroup).toEqual(0)
+    expect(submitResult.toGroup).toEqual(0)
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
@@ -115,10 +115,10 @@ describe('contract', function () {
     const mainScriptTx = await main.transactionForDeployment(signer, {
       templateVariables: { greeterContractId: greeterContractId }
     })
-    expect(mainScriptTx.group).toEqual(3)
+    expect(mainScriptTx.group).toEqual(0)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
-    expect(mainSubmitResult.fromGroup).toEqual(3)
-    expect(mainSubmitResult.toGroup).toEqual(3)
+    expect(mainSubmitResult.fromGroup).toEqual(0)
+    expect(mainSubmitResult.toGroup).toEqual(0)
   }
 
   it('should test contracts', async () => {
