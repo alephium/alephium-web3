@@ -32,7 +32,7 @@
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
     "alephium_version": "1.4.0-leman4",
-    "explorer_backend_version": "1.6.1"
+    "explorer_backend_version": "1.6.5"
   },
   "scripts": {
     "build": "rm -rf dist/* && npx tsc --build . && webpack",
