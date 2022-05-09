@@ -53,7 +53,7 @@ describe('node', function () {
     expect(client.transactions.postTransactionsBuild).toHaveBeenLastCalledWith({
       fromPublicKey: 'fromPublicKey',
       destinations: [{ address: 'toAddress', alphAmount: 'amount', lockTime: undefined }],
-      gas: 20000,
+      gasAmount: 20000,
       gasPrice: '1000000000'
     })
     expect(transaction).toEqual({ data: transactionMockData.created })
