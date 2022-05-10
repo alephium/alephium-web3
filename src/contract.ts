@@ -267,7 +267,7 @@ export class Contract extends Common {
     funcName: string,
     params: TestContractParams,
     expectPublic: boolean,
-    accessType: string,
+    accessType: string
   ): Promise<TestContractResult> {
     const apiParams: api.TestContract = this.toTestContract(funcName, params)
     const response = await client.contracts.postContractsTestContract(apiParams)
@@ -295,7 +295,7 @@ export class Contract extends Common {
   async testPrivateMethod(
     client: CliqueClient,
     funcName: string,
-    params: TestContractParams,
+    params: TestContractParams
   ): Promise<TestContractResult> {
     return this._test(client, funcName, params, false, 'private')
   }
