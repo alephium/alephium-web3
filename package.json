@@ -31,7 +31,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "1.4.0-leman2",
+    "alephium_version": "1.4.0-leman4",
     "explorer_backend_version": "1.6.1"
   },
   "scripts": {

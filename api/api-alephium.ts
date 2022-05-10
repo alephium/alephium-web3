@@ -182,7 +182,7 @@ export interface BuildContractDeployScriptTx {
   issueTokenAmount?: string
 
   /** @format gas */
-  gas?: number
+  gasAmount?: number
 
   /** @format uint256 */
   gasPrice?: string
@@ -192,6 +192,12 @@ export interface BuildContractDeployScriptTx {
 export interface BuildContractDeployScriptTxResult {
   group: number
   unsignedTx: string
+
+  /** @format gas */
+  gasAmount: number
+
+  /** @format uint256 */
+  gasPrice: string
 
   /** @format 32-byte-hash */
   txId: string
@@ -241,7 +247,7 @@ export interface BuildScriptTx {
   tokens?: Token[]
 
   /** @format gas */
-  gas?: number
+  gasAmount?: number
 
   /** @format uint256 */
   gasPrice?: string
@@ -250,6 +256,12 @@ export interface BuildScriptTx {
 
 export interface BuildScriptTxResult {
   unsignedTx: string
+
+  /** @format gas */
+  gasAmount: number
+
+  /** @format uint256 */
+  gasPrice: string
 
   /** @format 32-byte-hash */
   txId: string
@@ -267,7 +279,7 @@ export interface BuildSweepAddressTransactions {
   lockTime?: number
 
   /** @format gas */
-  gas?: number
+  gasAmount?: number
 
   /** @format uint256 */
   gasPrice?: string
@@ -287,7 +299,7 @@ export interface BuildTransaction {
   utxos?: OutputRef[]
 
   /** @format gas */
-  gas?: number
+  gasAmount?: number
 
   /** @format uint256 */
   gasPrice?: string
@@ -428,6 +440,7 @@ export interface Events {
   chainFrom: number
   chainTo: number
   events: Event[]
+  nextStart: number
 }
 
 export interface FetchResponse {
@@ -633,7 +646,7 @@ export interface Sweep {
   lockTime?: number
 
   /** @format gas */
-  gas?: number
+  gasAmount?: number
 
   /** @format uint256 */
   gasPrice?: string
@@ -2210,13 +2223,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Events
-     * @name GetEventsContractInBlock
-     * @summary Get events for a contract within a block
-     * @request GET:/events/contract/in-block
+     * @name GetEventsContract
+     * @summary Get events for a contract within a counter range
+     * @request GET:/events/contract
      */
-    getEventsContractInBlock: (query: { block: string; contractAddress: string }, params: RequestParams = {}) =>
+    getEventsContract: (query: { start: number; end?: number; contractAddress: string }, params: RequestParams = {}) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/events/contract/in-block`,
+        path: `/events/contract`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2227,36 +2240,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Events
-     * @name GetEventsContractWithinBlocks
-     * @summary Get events for a contract within a range of blocks
-     * @request GET:/events/contract/within-blocks
+     * @name GetEventsContractCurrentCount
+     * @summary Get current value of the events counter for a contract
+     * @request GET:/events/contract/current-count
      */
-    getEventsContractWithinBlocks: (
-      query: { fromBlock: string; toBlock?: string; contractAddress: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<Events[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/events/contract/within-blocks`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Events
-     * @name GetEventsContractWithinTimeInterval
-     * @summary Get events for a contract within a time interval
-     * @request GET:/events/contract/within-time-interval
-     */
-    getEventsContractWithinTimeInterval: (
-      query: { fromTs: number; toTs?: number; contractAddress: string },
-      params: RequestParams = {}
-    ) =>
-      this.request<Events[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/events/contract/within-time-interval`,
+    getEventsContractCurrentCount: (query: { contractAddress: string }, params: RequestParams = {}) =>
+      this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/events/contract/current-count`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2271,9 +2261,26 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get events for a TxScript
      * @request GET:/events/tx-script
      */
-    getEventsTxScript: (query: { block: string; txId: string }, params: RequestParams = {}) =>
+    getEventsTxScript: (query: { txId: string }, params: RequestParams = {}) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/events/tx-script`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Events
+     * @name GetEventsTxScriptCurrentCount
+     * @summary Get current value of the events counter for a TxScript
+     * @request GET:/events/tx-script/current-count
+     */
+    getEventsTxScriptCurrentCount: (query: { txId: string }, params: RequestParams = {}) =>
+      this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/events/tx-script/current-count`,
         method: 'GET',
         query: query,
         format: 'json',

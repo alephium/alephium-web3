@@ -461,7 +461,7 @@ export class Contract extends Common {
       initialFields: this.toApiFields(params.initialFields),
       alphAmount: extractOptionalNumber256(params.alphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
-      gas: params.gas,
+      gasAmount: params.gas,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
     return signerParams
@@ -577,7 +577,7 @@ export class Script extends Common {
       bytecode: this.buildByteCode(params.templateVariables),
       alphAmount: extractOptionalNumber256(params.alphAmount),
       tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
-      gas: params.gas,
+      gasAmount: params.gas,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
     return signerParams
