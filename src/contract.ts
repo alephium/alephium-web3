@@ -445,18 +445,9 @@ export class Contract extends Common {
     }
   }
 
-  async paramsForDeployment(
-    signer: SingleAddressSigner,
-    params: BuildContractDeployTx
-  ): Promise<SignContractCreationTxParams> {
-    let signerAddress: string
-    if (typeof params.signerAddress !== 'undefined') {
-      signerAddress = params.signerAddress
-    } else {
-      signerAddress = (await signer.getAccounts())[0].address
-    }
+  async paramsForDeployment(params: BuildContractDeployTx): Promise<SignContractCreationTxParams> {
     const signerParams: SignContractCreationTxParams = {
-      signerAddress: signerAddress,
+      signerAddress: params.signerAddress,
       bytecode: this.buildByteCode(params.templateVariables),
       initialFields: this.toApiFields(params.initialFields),
       alphAmount: extractOptionalNumber256(params.alphAmount),
@@ -469,9 +460,12 @@ export class Contract extends Common {
 
   async transactionForDeployment(
     signer: SingleAddressSigner,
-    params: BuildContractDeployTx
+    params: Omit<BuildContractDeployTx, 'signerAddress'>
   ): Promise<DeployContractTransaction> {
-    const signerParams = await this.paramsForDeployment(signer, params)
+    const signerParams = await this.paramsForDeployment({
+      ...params,
+      signerAddress: (await signer.getAccounts())[0].address
+    })
     const response = await signer.buildContractCreationTx(signerParams)
     return fromApiDeployContractUnsignedTx(response)
   }
@@ -565,15 +559,9 @@ export class Script extends Common {
     )
   }
 
-  async paramsForDeployment(signer: SingleAddressSigner, params: BuildScriptTx): Promise<SignScriptTxParams> {
-    let signerAddress: string
-    if (typeof params.signerAddress !== 'undefined') {
-      signerAddress = params.signerAddress
-    } else {
-      signerAddress = (await signer.getAccounts())[0].address
-    }
+  async paramsForDeployment(params: BuildScriptTx): Promise<SignScriptTxParams> {
     const signerParams: SignScriptTxParams = {
-      signerAddress: signerAddress,
+      signerAddress: params.signerAddress,
       bytecode: this.buildByteCode(params.templateVariables),
       alphAmount: extractOptionalNumber256(params.alphAmount),
       tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
@@ -583,8 +571,14 @@ export class Script extends Common {
     return signerParams
   }
 
-  async transactionForDeployment(signer: SingleAddressSigner, params: BuildScriptTx): Promise<BuildScriptTxResult> {
-    const signerParams = await this.paramsForDeployment(signer, params)
+  async transactionForDeployment(
+    signer: SingleAddressSigner,
+    params: Omit<BuildScriptTx, 'signerAddress'>
+  ): Promise<BuildScriptTxResult> {
+    const signerParams = await this.paramsForDeployment({
+      ...params,
+      signerAddress: (await signer.getAccounts())[0].address
+    })
     return await signer.buildScriptTx(signerParams)
   }
 
@@ -946,22 +940,24 @@ function fromApiDeployContractUnsignedTx(result: api.BuildContractDeployScriptTx
 }
 
 export interface BuildContractDeployTx {
-  signerAddress?: string
+  signerAddress: string
   templateVariables?: ralph.TemplateVariables
   initialFields?: Val[]
   issueTokenAmount?: Number256
   alphAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
+  submitTx?: boolean
 }
 
 export interface BuildScriptTx {
-  signerAddress?: string
+  signerAddress: string
   templateVariables?: ralph.TemplateVariables
   alphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
+  submitTx?: boolean
 }
 
 export interface BuildScriptTxResult {
