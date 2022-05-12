@@ -101,7 +101,7 @@ export class CliqueClient extends Api<null> {
     toAddress: string,
     amount: string,
     lockTime?: number,
-    gas?: number,
+    gasAmount?: number,
     gasPrice?: string
   ) {
     const clientIndex = this.getClientIndex(fromAddress)
@@ -110,7 +110,7 @@ export class CliqueClient extends Api<null> {
       toAddress,
       amount,
       lockTime,
-      gas,
+      gasAmount,
       gasPrice
     )
   }
