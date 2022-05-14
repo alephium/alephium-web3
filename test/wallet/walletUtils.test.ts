@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Buffer } from 'buffer/'
 import { HDKey } from '@scure/bip32'
 
-import * as walletUtils from '../src/wallet'
+import * as walletUtils from '../src/wallet/walletUtils'
 import { addressToGroup } from '../src/address'
 import { TOTAL_NUMBER_OF_GROUPS } from '../src/constants'
 

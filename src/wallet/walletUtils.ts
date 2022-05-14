@@ -21,51 +21,13 @@ import { HDKey } from '@scure/bip32'
 import * as bip39 from 'bip39'
 import blake from 'blakejs'
 
-import bs58 from './bs58'
-import { decrypt, encrypt } from './password-crypto'
-import { TOTAL_NUMBER_OF_GROUPS } from './constants'
-import { addressToGroup } from './address'
-import { binToHex } from './utils'
+import bs58 from '../bs58'
+import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
+import { addressToGroup } from '../address'
+import { binToHex } from '../utils'
 
-class StoredState {
-  readonly version = 1
-  readonly mnemonic: string
-
-  constructor({ mnemonic }: { mnemonic: string }) {
-    this.mnemonic = mnemonic
-  }
-}
-
-type WalletProps = {
-  address: string
-  publicKey: string
-  privateKey: string
-  seed: Buffer
-  mnemonic: string
-}
-
-export class Wallet {
-  readonly address: string
-  readonly publicKey: string
-  readonly privateKey: string
-  readonly seed: Buffer // TODO: We should differentiate the notion of account (seed, mnemonic) from individual addresses.
-  readonly mnemonic: string
-
-  constructor({ address, publicKey, privateKey, seed, mnemonic }: WalletProps) {
-    this.address = address
-    this.publicKey = publicKey
-    this.privateKey = privateKey
-    this.seed = seed
-    this.mnemonic = mnemonic
-  }
-
-  encrypt = (password: string): string => {
-    const storedState = new StoredState({
-      mnemonic: this.mnemonic
-    })
-    return encrypt(password, JSON.stringify(storedState))
-  }
-}
+import { IRecoverableWallet } from './IRecoverableWallet'
+import { RecoverableWallet } from './RecoverableWallet'
 
 export const getPath = (addressIndex?: number): string => {
   if (
@@ -80,13 +42,6 @@ export const getPath = (addressIndex?: number): string => {
   return `m/44'/${coinType}/0'/0/${addressIndex || '0'}`
 }
 
-export const getWalletFromMnemonic = (mnemonic: string): Wallet => {
-  const seed = Buffer.from(bip39.mnemonicToSeedSync(mnemonic))
-  const { address, publicKey, privateKey } = deriveAddressAndKeys(seed)
-
-  return new Wallet({ seed, address, publicKey, privateKey, mnemonic })
-}
-
 export type AddressAndKeys = {
   address: string
   publicKey: string
@@ -94,7 +49,7 @@ export type AddressAndKeys = {
   addressIndex: number
 }
 
-const deriveAddressAndKeys = (seed: Buffer, addressIndex?: number): AddressAndKeys => {
+export const deriveAddressAndKeys = (seed: Buffer, addressIndex?: number): AddressAndKeys => {
   const masterKey = HDKey.fromMasterSeed(seed)
   const keyPair = masterKey.derive(getPath(addressIndex))
 
@@ -150,21 +105,7 @@ export const deriveNewAddressData = (
   return newAddressData
 }
 
-export const walletGenerate = (): Wallet => {
+export const walletGenerate = async (password: string): Promise<IRecoverableWallet> => {
   const mnemonic = bip39.generateMnemonic(256)
-  return getWalletFromMnemonic(mnemonic)
-}
-
-export const walletImport = (mnemonic: string): Wallet => {
-  if (!bip39.validateMnemonic(mnemonic)) {
-    throw new Error('Invalid seed phrase')
-  }
-  return getWalletFromMnemonic(mnemonic)
-}
-
-export const walletOpen = (password: string, encryptedWallet: string): Wallet => {
-  const dataDecrypted = decrypt(password, encryptedWallet)
-  const config = JSON.parse(dataDecrypted) as StoredState
-
-  return getWalletFromMnemonic(config.mnemonic)
+  return RecoverableWallet.FromMnemonic(password, mnemonic)
 }

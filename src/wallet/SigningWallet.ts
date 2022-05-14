@@ -15,21 +15,33 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { ec as EC } from 'elliptic'
 
 import { signatureEncode } from '../utils'
 import { encrypt, decrypt } from '../password-crypto'
 import { ISigningWallet } from './ISigningWallet'
+import { SigningWalletStoredState } from './StoredState'
+
+const ec = new EC('secp256k1')
 
 export class SigningWallet implements ISigningWallet {
-  constructor(private encryptedSecretJson: string) {}
+  constructor(public encryptedSecretJson: string, public address: string) {}
 
-  static async FromPrivateKey(password: string, privateKey: string): Promise<ISigningWallet> {
-    return new SigningWallet(encrypt(password, JSON.stringify({ privateKey })))
+  static async FromSigningWalletStoredState(
+    password: string,
+    storedState: SigningWalletStoredState,
+    address: string
+  ): Promise<ISigningWallet> {
+    return SigningWallet.FromPrivateKey(password, storedState.privateKey, address)
   }
 
-  sign(password: string, dataToSign: string): string {
+  static async FromPrivateKey(password: string, address: string, privateKey: string): Promise<ISigningWallet> {
+    return new SigningWallet(encrypt(password, JSON.stringify({ privateKey } as SigningWalletStoredState)), address)
+  }
+
+  async sign(password: string, dataToSign: string): Promise<string> {
     const decryptedSecretJson = decrypt(password, this.encryptedSecretJson)
-    const { privateKey } = JSON.parse(decryptedSecretJson)
+    const { privateKey } = JSON.parse(decryptedSecretJson) as SigningWalletStoredState
     const keyPair = ec.keyFromPrivate(privateKey)
     const signature = keyPair.sign(dataToSign)
 
