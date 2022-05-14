@@ -16,20 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
-import djb2 from '../src/djb2'
+import path from 'path'
+import type { Config } from '@jest/types'
 
-describe('djb2', function () {
-  it('djb2', async () => {
-    function check(str: string, expected: number) {
-      const bytes = Buffer.from(str, 'utf8')
-      expect(djb2(bytes)).toEqual(expected)
-    }
+// Or async function
+export default async (): Promise<Config.InitialOptions> => {
+  const jestConfig: Config.InitialOptions = {
+    transform: {
+      '^.+\\.(t|j)sx?$': 'ts-jest'
+    },
+    rootDir: __dirname,
+    testMatch: ['<rootDir>/**/*.test.ts'],
+    moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+    collectCoverage: true,
+    coverageDirectory: './coverage/',
+    collectCoverageFrom: ['src/**/*.ts']
+  }
 
-    check('', 5381)
-    check('a', 177670)
-    check('z', 177695)
-    check('foo', 193491849)
-    check('bar', 193487034)
-  })
-})
+  return jestConfig
+}

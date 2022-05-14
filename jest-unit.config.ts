@@ -16,12 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { decrypt } from '../src/password-crypto'
+import type { Config } from '@jest/types'
 
-describe('password-crypto', () => {
-  it('should raise an error if payload version is not 1', () => {
-    const password = 'passw0rd'
-    const payloadRaw = '{"version":2}'
-    expect(() => decrypt(password, payloadRaw)).toThrow('Invalid version: got 2, expected: 1')
-  })
-})
+import jestBaseConfigFactory from './jest.config'
+
+// Or async function
+export default async (): Promise<Config.InitialOptions> => {
+  const jestBaseConfig = await jestBaseConfigFactory()
+  return {
+    ...jestBaseConfig,
+    testMatch: ['<rootDir>/src/**/*.test.ts']
+  }
+}
