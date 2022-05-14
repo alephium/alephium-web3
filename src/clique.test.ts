@@ -20,7 +20,7 @@ import EC from 'elliptic'
 import assert from 'assert'
 import WS from 'jest-websocket-mock'
 
-import { CliqueClient } from '../src'
+import { CliqueClient } from './clique'
 
 import selfCliqueMockData from './fixtures/self-clique.json'
 import balanceMockData from './fixtures/balance.json'

@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import * as ralph from '../src/ralph'
-import * as utils from '../src/utils'
+import * as ralph from './ralph'
+import * as utils from './utils'
 
 describe('contract', function () {
   it('should encode I256', async () => {

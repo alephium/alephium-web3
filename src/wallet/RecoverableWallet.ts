@@ -15,6 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import * as bip39 from 'bip39'
 
 import { Buffer } from 'buffer/'
@@ -48,10 +49,3 @@ export class RecoverableWallet extends SigningWallet implements IRecoverableWall
     return storedState.mnemonic
   }
 }
-
-// export const getWalletFromMnemonic = (mnemonic: string): Wallet => {
-//   const seed = Buffer.from(bip39.mnemonicToSeedSync(mnemonic))
-//   const { address, publicKey, privateKey } = deriveAddressAndKeys(seed)
-
-//   return new Wallet({ seed, address, publicKey, privateKey, mnemonic })
-// }
