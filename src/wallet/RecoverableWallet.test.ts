@@ -17,16 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { HDKey } from '@scure/bip32'
 
-import * as walletUtils from './walletUtils'
 import bs58 from '../bs58'
-import { encrypt, decrypt } from '../password-crypto'
+import { decrypt } from '../password-crypto'
 import { RecoverableWalletStoredState } from './StoredState'
 import { RecoverableWallet } from './RecoverableWallet'
-
-import { addressToGroup } from '../address'
-import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 
 import wallets from './fixtures/wallets.json'
 import genesis from './fixtures/genesis.json'

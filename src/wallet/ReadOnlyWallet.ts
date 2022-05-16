@@ -20,5 +20,5 @@ import { IAccount } from './IAccount'
 import { IWallet } from './IWallet'
 
 export class ReadOnlyWallet implements IWallet {
-  constructor(public accounts: IAccount[]) { }
+  constructor(public accounts: IAccount[]) {}
 }
