@@ -37,8 +37,12 @@ describe('Wallet', function () {
     const myPassword = 'alephium'
     const myWallet = await walletUtils.walletGenerate(myPassword)
     const readWallet = JSON.parse(decrypt(myPassword, myWallet.encryptedSecretJson)) as RecoverableWalletStoredState
+    const readWalletNeuteredAccounts = readWallet.accounts.map(({ publicKey, p2pkhAddress }) => ({
+      publicKey,
+      p2pkhAddress
+    }))
     expect(await myWallet.getMnemonic(myPassword)).toEqual(readWallet.mnemonic)
-    expect(myWallet.accounts).toEqual(readWallet.accounts)
+    expect(myWallet.accounts).toEqual(readWalletNeuteredAccounts)
   })
 
   it('should import wallet in a compatible manner', async () => {

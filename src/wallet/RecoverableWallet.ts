@@ -30,7 +30,7 @@ export class RecoverableWallet extends SigningWallet implements IRecoverableWall
     super(encryptedSecretJson, password)
   }
 
-  static async FromMnemonic(password: string, mnemonic: string): Promise<IRecoverableWallet> {
+  static FromMnemonicSync(password: string, mnemonic: string): IRecoverableWallet {
     if (!bip39.validateMnemonic(mnemonic)) {
       throw new Error('Invalid seed phrase')
     }
@@ -43,6 +43,15 @@ export class RecoverableWallet extends SigningWallet implements IRecoverableWall
     })
 
     return new RecoverableWallet(encrypt(password, JSON.stringify(storedState)), password)
+  }
+
+  static async FromMnemonic(password: string, mnemonic: string): Promise<IRecoverableWallet> {
+    return RecoverableWallet.FromMnemonicSync(password, mnemonic)
+  }
+
+  static async GenerateNew(password: string): Promise<IRecoverableWallet> {
+    const mnemonic = bip39.generateMnemonic(256)
+    return RecoverableWallet.FromMnemonic(password, mnemonic)
   }
 
   async getMnemonic(password: string): Promise<string> {
