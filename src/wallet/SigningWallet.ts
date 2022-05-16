@@ -25,17 +25,10 @@ import { SigningWalletStoredState } from './StoredState'
 import * as utils from '../utils'
 import { ISigningAccount } from './ISigningAccount'
 import { RecoverableWallet } from './RecoverableWallet'
+import { StoredState } from './walletUtils'
 
 const ec = new EC('secp256k1')
 
-class StoredState {
-  readonly version = 1
-  readonly mnemonic: string
-
-  constructor({ mnemonic }: { mnemonic: string }) {
-    this.mnemonic = mnemonic
-  }
-}
 export class SigningWallet extends ReadOnlyWallet implements ISigningWallet {
   public encryptedSecretJson: string
   constructor(encryptedSecretJson: string, password: string) {
