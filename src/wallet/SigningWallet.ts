@@ -24,21 +24,48 @@ import { ReadOnlyWallet } from './ReadOnlyWallet'
 import { SigningWalletStoredState } from './StoredState'
 import * as utils from '../utils'
 import { ISigningAccount } from './ISigningAccount'
+import { RecoverableWallet } from './RecoverableWallet'
 
 const ec = new EC('secp256k1')
 
+class StoredState {
+  readonly version = 1
+  readonly mnemonic: string
+
+  constructor({ mnemonic }: { mnemonic: string }) {
+    this.mnemonic = mnemonic
+  }
+}
 export class SigningWallet extends ReadOnlyWallet implements ISigningWallet {
   public encryptedSecretJson: string
   constructor(encryptedSecretJson: string, password: string) {
-    const storedState = JSON.parse(decrypt(password, encryptedSecretJson)) as SigningWalletStoredState
-    super(storedState.accounts)
-    this.encryptedSecretJson = encryptedSecretJson
+    const storedState = JSON.parse(decrypt(password, encryptedSecretJson))
+    let recoveredState: SigningWalletStoredState
+    switch (storedState.version) {
+      case 2: {
+        recoveredState = storedState as SigningWalletStoredState
+        break
+      }
+      default: {
+        if (storedState.mnemonic) {
+          const upgradedWallet = RecoverableWallet.FromMnemonicSync(password, (storedState as StoredState).mnemonic)
+          recoveredState = JSON.parse(decrypt(password, upgradedWallet.encryptedSecretJson)) as SigningWalletStoredState
+          break
+        }
+        throw new Error(
+          'No versions beyond 1 and 2 defined. Though implementations for the stored state version upgrade should probably live in the stored state classes'
+        )
+      }
+    }
+
+    const readOnlyAccounts = recoveredState.accounts.map(({ publicKey, p2pkhAddress }) => ({ publicKey, p2pkhAddress }))
+    super(readOnlyAccounts)
+    this.encryptedSecretJson = encrypt(password, JSON.stringify(recoveredState))
   }
 
   static async FromSigningWalletStoredState(
     password: string,
-    storedState: SigningWalletStoredState,
-    address: string
+    storedState: SigningWalletStoredState
   ): Promise<ISigningWallet> {
     return new SigningWallet(encrypt(password, JSON.stringify(storedState)), password)
   }
