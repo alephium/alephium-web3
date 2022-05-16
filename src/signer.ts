@@ -21,6 +21,7 @@ import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
 import { convertHttpResponse } from './utils'
 import * as utils from './utils'
+import { Eq, assertType } from './utils'
 import blake from 'blakejs'
 import { IAccount } from './wallet/IAccount'
 import { ISigningWallet } from './wallet/ISigningWallet'
@@ -36,20 +37,98 @@ export interface SignResult {
 export type SubmitTx = { submitTx?: boolean }
 export type SignerAddress = { signerAddress: string }
 type TxBuildParams<T> = Omit<T, 'fromPublicKey'> & SignerAddress & SubmitTx
+
 export type GetAccountsParams = undefined
-export type GetAccountsResult = IAccount[]
-export type SignTransferTxParams = TxBuildParams<api.BuildTransaction>
-export type SignTransferTxResult = SignResult
-export type SignContractCreationTxParams = TxBuildParams<api.BuildContractDeployScriptTx>
-export type SignContractCreationTxResult = SignResult & { contractId: string; contractAddress: string }
-export type SignScriptTxParams = TxBuildParams<api.BuildScriptTx>
-export type SignScriptTxResult = SignResult
-export type SignUnsignedTxParams = { unsignedTx: string } & SubmitTx & SignerAddress
-export type SignUnsignedTxResult = SignResult
-export type SignHexStringParams = { hexString: string } & SignerAddress
-export type SignHexStringResult = Pick<SignResult, 'signature'>
-export type SignMessageParams = { message: string } & SignerAddress
-export type SignMessageResult = Pick<SignResult, 'signature'>
+export type GetAccountsResult = Account[]
+
+export interface SignTransferTxParams {
+  signerAddress: string
+  destinations: api.Destination[]
+  utxos?: api.OutputRef[]
+  gasAmount?: number
+  gasPrice?: string
+  utxosLimit?: number
+  submitTx?: boolean
+}
+assertType<Eq<SignTransferTxParams, TxBuildParams<api.BuildTransaction>>>()
+export interface SignTransferTxResult {
+  unsignedTx: string
+  txId: string
+  signature: string
+}
+assertType<Eq<SignTransferTxResult, SignResult>>()
+
+export interface SignContractCreationTxParams {
+  signerAddress: string
+  bytecode: string
+  initialFields: api.Val[]
+  alphAmount?: string
+  issueTokenAmount?: string
+  gasAmount?: number
+  gasPrice?: string
+  utxosLimit?: number
+  submitTx?: boolean
+}
+assertType<Eq<SignContractCreationTxParams, TxBuildParams<api.BuildContractDeployScriptTx>>>()
+export interface SignContractCreationTxResult {
+  unsignedTx: string
+  txId: string
+  signature: string
+  contractId: string
+  contractAddress: string
+}
+assertType<Eq<SignContractCreationTxResult, SignResult & { contractId: string; contractAddress: string }>>()
+
+export interface SignScriptTxParams {
+  signerAddress: string
+  bytecode: string
+  alphAmount?: string
+  tokens?: api.Token[]
+  gasAmount?: number
+  gasPrice?: string
+  utxosLimit?: number
+  submitTx?: boolean
+}
+assertType<Eq<SignScriptTxParams, TxBuildParams<api.BuildScriptTx>>>()
+export interface SignScriptTxResult {
+  unsignedTx: string
+  txId: string
+  signature: string
+}
+assertType<Eq<SignScriptTxResult, SignResult>>()
+
+export interface SignUnsignedTxParams {
+  signerAddress: string
+  unsignedTx: string
+  submitTx?: boolean
+}
+assertType<Eq<SignUnsignedTxParams, { unsignedTx: string } & SubmitTx & SignerAddress>>()
+export interface SignUnsignedTxResult {
+  unsignedTx: string
+  txId: string
+  signature: string
+}
+assertType<Eq<SignUnsignedTxResult, SignResult>>()
+
+export interface SignHexStringParams {
+  signerAddress: string
+  hexString: string
+}
+assertType<Eq<SignHexStringParams, { hexString: string } & SignerAddress>>()
+export interface SignHexStringResult {
+  signature: string
+}
+assertType<Eq<SignHexStringResult, Pick<SignResult, 'signature'>>>()
+
+export interface SignMessageParams {
+  signerAddress: string
+  message: string
+}
+assertType<Eq<SignMessageParams, { message: string } & SignerAddress>>()
+export interface SignMessageResult {
+  signature: string
+}
+assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 
 export interface SignerProvider {
   getAccounts(): Promise<IAccount[]>
