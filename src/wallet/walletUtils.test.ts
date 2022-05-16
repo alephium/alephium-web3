@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Buffer } from 'buffer/'
 import { HDKey } from '@scure/bip32'
 
-import { encrypt, decrypt } from '../password-crypto'
+import { decrypt } from '../password-crypto'
 import * as walletUtils from './walletUtils'
 import { addressToGroup } from '../address'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'

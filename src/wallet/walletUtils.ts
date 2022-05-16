@@ -18,11 +18,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Buffer } from 'buffer/'
 import { HDKey } from '@scure/bip32'
-import * as bip39 from 'bip39'
 import blake from 'blakejs'
 
 import bs58 from '../bs58'
-import { encrypt, decrypt } from '../password-crypto'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import { addressToGroup } from '../address'
 import { binToHex } from '../utils'
@@ -30,7 +28,7 @@ import { binToHex } from '../utils'
 import { IRecoverableWallet } from './IRecoverableWallet'
 import { RecoverableWallet } from './RecoverableWallet'
 
-class StoredState {
+export class StoredState {
   readonly version = 1
   readonly mnemonic: string
 
@@ -116,22 +114,15 @@ export const deriveNewAddressData = (
 }
 
 export const walletGenerate = async (password: string): Promise<IRecoverableWallet> => {
-  const mnemonic = bip39.generateMnemonic(256)
-  return RecoverableWallet.FromMnemonic(password, mnemonic)
+  return RecoverableWallet.GenerateNew(password)
 }
 
 export const walletImport = async (password: string, mnemonic: string): Promise<IRecoverableWallet> => {
-  if (!bip39.validateMnemonic(mnemonic)) {
-    throw new Error('Invalid seed phrase')
-  }
   return RecoverableWallet.FromMnemonic(password, mnemonic)
 }
 
 export const walletOpen = async (password: string, encryptedWallet: string): Promise<IRecoverableWallet> => {
-  const dataDecrypted = decrypt(password, encryptedWallet)
-  const config = JSON.parse(dataDecrypted) as StoredState
-
-  return RecoverableWallet.FromMnemonic(password, config.mnemonic)
+  return new RecoverableWallet(encryptedWallet, password)
 }
 
 export const getWalletFromMnemonic = (password: string, mnemonic: string): Promise<IRecoverableWallet> => {
