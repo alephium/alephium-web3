@@ -26,7 +26,7 @@ import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
 import { SignContractCreationTxParams, SignScriptTxParams, SingleAddressSigner } from './signer'
 import * as ralph from './ralph'
-import { binToHex, convertHttpResponse, contractIdFromAddress } from './utils'
+import { binToHex, contractIdFromAddress } from './utils'
 
 export abstract class Common {
   readonly sourceCodeSha256: string
