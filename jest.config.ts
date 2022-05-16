@@ -30,7 +30,8 @@ export default async (): Promise<Config.InitialOptions> => {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     collectCoverage: true,
     coverageDirectory: './coverage/',
-    collectCoverageFrom: ['src/**/*.ts']
+    collectCoverageFrom: ['src/**/*.ts'],
+    testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.*#.*']
   }
 
   return jestConfig

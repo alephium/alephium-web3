@@ -15,8 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
+import { IAccount } from './IAccount'
 import { IWallet } from './IWallet'
 
 export class ReadOnlyWallet implements IWallet {
-  constructor(public address: string) {}
+  constructor(public accounts: IAccount[]) { }
 }
