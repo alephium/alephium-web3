@@ -16,9 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { IWallet } from './IWallet'
+import { IAccount } from './IAccount'
 
-export interface ISigningWallet extends IWallet {
-  encryptedSecretJson: string
-  sign(password: string, dataToSign: string): Promise<string>
+export interface ISigningAccount extends IAccount {
+  privateKey: string
 }

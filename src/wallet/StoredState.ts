@@ -15,21 +15,34 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { Buffer } from 'buffer/'
 import bs58 from '../bs58'
+import { IAccount } from './IAccount'
+import { ISigningAccount } from './ISigningAccount'
 
 export enum StoredStateType {
+  ReadOnlyWallet = 'ReadOnlyWallet',
   SigningWallet = 'SigningWallet',
   RecoverableWallet = 'RecoverableWallet'
 }
 
-export class SigningWalletStoredState {
+export class ReadOnlyWalletStoredState {
   readonly version = 2
-  StateType: StoredStateType = StoredStateType.SigningWallet
-  readonly privateKey: string
+  StateType: StoredStateType = StoredStateType.ReadOnlyWallet
+  readonly accounts: IAccount[]
 
-  constructor({ privateKey }: { privateKey: string }) {
-    this.privateKey = privateKey
+  constructor({ accounts }: { accounts: IAccount[] }) {
+    this.accounts = accounts
+  }
+}
+
+export class SigningWalletStoredState extends ReadOnlyWalletStoredState {
+  override readonly accounts: ISigningAccount[]
+  constructor({ accounts }: { accounts: ISigningAccount[] }) {
+    super({ accounts })
+    this.accounts = accounts
+    this.StateType = StoredStateType.SigningWallet
   }
 }
 
@@ -37,8 +50,8 @@ export class RecoverableWalletStoredState extends SigningWalletStoredState {
   readonly seedBase58: string
   readonly mnemonic: string
 
-  constructor({ privateKey, seed, mnemonic }: { privateKey: string; seed: Buffer; mnemonic: string }) {
-    super({ privateKey })
+  constructor({ accounts, seed, mnemonic }: { accounts: ISigningAccount[]; seed: Buffer; mnemonic: string }) {
+    super({ accounts })
     this.StateType = StoredStateType.RecoverableWallet
     this.seedBase58 = bs58.encode(seed)
     this.mnemonic = mnemonic

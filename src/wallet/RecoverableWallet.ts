@@ -26,8 +26,8 @@ import { RecoverableWalletStoredState } from './StoredState'
 import { deriveAddressAndKeys } from './walletUtils'
 
 export class RecoverableWallet extends SigningWallet implements IRecoverableWallet {
-  constructor(encryptedSecretJson: string, address: string) {
-    super(encryptedSecretJson, address)
+  constructor(encryptedSecretJson: string, password: string) {
+    super(encryptedSecretJson, password)
   }
 
   static async FromMnemonic(password: string, mnemonic: string): Promise<IRecoverableWallet> {
@@ -35,10 +35,14 @@ export class RecoverableWallet extends SigningWallet implements IRecoverableWall
       throw new Error('Invalid seed phrase')
     }
     const seed = Buffer.from(bip39.mnemonicToSeedSync(mnemonic))
-    const { address, privateKey } = deriveAddressAndKeys(seed)
-    const storedState = new RecoverableWalletStoredState({ seed, privateKey, mnemonic })
+    const { address, publicKey, privateKey } = deriveAddressAndKeys(seed)
+    const storedState = new RecoverableWalletStoredState({
+      seed,
+      mnemonic,
+      accounts: [{ privateKey, publicKey, p2pkhAddress: address }]
+    })
 
-    return new RecoverableWallet(encrypt(password, JSON.stringify(storedState)), address)
+    return new RecoverableWallet(encrypt(password, JSON.stringify(storedState)), password)
   }
 
   async getMnemonic(password: string): Promise<string> {
