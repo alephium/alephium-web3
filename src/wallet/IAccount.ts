@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 export interface IAccount {
-  publicKey: string
   p2pkhAddress: string
+  group: number
+  publicKey: string
 }

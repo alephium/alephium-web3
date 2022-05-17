@@ -26,6 +26,19 @@ import * as utils from '../utils'
 import { ISigningAccount } from './ISigningAccount'
 import { RecoverableWallet } from './RecoverableWallet'
 import { StoredState } from './walletUtils'
+// import {
+//   SignTransferTxParams,
+//   SignResult,
+//   SignContractCreationTxParams,
+//   SignContractCreationTxResult,
+//   SignScriptTxParams,
+//   SignUnsignedTxParams,
+//   SignHexStringParams,
+//   SignHexStringResult,
+//   SignMessageParams,
+//   SignMessageResult
+// } from '../signer'
+import { IAccount } from './IAccount'
 
 const ec = new EC('secp256k1')
 
@@ -51,10 +64,35 @@ export class SigningWallet extends ReadOnlyWallet implements ISigningWallet {
       }
     }
 
-    const readOnlyAccounts = recoveredState.accounts.map(({ publicKey, p2pkhAddress }) => ({ publicKey, p2pkhAddress }))
+    const readOnlyAccounts = recoveredState.accounts.map(({ publicKey, p2pkhAddress, group }) => ({
+      publicKey,
+      p2pkhAddress,
+      group
+    }))
     super(readOnlyAccounts)
     this.encryptedSecretJson = encrypt(password, JSON.stringify(recoveredState))
   }
+  async getAccounts(): Promise<IAccount[]> {
+    return this.accounts
+  }
+  // signTransferTx(params: SignTransferTxParams): Promise<SignResult> {
+  //   throw new Error('Method not implemented.')
+  // }
+  // signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
+  //   throw new Error('Method not implemented.')
+  // }
+  // signScriptTx(params: SignScriptTxParams): Promise<SignResult> {
+  //   throw new Error('Method not implemented.')
+  // }
+  // signUnsignedTx(params: SignUnsignedTxParams): Promise<SignResult> {
+  //   throw new Error('Method not implemented.')
+  // }
+  // signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
+  //   throw new Error('Method not implemented.')
+  // }
+  // signMessage(params: SignMessageParams): Promise<SignMessageResult> {
+  //   throw new Error('Method not implemented.')
+  // }
 
   static async FromSigningWalletStoredState(
     password: string,
@@ -66,10 +104,13 @@ export class SigningWallet extends ReadOnlyWallet implements ISigningWallet {
   static async FromPrivateKeys(password: string, privateKeys: string[]): Promise<ISigningWallet> {
     const signingAccounts: ISigningAccount[] = privateKeys.map((privateKey) => {
       const publicKey = utils.publicKeyFromPrivateKey(privateKey)
+      const p2pkhAddress = utils.addressFromPublicKey(publicKey)
+      const group = utils.groupOfAddress(p2pkhAddress)
       return {
         privateKey,
         publicKey,
-        p2pkhAddress: utils.addressFromPublicKey(publicKey)
+        p2pkhAddress,
+        group
       }
     })
 
