@@ -382,7 +382,7 @@ export class Contract extends Common {
     }
   }
 
-  static async fromApiEvent(event: api.Event, artifactId: string): Promise<ContractEvent> {
+  static async fromApiEvent(event: api.ContractEvent, artifactId: string): Promise<ContractEvent> {
     let fieldTypes: string[]
     let name: string
 
@@ -399,16 +399,12 @@ export class Contract extends Common {
       fieldTypes = eventDef.fieldTypes
     }
 
-    if (event.type === 'ContractEvent') {
-      return {
-        blockHash: event.blockHash,
-        contractAddress: (event as api.ContractEvent).contractAddress,
-        txId: event.txId,
-        name: name,
-        fields: fromApiVals(event.fields, fieldTypes)
-      }
-    } else {
-      throw new Error(`Expected ContractEvent only, but got ${event.type}`)
+    return {
+      blockHash: event.blockHash,
+      contractAddress: (event as api.ContractEvent).contractAddress,
+      txId: event.txId,
+      name: name,
+      fields: fromApiVals(event.fields, fieldTypes)
     }
   }
 
