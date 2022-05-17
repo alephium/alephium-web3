@@ -140,6 +140,10 @@ export interface SignerProvider {
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
+export interface IPasswordRequestor {
+  requestPassword(): Promise<string>
+}
+
 function checkParams(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalFn = descriptor.value
   descriptor.value = function (params: any) {
@@ -153,7 +157,7 @@ export class Signer implements SignerProvider {
 
   constructor(
     private signingWallet: ISigningWallet,
-    private getPassword: () => Promise<string>,
+    private passwordRequestor: IPasswordRequestor,
     client: CliqueClient,
     alwaysSubmitTx: boolean
   ) {
@@ -278,7 +282,7 @@ export class Signer implements SignerProvider {
   }
 
   async signRaw(signerAddress: string, hexString: string): Promise<string> {
-    const password = await this.getPassword()
+    const password = await this.passwordRequestor.requestPassword()
     // eslint-disable-next-line security/detect-possible-timing-attacks
     if (password === undefined) throw new Error('Password is necessary to sign with this signer')
     return this.signingWallet.sign(password, hexString, signerAddress)
