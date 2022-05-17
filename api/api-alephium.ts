@@ -379,7 +379,6 @@ export interface ContractEvent {
   txId: string
   eventIndex: number
   fields: Val[]
-  type: string
 }
 
 export interface ContractOutput {
@@ -428,8 +427,6 @@ export interface Destination {
 
 export type DiscoveryAction = Reachable | Unreachable
 
-export type Event = ContractEvent | TxScriptEvent
-
 export interface EventSig {
   name: string
   signature: string
@@ -439,7 +436,7 @@ export interface EventSig {
 export interface Events {
   chainFrom: number
   chainTo: number
-  events: Event[]
+  events: ContractEvent[]
   nextStart: number
 }
 
@@ -705,7 +702,7 @@ export interface TestContractResult {
   gasUsed: number
   contracts: ContractState[]
   txOutputs: Output[]
-  events: Event[]
+  events: ContractEvent[]
 }
 
 export interface Token {
@@ -766,17 +763,6 @@ export interface TxResult {
   txId: string
   fromGroup: number
   toGroup: number
-}
-
-export interface TxScriptEvent {
-  /** @format block-hash */
-  blockHash: string
-
-  /** @format 32-byte-hash */
-  txId: string
-  eventIndex: number
-  fields: Val[]
-  type: string
 }
 
 export type TxStatus = Confirmed | MemPooled | TxNotFound
@@ -2223,13 +2209,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Events
-     * @name GetEventsContract
+     * @name GetEventsContractContractaddress
      * @summary Get events for a contract within a counter range
-     * @request GET:/events/contract
+     * @request GET:/events/contract/{contractAddress}
      */
-    getEventsContract: (query: { start: number; end?: number; contractAddress: string }, params: RequestParams = {}) =>
+    getEventsContractContractaddress: (
+      contractAddress: string,
+      query: { start: number; end?: number },
+      params: RequestParams = {}
+    ) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/events/contract`,
+        path: `/events/contract/${contractAddress}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2240,15 +2230,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Events
-     * @name GetEventsContractCurrentCount
+     * @name GetEventsContractContractaddressCurrentCount
      * @summary Get current value of the events counter for a contract
-     * @request GET:/events/contract/current-count
+     * @request GET:/events/contract/{contractAddress}/current-count
      */
-    getEventsContractCurrentCount: (query: { contractAddress: string }, params: RequestParams = {}) =>
+    getEventsContractContractaddressCurrentCount: (contractAddress: string, params: RequestParams = {}) =>
       this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/events/contract/current-count`,
+        path: `/events/contract/${contractAddress}/current-count`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
       }),
@@ -2257,32 +2246,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Events
-     * @name GetEventsTxScript
+     * @name GetEventsTxIdTxid
      * @summary Get events for a TxScript
-     * @request GET:/events/tx-script
+     * @request GET:/events/tx-id/{txId}
      */
-    getEventsTxScript: (query: { txId: string }, params: RequestParams = {}) =>
+    getEventsTxIdTxid: (txId: string, params: RequestParams = {}) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/events/tx-script`,
+        path: `/events/tx-id/${txId}`,
         method: 'GET',
-        query: query,
-        format: 'json',
-        ...params
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Events
-     * @name GetEventsTxScriptCurrentCount
-     * @summary Get current value of the events counter for a TxScript
-     * @request GET:/events/tx-script/current-count
-     */
-    getEventsTxScriptCurrentCount: (query: { txId: string }, params: RequestParams = {}) =>
-      this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/events/tx-script/current-count`,
-        method: 'GET',
-        query: query,
         format: 'json',
         ...params
       })
