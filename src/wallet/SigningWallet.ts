@@ -26,18 +26,7 @@ import * as utils from '../utils'
 import { ISigningAccount } from './ISigningAccount'
 import { RecoverableWallet } from './RecoverableWallet'
 import { StoredState } from './walletUtils'
-// import {
-//   SignTransferTxParams,
-//   SignResult,
-//   SignContractCreationTxParams,
-//   SignContractCreationTxResult,
-//   SignScriptTxParams,
-//   SignUnsignedTxParams,
-//   SignHexStringParams,
-//   SignHexStringResult,
-//   SignMessageParams,
-//   SignMessageResult
-// } from '../signer'
+
 import { IAccount } from './IAccount'
 
 const ec = new EC('secp256k1')
@@ -75,24 +64,6 @@ export class SigningWallet extends ReadOnlyWallet implements ISigningWallet {
   async getAccounts(): Promise<IAccount[]> {
     return this.accounts
   }
-  // signTransferTx(params: SignTransferTxParams): Promise<SignResult> {
-  //   throw new Error('Method not implemented.')
-  // }
-  // signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
-  //   throw new Error('Method not implemented.')
-  // }
-  // signScriptTx(params: SignScriptTxParams): Promise<SignResult> {
-  //   throw new Error('Method not implemented.')
-  // }
-  // signUnsignedTx(params: SignUnsignedTxParams): Promise<SignResult> {
-  //   throw new Error('Method not implemented.')
-  // }
-  // signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
-  //   throw new Error('Method not implemented.')
-  // }
-  // signMessage(params: SignMessageParams): Promise<SignMessageResult> {
-  //   throw new Error('Method not implemented.')
-  // }
 
   static async FromSigningWalletStoredState(
     password: string,
@@ -120,12 +91,12 @@ export class SigningWallet extends ReadOnlyWallet implements ISigningWallet {
     )
   }
 
-  async sign(password: string, dataToSign: string): Promise<string> {
+  async sign(password: string, dataToSign: string, signerAddress: string): Promise<string> {
     const decryptedSecretJson = decrypt(password, this.encryptedSecretJson)
-    const {
-      accounts: [{ privateKey }]
-    } = JSON.parse(decryptedSecretJson) as SigningWalletStoredState
-    const keyPair = ec.keyFromPrivate(privateKey)
+    const { accounts } = JSON.parse(decryptedSecretJson) as SigningWalletStoredState
+    const signerAccount = accounts.find(({ p2pkhAddress }) => p2pkhAddress === signerAddress)
+    if (signerAccount === undefined) throw new Error("Couldn't find an account for the given address to sign with")
+    const keyPair = ec.keyFromPrivate(signerAccount.privateKey)
     const signature = keyPair.sign(dataToSign)
 
     return signatureEncode(signature)
