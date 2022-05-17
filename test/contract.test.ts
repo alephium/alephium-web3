@@ -30,26 +30,24 @@ describe('contract', function () {
 
     const subState = sub.toState([0], { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
-      initialFields: [0],
+      initialFields: [subState.contractId, 0],
       testArgs: [[2, 1]],
       existingContracts: [subState]
     }
-    const testResult = await add.testPublicMethod(client, 'add', testParams, { subContractId: subState.contractId })
+    const testResult = await add.testPublicMethod(client, 'add', testParams)
     expect(testResult.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResult.returns).toEqual([[3, 1]])
     expect(testResult.contracts[0].artifactId).toEqual(sub.sourceCodeSha256)
     expect(testResult.contracts[0].fields).toEqual([1])
     expect(testResult.contracts[1].artifactId).toEqual(add.sourceCodeSha256)
-    expect(testResult.contracts[1].fields).toEqual([3])
+    expect(testResult.contracts[1].fields).toEqual([subState.contractId, 3])
     const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
     expect(events[0].name).toEqual('Add')
     expect(events[0].fields).toEqual([2, 1])
     expect(events[1].name).toEqual('Sub')
     expect(events[1].fields).toEqual([2, 1])
 
-    const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams, {
-      subContractId: subState.contractId
-    })
+    const testResultPrivate = await add.testPrivateMethod(client, 'addPrivate', testParams)
     expect(testResultPrivate.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
@@ -64,8 +62,7 @@ describe('contract', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const addDeployTx = await add.transactionForDeployment(signer, {
-      initialFields: [0],
-      templateVariables: { subContractId: subContractId }
+      initialFields: [subContractId, 0]
     })
     expect(addDeployTx.group).toEqual(0)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)

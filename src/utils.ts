@@ -170,14 +170,14 @@ export function publicKeyFromPrivateKey(privateKey: string): string {
 
 export function addressFromPublicKey(publicKey: string): string {
   const addressType = Buffer.from([AddressType.P2PKH])
-  const hash = blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32)
+  const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
   const bytes = Buffer.concat([addressType, hash])
   return bs58.encode(bytes)
 }
 
 export function addressFromContractId(contractId: string): string {
   const addressType = Buffer.from([AddressType.P2C])
-  const hash = blake.blake2b(Buffer.from(contractId, 'hex'), undefined, 32)
+  const hash = Buffer.from(blake.blake2b(Buffer.from(contractId, 'hex'), undefined, 32))
   const bytes = Buffer.concat([addressType, hash])
   return bs58.encode(bytes)
 }

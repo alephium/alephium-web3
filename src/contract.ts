@@ -243,12 +243,12 @@ export class Contract extends Common {
     )
   }
 
-  toState(fields: Val[], asset: Asset, address?: string, templateVariables?: ralph.TemplateVariables): ContractState {
+  toState(fields: Val[], asset: Asset, address?: string): ContractState {
     const addressDef = typeof address !== 'undefined' ? address : Contract.randomAddress()
     return {
       address: addressDef,
       contractId: binToHex(contractIdFromAddress(addressDef)),
-      bytecode: this.buildByteCode(templateVariables),
+      bytecode: this.buildByteCode(),
       artifactId: this.sourceCodeSha256,
       fields: fields,
       fieldTypes: this.fields.types,
@@ -267,10 +267,9 @@ export class Contract extends Common {
     funcName: string,
     params: TestContractParams,
     expectPublic: boolean,
-    accessType: string,
-    templateVariables?: ralph.TemplateVariables
+    accessType: string
   ): Promise<TestContractResult> {
-    const apiParams: api.TestContract = this.toTestContract(funcName, params, templateVariables)
+    const apiParams: api.TestContract = this.toTestContract(funcName, params)
     const response = await client.contracts.postContractsTestContract(apiParams)
     const apiResult = response.data
 
@@ -288,19 +287,17 @@ export class Contract extends Common {
   async testPublicMethod(
     client: CliqueClient,
     funcName: string,
-    params: TestContractParams,
-    templateVariables?: ralph.TemplateVariables
+    params: TestContractParams
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, true, 'public', templateVariables)
+    return this._test(client, funcName, params, true, 'public')
   }
 
   async testPrivateMethod(
     client: CliqueClient,
     funcName: string,
-    params: TestContractParams,
-    templateVariables?: ralph.TemplateVariables
+    params: TestContractParams
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, false, 'private', templateVariables)
+    return this._test(client, funcName, params, false, 'private')
   }
 
   toApiFields(fields?: Val[]): api.Val[] {
@@ -332,15 +329,11 @@ export class Contract extends Common {
     return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
   }
 
-  toTestContract(
-    funcName: string,
-    params: TestContractParams,
-    templateVariables?: ralph.TemplateVariables
-  ): api.TestContract {
+  toTestContract(funcName: string, params: TestContractParams): api.TestContract {
     return {
       group: params.group,
       address: params.address,
-      bytecode: this.buildByteCode(templateVariables),
+      bytecode: this.buildByteCode(),
       artifactId: this.sourceCodeSha256,
       initialFields: this.toApiFields(params.initialFields),
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
@@ -383,13 +376,13 @@ export class Contract extends Common {
       contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
       artifactId: state.artifactId,
-      fields: fromApiVals(state.fields, contract.fields.types),
+      fields: state.fields ? fromApiVals(state.fields, contract.fields.types) : [],
       fieldTypes: await Contract.getFieldTypes(state),
       asset: fromApiAsset(state.asset)
     }
   }
 
-  static async fromApiEvent(event: api.Event, artifactId: string): Promise<ContractEvent> {
+  static async fromApiEvent(event: api.ContractEvent, artifactId: string): Promise<ContractEvent> {
     let fieldTypes: string[]
     let name: string
 
@@ -406,16 +399,12 @@ export class Contract extends Common {
       fieldTypes = eventDef.fieldTypes
     }
 
-    if (event.type === 'ContractEvent') {
-      return {
-        blockHash: event.blockHash,
-        contractAddress: (event as api.ContractEvent).contractAddress,
-        txId: event.txId,
-        name: name,
-        fields: fromApiVals(event.fields, fieldTypes)
-      }
-    } else {
-      throw new Error(`Expected ContractEvent only, but got ${event.type}`)
+    return {
+      blockHash: event.blockHash,
+      contractAddress: (event as api.ContractEvent).contractAddress,
+      txId: event.txId,
+      name: name,
+      fields: fromApiVals(event.fields, fieldTypes)
     }
   }
 
@@ -448,7 +437,7 @@ export class Contract extends Common {
   async paramsForDeployment(params: BuildContractDeployTx): Promise<SignContractCreationTxParams> {
     const signerParams: SignContractCreationTxParams = {
       signerAddress: params.signerAddress,
-      bytecode: this.buildByteCode(params.templateVariables),
+      bytecode: this.buildByteCode(),
       initialFields: this.toApiFields(params.initialFields),
       alphAmount: extractOptionalNumber256(params.alphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
@@ -470,18 +459,10 @@ export class Contract extends Common {
     return fromApiDeployContractUnsignedTx(response)
   }
 
-  buildByteCode(templateVariables?: ralph.TemplateVariables): string {
+  buildByteCode(): string {
     switch (this.compiled.type) {
       case 'SimpleContractByteCode':
-        if (typeof templateVariables !== 'undefined') {
-          throw Error('The contract does not need template variable')
-        }
         return (this.compiled as api.SimpleContractByteCode).bytecode
-      case 'TemplateContractByteCode':
-        if (typeof templateVariables === 'undefined') {
-          throw Error('The contract needs template variable')
-        }
-        return ralph.buildContractByteCode(this.compiled as api.TemplateContractByteCode, templateVariables)
       default:
         throw Error(`Unknown bytecode type: ${this.compiled.type}`)
     }
@@ -941,7 +922,6 @@ function fromApiDeployContractUnsignedTx(result: api.BuildContractDeployScriptTx
 
 export interface BuildContractDeployTx {
   signerAddress: string
-  templateVariables?: ralph.TemplateVariables
   initialFields?: Val[]
   issueTokenAmount?: Number256
   alphAmount?: Number256
