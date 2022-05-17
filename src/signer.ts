@@ -53,12 +53,12 @@ export type SignMessageResult = Pick<SignResult, 'signature'>
 
 export interface SignerProvider {
   getAccounts(): Promise<IAccount[]>
-  signTransferTx(password: string, params: SignTransferTxParams): Promise<SignTransferTxResult>
-  signContractCreationTx(password: string, params: SignContractCreationTxParams): Promise<SignContractCreationTxResult>
-  signScriptTx(password: string, params: SignScriptTxParams): Promise<SignScriptTxResult>
-  signUnsignedTx(password: string, params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
-  signHexString(password: string, params: SignHexStringParams): Promise<SignHexStringResult>
-  signMessage(password: string, params: SignMessageParams): Promise<SignMessageResult>
+  signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
+  signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult>
+  signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult>
+  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  signHexString(params: SignHexStringParams): Promise<SignHexStringResult>
+  signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
 function checkParams(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
@@ -75,18 +75,18 @@ export class Signer implements SignerProvider {
   readonly client: CliqueClient
   alwaysSubmitTx: boolean
 
-  constructor(private signingWallet: ISigningWallet, client: CliqueClient, alwaysSubmitTx: boolean) {
+  constructor(
+    private signingWallet: ISigningWallet,
+    private getPassword: () => Promise<string>,
+    client: CliqueClient,
+    alwaysSubmitTx: boolean
+  ) {
     this.client = client
     this.alwaysSubmitTx = alwaysSubmitTx
   }
 
-  async submitTransaction(
-    password: string,
-    unsignedTx: string,
-    txHash: string,
-    signerAddress: string
-  ): Promise<SubmissionResult> {
-    const signature = await this.signRaw(password, signerAddress, txHash)
+  async submitTransaction(unsignedTx: string, txHash: string, signerAddress: string): Promise<SubmissionResult> {
+    const signature = await this.signRaw(signerAddress, txHash)
     const params: api.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
     const response = await this.client.transactions.postTransactionsSubmit(params)
     return convertHttpResponse(response)
@@ -113,9 +113,9 @@ export class Signer implements SignerProvider {
     }
   }
 
-  async signTransferTx(password: string, params: SignTransferTxParams): Promise<SignTransferTxResult> {
+  async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const response = await this.buildTransferTx(params)
-    return this.handleSign(password, { signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
+    return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
   @checkParams
@@ -123,13 +123,9 @@ export class Signer implements SignerProvider {
     return convertHttpResponse(await this.client.transactions.postTransactionsBuild(await this.usePublicKey(params)))
   }
 
-  async signContractCreationTx(
-    password: string,
-    params: SignContractCreationTxParams
-  ): Promise<SignContractCreationTxResult> {
+  async signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
     const response = await this.buildContractCreationTx(params)
     const result = await this.handleSign(
-      password,
       { signerAddress: params.signerAddress, ...response },
       this.shouldSubmitTx(params)
     )
@@ -144,9 +140,9 @@ export class Signer implements SignerProvider {
     )
   }
 
-  async signScriptTx(password: string, params: SignScriptTxParams): Promise<SignScriptTxResult> {
+  async signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult> {
     const response = await this.buildScriptTx(params)
-    return this.handleSign(password, { signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
+    return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
   @checkParams
@@ -159,23 +155,21 @@ export class Signer implements SignerProvider {
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   @checkParams
-  async signUnsignedTx(password: string, params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
+  async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
     const decoded = convertHttpResponse(await this.client.transactions.postTransactionsDecodeUnsignedTx(data))
     return this.handleSign(
-      password,
       { signerAddress: params.signerAddress, unsignedTx: params.unsignedTx, txId: decoded.txId },
       params.submitTx ? params.submitTx : true // we don't consider `alwaysSubmitTx` as the tx might needs multiple signatures
     )
   }
 
   protected async handleSign(
-    password: string,
     response: { signerAddress: string; unsignedTx: string; txId: string },
     submitTx: boolean
   ): Promise<SignResult> {
     // sign the tx
-    const signature = await this.signRaw(password, response.signerAddress, response.txId)
+    const signature = await this.signRaw(response.signerAddress, response.txId)
     // submit the tx if required
     if (submitTx) {
       convertHttpResponse(
@@ -194,20 +188,23 @@ export class Signer implements SignerProvider {
   }
 
   @checkParams
-  async signHexString(password: string, params: SignHexStringParams): Promise<SignHexStringResult> {
-    const signature = await this.signRaw(password, params.signerAddress, params.hexString)
+  async signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
+    const signature = await this.signRaw(params.signerAddress, params.hexString)
     return { signature: signature }
   }
 
   @checkParams
-  async signMessage(password: string, params: SignMessageParams): Promise<SignMessageResult> {
+  async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
     const extendedMessage = extendMessage(params.message)
     const messageHash = blake.blake2b(extendedMessage, undefined, 32)
-    const signature = await this.signRaw(password, params.signerAddress, utils.binToHex(messageHash))
+    const signature = await this.signRaw(params.signerAddress, utils.binToHex(messageHash))
     return { signature: signature }
   }
 
-  signRaw(password: string, signerAddress: string, hexString: string): Promise<string> {
+  async signRaw(signerAddress: string, hexString: string): Promise<string> {
+    const password = await this.getPassword()
+    // eslint-disable-next-line security/detect-possible-timing-attacks
+    if (password === undefined) throw new Error('Password is necessary to sign with this signer')
     return this.signingWallet.sign(password, hexString, signerAddress)
   }
 }
