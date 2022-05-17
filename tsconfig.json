@@ -1,6 +1,6 @@
 {
   "include": ["src/**/*", "scripts/**/*"],
-  "exclude": ["node_modules", "test"],
+  "exclude": ["node_modules", "test", "src/**/*.test.ts", "src/**/fixtures/*"],
   "compilerOptions": {
     "target": "es2020",
     "allowJs": true,

@@ -19,12 +19,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Buffer } from 'buffer/'
 import { HDKey } from '@scure/bip32'
 
-import * as walletUtils from '../src/wallet'
-import { addressToGroup } from '../src/address'
-import { TOTAL_NUMBER_OF_GROUPS } from '../src/constants'
+import { encrypt, decrypt } from '../password-crypto'
+import * as walletUtils from './walletUtils'
+import { addressToGroup } from '../address'
+import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 
 import wallets from './fixtures/wallets.json'
 import genesis from './fixtures/genesis.json'
+import { RecoverableWalletStoredState } from './StoredState'
 
 describe('Wallet', function () {
   afterEach(() => {
@@ -33,56 +35,62 @@ describe('Wallet', function () {
 
   it('should encrypt and decrypt using password', async () => {
     const myPassword = 'alephium'
-    const myWallet = walletUtils.walletGenerate()
-    const readWallet = await walletUtils.walletOpen(myPassword, myWallet.encrypt(myPassword))
-    expect(JSON.stringify(myWallet)).toEqual(JSON.stringify(readWallet))
-
-    const wrongPassword = 'utopia'
-    await expect(() => {
-      walletUtils.walletOpen(wrongPassword, myWallet.encrypt(myPassword))
-    }).toThrow('Unsupported state or unable to authenticate data')
+    const myWallet = await walletUtils.walletGenerate(myPassword)
+    const readWallet = JSON.parse(decrypt(myPassword, myWallet.encryptedSecretJson)) as RecoverableWalletStoredState
+    expect(await myWallet.getMnemonic(myPassword)).toEqual(readWallet.mnemonic)
+    expect(myWallet.accounts).toEqual(readWallet.accounts)
   })
 
-  it('should import wallet in a compatible manner', () => {
+  it('should import wallet in a compatible manner', async () => {
     const randomAddress = '143jS8xaGNNRes4f1mxJWSpQcqj2xjsXUeu3xQqYgFm5h'
     const randomPubKey = '034817bc790123a551aa82453cc2ca1dd5ea7a9ffb85443a1a67936c3299d7a751'
     const randomPriKey = '695ac21c784d0d3f9f5441de0ee07f724d12be258f0ebdaef7ff5ee540f8e2d8'
-    genesis.forEach(function (row: { mnemonic: string; address: string; pubKey: string; priKey: string }) {
-      const myWallet = walletUtils.walletImport(row.mnemonic)
-      expect(row.address).toEqual(myWallet.address)
+    genesis.forEach(async (row: { mnemonic: string; address: string; pubKey: string; priKey: string }) => {
+      const myWallet = await walletUtils.walletImport('somePassword', row.mnemonic)
+      const myWalletStoredState = JSON.parse(
+        decrypt('somePassword', myWallet.encryptedSecretJson)
+      ) as RecoverableWalletStoredState
+      expect(row.address).toEqual(myWalletStoredState.accounts[0].p2pkhAddress)
       expect(row.address).not.toEqual(randomAddress)
-      expect(row.pubKey).toEqual(myWallet.publicKey)
+      expect(row.pubKey).toEqual(myWallet.accounts[0].publicKey)
       expect(row.pubKey).not.toEqual(randomPubKey)
-      expect(row.priKey).toEqual(myWallet.privateKey)
+      expect(row.priKey).toEqual(myWalletStoredState.accounts[0].privateKey)
       expect(row.priKey).not.toEqual(randomPriKey)
     })
   })
 
-  it('generate mnemonic with 24 words', () => {
-    const myWallet = walletUtils.walletGenerate()
-    expect(myWallet.mnemonic.split(' ').length).toEqual(24)
+  it('generate mnemonic with 24 words', async () => {
+    const myPassword = 'alephium'
+    const myWallet = await walletUtils.walletGenerate(myPassword)
+    expect((await myWallet.getMnemonic(myPassword)).split(' ').length).toEqual(24)
   })
 
   it('should read wallet file', async () => {
     for (const row of wallets.wallets) {
-      const imported = walletUtils.walletImport(row.mnemonic)
+      const imported = await walletUtils.walletImport(row.password, row.mnemonic)
+      const myWalletStoredState = JSON.parse(
+        decrypt(row.password, imported.encryptedSecretJson)
+      ) as RecoverableWalletStoredState
       const opened = await walletUtils.walletOpen(row.password, JSON.stringify(row.file))
-
-      expect(imported.address).toEqual(opened.address)
-      expect(imported.publicKey).toEqual(opened.publicKey)
-      expect(imported.privateKey).toEqual(opened.privateKey)
-      expect(imported.seed).toEqual(opened.seed)
-      expect(imported.mnemonic).toEqual(opened.mnemonic)
+      const openedWalletStoredState = JSON.parse(
+        decrypt(row.password, opened.encryptedSecretJson)
+      ) as RecoverableWalletStoredState
+      expect(myWalletStoredState.accounts[0].p2pkhAddress).toEqual(openedWalletStoredState.accounts[0].p2pkhAddress)
+      expect(myWalletStoredState.accounts[0].publicKey).toEqual(openedWalletStoredState.accounts[0].publicKey)
+      expect(myWalletStoredState.accounts[0].privateKey).toEqual(openedWalletStoredState.accounts[0].privateKey)
+      expect(myWalletStoredState.mnemonic).toEqual(openedWalletStoredState.mnemonic)
     }
   })
 
-  it('should throw error if mnemonic is invalid', () => {
+  it('should throw error if mnemonic is invalid', async () => {
     const invalidMnemonic =
       'dog window beach above tiger attract barrel noodle autumn grain update either twelve security shoe teach quote flip reflect maple bike polar ivory gadget'
-    expect(() => walletUtils.walletImport(invalidMnemonic)).toThrow('Invalid seed phrase')
+    await expect(async () => walletUtils.walletImport('alephium', invalidMnemonic)).rejects.toThrow(
+      'Invalid seed phrase'
+    )
   })
 
-  it('should throw error if private key is missing', () => {
+  it('should throw error if private key is missing', async () => {
     const importedWallet = wallets.wallets[0]
     const seed = Buffer.from(importedWallet.seed, 'hex')
     const hdKey = HDKey.fromMasterSeed(seed)
@@ -92,7 +100,7 @@ describe('Wallet', function () {
 
     jest.spyOn(HDKey, 'fromMasterSeed').mockImplementationOnce(() => hdKey)
 
-    expect(() => walletUtils.walletImport(importedWallet.mnemonic)).toThrow('Empty key pair')
+    await expect(() => walletUtils.walletImport('alephium', importedWallet.mnemonic)).rejects.toThrow('Empty key pair')
   })
 
   describe('should derive a new address', () => {

@@ -16,14 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './clique'
-export * from './node'
-export * from './utils'
-export * from './wallet/walletUtils'
-export * from './explorer'
-export * from './address'
-export * from './signer'
-export * from './contract'
-export * from './constants'
-export * as node from '../api/api-alephium'
-export * as explorer from '../api/api-explorer'
+import { ISigningWallet } from './ISigningWallet'
+
+export interface IRecoverableWallet extends ISigningWallet {
+  getMnemonic(password: string): Promise<string>
+}

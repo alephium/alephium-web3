@@ -16,14 +16,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './clique'
-export * from './node'
-export * from './utils'
-export * from './wallet/walletUtils'
-export * from './explorer'
-export * from './address'
-export * from './signer'
-export * from './contract'
-export * from './constants'
-export * as node from '../api/api-alephium'
-export * as explorer from '../api/api-explorer'
+import { Buffer } from 'buffer/'
+import djb2 from './djb2'
+
+describe('djb2', function () {
+  it('djb2', async () => {
+    function check(str: string, expected: number) {
+      const bytes = Buffer.from(str, 'utf8')
+      expect(djb2(bytes)).toEqual(expected)
+    }
+
+    check('', 5381)
+    check('a', 177670)
+    check('z', 177695)
+    check('foo', 193491849)
+    check('bar', 193487034)
+  })
+})
