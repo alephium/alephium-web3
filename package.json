@@ -42,7 +42,7 @@
     "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --fix --ext ts",
-    "test": "jest",
+    "test": "jest -i",
     "test:client": "npm run test -- --config ./jest-client.config.ts",
     "test:unit": "npm run test -- --config ./jest-unit.config.ts",
     "test:watch": "npm run test -- --watch --coverage=false",
