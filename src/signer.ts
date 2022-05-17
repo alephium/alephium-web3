@@ -143,9 +143,6 @@ export interface SignerProvider {
 function checkParams(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
   const originalFn = descriptor.value
   descriptor.value = function (params: any) {
-    if (typeof params.signerAddress !== 'undefined' && params.signerAddress !== this['address']) {
-      throw new Error('Unmatched address')
-    }
     return originalFn.call(this, params)
   }
 }
