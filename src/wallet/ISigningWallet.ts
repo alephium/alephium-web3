@@ -20,5 +20,5 @@ import { IWallet } from './IWallet'
 
 export interface ISigningWallet extends IWallet {
   encryptedSecretJson: string
-  sign(password: string, dataToSign: string): Promise<string>
+  sign(password: string, dataToSign: string, signerAddress: string): Promise<string>
 }

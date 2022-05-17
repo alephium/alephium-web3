@@ -24,6 +24,7 @@ import { SigningWallet } from './SigningWallet'
 import { encrypt, decrypt } from '../password-crypto'
 import { RecoverableWalletStoredState } from './StoredState'
 import { deriveAddressAndKeys } from './walletUtils'
+import * as utils from '../utils'
 
 export class RecoverableWallet extends SigningWallet implements IRecoverableWallet {
   constructor(encryptedSecretJson: string, password: string) {
@@ -39,7 +40,7 @@ export class RecoverableWallet extends SigningWallet implements IRecoverableWall
     const storedState = new RecoverableWalletStoredState({
       seed,
       mnemonic,
-      accounts: [{ privateKey, publicKey, p2pkhAddress: address }]
+      accounts: [{ privateKey, publicKey, p2pkhAddress: address, group: utils.groupOfAddress(address) }]
     })
 
     return new RecoverableWallet(encrypt(password, JSON.stringify(storedState)), password)

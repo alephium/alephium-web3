@@ -39,7 +39,8 @@ describe('RecoverableWallet', function () {
         {
           privateKey: '540c4d79218cd57e719169e165c4e86c58165339e01b8d7e11521b24f235ea92',
           p2pkhAddress: '196CqbT1PiVWrKbXWx5VtgW4vceXUmkeP4juQ4XYwqbk9',
-          publicKey: '03f9374f435718c9c93626e38c3c4901705b96c852fef52000913f972e665f4fff'
+          publicKey: '03f9374f435718c9c93626e38c3c4901705b96c852fef52000913f972e665f4fff',
+          group: 1
         }
       ],
       seed: Buffer.from(

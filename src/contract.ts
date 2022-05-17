@@ -24,7 +24,7 @@ import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import { CliqueClient } from './clique'
 import * as api from '../api/api-alephium'
-import { SignContractCreationTxParams, SignScriptTxParams, SingleAddressSigner } from './signer'
+import { SignContractCreationTxParams, SignScriptTxParams, Signer } from './signer'
 import * as ralph from './ralph'
 import { binToHex, contractIdFromAddress } from './utils'
 
@@ -452,12 +452,12 @@ export class Contract extends Common {
   }
 
   async transactionForDeployment(
-    signer: SingleAddressSigner,
+    signer: Signer,
     params: Omit<BuildContractDeployTx, 'signerAddress'>
   ): Promise<DeployContractTransaction> {
     const signerParams = await this.paramsForDeployment({
       ...params,
-      signerAddress: (await signer.getAccounts())[0].address
+      signerAddress: (await signer.getAccounts())[0].p2pkhAddress
     })
     const response = await signer.buildContractCreationTx(signerParams)
     return fromApiDeployContractUnsignedTx(response)
@@ -557,12 +557,12 @@ export class Script extends Common {
   }
 
   async transactionForDeployment(
-    signer: SingleAddressSigner,
+    signer: Signer,
     params: Omit<BuildScriptTx, 'signerAddress'>
   ): Promise<BuildScriptTxResult> {
     const signerParams = await this.paramsForDeployment({
       ...params,
-      signerAddress: (await signer.getAccounts())[0].address
+      signerAddress: (await signer.getAccounts())[0].p2pkhAddress
     })
     return await signer.buildScriptTx(signerParams)
   }
