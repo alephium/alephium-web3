@@ -876,6 +876,16 @@ export interface WalletUnlock {
 
 import fetch from 'cross-fetch'
 
+function convertHttpResponse<T>(
+  response: HttpResponse<T, { detail: string }> | HttpResponse<T, { detail: string }>
+): T {
+  if (response.error) {
+    throw new Error(response.error.detail)
+  } else {
+    return response.data
+  }
+}
+
 export type QueryParamsType = Record<string | number, any>
 export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>
 
@@ -1105,7 +1115,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1126,7 +1136,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description A new wallet will be created and respond with a mnemonic. Make sure to keep that mnemonic safely as it will allows you to recover your wallet. Default mnemonic size is 24, (options: 12, 15, 18, 21, 24).
@@ -1147,7 +1157,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1163,7 +1173,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1180,7 +1190,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1195,7 +1205,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/wallets/${walletName}/lock`,
         method: 'POST',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1212,7 +1222,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1228,7 +1238,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1249,7 +1259,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1267,7 +1277,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1285,7 +1295,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1303,7 +1313,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1321,7 +1331,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1337,7 +1347,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1353,7 +1363,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description This endpoint can only be called if the wallet was created with the `isMiner = true` flag
@@ -1372,7 +1382,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Cannot be called from a miner wallet
@@ -1393,7 +1403,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Your wallet need to have been created with the miner flag set to true
@@ -1409,7 +1419,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'POST',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1430,7 +1440,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   infos = {
     /**
@@ -1447,7 +1457,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1463,7 +1473,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1479,7 +1489,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1495,7 +1505,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1514,7 +1524,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1530,7 +1540,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1546,7 +1556,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1563,7 +1573,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1579,7 +1589,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1596,7 +1606,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1613,7 +1623,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1630,7 +1640,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   blockflow = {
     /**
@@ -1648,7 +1658,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1664,7 +1674,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1681,7 +1691,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1698,7 +1708,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1715,7 +1725,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1731,7 +1741,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   addresses = {
     /**
@@ -1748,7 +1758,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1764,7 +1774,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1780,7 +1790,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   transactions = {
     /**
@@ -1800,7 +1810,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1821,7 +1831,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1842,7 +1852,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1860,7 +1870,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1878,7 +1888,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1898,7 +1908,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   contracts = {
     /**
@@ -1920,7 +1930,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1941,7 +1951,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1962,7 +1972,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1983,7 +1993,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2000,7 +2010,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2020,7 +2030,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           format: 'json',
           ...params
         }
-      )
+      ).then(convertHttpResponse)
   }
   multisig = {
     /**
@@ -2042,7 +2052,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2063,7 +2073,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2081,7 +2091,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   utils = {
     /**
@@ -2100,7 +2110,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2115,7 +2125,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/utils/check-hash-indexing`,
         method: 'PUT',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   miners = {
     /**
@@ -2133,7 +2143,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2149,7 +2159,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2166,7 +2176,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   events = {
     /**
@@ -2188,7 +2198,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2204,7 +2214,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2220,6 +2230,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
 }
