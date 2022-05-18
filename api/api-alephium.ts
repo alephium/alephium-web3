@@ -76,7 +76,7 @@ export interface AssetOutput {
 export interface AssetState {
   /** @format uint256 */
   alphAmount: string
-  tokens: Token[]
+  tokens?: Token[]
 }
 
 export interface BadRequest {
@@ -167,16 +167,15 @@ export interface BrokerInfo {
   address: string
 }
 
-export interface BuildContractDeployScriptTx {
+export interface BuildDeployContractTx {
   /** @format public-key */
   fromPublicKey: string
 
   /** @format byte-string */
   bytecode: string
-  initialFields: Val[]
 
   /** @format uint256 */
-  alphAmount?: string
+  initialAlphAmount?: string
 
   /** @format uint256 */
   issueTokenAmount?: string
@@ -186,10 +185,9 @@ export interface BuildContractDeployScriptTx {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
-export interface BuildContractDeployScriptTxResult {
+export interface BuildDeployContractTxResult {
   group: number
   unsignedTx: string
 
@@ -204,6 +202,38 @@ export interface BuildContractDeployScriptTxResult {
 
   /** @format address */
   contractAddress: string
+}
+
+export interface BuildExecuteScriptTx {
+  /** @format public-key */
+  fromPublicKey: string
+
+  /** @format byte-string */
+  bytecode: string
+
+  /** @format uint256 */
+  alphAmount?: string
+  tokens?: Token[]
+
+  /** @format gas */
+  gasAmount?: number
+
+  /** @format uint256 */
+  gasPrice?: string
+}
+
+export interface BuildExecuteScriptTxResult {
+  unsignedTx: string
+
+  /** @format gas */
+  gasAmount: number
+
+  /** @format uint256 */
+  gasPrice: string
+
+  /** @format 32-byte-hash */
+  txId: string
+  group: number
 }
 
 export interface BuildInfo {
@@ -222,7 +252,6 @@ export interface BuildMultisig {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
 export interface BuildMultisigAddress {
@@ -233,39 +262,6 @@ export interface BuildMultisigAddress {
 export interface BuildMultisigAddressResult {
   /** @format address */
   address: string
-}
-
-export interface BuildScriptTx {
-  /** @format public-key */
-  fromPublicKey: string
-
-  /** @format byte-string */
-  bytecode: string
-
-  /** @format uint256 */
-  alphAmount?: string
-  tokens?: Token[]
-
-  /** @format gas */
-  gasAmount?: number
-
-  /** @format uint256 */
-  gasPrice?: string
-  utxosLimit?: number
-}
-
-export interface BuildScriptTxResult {
-  unsignedTx: string
-
-  /** @format gas */
-  gasAmount: number
-
-  /** @format uint256 */
-  gasPrice: string
-
-  /** @format 32-byte-hash */
-  txId: string
-  group: number
 }
 
 export interface BuildSweepAddressTransactions {
@@ -283,7 +279,6 @@ export interface BuildSweepAddressTransactions {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
 export interface BuildSweepAddressTransactionsResult {
@@ -303,7 +298,6 @@ export interface BuildTransaction {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
 export interface BuildTransactionResult {
@@ -338,21 +332,20 @@ export interface ChangeActiveAddress {
 }
 
 export interface CompileContractResult {
-  compiled: CompiledContractTrait
+  bytecode: string
+
+  /** @format 32-byte-hash */
+  codeHash: string
   fields: FieldsSig
   functions: FunctionSig[]
   events: EventSig[]
 }
 
 export interface CompileScriptResult {
-  compiled: CompiledScriptTrait
+  bytecodeTemplate: string
   functions: FunctionSig[]
   events: EventSig[]
 }
-
-export type CompiledContractTrait = SimpleContractByteCode | TemplateContractByteCode
-
-export type CompiledScriptTrait = SimpleScriptByteCode | TemplateScriptByteCode
 
 export interface Confirmed {
   /** @format block-hash */
@@ -404,7 +397,7 @@ export interface ContractState {
   bytecode: string
 
   /** @format 32-byte-hash */
-  artifactId: string
+  codeHash: string
   fields: Val[]
   asset: AssetState
 }
@@ -611,18 +604,6 @@ export interface SignResult {
   signature: string
 }
 
-export interface SimpleContractByteCode {
-  /** @format byte-string */
-  bytecode: string
-  type: string
-}
-
-export interface SimpleScriptByteCode {
-  /** @format byte-string */
-  bytecode: string
-  type: string
-}
-
 export interface SubmitMultisig {
   unsignedTx: string
   signatures: string[]
@@ -662,17 +643,6 @@ export interface SweepAddressTransaction {
   gasPrice: string
 }
 
-export interface TemplateContractByteCode {
-  filedLength: number
-  methodsByteCode: string[]
-  type: string
-}
-
-export interface TemplateScriptByteCode {
-  templateByteCode: string
-  type: string
-}
-
 export interface TestContract {
   group?: number
 
@@ -681,13 +651,10 @@ export interface TestContract {
 
   /** @format contract */
   bytecode: string
-
-  /** @format 32-byte-hash */
-  artifactId: string
-  initialFields: Val[]
+  initialFields?: Val[]
   initialAsset?: AssetState
   testMethodIndex?: number
-  testArgs: Val[]
+  testArgs?: Val[]
   existingContracts?: ContractState[]
   inputAssets?: InputAsset[]
 }
@@ -697,7 +664,7 @@ export interface TestContractResult {
   address: string
 
   /** @format 32-byte-hash */
-  artifactId: string
+  codeHash: string
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]
@@ -1255,11 +1222,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get your total balance
      * @request GET:/wallets/{wallet_name}/balances
      */
-    getWalletsWalletNameBalances: (walletName: string, query?: { utxosLimit?: number }, params: RequestParams = {}) =>
+    getWalletsWalletNameBalances: (walletName: string, params: RequestParams = {}) =>
       this.request<Balances, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/wallets/${walletName}/balances`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
       }),
@@ -1776,11 +1742,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get the balance of an address
      * @request GET:/addresses/{address}/balance
      */
-    getAddressesAddressBalance: (address: string, query?: { utxosLimit?: number }, params: RequestParams = {}) =>
+    getAddressesAddressBalance: (address: string, params: RequestParams = {}) =>
       this.request<Balance, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/balance`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
       }),
@@ -1793,11 +1758,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get the UTXOs of an address
      * @request GET:/addresses/{address}/utxos
      */
-    getAddressesAddressUtxos: (address: string, query?: { utxosLimit?: number }, params: RequestParams = {}) =>
+    getAddressesAddressUtxos: (address: string, params: RequestParams = {}) =>
       this.request<UTXOs, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/utxos`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
       }),
@@ -1962,16 +1926,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Contracts
-     * @name PostContractsUnsignedTxBuildScript
+     * @name PostContractsUnsignedTxExecuteScript
      * @summary Build an unsigned script
-     * @request POST:/contracts/unsigned-tx/build-script
+     * @request POST:/contracts/unsigned-tx/execute-script
      */
-    postContractsUnsignedTxBuildScript: (data: BuildScriptTx, params: RequestParams = {}) =>
+    postContractsUnsignedTxExecuteScript: (data: BuildExecuteScriptTx, params: RequestParams = {}) =>
       this.request<
-        BuildScriptTxResult,
+        BuildExecuteScriptTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
-        path: `/contracts/unsigned-tx/build-script`,
+        path: `/contracts/unsigned-tx/execute-script`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -2004,16 +1968,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Contracts
-     * @name PostContractsUnsignedTxBuildContract
+     * @name PostContractsUnsignedTxDeployContract
      * @summary Build an unsigned contract
-     * @request POST:/contracts/unsigned-tx/build-contract
+     * @request POST:/contracts/unsigned-tx/deploy-contract
      */
-    postContractsUnsignedTxBuildContract: (data: BuildContractDeployScriptTx, params: RequestParams = {}) =>
+    postContractsUnsignedTxDeployContract: (data: BuildDeployContractTx, params: RequestParams = {}) =>
       this.request<
-        BuildContractDeployScriptTxResult,
+        BuildDeployContractTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
-        path: `/contracts/unsigned-tx/build-contract`,
+        path: `/contracts/unsigned-tx/deploy-contract`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

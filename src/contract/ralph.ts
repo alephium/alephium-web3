@@ -250,20 +250,79 @@ export function buildByteCode(templateByteCode: string, templateVariables: Templ
   })
 }
 
-export function buildContractByteCode(
-  compiled: api.TemplateContractByteCode,
-  templateVariables: TemplateVariables
-): string {
-  const methodsBuilt = compiled.methodsByteCode.map((template) => buildByteCode(template, templateVariables))
-  let count = 0
-  const methodIndexes = methodsBuilt.map((hex) => {
-    count += hex.length / 2
-    return count
-  })
-  return (
-    binToHex(encodeI256(BigInt(compiled.filedLength))) +
-    binToHex(encodeI256(BigInt(methodIndexes.length))) +
-    methodIndexes.map((index) => binToHex(encodeI256(BigInt(index)))).join('') +
-    methodsBuilt.join('')
-  )
+enum ApiValType {
+  Bool = 0,
+  I256 = 1,
+  U256 = 2,
+  ByteVec = 3,
+  Address = 4
 }
+
+export function encodeVal(tpe: string, value: string | boolean): Uint8Array {
+  switch (tpe) {
+    case 'Bool':
+      if (typeof value === 'boolean') {
+        const byte = value ? 1 : 0
+        return new Uint8Array([ApiValType.Bool, byte])
+      }
+      break
+    case 'I256':
+      if (typeof value === 'string') {
+        return new Uint8Array([ApiValType.I256, ...encodeI256(BigInt(value))])
+      }
+      break
+    case 'U256':
+      if (typeof value === 'string') {
+        return new Uint8Array([ApiValType.U256, ...encodeU256(BigInt(value))])
+      }
+      break
+    case 'ByteVec':
+      if (typeof value === 'string') {
+        return new Uint8Array([ApiValType.ByteVec, ...encodeByteVec(value)])
+      }
+      break
+    case 'Address':
+      if (typeof value === 'string') {
+        return new Uint8Array([ApiValType.Address, ...encodeAddress(value)])
+      }
+      break
+  }
+
+  throw invalidVal(tpe, value)
+}
+
+function invalidVal(tpe: string, value: string | boolean): Error {
+  return Error(`Invalid API value ${value} for type ${tpe}`)
+}
+
+function encodeApiVal(val: api.Val): string[] {
+  if (typeof val.value === 'string' || typeof val.value === 'boolean') {
+    return [Buffer.from(encodeVal(val.type, val.value)).toString('hex')]
+  } else {
+    return val.value.flatMap(encodeApiVal)
+  }
+}
+
+export function encodeContractFields(fields: api.Val[]): string {
+  const fieldsEncoded = fields.flatMap(encodeApiVal)
+  const fieldsLength = Buffer.from(encodeI256(BigInt(fieldsEncoded.length))).toString('hex')
+  return fieldsLength + fieldsEncoded.join('')
+}
+
+// export function buildContractByteCode(
+//   compiled: api.TemplateContractByteCode,
+//   templateVariables: TemplateVariables
+// ): string {
+//   const methodsBuilt = compiled.methodsByteCode.map((template) => buildByteCode(template, templateVariables))
+//   let count = 0
+//   const methodIndexes = methodsBuilt.map((hex) => {
+//     count += hex.length / 2
+//     return count
+//   })
+//   return (
+//     binToHex(encodeI256(BigInt(compiled.filedLength))) +
+//     binToHex(encodeI256(BigInt(methodIndexes.length))) +
+//     methodIndexes.map((index) => binToHex(encodeI256(BigInt(index)))).join('') +
+//     methodsBuilt.join('')
+//   )
+// }

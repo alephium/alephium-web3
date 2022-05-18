@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import * as api from '../../api/api-alephium'
 import * as ralph from './ralph'
 import * as utils from '../utils'
 
@@ -134,19 +135,39 @@ describe('contract', function () {
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
   })
 
-  it('should test buildByteCode', async () => {
-    const compiled = {
-      type: 'TemplateContractByteCode',
-      filedLength: 1,
-      methodsByteCode: [
-        '01000203021205160016015f{subContractId:ByteVec}1702a00016002a16012aa100a000160016011602010002',
-        '00000202020416001601000002'
-      ]
-    }
-    const variables = { subContractId: '55834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b' }
-    const bytecode = ralph.buildContractByteCode(compiled, variables)
-    expect(bytecode).toEqual(
-      '01024046405301000203021205160016015f14402055834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b1702a00016002a16012aa100a00016001601160201000200000202020416001601000002'
+  it('should encode Api Val', async () => {
+    const fields: api.Val[] = [
+      { type: 'I256', value: '-1' },
+      { type: 'U256', value: '1' },
+      { type: 'ByteVec', value: '23' },
+      { type: 'Address', value: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' },
+      {
+        type: 'Array',
+        value: [
+          { type: 'Bool', value: false },
+          { type: 'Bool', value: true }
+        ]
+      }
+    ]
+    const encoded = ralph.encodeContractFields(fields)
+    expect(encoded).toEqual(
+      '06013f02010301230400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec00000001'
     )
   })
+
+  // it('should test buildByteCode', async () => {
+  //   const compiled = {
+  //     type: 'TemplateContractByteCode',
+  //     filedLength: 1,
+  //     methodsByteCode: [
+  //       '01000203021205160016015f{subContractId:ByteVec}1702a00016002a16012aa100a000160016011602010002',
+  //       '00000202020416001601000002'
+  //     ]
+  //   }
+  //   const variables = { subContractId: '55834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b' }
+  //   const bytecode = ralph.buildContractByteCode(compiled, variables)
+  //   expect(bytecode).toEqual(
+  //     '01024046405301000203021205160016015f14402055834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b1702a00016002a16012aa100a00016001601160201000200000202020416001601000002'
+  //   )
+  // })
 })

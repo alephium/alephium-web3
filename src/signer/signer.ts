@@ -51,7 +51,6 @@ export interface SignTransferTxParams {
   utxos?: api.OutputRef[]
   gasAmount?: number
   gasPrice?: string
-  utxosLimit?: number
   submitTx?: boolean
 }
 assertType<Eq<SignTransferTxParams, TxBuildParams<api.BuildTransaction>>>()
@@ -65,15 +64,13 @@ assertType<Eq<SignTransferTxResult, SignResult>>()
 export interface SignContractCreationTxParams {
   signerAddress: string
   bytecode: string
-  initialFields: api.Val[]
-  alphAmount?: string
+  initialAlphAmount?: string
   issueTokenAmount?: string
   gasAmount?: number
   gasPrice?: string
-  utxosLimit?: number
   submitTx?: boolean
 }
-assertType<Eq<SignContractCreationTxParams, TxBuildParams<api.BuildContractDeployScriptTx>>>()
+assertType<Eq<SignContractCreationTxParams, TxBuildParams<api.BuildDeployContractTx>>>()
 export interface SignContractCreationTxResult {
   unsignedTx: string
   txId: string
@@ -90,10 +87,9 @@ export interface SignScriptTxParams {
   tokens?: api.Token[]
   gasAmount?: number
   gasPrice?: string
-  utxosLimit?: number
   submitTx?: boolean
 }
-assertType<Eq<SignScriptTxParams, TxBuildParams<api.BuildScriptTx>>>()
+assertType<Eq<SignScriptTxParams, TxBuildParams<api.BuildExecuteScriptTx>>>()
 export interface SignScriptTxResult {
   unsignedTx: string
   txId: string
@@ -208,9 +204,9 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return { ...result, contractId: contractId, contractAddress: response.contractAddress }
   }
 
-  async buildContractCreationTx(params: SignContractCreationTxParams): Promise<api.BuildContractDeployScriptTxResult> {
+  async buildContractCreationTx(params: SignContractCreationTxParams): Promise<api.BuildDeployContractTxResult> {
     return convertHttpResponse(
-      await this.client.contracts.postContractsUnsignedTxBuildContract(await this.usePublicKey(params))
+      await this.client.contracts.postContractsUnsignedTxDeployContract(await this.usePublicKey(params))
     )
   }
 
@@ -219,9 +215,9 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  async buildScriptTx(params: SignScriptTxParams): Promise<api.BuildScriptTxResult> {
+  async buildScriptTx(params: SignScriptTxParams): Promise<api.BuildExecuteScriptTxResult> {
     return convertHttpResponse(
-      await this.client.contracts.postContractsUnsignedTxBuildScript(await this.usePublicKey(params))
+      await this.client.contracts.postContractsUnsignedTxExecuteScript(await this.usePublicKey(params))
     )
   }
 
