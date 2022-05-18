@@ -20,7 +20,7 @@ import { CliqueClient } from '../src/clique'
 import { subscribe, Subscription } from '../src/events'
 import { Contract, Script } from '../src/contract'
 import { NodeWallet, SignScriptTxParams } from '../src/signer'
-import * as api from '../api/api-alephium'
+import * as api from '../src/api/api-alephium'
 import { testAddress, testWallet } from './wallet'
 
 describe('events', function () {

@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC } from 'elliptic'
 import { CliqueClient } from '../clique'
-import * as api from '../../api/api-alephium'
+import * as api from '../api/api-alephium'
 import { convertHttpResponse } from '../utils'
 import * as utils from '../utils'
 import { Eq, assertType } from '../utils'

@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import EventEmitter from 'eventemitter3'
-import * as api from '../api/api-alephium'
+import * as api from './api/api-alephium'
 import { CliqueClient } from './clique'
 import { convertHttpResponse } from './utils'
 
