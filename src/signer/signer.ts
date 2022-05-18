@@ -17,11 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { CliqueClient } from './clique'
-import * as api from '../api/api-alephium'
-import { convertHttpResponse } from './utils'
-import * as utils from './utils'
-import { Eq, assertType } from './utils'
+import { CliqueClient } from '../clique'
+import * as api from '../../api/api-alephium'
+import { convertHttpResponse } from '../utils'
+import * as utils from '../utils'
+import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
 
 const ec = new EC('secp256k1')
@@ -31,11 +31,13 @@ export interface SignResult {
   txId: string
   signature: string
 }
+
 export interface Account {
   address: string
-  pubkey: string
   group: number
+  publicKey: string
 }
+
 export type SubmitTx = { submitTx?: boolean }
 export type SignerAddress = { signerAddress: string }
 type TxBuildParams<T> = Omit<T, 'fromPublicKey'> & SignerAddress & SubmitTx
@@ -142,19 +144,21 @@ export interface SignerProvider {
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
-function checkParams(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalFn = descriptor.value
-  descriptor.value = function (params: any) {
-    if (typeof params.signerAddress !== 'undefined' && params.signerAddress !== this['address']) {
-      throw new Error('Unmatched address')
-    }
-    return originalFn.call(this, params)
-  }
-}
-
-export abstract class Signer implements SignerProvider {
+export abstract class SignerWithNodeProvider implements SignerProvider {
   readonly client: CliqueClient
   alwaysSubmitTx: boolean
+
+  abstract getAccounts(): Promise<Account[]>
+
+  async getAccount(signerAddress: string): Promise<Account> {
+    const accounts = await this.getAccounts()
+    const account = accounts.find((a) => a.address === signerAddress)
+    if (typeof account === 'undefined') {
+      throw new Error('Unmatched signerAddress')
+    } else {
+      return account
+    }
+  }
 
   constructor(client: CliqueClient, alwaysSubmitTx: boolean) {
     this.client = client
@@ -172,8 +176,6 @@ export abstract class Signer implements SignerProvider {
     return this.alwaysSubmitTx || (params.submitTx ? params.submitTx : true)
   }
 
-  abstract getAccounts(): Promise<GetAccountsResult>
-
   private async usePublicKey<T extends SignerAddress>(
     params: T
   ): Promise<Omit<T, 'signerAddress'> & { fromPublicKey: string }> {
@@ -183,7 +185,7 @@ export abstract class Signer implements SignerProvider {
     if (typeof signerAccount === 'undefined') {
       throw new Error('Unknown signer address')
     } else {
-      return { fromPublicKey: signerAccount.pubkey, ...restParams }
+      return { fromPublicKey: signerAccount.publicKey, ...restParams }
     }
   }
 
@@ -192,7 +194,6 @@ export abstract class Signer implements SignerProvider {
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  @checkParams
   async buildTransferTx(params: SignTransferTxParams): Promise<api.BuildTransactionResult> {
     return convertHttpResponse(await this.client.transactions.postTransactionsBuild(await this.usePublicKey(params)))
   }
@@ -207,7 +208,6 @@ export abstract class Signer implements SignerProvider {
     return { ...result, contractId: contractId, contractAddress: response.contractAddress }
   }
 
-  @checkParams
   async buildContractCreationTx(params: SignContractCreationTxParams): Promise<api.BuildContractDeployScriptTxResult> {
     return convertHttpResponse(
       await this.client.contracts.postContractsUnsignedTxBuildContract(await this.usePublicKey(params))
@@ -219,7 +219,6 @@ export abstract class Signer implements SignerProvider {
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  @checkParams
   async buildScriptTx(params: SignScriptTxParams): Promise<api.BuildScriptTxResult> {
     return convertHttpResponse(
       await this.client.contracts.postContractsUnsignedTxBuildScript(await this.usePublicKey(params))
@@ -228,7 +227,6 @@ export abstract class Signer implements SignerProvider {
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
-  @checkParams
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
     const decoded = convertHttpResponse(await this.client.transactions.postTransactionsDecodeUnsignedTx(data))
@@ -261,99 +259,19 @@ export abstract class Signer implements SignerProvider {
     }
   }
 
-  protected abstract signRaw(signerAddress: string, hexString: string): Promise<string>
-
-  @checkParams
   async signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
     const signature = await this.signRaw(params.signerAddress, params.hexString)
     return { signature: signature }
   }
 
-  @checkParams
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
     const extendedMessage = extendMessage(params.message)
     const messageHash = blake.blake2b(extendedMessage, undefined, 32)
     const signature = await this.signRaw(params.signerAddress, utils.binToHex(messageHash))
     return { signature: signature }
   }
-}
 
-export abstract class SingleAddressSigner extends Signer {
-  address: string
-  publicKey: string
-  group: number
-
-  constructor(client: CliqueClient, address: string, publicKey: string, alwaysSubmitTx: boolean) {
-    super(client, alwaysSubmitTx)
-    this.address = address
-    this.publicKey = publicKey
-    this.group = utils.groupOfAddress(address)
-  }
-
-  async getAccounts(): Promise<GetAccountsResult> {
-    return [{ address: this.address, pubkey: this.publicKey, group: this.group }]
-  }
-
-  override async submitTransaction(unsignedTx: string, txHash: string): Promise<SubmissionResult> {
-    return super.submitTransaction(unsignedTx, txHash, this.address)
-  }
-}
-
-export class NodeSigner extends SingleAddressSigner {
-  readonly walletName: string
-
-  private static async fetchPublicKey(client: CliqueClient, walletName: string, address: string): Promise<string> {
-    const response = await client.wallets.getWalletsWalletNameAddressesAddress(walletName, address)
-    return convertHttpResponse(response).publicKey
-  }
-
-  static async testSigner(client: CliqueClient): Promise<NodeSigner> {
-    const walletName = 'alephium-web3-test-only-wallet'
-    const address = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
-    return NodeSigner.init(client, walletName, address)
-  }
-
-  static async init(
-    client: CliqueClient,
-    walletName: string,
-    address: string,
-    alwaysSubmitTx = true
-  ): Promise<NodeSigner> {
-    const publicKey = await NodeSigner.fetchPublicKey(client, walletName, address)
-    return new NodeSigner(client, walletName, address, publicKey, alwaysSubmitTx)
-  }
-
-  constructor(client: CliqueClient, walletName: string, address: string, publicKey: string, alwaysSubmitTx: boolean) {
-    super(client, address, publicKey, alwaysSubmitTx)
-    this.walletName = walletName
-  }
-
-  protected async signRaw(signerAddress: string, hexString: string): Promise<string> {
-    const response = await this.client.wallets.postWalletsWalletNameSign(this.walletName, { data: hexString })
-    return convertHttpResponse(response).signature
-  }
-}
-
-export class PrivateKeySigner extends SingleAddressSigner {
-  readonly privateKey: string
-
-  static createRandom(client: CliqueClient, alwaysSubmitTx = true): PrivateKeySigner {
-    const keyPair = ec.genKeyPair()
-    return new PrivateKeySigner(client, keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
-  }
-
-  constructor(client: CliqueClient, privateKey: string, alwaysSubmitTx = true) {
-    const publicKey = utils.publicKeyFromPrivateKey(privateKey)
-    const address = utils.addressFromPublicKey(publicKey)
-    super(client, address, publicKey, alwaysSubmitTx)
-    this.privateKey = privateKey
-  }
-
-  protected async signRaw(signerAddress: string, hexString: string): Promise<string> {
-    const key = ec.keyFromPrivate(this.privateKey)
-    const signature = key.sign(hexString)
-    return utils.signatureEncode(signature)
-  }
+  abstract signRaw(signerAddress: string, hexString: string): Promise<string>
 }
 
 export interface SubmissionResult {
