@@ -17,5 +17,5 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 export * from './signer'
-export * from './NodeWallet'
-export * from './PrivateKeyWallet'
+export * from './node-wallet'
+export * from './privatekey-wallet'
