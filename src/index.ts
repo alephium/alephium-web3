@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 export * from './clique'
 export * from './node'
 export * from './utils'
-export * from './wallet/walletUtils'
+export * from './wallet'
 export * from './explorer'
 export * from './address'
 export * from './signer'

@@ -16,14 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NodeWallet } from '../src/wallet/NodeWallet'
 import { CliqueClient } from '../src/clique'
 import { Contract, Script, TestContractParams } from '../src/contract'
-import { Signer } from '../src/signer'
+import { testWallet } from './wallet'
 
-const testWalletName = 'alephium-web3-test-only-wallet'
 const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
-const testPassword = 'alephium'
 describe('contract', function () {
   async function testSuite1() {
     const client = new CliqueClient({ baseUrl: 'http://127.0.0.1:22973' })
@@ -55,8 +52,7 @@ describe('contract', function () {
     expect(testResultPrivate.artifactId).toEqual(add.sourceCodeSha256)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
-    const nodeWallet = await NodeWallet.FromCliqueClient(client, testWalletName)
-    const signer = new Signer(nodeWallet, async () => testPassword, client, true)
+    const signer = await testWallet(client)
 
     const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: [0] })
     const subContractId = subDeployTx.contractId
@@ -102,8 +98,7 @@ describe('contract', function () {
     expect(testResult.contracts[0].artifactId).toEqual(greeter.sourceCodeSha256)
     expect(testResult.contracts[0].fields).toEqual([1])
 
-    const nodeWallet = await NodeWallet.FromCliqueClient(client, testWalletName)
-    const signer = new Signer(nodeWallet, async () => testPassword, client, true)
+    const signer = await testWallet(client)
 
     const deployTx = await greeter.transactionForDeployment(signer, { initialFields: [1] })
     expect(deployTx.group).toEqual(0)
