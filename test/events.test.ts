@@ -21,19 +21,19 @@ import { subscribe, Subscription } from '../src/contract/events'
 import { Contract, Script } from '../src/contract'
 import { NodeWallet, SignScriptTxParams } from '../src/signer'
 import { node } from '../src/api'
-import { testAddress, testWallet } from './wallet'
+import { testWallet } from './wallet'
 
 describe('events', function () {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
     const sub = await Contract.fromSource(provider, 'sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: [0] })
     const subContractId = subDeployTx.contractId
-    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId, testAddress)
+    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const add = await Contract.fromSource(provider, 'add.ral')
     const addDeployTx = await add.transactionForDeployment(signer, { initialFields: [subContractId, 0] })
-    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId, testAddress)
+    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
     return [addDeployTx.contractAddress, addDeployTx.contractId]
   }
@@ -41,7 +41,7 @@ describe('events', function () {
   async function executeScript(params: SignScriptTxParams, signer: NodeWallet, times: number) {
     for (let i = 0; i < times; i++) {
       const scriptTx = await signer.buildScriptTx(params)
-      await signer.submitTransaction(scriptTx.unsignedTx, scriptTx.txId, testAddress)
+      await signer.submitTransaction(scriptTx.unsignedTx, scriptTx.txId)
     }
   }
 
@@ -112,7 +112,7 @@ describe('events', function () {
     const scriptTx0 = await script.transactionForDeployment(signer, {
       templateVariables: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId, testAddress)
+    await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId)
     await new Promise((resolve) => setTimeout(resolve, 1500))
     subscription.unsubscribe()
 
@@ -127,7 +127,7 @@ describe('events', function () {
     const scriptTx1 = await script.transactionForDeployment(signer, {
       templateVariables: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId, testAddress)
+    await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId)
     await new Promise((resolve) => setTimeout(resolve, 1500))
     expect(events.length).toEqual(1)
   })

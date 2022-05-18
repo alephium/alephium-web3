@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { bs58, binToHex, isHexString } from '../utils'
+import { bs58, isHexString } from '../utils'
 import { node } from '../api'
 
 const bigIntZero = BigInt(0)
