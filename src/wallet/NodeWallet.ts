@@ -15,59 +15,60 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { convertHttpResponse } from '../utils'
-import { ReadOnlyWallet } from './ReadOnlyWallet'
 
-import { IAccount } from './IAccount'
-import { IRecoverableWallet } from './IRecoverableWallet'
 import { CliqueClient } from '../clique'
+import { Account, SignerWithNodeProvider } from '../signer'
 
-export class NodeWallet extends ReadOnlyWallet implements IRecoverableWallet {
-  encryptedSecretJson: string
-  private client: CliqueClient
-  private walletName: string
+export class NodeWallet extends SignerWithNodeProvider {
+  public walletName: string
+  public accounts: Account[] | undefined
 
-  constructor(client: CliqueClient, accounts: IAccount[], walletName: string) {
-    const readOnlyAccounts = accounts.map(({ publicKey, p2pkhAddress, group }) => ({
-      publicKey,
-      p2pkhAddress,
-      group
-    }))
-    super(readOnlyAccounts)
-    this.encryptedSecretJson = ''
-    this.client = client
+  constructor(client: CliqueClient, walletName: string, alwaysSubmitTx = true) {
+    super(client, alwaysSubmitTx)
     this.walletName = walletName
   }
 
-  async getMnemonic(password: string): Promise<string> {
-    const revealMnemonicResponse = await this.client.wallets.postWalletsWalletNameRevealMnemonic(this.walletName, {
-      password
-    })
-    return convertHttpResponse(revealMnemonicResponse).mnemonic
+  async getAccounts(): Promise<Account[]> {
+    if (typeof this.accounts === 'undefined') {
+      this.accounts = await this.getAllAccounts()
+    }
+    return this.accounts
   }
 
-  static async FromCliqueClient(client: CliqueClient, walletName: string): Promise<IRecoverableWallet> {
-    const walletAddressesResponse = await client.wallets.getWalletsWalletNameAddresses(walletName)
+  private async getAllAccounts(): Promise<Account[]> {
+    const walletAddressesResponse = await this.client.wallets.getWalletsWalletNameAddresses(this.walletName)
     const walletAddresses = convertHttpResponse(walletAddressesResponse)
-    const accounts: IAccount[] = walletAddresses.addresses.map<IAccount>((acc) => ({
+    const accounts: Account[] = walletAddresses.addresses.map<Account>((acc) => ({
       publicKey: acc.publicKey,
-      p2pkhAddress: acc.address,
+      address: acc.address,
       group: acc.group
     }))
-
-    return new NodeWallet(client, accounts, walletName)
+    return accounts
   }
 
-  async sign(password: string, dataToSign: string, signerAddress: string): Promise<string> {
-    await this.client.wallets.postWalletsWalletNameUnlock(this.walletName, { password })
+  static async FromCliqueClient(client: CliqueClient, walletName: string, alwaysSubmitTx = true): Promise<NodeWallet> {
+    return new NodeWallet(client, walletName, alwaysSubmitTx)
+  }
+
+  async signRaw(signerAddress: string, hexString: string): Promise<string> {
     const currentActiveAddressResponse = await this.client.wallets.getWalletsWalletNameAddresses(this.walletName)
     const { activeAddress } = convertHttpResponse(currentActiveAddressResponse)
     await this.client.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: signerAddress })
-    const response = await this.client.wallets.postWalletsWalletNameSign(this.walletName, { data: dataToSign })
+    const response = await this.client.wallets.postWalletsWalletNameSign(this.walletName, { data: hexString })
     const { signature } = convertHttpResponse(response)
 
     await this.client.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: activeAddress }) // set the address that's active back to previous state
 
     return signature
+  }
+
+  async unlock(password: string): Promise<void> {
+    return convertHttpResponse(await this.client.wallets.postWalletsWalletNameUnlock(this.walletName, { password }))
+  }
+
+  async lock(): Promise<void> {
+    return convertHttpResponse(await this.client.wallets.postWalletsWalletNameLock(this.walletName))
   }
 }

@@ -23,8 +23,6 @@ import { convertHttpResponse } from './utils'
 import * as utils from './utils'
 import { Eq, assertType } from './utils'
 import blake from 'blakejs'
-import { IAccount } from './wallet/IAccount'
-import { ISigningWallet } from './wallet/ISigningWallet'
 
 const ec = new EC('secp256k1')
 
@@ -32,6 +30,12 @@ export interface SignResult {
   unsignedTx: string
   txId: string
   signature: string
+}
+
+export interface Account {
+  address: string
+  group: number
+  publicKey: string
 }
 
 export type SubmitTx = { submitTx?: boolean }
@@ -131,7 +135,7 @@ export interface SignMessageResult {
 assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 
 export interface SignerProvider {
-  getAccounts(): Promise<IAccount[]>
+  getAccounts(): Promise<Account[]>
   signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
   signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult>
   signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult>
@@ -140,27 +144,23 @@ export interface SignerProvider {
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
-export interface IPasswordRequestor {
-  requestPassword(): Promise<string>
-}
-
-function checkParams(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalFn = descriptor.value
-  descriptor.value = function (params: any) {
-    return originalFn.call(this, params)
-  }
-}
-
-export class Signer implements SignerProvider {
+export abstract class SignerWithNodeProvider implements SignerProvider {
   readonly client: CliqueClient
   alwaysSubmitTx: boolean
 
-  constructor(
-    private signingWallet: ISigningWallet,
-    private passwordRequestor: () => Promise<string>,
-    client: CliqueClient,
-    alwaysSubmitTx: boolean
-  ) {
+  abstract getAccounts(): Promise<Account[]>
+
+  async getAccount(signerAddress: string): Promise<Account> {
+    const accounts = await this.getAccounts()
+    const account = accounts.find((a) => a.address === signerAddress)
+    if (typeof account === 'undefined') {
+      throw new Error('Unmatched signerAddress')
+    } else {
+      return account
+    }
+  }
+
+  constructor(client: CliqueClient, alwaysSubmitTx: boolean) {
     this.client = client
     this.alwaysSubmitTx = alwaysSubmitTx
   }
@@ -176,16 +176,12 @@ export class Signer implements SignerProvider {
     return this.alwaysSubmitTx || (params.submitTx ? params.submitTx : true)
   }
 
-  async getAccounts(): Promise<GetAccountsResult> {
-    return this.signingWallet.accounts
-  }
-
   private async usePublicKey<T extends SignerAddress>(
     params: T
   ): Promise<Omit<T, 'signerAddress'> & { fromPublicKey: string }> {
     const { signerAddress, ...restParams } = params
     const allAccounts = await this.getAccounts()
-    const signerAccount = allAccounts.find((account) => account.p2pkhAddress === signerAddress)
+    const signerAccount = allAccounts.find((account) => account.address === signerAddress)
     if (typeof signerAccount === 'undefined') {
       throw new Error('Unknown signer address')
     } else {
@@ -198,7 +194,6 @@ export class Signer implements SignerProvider {
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  @checkParams
   async buildTransferTx(params: SignTransferTxParams): Promise<api.BuildTransactionResult> {
     return convertHttpResponse(await this.client.transactions.postTransactionsBuild(await this.usePublicKey(params)))
   }
@@ -213,7 +208,6 @@ export class Signer implements SignerProvider {
     return { ...result, contractId: contractId, contractAddress: response.contractAddress }
   }
 
-  @checkParams
   async buildContractCreationTx(params: SignContractCreationTxParams): Promise<api.BuildContractDeployScriptTxResult> {
     return convertHttpResponse(
       await this.client.contracts.postContractsUnsignedTxBuildContract(await this.usePublicKey(params))
@@ -225,7 +219,6 @@ export class Signer implements SignerProvider {
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  @checkParams
   async buildScriptTx(params: SignScriptTxParams): Promise<api.BuildScriptTxResult> {
     return convertHttpResponse(
       await this.client.contracts.postContractsUnsignedTxBuildScript(await this.usePublicKey(params))
@@ -234,7 +227,6 @@ export class Signer implements SignerProvider {
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
-  @checkParams
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
     const decoded = convertHttpResponse(await this.client.transactions.postTransactionsDecodeUnsignedTx(data))
@@ -267,13 +259,11 @@ export class Signer implements SignerProvider {
     }
   }
 
-  @checkParams
   async signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
     const signature = await this.signRaw(params.signerAddress, params.hexString)
     return { signature: signature }
   }
 
-  @checkParams
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
     const extendedMessage = extendMessage(params.message)
     const messageHash = blake.blake2b(extendedMessage, undefined, 32)
@@ -281,12 +271,7 @@ export class Signer implements SignerProvider {
     return { signature: signature }
   }
 
-  async signRaw(signerAddress: string, hexString: string): Promise<string> {
-    const password = await this.passwordRequestor()
-    // eslint-disable-next-line security/detect-possible-timing-attacks
-    if (password === undefined) throw new Error('Password is necessary to sign with this signer')
-    return this.signingWallet.sign(password, hexString, signerAddress)
-  }
+  abstract signRaw(signerAddress: string, hexString: string): Promise<string>
 }
 
 export interface SubmissionResult {
