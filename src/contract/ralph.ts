@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Buffer } from 'buffer/'
 import { bs58, binToHex, isHexString } from '../utils'
-import * as api from '../../api/api-alephium'
+import * as api from '../api/api-alephium'
 
 const bigIntZero = BigInt(0)
 

@@ -18,8 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC } from 'elliptic'
 
-import * as api from '../api/api-alephium'
-import { Api, SelfClique } from '../api/api-alephium'
+import * as api from './api/api-alephium'
+import { Api, SelfClique } from './api/api-alephium'
 import { NodeClient } from './node'
 import * as utils from './utils'
 
