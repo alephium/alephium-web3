@@ -16,9 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** This source is under MIT License and come originally from https://github.com/cryptocoinjs/bs58 **/
-import basex from 'base-x'
-
-const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-
-export default basex(ALPHABET)
+export * from './signer'
+export * from './NodeWallet'
+export * from './PrivateKeyWallet'

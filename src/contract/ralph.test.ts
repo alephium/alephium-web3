@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import * as ralph from './ralph'
-import * as utils from './utils'
+import * as utils from '../utils'
 
 describe('contract', function () {
   it('should encode I256', async () => {

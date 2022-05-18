@@ -19,14 +19,13 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Buffer } from 'buffer/'
 import * as cryptojs from 'crypto-js'
 import * as crypto from 'crypto'
-import bs58 from './bs58'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
-import { CliqueClient } from './clique'
-import * as api from '../api/api-alephium'
-import { SignContractCreationTxParams, SignScriptTxParams, SignerWithNodeProvider } from './signer'
+import { CliqueClient } from '../clique'
+import * as api from '../../api/api-alephium'
+import { SignContractCreationTxParams, SignScriptTxParams, SignerWithNodeProvider } from '../signer'
 import * as ralph from './ralph'
-import { binToHex, contractIdFromAddress } from './utils'
+import { bs58, binToHex, contractIdFromAddress } from '../utils'
 
 export abstract class Common {
   readonly sourceCodeSha256: string
