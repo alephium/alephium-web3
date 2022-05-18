@@ -16,15 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { CliqueClient } from '../src/clique'
+import { NodeProvider } from '../src/api'
 import { NodeWallet } from '../src/signer/NodeWallet'
 
 export const testWalletName = 'alephium-web3-test-only-wallet'
 export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
 export const testPassword = 'alph'
 
-export async function testWallet(client: CliqueClient): Promise<NodeWallet> {
-  const wallet = new NodeWallet(client, testWalletName)
+export async function testWallet(provider: NodeProvider): Promise<NodeWallet> {
+  const wallet = new NodeWallet(provider, testWalletName)
   await wallet.unlock(testPassword)
   return wallet
 }

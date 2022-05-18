@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Buffer } from 'buffer/'
 import { bs58, binToHex, isHexString } from '../utils'
-import * as api from '../api/api-alephium'
+import { node } from '../api'
 
 const bigIntZero = BigInt(0)
 
@@ -295,7 +295,7 @@ function invalidVal(tpe: string, value: string | boolean): Error {
   return Error(`Invalid API value ${value} for type ${tpe}`)
 }
 
-function encodeApiVal(val: api.Val): string[] {
+function encodeApiVal(val: node.Val): string[] {
   if (typeof val.value === 'string' || typeof val.value === 'boolean') {
     return [Buffer.from(encodeVal(val.type, val.value)).toString('hex')]
   } else {
@@ -303,14 +303,14 @@ function encodeApiVal(val: api.Val): string[] {
   }
 }
 
-export function encodeContractFields(fields: api.Val[]): string {
+export function encodeContractFields(fields: node.Val[]): string {
   const fieldsEncoded = fields.flatMap(encodeApiVal)
   const fieldsLength = Buffer.from(encodeI256(BigInt(fieldsEncoded.length))).toString('hex')
   return fieldsLength + fieldsEncoded.join('')
 }
 
 // export function buildContractByteCode(
-//   compiled: api.TemplateContractByteCode,
+//   compiled: node.TemplateContractByteCode,
 //   templateVariables: TemplateVariables
 // ): string {
 //   const methodsBuilt = compiled.methodsByteCode.map((template) => buildByteCode(template, templateVariables))

@@ -16,17 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { convertHttpResponse } from '../utils'
-
-import { CliqueClient } from '../clique'
+import { NodeProvider } from '../api'
 import { Account, SignerWithNodeProvider } from '../signer'
 
 export class NodeWallet extends SignerWithNodeProvider {
   public walletName: string
   public accounts: Account[] | undefined
 
-  constructor(client: CliqueClient, walletName: string, alwaysSubmitTx = true) {
-    super(client, alwaysSubmitTx)
+  constructor(provider: NodeProvider, walletName: string, alwaysSubmitTx = true) {
+    super(provider, alwaysSubmitTx)
     this.walletName = walletName
   }
 
@@ -38,8 +36,7 @@ export class NodeWallet extends SignerWithNodeProvider {
   }
 
   private async getAllAccounts(): Promise<Account[]> {
-    const walletAddressesResponse = await this.client.wallets.getWalletsWalletNameAddresses(this.walletName)
-    const walletAddresses = convertHttpResponse(walletAddressesResponse)
+    const walletAddresses = await this.provider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const accounts: Account[] = walletAddresses.addresses.map<Account>((acc) => ({
       publicKey: acc.publicKey,
       address: acc.address,
@@ -48,27 +45,30 @@ export class NodeWallet extends SignerWithNodeProvider {
     return accounts
   }
 
-  static async FromCliqueClient(client: CliqueClient, walletName: string, alwaysSubmitTx = true): Promise<NodeWallet> {
-    return new NodeWallet(client, walletName, alwaysSubmitTx)
+  static async FromCliqueClient(
+    provider: NodeProvider,
+    walletName: string,
+    alwaysSubmitTx = true
+  ): Promise<NodeWallet> {
+    return new NodeWallet(provider, walletName, alwaysSubmitTx)
   }
 
   async signRaw(signerAddress: string, hexString: string): Promise<string> {
-    const currentActiveAddressResponse = await this.client.wallets.getWalletsWalletNameAddresses(this.walletName)
-    const { activeAddress } = convertHttpResponse(currentActiveAddressResponse)
-    await this.client.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: signerAddress })
-    const response = await this.client.wallets.postWalletsWalletNameSign(this.walletName, { data: hexString })
-    const { signature } = convertHttpResponse(response)
+    const currentActiveAddressResponse = await this.provider.wallets.getWalletsWalletNameAddresses(this.walletName)
+    const { activeAddress } = currentActiveAddressResponse
+    await this.provider.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: signerAddress })
+    const { signature } = await this.provider.wallets.postWalletsWalletNameSign(this.walletName, { data: hexString })
 
-    await this.client.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: activeAddress }) // set the address that's active back to previous state
+    await this.provider.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: activeAddress }) // set the address that's active back to previous state
 
     return signature
   }
 
   async unlock(password: string): Promise<void> {
-    return convertHttpResponse(await this.client.wallets.postWalletsWalletNameUnlock(this.walletName, { password }))
+    return await this.provider.wallets.postWalletsWalletNameUnlock(this.walletName, { password })
   }
 
   async lock(): Promise<void> {
-    return convertHttpResponse(await this.client.wallets.postWalletsWalletNameLock(this.walletName))
+    return await this.provider.wallets.postWalletsWalletNameLock(this.walletName)
   }
 }
