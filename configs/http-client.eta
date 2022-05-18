@@ -3,4 +3,14 @@
 
 import 'cross-fetch/polyfill';
 
+function convertHttpResponse<T>(
+  response: HttpResponse<T, { detail: string }> | HttpResponse<T, { detail: string }>
+): T {
+  if (response.error) {
+    throw new Error(response.error.detail)
+  } else {
+    return response.data
+  }
+}
+
 <%~ includeFile(`@base/http-clients/fetch-http-client`, it) %>
