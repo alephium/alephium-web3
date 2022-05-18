@@ -17,9 +17,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { CliqueClient } from '../clique'
-import * as api from '../api/api-alephium'
-import { convertHttpResponse } from '../utils'
+import { NodeProvider } from '../api'
+import { node } from '../api'
 import * as utils from '../utils'
 import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
@@ -47,13 +46,13 @@ export type GetAccountsResult = Account[]
 
 export interface SignTransferTxParams {
   signerAddress: string
-  destinations: api.Destination[]
-  utxos?: api.OutputRef[]
+  destinations: node.Destination[]
+  utxos?: node.OutputRef[]
   gasAmount?: number
   gasPrice?: string
   submitTx?: boolean
 }
-assertType<Eq<SignTransferTxParams, TxBuildParams<api.BuildTransaction>>>()
+assertType<Eq<SignTransferTxParams, TxBuildParams<node.BuildTransaction>>>()
 export interface SignTransferTxResult {
   unsignedTx: string
   txId: string
@@ -70,7 +69,7 @@ export interface SignContractCreationTxParams {
   gasPrice?: string
   submitTx?: boolean
 }
-assertType<Eq<SignContractCreationTxParams, TxBuildParams<api.BuildDeployContractTx>>>()
+assertType<Eq<SignContractCreationTxParams, TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignContractCreationTxResult {
   unsignedTx: string
   txId: string
@@ -84,12 +83,12 @@ export interface SignScriptTxParams {
   signerAddress: string
   bytecode: string
   alphAmount?: string
-  tokens?: api.Token[]
+  tokens?: node.Token[]
   gasAmount?: number
   gasPrice?: string
   submitTx?: boolean
 }
-assertType<Eq<SignScriptTxParams, TxBuildParams<api.BuildExecuteScriptTx>>>()
+assertType<Eq<SignScriptTxParams, TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignScriptTxResult {
   unsignedTx: string
   txId: string
@@ -141,7 +140,7 @@ export interface SignerProvider {
 }
 
 export abstract class SignerWithNodeProvider implements SignerProvider {
-  readonly client: CliqueClient
+  readonly provider: NodeProvider
   alwaysSubmitTx: boolean
 
   abstract getAccounts(): Promise<Account[]>
@@ -156,16 +155,15 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     }
   }
 
-  constructor(client: CliqueClient, alwaysSubmitTx: boolean) {
-    this.client = client
+  constructor(provider: NodeProvider, alwaysSubmitTx: boolean) {
+    this.provider = provider
     this.alwaysSubmitTx = alwaysSubmitTx
   }
 
   async submitTransaction(unsignedTx: string, txHash: string, signerAddress: string): Promise<SubmissionResult> {
     const signature = await this.signRaw(signerAddress, txHash)
-    const params: api.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
-    const response = await this.client.transactions.postTransactionsSubmit(params)
-    return convertHttpResponse(response)
+    const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
+    return this.provider.transactions.postTransactionsSubmit(params)
   }
 
   private shouldSubmitTx(params: SubmitTx): boolean {
@@ -190,8 +188,8 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  async buildTransferTx(params: SignTransferTxParams): Promise<api.BuildTransactionResult> {
-    return convertHttpResponse(await this.client.transactions.postTransactionsBuild(await this.usePublicKey(params)))
+  async buildTransferTx(params: SignTransferTxParams): Promise<node.BuildTransactionResult> {
+    return this.provider.transactions.postTransactionsBuild(await this.usePublicKey(params))
   }
 
   async signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
@@ -204,10 +202,8 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return { ...result, contractId: contractId, contractAddress: response.contractAddress }
   }
 
-  async buildContractCreationTx(params: SignContractCreationTxParams): Promise<api.BuildDeployContractTxResult> {
-    return convertHttpResponse(
-      await this.client.contracts.postContractsUnsignedTxDeployContract(await this.usePublicKey(params))
-    )
+  async buildContractCreationTx(params: SignContractCreationTxParams): Promise<node.BuildDeployContractTxResult> {
+    return this.provider.contracts.postContractsUnsignedTxDeployContract(await this.usePublicKey(params))
   }
 
   async signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult> {
@@ -215,17 +211,15 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  async buildScriptTx(params: SignScriptTxParams): Promise<api.BuildExecuteScriptTxResult> {
-    return convertHttpResponse(
-      await this.client.contracts.postContractsUnsignedTxExecuteScript(await this.usePublicKey(params))
-    )
+  async buildScriptTx(params: SignScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
+    return this.provider.contracts.postContractsUnsignedTxExecuteScript(await this.usePublicKey(params))
   }
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
-    const decoded = convertHttpResponse(await this.client.transactions.postTransactionsDecodeUnsignedTx(data))
+    const decoded = await this.provider.transactions.postTransactionsDecodeUnsignedTx(data)
     return this.handleSign(
       { signerAddress: params.signerAddress, unsignedTx: params.unsignedTx, txId: decoded.txId },
       params.submitTx ? params.submitTx : true // we don't consider `alwaysSubmitTx` as the tx might needs multiple signatures
@@ -240,12 +234,10 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     const signature = await this.signRaw(response.signerAddress, response.txId)
     // submit the tx if required
     if (submitTx) {
-      convertHttpResponse(
-        await this.client.transactions.postTransactionsSubmit({
-          unsignedTx: response.unsignedTx,
-          signature: signature
-        })
-      )
+      await this.provider.transactions.postTransactionsSubmit({
+        unsignedTx: response.unsignedTx,
+        signature: signature
+      })
     }
     // return the signature back to the provider
     return {

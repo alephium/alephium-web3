@@ -16,9 +16,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './address'
-export * from './bs58'
-export * from './djb2'
-export * from './password-crypto'
-export * from './transaction'
-export * from './utils'
+import { ec as EC } from 'elliptic'
+
+import * as utils from './utils'
+
+const ec = new EC('secp256k1')
+
+export function transactionSign(txHash: string, privateKey: string): string {
+  const keyPair = ec.keyFromPrivate(privateKey)
+  const signature = keyPair.sign(txHash)
+
+  return utils.signatureEncode(signature)
+}
+
+export function transactionVerifySignature(txHash: string, publicKey: string, signature: string): boolean {
+  try {
+    const key = ec.keyFromPublic(publicKey, 'hex')
+    return key.verify(txHash, utils.signatureDecode(ec, signature))
+  } catch (error) {
+    return false
+  }
+}

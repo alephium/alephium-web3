@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import * as api from '../api/api-alephium'
+import { node } from '../api'
 import * as ralph from './ralph'
 import * as utils from '../utils'
 
@@ -136,7 +136,7 @@ describe('contract', function () {
   })
 
   it('should encode Api Val', async () => {
-    const fields: api.Val[] = [
+    const fields: node.Val[] = [
       { type: 'I256', value: '-1' },
       { type: 'U256', value: '1' },
       { type: 'ByteVec', value: '23' },
