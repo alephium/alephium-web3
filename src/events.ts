@@ -19,6 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import EventEmitter from 'eventemitter3'
 import * as api from '../api/api-alephium'
 import { CliqueClient } from './clique'
+import { convertHttpResponse } from './utils'
 
 type EventCallback = (event: api.ContractEvent) => Promise<void>
 type ErrorCallback = (error: any, subscription: Subscription) => Promise<void>
@@ -78,14 +79,11 @@ export class Subscription {
       const response = await this.client.events.getEventsContractContractaddress(this.contractAddress, {
         start: this.fromCount
       })
-      if (response.error) {
-        throw Error(response.error.detail)
-      }
       if (this.cancelled) {
         return
       }
 
-      const events = response.data
+      const events = convertHttpResponse(response)
       if (this.fromCount === events.nextStart) {
         this.task = setTimeout(() => this.eventEmitter.emit('tick'), this.pollingInterval)
         return
