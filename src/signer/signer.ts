@@ -160,8 +160,13 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     this.alwaysSubmitTx = alwaysSubmitTx
   }
 
-  async submitTransaction(unsignedTx: string, txHash: string, signerAddress: string): Promise<SubmissionResult> {
-    const signature = await this.signRaw(signerAddress, txHash)
+  private async defaultSignerAddress(): Promise<string> {
+    return (await this.getAccounts())[0].address
+  }
+
+  async submitTransaction(unsignedTx: string, txHash: string, signerAddress?: string): Promise<SubmissionResult> {
+    const address = typeof signerAddress !== 'undefined' ? signerAddress : await this.defaultSignerAddress()
+    const signature = await this.signRaw(address, txHash)
     const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
     return this.provider.transactions.postTransactionsSubmit(params)
   }
