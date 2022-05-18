@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { CliqueClient } from '../src/clique'
-import { NodeWallet } from '../src/wallet/NodeWallet'
+import { NodeWallet } from '../src/signer/NodeWallet'
 
 export const testWalletName = 'alephium-web3-test-only-wallet'
 export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
