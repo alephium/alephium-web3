@@ -60,7 +60,7 @@ export interface SignTransferTxResult {
 }
 assertType<Eq<SignTransferTxResult, SignResult>>()
 
-export interface SignContractCreationTxParams {
+export interface SignDeployContractTxParams {
   signerAddress: string
   bytecode: string
   initialAlphAmount?: string
@@ -69,17 +69,17 @@ export interface SignContractCreationTxParams {
   gasPrice?: string
   submitTx?: boolean
 }
-assertType<Eq<SignContractCreationTxParams, TxBuildParams<node.BuildDeployContractTx>>>()
-export interface SignContractCreationTxResult {
+assertType<Eq<SignDeployContractTxParams, TxBuildParams<node.BuildDeployContractTx>>>()
+export interface SignDeployContractTxResult {
   unsignedTx: string
   txId: string
   signature: string
   contractId: string
   contractAddress: string
 }
-assertType<Eq<SignContractCreationTxResult, SignResult & { contractId: string; contractAddress: string }>>()
+assertType<Eq<SignDeployContractTxResult, SignResult & { contractId: string; contractAddress: string }>>()
 
-export interface SignScriptTxParams {
+export interface SignExecuteScriptTxParams {
   signerAddress: string
   bytecode: string
   alphAmount?: string
@@ -88,13 +88,13 @@ export interface SignScriptTxParams {
   gasPrice?: string
   submitTx?: boolean
 }
-assertType<Eq<SignScriptTxParams, TxBuildParams<node.BuildExecuteScriptTx>>>()
-export interface SignScriptTxResult {
+assertType<Eq<SignExecuteScriptTxParams, TxBuildParams<node.BuildExecuteScriptTx>>>()
+export interface SignExecuteScriptTxResult {
   unsignedTx: string
   txId: string
   signature: string
 }
-assertType<Eq<SignScriptTxResult, SignResult>>()
+assertType<Eq<SignExecuteScriptTxResult, SignResult>>()
 
 export interface SignUnsignedTxParams {
   signerAddress: string
@@ -132,8 +132,8 @@ assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 export interface SignerProvider {
   getAccounts(): Promise<Account[]>
   signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
-  signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult>
-  signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult>
+  signContractCreationTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
+  signScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
   signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
   signHexString(params: SignHexStringParams): Promise<SignHexStringResult>
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
@@ -197,7 +197,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return this.provider.transactions.postTransactionsBuild(await this.usePublicKey(params))
   }
 
-  async signContractCreationTx(params: SignContractCreationTxParams): Promise<SignContractCreationTxResult> {
+  async signContractCreationTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     const response = await this.buildContractCreationTx(params)
     const result = await this.handleSign(
       { signerAddress: params.signerAddress, ...response },
@@ -207,16 +207,16 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return { ...result, contractId: contractId, contractAddress: response.contractAddress }
   }
 
-  async buildContractCreationTx(params: SignContractCreationTxParams): Promise<node.BuildDeployContractTxResult> {
+  async buildContractCreationTx(params: SignDeployContractTxParams): Promise<node.BuildDeployContractTxResult> {
     return this.provider.contracts.postContractsUnsignedTxDeployContract(await this.usePublicKey(params))
   }
 
-  async signScriptTx(params: SignScriptTxParams): Promise<SignScriptTxResult> {
+  async signScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
     const response = await this.buildScriptTx(params)
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
 
-  async buildScriptTx(params: SignScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
+  async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
     return this.provider.contracts.postContractsUnsignedTxExecuteScript(await this.usePublicKey(params))
   }
 

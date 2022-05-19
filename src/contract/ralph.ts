@@ -157,8 +157,8 @@ export function encodeAddress(address: string): Uint8Array {
   return bs58.decode(address)
 }
 
-function invalidTemplateVariable(tpe: string, value: Val): Error {
-  return Error(`Invalid template value ${value} for type ${tpe}`)
+function invalidScriptField(tpe: string, value: Val): Error {
+  return Error(`Invalid script field ${value} for type ${tpe}`)
 }
 
 enum Instruction {
@@ -184,12 +184,12 @@ enum Instruction {
 }
 
 // TODO: optimize
-function encodeI256Variable(value: bigint): Uint8Array {
+function encodeScriptFieldI256(value: bigint): Uint8Array {
   return new Uint8Array([Instruction.i256Const, ...encodeI256(value)])
 }
 
 // TODO: optimize
-function encodeU256Variable(value: bigint): Uint8Array {
+function encodeScriptFieldU256(value: bigint): Uint8Array {
   return new Uint8Array([Instruction.u256Const, ...encodeU256(value)])
 }
 
@@ -207,16 +207,16 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
       break
     case 'I256':
       if (typeof value === 'number' && Number.isInteger(value)) {
-        return encodeI256Variable(BigInt(value))
+        return encodeScriptFieldI256(BigInt(value))
       } else if (typeof value === 'bigint') {
-        return encodeI256Variable(value)
+        return encodeScriptFieldI256(value)
       }
       break
     case 'U256':
       if (typeof value === 'number' && Number.isInteger(value)) {
-        return encodeU256Variable(BigInt(value))
+        return encodeScriptFieldU256(BigInt(value))
       } else if (typeof value === 'bigint') {
-        return encodeU256Variable(value)
+        return encodeScriptFieldU256(value)
       }
       break
     case 'ByteVec':
@@ -231,7 +231,7 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
       break
   }
 
-  throw invalidTemplateVariable(tpe, value)
+  throw invalidScriptField(tpe, value)
 }
 
 const scriptFieldRegex = /\{([0-9]*)\}/g
@@ -244,7 +244,7 @@ export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fi
       const fieldValue = fields[`${fieldName}`]
       return encodeScriptFieldAsString(fieldType, fieldValue)
     } else {
-      throw new Error(`The value of variable ${fieldName} is not provided`)
+      throw new Error(`The value of field ${fieldName} is not provided`)
     }
   })
 }
@@ -256,7 +256,7 @@ export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSi
       const fieldValue = fields[`${fieldName}`]
       return encodeContractField(fieldType, fieldValue)
     } else {
-      throw new Error(`The value of variable ${fieldName} is not provided`)
+      throw new Error(`The value of field ${fieldName} is not provided`)
     }
   })
   const fieldsLength = Buffer.from(encodeI256(BigInt(fieldsEncoded.length))).toString('hex')
