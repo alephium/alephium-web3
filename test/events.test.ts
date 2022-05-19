@@ -21,7 +21,7 @@ import { subscribe, Subscription } from '../src/contract/events'
 import { Contract, Script } from '../src/contract'
 import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { node } from '../src/api'
-import { testWallet } from './wallet'
+import { testWallet } from '../src/test'
 
 describe('events', function () {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
