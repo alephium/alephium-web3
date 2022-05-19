@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { NodeProvider } from '../src/api'
 import { subscribe, Subscription } from '../src/contract/events'
 import { Contract, Script } from '../src/contract'
-import { NodeWallet, SignScriptTxParams } from '../src/signer'
+import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { node } from '../src/api'
 import { testWallet } from './wallet'
 
@@ -40,7 +40,7 @@ describe('events', function () {
     return [addDeployTx.contractAddress, addDeployTx.contractId]
   }
 
-  async function executeScript(params: SignScriptTxParams, signer: NodeWallet, times: number) {
+  async function executeScript(params: SignExecuteScriptTxParams, signer: NodeWallet, times: number) {
     for (let i = 0; i < times; i++) {
       const scriptTx = await signer.buildScriptTx(params)
       await signer.submitTransaction(scriptTx.unsignedTx, scriptTx.txId)

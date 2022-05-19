@@ -23,7 +23,7 @@ import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import { NodeProvider } from '../api'
 import { node } from '../api'
-import { SignContractCreationTxParams, SignScriptTxParams, SignerWithNodeProvider } from '../signer'
+import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerWithNodeProvider } from '../signer'
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 
@@ -448,9 +448,9 @@ export class Contract extends Common {
     }
   }
 
-  async paramsForDeployment(params: BuildDeployContractTx): Promise<SignContractCreationTxParams> {
+  async paramsForDeployment(params: BuildDeployContractTx): Promise<SignDeployContractTxParams> {
     const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
-    const signerParams: SignContractCreationTxParams = {
+    const signerParams: SignDeployContractTxParams = {
       signerAddress: params.signerAddress,
       bytecode: bytecode,
       initialAlphAmount: extractOptionalNumber256(params.initialAlphAmount),
@@ -557,8 +557,8 @@ export class Script extends Common {
     )
   }
 
-  async paramsForDeployment(params: BuildExecuteScriptTx): Promise<SignScriptTxParams> {
-    const signerParams: SignScriptTxParams = {
+  async paramsForDeployment(params: BuildExecuteScriptTx): Promise<SignExecuteScriptTxParams> {
+    const signerParams: SignExecuteScriptTxParams = {
       signerAddress: params.signerAddress,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
       alphAmount: extractOptionalNumber256(params.alphAmount),
@@ -935,7 +935,7 @@ export interface BuildDeployContractTx {
   gasPrice?: Number256
   submitTx?: boolean
 }
-assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignContractCreationTxParams>>>()
+assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignDeployContractTxParams>>>()
 
 export interface BuildExecuteScriptTx {
   signerAddress: string
@@ -946,7 +946,7 @@ export interface BuildExecuteScriptTx {
   gasPrice?: Number256
   submitTx?: boolean
 }
-assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignScriptTxParams>>>()
+assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignExecuteScriptTxParams>>>()
 
 export interface BuildScriptTxResult {
   unsignedTx: string
