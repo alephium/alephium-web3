@@ -27,23 +27,26 @@ describe('contract', function () {
     const add = await Contract.fromSource(provider, 'add.ral')
     const sub = await Contract.fromSource(provider, 'sub.ral')
 
-    const subState = sub.toState([0], { alphAmount: BigInt('1000000000000000000') })
+    const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
-      initialFields: [subState.contractId, 0],
-      testArgs: [[2, 1]],
+      initialFields: { subContractId: subState.contractId, result: 0 },
+      testArgs: { array: [2, 1] },
       existingContracts: [subState]
     }
     const testResult = await add.testPublicMethod(provider, 'add', testParams)
     expect(testResult.returns).toEqual([[3, 1]])
     expect(testResult.contracts[0].codeHash).toEqual(sub.codeHash)
-    expect(testResult.contracts[0].fields).toEqual([1])
+    expect(testResult.contracts[0].fields.result).toEqual(1)
     expect(testResult.contracts[1].codeHash).toEqual(add.codeHash)
-    expect(testResult.contracts[1].fields).toEqual([subState.contractId, 3])
+    expect(testResult.contracts[1].fields.subContractId).toEqual(subState.contractId)
+    expect(testResult.contracts[1].fields.result).toEqual(3)
     const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
     expect(events[0].name).toEqual('Add')
-    expect(events[0].fields).toEqual([2, 1])
+    expect(events[0].fields.x).toEqual(2)
+    expect(events[0].fields.y).toEqual(1)
     expect(events[1].name).toEqual('Sub')
-    expect(events[1].fields).toEqual([2, 1])
+    expect(events[1].fields.x).toEqual(2)
+    expect(events[1].fields.y).toEqual(1)
 
     const testResultPrivate = await add.testPrivateMethod(provider, 'addPrivate', testParams)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
@@ -85,12 +88,12 @@ describe('contract', function () {
     const greeter = await Contract.fromSource(provider, 'greeter.ral')
 
     const testParams: TestContractParams = {
-      initialFields: [1]
+      initialFields: { btcPrice: 1 }
     }
     const testResult = await greeter.testPublicMethod(provider, 'greet', testParams)
     expect(testResult.returns).toEqual([1])
     expect(testResult.contracts[0].codeHash).toEqual(greeter.codeHash)
-    expect(testResult.contracts[0].fields).toEqual([1])
+    expect(testResult.contracts[0].fields.btcPrice).toEqual(1)
 
     const signer = await testWallet(provider)
 
