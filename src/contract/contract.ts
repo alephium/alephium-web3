@@ -260,7 +260,7 @@ export class Contract extends Common {
     )
   }
 
-  toState(fields: Val[], asset: Asset, address?: string): ContractState {
+  toState(fields: Fields, asset: Asset, address?: string): ContractState {
     const addressDef = typeof address !== 'undefined' ? address : Contract.randomAddress()
     return {
       address: addressDef,
@@ -268,7 +268,7 @@ export class Contract extends Common {
       bytecode: this.bytecode,
       codeHash: this.codeHash,
       fields: fields,
-      fieldTypes: this.fields.types,
+      fieldsSig: this.fields,
       asset: asset
     }
   }
@@ -316,22 +316,22 @@ export class Contract extends Common {
     return this._test(provider, funcName, params, false, 'private')
   }
 
-  toApiFields(fields?: Val[]): node.Val[] {
-    return typeof fields !== 'undefined' ? toApiFields(fields, this.fields.types) : []
+  toApiFields(fields?: Fields): node.Val[] {
+    if (typeof fields === 'undefined') {
+      return []
+    } else {
+      return toApiFields(fields, this.fields)
+    }
   }
 
-  toApiArgs(funcName: string, args?: Val[]): node.Val[] {
+  toApiArgs(funcName: string, args?: Arguments): node.Val[] {
     if (args) {
       const func = this.functions.find((func) => func.name == funcName)
       if (func == null) {
         throw new Error(`Invalid function name: ${funcName}`)
       }
 
-      if (args.length === func.argTypes.length) {
-        return args.map((arg, index) => toApiVal(arg, func.argTypes[`${index}`]))
-      } else {
-        throw new Error(`Invalid number of arguments: ${args}`)
-      }
+      return toApiArgs(args, func)
     } else {
       return []
     }
@@ -380,8 +380,8 @@ export class Contract extends Common {
     throw new Error(`Unknown code with code hash: ${codeHash}`)
   }
 
-  static async getFieldTypes(state: node.ContractState): Promise<string[]> {
-    return Contract.fromCodeHash(state.codeHash).then((contract) => contract.fields.types)
+  static async getFieldsSig(state: node.ContractState): Promise<node.FieldsSig> {
+    return Contract.fromCodeHash(state.codeHash).then((contract) => contract.fields)
   }
 
   async fromApiContractState(state: node.ContractState): Promise<ContractState> {
@@ -391,35 +391,44 @@ export class Contract extends Common {
       contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
       codeHash: state.codeHash,
-      fields: fromApiVals(state.fields, contract.fields.types),
-      fieldTypes: await Contract.getFieldTypes(state),
+      fields: fromApiFields(state.fields, contract.fields),
+      fieldsSig: await Contract.getFieldsSig(state),
       asset: fromApiAsset(state.asset)
     }
   }
 
+  static ContractCreatedEvent: node.EventSig = {
+    name: 'ContractCreated',
+    signature: 'event ContractCreated(address:Address)',
+    fieldNames: ['address'],
+    fieldTypes: ['Address']
+  }
+
+  static ContractDestroyedEvent: node.EventSig = {
+    name: 'ContractDestroyed',
+    signature: 'event ContractDestroyed(address:Address)',
+    fieldNames: ['address'],
+    fieldTypes: ['Address']
+  }
+
   static async fromApiEvent(event: node.ContractEvent, codeHash: string): Promise<ContractEvent> {
-    let fieldTypes: string[]
-    let name: string
+    let eventSig: node.EventSig
 
     if (event.eventIndex == -1) {
-      name = 'ContractCreated'
-      fieldTypes = ['Address']
+      eventSig = this.ContractCreatedEvent
     } else if (event.eventIndex == -2) {
-      name = 'ContractDestroyed'
-      fieldTypes = ['Address']
+      eventSig = this.ContractDestroyedEvent
     } else {
       const contract = await Contract.fromCodeHash(codeHash)
-      const eventDef = await contract.events[event.eventIndex]
-      name = eventDef.name
-      fieldTypes = eventDef.fieldTypes
+      eventSig = await contract.events[event.eventIndex]
     }
 
     return {
       blockHash: event.blockHash,
       contractAddress: (event as node.ContractEvent).contractAddress,
       txId: event.txId,
-      name: name,
-      fields: fromApiVals(event.fields, fieldTypes)
+      name: eventSig.name,
+      fields: fromApiEventFields(event.fields, eventSig)
     }
   }
 
@@ -430,7 +439,7 @@ export class Contract extends Common {
     return {
       address: result.address,
       contractId: binToHex(contractIdFromAddress(result.address)),
-      returns: fromApiVals(result.returns, this.functions[`${methodIndex}`].returnTypes),
+      returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
       contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
       txOutputs: result.txOutputs.map(fromApiOutput),
@@ -587,7 +596,9 @@ export class Script extends Common {
 
 export type Number256 = number | bigint | string
 export type Val = Number256 | boolean | string | Val[]
-export type Fields = Record<string, Val>
+export type NamedVals = Record<string, Val>
+export type Fields = NamedVals
+export type Arguments = NamedVals
 
 function extractBoolean(v: Val): boolean {
   if (typeof v === 'boolean') {
@@ -741,7 +752,27 @@ function _fromApiVal(vals: node.Val[], valIndex: number, tpe: string): [result: 
   }
 }
 
-function fromApiVals(vals: node.Val[], types: string[]): Val[] {
+function fromApiFields(vals: node.Val[], fieldsSig: node.FieldsSig): Fields {
+  return fromApiVals(vals, fieldsSig.names, fieldsSig.types)
+}
+
+function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig): Fields {
+  return fromApiVals(vals, eventSig.fieldNames, eventSig.fieldTypes)
+}
+
+function fromApiVals(vals: node.Val[], names: string[], types: string[]): Fields {
+  let valIndex = 0
+  const result: Fields = {}
+  types.forEach((currentType, index) => {
+    const currentName = names[`${index}`]
+    const [val, nextIndex] = _fromApiVal(vals, valIndex, currentType)
+    valIndex = nextIndex
+    result[`${currentName}`] = val
+  })
+  return result
+}
+
+function fromApiArray(vals: node.Val[], types: string[]): Val[] {
   let valIndex = 0
   const result: Val[] = []
   for (const currentType of types) {
@@ -806,9 +837,17 @@ export interface ContractState {
   contractId: string
   bytecode: string
   codeHash: string
-  fields: Val[]
-  fieldTypes: string[]
+  fields: Fields
+  fieldsSig: node.FieldsSig
   asset: Asset
+}
+
+function getVal(vals: NamedVals, name: string): Val {
+  if (name in vals) {
+    return vals[`${name}`]
+  } else {
+    throw Error(`No Val exists for ${name}`)
+  }
 }
 
 function toApiContractState(state: ContractState): node.ContractState {
@@ -816,17 +855,25 @@ function toApiContractState(state: ContractState): node.ContractState {
     address: state.address,
     bytecode: state.bytecode,
     codeHash: state.codeHash,
-    fields: toApiFields(state.fields, state.fieldTypes),
+    fields: toApiFields(state.fields, state.fieldsSig),
     asset: toApiAsset(state.asset)
   }
 }
 
-function toApiFields(fields: Val[], fieldTypes: string[]): node.Val[] {
-  if (fields.length === fieldTypes.length) {
-    return fields.map((field, index) => toApiVal(field, fieldTypes[`${index}`]))
-  } else {
-    throw new Error(`Invalid number of fields: ${fields}`)
-  }
+function toApiFields(fields: Fields, fieldsSig: node.FieldsSig): node.Val[] {
+  return toApiVals(fields, fieldsSig.names, fieldsSig.types)
+}
+
+function toApiArgs(args: Arguments, funcSig: node.FunctionSig): node.Val[] {
+  return toApiVals(args, funcSig.argNames, funcSig.argTypes)
+}
+
+function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
+  return names.map((name, index) => {
+    const val = getVal(fields, name)
+    const tpe = types[`${index}`]
+    return toApiVal(val, tpe)
+  })
 }
 
 function toApiInputAsset(inputAsset: InputAsset): node.InputAsset {
@@ -840,29 +887,22 @@ function toApiInputAssets(inputAssets?: InputAsset[]): node.InputAsset[] | undef
 export interface TestContractParams {
   group?: number // default 0
   address?: string
-  initialFields?: Val[] // default no fields
+  initialFields?: Fields // default no fields
   initialAsset?: Asset // default 1 ALPH
   testMethodIndex?: number // default 0
-  testArgs?: Val[] // default no arguments
+  testArgs?: Arguments // default no arguments
   existingContracts?: ContractState[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
 }
 
-type Event = ContractEvent | TxScriptEvent
+type Event = ContractEvent
 
 export interface ContractEvent {
   blockHash: string
   contractAddress: string
   txId: string
   name: string
-  fields: Val[]
-}
-
-export interface TxScriptEvent {
-  blockHash: string
-  txId: string
-  name: string
-  fields: Val[]
+  fields: Fields
 }
 
 export interface TestContractResult {
