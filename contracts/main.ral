@@ -1,8 +1,6 @@
 import "add.ral"
 
 TxScript Main(addContractId: ByteVec) {
-    pub payable fn main() -> () {
-        let add = Add(addContractId)
-        add.add([2, 1])
-    }
+    let add = Add(addContractId)
+    add.add([2, 1])
 }
