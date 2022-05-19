@@ -18,4 +18,4 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 export * from './signer'
 export * from './node-wallet'
-export * from './privatekey-wallet'
+export * from '../test/privatekey-wallet'

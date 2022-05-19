@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { NodeProvider } from '../src/api'
 import { Contract, Script, TestContractParams } from '../src/contract'
-import { testWallet } from './wallet'
+import { testWallet } from '../src/test'
 
 describe('contract', function () {
   async function testSuite1() {
