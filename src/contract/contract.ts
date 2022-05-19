@@ -25,7 +25,7 @@ import { NodeProvider } from '../api'
 import { node } from '../api'
 import { SignContractCreationTxParams, SignScriptTxParams, SignerWithNodeProvider } from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress } from '../utils'
+import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 
 export abstract class Common {
   readonly sourceCodeSha256: string
@@ -137,7 +137,7 @@ export abstract class Common {
     return fsPromises.writeFile(artifactPath, this.toString())
   }
 
-  abstract buildByteCode(templateVariables?: ralph.TemplateVariables): string
+  abstract buildByteCodeToDeploy(initialFields?: Fields): string
 }
 
 export class Contract extends Common {
@@ -265,7 +265,7 @@ export class Contract extends Common {
     return {
       address: addressDef,
       contractId: binToHex(contractIdFromAddress(addressDef)),
-      bytecode: this.buildByteCode(),
+      bytecode: this.bytecode,
       codeHash: this.codeHash,
       fields: fields,
       fieldTypes: this.fields.types,
@@ -349,7 +349,7 @@ export class Contract extends Common {
     return {
       group: params.group,
       address: params.address,
-      bytecode: this.buildByteCode(),
+      bytecode: this.bytecode,
       initialFields: this.toApiFields(params.initialFields),
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
       testMethodIndex: this.getMethodIndex(funcName),
@@ -448,13 +448,12 @@ export class Contract extends Common {
     }
   }
 
-  async paramsForDeployment(params: BuildContractDeployTx): Promise<SignContractCreationTxParams> {
-    const apiFields = this.toApiFields(params.initialFields)
-    const bytecode = this.buildByteCode() + ralph.encodeContractFields(apiFields)
+  async paramsForDeployment(params: BuildDeployContractTx): Promise<SignContractCreationTxParams> {
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
     const signerParams: SignContractCreationTxParams = {
       signerAddress: params.signerAddress,
       bytecode: bytecode,
-      initialAlphAmount: extractOptionalNumber256(params.alphAmount),
+      initialAlphAmount: extractOptionalNumber256(params.initialAlphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
       gasAmount: params.gasAmount,
       gasPrice: extractOptionalNumber256(params.gasPrice)
@@ -464,7 +463,7 @@ export class Contract extends Common {
 
   async transactionForDeployment(
     signer: SignerWithNodeProvider,
-    params: Omit<BuildContractDeployTx, 'signerAddress'>
+    params: Omit<BuildDeployContractTx, 'signerAddress'>
   ): Promise<DeployContractTransaction> {
     const signerParams = await this.paramsForDeployment({
       ...params,
@@ -474,17 +473,24 @@ export class Contract extends Common {
     return fromApiDeployContractUnsignedTx(response)
   }
 
-  buildByteCode(): string {
-    return this.bytecode
+  buildByteCodeToDeploy(initialFields: Fields): string {
+    return ralph.buildContractByteCode(this.bytecode, initialFields, this.fields)
   }
 }
 
 export class Script extends Common {
   readonly bytecodeTemplate: string
+  readonly fields: node.FieldsSig
 
-  constructor(sourceCodeSha256: string, bytecodeTemplate: string, functions: node.FunctionSig[]) {
+  constructor(
+    sourceCodeSha256: string,
+    bytecodeTemplate: string,
+    fields: node.FieldsSig,
+    functions: node.FunctionSig[]
+  ) {
     super(sourceCodeSha256, functions)
     this.bytecodeTemplate = bytecodeTemplate
+    this.fields = fields
   }
 
   static checkCodeType(fileName: string, contractStr: string): void {
@@ -518,17 +524,17 @@ export class Script extends Common {
     contractHash: string
   ): Promise<Script> {
     const compiled = await provider.contracts.postContractsCompileScript({ code: scriptStr })
-    const artifact = new Script(contractHash, compiled.bytecodeTemplate, compiled.functions)
+    const artifact = new Script(contractHash, compiled.bytecodeTemplate, compiled.fields, compiled.functions)
     await artifact._saveToFile(fileName)
     return artifact
   }
 
   // TODO: safely parse json
   static fromJson(artifact: any): Script {
-    if (artifact.bytecodeTemplate == null || artifact.functions == null) {
+    if (artifact.bytecodeTemplate == null || artifact.fields == null || artifact.functions == null) {
       throw new Event('= Compilation did not return the right data')
     }
-    return new Script(artifact.sourceCodeSha256, artifact.bytecodeTemplate, artifact.functions)
+    return new Script(artifact.sourceCodeSha256, artifact.bytecodeTemplate, artifact.fields, artifact.functions)
   }
 
   static async fromArtifactFile(fileName: string): Promise<Script> {
@@ -543,6 +549,7 @@ export class Script extends Common {
       {
         sourceCodeSha256: this.sourceCodeSha256,
         bytecodeTemplate: this.bytecodeTemplate,
+        fields: this.fields,
         functions: this.functions
       },
       null,
@@ -550,10 +557,10 @@ export class Script extends Common {
     )
   }
 
-  async paramsForDeployment(params: BuildScriptTx): Promise<SignScriptTxParams> {
+  async paramsForDeployment(params: BuildExecuteScriptTx): Promise<SignScriptTxParams> {
     const signerParams: SignScriptTxParams = {
       signerAddress: params.signerAddress,
-      bytecode: this.buildByteCode(params.templateVariables),
+      bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
       alphAmount: extractOptionalNumber256(params.alphAmount),
       tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
       gasAmount: params.gasAmount,
@@ -564,7 +571,7 @@ export class Script extends Common {
 
   async transactionForDeployment(
     signer: SignerWithNodeProvider,
-    params: Omit<BuildScriptTx, 'signerAddress'>
+    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
   ): Promise<BuildScriptTxResult> {
     const signerParams = await this.paramsForDeployment({
       ...params,
@@ -573,13 +580,14 @@ export class Script extends Common {
     return await signer.buildScriptTx(signerParams)
   }
 
-  buildByteCode(templateVariables?: ralph.TemplateVariables): string {
-    return ralph.buildByteCode(this.bytecodeTemplate, templateVariables ?? {})
+  buildByteCodeToDeploy(initialFields: Fields): string {
+    return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fields)
   }
 }
 
 export type Number256 = number | bigint | string
 export type Val = Number256 | boolean | string | Val[]
+export type Fields = Record<string, Val>
 
 function extractBoolean(v: Val): boolean {
   if (typeof v === 'boolean') {
@@ -916,26 +924,29 @@ function fromApiDeployContractUnsignedTx(result: node.BuildDeployContractTxResul
   return { ...result, contractId: binToHex(contractIdFromAddress(result.contractAddress)) }
 }
 
-export interface BuildContractDeployTx {
+type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
+
+export interface BuildDeployContractTx {
   signerAddress: string
-  templateVariables?: ralph.TemplateVariables
-  initialFields?: Val[]
+  initialFields?: Fields
+  initialAlphAmount?: string
   issueTokenAmount?: Number256
-  alphAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
   submitTx?: boolean
 }
+assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignContractCreationTxParams>>>()
 
-export interface BuildScriptTx {
+export interface BuildExecuteScriptTx {
   signerAddress: string
-  templateVariables?: ralph.TemplateVariables
+  initialFields?: Fields
   alphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
   submitTx?: boolean
 }
+assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignScriptTxParams>>>()
 
 export interface BuildScriptTxResult {
   unsignedTx: string
