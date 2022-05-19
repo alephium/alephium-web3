@@ -343,8 +343,8 @@ export interface CompileContractResult {
 
 export interface CompileScriptResult {
   bytecodeTemplate: string
+  fields: FieldsSig
   functions: FunctionSig[]
-  events: EventSig[]
 }
 
 export interface Confirmed {
@@ -423,6 +423,7 @@ export type DiscoveryAction = Reachable | Unreachable
 export interface EventSig {
   name: string
   signature: string
+  fieldNames: string[]
   fieldTypes: string[]
 }
 
@@ -439,6 +440,7 @@ export interface FetchResponse {
 
 export interface FieldsSig {
   signature: string
+  names: string[]
   types: string[]
 }
 
@@ -465,6 +467,7 @@ export interface FixedAssetOutput {
 export interface FunctionSig {
   name: string
   signature: string
+  argNames: string[]
   argTypes: string[]
   returnTypes: string[]
 }

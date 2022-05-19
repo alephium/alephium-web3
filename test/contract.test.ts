@@ -50,7 +50,7 @@ describe('contract', function () {
 
     const signer = await testWallet(provider)
 
-    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: [0] })
+    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: { result: 0 } })
     const subContractId = subDeployTx.contractId
     expect(subDeployTx.group).toEqual(0)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
@@ -59,7 +59,7 @@ describe('contract', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const addDeployTx = await add.transactionForDeployment(signer, {
-      initialFields: [subContractId, 0]
+      initialFields: { subContractId: subContractId, result: 0 }
     })
     expect(addDeployTx.group).toEqual(0)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
@@ -71,7 +71,7 @@ describe('contract', function () {
     const main = await Script.fromSource(provider, 'main.ral')
 
     const mainScriptTx = await main.transactionForDeployment(signer, {
-      templateVariables: { addContractId: addContractId }
+      initialFields: { addContractId: addContractId }
     })
     expect(mainScriptTx.group).toEqual(0)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
@@ -94,7 +94,7 @@ describe('contract', function () {
 
     const signer = await testWallet(provider)
 
-    const deployTx = await greeter.transactionForDeployment(signer, { initialFields: [1] })
+    const deployTx = await greeter.transactionForDeployment(signer, { initialFields: { btcPrice: 1 } })
     expect(deployTx.group).toEqual(0)
     const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
     expect(submitResult.fromGroup).toEqual(0)
@@ -105,7 +105,7 @@ describe('contract', function () {
     const main = await Script.fromSource(provider, 'greeter_main.ral')
 
     const mainScriptTx = await main.transactionForDeployment(signer, {
-      templateVariables: { greeterContractId: greeterContractId }
+      initialFields: { greeterContractId: greeterContractId }
     })
     expect(mainScriptTx.group).toEqual(0)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)

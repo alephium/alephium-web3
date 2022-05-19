@@ -19,6 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { node } from '../api'
 import * as ralph from './ralph'
 import * as utils from '../utils'
+import { Fields } from './contract'
 
 describe('contract', function () {
   it('should encode I256', async () => {
@@ -125,33 +126,37 @@ describe('contract', function () {
 
   it('should encode ByteVec', async () => {
     const bytes = 'b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae'
-    const bytecode = ralph.encodeTemplateVariableAsString('ByteVec', bytes)
+    const bytecode = ralph.encodeScriptFieldAsString('ByteVec', bytes)
     expect(bytecode).toEqual('144020b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae')
   })
 
-  it('should test buildByteCode', async () => {
+  it('should test buildScriptByteCode', async () => {
     const variables = { x: true, y: 0x05, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
-    const bytecode = ralph.buildByteCode('-{x:Bool}-{y:U256}-{z:ByteVec}-{a:Address}-', variables)
+    const fieldsSig: node.FieldsSig = {
+      signature: 'Not really',
+      names: ['x', 'y', 'z', 'a'],
+      types: ['Bool', 'U256', 'ByteVec', 'Address']
+    }
+    const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig)
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
   })
 
-  it('should encode Api Val', async () => {
-    const fields: node.Val[] = [
-      { type: 'I256', value: '-1' },
-      { type: 'U256', value: '1' },
-      { type: 'ByteVec', value: '23' },
-      { type: 'Address', value: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' },
-      {
-        type: 'Array',
-        value: [
-          { type: 'Bool', value: false },
-          { type: 'Bool', value: true }
-        ]
-      }
-    ]
-    const encoded = ralph.encodeContractFields(fields)
+  it('should test buildContractByteCode', async () => {
+    const fields: Fields = {
+      a: -1,
+      b: 1,
+      c: '23',
+      d: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
+      e: [false, true]
+    }
+    const fieldsSig: node.FieldsSig = {
+      signature: 'Not really',
+      names: ['a', 'b', 'c', 'd', 'e'],
+      types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]']
+    }
+    const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig)
     expect(encoded).toEqual(
-      '06013f02010301230400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec00000001'
+      'ff06013f02010301230400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec00000001'
     )
   })
 
