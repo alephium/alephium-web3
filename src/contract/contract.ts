@@ -143,22 +143,22 @@ export abstract class Common {
 export class Contract extends Common {
   readonly bytecode: string
   readonly codeHash: string
-  readonly fields: node.FieldsSig
-  readonly events: node.EventSig[]
+  readonly fieldsSig: node.FieldsSig
+  readonly eventsSig: node.EventSig[]
 
   constructor(
     sourceCodeSha256: string,
     bytecode: string,
     codeHash: string,
-    fields: node.FieldsSig,
-    functions: node.FunctionSig[],
-    events: node.EventSig[]
+    fieldsSig: node.FieldsSig,
+    eventsSig: node.EventSig[],
+    functions: node.FunctionSig[]
   ) {
     super(sourceCodeSha256, functions)
     this.bytecode = bytecode
     this.codeHash = codeHash
-    this.fields = fields
-    this.events = events
+    this.fieldsSig = fieldsSig
+    this.eventsSig = eventsSig
   }
 
   static checkCodeType(fileName: string, contractStr: string): void {
@@ -207,8 +207,8 @@ export class Contract extends Common {
       compiled.bytecode,
       compiled.codeHash,
       compiled.fields,
-      compiled.functions,
-      compiled.events
+      compiled.events,
+      compiled.functions
     )
     await artifact._saveToFile(fileName)
     return artifact
@@ -251,9 +251,9 @@ export class Contract extends Common {
         sourceCodeSha256: this.sourceCodeSha256,
         bytecode: this.bytecode,
         codeHash: this.codeHash,
-        fields: this.fields,
-        functions: this.functions,
-        events: this.events
+        fieldsSig: this.fieldsSig,
+        eventsSig: this.eventsSig,
+        functions: this.functions
       },
       null,
       2
@@ -268,7 +268,7 @@ export class Contract extends Common {
       bytecode: this.bytecode,
       codeHash: this.codeHash,
       fields: fields,
-      fieldsSig: this.fields,
+      fieldsSig: this.fieldsSig,
       asset: asset
     }
   }
@@ -320,7 +320,7 @@ export class Contract extends Common {
     if (typeof fields === 'undefined') {
       return []
     } else {
-      return toApiFields(fields, this.fields)
+      return toApiFields(fields, this.fieldsSig)
     }
   }
 
@@ -381,7 +381,7 @@ export class Contract extends Common {
   }
 
   static async getFieldsSig(state: node.ContractState): Promise<node.FieldsSig> {
-    return Contract.fromCodeHash(state.codeHash).then((contract) => contract.fields)
+    return Contract.fromCodeHash(state.codeHash).then((contract) => contract.fieldsSig)
   }
 
   async fromApiContractState(state: node.ContractState): Promise<ContractState> {
@@ -391,7 +391,7 @@ export class Contract extends Common {
       contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
       codeHash: state.codeHash,
-      fields: fromApiFields(state.fields, contract.fields),
+      fields: fromApiFields(state.fields, contract.fieldsSig),
       fieldsSig: await Contract.getFieldsSig(state),
       asset: fromApiAsset(state.asset)
     }
@@ -420,7 +420,7 @@ export class Contract extends Common {
       eventSig = this.ContractDestroyedEvent
     } else {
       const contract = await Contract.fromCodeHash(codeHash)
-      eventSig = await contract.events[event.eventIndex]
+      eventSig = await contract.eventsSig[event.eventIndex]
     }
 
     return {
@@ -483,7 +483,7 @@ export class Contract extends Common {
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {
-    return ralph.buildContractByteCode(this.bytecode, initialFields, this.fields)
+    return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
   }
 }
 
