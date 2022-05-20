@@ -26,6 +26,8 @@ import blake from 'blakejs'
 const ec = new EC('secp256k1')
 
 export interface SignResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
   signature: string
@@ -54,6 +56,8 @@ export interface SignTransferTxParams {
 }
 assertType<Eq<SignTransferTxParams, TxBuildParams<node.BuildTransaction>>>()
 export interface SignTransferTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
   signature: string
@@ -71,6 +75,8 @@ export interface SignDeployContractTxParams {
 }
 assertType<Eq<SignDeployContractTxParams, TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignDeployContractTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
   signature: string
@@ -90,6 +96,8 @@ export interface SignExecuteScriptTxParams {
 }
 assertType<Eq<SignExecuteScriptTxParams, TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
   signature: string
@@ -103,6 +111,8 @@ export interface SignUnsignedTxParams {
 }
 assertType<Eq<SignUnsignedTxParams, { unsignedTx: string } & SubmitTx & SignerAddress>>()
 export interface SignUnsignedTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
   signature: string
@@ -226,13 +236,19 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     const data = { unsignedTx: params.unsignedTx }
     const decoded = await this.provider.transactions.postTransactionsDecodeUnsignedTx(data)
     return this.handleSign(
-      { signerAddress: params.signerAddress, unsignedTx: params.unsignedTx, txId: decoded.txId },
+      {
+        fromGroup: decoded.fromGroup,
+        toGroup: decoded.toGroup,
+        signerAddress: params.signerAddress,
+        unsignedTx: params.unsignedTx,
+        txId: decoded.unsignedTx.txId
+      },
       params.submitTx ? params.submitTx : true // we don't consider `alwaysSubmitTx` as the tx might needs multiple signatures
     )
   }
 
   protected async handleSign(
-    response: { signerAddress: string; unsignedTx: string; txId: string },
+    response: { fromGroup: number; toGroup: number; signerAddress: string; unsignedTx: string; txId: string },
     submitTx: boolean
   ): Promise<SignResult> {
     // sign the tx
@@ -246,6 +262,8 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     }
     // return the signature back to the provider
     return {
+      fromGroup: response.fromGroup,
+      toGroup: response.toGroup,
       unsignedTx: response.unsignedTx,
       txId: response.txId,
       signature: signature

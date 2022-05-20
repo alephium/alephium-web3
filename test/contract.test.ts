@@ -55,7 +55,8 @@ describe('contract', function () {
 
     const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: { result: 0 } })
     const subContractId = subDeployTx.contractId
-    expect(subDeployTx.group).toEqual(0)
+    expect(subDeployTx.fromGroup).toEqual(0)
+    expect(subDeployTx.toGroup).toEqual(0)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
     expect(subSubmitResult.fromGroup).toEqual(0)
     expect(subSubmitResult.toGroup).toEqual(0)
@@ -64,7 +65,8 @@ describe('contract', function () {
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { subContractId: subContractId, result: 0 }
     })
-    expect(addDeployTx.group).toEqual(0)
+    expect(addDeployTx.fromGroup).toEqual(0)
+    expect(addDeployTx.toGroup).toEqual(0)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
     expect(addSubmitResult.fromGroup).toEqual(0)
     expect(addSubmitResult.toGroup).toEqual(0)
@@ -76,7 +78,8 @@ describe('contract', function () {
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { addContractId: addContractId }
     })
-    expect(mainScriptTx.group).toEqual(0)
+    expect(mainScriptTx.fromGroup).toEqual(0)
+    expect(mainScriptTx.toGroup).toEqual(0)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(0)
     expect(mainSubmitResult.toGroup).toEqual(0)
@@ -98,7 +101,8 @@ describe('contract', function () {
     const signer = await testWallet(provider)
 
     const deployTx = await greeter.transactionForDeployment(signer, { initialFields: { btcPrice: 1 } })
-    expect(deployTx.group).toEqual(0)
+    expect(deployTx.fromGroup).toEqual(0)
+    expect(deployTx.toGroup).toEqual(0)
     const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
     expect(submitResult.fromGroup).toEqual(0)
     expect(submitResult.toGroup).toEqual(0)
@@ -110,7 +114,8 @@ describe('contract', function () {
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { greeterContractId: greeterContractId }
     })
-    expect(mainScriptTx.group).toEqual(0)
+    expect(mainScriptTx.fromGroup).toEqual(0)
+    expect(mainScriptTx.toGroup).toEqual(0)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(0)
     expect(mainSubmitResult.toGroup).toEqual(0)

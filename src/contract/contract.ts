@@ -953,7 +953,8 @@ function fromApiOutput(output: node.Output): Output {
 }
 
 export interface DeployContractTransaction {
-  group: number
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
   contractAddress: string
@@ -989,7 +990,8 @@ export interface BuildExecuteScriptTx {
 assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignExecuteScriptTxParams>>>()
 
 export interface BuildScriptTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
-  group: number
 }
