@@ -16,18 +16,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Api } from '../api/api-explorer'
+import { Api as NodeApi } from './api-alephium'
+import { Api as ExplorerApi } from './api-explorer'
 
-/**
- * Explorer client
- */
-
-export class ExplorerClient extends Api<null> {
-  async getAddressTransactions(address: string, page: number) {
-    return await this.addresses.getAddressesAddressTransactions(address, { page })
-  }
-
-  async getAddressDetails(address: string) {
-    return await this.addresses.getAddressesAddress(address)
+export class NodeProvider extends NodeApi<null> {
+  constructor(baseUrl: string) {
+    super({ baseUrl: baseUrl })
   }
 }
+
+export class ExplorerProvider extends ExplorerApi<null> {
+  constructor(baseUrl: string) {
+    super({ baseUrl: baseUrl })
+  }
+}
+
+export * as node from './api-alephium'
+export * as explorer from './api-explorer'

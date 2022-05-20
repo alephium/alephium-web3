@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import path from 'path'
 import type { Config } from '@jest/types'
 
 // Or async function
@@ -24,12 +25,12 @@ export default async (): Promise<Config.InitialOptions> => {
     transform: {
       '^.+\\.(t|j)sx?$': 'ts-jest'
     },
-    rootDir: __dirname,
+    rootDir: path.normalize(__dirname + '/..'),
     testMatch: ['<rootDir>/**/*.test.ts'],
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     collectCoverage: true,
-    coverageDirectory: './coverage/',
-    collectCoverageFrom: ['src/**/*.ts'],
+    coverageDirectory: '<rootDir>/coverage/',
+    collectCoverageFrom: ['<rootDir>/src/**/*.ts'],
     testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.*#.*']
   }
 

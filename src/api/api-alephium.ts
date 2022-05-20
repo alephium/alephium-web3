@@ -76,7 +76,7 @@ export interface AssetOutput {
 export interface AssetState {
   /** @format uint256 */
   alphAmount: string
-  tokens: Token[]
+  tokens?: Token[]
 }
 
 export interface BadRequest {
@@ -167,16 +167,15 @@ export interface BrokerInfo {
   address: string
 }
 
-export interface BuildContractDeployScriptTx {
+export interface BuildDeployContractTx {
   /** @format public-key */
   fromPublicKey: string
 
   /** @format byte-string */
   bytecode: string
-  initialFields: Val[]
 
   /** @format uint256 */
-  alphAmount?: string
+  initialAlphAmount?: string
 
   /** @format uint256 */
   issueTokenAmount?: string
@@ -186,11 +185,11 @@ export interface BuildContractDeployScriptTx {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
-export interface BuildContractDeployScriptTxResult {
-  group: number
+export interface BuildDeployContractTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
 
   /** @format gas */
@@ -204,6 +203,39 @@ export interface BuildContractDeployScriptTxResult {
 
   /** @format address */
   contractAddress: string
+}
+
+export interface BuildExecuteScriptTx {
+  /** @format public-key */
+  fromPublicKey: string
+
+  /** @format byte-string */
+  bytecode: string
+
+  /** @format uint256 */
+  alphAmount?: string
+  tokens?: Token[]
+
+  /** @format gas */
+  gasAmount?: number
+
+  /** @format uint256 */
+  gasPrice?: string
+}
+
+export interface BuildExecuteScriptTxResult {
+  fromGroup: number
+  toGroup: number
+  unsignedTx: string
+
+  /** @format gas */
+  gasAmount: number
+
+  /** @format uint256 */
+  gasPrice: string
+
+  /** @format 32-byte-hash */
+  txId: string
 }
 
 export interface BuildInfo {
@@ -222,7 +254,6 @@ export interface BuildMultisig {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
 export interface BuildMultisigAddress {
@@ -233,39 +264,6 @@ export interface BuildMultisigAddress {
 export interface BuildMultisigAddressResult {
   /** @format address */
   address: string
-}
-
-export interface BuildScriptTx {
-  /** @format public-key */
-  fromPublicKey: string
-
-  /** @format byte-string */
-  bytecode: string
-
-  /** @format uint256 */
-  alphAmount?: string
-  tokens?: Token[]
-
-  /** @format gas */
-  gasAmount?: number
-
-  /** @format uint256 */
-  gasPrice?: string
-  utxosLimit?: number
-}
-
-export interface BuildScriptTxResult {
-  unsignedTx: string
-
-  /** @format gas */
-  gasAmount: number
-
-  /** @format uint256 */
-  gasPrice: string
-
-  /** @format 32-byte-hash */
-  txId: string
-  group: number
 }
 
 export interface BuildSweepAddressTransactions {
@@ -283,7 +281,6 @@ export interface BuildSweepAddressTransactions {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
 export interface BuildSweepAddressTransactionsResult {
@@ -303,7 +300,6 @@ export interface BuildTransaction {
 
   /** @format uint256 */
   gasPrice?: string
-  utxosLimit?: number
 }
 
 export interface BuildTransactionResult {
@@ -338,21 +334,20 @@ export interface ChangeActiveAddress {
 }
 
 export interface CompileContractResult {
-  compiled: CompiledContractTrait
+  bytecode: string
+
+  /** @format 32-byte-hash */
+  codeHash: string
   fields: FieldsSig
   functions: FunctionSig[]
   events: EventSig[]
 }
 
 export interface CompileScriptResult {
-  compiled: CompiledScriptTrait
+  bytecodeTemplate: string
+  fields: FieldsSig
   functions: FunctionSig[]
-  events: EventSig[]
 }
-
-export type CompiledContractTrait = SimpleContractByteCode | TemplateContractByteCode
-
-export type CompiledScriptTrait = SimpleScriptByteCode | TemplateScriptByteCode
 
 export interface Confirmed {
   /** @format block-hash */
@@ -404,13 +399,19 @@ export interface ContractState {
   bytecode: string
 
   /** @format 32-byte-hash */
-  artifactId: string
+  codeHash: string
   fields: Val[]
   asset: AssetState
 }
 
-export interface DecodeTransaction {
+export interface DecodeUnsignedTx {
   unsignedTx: string
+}
+
+export interface DecodeUnsignedTxResult {
+  fromGroup: number
+  toGroup: number
+  unsignedTx: UnsignedTx
 }
 
 export interface Destination {
@@ -430,12 +431,11 @@ export type DiscoveryAction = Reachable | Unreachable
 export interface EventSig {
   name: string
   signature: string
+  fieldNames: string[]
   fieldTypes: string[]
 }
 
 export interface Events {
-  chainFrom: number
-  chainTo: number
   events: ContractEvent[]
   nextStart: number
 }
@@ -446,6 +446,7 @@ export interface FetchResponse {
 
 export interface FieldsSig {
   signature: string
+  names: string[]
   types: string[]
 }
 
@@ -472,6 +473,7 @@ export interface FixedAssetOutput {
 export interface FunctionSig {
   name: string
   signature: string
+  argNames: string[]
   argTypes: string[]
   returnTypes: string[]
 }
@@ -611,18 +613,6 @@ export interface SignResult {
   signature: string
 }
 
-export interface SimpleContractByteCode {
-  /** @format byte-string */
-  bytecode: string
-  type: string
-}
-
-export interface SimpleScriptByteCode {
-  /** @format byte-string */
-  bytecode: string
-  type: string
-}
-
 export interface SubmitMultisig {
   unsignedTx: string
   signatures: string[]
@@ -662,17 +652,6 @@ export interface SweepAddressTransaction {
   gasPrice: string
 }
 
-export interface TemplateContractByteCode {
-  filedLength: number
-  methodsByteCode: string[]
-  type: string
-}
-
-export interface TemplateScriptByteCode {
-  templateByteCode: string
-  type: string
-}
-
 export interface TestContract {
   group?: number
 
@@ -681,13 +660,10 @@ export interface TestContract {
 
   /** @format contract */
   bytecode: string
-
-  /** @format 32-byte-hash */
-  artifactId: string
-  initialFields: Val[]
+  initialFields?: Val[]
   initialAsset?: AssetState
   testMethodIndex?: number
-  testArgs: Val[]
+  testArgs?: Val[]
   existingContracts?: ContractState[]
   inputAssets?: InputAsset[]
 }
@@ -697,7 +673,7 @@ export interface TestContractResult {
   address: string
 
   /** @format 32-byte-hash */
-  artifactId: string
+  codeHash: string
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]
@@ -908,6 +884,16 @@ export interface WalletUnlock {
 }
 
 import fetch from 'cross-fetch'
+
+function convertHttpResponse<T>(
+  response: HttpResponse<T, { detail: string }> | HttpResponse<T, { detail: string }>
+): T {
+  if (response.error) {
+    throw new Error(response.error.detail)
+  } else {
+    return response.data
+  }
+}
 
 export type QueryParamsType = Record<string | number, any>
 export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>
@@ -1138,7 +1124,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1159,7 +1145,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description A new wallet will be created and respond with a mnemonic. Make sure to keep that mnemonic safely as it will allows you to recover your wallet. Default mnemonic size is 24, (options: 12, 15, 18, 21, 24).
@@ -1180,7 +1166,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1196,7 +1182,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1213,7 +1199,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1228,7 +1214,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/wallets/${walletName}/lock`,
         method: 'POST',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1245,7 +1231,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1255,14 +1241,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get your total balance
      * @request GET:/wallets/{wallet_name}/balances
      */
-    getWalletsWalletNameBalances: (walletName: string, query?: { utxosLimit?: number }, params: RequestParams = {}) =>
+    getWalletsWalletNameBalances: (walletName: string, params: RequestParams = {}) =>
       this.request<Balances, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/wallets/${walletName}/balances`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1283,7 +1268,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1301,7 +1286,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1319,7 +1304,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1337,7 +1322,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1355,7 +1340,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1371,7 +1356,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1387,7 +1372,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description This endpoint can only be called if the wallet was created with the `isMiner = true` flag
@@ -1406,7 +1391,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Cannot be called from a miner wallet
@@ -1427,7 +1412,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Your wallet need to have been created with the miner flag set to true
@@ -1443,7 +1428,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'POST',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1464,7 +1449,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   infos = {
     /**
@@ -1481,7 +1466,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1497,7 +1482,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1513,7 +1498,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1529,7 +1514,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1548,7 +1533,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1564,7 +1549,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1580,7 +1565,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1597,7 +1582,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1613,7 +1598,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1630,7 +1615,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1647,7 +1632,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1664,7 +1649,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   blockflow = {
     /**
@@ -1682,7 +1667,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1698,7 +1683,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1715,7 +1700,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1732,7 +1717,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1749,7 +1734,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1765,7 +1750,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   addresses = {
     /**
@@ -1776,14 +1761,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get the balance of an address
      * @request GET:/addresses/{address}/balance
      */
-    getAddressesAddressBalance: (address: string, query?: { utxosLimit?: number }, params: RequestParams = {}) =>
+    getAddressesAddressBalance: (address: string, params: RequestParams = {}) =>
       this.request<Balance, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/balance`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1793,14 +1777,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get the UTXOs of an address
      * @request GET:/addresses/{address}/utxos
      */
-    getAddressesAddressUtxos: (address: string, query?: { utxosLimit?: number }, params: RequestParams = {}) =>
+    getAddressesAddressUtxos: (address: string, params: RequestParams = {}) =>
       this.request<UTXOs, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/utxos`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1816,7 +1799,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   transactions = {
     /**
@@ -1836,7 +1819,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1857,7 +1840,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1878,7 +1861,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1896,7 +1879,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1906,15 +1889,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Decode an unsigned transaction
      * @request POST:/transactions/decode-unsigned-tx
      */
-    postTransactionsDecodeUnsignedTx: (data: DecodeTransaction, params: RequestParams = {}) =>
-      this.request<UnsignedTx, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+    postTransactionsDecodeUnsignedTx: (data: DecodeUnsignedTx, params: RequestParams = {}) =>
+      this.request<
+        DecodeUnsignedTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
         path: `/transactions/decode-unsigned-tx`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1934,7 +1920,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   contracts = {
     /**
@@ -1956,28 +1942,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
      *
      * @tags Contracts
-     * @name PostContractsUnsignedTxBuildScript
+     * @name PostContractsUnsignedTxExecuteScript
      * @summary Build an unsigned script
-     * @request POST:/contracts/unsigned-tx/build-script
+     * @request POST:/contracts/unsigned-tx/execute-script
      */
-    postContractsUnsignedTxBuildScript: (data: BuildScriptTx, params: RequestParams = {}) =>
+    postContractsUnsignedTxExecuteScript: (data: BuildExecuteScriptTx, params: RequestParams = {}) =>
       this.request<
-        BuildScriptTxResult,
+        BuildExecuteScriptTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
-        path: `/contracts/unsigned-tx/build-script`,
+        path: `/contracts/unsigned-tx/execute-script`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1998,28 +1984,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
      *
      * @tags Contracts
-     * @name PostContractsUnsignedTxBuildContract
+     * @name PostContractsUnsignedTxDeployContract
      * @summary Build an unsigned contract
-     * @request POST:/contracts/unsigned-tx/build-contract
+     * @request POST:/contracts/unsigned-tx/deploy-contract
      */
-    postContractsUnsignedTxBuildContract: (data: BuildContractDeployScriptTx, params: RequestParams = {}) =>
+    postContractsUnsignedTxDeployContract: (data: BuildDeployContractTx, params: RequestParams = {}) =>
       this.request<
-        BuildContractDeployScriptTxResult,
+        BuildDeployContractTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
-        path: `/contracts/unsigned-tx/build-contract`,
+        path: `/contracts/unsigned-tx/deploy-contract`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2036,7 +2022,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2056,7 +2042,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           format: 'json',
           ...params
         }
-      )
+      ).then(convertHttpResponse)
   }
   multisig = {
     /**
@@ -2078,7 +2064,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2099,7 +2085,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2117,7 +2103,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   utils = {
     /**
@@ -2136,7 +2122,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2151,7 +2137,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/utils/check-hash-indexing`,
         method: 'PUT',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   miners = {
     /**
@@ -2169,7 +2155,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2185,7 +2171,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2202,7 +2188,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   events = {
     /**
@@ -2215,7 +2201,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getEventsContractContractaddress: (
       contractAddress: string,
-      query: { start: number; end?: number },
+      query: { start: number; end?: number; group?: number },
       params: RequestParams = {}
     ) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -2224,7 +2210,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2240,7 +2226,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2250,12 +2236,13 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get events for a TxScript
      * @request GET:/events/tx-id/{txId}
      */
-    getEventsTxIdTxid: (txId: string, params: RequestParams = {}) =>
+    getEventsTxIdTxid: (txId: string, query?: { group?: number }, params: RequestParams = {}) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/events/tx-id/${txId}`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
 }

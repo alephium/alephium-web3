@@ -16,15 +16,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { CliqueClient } from '../src/clique'
-import { NodeWallet } from '../src/signer/NodeWallet'
+import { ec as EC } from 'elliptic'
 
-export const testWalletName = 'alephium-web3-test-only-wallet'
-export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
-export const testPassword = 'alph'
+import * as utils from './utils'
 
-export async function testWallet(client: CliqueClient): Promise<NodeWallet> {
-  const wallet = new NodeWallet(client, testWalletName)
-  await wallet.unlock(testPassword)
-  return wallet
+const ec = new EC('secp256k1')
+
+export function transactionSign(txHash: string, privateKey: string): string {
+  const keyPair = ec.keyFromPrivate(privateKey)
+  const signature = keyPair.sign(txHash)
+
+  return utils.signatureEncode(signature)
+}
+
+export function transactionVerifySignature(txHash: string, publicKey: string, signature: string): boolean {
+  try {
+    const key = ec.keyFromPublic(publicKey, 'hex')
+    return key.verify(txHash, utils.signatureDecode(ec, signature))
+  } catch (error) {
+    return false
+  }
 }

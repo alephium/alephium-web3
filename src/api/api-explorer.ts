@@ -188,6 +188,16 @@ export interface UnconfirmedTransaction {
 
 import fetch from 'cross-fetch'
 
+function convertHttpResponse<T>(
+  response: HttpResponse<T, { detail: string }> | HttpResponse<T, { detail: string }>
+): T {
+  if (response.error) {
+    throw new Error(response.error.detail)
+  } else {
+    return response.data
+  }
+}
+
 export type QueryParamsType = Record<string | number, any>
 export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>
 
@@ -416,7 +426,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get a block with hash
@@ -431,7 +441,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get block's transactions
@@ -451,7 +461,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   transactions = {
     /**
@@ -467,7 +477,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   addresses = {
     /**
@@ -483,7 +493,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description List transactions of a given address
@@ -503,7 +513,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get total transactions of a given address
@@ -518,7 +528,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get address balance
@@ -533,7 +543,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   infos = {
     /**
@@ -549,7 +559,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description List latest height for each chain
@@ -564,7 +574,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get token supply list
@@ -580,7 +590,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the ALPH total supply
@@ -594,7 +604,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/infos/supply/total-alph`,
         method: 'GET',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the ALPH circulating supply
@@ -608,7 +618,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/infos/supply/circulating-alph`,
         method: 'GET',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the total number of transactions
@@ -622,7 +632,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/infos/total-transactions`,
         method: 'GET',
         ...params
-      }),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the average block time for each chain
@@ -637,7 +647,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   charts = {
     /**
@@ -658,7 +668,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'json',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
   utils = {
     /**
@@ -673,6 +683,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/utils/sanity-check`,
         method: 'PUT',
         ...params
-      })
+      }).then(convertHttpResponse)
   }
 }

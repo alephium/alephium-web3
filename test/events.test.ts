@@ -16,47 +16,48 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { CliqueClient } from '../src/clique'
-import { subscribe, Subscription } from '../src/events'
+import { NodeProvider } from '../src/api'
+import { subscribe, Subscription } from '../src/contract/events'
 import { Contract, Script } from '../src/contract'
-import { NodeWallet, SignScriptTxParams } from '../src/signer'
-import * as api from '../api/api-alephium'
-import { testAddress, testWallet } from './wallet'
+import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
+import { node } from '../src/api'
+import { testWallet } from '../src/test'
 
 describe('events', function () {
-  async function deployContract(client: CliqueClient, signer: NodeWallet): Promise<[string, string]> {
-    const sub = await Contract.fromSource(client, 'sub.ral')
-    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: [0] })
+  async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
+    const sub = await Contract.fromSource(provider, 'sub.ral')
+    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: { result: 0 } })
     const subContractId = subDeployTx.contractId
-    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId, testAddress)
+    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
-    const add = await Contract.fromSource(client, 'add.ral')
-    const addDeployTx = await add.transactionForDeployment(signer, { initialFields: [subContractId, 0] })
-    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId, testAddress)
+    const add = await Contract.fromSource(provider, 'add.ral')
+    const addDeployTx = await add.transactionForDeployment(signer, {
+      initialFields: { subContractId: subContractId, result: 0 }
+    })
+    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
     return [addDeployTx.contractAddress, addDeployTx.contractId]
   }
 
-  async function executeScript(params: SignScriptTxParams, signer: NodeWallet, times: number) {
+  async function executeScript(params: SignExecuteScriptTxParams, signer: NodeWallet, times: number) {
     for (let i = 0; i < times; i++) {
       const scriptTx = await signer.buildScriptTx(params)
-      await signer.submitTransaction(scriptTx.unsignedTx, scriptTx.txId, testAddress)
+      await signer.submitTransaction(scriptTx.unsignedTx, scriptTx.txId)
     }
   }
 
   it('should subscribe contract events', async () => {
-    const client = new CliqueClient({ baseUrl: 'http://127.0.0.1:22973' })
-    await client.init(false)
-    const signer = await testWallet(client)
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const signer = await testWallet(provider)
 
-    const [contractAddress, contractId] = await deployContract(client, signer)
-    const events: Array<api.ContractEvent> = []
+    const [contractAddress, contractId] = await deployContract(provider, signer)
+    const events: Array<node.ContractEvent> = []
     const subscriptOptions = {
-      client: client,
+      provider: provider,
       contractAddress: contractAddress,
       pollingInterval: 500,
-      eventCallback: (event: api.ContractEvent): Promise<void> => {
+      eventCallback: (event: node.ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },
@@ -67,9 +68,9 @@ describe('events', function () {
       }
     }
     const subscription = subscribe(subscriptOptions)
-    const script = await Script.fromSource(client, 'main.ral')
+    const script = await Script.fromSource(provider, 'main.ral')
     const scriptTxParams = await script.paramsForDeployment({
-      templateVariables: { addContractId: contractId },
+      initialFields: { addContractId: contractId },
       signerAddress: (await signer.getAccounts())[0].address
     })
     await executeScript(scriptTxParams, signer, 3)
@@ -89,17 +90,16 @@ describe('events', function () {
   })
 
   it('should cancel event subscription', async () => {
-    const client = new CliqueClient({ baseUrl: 'http://127.0.0.1:22973' })
-    await client.init(false)
-    const signer = await testWallet(client)
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const signer = await testWallet(provider)
 
-    const [contractAddress, contractId] = await deployContract(client, signer)
-    const events: Array<api.ContractEvent> = []
+    const [contractAddress, contractId] = await deployContract(provider, signer)
+    const events: Array<node.ContractEvent> = []
     const subscriptOptions = {
-      client: client,
+      provider: provider,
       contractAddress: contractAddress,
       pollingInterval: 500,
-      eventCallback: (event: api.ContractEvent): Promise<void> => {
+      eventCallback: (event: node.ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },
@@ -110,11 +110,11 @@ describe('events', function () {
       }
     }
     const subscription = subscribe(subscriptOptions)
-    const script = await Script.fromSource(client, 'main.ral')
+    const script = await Script.fromSource(provider, 'main.ral')
     const scriptTx0 = await script.transactionForDeployment(signer, {
-      templateVariables: { addContractId: contractId }
+      initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId, testAddress)
+    await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId)
     await new Promise((resolve) => setTimeout(resolve, 1500))
     subscription.unsubscribe()
 
@@ -127,9 +127,9 @@ describe('events', function () {
     expect(subscription.currentEventCount()).toEqual(events.length)
 
     const scriptTx1 = await script.transactionForDeployment(signer, {
-      templateVariables: { addContractId: contractId }
+      initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId, testAddress)
+    await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId)
     await new Promise((resolve) => setTimeout(resolve, 1500))
     expect(events.length).toEqual(1)
   })

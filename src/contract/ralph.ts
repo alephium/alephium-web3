@@ -17,8 +17,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { bs58, binToHex, isHexString } from '../utils'
-import * as api from '../../api/api-alephium'
+import { bs58, isHexString } from '../utils'
+import { node } from '../api'
+import { Fields, Val } from './contract'
 
 const bigIntZero = BigInt(0)
 
@@ -156,8 +157,8 @@ export function encodeAddress(address: string): Uint8Array {
   return bs58.decode(address)
 }
 
-function invalidTemplateVariable(tpe: string, value: TemplateVariable): Error {
-  return Error(`Invalid template value ${value} for type ${tpe}`)
+function invalidScriptField(tpe: string, value: Val): Error {
+  return Error(`Invalid script field ${value} for type ${tpe}`)
 }
 
 enum Instruction {
@@ -183,20 +184,20 @@ enum Instruction {
 }
 
 // TODO: optimize
-function encodeI256Variable(value: bigint): Uint8Array {
+function encodeScriptFieldI256(value: bigint): Uint8Array {
   return new Uint8Array([Instruction.i256Const, ...encodeI256(value)])
 }
 
 // TODO: optimize
-function encodeU256Variable(value: bigint): Uint8Array {
+function encodeScriptFieldU256(value: bigint): Uint8Array {
   return new Uint8Array([Instruction.u256Const, ...encodeU256(value)])
 }
 
-export function encodeTemplateVariableAsString(tpe: string, value: TemplateVariable): string {
-  return Buffer.from(encodeTemplateVariable(tpe, value)).toString('hex')
+export function encodeScriptFieldAsString(tpe: string, value: Val): string {
+  return Buffer.from(encodeScriptField(tpe, value)).toString('hex')
 }
 
-export function encodeTemplateVariable(tpe: string, value: TemplateVariable): Uint8Array {
+export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   switch (tpe) {
     case 'Bool':
       if (typeof value === 'boolean') {
@@ -206,16 +207,16 @@ export function encodeTemplateVariable(tpe: string, value: TemplateVariable): Ui
       break
     case 'I256':
       if (typeof value === 'number' && Number.isInteger(value)) {
-        return encodeI256Variable(BigInt(value))
+        return encodeScriptFieldI256(BigInt(value))
       } else if (typeof value === 'bigint') {
-        return encodeI256Variable(value)
+        return encodeScriptFieldI256(value)
       }
       break
     case 'U256':
       if (typeof value === 'number' && Number.isInteger(value)) {
-        return encodeU256Variable(BigInt(value))
+        return encodeScriptFieldU256(BigInt(value))
       } else if (typeof value === 'bigint') {
-        return encodeU256Variable(value)
+        return encodeScriptFieldU256(value)
       }
       break
     case 'ByteVec':
@@ -230,40 +231,132 @@ export function encodeTemplateVariable(tpe: string, value: TemplateVariable): Ui
       break
   }
 
-  throw invalidTemplateVariable(tpe, value)
+  throw invalidScriptField(tpe, value)
 }
 
-const templateVariableRegex = /\{([a-z][a-zA-Z0-9]*):([A-Z][a-zA-Z0-9]*)\}/g
-type TemplateVariable = boolean | number | bigint | string
-export type TemplateVariables = Record<string, TemplateVariable>
+const scriptFieldRegex = /\{([0-9]*)\}/g
 
-export function buildByteCode(templateByteCode: string, templateVariables: TemplateVariables): string {
-  return templateByteCode.replace(templateVariableRegex, (_, p1, p2) => {
-    const variableName = p1
-    const variableType = p2
-    if (variableName in templateVariables) {
-      const variableValue = templateVariables[`${variableName}`]
-      return encodeTemplateVariableAsString(variableType, variableValue)
+export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fieldsSig: node.FieldsSig): string {
+  return bytecodeTemplate.replace(scriptFieldRegex, (_, fieldIndex: string) => {
+    const fieldName = fieldsSig.names[`${fieldIndex}`]
+    const fieldType = fieldsSig.types[`${fieldIndex}`]
+    if (fieldName in fields) {
+      const fieldValue = fields[`${fieldName}`]
+      return encodeScriptFieldAsString(fieldType, fieldValue)
     } else {
-      throw new Error(`The value of variable ${variableName} is not provided`)
+      throw new Error(`The value of field ${fieldName} is not provided`)
     }
   })
 }
 
-export function buildContractByteCode(
-  compiled: api.TemplateContractByteCode,
-  templateVariables: TemplateVariables
-): string {
-  const methodsBuilt = compiled.methodsByteCode.map((template) => buildByteCode(template, templateVariables))
-  let count = 0
-  const methodIndexes = methodsBuilt.map((hex) => {
-    count += hex.length / 2
-    return count
+export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSig: node.FieldsSig): string {
+  const fieldsEncoded = fieldsSig.names.flatMap((fieldName, fieldIndex) => {
+    const fieldType = fieldsSig.types[`${fieldIndex}`]
+    if (fieldName in fields) {
+      const fieldValue = fields[`${fieldName}`]
+      return encodeContractField(fieldType, fieldValue)
+    } else {
+      throw new Error(`The value of field ${fieldName} is not provided`)
+    }
   })
-  return (
-    binToHex(encodeI256(BigInt(compiled.filedLength))) +
-    binToHex(encodeI256(BigInt(methodIndexes.length))) +
-    methodIndexes.map((index) => binToHex(encodeI256(BigInt(index)))).join('') +
-    methodsBuilt.join('')
-  )
+  const fieldsLength = Buffer.from(encodeI256(BigInt(fieldsEncoded.length))).toString('hex')
+  return bytecode + fieldsLength + fieldsEncoded.map((f) => Buffer.from(f).toString('hex')).join('')
 }
+
+enum ApiValType {
+  Bool = 0,
+  I256 = 1,
+  U256 = 2,
+  ByteVec = 3,
+  Address = 4
+}
+
+function encodeContractFieldI256(value: bigint): Uint8Array {
+  return new Uint8Array([ApiValType.I256, ...encodeI256(value)])
+}
+
+function encodeContractFieldU256(value: bigint): Uint8Array {
+  return new Uint8Array([ApiValType.U256, ...encodeU256(value)])
+}
+
+function encodeContractFieldArray(tpe: string, val: Val): Uint8Array[] {
+  if (!Array.isArray(val)) {
+    throw new Error(`Expected array, got ${val}`)
+  }
+
+  const semiColonIndex = tpe.lastIndexOf(';')
+  if (semiColonIndex == -1) {
+    throw new Error(`Invalid Array type: ${tpe}`)
+  }
+
+  const subType = tpe.slice(1, semiColonIndex)
+  const dim = parseInt(tpe.slice(semiColonIndex + 1, -1))
+  if ((val as Val[]).length != dim) {
+    throw new Error(`Invalid val dimension: ${val}`)
+  } else {
+    return (val as Val[]).flatMap((v) => encodeContractField(subType, v))
+  }
+}
+
+export function encodeContractField(tpe: string, value: Val): Uint8Array[] {
+  switch (tpe) {
+    case 'Bool':
+      if (typeof value === 'boolean') {
+        const byte = value ? 1 : 0
+        return [new Uint8Array([ApiValType.Bool, byte])]
+      }
+      break
+    case 'I256':
+      if (typeof value === 'number' && Number.isInteger(value)) {
+        return [encodeContractFieldI256(BigInt(value))]
+      } else if (typeof value === 'bigint') {
+        return [encodeContractFieldI256(value)]
+      }
+      break
+    case 'U256':
+      if (typeof value === 'number' && Number.isInteger(value)) {
+        return [encodeContractFieldU256(BigInt(value))]
+      } else if (typeof value === 'bigint') {
+        return [encodeContractFieldU256(value)]
+      }
+      break
+    case 'ByteVec':
+      if (typeof value === 'string') {
+        return [new Uint8Array([ApiValType.ByteVec, ...encodeByteVec(value)])]
+      }
+      break
+    case 'Address':
+      if (typeof value === 'string') {
+        return [new Uint8Array([ApiValType.Address, ...encodeAddress(value)])]
+      }
+      break
+
+    default:
+      // Array type
+      return encodeContractFieldArray(tpe, value)
+  }
+
+  throw invalidVal(tpe, value)
+}
+
+function invalidVal(tpe: string, value: Val): Error {
+  return Error(`Invalid API value ${value} for type ${tpe}`)
+}
+
+// export function buildContractByteCode(
+//   compiled: node.TemplateContractByteCode,
+//   templateVariables: TemplateVariables
+// ): string {
+//   const methodsBuilt = compiled.methodsByteCode.map((template) => buildByteCode(template, templateVariables))
+//   let count = 0
+//   const methodIndexes = methodsBuilt.map((hex) => {
+//     count += hex.length / 2
+//     return count
+//   })
+//   return (
+//     binToHex(encodeI256(BigInt(compiled.filedLength))) +
+//     binToHex(encodeI256(BigInt(methodIndexes.length))) +
+//     methodIndexes.map((index) => binToHex(encodeI256(BigInt(index)))).join('') +
+//     methodsBuilt.join('')
+//   )
+// }

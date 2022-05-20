@@ -16,8 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { node } from '../api'
 import * as ralph from './ralph'
 import * as utils from '../utils'
+import { Fields } from './contract'
 
 describe('contract', function () {
   it('should encode I256', async () => {
@@ -124,29 +126,53 @@ describe('contract', function () {
 
   it('should encode ByteVec', async () => {
     const bytes = 'b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae'
-    const bytecode = ralph.encodeTemplateVariableAsString('ByteVec', bytes)
+    const bytecode = ralph.encodeScriptFieldAsString('ByteVec', bytes)
     expect(bytecode).toEqual('144020b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae')
   })
 
-  it('should test buildByteCode', async () => {
+  it('should test buildScriptByteCode', async () => {
     const variables = { x: true, y: 0x05, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
-    const bytecode = ralph.buildByteCode('-{x:Bool}-{y:U256}-{z:ByteVec}-{a:Address}-', variables)
+    const fieldsSig: node.FieldsSig = {
+      signature: 'Not really',
+      names: ['x', 'y', 'z', 'a'],
+      types: ['Bool', 'U256', 'ByteVec', 'Address']
+    }
+    const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig)
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
   })
 
-  it('should test buildByteCode', async () => {
-    const compiled = {
-      type: 'TemplateContractByteCode',
-      filedLength: 1,
-      methodsByteCode: [
-        '01000203021205160016015f{subContractId:ByteVec}1702a00016002a16012aa100a000160016011602010002',
-        '00000202020416001601000002'
-      ]
+  it('should test buildContractByteCode', async () => {
+    const fields: Fields = {
+      a: -1,
+      b: 1,
+      c: '23',
+      d: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
+      e: [false, true]
     }
-    const variables = { subContractId: '55834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b' }
-    const bytecode = ralph.buildContractByteCode(compiled, variables)
-    expect(bytecode).toEqual(
-      '01024046405301000203021205160016015f14402055834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b1702a00016002a16012aa100a00016001601160201000200000202020416001601000002'
+    const fieldsSig: node.FieldsSig = {
+      signature: 'Not really',
+      names: ['a', 'b', 'c', 'd', 'e'],
+      types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]']
+    }
+    const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig)
+    expect(encoded).toEqual(
+      'ff06013f02010301230400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec00000001'
     )
   })
+
+  // it('should test buildByteCode', async () => {
+  //   const compiled = {
+  //     type: 'TemplateContractByteCode',
+  //     filedLength: 1,
+  //     methodsByteCode: [
+  //       '01000203021205160016015f{subContractId:ByteVec}1702a00016002a16012aa100a000160016011602010002',
+  //       '00000202020416001601000002'
+  //     ]
+  //   }
+  //   const variables = { subContractId: '55834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b' }
+  //   const bytecode = ralph.buildContractByteCode(compiled, variables)
+  //   expect(bytecode).toEqual(
+  //     '01024046405301000203021205160016015f14402055834baf25f40fe5a8d6ac83c5f2b76a1677ed3ddbd6a79c4dea274992982e2b1702a00016002a16012aa100a00016001601160201000200000202020416001601000002'
+  //   )
+  // })
 })

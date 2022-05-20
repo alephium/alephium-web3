@@ -17,15 +17,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import EventEmitter from 'eventemitter3'
-import * as api from '../api/api-alephium'
-import { CliqueClient } from './clique'
-import { convertHttpResponse } from './utils'
+import { node } from '../api'
+import { NodeProvider } from '../api'
 
-type EventCallback = (event: api.ContractEvent) => Promise<void>
+type EventCallback = (event: node.ContractEvent) => Promise<void>
 type ErrorCallback = (error: any, subscription: Subscription) => Promise<void>
 
 export interface SubscribeOptions {
-  client: CliqueClient
+  provider: NodeProvider
   contractAddress: string
   fromCount?: number
   pollingInterval: number
@@ -34,7 +33,7 @@ export interface SubscribeOptions {
 }
 
 export class Subscription {
-  client: CliqueClient
+  provider: NodeProvider
   readonly contractAddress: string
   pollingInterval: number
 
@@ -46,7 +45,7 @@ export class Subscription {
   private eventEmitter: EventEmitter
 
   constructor(options: SubscribeOptions) {
-    this.client = options.client
+    this.provider = options.provider
     this.contractAddress = options.contractAddress
     this.fromCount = typeof options.fromCount === 'undefined' ? 0 : options.fromCount
     this.pollingInterval = options.pollingInterval
@@ -76,14 +75,13 @@ export class Subscription {
 
   private async fetchEvents() {
     try {
-      const response = await this.client.events.getEventsContractContractaddress(this.contractAddress, {
+      const events = await this.provider.events.getEventsContractContractaddress(this.contractAddress, {
         start: this.fromCount
       })
       if (this.cancelled) {
         return
       }
 
-      const events = convertHttpResponse(response)
       if (this.fromCount === events.nextStart) {
         this.task = setTimeout(() => this.eventEmitter.emit('tick'), this.pollingInterval)
         return

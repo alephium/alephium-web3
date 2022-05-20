@@ -2,21 +2,20 @@
  * greeter.ts
  */
 
-import { CliqueClient, Contract, Script, Signer, TestContractParams } from 'alephium-web3'
+import { NodeProvider, Contract, Script, Signer, TestContractParams } from 'alephium-web3'
 
 async function greet() {
-  const client = new CliqueClient({ baseUrl: 'http://127.0.0.1:22973' })
-  await client.init(false)
+  const provider = new NodeProvider('http://127.0.0.1:22973')
 
-  const greeter = await Contract.fromSource(client, 'greeter.ral')
+  const greeter = await Contract.fromSource(provider, 'greeter.ral')
 
   const testParams: TestContractParams = {
     initialFields: [1]
   }
-  const testResult = await greeter.testPublicMethod(client, 'greet', testParams)
+  const testResult = await greeter.testPublicMethod(provider, 'greet', testParams)
   console.log(testResult)
 
-  const signer = Signer.testSigner(client)
+  const signer = Signer.testSigner(provider)
 
   const deployTx = await greeter.transactionForDeployment(signer, testParams.initialFields)
   const greeterContractId = deployTx.contractId
@@ -25,7 +24,7 @@ async function greet() {
   const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
   console.log(submitResult)
 
-  const main = await Script.fromSource(client, 'greeter_main.ral')
+  const main = await Script.fromSource(provider, 'greeter_main.ral')
 
   const mainScriptTx = await main.transactionForDeployment(signer, { greeterContractId: greeterContractId })
   console.log(mainScriptTx.group)

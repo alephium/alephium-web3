@@ -21,15 +21,15 @@ import * as cryptojs from 'crypto-js'
 import * as crypto from 'crypto'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
-import { CliqueClient } from '../clique'
-import * as api from '../../api/api-alephium'
-import { SignContractCreationTxParams, SignScriptTxParams, SignerWithNodeProvider } from '../signer'
+import { NodeProvider } from '../api'
+import { node } from '../api'
+import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerWithNodeProvider } from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress } from '../utils'
+import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 
 export abstract class Common {
   readonly sourceCodeSha256: string
-  readonly functions: api.FunctionSig[]
+  readonly functions: node.FunctionSig[]
 
   static readonly importRegex = new RegExp('^import "[a-z][a-z_0-9]*.ral"', 'mg')
   static readonly contractRegex = new RegExp('^TxContract [A-Z][a-zA-Z0-9]*', 'mg')
@@ -38,20 +38,20 @@ export abstract class Common {
 
   private static _artifactCache: Map<string, Contract | Script> = new Map<string, Contract | Script>()
   static artifactCacheCapacity = 20
-  protected static _getArtifactFromCache(artifactId: string): Contract | Script | undefined {
-    return this._artifactCache.get(artifactId)
+  protected static _getArtifactFromCache(codeHash: string): Contract | Script | undefined {
+    return this._artifactCache.get(codeHash)
   }
-  protected static _putArtifactToCache(artifactId: string, contract: Contract): void {
-    if (!this._artifactCache.has(artifactId)) {
+  protected static _putArtifactToCache(contract: Contract): void {
+    if (!this._artifactCache.has(contract.codeHash)) {
       if (this._artifactCache.size >= this.artifactCacheCapacity) {
         const keyToDelete = this._artifactCache.keys().next().value
         this._artifactCache.delete(keyToDelete)
       }
-      this._artifactCache.set(artifactId, contract)
+      this._artifactCache.set(contract.codeHash, contract)
     }
   }
 
-  constructor(sourceCodeSha256: string, functions: api.FunctionSig[]) {
+  constructor(sourceCodeSha256: string, functions: node.FunctionSig[]) {
     this.sourceCodeSha256 = sourceCodeSha256
     this.functions = functions
   }
@@ -115,10 +115,10 @@ export abstract class Common {
   }
 
   protected static async _from<T extends { sourceCodeSha256: string }>(
-    client: CliqueClient,
+    provider: NodeProvider,
     fileName: string,
     loadContractStr: (fileName: string, importsCache: string[]) => Promise<string>,
-    compile: (client: CliqueClient, fileName: string, contractStr: string, contractHash: string) => Promise<T>
+    compile: (provider: NodeProvider, fileName: string, contractStr: string, contractHash: string) => Promise<T>
   ): Promise<T> {
     Common.checkFileNameExtension(fileName)
 
@@ -128,7 +128,7 @@ export abstract class Common {
     if (typeof existingContract !== 'undefined') {
       return existingContract as unknown as T
     } else {
-      return compile(client, fileName, contractStr, contractHash)
+      return compile(provider, fileName, contractStr, contractHash)
     }
   }
 
@@ -137,25 +137,28 @@ export abstract class Common {
     return fsPromises.writeFile(artifactPath, this.toString())
   }
 
-  abstract buildByteCode(templateVariables?: ralph.TemplateVariables): string
+  abstract buildByteCodeToDeploy(initialFields?: Fields): string
 }
 
 export class Contract extends Common {
-  readonly compiled: api.CompiledContractTrait
-  readonly fields: api.FieldsSig
-  readonly events: api.EventSig[]
+  readonly bytecode: string
+  readonly codeHash: string
+  readonly fieldsSig: node.FieldsSig
+  readonly eventsSig: node.EventSig[]
 
   constructor(
     sourceCodeSha256: string,
-    compiled: api.CompiledContractTrait,
-    fields: api.FieldsSig,
-    functions: api.FunctionSig[],
-    events: api.EventSig[]
+    bytecode: string,
+    codeHash: string,
+    fieldsSig: node.FieldsSig,
+    eventsSig: node.EventSig[],
+    functions: node.FunctionSig[]
   ) {
     super(sourceCodeSha256, functions)
-    this.compiled = compiled
-    this.fields = fields
-    this.events = events
+    this.bytecode = bytecode
+    this.codeHash = codeHash
+    this.fieldsSig = fieldsSig
+    this.eventsSig = eventsSig
   }
 
   static checkCodeType(fileName: string, contractStr: string): void {
@@ -178,45 +181,59 @@ export class Contract extends Common {
     return Common._loadContractStr(fileName, importsCache, (code) => Contract.checkCodeType(fileName, code))
   }
 
-  static async fromSource(client: CliqueClient, fileName: string): Promise<Contract> {
+  static async fromSource(provider: NodeProvider, fileName: string): Promise<Contract> {
     if (!fs.existsSync(Common._artifactsFolder())) {
       fs.mkdirSync(Common._artifactsFolder(), { recursive: true })
     }
     const contract = await Common._from(
-      client,
+      provider,
       fileName,
       (fileName, importCaches) => Contract.loadContractStr(fileName, importCaches),
       Contract.compile
     )
-    this._putArtifactToCache(contract.sourceCodeSha256, contract)
+    this._putArtifactToCache(contract)
     return contract
   }
 
   private static async compile(
-    client: CliqueClient,
+    provider: NodeProvider,
     fileName: string,
     contractStr: string,
     contractHash: string
   ): Promise<Contract> {
-    const compiled = (await client.contracts.postContractsCompileContract({ code: contractStr })).data
-    const artifact = new Contract(contractHash, compiled.compiled, compiled.fields, compiled.functions, compiled.events)
+    const compiled = await provider.contracts.postContractsCompileContract({ code: contractStr })
+    const artifact = new Contract(
+      contractHash,
+      compiled.bytecode,
+      compiled.codeHash,
+      compiled.fields,
+      compiled.events,
+      compiled.functions
+    )
     await artifact._saveToFile(fileName)
     return artifact
   }
 
   // TODO: safely parse json
   static fromJson(artifact: any): Contract {
-    if (artifact.compiled == null || artifact.fields == null || artifact.functions == null || artifact.events == null) {
+    if (
+      artifact.bytecode == null ||
+      artifact.codeHash == null ||
+      artifact.fields == null ||
+      artifact.functions == null ||
+      artifact.events == null
+    ) {
       throw new Event('The artifact JSON is incomplete')
     }
     const contract = new Contract(
       artifact.sourceCodeSha256,
-      artifact.compiled,
+      artifact.bytecode,
+      artifact.codeHash,
       artifact.fields,
       artifact.functions,
       artifact.events
     )
-    this._putArtifactToCache(contract.sourceCodeSha256, contract)
+    this._putArtifactToCache(contract)
     return contract
   }
 
@@ -232,25 +249,26 @@ export class Contract extends Common {
     return JSON.stringify(
       {
         sourceCodeSha256: this.sourceCodeSha256,
-        compiled: this.compiled,
-        fields: this.fields,
-        functions: this.functions,
-        events: this.events
+        bytecode: this.bytecode,
+        codeHash: this.codeHash,
+        fieldsSig: this.fieldsSig,
+        eventsSig: this.eventsSig,
+        functions: this.functions
       },
       null,
       2
     )
   }
 
-  toState(fields: Val[], asset: Asset, address?: string): ContractState {
+  toState(fields: Fields, asset: Asset, address?: string): ContractState {
     const addressDef = typeof address !== 'undefined' ? address : Contract.randomAddress()
     return {
       address: addressDef,
       contractId: binToHex(contractIdFromAddress(addressDef)),
-      bytecode: this.buildByteCode(),
-      artifactId: this.sourceCodeSha256,
+      bytecode: this.bytecode,
+      codeHash: this.codeHash,
       fields: fields,
-      fieldTypes: this.fields.types,
+      fieldsSig: this.fieldsSig,
       asset: asset
     }
   }
@@ -262,15 +280,14 @@ export class Contract extends Common {
   }
 
   private async _test(
-    client: CliqueClient,
+    provider: NodeProvider,
     funcName: string,
     params: TestContractParams,
     expectPublic: boolean,
     accessType: string
   ): Promise<TestContractResult> {
-    const apiParams: api.TestContract = this.toTestContract(funcName, params)
-    const response = await client.contracts.postContractsTestContract(apiParams)
-    const apiResult = response.data
+    const apiParams: node.TestContract = this.toTestContract(funcName, params)
+    const apiResult = await provider.contracts.postContractsTestContract(apiParams)
 
     const methodIndex =
       typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
@@ -284,37 +301,37 @@ export class Contract extends Common {
   }
 
   async testPublicMethod(
-    client: CliqueClient,
+    provider: NodeProvider,
     funcName: string,
     params: TestContractParams
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, true, 'public')
+    return this._test(provider, funcName, params, true, 'public')
   }
 
   async testPrivateMethod(
-    client: CliqueClient,
+    provider: NodeProvider,
     funcName: string,
     params: TestContractParams
   ): Promise<TestContractResult> {
-    return this._test(client, funcName, params, false, 'private')
+    return this._test(provider, funcName, params, false, 'private')
   }
 
-  toApiFields(fields?: Val[]): api.Val[] {
-    return typeof fields !== 'undefined' ? toApiFields(fields, this.fields.types) : []
+  toApiFields(fields?: Fields): node.Val[] {
+    if (typeof fields === 'undefined') {
+      return []
+    } else {
+      return toApiFields(fields, this.fieldsSig)
+    }
   }
 
-  toApiArgs(funcName: string, args?: Val[]): api.Val[] {
+  toApiArgs(funcName: string, args?: Arguments): node.Val[] {
     if (args) {
       const func = this.functions.find((func) => func.name == funcName)
       if (func == null) {
         throw new Error(`Invalid function name: ${funcName}`)
       }
 
-      if (args.length === func.argTypes.length) {
-        return args.map((arg, index) => toApiVal(arg, func.argTypes[`${index}`]))
-      } else {
-        throw new Error(`Invalid number of arguments: ${args}`)
-      }
+      return toApiArgs(args, func)
     } else {
       return []
     }
@@ -324,16 +341,15 @@ export class Contract extends Common {
     return this.functions.findIndex((func) => func.name === funcName)
   }
 
-  toApiContractStates(states?: ContractState[]): api.ContractState[] | undefined {
+  toApiContractStates(states?: ContractState[]): node.ContractState[] | undefined {
     return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
   }
 
-  toTestContract(funcName: string, params: TestContractParams): api.TestContract {
+  toTestContract(funcName: string, params: TestContractParams): node.TestContract {
     return {
       group: params.group,
       address: params.address,
-      bytecode: this.buildByteCode(),
-      artifactId: this.sourceCodeSha256,
+      bytecode: this.bytecode,
       initialFields: this.toApiFields(params.initialFields),
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
       testMethodIndex: this.getMethodIndex(funcName),
@@ -343,8 +359,8 @@ export class Contract extends Common {
     }
   }
 
-  static async fromArtifactId(artifactId: string): Promise<Contract> {
-    const cached = this._getArtifactFromCache(artifactId)
+  static async fromCodeHash(codeHash: string): Promise<Contract> {
+    const cached = this._getArtifactFromCache(codeHash)
     if (typeof cached !== 'undefined') {
       return cached as Contract
     }
@@ -354,91 +370,99 @@ export class Contract extends Common {
       if (file.endsWith('.ral.json')) {
         try {
           const contract = await Contract.fromArtifactFile(file)
-          if (contract.sourceCodeSha256 === artifactId) {
+          if (contract.codeHash === codeHash) {
             return contract as Contract
           }
         } catch (_) {}
       }
     }
 
-    throw new Error(`Unknown code with source hash: ${artifactId}`)
+    throw new Error(`Unknown code with code hash: ${codeHash}`)
   }
 
-  static async getFieldTypes(state: api.ContractState): Promise<string[]> {
-    return Contract.fromArtifactId(state.artifactId).then((contract) => contract.fields.types)
+  static async getFieldsSig(state: node.ContractState): Promise<node.FieldsSig> {
+    return Contract.fromCodeHash(state.codeHash).then((contract) => contract.fieldsSig)
   }
 
-  async fromApiContractState(state: api.ContractState): Promise<ContractState> {
-    const contract = await Contract.fromArtifactId(state.artifactId)
+  async fromApiContractState(state: node.ContractState): Promise<ContractState> {
+    const contract = await Contract.fromCodeHash(state.codeHash)
     return {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
-      artifactId: state.artifactId,
-      fields: state.fields ? fromApiVals(state.fields, contract.fields.types) : [],
-      fieldTypes: await Contract.getFieldTypes(state),
+      codeHash: state.codeHash,
+      fields: fromApiFields(state.fields, contract.fieldsSig),
+      fieldsSig: await Contract.getFieldsSig(state),
       asset: fromApiAsset(state.asset)
     }
   }
 
-  static async fromApiEvent(event: api.ContractEvent, artifactId: string): Promise<ContractEvent> {
-    let fieldTypes: string[]
-    let name: string
+  static ContractCreatedEvent: node.EventSig = {
+    name: 'ContractCreated',
+    signature: 'event ContractCreated(address:Address)',
+    fieldNames: ['address'],
+    fieldTypes: ['Address']
+  }
+
+  static ContractDestroyedEvent: node.EventSig = {
+    name: 'ContractDestroyed',
+    signature: 'event ContractDestroyed(address:Address)',
+    fieldNames: ['address'],
+    fieldTypes: ['Address']
+  }
+
+  static async fromApiEvent(event: node.ContractEvent, codeHash: string): Promise<ContractEvent> {
+    let eventSig: node.EventSig
 
     if (event.eventIndex == -1) {
-      name = 'ContractCreated'
-      fieldTypes = ['Address']
+      eventSig = this.ContractCreatedEvent
     } else if (event.eventIndex == -2) {
-      name = 'ContractDestroyed'
-      fieldTypes = ['Address']
+      eventSig = this.ContractDestroyedEvent
     } else {
-      const contract = await Contract.fromArtifactId(artifactId)
-      const eventDef = await contract.events[event.eventIndex]
-      name = eventDef.name
-      fieldTypes = eventDef.fieldTypes
+      const contract = await Contract.fromCodeHash(codeHash)
+      eventSig = await contract.eventsSig[event.eventIndex]
     }
 
     return {
       blockHash: event.blockHash,
-      contractAddress: (event as api.ContractEvent).contractAddress,
+      contractAddress: (event as node.ContractEvent).contractAddress,
       txId: event.txId,
-      name: name,
-      fields: fromApiVals(event.fields, fieldTypes)
+      name: eventSig.name,
+      fields: fromApiEventFields(event.fields, eventSig)
     }
   }
 
-  async fromTestContractResult(methodIndex: number, result: api.TestContractResult): Promise<TestContractResult> {
-    const addressToArtifactId = new Map<string, string>()
-    addressToArtifactId.set(result.address, result.artifactId)
-    result.contracts.forEach((contract) => addressToArtifactId.set(contract.address, contract.artifactId))
+  async fromTestContractResult(methodIndex: number, result: node.TestContractResult): Promise<TestContractResult> {
+    const addressToCodeHash = new Map<string, string>()
+    addressToCodeHash.set(result.address, result.codeHash)
+    result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
     return {
       address: result.address,
       contractId: binToHex(contractIdFromAddress(result.address)),
-      artifactId: result.artifactId,
-      returns: fromApiVals(result.returns, this.functions[`${methodIndex}`].returnTypes),
+      returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
       contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
       txOutputs: result.txOutputs.map(fromApiOutput),
       events: await Promise.all(
         result.events.map((event) => {
-          const contractAddress = (event as api.ContractEvent).contractAddress
-          const artifactId = addressToArtifactId.get(contractAddress)
-          if (typeof artifactId !== 'undefined') {
-            return Contract.fromApiEvent(event, artifactId)
+          const contractAddress = (event as node.ContractEvent).contractAddress
+          const codeHash = addressToCodeHash.get(contractAddress)
+          if (typeof codeHash !== 'undefined') {
+            return Contract.fromApiEvent(event, codeHash)
           } else {
-            throw Error(`Cannot find artifact id for the contract address: ${contractAddress}`)
+            throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
           }
         })
       )
     }
   }
 
-  async paramsForDeployment(params: BuildContractDeployTx): Promise<SignContractCreationTxParams> {
-    const signerParams: SignContractCreationTxParams = {
+  async paramsForDeployment(params: BuildDeployContractTx): Promise<SignDeployContractTxParams> {
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
+    const signerParams: SignDeployContractTxParams = {
       signerAddress: params.signerAddress,
-      bytecode: this.buildByteCode(),
-      initialFields: this.toApiFields(params.initialFields),
-      alphAmount: extractOptionalNumber256(params.alphAmount),
+      bytecode: bytecode,
+      initialAlphAmount: extractOptionalNumber256(params.initialAlphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
       gasAmount: params.gasAmount,
       gasPrice: extractOptionalNumber256(params.gasPrice)
@@ -448,7 +472,7 @@ export class Contract extends Common {
 
   async transactionForDeployment(
     signer: SignerWithNodeProvider,
-    params: Omit<BuildContractDeployTx, 'signerAddress'>
+    params: Omit<BuildDeployContractTx, 'signerAddress'>
   ): Promise<DeployContractTransaction> {
     const signerParams = await this.paramsForDeployment({
       ...params,
@@ -458,22 +482,24 @@ export class Contract extends Common {
     return fromApiDeployContractUnsignedTx(response)
   }
 
-  buildByteCode(): string {
-    switch (this.compiled.type) {
-      case 'SimpleContractByteCode':
-        return (this.compiled as api.SimpleContractByteCode).bytecode
-      default:
-        throw Error(`Unknown bytecode type: ${this.compiled.type}`)
-    }
+  buildByteCodeToDeploy(initialFields: Fields): string {
+    return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
   }
 }
 
 export class Script extends Common {
-  readonly compiled: api.CompiledScriptTrait
+  readonly bytecodeTemplate: string
+  readonly fields: node.FieldsSig
 
-  constructor(sourceCodeSha256: string, compiled: api.CompiledScriptTrait, functions: api.FunctionSig[]) {
+  constructor(
+    sourceCodeSha256: string,
+    bytecodeTemplate: string,
+    fields: node.FieldsSig,
+    functions: node.FunctionSig[]
+  ) {
     super(sourceCodeSha256, functions)
-    this.compiled = compiled
+    this.bytecodeTemplate = bytecodeTemplate
+    this.fields = fields
   }
 
   static checkCodeType(fileName: string, contractStr: string): void {
@@ -491,9 +517,9 @@ export class Script extends Common {
     return Common._loadContractStr(fileName, importsCache, (code) => Script.checkCodeType(fileName, code))
   }
 
-  static async fromSource(client: CliqueClient, fileName: string): Promise<Script> {
+  static async fromSource(provider: NodeProvider, fileName: string): Promise<Script> {
     return Common._from(
-      client,
+      provider,
       fileName,
       (fileName, importsCache) => Script.loadContractStr(fileName, importsCache),
       Script.compile
@@ -501,23 +527,23 @@ export class Script extends Common {
   }
 
   private static async compile(
-    client: CliqueClient,
+    provider: NodeProvider,
     fileName: string,
     scriptStr: string,
     contractHash: string
   ): Promise<Script> {
-    const compiled = (await client.contracts.postContractsCompileScript({ code: scriptStr })).data
-    const artifact = new Script(contractHash, compiled.compiled, compiled.functions)
+    const compiled = await provider.contracts.postContractsCompileScript({ code: scriptStr })
+    const artifact = new Script(contractHash, compiled.bytecodeTemplate, compiled.fields, compiled.functions)
     await artifact._saveToFile(fileName)
     return artifact
   }
 
   // TODO: safely parse json
   static fromJson(artifact: any): Script {
-    if (artifact.compiled == null || artifact.functions == null) {
+    if (artifact.bytecodeTemplate == null || artifact.fields == null || artifact.functions == null) {
       throw new Event('= Compilation did not return the right data')
     }
-    return new Script(artifact.sourceCodeSha256, artifact.compiled, artifact.functions)
+    return new Script(artifact.sourceCodeSha256, artifact.bytecodeTemplate, artifact.fields, artifact.functions)
   }
 
   static async fromArtifactFile(fileName: string): Promise<Script> {
@@ -531,7 +557,8 @@ export class Script extends Common {
     return JSON.stringify(
       {
         sourceCodeSha256: this.sourceCodeSha256,
-        compiled: this.compiled,
+        bytecodeTemplate: this.bytecodeTemplate,
+        fields: this.fields,
         functions: this.functions
       },
       null,
@@ -539,10 +566,10 @@ export class Script extends Common {
     )
   }
 
-  async paramsForDeployment(params: BuildScriptTx): Promise<SignScriptTxParams> {
-    const signerParams: SignScriptTxParams = {
+  async paramsForDeployment(params: BuildExecuteScriptTx): Promise<SignExecuteScriptTxParams> {
+    const signerParams: SignExecuteScriptTxParams = {
       signerAddress: params.signerAddress,
-      bytecode: this.buildByteCode(params.templateVariables),
+      bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
       alphAmount: extractOptionalNumber256(params.alphAmount),
       tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
       gasAmount: params.gasAmount,
@@ -553,7 +580,7 @@ export class Script extends Common {
 
   async transactionForDeployment(
     signer: SignerWithNodeProvider,
-    params: Omit<BuildScriptTx, 'signerAddress'>
+    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
   ): Promise<BuildScriptTxResult> {
     const signerParams = await this.paramsForDeployment({
       ...params,
@@ -562,26 +589,16 @@ export class Script extends Common {
     return await signer.buildScriptTx(signerParams)
   }
 
-  buildByteCode(templateVariables?: ralph.TemplateVariables): string {
-    switch (this.compiled.type) {
-      case 'SimpleScriptByteCode':
-        if (typeof templateVariables !== 'undefined') {
-          throw Error('The script does not need template variable')
-        }
-        return (this.compiled as api.SimpleScriptByteCode).bytecode
-      case 'TemplateScriptByteCode':
-        if (typeof templateVariables === 'undefined') {
-          throw Error('The script needs template variable')
-        }
-        return ralph.buildByteCode((this.compiled as api.TemplateScriptByteCode).templateByteCode, templateVariables)
-      default:
-        throw Error(`Unknown bytecode type: ${this.compiled.type}`)
-    }
+  buildByteCodeToDeploy(initialFields: Fields): string {
+    return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fields)
   }
 }
 
 export type Number256 = number | bigint | string
 export type Val = Number256 | boolean | string | Val[]
+export type NamedVals = Record<string, Val>
+export type Fields = NamedVals
+export type Arguments = NamedVals
 
 function extractBoolean(v: Val): boolean {
   if (typeof v === 'boolean') {
@@ -645,7 +662,7 @@ function decodeNumber256(n: string): Number256 {
   }
 }
 
-export function extractArray(tpe: string, v: Val): api.Val {
+export function extractArray(tpe: string, v: Val): node.Val {
   if (!Array.isArray(v)) {
     throw new Error(`Expected array, got ${v}`)
   }
@@ -664,7 +681,7 @@ export function extractArray(tpe: string, v: Val): api.Val {
   }
 }
 
-export function toApiVal(v: Val, tpe: string): api.Val {
+export function toApiVal(v: Val, tpe: string): node.Val {
   if (tpe === 'Bool') {
     return { value: extractBoolean(v), type: tpe }
   } else if (tpe === 'U256' || tpe === 'I256') {
@@ -709,7 +726,7 @@ function foldVals(vals: Val[], dims: number[]): Val {
   }
 }
 
-function _fromApiVal(vals: api.Val[], valIndex: number, tpe: string): [result: Val, nextIndex: number] {
+function _fromApiVal(vals: node.Val[], valIndex: number, tpe: string): [result: Val, nextIndex: number] {
   if (vals.length === 0) {
     throw new Error('Not enough Vals')
   }
@@ -735,7 +752,27 @@ function _fromApiVal(vals: api.Val[], valIndex: number, tpe: string): [result: V
   }
 }
 
-function fromApiVals(vals: api.Val[], types: string[]): Val[] {
+function fromApiFields(vals: node.Val[], fieldsSig: node.FieldsSig): Fields {
+  return fromApiVals(vals, fieldsSig.names, fieldsSig.types)
+}
+
+function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig): Fields {
+  return fromApiVals(vals, eventSig.fieldNames, eventSig.fieldTypes)
+}
+
+function fromApiVals(vals: node.Val[], names: string[], types: string[]): Fields {
+  let valIndex = 0
+  const result: Fields = {}
+  types.forEach((currentType, index) => {
+    const currentName = names[`${index}`]
+    const [val, nextIndex] = _fromApiVal(vals, valIndex, currentType)
+    valIndex = nextIndex
+    result[`${currentName}`] = val
+  })
+  return result
+}
+
+function fromApiArray(vals: node.Val[], types: string[]): Val[] {
   let valIndex = 0
   const result: Val[] = []
   for (const currentType of types) {
@@ -746,7 +783,7 @@ function fromApiVals(vals: api.Val[], types: string[]): Val[] {
   return result
 }
 
-function fromApiVal(v: api.Val, tpe: string): Val {
+function fromApiVal(v: node.Val, tpe: string): Val {
   if (v.type === 'Bool' && v.type === tpe) {
     return v.value as boolean
   } else if ((v.type === 'U256' || v.type === 'I256') && v.type === tpe) {
@@ -754,7 +791,7 @@ function fromApiVal(v: api.Val, tpe: string): Val {
   } else if ((v.type === 'ByteVec' || v.type === 'Address') && v.type === tpe) {
     return v.value as string
   } else {
-    throw new Error(`Invalid api.Val type: ${v}`)
+    throw new Error(`Invalid node.Val type: ${v}`)
   }
 }
 
@@ -768,22 +805,22 @@ export interface Token {
   amount: Number256
 }
 
-function toApiToken(token: Token): api.Token {
+function toApiToken(token: Token): node.Token {
   return { id: token.id, amount: extractNumber256(token.amount) }
 }
 
-function fromApiToken(token: api.Token): Token {
+function fromApiToken(token: node.Token): Token {
   return { id: token.id, amount: decodeNumber256(token.amount) }
 }
 
-function toApiAsset(asset: Asset): api.AssetState {
+function toApiAsset(asset: Asset): node.AssetState {
   return {
     alphAmount: extractNumber256(asset.alphAmount),
     tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(toApiToken) : []
   }
 }
 
-function fromApiAsset(asset: api.AssetState): Asset {
+function fromApiAsset(asset: node.AssetState): Asset {
   return {
     alphAmount: decodeNumber256(asset.alphAmount),
     tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(fromApiToken) : undefined
@@ -799,70 +836,78 @@ export interface ContractState {
   address: string
   contractId: string
   bytecode: string
-  artifactId: string
-  fields: Val[]
-  fieldTypes: string[]
+  codeHash: string
+  fields: Fields
+  fieldsSig: node.FieldsSig
   asset: Asset
 }
 
-function toApiContractState(state: ContractState): api.ContractState {
+function getVal(vals: NamedVals, name: string): Val {
+  if (name in vals) {
+    return vals[`${name}`]
+  } else {
+    throw Error(`No Val exists for ${name}`)
+  }
+}
+
+function toApiContractState(state: ContractState): node.ContractState {
   return {
     address: state.address,
     bytecode: state.bytecode,
-    artifactId: state.artifactId,
-    fields: toApiFields(state.fields, state.fieldTypes),
+    codeHash: state.codeHash,
+    fields: toApiFields(state.fields, state.fieldsSig),
     asset: toApiAsset(state.asset)
   }
 }
 
-function toApiFields(fields: Val[], fieldTypes: string[]): api.Val[] {
-  if (fields.length === fieldTypes.length) {
-    return fields.map((field, index) => toApiVal(field, fieldTypes[`${index}`]))
-  } else {
-    throw new Error(`Invalid number of fields: ${fields}`)
-  }
+function toApiFields(fields: Fields, fieldsSig: node.FieldsSig): node.Val[] {
+  return toApiVals(fields, fieldsSig.names, fieldsSig.types)
 }
 
-function toApiInputAsset(inputAsset: InputAsset): api.InputAsset {
+function toApiArgs(args: Arguments, funcSig: node.FunctionSig): node.Val[] {
+  return toApiVals(args, funcSig.argNames, funcSig.argTypes)
+}
+
+function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
+  return names.map((name, index) => {
+    const val = getVal(fields, name)
+    const tpe = types[`${index}`]
+    return toApiVal(val, tpe)
+  })
+}
+
+function toApiInputAsset(inputAsset: InputAsset): node.InputAsset {
   return { address: inputAsset.address, asset: toApiAsset(inputAsset.asset) }
 }
 
-function toApiInputAssets(inputAssets?: InputAsset[]): api.InputAsset[] | undefined {
+function toApiInputAssets(inputAssets?: InputAsset[]): node.InputAsset[] | undefined {
   return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 
 export interface TestContractParams {
   group?: number // default 0
   address?: string
-  initialFields?: Val[] // default no fields
+  initialFields?: Fields // default no fields
   initialAsset?: Asset // default 1 ALPH
   testMethodIndex?: number // default 0
-  testArgs?: Val[] // default no arguments
+  testArgs?: Arguments // default no arguments
   existingContracts?: ContractState[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
 }
 
-type Event = ContractEvent | TxScriptEvent
+type Event = ContractEvent
 
 export interface ContractEvent {
   blockHash: string
   contractAddress: string
   txId: string
   name: string
-  fields: Val[]
-}
-
-export interface TxScriptEvent {
-  blockHash: string
-  txId: string
-  name: string
-  fields: Val[]
+  fields: Fields
 }
 
 export interface TestContractResult {
   address: string
   contractId: string
-  artifactId: string
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]
@@ -883,9 +928,9 @@ export interface ContractOutput {
   tokens: Token[]
 }
 
-function fromApiOutput(output: api.Output): Output {
+function fromApiOutput(output: node.Output): Output {
   if (output.type === 'AssetOutput') {
-    const asset = output as api.AssetOutput
+    const asset = output as node.AssetOutput
     return {
       type: 'AssetOutput',
       address: asset.address,
@@ -895,7 +940,7 @@ function fromApiOutput(output: api.Output): Output {
       additionalData: asset.additionalData
     }
   } else if (output.type === 'ContractOutput') {
-    const asset = output as api.ContractOutput
+    const asset = output as node.ContractOutput
     return {
       type: 'ContractOutput',
       address: asset.address,
@@ -908,39 +953,45 @@ function fromApiOutput(output: api.Output): Output {
 }
 
 export interface DeployContractTransaction {
-  group: number
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
   contractAddress: string
   contractId: string
 }
 
-function fromApiDeployContractUnsignedTx(result: api.BuildContractDeployScriptTxResult): DeployContractTransaction {
+function fromApiDeployContractUnsignedTx(result: node.BuildDeployContractTxResult): DeployContractTransaction {
   return { ...result, contractId: binToHex(contractIdFromAddress(result.contractAddress)) }
 }
 
-export interface BuildContractDeployTx {
+type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
+
+export interface BuildDeployContractTx {
   signerAddress: string
-  initialFields?: Val[]
+  initialFields?: Fields
+  initialAlphAmount?: string
   issueTokenAmount?: Number256
-  alphAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
   submitTx?: boolean
 }
+assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignDeployContractTxParams>>>()
 
-export interface BuildScriptTx {
+export interface BuildExecuteScriptTx {
   signerAddress: string
-  templateVariables?: ralph.TemplateVariables
+  initialFields?: Fields
   alphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
   submitTx?: boolean
 }
+assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignExecuteScriptTxParams>>>()
 
 export interface BuildScriptTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
   txId: string
-  group: number
 }
