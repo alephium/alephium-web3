@@ -7,16 +7,12 @@
   "types": "dist/src/index.d.ts",
   "exports": {
     ".": "./dist/src/index.js",
-    "./api/alephium": "./dist/api/api-alephium.js",
-    "./api/explorer": "./dist/api/api-explorer.js"
+    "./test": "./dist/src/test/index.js"
   },
   "typesVersions": {
     "*": {
-      "api/alephium": [
-        "dist/api/api-alephium"
-      ],
-      "api/explorer": [
-        "dist/api/api-explorer"
+      "test": [
+        "dist/src/test/"
       ]
     }
   },

@@ -14,6 +14,7 @@ node_modules/
 # Config files
 license-header.js
 /tsconfig.json
+/configs/
 
 # Tests
 coverage/
