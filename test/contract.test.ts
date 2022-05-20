@@ -16,15 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import * as fs from 'fs'
+import * as path from 'path'
+
 import { NodeProvider } from '../src/api'
 import { Contract, Script, TestContractParams } from '../src/contract'
 import { testWallet } from '../src/test'
-
-import addJson from '../artifacts/add.ral.json'
-import subJson from '../artifacts/sub.ral.json'
-import mainJson from '../artifacts/main.ral.json'
-import greeterJson from '../artifacts/greeter.ral.json'
-import greeterMainJson from '../artifacts/greeter_main.ral.json'
 
 describe('contract', function () {
   async function testSuite1() {
@@ -132,11 +129,26 @@ describe('contract', function () {
     await testSuite2()
   })
 
+  function loadJson(fileName: string) {
+    const filePath = path.resolve(process.cwd() + path.sep + fileName)
+    const rawData = fs.readFileSync(filePath).toString()
+    return JSON.parse(rawData)
+  }
+
+  function loadContract(fileName: string) {
+    Contract.fromJson(loadJson(fileName))
+  }
+
+  function loadScript(fileName: string) {
+    Script.fromJson(loadJson(fileName))
+  }
+
   it('should load contract from json', async () => {
-    Contract.fromJson(addJson)
-    Contract.fromJson(subJson)
-    Contract.fromJson(greeterJson)
-    Script.fromJson(mainJson)
-    Script.fromJson(greeterMainJson)
+    loadContract('./artifacts/add.ral.json')
+    loadContract('./artifacts/sub.ral.json')
+    loadScript('./artifacts/main.ral.json')
+
+    loadContract('./artifacts/greeter.ral.json')
+    loadScript('./artifacts/greeter_main.ral.json')
   })
 })
