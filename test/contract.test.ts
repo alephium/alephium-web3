@@ -20,6 +20,12 @@ import { NodeProvider } from '../src/api'
 import { Contract, Script, TestContractParams } from '../src/contract'
 import { testWallet } from '../src/test'
 
+import addJson from '../artifacts/add.ral.json'
+import subJson from '../artifacts/sub.ral.json'
+import mainJson from '../artifacts/main.ral.json'
+import greeterJson from '../artifacts/greeter.ral.json'
+import greeterMainJson from '../artifacts/greeter_main.ral.json'
+
 describe('contract', function () {
   async function testSuite1() {
     const provider = new NodeProvider('http://127.0.0.1:22973')
@@ -124,5 +130,13 @@ describe('contract', function () {
   it('should test contracts', async () => {
     await testSuite1()
     await testSuite2()
+  })
+
+  it('should load contract from json', async () => {
+    Contract.fromJson(addJson)
+    Contract.fromJson(subJson)
+    Contract.fromJson(greeterJson)
+    Script.fromJson(mainJson)
+    Script.fromJson(greeterMainJson)
   })
 })

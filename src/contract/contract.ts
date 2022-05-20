@@ -217,21 +217,22 @@ export class Contract extends Common {
   // TODO: safely parse json
   static fromJson(artifact: any): Contract {
     if (
+      artifact.sourceCodeSha256 == null ||
       artifact.bytecode == null ||
       artifact.codeHash == null ||
-      artifact.fields == null ||
-      artifact.functions == null ||
-      artifact.events == null
+      artifact.fieldsSig == null ||
+      artifact.eventsSig == null ||
+      artifact.functions == null
     ) {
-      throw new Event('The artifact JSON is incomplete')
+      throw Error('The artifact JSON for contract is incomplete')
     }
     const contract = new Contract(
       artifact.sourceCodeSha256,
       artifact.bytecode,
       artifact.codeHash,
-      artifact.fields,
-      artifact.functions,
-      artifact.events
+      artifact.fieldsSig,
+      artifact.eventsSig,
+      artifact.functions
     )
     this._putArtifactToCache(contract)
     return contract
@@ -489,17 +490,17 @@ export class Contract extends Common {
 
 export class Script extends Common {
   readonly bytecodeTemplate: string
-  readonly fields: node.FieldsSig
+  readonly fieldsSig: node.FieldsSig
 
   constructor(
     sourceCodeSha256: string,
     bytecodeTemplate: string,
-    fields: node.FieldsSig,
+    fieldsSig: node.FieldsSig,
     functions: node.FunctionSig[]
   ) {
     super(sourceCodeSha256, functions)
     this.bytecodeTemplate = bytecodeTemplate
-    this.fields = fields
+    this.fieldsSig = fieldsSig
   }
 
   static checkCodeType(fileName: string, contractStr: string): void {
@@ -540,10 +541,15 @@ export class Script extends Common {
 
   // TODO: safely parse json
   static fromJson(artifact: any): Script {
-    if (artifact.bytecodeTemplate == null || artifact.fields == null || artifact.functions == null) {
-      throw new Event('= Compilation did not return the right data')
+    if (
+      artifact.sourceCodeSha256 == null ||
+      artifact.bytecodeTemplate == null ||
+      artifact.fieldsSig == null ||
+      artifact.functions == null
+    ) {
+      throw Error('The artifact JSON for script is incomplete')
     }
-    return new Script(artifact.sourceCodeSha256, artifact.bytecodeTemplate, artifact.fields, artifact.functions)
+    return new Script(artifact.sourceCodeSha256, artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
   }
 
   static async fromArtifactFile(fileName: string): Promise<Script> {
@@ -558,7 +564,7 @@ export class Script extends Common {
       {
         sourceCodeSha256: this.sourceCodeSha256,
         bytecodeTemplate: this.bytecodeTemplate,
-        fields: this.fields,
+        fieldsSig: this.fieldsSig,
         functions: this.functions
       },
       null,
@@ -590,7 +596,7 @@ export class Script extends Common {
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {
-    return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fields)
+    return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig)
   }
 }
 
