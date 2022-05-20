@@ -188,7 +188,8 @@ export interface BuildDeployContractTx {
 }
 
 export interface BuildDeployContractTxResult {
-  group: number
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
 
   /** @format gas */
@@ -223,6 +224,8 @@ export interface BuildExecuteScriptTx {
 }
 
 export interface BuildExecuteScriptTxResult {
+  fromGroup: number
+  toGroup: number
   unsignedTx: string
 
   /** @format gas */
@@ -233,7 +236,6 @@ export interface BuildExecuteScriptTxResult {
 
   /** @format 32-byte-hash */
   txId: string
-  group: number
 }
 
 export interface BuildInfo {
@@ -402,8 +404,14 @@ export interface ContractState {
   asset: AssetState
 }
 
-export interface DecodeTransaction {
+export interface DecodeUnsignedTx {
   unsignedTx: string
+}
+
+export interface DecodeUnsignedTxResult {
+  fromGroup: number
+  toGroup: number
+  unsignedTx: UnsignedTx
 }
 
 export interface Destination {
@@ -428,8 +436,6 @@ export interface EventSig {
 }
 
 export interface Events {
-  chainFrom: number
-  chainTo: number
   events: ContractEvent[]
   nextStart: number
 }
@@ -1883,8 +1889,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Decode an unsigned transaction
      * @request POST:/transactions/decode-unsigned-tx
      */
-    postTransactionsDecodeUnsignedTx: (data: DecodeTransaction, params: RequestParams = {}) =>
-      this.request<UnsignedTx, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+    postTransactionsDecodeUnsignedTx: (data: DecodeUnsignedTx, params: RequestParams = {}) =>
+      this.request<
+        DecodeUnsignedTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
         path: `/transactions/decode-unsigned-tx`,
         method: 'POST',
         body: data,
@@ -2192,7 +2201,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getEventsContractContractaddress: (
       contractAddress: string,
-      query: { start: number; end?: number },
+      query: { start: number; end?: number; group?: number },
       params: RequestParams = {}
     ) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -2227,10 +2236,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get events for a TxScript
      * @request GET:/events/tx-id/{txId}
      */
-    getEventsTxIdTxid: (txId: string, params: RequestParams = {}) =>
+    getEventsTxIdTxid: (txId: string, query?: { group?: number }, params: RequestParams = {}) =>
       this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/events/tx-id/${txId}`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse)
