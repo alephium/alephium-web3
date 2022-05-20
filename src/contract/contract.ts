@@ -458,7 +458,7 @@ export class Contract extends Common {
   }
 
   async paramsForDeployment(params: BuildDeployContractTx): Promise<SignDeployContractTxParams> {
-    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
     const signerParams: SignDeployContractTxParams = {
       signerAddress: params.signerAddress,
       bytecode: bytecode,
@@ -569,7 +569,7 @@ export class Script extends Common {
   async paramsForDeployment(params: BuildExecuteScriptTx): Promise<SignExecuteScriptTxParams> {
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: params.signerAddress,
-      bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
+      bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
       alphAmount: extractOptionalNumber256(params.alphAmount),
       tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
       gasAmount: params.gasAmount,
