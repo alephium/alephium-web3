@@ -142,8 +142,8 @@ assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 export interface SignerProvider {
   getAccounts(): Promise<Account[]>
   signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
-  signContractCreationTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
-  signScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
+  signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
+  signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
   signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
   signHexString(params: SignHexStringParams): Promise<SignHexStringResult>
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
@@ -207,7 +207,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return this.provider.transactions.postTransactionsBuild(await this.usePublicKey(params))
   }
 
-  async signContractCreationTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
+  async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     const response = await this.buildContractCreationTx(params)
     const result = await this.handleSign(
       { signerAddress: params.signerAddress, ...response },
@@ -221,7 +221,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return this.provider.contracts.postContractsUnsignedTxDeployContract(await this.usePublicKey(params))
   }
 
-  async signScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
+  async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
     const response = await this.buildScriptTx(params)
     return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
   }
