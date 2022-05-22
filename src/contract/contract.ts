@@ -412,7 +412,7 @@ export class Contract extends Common {
     fieldTypes: ['Address']
   }
 
-  static async fromApiEvent(event: node.ContractEvent, codeHash: string): Promise<ContractEvent> {
+  static async fromApiEvent(event: node.ContractEventByTxId, codeHash: string): Promise<ContractEventByTxId> {
     let eventSig: node.EventSig
 
     if (event.eventIndex == -1) {
@@ -426,8 +426,7 @@ export class Contract extends Common {
 
     return {
       blockHash: event.blockHash,
-      contractAddress: (event as node.ContractEvent).contractAddress,
-      txId: event.txId,
+      contractAddress: event.contractAddress,
       name: eventSig.name,
       fields: fromApiEventFields(event.fields, eventSig)
     }
@@ -446,7 +445,7 @@ export class Contract extends Common {
       txOutputs: result.txOutputs.map(fromApiOutput),
       events: await Promise.all(
         result.events.map((event) => {
-          const contractAddress = (event as node.ContractEvent).contractAddress
+          const contractAddress = event.contractAddress
           const codeHash = addressToCodeHash.get(contractAddress)
           if (typeof codeHash !== 'undefined') {
             return Contract.fromApiEvent(event, codeHash)
@@ -901,12 +900,16 @@ export interface TestContractParams {
   inputAssets?: InputAsset[] // default no input asserts
 }
 
-type Event = ContractEvent
-
 export interface ContractEvent {
   blockHash: string
-  contractAddress: string
   txId: string
+  name: string
+  fields: Fields
+}
+
+export interface ContractEventByTxId {
+  blockHash: string
+  contractAddress: string
   name: string
   fields: Fields
 }
@@ -918,14 +921,14 @@ export interface TestContractResult {
   gasUsed: number
   contracts: ContractState[]
   txOutputs: Output[]
-  events: Event[]
+  events: ContractEventByTxId[]
 }
 export declare type Output = AssetOutput | ContractOutput
 export interface AssetOutput extends Asset {
   type: string
   address: string
   lockTime: number
-  additionalData: string
+  message: string
 }
 export interface ContractOutput {
   type: string
@@ -943,7 +946,7 @@ function fromApiOutput(output: node.Output): Output {
       alphAmount: decodeNumber256(asset.alphAmount),
       tokens: asset.tokens.map(fromApiToken),
       lockTime: asset.lockTime,
-      additionalData: asset.additionalData
+      message: asset.message
     }
   } else if (output.type === 'ContractOutput') {
     const asset = output as node.ContractOutput
