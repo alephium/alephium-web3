@@ -78,7 +78,6 @@ describe('events', function () {
 
     expect(events.length).toEqual(3)
     events.forEach((event) => {
-      expect(event.contractAddress).toEqual(contractAddress)
       expect(event.fields).toEqual([
         { type: 'U256', value: '2' },
         { type: 'U256', value: '1' }
@@ -119,7 +118,7 @@ describe('events', function () {
     subscription.unsubscribe()
 
     expect(events.length).toEqual(1)
-    expect(events[0].contractAddress).toEqual(contractAddress)
+    expect(events[0].txId).toEqual(scriptTx0.txId)
     expect(events[0].fields).toEqual([
       { type: 'U256', value: '2' },
       { type: 'U256', value: '1' }
