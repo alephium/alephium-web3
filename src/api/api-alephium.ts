@@ -48,7 +48,7 @@ export interface Addresses {
 export interface AssetInput {
   outputRef: OutputRef
 
-  /** @format byte-string */
+  /** @format hex-string */
   unlockScript: string
 }
 
@@ -68,8 +68,8 @@ export interface AssetOutput {
   /** @format int64 */
   lockTime: number
 
-  /** @format byte-string */
-  additionalData: string
+  /** @format hex-string */
+  message: string
   type: string
 }
 
@@ -131,7 +131,7 @@ export interface BlockEntry {
   deps: string[]
   transactions: Transaction[]
 
-  /** @format byte-string */
+  /** @format hex-string */
   nonce: string
   version: number
 
@@ -141,7 +141,7 @@ export interface BlockEntry {
   /** @format 32-byte-hash */
   txsHash: string
 
-  /** @format byte-string */
+  /** @format hex-string */
   target: string
 }
 
@@ -171,7 +171,7 @@ export interface BuildDeployContractTx {
   /** @format public-key */
   fromPublicKey: string
 
-  /** @format byte-string */
+  /** @format hex-string */
   bytecode: string
 
   /** @format uint256 */
@@ -209,7 +209,7 @@ export interface BuildExecuteScriptTx {
   /** @format public-key */
   fromPublicKey: string
 
-  /** @format byte-string */
+  /** @format hex-string */
   bytecode: string
 
   /** @format uint256 */
@@ -367,13 +367,30 @@ export interface ContractEvent {
   /** @format block-hash */
   blockHash: string
 
-  /** @format address */
-  contractAddress: string
-
   /** @format 32-byte-hash */
   txId: string
   eventIndex: number
   fields: Val[]
+}
+
+export interface ContractEventByTxId {
+  /** @format block-hash */
+  blockHash: string
+
+  /** @format address */
+  contractAddress: string
+  eventIndex: number
+  fields: Val[]
+}
+
+export interface ContractEvents {
+  events: ContractEvent[]
+  nextStart: number
+}
+
+export interface ContractEventsByTxId {
+  events: ContractEventByTxId[]
+  nextStart: number
 }
 
 export interface ContractOutput {
@@ -424,6 +441,9 @@ export interface Destination {
 
   /** @format int64 */
   lockTime?: number
+
+  /** @format hex-string */
+  message?: string
 }
 
 export type DiscoveryAction = Reachable | Unreachable
@@ -433,11 +453,6 @@ export interface EventSig {
   signature: string
   fieldNames: string[]
   fieldTypes: string[]
-}
-
-export interface Events {
-  events: ContractEvent[]
-  nextStart: number
 }
 
 export interface FetchResponse {
@@ -466,8 +481,8 @@ export interface FixedAssetOutput {
   /** @format int64 */
   lockTime: number
 
-  /** @format byte-string */
-  additionalData: string
+  /** @format hex-string */
+  message: string
 }
 
 export interface FunctionSig {
@@ -655,6 +670,12 @@ export interface SweepAddressTransaction {
 export interface TestContract {
   group?: number
 
+  /** @format block-hash */
+  blockHash?: string
+
+  /** @format 32-byte-hash */
+  txId?: string
+
   /** @format address */
   address?: string
 
@@ -678,7 +699,7 @@ export interface TestContractResult {
   gasUsed: number
   contracts: ContractState[]
   txOutputs: Output[]
-  events: ContractEvent[]
+  events: ContractEventByTxId[]
 }
 
 export interface Token {
@@ -753,7 +774,7 @@ export interface UTXO {
   /** @format int64 */
   lockTime: number
 
-  /** @format byte-string */
+  /** @format hex-string */
   additionalData: string
 }
 
@@ -817,7 +838,7 @@ export interface ValBool {
 }
 
 export interface ValByteVec {
-  /** @format byte-string */
+  /** @format hex-string */
   value: string
   type: string
 }
@@ -834,7 +855,7 @@ export interface ValU256 {
 }
 
 export interface VerifySignature {
-  /** @format byte-string */
+  /** @format hex-string */
   data: string
 
   /** @format signature */
@@ -2204,7 +2225,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       query: { start: number; end?: number; group?: number },
       params: RequestParams = {}
     ) =>
-      this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<ContractEvents, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/events/contract/${contractAddress}`,
         method: 'GET',
         query: query,
@@ -2237,7 +2258,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/events/tx-id/{txId}
      */
     getEventsTxIdTxid: (txId: string, query?: { group?: number }, params: RequestParams = {}) =>
-      this.request<Events, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        ContractEventsByTxId,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
         path: `/events/tx-id/${txId}`,
         method: 'GET',
         query: query,
