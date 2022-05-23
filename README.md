@@ -1,4 +1,4 @@
-# Alephium Web3
+# Alephium TypeScript API
 
 [![Github CI][test-badge]][test-link]
 [![Code Coverage][coverage-badge]][coverage-link]
