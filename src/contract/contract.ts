@@ -412,7 +412,10 @@ export class Contract extends Common {
     fieldTypes: ['Address']
   }
 
-  static async fromApiEvent(event: node.ContractEventByTxId, codeHash: string): Promise<ContractEventByTxId> {
+  static async fromApiEvent(
+    event: node.ContractEventByTxId,
+    codeHash: string | undefined
+  ): Promise<ContractEventByTxId> {
     let eventSig: node.EventSig
 
     if (event.eventIndex == -1) {
@@ -420,8 +423,8 @@ export class Contract extends Common {
     } else if (event.eventIndex == -2) {
       eventSig = this.ContractDestroyedEvent
     } else {
-      const contract = await Contract.fromCodeHash(codeHash)
-      eventSig = await contract.eventsSig[event.eventIndex]
+      const contract = await Contract.fromCodeHash(codeHash!)
+      eventSig = contract.eventsSig[event.eventIndex]
     }
 
     return {
@@ -447,7 +450,7 @@ export class Contract extends Common {
         result.events.map((event) => {
           const contractAddress = event.contractAddress
           const codeHash = addressToCodeHash.get(contractAddress)
-          if (typeof codeHash !== 'undefined') {
+          if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
             return Contract.fromApiEvent(event, codeHash)
           } else {
             throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
