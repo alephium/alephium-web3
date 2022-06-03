@@ -55,6 +55,7 @@ To release a new version:
    npm version patch # if you want to bump the patch version, without breaking changes
    npm version minor # if you want to bump the minor version, with breaking changes
    npm version prerelease --preid=rc # if you want to create a release candidate
+   npm version prerelease --preid=leman # if you want to create a leman prerelease
    ```
 2. Push the tag to GitHub and trigger the publish workflow that will publish it on NPM with:
 
