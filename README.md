@@ -15,6 +15,8 @@ npx @alephium/web3 [name]
 
 ## Install
 
+### In Node projects
+
 ```shell
 npm install @alephium/web3
 ```
@@ -28,6 +30,37 @@ npm install @alephium/web3
       "@alephium/web3": "~X.Y.Z"
    }
 }
+```
+
+### In browser projects
+
+All you have to do is to include the library in your HTML document. The `alephium` global variable will be available.
+
+```html
+<script src="alephium-web3.min.js"></script>
+<script>
+  const { walletGenerate } = alephium
+  const wallet = walletGenerate()
+  console.log(wallet)
+</script>
+```
+
+You can either build the library by cloning this repo and running the build script (the file will be located at `/dist/alephium-web3.min.js`), or simply using a CDN.
+
+```shell
+npm run build
+```
+
+#### via UNPKG CDN
+
+```html
+<script src="https://unpkg.com/@alephium/web3@X.Y.Z/dist/alephium-web3.min.js"></script>
+```
+
+#### via jsDelivr CDN
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@alephium/web3@X.Y.Z/dist/alephium-web3.min.js"></script>
 ```
 
 ## Development
@@ -70,12 +103,12 @@ To release a new version:
    ```
    Otherwise, just push to `master`.
 
-## Compile
+## Build
 
 Compile the TypeScript files into JavaScript:
 
 ```shell
-npm run compile
+npm run build
 ```
 
 ## Testing
