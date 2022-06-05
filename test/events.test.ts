@@ -23,17 +23,21 @@ import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { node } from '../src/api'
 import { testWallet } from '../src/test'
 
-describe('events', function () {
+describe('events', function() {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
     const sub = await Contract.fromSource(provider, 'sub.ral')
-    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: { result: 0 } })
+    const subDeployTx = await sub.transactionForDeployment(signer, {
+      initialFields: { result: 0 },
+      initialTokenAmounts: []
+    })
     const subContractId = subDeployTx.contractId
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const add = await Contract.fromSource(provider, 'add.ral')
     const addDeployTx = await add.transactionForDeployment(signer, {
-      initialFields: { subContractId: subContractId, result: 0 }
+      initialFields: { subContractId: subContractId, result: 0 },
+      initialTokenAmounts: []
     })
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)

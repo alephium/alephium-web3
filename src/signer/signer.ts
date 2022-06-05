@@ -22,6 +22,7 @@ import { node } from '../api'
 import * as utils from '../utils'
 import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
+import { Token } from '../api/api-alephium'
 
 const ec = new EC('secp256k1')
 
@@ -68,6 +69,7 @@ export interface SignDeployContractTxParams {
   signerAddress: string
   bytecode: string
   initialAlphAmount?: string
+  initialTokenAmounts: Token[]
   issueTokenAmount?: string
   gasAmount?: number
   gasPrice?: string

@@ -23,7 +23,7 @@ import { NodeProvider } from '../src/api'
 import { Contract, Script, TestContractParams } from '../src/contract'
 import { testWallet } from '../src/test'
 
-describe('contract', function () {
+describe('contract', function() {
   async function testSuite1() {
     const provider = new NodeProvider('http://127.0.0.1:22973')
 
@@ -56,7 +56,10 @@ describe('contract', function () {
 
     const signer = await testWallet(provider)
 
-    const subDeployTx = await sub.transactionForDeployment(signer, { initialFields: { result: 0 } })
+    const subDeployTx = await sub.transactionForDeployment(signer, {
+      initialFields: { result: 0 },
+      initialTokenAmounts: []
+    })
     const subContractId = subDeployTx.contractId
     expect(subDeployTx.fromGroup).toEqual(0)
     expect(subDeployTx.toGroup).toEqual(0)
@@ -66,7 +69,8 @@ describe('contract', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const addDeployTx = await add.transactionForDeployment(signer, {
-      initialFields: { subContractId: subContractId, result: 0 }
+      initialFields: { subContractId: subContractId, result: 0 },
+      initialTokenAmounts: []
     })
     expect(addDeployTx.fromGroup).toEqual(0)
     expect(addDeployTx.toGroup).toEqual(0)
@@ -103,7 +107,10 @@ describe('contract', function () {
 
     const signer = await testWallet(provider)
 
-    const deployTx = await greeter.transactionForDeployment(signer, { initialFields: { btcPrice: 1 } })
+    const deployTx = await greeter.transactionForDeployment(signer, {
+      initialFields: { btcPrice: 1 },
+      initialTokenAmounts: []
+    })
     expect(deployTx.fromGroup).toEqual(0)
     expect(deployTx.toGroup).toEqual(0)
     const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)

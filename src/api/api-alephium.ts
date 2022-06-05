@@ -176,6 +176,7 @@ export interface BuildDeployContractTx {
 
   /** @format uint256 */
   initialAlphAmount?: string
+  initialTokenAmounts: Token[]
 
   /** @format uint256 */
   issueTokenAmount?: string
@@ -417,6 +418,9 @@ export interface ContractState {
 
   /** @format 32-byte-hash */
   codeHash: string
+
+  /** @format 32-byte-hash */
+  initialStateHash?: string
   fields: Val[]
   asset: AssetState
 }
@@ -698,6 +702,7 @@ export interface TestContractResult {
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]
+  txInputs: string[]
   txOutputs: Output[]
   events: ContractEventByTxId[]
 }

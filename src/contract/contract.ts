@@ -374,7 +374,7 @@ export class Contract extends Common {
           if (contract.codeHash === codeHash) {
             return contract as Contract
           }
-        } catch (_) {}
+        } catch (_) { }
       }
     }
 
@@ -391,6 +391,7 @@ export class Contract extends Common {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
+      initialStateHash: state.initialStateHash,
       codeHash: state.codeHash,
       fields: fromApiFields(state.fields, contract.fieldsSig),
       fieldsSig: await Contract.getFieldsSig(state),
@@ -467,6 +468,7 @@ export class Contract extends Common {
       bytecode: bytecode,
       initialAlphAmount: extractOptionalNumber256(params.initialAlphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
+      initialTokenAmounts: params.initialTokenAmounts.map(toApiToken),
       gasAmount: params.gasAmount,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
@@ -844,6 +846,7 @@ export interface ContractState {
   address: string
   contractId: string
   bytecode: string
+  initialStateHash?: string
   codeHash: string
   fields: Fields
   fieldsSig: node.FieldsSig
@@ -863,6 +866,7 @@ function toApiContractState(state: ContractState): node.ContractState {
     address: state.address,
     bytecode: state.bytecode,
     codeHash: state.codeHash,
+    initialStateHash: state.initialStateHash,
     fields: toApiFields(state.fields, state.fieldsSig),
     asset: toApiAsset(state.asset)
   }
@@ -983,6 +987,7 @@ export interface BuildDeployContractTx {
   signerAddress: string
   initialFields?: Fields
   initialAlphAmount?: string
+  initialTokenAmounts: Token[]
   issueTokenAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
