@@ -136,6 +136,15 @@ describe('utils', function () {
     )
   })
 
+  it('should convert between contract id and address', () => {
+    expect(utils.addressFromContractId('1f6b937b935d7fac894fb22ffe2b974cae9c8c166501372f1b9155144e0ff4ae')).toBe(
+      'vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3'
+    )
+    expect(utils.binToHex(utils.contractIdFromAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3'))).toBe(
+      '1f6b937b935d7fac894fb22ffe2b974cae9c8c166501372f1b9155144e0ff4ae'
+    )
+  })
+
   it('should convert from string to hex', () => {
     expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
   })

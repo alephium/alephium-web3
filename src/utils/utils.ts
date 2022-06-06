@@ -177,7 +177,7 @@ export function addressFromPublicKey(publicKey: string): string {
 
 export function addressFromContractId(contractId: string): string {
   const addressType = Buffer.from([AddressType.P2C])
-  const hash = Buffer.from(blake.blake2b(Buffer.from(contractId, 'hex'), undefined, 32))
+  const hash = Buffer.from(hexToBinUnsafe(contractId))
   const bytes = Buffer.concat([addressType, hash])
   return bs58.encode(bytes)
 }
