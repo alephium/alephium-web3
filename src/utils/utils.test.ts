@@ -21,7 +21,7 @@ import assert from 'assert'
 
 import * as utils from './utils'
 
-describe('utils', function() {
+describe('utils', function () {
   it('should throw an error when decoding invalid signature', () => {
     const ec = new EC.ec('secp256k1')
     const signature = 'signature-with-wrong-length'
