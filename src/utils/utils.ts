@@ -177,7 +177,7 @@ export function addressFromPublicKey(publicKey: string): string {
 
 export function addressFromContractId(contractId: string): string {
   const addressType = Buffer.from([AddressType.P2C])
-  const hash = Buffer.from(blake.blake2b(Buffer.from(contractId, 'hex'), undefined, 32))
+  const hash = Buffer.from(hexToBinUnsafe(contractId))
   const bytes = Buffer.concat([addressType, hash])
   return bs58.encode(bytes)
 }
@@ -200,4 +200,4 @@ export function stringToHex(str: string): string {
 type _Eq<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
 export type Eq<X, Y> = _Eq<{ [P in keyof X]: X[P] }, { [P in keyof Y]: Y[P] }>
 // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
-export function assertType<T extends true>(): void {}
+export function assertType<T extends true>(): void { }

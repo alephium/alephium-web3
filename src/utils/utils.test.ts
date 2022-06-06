@@ -21,7 +21,7 @@ import assert from 'assert'
 
 import * as utils from './utils'
 
-describe('utils', function () {
+describe('utils', function() {
   it('should throw an error when decoding invalid signature', () => {
     const ec = new EC.ec('secp256k1')
     const signature = 'signature-with-wrong-length'
@@ -133,6 +133,15 @@ describe('utils', function () {
     )
     expect(utils.addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
       '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
+    )
+  })
+
+  it('should convert between contract id and address', () => {
+    expect(utils.addressFromContractId('1f6b937b935d7fac894fb22ffe2b974cae9c8c166501372f1b9155144e0ff4ae')).toBe(
+      'vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3'
+    )
+    expect(utils.binToHex(utils.contractIdFromAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3'))).toBe(
+      '1f6b937b935d7fac894fb22ffe2b974cae9c8c166501372f1b9155144e0ff4ae'
     )
   })
 
