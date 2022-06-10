@@ -1,6 +1,6 @@
 {
   "name": "alephium-web3",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "Alephium Web3.js",
   "license": "GPL",
   "main": "dist/src/index.js",
