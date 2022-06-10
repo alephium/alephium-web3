@@ -151,7 +151,7 @@ describe('utils', function () {
         '0a38bc48fbb4300f1e305b201cd6129372d867122efb814d871d18c0bfe43b56',
         '4f51cd1f0af97cf5ec9c7a3397eaeea549d55a93c216e54f2ab4a8cf29f6f865'
       )
-    ).toBe('0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a268a9')
+    ).toBe('293c948c81c5a9495178fff8b8c9f29f4f3e09e1728c40e9253c87adf5e18770')
   })
 
   it('should convert from string to hex', () => {

@@ -190,7 +190,7 @@ export function contractIdFromTx(txId: string, outputIndex: number): string {
 }
 
 export function subContractId(parentContractId: string, pathInHex: string): string {
-  const data = Buffer.concat([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
+  const data = Buffer.concat([hexToBinUnsafe(pathInHex), hexToBinUnsafe(parentContractId)])
 
   return binToHex(blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32))
 }
