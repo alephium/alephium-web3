@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "0.0.3",
+  "version": "0.1.0-rc.0",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "main": "dist/src/index.js",
