@@ -1,9 +1,10 @@
 node_modules/
 dist/
+build/
+web/
 .vscode
 .DS_Store
 coverage/
-dev/logs
-dev/network*
-dev/alephium*
-artifacts/
+/dev/
+!dev/user.conf
+/artifacts/

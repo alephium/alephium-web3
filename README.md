@@ -10,7 +10,7 @@ A JavaScript/TypeScript library for building decentralized applications and smar
 You could run the following command to scaffold a skeleton project for smart contract development:
 
 ```
-npx @alephium/web3 [name]
+npx @alephium/web3 <project-dir> [-t template-name]
 ```
 
 ## Install
@@ -114,7 +114,7 @@ npm run build
 ## Testing
 
 ```shell
-npm run devnet:start # this will start a devnet for smart contract tests
+npm run start-devnet # this will start a devnet for smart contract tests
 npm test
 ```
 

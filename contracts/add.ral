@@ -1,12 +1,16 @@
 import "sub.ral"
 
-TxContract Add(mut result : U256) {
+TxContract Add(subContractId: ByteVec, mut result : U256) {
     event Add(x: U256, y: U256)
 
-    pub fn add(subAddress: ByteVec, array: [U256; 2]) -> ([U256; 2]) {
+    pub fn add(array: [U256; 2]) -> ([U256; 2]) {
         emit Add(array[0], array[1])
-        let sub = Sub(subAddress)
+        let sub = Sub(subContractId)
         result = result + array[0] + array[1]
         return [result, sub.sub(array)]
+    }
+
+    fn addPrivate(array: [U256; 2]) -> ([U256; 2]) {
+        return add(array)
     }
 }

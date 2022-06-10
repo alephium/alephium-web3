@@ -1,17 +1,20 @@
 {
-  "include": ["lib/**/*", "cli/**/*"],
-  "exclude": ["node_modules", "test"],
+  "include": ["src/**/*", "scripts/**/*"],
+  "exclude": ["node_modules", "test", "src/**/*.test.ts", "src/**/fixtures/*"],
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2020",
     "allowJs": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
     "strict": true,
+    "noImplicitAny": false,
+    "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
     "declaration": true,
     "outDir": "dist",
     "moduleResolution": "node",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "noImplicitOverride": true
   }
 }

@@ -20,8 +20,9 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run check-versions
+      - run: npm install @jest/types --save-dev
+      # - run: npm run check-versions
       - run: npm run lint
-      - run: npm audit
-      - run: npm run devnet:start
+      - run: npm audit --production
+      - run: npm run start-devnet
       - run: npm test

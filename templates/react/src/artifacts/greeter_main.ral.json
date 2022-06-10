@@ -1,0 +1,22 @@
+{
+  "sourceCodeSha256": "c1f3b4c4a8c6832d0c9b3e2c7c623de85331d8b0d853daf2acc4288e5655aff7",
+  "functions": [
+    {
+      "name": "main",
+      "signature": "pub payable main()->()",
+      "argNames": [],
+      "argTypes": [],
+      "returnTypes": []
+    }
+  ],
+  "bytecodeTemplate": "0101010002000e{0}1700160001000d2f4d{0}1701160101000d2f4d",
+  "fieldsSig": {
+    "signature": "TxScript Main(greeterContractId:ByteVec)",
+    "names": [
+      "greeterContractId"
+    ],
+    "types": [
+      "ByteVec"
+    ]
+  }
+}

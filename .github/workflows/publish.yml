@@ -28,8 +28,6 @@ jobs:
           echo ::set-output name=DIST_TAG::$dist_tag
         shell: bash
   publish:
-    needs: get_dist_tag
-    if: needs.get_dist_tag.outputs.DIST_TAG
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -44,6 +42,6 @@ jobs:
       - name: Publish to npm
         run: |
           npm ci
-          npm publish --access public --tag ${{ needs.get_dist_tag.outputs.DIST_TAG }}
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

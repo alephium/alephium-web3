@@ -3,25 +3,20 @@
   "version": "0.0.3",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
-  "main": "dist/lib/index.js",
+  "main": "dist/src/index.js",
   "browser": "dist/alephium-web3.min.js",
-  "types": "dist/lib/index.d.ts",
+  "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/lib/index.js",
-    "./api/alephium": "./dist/api/api-alephium.js",
-    "./api/explorer": "./dist/api/api-explorer.js"
+    ".": "./dist/src/index.js",
+    "./test": "./dist/src/test/index.js"
   },
   "typesVersions": {
     "*": {
-      "api/alephium": [
-        "dist/api/api-alephium"
-      ],
-      "api/explorer": [
-        "dist/api/api-explorer"
+      "test": [
+        "dist/src/test/"
       ]
     }
   },
-  "type": "commonjs",
   "repository": {
     "type": "git",
     "url": "git@github.com:alephium/alephium-web3.git"
@@ -32,42 +27,47 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "1.3.0-rc9",
-    "explorer_backend_version": "1.6.0-rc8"
+    "alephium_version": "1.4.0-rc2",
+    "explorer_backend_version": "1.7.0-leman1"
   },
   "scripts": {
-    "build": "rm -rf dist && npx tsc --build . && webpack",
+    "build": "rm -rf dist/* && npx tsc --build . && webpack",
+    "bundle": "webpack",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
-    "update-schema:alephium": "npx swagger-typescript-api -t ./api -o ./api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
-    "update-schema:explorer": "npx swagger-typescript-api -t ./api -o ./api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
+    "update-schema:alephium": "npx swagger-typescript-api -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
+    "update-schema:explorer": "npx swagger-typescript-api -t ./configs -o ./src/api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
     "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}",
     "dev": "tsnd --respawn lib/index.ts",
-    "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --fix --ext .ts",
-    "jest": "jest --useStderr --silent=false --verbose=true --config jestconfig.json",
-    "test": "npm run build && npm run jest",
-    "test:watch": "npm run build && npm run jest -- --watch",
+    "lint": "eslint . --ext ts",
+    "lint:fix": "eslint . --fix --ext ts",
+    "test": "jest -i --config ./configs/jest.config.ts",
+    "test:client": "jest -i --config ./configs/jest-client.config.ts",
+    "test:unit": "jest -i --config ./configs/jest-unit.config.ts",
+    "test:watch": "npm run test -- --watch --coverage=false",
+    "test:watch:unit": "npm run test:unit -- --watch --coverage=false",
+    "test:watch:client": "npm run test:client -- --watch --coverage=false",
     "prepublishOnly": "npm run build",
     "prepack": "node scripts/rename-gitignore.js .gitignore gitignore",
     "postpack": "node scripts/rename-gitignore.js gitignore .gitignore",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
-    "devnet:start": "node scripts/start-devnet.js ${npm_package_config_alephium_version}",
-    "devnet:restart": "npm run devnet:start",
-    "devnet:stop": "node scripts/stop-devnet.js"
+    "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "start-devnet": "node scripts/start-devnet.js ${npm_package_config_alephium_version}",
+    "restart-devnet": "npm run start-devnet",
+    "stop-devnet": "node scripts/stop-devnet.js"
   },
+  "type": "commonjs",
   "bin": {
-    "alephium": "dist/cli/create-project.js"
+    "alephium": "dist/scripts/create-project.js"
   },
   "dependencies": {
-    "base-x": "^4.0.0",
-    "bcfg": "~0.1.6",
-    "bip32": "^2.0.6",
-    "bip39": "^3.0.4",
-    "blakejs": "^1.1.1",
-    "chalk": "^4.1.2",
+    "@scure/bip32": "1.0.1",
+    "base-x": "4.0.0",
+    "bip39": "3.0.4",
+    "blakejs": "1.2.1",
+    "commander": "^9.1.0",
     "cross-fetch": "^3.1.5",
-    "crypto-js": "^4.1.1",
-    "elliptic": "^6.5.4",
+    "crypto-js": "4.1.1",
+    "elliptic": "6.5.4",
+    "eventemitter3": "^4.0.7",
     "find-up": "^2.1.0",
     "fs-extra": "^10.0.1"
   },
@@ -76,7 +76,7 @@
     "@types/elliptic": "^6.4.13",
     "@types/find-up": "^2.1.0",
     "@types/fs-extra": "^9.0.13",
-    "@types/jest": "^27.0.1",
+    "@types/jest": "^27.5.1",
     "@types/mock-fs": "^4.13.1",
     "@types/node": "^16.7.8",
     "@types/rewire": "^2.5.28",
@@ -84,23 +84,30 @@
     "@typescript-eslint/parser": "^4.30.0",
     "babel-eslint": "^10.1.0",
     "buffer": "^6.0.3",
+    "clean-webpack-plugin": "4.0.0",
     "crypto-browserify": "^3.12.0",
     "eslint": "^7.32.0",
-    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-header": "^3.1.1",
     "eslint-plugin-prettier": "^4.0.0",
-    "jest": "^27.1.0",
+    "eslint-plugin-react": "^7.29.4",
+    "eslint-plugin-security": "1.4.0",
+    "html-webpack-plugin": "5.5.0",
+    "jest": "^28.1.0",
     "jest-localstorage-mock": "^2.4.18",
     "jest-websocket-mock": "^2.2.1",
     "mock-fs": "^5.1.2",
     "mock-socket": "^9.0.8",
     "prettier": "^2.3.2",
+    "process": "^0.11.10",
+    "react-app-rewired": "^2.2.1",
     "rewire": "^6.0.0",
     "shelljs": "^0.8.5",
     "stream-browserify": "^3.0.0",
     "swagger-typescript-api": "^9.2.0",
-    "ts-jest": "^27.0.5",
-    "ts-node": "^10.2.1",
+    "terser-webpack-plugin": "^5.3.1",
+    "ts-jest": "^28.0.2",
+    "ts-node": "^10.7.0",
     "tslib": "^2.3.1",
     "typescript": "^4.4.2",
     "webpack": "^5.72.0",
@@ -109,5 +116,14 @@
   "engines": {
     "node": ">=14.0.0",
     "npm": ">=7.0.0"
+  },
+  "prettier": {
+    "printWidth": 120,
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": false,
+    "singleQuote": true,
+    "bracketSameLine": false,
+    "trailingComma": "none"
   }
 }
