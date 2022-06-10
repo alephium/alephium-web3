@@ -145,6 +145,15 @@ describe('utils', function () {
     )
   })
 
+  it('should compute id of the sub contract', () => {
+    expect(
+      utils.subContractId(
+        '0a38bc48fbb4300f1e305b201cd6129372d867122efb814d871d18c0bfe43b56',
+        '4f51cd1f0af97cf5ec9c7a3397eaeea549d55a93c216e54f2ab4a8cf29f6f865'
+      )
+    ).toBe('0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a268a9')
+  })
+
   it('should convert from string to hex', () => {
     expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
   })
