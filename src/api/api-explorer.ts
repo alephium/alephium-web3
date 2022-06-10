@@ -196,7 +196,7 @@ export interface UnconfirmedTransaction {
   type: string
 }
 
-import fetch from 'cross-fetch'
+import 'cross-fetch/polyfill'
 
 function convertHttpResponse<T>(
   response: HttpResponse<T, { detail: string }> | HttpResponse<T, { detail: string }>
