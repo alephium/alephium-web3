@@ -2,8 +2,8 @@
  * greeter.ts
  */
 
-import { NodeProvider, Contract, Script, TestContractParams } from 'alephium-web3'
-import { testWallet } from 'alephium-web3/test'
+import { NodeProvider, Contract, Script, TestContractParams } from '@alephium/web3'
+import { testWallet } from '@alephium/web3/test'
 
 async function greet() {
   const provider = new NodeProvider('http://127.0.0.1:22973')

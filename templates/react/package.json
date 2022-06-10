@@ -2,7 +2,7 @@
   "name": "my-dapp",
   "version": "0.1.0",
   "config": {
-    "alephium_version": "1.4.0-leman8"
+    "alephium_version": "1.4.0-rc2"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
@@ -12,7 +12,7 @@
     "@types/node": "^16.11.26",
     "@types/react": "^18.0.3",
     "@types/react-dom": "^18.0.0",
-    "alephium-web3": "0.9.1",
+    "@alephium/web3": "0.1.0-rc.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-scripts": "5.0.1",
@@ -48,6 +48,7 @@
   "devDependencies": {
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
+    "eslint-config-prettier": "^8.5.0",
     "process": "^0.11.10",
     "react-app-rewired": "^2.2.1",
     "stream-browserify": "^3.0.0"

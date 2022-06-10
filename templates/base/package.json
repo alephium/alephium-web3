@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "GPL",
   "config": {
-    "alephium_version": "1.4.0-leman8"
+    "alephium_version": "1.4.0-rc2"
   },
   "scripts": {
     "build": "rm -rf dist && npx tsc --build .",
@@ -12,7 +12,7 @@
     "stop-devnet": "node scripts/stop-devnet.js"
   },
   "dependencies": {
-    "alephium-web3": "0.9.1"
+    "@alephium/web3": "0.1.0-rc.0"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
