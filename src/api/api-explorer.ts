@@ -97,6 +97,8 @@ export interface NotFound {
 
 export interface Output {
   hint: number
+
+  /** @format 32-byte-hash */
   key: string
 
   /** @format uint256 */
@@ -110,6 +112,8 @@ export interface Output {
 
 export interface OutputRef {
   hint: number
+
+  /** @format 32-byte-hash */
   key: string
 }
 
@@ -134,6 +138,12 @@ export interface TokenSupply {
 
   /** @format uint256 */
   circulating: string
+
+  /** @format uint256 */
+  reserved: string
+
+  /** @format uint256 */
+  locked: string
 
   /** @format uint256 */
   maximum: string
@@ -616,6 +626,34 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getInfosSupplyCirculatingAlph: (params: RequestParams = {}) =>
       this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/supply/circulating-alph`,
+        method: 'GET',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Get the ALPH reserved supply
+     *
+     * @tags Infos
+     * @name GetInfosSupplyReservedAlph
+     * @request GET:/infos/supply/reserved-alph
+     */
+    getInfosSupplyReservedAlph: (params: RequestParams = {}) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/infos/supply/reserved-alph`,
+        method: 'GET',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Get the ALPH locked supply
+     *
+     * @tags Infos
+     * @name GetInfosSupplyLockedAlph
+     * @request GET:/infos/supply/locked-alph
+     */
+    getInfosSupplyLockedAlph: (params: RequestParams = {}) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/infos/supply/locked-alph`,
         method: 'GET',
         ...params
       }).then(convertHttpResponse),

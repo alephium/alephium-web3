@@ -353,8 +353,8 @@ export class Contract extends Common {
       bytecode: this.bytecode,
       initialFields: this.toApiFields(params.initialFields),
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
-      testMethodIndex: this.getMethodIndex(funcName),
-      testArgs: this.toApiArgs(funcName, params.testArgs),
+      methodIndex: this.getMethodIndex(funcName),
+      args: this.toApiArgs(funcName, params.testArgs),
       existingContracts: this.toApiContractStates(params.existingContracts),
       inputAssets: toApiInputAssets(params.inputAssets)
     }
@@ -391,6 +391,7 @@ export class Contract extends Common {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
       bytecode: state.bytecode,
+      initialStateHash: state.initialStateHash,
       codeHash: state.codeHash,
       fields: fromApiFields(state.fields, contract.fieldsSig),
       fieldsSig: await Contract.getFieldsSig(state),
@@ -467,6 +468,7 @@ export class Contract extends Common {
       bytecode: bytecode,
       initialAlphAmount: extractOptionalNumber256(params.initialAlphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
+      initialTokenAmounts: params.initialTokenAmounts?.map(toApiToken),
       gasAmount: params.gasAmount,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
@@ -844,6 +846,7 @@ export interface ContractState {
   address: string
   contractId: string
   bytecode: string
+  initialStateHash?: string
   codeHash: string
   fields: Fields
   fieldsSig: node.FieldsSig
@@ -863,6 +866,7 @@ function toApiContractState(state: ContractState): node.ContractState {
     address: state.address,
     bytecode: state.bytecode,
     codeHash: state.codeHash,
+    initialStateHash: state.initialStateHash,
     fields: toApiFields(state.fields, state.fieldsSig),
     asset: toApiAsset(state.asset)
   }
@@ -884,11 +888,11 @@ function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[]
   })
 }
 
-function toApiInputAsset(inputAsset: InputAsset): node.InputAsset {
+function toApiInputAsset(inputAsset: InputAsset): node.TestInputAsset {
   return { address: inputAsset.address, asset: toApiAsset(inputAsset.asset) }
 }
 
-function toApiInputAssets(inputAssets?: InputAsset[]): node.InputAsset[] | undefined {
+function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | undefined {
   return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 
@@ -983,6 +987,7 @@ export interface BuildDeployContractTx {
   signerAddress: string
   initialFields?: Fields
   initialAlphAmount?: string
+  initialTokenAmounts?: Token[]
   issueTokenAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256

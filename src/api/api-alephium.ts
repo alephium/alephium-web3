@@ -176,6 +176,7 @@ export interface BuildDeployContractTx {
 
   /** @format uint256 */
   initialAlphAmount?: string
+  initialTokenAmounts?: Token[]
 
   /** @format uint256 */
   issueTokenAmount?: string
@@ -317,6 +318,32 @@ export interface BuildTransactionResult {
   toGroup: number
 }
 
+export interface CallContract {
+  group: number
+
+  /** @format block-hash */
+  worldStateBlockHash?: string
+
+  /** @format 32-byte-hash */
+  txId?: string
+
+  /** @format address */
+  address: string
+  methodIndex: number
+  args?: Val[]
+  existingContracts?: string[]
+  inputAssets?: TestInputAsset[]
+}
+
+export interface CallContractResult {
+  returns: Val[]
+  gasUsed: number
+  contracts: ContractState[]
+  txInputs: string[]
+  txOutputs: Output[]
+  events: ContractEventByTxId[]
+}
+
 export interface ChainInfo {
   currentHeight: number
 }
@@ -417,6 +444,9 @@ export interface ContractState {
 
   /** @format 32-byte-hash */
   codeHash: string
+
+  /** @format 32-byte-hash */
+  initialStateHash?: string
   fields: Val[]
   asset: AssetState
 }
@@ -499,12 +529,6 @@ export interface Group {
 
 export interface HashesAtHeight {
   headers: string[]
-}
-
-export interface InputAsset {
-  /** @format address */
-  address: string
-  asset: AssetState
 }
 
 export interface InterCliquePeerInfo {
@@ -640,6 +664,13 @@ export interface SubmitTransaction {
   signature: string
 }
 
+export interface SubmitTxResult {
+  /** @format 32-byte-hash */
+  txId: string
+  fromGroup: number
+  toGroup: number
+}
+
 export interface Sweep {
   /** @format address */
   toAddress: string
@@ -683,10 +714,10 @@ export interface TestContract {
   bytecode: string
   initialFields?: Val[]
   initialAsset?: AssetState
-  testMethodIndex?: number
-  testArgs?: Val[]
+  methodIndex?: number
+  args?: Val[]
   existingContracts?: ContractState[]
-  inputAssets?: InputAsset[]
+  inputAssets?: TestInputAsset[]
 }
 
 export interface TestContractResult {
@@ -698,8 +729,15 @@ export interface TestContractResult {
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]
+  txInputs: string[]
   txOutputs: Output[]
   events: ContractEventByTxId[]
+}
+
+export interface TestInputAsset {
+  /** @format address */
+  address: string
+  asset: AssetState
 }
 
 export interface Token {
@@ -753,13 +791,6 @@ export interface TransferResults {
 
 export interface TxNotFound {
   type: string
-}
-
-export interface TxResult {
-  /** @format 32-byte-hash */
-  txId: string
-  fromGroup: number
-  toGroup: number
 }
 
 export type TxStatus = Confirmed | MemPooled | TxNotFound
@@ -1893,7 +1924,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/transactions/submit
      */
     postTransactionsSubmit: (data: SubmitTransaction, params: RequestParams = {}) =>
-      this.request<TxResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<SubmitTxResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/transactions/submit`,
         method: 'POST',
         body: data,
@@ -2063,6 +2094,26 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           format: 'json',
           ...params
         }
+      ).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
+     * @name PostContractsCallContract
+     * @summary Call contract
+     * @request POST:/contracts/call-contract
+     */
+    postContractsCallContract: (data: CallContract, params: RequestParams = {}) =>
+      this.request<CallContractResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>(
+        {
+          path: `/contracts/call-contract`,
+          method: 'POST',
+          body: data,
+          type: ContentType.Json,
+          format: 'json',
+          ...params
+        }
       ).then(convertHttpResponse)
   }
   multisig = {
@@ -2117,7 +2168,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/multisig/submit
      */
     postMultisigSubmit: (data: SubmitMultisig, params: RequestParams = {}) =>
-      this.request<TxResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<SubmitTxResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/multisig/submit`,
         method: 'POST',
         body: data,
