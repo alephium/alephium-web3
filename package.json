@@ -72,6 +72,7 @@
     "fs-extra": "^10.0.1"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.18.2",
     "@types/crypto-js": "^4.1.1",
     "@types/elliptic": "^6.4.13",
     "@types/find-up": "^2.1.0",
@@ -82,7 +83,6 @@
     "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
-    "babel-eslint": "^10.1.0",
     "buffer": "^6.0.3",
     "clean-webpack-plugin": "4.0.0",
     "crypto-browserify": "^3.12.0",
