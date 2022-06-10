@@ -176,7 +176,7 @@ export interface BuildDeployContractTx {
 
   /** @format uint256 */
   initialAlphAmount?: string
-  initialTokenAmounts: Token[]
+  initialTokenAmounts?: Token[]
 
   /** @format uint256 */
   issueTokenAmount?: string

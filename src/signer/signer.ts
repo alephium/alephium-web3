@@ -69,7 +69,7 @@ export interface SignDeployContractTxParams {
   signerAddress: string
   bytecode: string
   initialAlphAmount?: string
-  initialTokenAmounts: Token[]
+  initialTokenAmounts?: Token[]
   issueTokenAmount?: string
   gasAmount?: number
   gasPrice?: string
