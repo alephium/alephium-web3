@@ -1,7 +1,7 @@
 <% const { config } = it; %>
 <% /* https://github.com/acacode/swagger-typescript-api/tree/next/templates/base/http-clients/ */ %>
 
-import fetch from 'cross-fetch';
+import 'cross-fetch/polyfill'
 
 function convertHttpResponse<T>(
   response: HttpResponse<T, { detail: string }> | HttpResponse<T, { detail: string }>
