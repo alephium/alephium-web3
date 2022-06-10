@@ -353,8 +353,8 @@ export class Contract extends Common {
       bytecode: this.bytecode,
       initialFields: this.toApiFields(params.initialFields),
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
-      testMethodIndex: this.getMethodIndex(funcName),
-      testArgs: this.toApiArgs(funcName, params.testArgs),
+      methodIndex: this.getMethodIndex(funcName),
+      args: this.toApiArgs(funcName, params.testArgs),
       existingContracts: this.toApiContractStates(params.existingContracts),
       inputAssets: toApiInputAssets(params.inputAssets)
     }
@@ -374,7 +374,7 @@ export class Contract extends Common {
           if (contract.codeHash === codeHash) {
             return contract as Contract
           }
-        } catch (_) { }
+        } catch (_) {}
       }
     }
 
@@ -888,11 +888,11 @@ function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[]
   })
 }
 
-function toApiInputAsset(inputAsset: InputAsset): node.InputAsset {
+function toApiInputAsset(inputAsset: InputAsset): node.TestInputAsset {
   return { address: inputAsset.address, asset: toApiAsset(inputAsset.asset) }
 }
 
-function toApiInputAssets(inputAssets?: InputAsset[]): node.InputAsset[] | undefined {
+function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | undefined {
   return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 

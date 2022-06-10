@@ -23,7 +23,7 @@ import { NodeProvider } from '../src/api'
 import { Contract, Script, TestContractParams } from '../src/contract'
 import { testWallet } from '../src/test'
 
-describe('contract', function() {
+describe('contract', function () {
   async function testSuite1() {
     const provider = new NodeProvider('http://127.0.0.1:22973')
 

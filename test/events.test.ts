@@ -23,7 +23,7 @@ import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { node } from '../src/api'
 import { testWallet } from '../src/test'
 
-describe('events', function() {
+describe('events', function () {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
     const sub = await Contract.fromSource(provider, 'sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
