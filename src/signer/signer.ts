@@ -68,7 +68,7 @@ assertType<Eq<SignTransferTxResult, SignResult>>()
 export interface SignDeployContractTxParams {
   signerAddress: string
   bytecode: string
-  initialAlphAmount?: string
+  initialAttoAlphAmount?: string
   initialTokenAmounts?: Token[]
   issueTokenAmount?: string
   gasAmount?: number
@@ -90,7 +90,7 @@ assertType<Eq<SignDeployContractTxResult, SignResult & { contractId: string; con
 export interface SignExecuteScriptTxParams {
   signerAddress: string
   bytecode: string
-  alphAmount?: string
+  attoAlphAmount?: string
   tokens?: node.Token[]
   gasAmount?: number
   gasPrice?: string

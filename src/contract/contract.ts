@@ -466,7 +466,7 @@ export class Contract extends Common {
     const signerParams: SignDeployContractTxParams = {
       signerAddress: params.signerAddress,
       bytecode: bytecode,
-      initialAlphAmount: extractOptionalNumber256(params.initialAlphAmount),
+      initialAttoAlphAmount: extractOptionalNumber256(params.initialAttoAlphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
       initialTokenAmounts: params.initialTokenAmounts?.map(toApiToken),
       gasAmount: params.gasAmount,
@@ -580,7 +580,7 @@ export class Script extends Common {
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: params.signerAddress,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
-      alphAmount: extractOptionalNumber256(params.alphAmount),
+      attoAlphAmount: extractOptionalNumber256(params.attoAlphAmount),
       tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
       gasAmount: params.gasAmount,
       gasPrice: extractOptionalNumber256(params.gasPrice)
@@ -825,14 +825,14 @@ function fromApiToken(token: node.Token): Token {
 
 function toApiAsset(asset: Asset): node.AssetState {
   return {
-    alphAmount: extractNumber256(asset.alphAmount),
+    attoAlphAmount: extractNumber256(asset.alphAmount),
     tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(toApiToken) : []
   }
 }
 
 function fromApiAsset(asset: node.AssetState): Asset {
   return {
-    alphAmount: decodeNumber256(asset.alphAmount),
+    alphAmount: decodeNumber256(asset.attoAlphAmount),
     tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(fromApiToken) : undefined
   }
 }
@@ -950,7 +950,7 @@ function fromApiOutput(output: node.Output): Output {
     return {
       type: 'AssetOutput',
       address: asset.address,
-      alphAmount: decodeNumber256(asset.alphAmount),
+      alphAmount: decodeNumber256(asset.attoAlphAmount),
       tokens: asset.tokens.map(fromApiToken),
       lockTime: asset.lockTime,
       message: asset.message
@@ -960,7 +960,7 @@ function fromApiOutput(output: node.Output): Output {
     return {
       type: 'ContractOutput',
       address: asset.address,
-      alphAmount: decodeNumber256(asset.alphAmount),
+      alphAmount: decodeNumber256(asset.attoAlphAmount),
       tokens: asset.tokens.map(fromApiToken)
     }
   } else {
@@ -986,7 +986,7 @@ type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
 export interface BuildDeployContractTx {
   signerAddress: string
   initialFields?: Fields
-  initialAlphAmount?: string
+  initialAttoAlphAmount?: string
   initialTokenAmounts?: Token[]
   issueTokenAmount?: Number256
   gasAmount?: number
@@ -998,7 +998,7 @@ assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignDeployContrac
 export interface BuildExecuteScriptTx {
   signerAddress: string
   initialFields?: Fields
-  alphAmount?: Number256
+  attoAlphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
