@@ -59,7 +59,7 @@ export interface AssetOutput {
   key: string
 
   /** @format uint256 */
-  alphAmount: string
+  attoAlphAmount: string
 
   /** @format address */
   address: string
@@ -75,7 +75,7 @@ export interface AssetOutput {
 
 export interface AssetState {
   /** @format uint256 */
-  alphAmount: string
+  attoAlphAmount: string
   tokens?: Token[]
 }
 
@@ -175,7 +175,7 @@ export interface BuildDeployContractTx {
   bytecode: string
 
   /** @format uint256 */
-  initialAlphAmount?: string
+  initialAttoAlphAmount?: string
   initialTokenAmounts?: Token[]
 
   /** @format uint256 */
@@ -214,7 +214,7 @@ export interface BuildExecuteScriptTx {
   bytecode: string
 
   /** @format uint256 */
-  alphAmount?: string
+  attoAlphAmount?: string
   tokens?: Token[]
 
   /** @format gas */
@@ -427,7 +427,7 @@ export interface ContractOutput {
   key: string
 
   /** @format uint256 */
-  alphAmount: string
+  attoAlphAmount: string
 
   /** @format address */
   address: string
@@ -466,7 +466,7 @@ export interface Destination {
   address: string
 
   /** @format uint256 */
-  alphAmount: string
+  attoAlphAmount: string
   tokens?: Token[]
 
   /** @format int64 */
@@ -502,7 +502,7 @@ export interface FixedAssetOutput {
   key: string
 
   /** @format uint256 */
-  alphAmount: string
+  attoAlphAmount: string
 
   /** @format address */
   address: string
