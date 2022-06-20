@@ -53,6 +53,7 @@ export interface AssetInput {
 }
 
 export interface AssetOutput {
+  /** @format int32 */
   hint: number
 
   /** @format 32-byte-hash */
@@ -95,6 +96,8 @@ export interface Balance {
 
   /** @format x.x ALPH */
   lockedBalanceHint: string
+
+  /** @format int32 */
   utxoNum: number
   warning?: string
 }
@@ -125,8 +128,14 @@ export interface BlockEntry {
 
   /** @format int64 */
   timestamp: number
+
+  /** @format int32 */
   chainFrom: number
+
+  /** @format int32 */
   chainTo: number
+
+  /** @format int32 */
   height: number
   deps: string[]
   transactions: Transaction[]
@@ -151,8 +160,14 @@ export interface BlockHeaderEntry {
 
   /** @format int64 */
   timestamp: number
+
+  /** @format int32 */
   chainFrom: number
+
+  /** @format int32 */
   chainTo: number
+
+  /** @format int32 */
   height: number
   deps: string[]
 }
@@ -160,11 +175,15 @@ export interface BlockHeaderEntry {
 export interface BrokerInfo {
   /** @format clique-id */
   cliqueId: string
+
+  /** @format int32 */
   brokerId: number
+
+  /** @format int32 */
   brokerNum: number
 
   /** @format inet-socket-address */
-  address: string
+  address: { addr: string; port: number }
 }
 
 export interface BuildDeployContractTx {
@@ -189,7 +208,10 @@ export interface BuildDeployContractTx {
 }
 
 export interface BuildDeployContractTxResult {
+  /** @format int32 */
   fromGroup: number
+
+  /** @format int32 */
   toGroup: number
   unsignedTx: string
 
@@ -225,7 +247,10 @@ export interface BuildExecuteScriptTx {
 }
 
 export interface BuildExecuteScriptTxResult {
+  /** @format int32 */
   fromGroup: number
+
+  /** @format int32 */
   toGroup: number
   unsignedTx: string
 
@@ -259,6 +284,8 @@ export interface BuildMultisig {
 
 export interface BuildMultisigAddress {
   keys: string[]
+
+  /** @format int32 */
   mrequired: number
 }
 
@@ -286,7 +313,11 @@ export interface BuildSweepAddressTransactions {
 
 export interface BuildSweepAddressTransactionsResult {
   unsignedTxs: SweepAddressTransaction[]
+
+  /** @format int32 */
   fromGroup: number
+
+  /** @format int32 */
   toGroup: number
 }
 
@@ -314,11 +345,16 @@ export interface BuildTransactionResult {
 
   /** @format 32-byte-hash */
   txId: string
+
+  /** @format int32 */
   fromGroup: number
+
+  /** @format int32 */
   toGroup: number
 }
 
 export interface CallContract {
+  /** @format int32 */
   group: number
 
   /** @format block-hash */
@@ -329,6 +365,8 @@ export interface CallContract {
 
   /** @format address */
   address: string
+
+  /** @format int32 */
   methodIndex: number
   args?: Val[]
   existingContracts?: string[]
@@ -337,6 +375,8 @@ export interface CallContract {
 
 export interface CallContractResult {
   returns: Val[]
+
+  /** @format int32 */
   gasUsed: number
   contracts: ContractState[]
   txInputs: string[]
@@ -345,13 +385,20 @@ export interface CallContractResult {
 }
 
 export interface ChainInfo {
+  /** @format int32 */
   currentHeight: number
 }
 
 export interface ChainParams {
   networkId: number
+
+  /** @format int32 */
   numZerosAtLeastInHash: number
+
+  /** @format int32 */
   groupNumPerBroker: number
+
+  /** @format int32 */
   groups: number
 }
 
@@ -379,9 +426,17 @@ export interface CompileScriptResult {
 export interface Confirmed {
   /** @format block-hash */
   blockHash: string
+
+  /** @format int32 */
   txIndex: number
+
+  /** @format int32 */
   chainConfirmations: number
+
+  /** @format int32 */
   fromGroupConfirmations: number
+
+  /** @format int32 */
   toGroupConfirmations: number
   type: string
 }
@@ -396,6 +451,8 @@ export interface ContractEvent {
 
   /** @format 32-byte-hash */
   txId: string
+
+  /** @format int32 */
   eventIndex: number
   fields: Val[]
 }
@@ -406,21 +463,28 @@ export interface ContractEventByTxId {
 
   /** @format address */
   contractAddress: string
+
+  /** @format int32 */
   eventIndex: number
   fields: Val[]
 }
 
 export interface ContractEvents {
   events: ContractEvent[]
+
+  /** @format int32 */
   nextStart: number
 }
 
 export interface ContractEventsByTxId {
   events: ContractEventByTxId[]
+
+  /** @format int32 */
   nextStart: number
 }
 
 export interface ContractOutput {
+  /** @format int32 */
   hint: number
 
   /** @format 32-byte-hash */
@@ -456,7 +520,10 @@ export interface DecodeUnsignedTx {
 }
 
 export interface DecodeUnsignedTxResult {
+  /** @format int32 */
   fromGroup: number
+
+  /** @format int32 */
   toGroup: number
   unsignedTx: UnsignedTx
 }
@@ -496,6 +563,7 @@ export interface FieldsSig {
 }
 
 export interface FixedAssetOutput {
+  /** @format int32 */
   hint: number
 
   /** @format 32-byte-hash */
@@ -524,6 +592,7 @@ export interface FunctionSig {
 }
 
 export interface Group {
+  /** @format int32 */
   group: number
 }
 
@@ -534,11 +603,15 @@ export interface HashesAtHeight {
 export interface InterCliquePeerInfo {
   /** @format clique-id */
   cliqueId: string
+
+  /** @format int32 */
   brokerId: number
+
+  /** @format int32 */
   groupNumPerBroker: number
 
   /** @format inet-socket-address */
-  address: string
+  address: { addr: string; port: number }
   isSynced: boolean
   clientVersion: string
 }
@@ -566,7 +639,7 @@ export interface NodeInfo {
   upnp: boolean
 
   /** @format inet-socket-address */
-  externalAddress?: string
+  externalAddress?: { addr: string; port: number }
 }
 
 export interface NodeVersion {
@@ -581,6 +654,7 @@ export interface NotFound {
 export type Output = AssetOutput | ContractOutput
 
 export interface OutputRef {
+  /** @format int32 */
   hint: number
 
   /** @format 32-byte-hash */
@@ -590,8 +664,14 @@ export interface OutputRef {
 export interface PeerAddress {
   /** @format inet-address */
   address: string
+
+  /** @format int32 */
   restPort: number
+
+  /** @format int32 */
   wsPort: number
+
+  /** @format int32 */
   minerApiPort: number
 }
 
@@ -604,6 +684,7 @@ export interface PeerMisbehavior {
 export type PeerStatus = Banned | Penalty
 
 export interface Penalty {
+  /** @format int32 */
   value: number
   type: string
 }
@@ -614,8 +695,13 @@ export interface Reachable {
 }
 
 export interface ReleaseVersion {
+  /** @format int32 */
   major: number
+
+  /** @format int32 */
   minor: number
+
+  /** @format int32 */
   patch: number
 }
 
@@ -667,7 +753,11 @@ export interface SubmitTransaction {
 export interface SubmitTxResult {
   /** @format 32-byte-hash */
   txId: string
+
+  /** @format int32 */
   fromGroup: number
+
+  /** @format int32 */
   toGroup: number
 }
 
@@ -683,6 +773,8 @@ export interface Sweep {
 
   /** @format uint256 */
   gasPrice?: string
+
+  /** @format int32 */
   utxosLimit?: number
 }
 
@@ -699,6 +791,7 @@ export interface SweepAddressTransaction {
 }
 
 export interface TestContract {
+  /** @format int32 */
   group?: number
 
   /** @format block-hash */
@@ -714,6 +807,8 @@ export interface TestContract {
   bytecode: string
   initialFields?: Val[]
   initialAsset?: AssetState
+
+  /** @format int32 */
   methodIndex?: number
   args?: Val[]
   existingContracts?: ContractState[]
@@ -727,6 +822,8 @@ export interface TestContractResult {
   /** @format 32-byte-hash */
   codeHash: string
   returns: Val[]
+
+  /** @format int32 */
   gasUsed: number
   contracts: ContractState[]
   txInputs: string[]
@@ -771,6 +868,8 @@ export interface Transfer {
 
   /** @format uint256 */
   gasPrice?: string
+
+  /** @format int32 */
   utxosLimit?: number
 }
 
@@ -824,7 +923,10 @@ export interface Unban {
 }
 
 export interface UnconfirmedTransactions {
+  /** @format int32 */
   fromGroup: number
+
+  /** @format int32 */
   toGroup: number
   unconfirmedTransactions: TransactionTemplate[]
 }
@@ -842,6 +944,8 @@ export interface UnsignedTx {
 
   /** @format script */
   scriptOpt?: string
+
+  /** @format int32 */
   gasAmount: number
 
   /** @format uint256 */
@@ -875,6 +979,7 @@ export interface ValByteVec {
 }
 
 export interface ValI256 {
+  /** @format bigint */
   value: string
   type: string
 }
@@ -1157,7 +1262,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.4.0
+ * @version 1.4.2
  * @baseUrl {protocol}://{host}:{port}
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
