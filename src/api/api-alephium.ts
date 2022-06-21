@@ -96,6 +96,8 @@ export interface Balance {
 
   /** @format x.x ALPH */
   lockedBalanceHint: string
+  tokenBalances?: Token[]
+  lockedTokenBalances?: Token[]
 
   /** @format int32 */
   utxoNum: number
@@ -183,7 +185,7 @@ export interface BrokerInfo {
   brokerNum: number
 
   /** @format inet-socket-address */
-  address: { addr: string; port: number }
+  address: string
 }
 
 export interface BuildDeployContractTx {
@@ -611,7 +613,7 @@ export interface InterCliquePeerInfo {
   groupNumPerBroker: number
 
   /** @format inet-socket-address */
-  address: { addr: string; port: number }
+  address: string
   isSynced: boolean
   clientVersion: string
 }
@@ -639,7 +641,7 @@ export interface NodeInfo {
   upnp: boolean
 
   /** @format inet-socket-address */
-  externalAddress?: { addr: string; port: number }
+  externalAddress?: string
 }
 
 export interface NodeVersion {
@@ -1262,7 +1264,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.4.2
+ * @version 1.4.1
  * @baseUrl {protocol}://{host}:{port}
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

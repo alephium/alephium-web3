@@ -17,13 +17,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { NodeProvider } from '../src/api'
-import { subscribe, Subscription } from '../src/contract/events'
+import { subscribe } from '../src/contract/events'
 import { Contract, Script } from '../src/contract'
 import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
-import { node } from '../src/api'
+import { ContractEvent } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
+import { SubscribeOptions } from '../src/utils'
 
-describe('events', function () {
+describe('events', function() {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
     const sub = await Contract.fromSource(provider, 'sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
@@ -56,22 +57,21 @@ describe('events', function () {
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(provider, signer)
-    const events: Array<node.ContractEvent> = []
-    const subscriptOptions = {
+    const events: Array<ContractEvent> = []
+    const subscriptOptions: SubscribeOptions<ContractEvent> = {
       provider: provider,
-      contractAddress: contractAddress,
       pollingInterval: 500,
-      eventCallback: (event: node.ContractEvent): Promise<void> => {
+      messageCallback: (event: ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },
-      errorCallback: (error: any, subscription: Subscription): Promise<void> => {
+      errorCallback: (error: any, subscription): Promise<void> => {
         console.log(error)
         subscription.unsubscribe()
         return Promise.resolve()
       }
     }
-    const subscription = subscribe(subscriptOptions)
+    const subscription = subscribe(subscriptOptions, contractAddress)
     const script = await Script.fromSource(provider, 'main.ral')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
@@ -97,22 +97,21 @@ describe('events', function () {
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(provider, signer)
-    const events: Array<node.ContractEvent> = []
+    const events: Array<ContractEvent> = []
     const subscriptOptions = {
       provider: provider,
-      contractAddress: contractAddress,
       pollingInterval: 500,
-      eventCallback: (event: node.ContractEvent): Promise<void> => {
+      messageCallback: (event: ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },
-      errorCallback: (error: any, subscription: Subscription): Promise<void> => {
+      errorCallback: (error: any, subscription): Promise<void> => {
         console.log(error)
         subscription.unsubscribe()
         return Promise.resolve()
       }
     }
-    const subscription = subscribe(subscriptOptions)
+    const subscription = subscribe(subscriptOptions, contractAddress)
     const script = await Script.fromSource(provider, 'main.ral')
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
