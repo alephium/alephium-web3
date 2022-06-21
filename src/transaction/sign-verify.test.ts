@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import EC from 'elliptic'
 import assert from 'assert'
 
-import { transactionSign, transactionVerifySignature } from './transaction'
+import { transactionSign, transactionVerifySignature } from './sign-verify'
 
 describe('transaction', function () {
   it('should verify signature', () => {

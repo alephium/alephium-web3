@@ -17,11 +17,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { NodeProvider } from '../src/api'
-import { subscribe, Subscription } from '../src/contract/events'
+import { subscribeToEvents } from '../src/contract/events'
 import { Contract, Script } from '../src/contract'
 import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
-import { node } from '../src/api'
+import { ContractEvent } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
+import { SubscribeOptions, timeout } from '../src/utils'
 
 describe('events', function () {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
@@ -56,29 +57,28 @@ describe('events', function () {
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(provider, signer)
-    const events: Array<node.ContractEvent> = []
-    const subscriptOptions = {
+    const events: Array<ContractEvent> = []
+    const subscriptOptions: SubscribeOptions<ContractEvent> = {
       provider: provider,
-      contractAddress: contractAddress,
       pollingInterval: 500,
-      eventCallback: (event: node.ContractEvent): Promise<void> => {
+      messageCallback: (event: ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },
-      errorCallback: (error: any, subscription: Subscription): Promise<void> => {
+      errorCallback: (error: any, subscription): Promise<void> => {
         console.log(error)
         subscription.unsubscribe()
         return Promise.resolve()
       }
     }
-    const subscription = subscribe(subscriptOptions)
+    const subscription = subscribeToEvents(subscriptOptions, contractAddress)
     const script = await Script.fromSource(provider, 'main.ral')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
       signerAddress: (await signer.getAccounts())[0].address
     })
     await executeScript(scriptTxParams, signer, 3)
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await timeout(3000)
 
     expect(events.length).toEqual(3)
     events.forEach((event) => {
@@ -90,35 +90,34 @@ describe('events', function () {
     expect(subscription.currentEventCount()).toEqual(events.length)
 
     subscription.unsubscribe()
-  })
+  }, 15000)
 
   it('should cancel event subscription', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(provider, signer)
-    const events: Array<node.ContractEvent> = []
+    const events: Array<ContractEvent> = []
     const subscriptOptions = {
       provider: provider,
-      contractAddress: contractAddress,
       pollingInterval: 500,
-      eventCallback: (event: node.ContractEvent): Promise<void> => {
+      messageCallback: (event: ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },
-      errorCallback: (error: any, subscription: Subscription): Promise<void> => {
+      errorCallback: (error: any, subscription): Promise<void> => {
         console.log(error)
         subscription.unsubscribe()
         return Promise.resolve()
       }
     }
-    const subscription = subscribe(subscriptOptions)
+    const subscription = subscribeToEvents(subscriptOptions, contractAddress)
     const script = await Script.fromSource(provider, 'main.ral')
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })
     await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
     subscription.unsubscribe()
 
     expect(events.length).toEqual(1)
@@ -133,7 +132,7 @@ describe('events', function () {
       initialFields: { addContractId: contractId }
     })
     await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
     expect(events.length).toEqual(1)
   })
 })

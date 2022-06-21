@@ -96,6 +96,8 @@ export interface Balance {
 
   /** @format x.x ALPH */
   lockedBalanceHint: string
+  tokenBalances?: Token[]
+  lockedTokenBalances?: Token[]
 
   /** @format int32 */
   utxoNum: number
