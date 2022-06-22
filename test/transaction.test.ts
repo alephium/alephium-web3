@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { NodeProvider } from '../src/api'
-import { subscribe } from '../src/transaction/status'
+import { subscribeToTxStatus } from '../src/transaction/status'
 import { Contract } from '../src/contract'
 import { TxStatus } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
@@ -51,7 +51,8 @@ describe('transactions', function() {
     }
 
     const counterBeforeSubscribe = counter
-    const subscription = subscribe(subscriptOptions, subDeployTx.txId)
+
+    const subscription = subscribeToTxStatus(subscriptOptions, subDeployTx.txId)
     await new Promise((resolve) => setTimeout(resolve, 1500))
     expect(txStatus).toMatchObject({ type: 'TxNotFound' })
 

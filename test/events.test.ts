@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { NodeProvider } from '../src/api'
-import { subscribe } from '../src/contract/events'
+import { subscribeToEvents } from '../src/contract/events'
 import { Contract, Script } from '../src/contract'
 import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { ContractEvent } from '../src/api/api-alephium'
@@ -71,7 +71,7 @@ describe('events', function() {
         return Promise.resolve()
       }
     }
-    const subscription = subscribe(subscriptOptions, contractAddress)
+    const subscription = subscribeToEvents(subscriptOptions, contractAddress)
     const script = await Script.fromSource(provider, 'main.ral')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
@@ -90,7 +90,7 @@ describe('events', function() {
     expect(subscription.currentEventCount()).toEqual(events.length)
 
     subscription.unsubscribe()
-  })
+  }, 15000)
 
   it('should cancel event subscription', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
@@ -111,7 +111,7 @@ describe('events', function() {
         return Promise.resolve()
       }
     }
-    const subscription = subscribe(subscriptOptions, contractAddress)
+    const subscription = subscribeToEvents(subscriptOptions, contractAddress)
     const script = await Script.fromSource(provider, 'main.ral')
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }

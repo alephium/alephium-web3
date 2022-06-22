@@ -70,7 +70,7 @@ export class EventSubscription extends Subscription<ContractEvent> {
   }
 }
 
-export function subscribe(
+export function subscribeToEvents(
   options: SubscribeOptions<ContractEvent>,
   contractAddress: string,
   fromCount?: number

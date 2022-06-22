@@ -53,7 +53,7 @@ export class TxStatusSubscription extends Subscription<TxStatus> {
   }
 }
 
-export function subscribe(
+export function subscribeToTxStatus(
   options: SubscribeOptions<TxStatus>,
   txId: string,
   fromGroup?: number,
