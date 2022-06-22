@@ -21,7 +21,7 @@ import { subscribeToTxStatus } from '../src/transaction/status'
 import { Contract } from '../src/contract'
 import { TxStatus } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
-import { SubscribeOptions } from '../src/utils'
+import { SubscribeOptions, timeout } from '../src/utils'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
@@ -53,11 +53,11 @@ describe('transactions', function () {
     const counterBeforeSubscribe = counter
 
     const subscription = subscribeToTxStatus(subscriptOptions, subDeployTx.txId)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'TxNotFound' })
 
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
 
     expect(counterBeforeSubscribe).toBeLessThan(counter)
@@ -65,8 +65,8 @@ describe('transactions', function () {
     subscription.unsubscribe()
 
     const counterAfterUnsubscribe = counter
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
     expect(counterAfterUnsubscribe).toEqual(counter)
-  })
+  }, 10000)
 })

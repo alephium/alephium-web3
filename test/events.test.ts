@@ -22,7 +22,7 @@ import { Contract, Script } from '../src/contract'
 import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { ContractEvent } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
-import { SubscribeOptions } from '../src/utils'
+import { SubscribeOptions, timeout } from '../src/utils'
 
 describe('events', function () {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
@@ -78,7 +78,7 @@ describe('events', function () {
       signerAddress: (await signer.getAccounts())[0].address
     })
     await executeScript(scriptTxParams, signer, 3)
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    await timeout(3000)
 
     expect(events.length).toEqual(3)
     events.forEach((event) => {
@@ -117,7 +117,7 @@ describe('events', function () {
       initialFields: { addContractId: contractId }
     })
     await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
     subscription.unsubscribe()
 
     expect(events.length).toEqual(1)
@@ -132,7 +132,7 @@ describe('events', function () {
       initialFields: { addContractId: contractId }
     })
     await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId)
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await timeout(1500)
     expect(events.length).toEqual(1)
   })
 })
