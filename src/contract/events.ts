@@ -17,9 +17,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ContractEvent } from '../api/api-alephium'
-import { Subscription as SubscriptionBase, SubscribeOptions } from '../utils'
+import { Subscription, SubscribeOptions } from '../utils'
 
-export class Subscription extends SubscriptionBase<ContractEvent> {
+export class EventSubscription extends Subscription<ContractEvent> {
   readonly contractAddress: string
   private fromCount: number
 
@@ -74,6 +74,6 @@ export function subscribe(
   options: SubscribeOptions<ContractEvent>,
   contractAddress: string,
   fromCount?: number
-): Subscription {
-  return new Subscription(options, contractAddress, fromCount)
+): EventSubscription {
+  return new EventSubscription(options, contractAddress, fromCount)
 }
