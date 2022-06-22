@@ -185,7 +185,7 @@ export interface BrokerInfo {
   brokerNum: number
 
   /** @format inet-socket-address */
-  address: string
+  address: { addr: string; port: number }
 }
 
 export interface BuildDeployContractTx {
@@ -613,7 +613,7 @@ export interface InterCliquePeerInfo {
   groupNumPerBroker: number
 
   /** @format inet-socket-address */
-  address: string
+  address: { addr: string; port: number }
   isSynced: boolean
   clientVersion: string
 }
@@ -641,7 +641,7 @@ export interface NodeInfo {
   upnp: boolean
 
   /** @format inet-socket-address */
-  externalAddress?: string
+  externalAddress?: { addr: string; port: number }
 }
 
 export interface NodeVersion {
@@ -1264,7 +1264,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.4.1
+ * @version 1.4.2
  * @baseUrl {protocol}://{host}:{port}
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
