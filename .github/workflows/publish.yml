@@ -25,6 +25,7 @@ jobs:
           dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo latest || echo "")
           dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] && echo rc || echo $dist_tag)
           dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-leman\.[0-9]+$ ]] && echo leman || echo $dist_tag)
+          dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-test\.[0-9]+$ ]] && echo test || echo $dist_tag)
           [ -z "$dist_tag" ] && echo "Distribution tag is not set to latest nor to rc nor to leman" && exit 1
           echo ::set-output name=DIST_TAG::$dist_tag
         shell: bash
