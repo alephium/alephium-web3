@@ -27,11 +27,30 @@ import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerWithNodePr
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 
+class SourceFile {
+  readonly dirs: string[]
+  readonly dirPath: string
+  readonly contractPath: string
+  readonly artifactPath: string
+
+  constructor(dirs: string[], fileName: string) {
+    this.dirs = dirs
+    this.dirPath = dirs.length === 0 ? '' : dirs.join('/') + '/'
+    if (fileName.endsWith('.json')) {
+      this.contractPath = './contracts/' + this.dirPath + fileName.slice(0, -5)
+      this.artifactPath = './artifacts/' + this.dirPath + fileName
+    } else {
+      this.contractPath = './contracts/' + this.dirPath + fileName
+      this.artifactPath = './artifacts/' + this.dirPath + fileName + '.json'
+    }
+  }
+}
+
 export abstract class Common {
   readonly sourceCodeSha256: string
   readonly functions: node.FunctionSig[]
 
-  static readonly importRegex = new RegExp('^import "[a-z][a-z_0-9]*.ral"', 'mg')
+  static readonly importRegex = new RegExp('^import "([^"/]+/(([^"]+)/)?)?[a-z][a-z_0-9]*.ral"', 'mg')
   static readonly contractRegex = new RegExp('^TxContract [A-Z][a-zA-Z0-9]*', 'mg')
   static readonly interfaceRegex = new RegExp('^Interface [A-Z][a-zA-Z0-9]* \\{', 'mg')
   static readonly scriptRegex = new RegExp('^TxScript [A-Z][a-zA-Z0-9]*', 'mg')
@@ -56,38 +75,53 @@ export abstract class Common {
     this.functions = functions
   }
 
-  protected static _contractPath(fileName: string): string {
-    if (fileName.endsWith('.json')) {
-      return `./contracts/${fileName.slice(0, -5)}`
-    } else {
-      return `./contracts/${fileName}`
-    }
-  }
-
-  protected static _artifactPath(fileName: string): string {
-    if (fileName.endsWith('.json')) {
-      return `./artifacts/${fileName}`
-    } else {
-      return `./artifacts/${fileName}.json`
-    }
-  }
-
   protected static _artifactsFolder(): string {
     return './artifacts/'
   }
 
-  protected static async _handleImports(contractStr: string, importsCache: string[]): Promise<string> {
+  static getSourceFile(path: string, _dirs: string[]): SourceFile {
+    const parts = path.split('/')
+    const dirs = Array.from(_dirs)
+    if (parts.length === 1) {
+      return new SourceFile(dirs, path)
+    }
+    parts.slice(0, parts.length - 1).forEach((part) => {
+      switch (part) {
+        case '.': {
+          break
+        }
+        case '..': {
+          if (dirs.length === 0) {
+            throw new Error('Invalid file path: ' + path)
+          }
+          dirs.pop()
+          break
+        }
+        default: {
+          dirs.push(part)
+        }
+      }
+    })
+    return new SourceFile(dirs, parts[parts.length - 1])
+  }
+
+  protected static async _handleImports(
+    pathes: string[],
+    contractStr: string,
+    importsCache: string[]
+  ): Promise<string> {
     const localImportsCache: string[] = []
     let result = contractStr.replace(Common.importRegex, (match) => {
       localImportsCache.push(match)
       return ''
     })
     for (const myImport of localImportsCache) {
-      const fileName = myImport.slice(8, -1)
-      if (!importsCache.includes(fileName)) {
-        importsCache.push(fileName)
-        const importContractStr = await Common._loadContractStr(fileName, importsCache, (code) =>
-          Contract.checkCodeType(fileName, code)
+      const relativePath = myImport.slice(8, -1)
+      const importSourceFile = this.getSourceFile(relativePath, pathes)
+      if (!importsCache.includes(importSourceFile.contractPath)) {
+        importsCache.push(importSourceFile.contractPath)
+        const importContractStr = await Common._loadContractStr(importSourceFile, importsCache, (code) =>
+          Contract.checkCodeType(importSourceFile.contractPath, code)
         )
         result = result.concat('\n', importContractStr)
       }
@@ -96,16 +130,16 @@ export abstract class Common {
   }
 
   protected static async _loadContractStr(
-    fileName: string,
+    sourceFile: SourceFile,
     importsCache: string[],
-    validate: (fileName: string) => void
+    validate: (code: string) => void
   ): Promise<string> {
-    const contractPath = this._contractPath(fileName)
+    const contractPath = sourceFile.contractPath
     const contractBuffer = await fsPromises.readFile(contractPath)
     const contractStr = contractBuffer.toString()
 
     validate(contractStr)
-    return Common._handleImports(contractStr, importsCache)
+    return Common._handleImports(sourceFile.dirs, contractStr, importsCache)
   }
 
   static checkFileNameExtension(fileName: string): void {
@@ -116,25 +150,28 @@ export abstract class Common {
 
   protected static async _from<T extends { sourceCodeSha256: string }>(
     provider: NodeProvider,
-    fileName: string,
-    loadContractStr: (fileName: string, importsCache: string[]) => Promise<string>,
-    compile: (provider: NodeProvider, fileName: string, contractStr: string, contractHash: string) => Promise<T>
+    sourceFile: SourceFile,
+    loadContractStr: (sourceFile: SourceFile, importsCache: string[]) => Promise<string>,
+    compile: (provider: NodeProvider, sourceFile: SourceFile, contractStr: string, contractHash: string) => Promise<T>
   ): Promise<T> {
-    Common.checkFileNameExtension(fileName)
+    Common.checkFileNameExtension(sourceFile.contractPath)
 
-    const contractStr = await loadContractStr(fileName, [])
+    const contractStr = await loadContractStr(sourceFile, [])
     const contractHash = cryptojs.SHA256(contractStr).toString()
     const existingContract = this._getArtifactFromCache(contractHash)
     if (typeof existingContract !== 'undefined') {
       return existingContract as unknown as T
     } else {
-      return compile(provider, fileName, contractStr, contractHash)
+      return compile(provider, sourceFile, contractStr, contractHash)
     }
   }
 
-  protected _saveToFile(fileName: string): Promise<void> {
-    const artifactPath = Common._artifactPath(fileName)
-    return fsPromises.writeFile(artifactPath, this.toString())
+  protected _saveToFile(sourceFile: SourceFile): Promise<void> {
+    const folder = Common._artifactsFolder() + sourceFile.dirPath
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true })
+    }
+    return fsPromises.writeFile(sourceFile.artifactPath, this.toString())
   }
 
   abstract buildByteCodeToDeploy(initialFields?: Fields): string
@@ -163,32 +200,38 @@ export class Contract extends Common {
 
   static checkCodeType(fileName: string, contractStr: string): void {
     const interfaceMatches = contractStr.match(Contract.interfaceRegex)
-    if (interfaceMatches) {
-      return
-    }
-
     const contractMatches = contractStr.match(Contract.contractRegex)
-    if (contractMatches === null) {
+    if (interfaceMatches === null && contractMatches === null) {
       throw new Error(`No contract found in: ${fileName}`)
-    } else if (contractMatches.length > 1) {
-      throw new Error(`Multiple contracts in: ${fileName}`)
-    } else {
-      return
+    }
+    if (interfaceMatches && contractMatches) {
+      throw new Error(`Multiple contracts and interfaces in: ${fileName}`)
+    }
+    if (interfaceMatches === null) {
+      if (contractMatches !== null && contractMatches.length > 1) {
+        throw new Error(`Multiple contracts in: ${fileName}`)
+      }
+    }
+    if (contractMatches === null) {
+      if (interfaceMatches !== null && interfaceMatches.length > 1) {
+        throw new Error(`Multiple interfaces in: ${fileName}`)
+      }
     }
   }
 
-  private static async loadContractStr(fileName: string, importsCache: string[]): Promise<string> {
-    return Common._loadContractStr(fileName, importsCache, (code) => Contract.checkCodeType(fileName, code))
+  private static async loadContractStr(sourceFile: SourceFile): Promise<string> {
+    return Common._loadContractStr(sourceFile, [], (code) => Contract.checkCodeType(sourceFile.contractPath, code))
   }
 
-  static async fromSource(provider: NodeProvider, fileName: string): Promise<Contract> {
+  static async fromSource(provider: NodeProvider, path: string): Promise<Contract> {
     if (!fs.existsSync(Common._artifactsFolder())) {
       fs.mkdirSync(Common._artifactsFolder(), { recursive: true })
     }
+    const sourceFile = this.getSourceFile(path, [])
     const contract = await Common._from(
       provider,
-      fileName,
-      (fileName, importCaches) => Contract.loadContractStr(fileName, importCaches),
+      sourceFile,
+      (sourceFile) => Contract.loadContractStr(sourceFile),
       Contract.compile
     )
     this._putArtifactToCache(contract)
@@ -197,7 +240,7 @@ export class Contract extends Common {
 
   private static async compile(
     provider: NodeProvider,
-    fileName: string,
+    sourceFile: SourceFile,
     contractStr: string,
     contractHash: string
   ): Promise<Contract> {
@@ -210,7 +253,7 @@ export class Contract extends Common {
       compiled.events,
       compiled.functions
     )
-    await artifact._saveToFile(fileName)
+    await artifact._saveToFile(sourceFile)
     return artifact
   }
 
@@ -239,8 +282,9 @@ export class Contract extends Common {
   }
 
   // support both 'code.ral' and 'code.ral.json'
-  static async fromArtifactFile(fileName: string): Promise<Contract> {
-    const artifactPath = Contract._artifactPath(fileName)
+  static async fromArtifactFile(path: string): Promise<Contract> {
+    const sourceFile = this.getSourceFile(path, [])
+    const artifactPath = sourceFile.artifactPath
     const content = await fsPromises.readFile(artifactPath)
     const artifact = JSON.parse(content.toString())
     return Contract.fromJson(artifact)
@@ -518,28 +562,24 @@ export class Script extends Common {
     }
   }
 
-  private static async loadContractStr(fileName: string, importsCache: string[]): Promise<string> {
-    return Common._loadContractStr(fileName, importsCache, (code) => Script.checkCodeType(fileName, code))
+  private static async loadContractStr(sourceFile: SourceFile): Promise<string> {
+    return Common._loadContractStr(sourceFile, [], (code) => Script.checkCodeType(sourceFile.contractPath, code))
   }
 
-  static async fromSource(provider: NodeProvider, fileName: string): Promise<Script> {
-    return Common._from(
-      provider,
-      fileName,
-      (fileName, importsCache) => Script.loadContractStr(fileName, importsCache),
-      Script.compile
-    )
+  static async fromSource(provider: NodeProvider, path: string): Promise<Script> {
+    const sourceFile = this.getSourceFile(path, [])
+    return Common._from(provider, sourceFile, (sourceFile) => Script.loadContractStr(sourceFile), Script.compile)
   }
 
   private static async compile(
     provider: NodeProvider,
-    fileName: string,
+    sourceFile: SourceFile,
     scriptStr: string,
     contractHash: string
   ): Promise<Script> {
     const compiled = await provider.contracts.postContractsCompileScript({ code: scriptStr })
     const artifact = new Script(contractHash, compiled.bytecodeTemplate, compiled.fields, compiled.functions)
-    await artifact._saveToFile(fileName)
+    await artifact._saveToFile(sourceFile)
     return artifact
   }
 
@@ -556,8 +596,9 @@ export class Script extends Common {
     return new Script(artifact.sourceCodeSha256, artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
   }
 
-  static async fromArtifactFile(fileName: string): Promise<Script> {
-    const artifactPath = Common._artifactPath(fileName)
+  static async fromArtifactFile(path: string): Promise<Script> {
+    const sourceFile = this.getSourceFile(path, [])
+    const artifactPath = sourceFile.artifactPath
     const content = await fsPromises.readFile(artifactPath)
     const artifact = JSON.parse(content.toString())
     return this.fromJson(artifact)
