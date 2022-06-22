@@ -25,7 +25,7 @@ import { testWallet } from '../src/test'
 
 describe('events', function () {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
-    const sub = await Contract.fromSource(provider, 'sub.ral')
+    const sub = await Contract.fromSource(provider, 'sub/sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
       initialTokenAmounts: []
@@ -34,7 +34,7 @@ describe('events', function () {
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
-    const add = await Contract.fromSource(provider, 'add.ral')
+    const add = await Contract.fromSource(provider, 'add/add.ral')
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { subContractId: subContractId, result: 0 },
       initialTokenAmounts: []

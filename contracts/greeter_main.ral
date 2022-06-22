@@ -1,4 +1,4 @@
-import "greeter.ral"
+import "./greeter/greeter.ral"
 
 TxScript Main(greeterContractId: ByteVec) {
     let greeter0 = Greeter(greeterContractId)
