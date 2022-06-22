@@ -23,11 +23,7 @@ export class EventSubscription extends Subscription<ContractEvent> {
   readonly contractAddress: string
   private fromCount: number
 
-  constructor(
-    options: SubscribeOptions<ContractEvent>,
-    contractAddress: string,
-    fromCount?: number
-  ) {
+  constructor(options: SubscribeOptions<ContractEvent>, contractAddress: string, fromCount?: number) {
     super(options)
     this.contractAddress = contractAddress
     this.fromCount = typeof fromCount === 'undefined' ? 0 : fromCount

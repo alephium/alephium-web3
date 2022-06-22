@@ -24,12 +24,7 @@ export class TxStatusSubscription extends Subscription<TxStatus> {
   readonly fromGroup?: number
   readonly toGroup?: number
 
-  constructor(
-    options: SubscribeOptions<TxStatus>,
-    txId: string,
-    fromGroup?: number,
-    toGroup?: number
-  ) {
+  constructor(options: SubscribeOptions<TxStatus>, txId: string, fromGroup?: number, toGroup?: number) {
     super(options)
     this.txId = txId
     this.fromGroup = fromGroup

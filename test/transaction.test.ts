@@ -23,7 +23,7 @@ import { TxStatus } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
 import { SubscribeOptions } from '../src/utils'
 
-describe('transactions', function() {
+describe('transactions', function () {
   it('should subscribe transaction status', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
     const sub = await Contract.fromSource(provider, 'sub.ral')
@@ -33,8 +33,8 @@ describe('transactions', function() {
       initialTokenAmounts: []
     })
 
-    var txStatus: TxStatus | undefined = undefined
-    var counter = 0
+    let txStatus: TxStatus | undefined = undefined
+    let counter = 0
     const subscriptOptions: SubscribeOptions<TxStatus> = {
       provider: provider,
       pollingInterval: 500,

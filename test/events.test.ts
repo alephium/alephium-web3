@@ -24,7 +24,7 @@ import { ContractEvent } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
 import { SubscribeOptions } from '../src/utils'
 
-describe('events', function() {
+describe('events', function () {
   async function deployContract(provider: NodeProvider, signer: NodeWallet): Promise<[string, string]> {
     const sub = await Contract.fromSource(provider, 'sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {

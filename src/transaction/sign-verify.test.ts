@@ -21,7 +21,7 @@ import assert from 'assert'
 
 import { transactionSign, transactionVerifySignature } from './sign-verify'
 
-describe('transaction', function() {
+describe('transaction', function () {
   it('should verify signature', () => {
     const txHash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
     const pubKey = '02625b26ae1c5f7986475009e4037b3e6fe6320fde3c3f3332bea11ecadc35dd13'

@@ -23,7 +23,7 @@ type MessageCallback<Message> = (message: Message) => Promise<void>
 type ErrorCallback<Message> = (error: any, subscription: Subscription<Message>) => Promise<void>
 
 export interface SubscribeOptions<Message> {
-  provider: NodeProvider,
+  provider: NodeProvider
   pollingInterval: number
   messageCallback: MessageCallback<Message>
   errorCallback: ErrorCallback<Message>
