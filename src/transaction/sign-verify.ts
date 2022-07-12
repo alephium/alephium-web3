@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC } from 'elliptic'
 
-import * as utils from './utils'
+import * as utils from '../utils'
 
 const ec = new EC('secp256k1')
 

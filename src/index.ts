@@ -20,5 +20,6 @@ export * from './api'
 export * from './contract'
 export * from './signer'
 export * from './utils'
+export * from './transaction'
 
 export * from './constants'

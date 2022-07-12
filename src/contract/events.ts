@@ -16,64 +16,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import EventEmitter from 'eventemitter3'
-import { node } from '../api'
-import { NodeProvider } from '../api'
+import { ContractEvent } from '../api/api-alephium'
+import { Subscription, SubscribeOptions } from '../utils'
 
-type EventCallback = (event: node.ContractEvent) => Promise<void>
-type ErrorCallback = (error: any, subscription: Subscription) => Promise<void>
-
-export interface SubscribeOptions {
-  provider: NodeProvider
-  contractAddress: string
-  fromCount?: number
-  pollingInterval: number
-  eventCallback: EventCallback
-  errorCallback: ErrorCallback
-}
-
-export class Subscription {
-  provider: NodeProvider
+export class EventSubscription extends Subscription<ContractEvent> {
   readonly contractAddress: string
-  pollingInterval: number
-
   private fromCount: number
-  private eventCallback: EventCallback
-  private errorCallback: ErrorCallback
-  private task: ReturnType<typeof setTimeout> | undefined
-  private cancelled: boolean
-  private eventEmitter: EventEmitter
 
-  constructor(options: SubscribeOptions) {
-    this.provider = options.provider
-    this.contractAddress = options.contractAddress
-    this.fromCount = typeof options.fromCount === 'undefined' ? 0 : options.fromCount
-    this.pollingInterval = options.pollingInterval
-    this.eventCallback = options.eventCallback
-    this.errorCallback = options.errorCallback
-    this.task = undefined
-    this.cancelled = false
+  constructor(options: SubscribeOptions<ContractEvent>, contractAddress: string, fromCount?: number) {
+    super(options)
+    this.contractAddress = contractAddress
+    this.fromCount = typeof fromCount === 'undefined' ? 0 : fromCount
 
-    this.eventEmitter = new EventEmitter()
-    this.eventEmitter.on('tick', async () => {
-      await this.fetchEvents()
-    })
-    this.eventEmitter.emit('tick')
+    this.startPolling()
   }
 
-  unsubscribe(): void {
-    this.eventEmitter.removeAllListeners()
-    this.cancelled = true
-    if (typeof this.task !== 'undefined') {
-      clearTimeout(this.task)
-    }
+  override startPolling() {
+    this.eventEmitter.on('tick', async () => {
+      await this.polling()
+    })
+    this.eventEmitter.emit('tick')
   }
 
   currentEventCount(): number {
     return this.fromCount
   }
 
-  private async fetchEvents() {
+  override async polling() {
     try {
       const events = await this.provider.events.getEventsContractContractaddress(this.contractAddress, {
         start: this.fromCount
@@ -87,16 +56,20 @@ export class Subscription {
         return
       }
 
-      const promises = events.events.map((event) => this.eventCallback(event))
+      const promises = events.events.map((event) => this.messageCallback(event))
       await Promise.all(promises)
       this.fromCount = events.nextStart
-      await this.fetchEvents()
+      await this.polling()
     } catch (err) {
       await this.errorCallback(err, this)
     }
   }
 }
 
-export function subscribe(options: SubscribeOptions): Subscription {
-  return new Subscription(options)
+export function subscribeToEvents(
+  options: SubscribeOptions<ContractEvent>,
+  contractAddress: string,
+  fromCount?: number
+): EventSubscription {
+  return new EventSubscription(options, contractAddress, fromCount)
 }

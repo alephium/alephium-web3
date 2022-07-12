@@ -154,7 +154,8 @@ describe('utils', function () {
     ).toBe('293c948c81c5a9495178fff8b8c9f29f4f3e09e1728c40e9253c87adf5e18770')
   })
 
-  it('should convert from string to hex', () => {
+  it('should convert from string to hex and back', () => {
     expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
+    expect(utils.hexToString('48656c6c6f20416c65706869756d21')).toBe('Hello Alephium!')
   })
 })
