@@ -22,6 +22,7 @@ import * as path from 'path'
 import { NodeProvider } from '../src/api'
 import { Contract, Script, TestContractParams } from '../src/contract'
 import { testWallet } from '../src/test'
+import { addressFromContractId } from '../src/utils'
 
 describe('contract', function () {
   async function testSuite1() {
@@ -61,6 +62,7 @@ describe('contract', function () {
       initialTokenAmounts: []
     })
     const subContractId = subDeployTx.contractId
+    const subContractAddress = addressFromContractId(subContractId)
     expect(subDeployTx.fromGroup).toEqual(0)
     expect(subDeployTx.toGroup).toEqual(0)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
@@ -80,8 +82,16 @@ describe('contract', function () {
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
 
     const addContractId = addDeployTx.contractId
-    const main = await Script.fromSource(provider, 'main.ral')
+    const addContractAddress = addressFromContractId(addContractId)
 
+    // Check state for add/sub before main script is executed
+    let fetchedSubState = await sub.fetchState(provider, subContractAddress, 0)
+    expect(fetchedSubState.fields.result).toEqual(0)
+    let fetchedAddState = await add.fetchState(provider, addContractAddress, 0)
+    expect(fetchedAddState.fields.subContractId).toEqual(subContractId)
+    expect(fetchedAddState.fields.result).toEqual(0)
+
+    const main = await Script.fromSource(provider, 'main.ral')
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { addContractId: addContractId }
     })
@@ -90,6 +100,13 @@ describe('contract', function () {
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
     expect(mainSubmitResult.fromGroup).toEqual(0)
     expect(mainSubmitResult.toGroup).toEqual(0)
+
+    // Check state for add/sub after main script is executed
+    fetchedSubState = await sub.fetchState(provider, subContractAddress, 0)
+    expect(fetchedSubState.fields.result).toEqual(1)
+    fetchedAddState = await add.fetchState(provider, addContractAddress, 0)
+    expect(fetchedAddState.fields.subContractId).toEqual(subContractId)
+    expect(fetchedAddState.fields.result).toEqual(3)
   }
 
   async function testSuite2() {
