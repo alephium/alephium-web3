@@ -1,4 +1,4 @@
-import "add.ral"
+import "./add/add.ral"
 
 TxScript Main(addContractId: ByteVec) {
     let add = Add(addContractId)

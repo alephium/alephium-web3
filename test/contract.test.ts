@@ -27,8 +27,8 @@ describe('contract', function () {
   async function testSuite1() {
     const provider = new NodeProvider('http://127.0.0.1:22973')
 
-    const add = await Contract.fromSource(provider, 'add.ral')
-    const sub = await Contract.fromSource(provider, 'sub.ral')
+    const add = await Contract.fromSource(provider, 'add/add.ral')
+    const sub = await Contract.fromSource(provider, 'sub/sub.ral')
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
@@ -95,7 +95,7 @@ describe('contract', function () {
   async function testSuite2() {
     const provider = new NodeProvider('http://127.0.0.1:22973')
 
-    const greeter = await Contract.fromSource(provider, 'greeter.ral')
+    const greeter = await Contract.fromSource(provider, 'greeter/greeter.ral')
 
     const testParams: TestContractParams = {
       initialFields: { btcPrice: 1 }
@@ -151,11 +151,11 @@ describe('contract', function () {
   }
 
   it('should load contract from json', async () => {
-    loadContract('./artifacts/add.ral.json')
-    loadContract('./artifacts/sub.ral.json')
+    loadContract('./artifacts/add/add.ral.json')
+    loadContract('./artifacts/sub/sub.ral.json')
     loadScript('./artifacts/main.ral.json')
 
-    loadContract('./artifacts/greeter.ral.json')
+    loadContract('./artifacts/greeter/greeter.ral.json')
     loadScript('./artifacts/greeter_main.ral.json')
   })
 })

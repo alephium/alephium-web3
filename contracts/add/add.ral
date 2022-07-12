@@ -1,4 +1,4 @@
-import "sub.ral"
+import "../sub/sub.ral"
 
 TxContract Add(subContractId: ByteVec, mut result : U256) {
     event Add(x: U256, y: U256)
