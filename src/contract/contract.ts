@@ -290,6 +290,11 @@ export class Contract extends Common {
     return Contract.fromJson(artifact)
   }
 
+  async fetchState(provider: NodeProvider, address: string, group: number): Promise<ContractState> {
+    const state = await provider.contracts.getContractsAddressState(address, { group: group })
+    return this.fromApiContractState(state)
+  }
+
   override toString(): string {
     return JSON.stringify(
       {
