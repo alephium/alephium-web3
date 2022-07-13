@@ -207,6 +207,9 @@ export interface BuildDeployContractTx {
 
   /** @format uint256 */
   gasPrice?: string
+
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 export interface BuildDeployContractTxResult {
@@ -246,6 +249,9 @@ export interface BuildExecuteScriptTx {
 
   /** @format uint256 */
   gasPrice?: string
+
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 export interface BuildExecuteScriptTxResult {
@@ -311,6 +317,9 @@ export interface BuildSweepAddressTransactions {
 
   /** @format uint256 */
   gasPrice?: string
+
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 export interface BuildSweepAddressTransactionsResult {
@@ -334,6 +343,9 @@ export interface BuildTransaction {
 
   /** @format uint256 */
   gasPrice?: string
+
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 export interface BuildTransactionResult {
@@ -778,6 +790,9 @@ export interface Sweep {
 
   /** @format int32 */
   utxosLimit?: number
+
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 export interface SweepAddressTransaction {
@@ -1264,7 +1279,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.4.2
+ * @version 1.5.0-rc0
  * @baseUrl {protocol}://{host}:{port}
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
