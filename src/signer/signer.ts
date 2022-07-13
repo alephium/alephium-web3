@@ -42,7 +42,7 @@ export interface Account {
 
 export type SubmitTx = { submitTx?: boolean }
 export type SignerAddress = { signerAddress: string }
-type TxBuildParams<T> = Omit<T, 'fromPublicKey'> & SignerAddress & SubmitTx
+type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress & SubmitTx
 
 export type GetAccountsParams = undefined
 export type GetAccountsResult = Account[]
