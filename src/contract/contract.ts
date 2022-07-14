@@ -51,7 +51,7 @@ export abstract class Common {
   readonly functions: node.FunctionSig[]
 
   static readonly importRegex = new RegExp('^import "([^"/]+/(([^"]+)/)?)?[a-z][a-z_0-9]*.ral"', 'mg')
-  static readonly contractRegex = new RegExp('^TxContract [A-Z][a-zA-Z0-9]*', 'mg')
+  static readonly contractRegex = new RegExp('^(Abstract )?TxContract [A-Z][a-zA-Z0-9]*', 'mg')
   static readonly interfaceRegex = new RegExp('^Interface [A-Z][a-zA-Z0-9]* \\{', 'mg')
   static readonly scriptRegex = new RegExp('^TxScript [A-Z][a-zA-Z0-9]*', 'mg')
 
