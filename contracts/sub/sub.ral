@@ -1,4 +1,4 @@
-TxContract Sub(mut result : U256) {
+Contract Sub(mut result : U256) {
     event Sub(x: U256, y: U256)
 
     pub fn sub(array: [U256; 2]) -> U256 {

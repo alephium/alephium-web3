@@ -1,6 +1,6 @@
 import "../sub/sub.ral"
 
-TxContract Add(subContractId: ByteVec, mut result : U256) {
+Contract Add(subContractId: ByteVec, mut result : U256) {
     event Add(x: U256, y: U256)
 
     pub fn add(array: [U256; 2]) -> ([U256; 2]) {

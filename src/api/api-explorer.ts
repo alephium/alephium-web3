@@ -847,6 +847,36 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/utils/sanity-check`,
         method: 'PUT',
         ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Update global log level, accepted: TRACE, DEBUG, INFO, WARN, ERROR
+     *
+     * @tags Utils
+     * @name PutUtilsUpdateGlobalLoglevel
+     * @request PUT:/utils/update-global-loglevel
+     */
+    putUtilsUpdateGlobalLoglevel: (data: 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR', params: RequestParams = {}) =>
+      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/update-global-loglevel`,
+        method: 'PUT',
+        body: data,
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Update logging file, only logback.xml is accepted
+     *
+     * @tags Utils
+     * @name PutUtilsUpdateLogConfig
+     * @request PUT:/utils/update-log-config
+     */
+    putUtilsUpdateLogConfig: (data: string, params: RequestParams = {}) =>
+      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/update-log-config`,
+        method: 'PUT',
+        body: data,
+        ...params
       }).then(convertHttpResponse)
   }
 }
