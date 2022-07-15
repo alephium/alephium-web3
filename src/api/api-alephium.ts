@@ -1114,7 +1114,7 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public baseUrl: string = '{protocol}://{host}:{port}'
+  public baseUrl: string = '../'
   private securityData: SecurityDataType | null = null
   private securityWorker?: ApiConfig<SecurityDataType>['securityWorker']
   private abortControllers = new Map<CancelToken, AbortController>()
@@ -1279,8 +1279,8 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.5.0-rc0
- * @baseUrl {protocol}://{host}:{port}
+ * @version 1.5.0
+ * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   wallets = {
