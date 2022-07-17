@@ -87,7 +87,8 @@ function prepareShared(packageRoot: string, projectRoot: string) {
 
 function prepareBase(packageRoot: string, projectRoot: string) {
   prepareShared(packageRoot, projectRoot)
-  copy('contracts', ['greeter.ral', 'greeter_interface.ral', 'greeter_main.ral'])
+  copy('contracts', ['greeter_main.ral'])
+  copy('contracts/greeter', ['greeter.ral', 'greeter_interface.ral'])
   fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
 }
 
