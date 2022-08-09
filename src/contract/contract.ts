@@ -341,7 +341,7 @@ export class Contract extends Common {
 
     const methodIndex =
       typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
-    const isPublic = this.functions[`${methodIndex}`].signature.indexOf('pub ') !== -1
+    const isPublic = this.functions[`${methodIndex}`].isPublic
     if (isPublic === expectPublic) {
       const result = await this.fromTestContractResult(methodIndex, apiResult)
       return result
@@ -450,14 +450,12 @@ export class Contract extends Common {
 
   static ContractCreatedEvent: node.EventSig = {
     name: 'ContractCreated',
-    signature: 'event ContractCreated(address:Address)',
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
 
   static ContractDestroyedEvent: node.EventSig = {
     name: 'ContractDestroyed',
-    signature: 'event ContractDestroyed(address:Address)',
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
@@ -923,7 +921,7 @@ function toApiFields(fields: Fields, fieldsSig: node.FieldsSig): node.Val[] {
 }
 
 function toApiArgs(args: Arguments, funcSig: node.FunctionSig): node.Val[] {
-  return toApiVals(args, funcSig.argNames, funcSig.argTypes)
+  return toApiVals(args, funcSig.paramNames, funcSig.paramTypes)
 }
 
 function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
