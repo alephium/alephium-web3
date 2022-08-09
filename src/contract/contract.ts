@@ -46,9 +46,13 @@ class SourceFile {
   }
 }
 
+type FieldsSig = node.FieldsSig
+type EventSig = node.EventSig
+type FunctionSig = node.FunctionSig
+
 export abstract class Common {
   readonly sourceCodeSha256: string
-  readonly functions: node.FunctionSig[]
+  readonly functions: FunctionSig[]
 
   static readonly importRegex = new RegExp('^import "([^"/]+/(([^"]+)/)?)?[a-z][a-z_0-9]*.ral"', 'mg')
   static readonly contractRegex = new RegExp('^(Abstract[ ]+)?Contract [A-Z][a-zA-Z0-9]*', 'mg')
@@ -70,7 +74,7 @@ export abstract class Common {
     }
   }
 
-  constructor(sourceCodeSha256: string, functions: node.FunctionSig[]) {
+  constructor(sourceCodeSha256: string, functions: FunctionSig[]) {
     this.sourceCodeSha256 = sourceCodeSha256
     this.functions = functions
   }
@@ -180,16 +184,16 @@ export abstract class Common {
 export class Contract extends Common {
   readonly bytecode: string
   readonly codeHash: string
-  readonly fieldsSig: node.FieldsSig
-  readonly eventsSig: node.EventSig[]
+  readonly fieldsSig: FieldsSig
+  readonly eventsSig: EventSig[]
 
   constructor(
     sourceCodeSha256: string,
     bytecode: string,
     codeHash: string,
-    fieldsSig: node.FieldsSig,
-    eventsSig: node.EventSig[],
-    functions: node.FunctionSig[]
+    fieldsSig: FieldsSig,
+    eventsSig: EventSig[],
+    functions: FunctionSig[]
   ) {
     super(sourceCodeSha256, functions)
     this.bytecode = bytecode
@@ -430,7 +434,7 @@ export class Contract extends Common {
     throw new Error(`Unknown code with code hash: ${codeHash}`)
   }
 
-  static async getFieldsSig(state: node.ContractState): Promise<node.FieldsSig> {
+  static async getFieldsSig(state: node.ContractState): Promise<FieldsSig> {
     return Contract.fromCodeHash(state.codeHash).then((contract) => contract.fieldsSig)
   }
 
@@ -448,13 +452,13 @@ export class Contract extends Common {
     }
   }
 
-  static ContractCreatedEvent: node.EventSig = {
+  static ContractCreatedEvent: EventSig = {
     name: 'ContractCreated',
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
 
-  static ContractDestroyedEvent: node.EventSig = {
+  static ContractDestroyedEvent: EventSig = {
     name: 'ContractDestroyed',
     fieldNames: ['address'],
     fieldTypes: ['Address']
@@ -464,7 +468,7 @@ export class Contract extends Common {
     event: node.ContractEventByTxId,
     codeHash: string | undefined
   ): Promise<ContractEventByTxId> {
-    let eventSig: node.EventSig
+    let eventSig: EventSig
 
     if (event.eventIndex == -1) {
       eventSig = this.ContractCreatedEvent
@@ -541,13 +545,13 @@ export class Contract extends Common {
 
 export class Script extends Common {
   readonly bytecodeTemplate: string
-  readonly fieldsSig: node.FieldsSig
+  readonly fieldsSig: FieldsSig
 
   constructor(
     sourceCodeSha256: string,
     bytecodeTemplate: string,
-    fieldsSig: node.FieldsSig,
-    functions: node.FunctionSig[]
+    fieldsSig: FieldsSig,
+    functions: FunctionSig[]
   ) {
     super(sourceCodeSha256, functions)
     this.bytecodeTemplate = bytecodeTemplate
@@ -893,7 +897,7 @@ export interface ContractState {
   initialStateHash?: string
   codeHash: string
   fields: Fields
-  fieldsSig: node.FieldsSig
+  fieldsSig: FieldsSig
   asset: Asset
 }
 
@@ -916,11 +920,11 @@ function toApiContractState(state: ContractState): node.ContractState {
   }
 }
 
-function toApiFields(fields: Fields, fieldsSig: node.FieldsSig): node.Val[] {
+function toApiFields(fields: Fields, fieldsSig: FieldsSig): node.Val[] {
   return toApiVals(fields, fieldsSig.names, fieldsSig.types)
 }
 
-function toApiArgs(args: Arguments, funcSig: node.FunctionSig): node.Val[] {
+function toApiArgs(args: Arguments, funcSig: FunctionSig): node.Val[] {
   return toApiVals(args, funcSig.paramNames, funcSig.paramTypes)
 }
 
