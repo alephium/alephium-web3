@@ -559,12 +559,7 @@ export class Script extends Common {
   readonly bytecodeTemplate: string
   readonly fieldsSig: FieldsSig
 
-  constructor(
-    sourceCodeSha256: string,
-    bytecodeTemplate: string,
-    fieldsSig: FieldsSig,
-    functions: FunctionSig[]
-  ) {
+  constructor(sourceCodeSha256: string, bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[]) {
     super(sourceCodeSha256, functions)
     this.bytecodeTemplate = bytecodeTemplate
     this.fieldsSig = fieldsSig

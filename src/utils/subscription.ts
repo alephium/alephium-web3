@@ -49,7 +49,7 @@ export abstract class Subscription<Message> {
     this.eventEmitter = new EventEmitter()
   }
 
-  startPolling() {
+  startPolling(): void {
     this.eventEmitter.on('tick', async () => {
       await this.polling()
 
