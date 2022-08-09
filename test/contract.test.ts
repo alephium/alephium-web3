@@ -175,4 +175,13 @@ describe('contract', function () {
     loadContract('./artifacts/greeter/greeter.ral.json')
     loadScript('./artifacts/greeter_main.ral.json')
   })
+
+  it('should extract metadata of contracts', async () => {
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const contract = await Contract.fromSource(provider, 'test/metadata.ral')
+    expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
+    expect(contract.publicFunctions()).toEqual(['foo'])
+    expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
+    expect(contract.usingAssetsInContractFunctions()).toEqual(['bar'])
+  })
 })

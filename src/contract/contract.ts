@@ -179,6 +179,18 @@ export abstract class Common {
   }
 
   abstract buildByteCodeToDeploy(initialFields?: Fields): string
+
+  publicFunctions(): string[] {
+    return this.functions.filter((func) => func.isPublic).map((func) => func.name)
+  }
+
+  usingPreapprovedAssetsFunctions(): string[] {
+    return this.functions.filter((func) => func.usePreapprovedAssets).map((func) => func.name)
+  }
+
+  usingAssetsInContractFunctions(): string[] {
+    return this.functions.filter((func) => func.useAssetsInContract).map((func) => func.name)
+  }
 }
 
 export class Contract extends Common {
