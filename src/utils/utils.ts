@@ -203,11 +203,11 @@ export function stringToHex(str: string): string {
   return hex
 }
 
-export function hexToString(str: any): string {
-  return Buffer.from(str.toString(), 'hex').toString()
+export function hexToString(str: string): string {
+  return Buffer.from(str, 'hex').toString()
 }
 
-export function timeout(ms: number) {
+export function timeout(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 

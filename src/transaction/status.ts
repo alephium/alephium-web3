@@ -33,7 +33,7 @@ export class TxStatusSubscription extends Subscription<TxStatus> {
     this.startPolling()
   }
 
-  override async polling() {
+  override async polling(): Promise<void> {
     try {
       const txStatus = await this.provider.transactions.getTransactionsStatus({
         txId: this.txId,

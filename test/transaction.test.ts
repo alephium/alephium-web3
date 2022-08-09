@@ -56,7 +56,7 @@ describe('transactions', function () {
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'TxNotFound' })
 
-    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
+    await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
 

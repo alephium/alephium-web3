@@ -429,12 +429,14 @@ export interface CompileContractResult {
   fields: FieldsSig
   functions: FunctionSig[]
   events: EventSig[]
+  warnings: string[]
 }
 
 export interface CompileScriptResult {
   bytecodeTemplate: string
   fields: FieldsSig
   functions: FunctionSig[]
+  warnings: string[]
 }
 
 export interface Confirmed {
@@ -561,7 +563,6 @@ export type DiscoveryAction = Reachable | Unreachable
 
 export interface EventSig {
   name: string
-  signature: string
   fieldNames: string[]
   fieldTypes: string[]
 }
@@ -571,9 +572,9 @@ export interface FetchResponse {
 }
 
 export interface FieldsSig {
-  signature: string
   names: string[]
   types: string[]
+  isMutable: boolean[]
 }
 
 export interface FixedAssetOutput {
@@ -599,9 +600,12 @@ export interface FixedAssetOutput {
 
 export interface FunctionSig {
   name: string
-  signature: string
-  argNames: string[]
-  argTypes: string[]
+  usePreapprovedAssets: boolean
+  useAssetsInContract: boolean
+  isPublic: boolean
+  paramNames: string[]
+  paramTypes: string[]
+  paramIsMutable: boolean[]
   returnTypes: string[]
 }
 

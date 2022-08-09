@@ -133,9 +133,9 @@ describe('contract', function () {
   it('should test buildScriptByteCode', async () => {
     const variables = { x: true, y: 0x05, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
     const fieldsSig: node.FieldsSig = {
-      signature: 'Not really',
       names: ['x', 'y', 'z', 'a'],
-      types: ['Bool', 'U256', 'ByteVec', 'Address']
+      types: ['Bool', 'U256', 'ByteVec', 'Address'],
+      isMutable: [false, false, false, false]
     }
     const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig)
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
@@ -150,9 +150,9 @@ describe('contract', function () {
       e: [false, true]
     }
     const fieldsSig: node.FieldsSig = {
-      signature: 'Not really',
       names: ['a', 'b', 'c', 'd', 'e'],
-      types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]']
+      types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]'],
+      isMutable: [false, false, false, false]
     }
     const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig)
     expect(encoded).toEqual(

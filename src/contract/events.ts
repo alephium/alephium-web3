@@ -31,7 +31,7 @@ export class EventSubscription extends Subscription<ContractEvent> {
     this.startPolling()
   }
 
-  override startPolling() {
+  override startPolling(): void {
     this.eventEmitter.on('tick', async () => {
       await this.polling()
     })
@@ -42,7 +42,7 @@ export class EventSubscription extends Subscription<ContractEvent> {
     return this.fromCount
   }
 
-  override async polling() {
+  override async polling(): Promise<void> {
     try {
       const events = await this.provider.events.getEventsContractContractaddress(this.contractAddress, {
         start: this.fromCount

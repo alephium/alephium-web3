@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "license": "GPL",
   "config": {
-    "alephium_version": "1.5.0-rc2"
+    "alephium_version": "1.5.0-rc3"
   },
   "scripts": {
     "build": "rm -rf dist && npx tsc --build .",
