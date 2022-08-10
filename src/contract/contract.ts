@@ -156,7 +156,14 @@ export abstract class Common {
     provider: NodeProvider,
     sourceFile: SourceFile,
     loadContractStr: (sourceFile: SourceFile, importsCache: string[]) => Promise<string>,
-    compile: (provider: NodeProvider, sourceFile: SourceFile, contractStr: string, contractHash: string) => Promise<T>
+    compile: (
+      provider: NodeProvider,
+      sourceFile: SourceFile,
+      contractStr: string,
+      contractHash: string,
+      errorOnWarnings: boolean
+    ) => Promise<T>,
+    errorOnWarnings: boolean
   ): Promise<T> {
     Common.checkFileNameExtension(sourceFile.contractPath)
 
@@ -166,7 +173,7 @@ export abstract class Common {
     if (typeof existingContract !== 'undefined') {
       return existingContract as unknown as T
     } else {
-      return compile(provider, sourceFile, contractStr, contractHash)
+      return compile(provider, sourceFile, contractStr, contractHash, errorOnWarnings)
     }
   }
 
@@ -190,6 +197,19 @@ export abstract class Common {
 
   usingAssetsInContractFunctions(): string[] {
     return this.functions.filter((func) => func.useAssetsInContract).map((func) => func.name)
+  }
+
+  protected static checkCompilerWarnings(compiled: { warnings: string[] }, errorOnWarnings: boolean): void {
+    if (compiled.warnings.length !== 0) {
+      const prefixPerWarning = '  - '
+      const warningString = prefixPerWarning + compiled.warnings.join('\n' + prefixPerWarning)
+      const output = 'Compilation warnings:\n' + warningString + '\n'
+      if (errorOnWarnings) {
+        throw new Error(output)
+      } else {
+        console.log(output)
+      }
+    }
   }
 }
 
@@ -239,7 +259,7 @@ export class Contract extends Common {
     return Common._loadContractStr(sourceFile, [], (code) => Contract.checkCodeType(sourceFile.contractPath, code))
   }
 
-  static async fromSource(provider: NodeProvider, path: string): Promise<Contract> {
+  static async fromSource(provider: NodeProvider, path: string, errorOnWarnings = true): Promise<Contract> {
     if (!fs.existsSync(Common._artifactsFolder())) {
       fs.mkdirSync(Common._artifactsFolder(), { recursive: true })
     }
@@ -248,7 +268,8 @@ export class Contract extends Common {
       provider,
       sourceFile,
       (sourceFile) => Contract.loadContractStr(sourceFile),
-      Contract.compile
+      Contract.compile,
+      errorOnWarnings
     )
     this._putArtifactToCache(contract)
     return contract
@@ -258,9 +279,12 @@ export class Contract extends Common {
     provider: NodeProvider,
     sourceFile: SourceFile,
     contractStr: string,
-    contractHash: string
+    contractHash: string,
+    errorOnWarnings: boolean
   ): Promise<Contract> {
     const compiled = await provider.contracts.postContractsCompileContract({ code: contractStr })
+    Common.checkCompilerWarnings(compiled, errorOnWarnings)
+
     const artifact = new Contract(
       contractHash,
       compiled.bytecode,
@@ -580,18 +604,26 @@ export class Script extends Common {
     return Common._loadContractStr(sourceFile, [], (code) => Script.checkCodeType(sourceFile.contractPath, code))
   }
 
-  static async fromSource(provider: NodeProvider, path: string): Promise<Script> {
+  static async fromSource(provider: NodeProvider, path: string, errorOnWarnings = true): Promise<Script> {
     const sourceFile = this.getSourceFile(path, [])
-    return Common._from(provider, sourceFile, (sourceFile) => Script.loadContractStr(sourceFile), Script.compile)
+    return Common._from(
+      provider,
+      sourceFile,
+      (sourceFile) => Script.loadContractStr(sourceFile),
+      Script.compile,
+      errorOnWarnings
+    )
   }
 
   private static async compile(
     provider: NodeProvider,
     sourceFile: SourceFile,
     scriptStr: string,
-    contractHash: string
+    contractHash: string,
+    errorOnWarnings = true
   ): Promise<Script> {
     const compiled = await provider.contracts.postContractsCompileScript({ code: scriptStr })
+    Common.checkCompilerWarnings(compiled, errorOnWarnings)
     const artifact = new Script(contractHash, compiled.bytecodeTemplate, compiled.fields, compiled.functions)
     await artifact._saveToFile(sourceFile)
     return artifact

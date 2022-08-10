@@ -184,4 +184,14 @@ describe('contract', function () {
     expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
     expect(contract.usingAssetsInContractFunctions()).toEqual(['bar'])
   })
+
+  it('should handle compiler warnings', async () => {
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const contract = await Contract.fromSource(provider, 'test/warnings.ral', false)
+    expect(contract.publicFunctions()).toEqual(['foo'])
+
+    await expect(Contract.fromSource(provider, 'test/warnings.ral')).rejects.toThrowError(
+      'Compilation warnings:\n  - Found unused variables in function foo: foo.y\n  - Found unused fields: b'
+    )
+  })
 })
