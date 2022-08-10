@@ -185,7 +185,7 @@ describe('contract', function () {
     expect(contract.usingAssetsInContractFunctions()).toEqual(['bar'])
   })
 
-  it('should extract metadata of contracts', async () => {
+  it('should handle compiler warnings', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
     const contract = await Contract.fromSource(provider, 'test/warnings.ral', false)
     expect(contract.publicFunctions()).toEqual(['foo'])
