@@ -191,10 +191,10 @@ describe('contract', function () {
     expect(contract.publicFunctions()).toEqual(['foo'])
 
     await expect(Contract.fromSource(provider, 'test/warnings.ral')).rejects.toThrowError(
-      'Compilation warnings:\n  - Found unused variables in function foo: foo.y\n  - Found unused fields: b'
+      'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused fields in Warnings: b'
     )
     await expect(Contract.fromSource(provider, 'test/warnings.ral', true, false)).rejects.toThrowError(
-      'Compilation warnings:\n  - Found unused variables in function foo: foo.y\n  - Found unused constants: C\n  - Found unused fields: b'
+      'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused constants in Warnings: C\n  - Found unused fields in Warnings: b'
     )
   })
 })
