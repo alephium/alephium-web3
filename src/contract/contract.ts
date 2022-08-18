@@ -161,9 +161,11 @@ export abstract class Common {
       sourceFile: SourceFile,
       contractStr: string,
       contractHash: string,
-      errorOnWarnings: boolean
+      errorOnWarnings: boolean,
+      ignoreUnusedConstantsWarnings: boolean
     ) => Promise<T>,
-    errorOnWarnings: boolean
+    errorOnWarnings: boolean,
+    ignoreUnusedConstantsWarnings: boolean
   ): Promise<T> {
     Common.checkFileNameExtension(sourceFile.contractPath)
 
@@ -173,7 +175,7 @@ export abstract class Common {
     if (typeof existingContract !== 'undefined') {
       return existingContract as unknown as T
     } else {
-      return compile(provider, sourceFile, contractStr, contractHash, errorOnWarnings)
+      return compile(provider, sourceFile, contractStr, contractHash, errorOnWarnings, ignoreUnusedConstantsWarnings)
     }
   }
 
@@ -199,10 +201,17 @@ export abstract class Common {
     return this.functions.filter((func) => func.useAssetsInContract).map((func) => func.name)
   }
 
-  protected static checkCompilerWarnings(compiled: { warnings: string[] }, errorOnWarnings: boolean): void {
-    if (compiled.warnings.length !== 0) {
+  protected static checkCompilerWarnings(
+    compiled: { warnings: string[] },
+    errorOnWarnings: boolean,
+    ignoreUnusedConstantsWarnings: boolean
+  ): void {
+    const warnings = ignoreUnusedConstantsWarnings
+      ? compiled.warnings.filter((s) => !s.includes('unused constants'))
+      : compiled.warnings
+    if (warnings.length !== 0) {
       const prefixPerWarning = '  - '
-      const warningString = prefixPerWarning + compiled.warnings.join('\n' + prefixPerWarning)
+      const warningString = prefixPerWarning + warnings.join('\n' + prefixPerWarning)
       const output = 'Compilation warnings:\n' + warningString + '\n'
       if (errorOnWarnings) {
         throw new Error(output)
@@ -259,7 +268,12 @@ export class Contract extends Common {
     return Common._loadContractStr(sourceFile, [], (code) => Contract.checkCodeType(sourceFile.contractPath, code))
   }
 
-  static async fromSource(provider: NodeProvider, path: string, errorOnWarnings = true): Promise<Contract> {
+  static async fromSource(
+    provider: NodeProvider,
+    path: string,
+    errorOnWarnings = true,
+    ignoreUnusedConstantsWarnings = true
+  ): Promise<Contract> {
     if (!fs.existsSync(Common._artifactsFolder())) {
       fs.mkdirSync(Common._artifactsFolder(), { recursive: true })
     }
@@ -267,9 +281,10 @@ export class Contract extends Common {
     const contract = await Common._from(
       provider,
       sourceFile,
-      (sourceFile) => Contract.loadContractStr(sourceFile),
+      Contract.loadContractStr,
       Contract.compile,
-      errorOnWarnings
+      errorOnWarnings,
+      ignoreUnusedConstantsWarnings
     )
     this._putArtifactToCache(contract)
     return contract
@@ -280,10 +295,11 @@ export class Contract extends Common {
     sourceFile: SourceFile,
     contractStr: string,
     contractHash: string,
-    errorOnWarnings: boolean
+    errorOnWarnings: boolean,
+    ignoreUnusedConstantsWarnings: boolean
   ): Promise<Contract> {
     const compiled = await provider.contracts.postContractsCompileContract({ code: contractStr })
-    Common.checkCompilerWarnings(compiled, errorOnWarnings)
+    Common.checkCompilerWarnings(compiled, errorOnWarnings, ignoreUnusedConstantsWarnings)
 
     const artifact = new Contract(
       contractHash,
@@ -604,14 +620,20 @@ export class Script extends Common {
     return Common._loadContractStr(sourceFile, [], (code) => Script.checkCodeType(sourceFile.contractPath, code))
   }
 
-  static async fromSource(provider: NodeProvider, path: string, errorOnWarnings = true): Promise<Script> {
+  static async fromSource(
+    provider: NodeProvider,
+    path: string,
+    errorOnWarnings = true,
+    ignoreUnusedConstantsWarnings = true
+  ): Promise<Script> {
     const sourceFile = this.getSourceFile(path, [])
     return Common._from(
       provider,
       sourceFile,
       (sourceFile) => Script.loadContractStr(sourceFile),
       Script.compile,
-      errorOnWarnings
+      errorOnWarnings,
+      ignoreUnusedConstantsWarnings
     )
   }
 
@@ -620,10 +642,11 @@ export class Script extends Common {
     sourceFile: SourceFile,
     scriptStr: string,
     contractHash: string,
-    errorOnWarnings = true
+    errorOnWarnings = true,
+    ignoreUnusedConstantsWarnings = true
   ): Promise<Script> {
     const compiled = await provider.contracts.postContractsCompileScript({ code: scriptStr })
-    Common.checkCompilerWarnings(compiled, errorOnWarnings)
+    Common.checkCompilerWarnings(compiled, errorOnWarnings, ignoreUnusedConstantsWarnings)
     const artifact = new Script(contractHash, compiled.bytecodeTemplate, compiled.fields, compiled.functions)
     await artifact._saveToFile(sourceFile)
     return artifact
