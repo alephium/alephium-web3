@@ -1,4 +1,6 @@
 Contract Warnings(@unused a: U256, b: U256) {
+    const C = 0
+
     pub fn foo(@unused x: U256, y: U256) -> () {
         return
     }
