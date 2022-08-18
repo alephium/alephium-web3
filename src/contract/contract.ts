@@ -155,7 +155,7 @@ export abstract class Common {
   protected static async _from<T extends { sourceCodeSha256: string }>(
     provider: NodeProvider,
     sourceFile: SourceFile,
-    loadContractStr: (sourceFile: SourceFile, importsCache: string[]) => Promise<string>,
+    loadContractStr: (sourceFile: SourceFile) => Promise<string>,
     compile: (
       provider: NodeProvider,
       sourceFile: SourceFile,
@@ -169,7 +169,7 @@ export abstract class Common {
   ): Promise<T> {
     Common.checkFileNameExtension(sourceFile.contractPath)
 
-    const contractStr = await loadContractStr(sourceFile, [])
+    const contractStr = await loadContractStr(sourceFile)
     const contractHash = cryptojs.SHA256(contractStr).toString()
     const existingContract = this._getArtifactFromCache(contractHash)
     if (typeof existingContract !== 'undefined') {
@@ -265,7 +265,7 @@ export class Contract extends Common {
   }
 
   private static async loadContractStr(sourceFile: SourceFile): Promise<string> {
-    return Common._loadContractStr(sourceFile, [], (code) => Contract.checkCodeType(sourceFile.contractPath, code))
+    return Common._loadContractStr(sourceFile, [sourceFile.contractPath], (code) => Contract.checkCodeType(sourceFile.contractPath, code))
   }
 
   static async fromSource(
