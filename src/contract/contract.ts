@@ -265,7 +265,9 @@ export class Contract extends Common {
   }
 
   private static async loadContractStr(sourceFile: SourceFile): Promise<string> {
-    return Common._loadContractStr(sourceFile, [sourceFile.contractPath], (code) => Contract.checkCodeType(sourceFile.contractPath, code))
+    return Common._loadContractStr(sourceFile, [sourceFile.contractPath], (code) =>
+      Contract.checkCodeType(sourceFile.contractPath, code)
+    )
   }
 
   static async fromSource(
