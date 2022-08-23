@@ -18,15 +18,17 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { NodeProvider } from '../src/api'
 import { subscribeToTxStatus } from '../src/transaction/status'
-import { Contract } from '../src/contract'
+import { Contract, Project } from '../src/contract'
 import { TxStatus } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
 import { SubscribeOptions, timeout } from '../src/utils'
 
 describe('transactions', function () {
+  const provider = new NodeProvider('http://127.0.0.1:22973')
+  Project.setNodeProvider(provider)
+
   it('should subscribe transaction status', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    const sub = await Contract.fromSource(provider, 'sub/sub.ral')
+    const sub = await Contract.fromSource('sub/sub.ral')
     const signer = await testWallet(provider)
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },

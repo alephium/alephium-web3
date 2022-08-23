@@ -20,16 +20,20 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 import { NodeProvider } from '../src/api'
-import { Contract, Script, TestContractParams } from '../src/contract'
+import { Contract, Project, Script, TestContractParams } from '../src/contract'
 import { testWallet } from '../src/test'
 import { addressFromContractId } from '../src/utils'
 
 describe('contract', function () {
+  const provider = new NodeProvider('http://127.0.0.1:22973')
+  Project.setNodeProvider(provider)
+
   async function testSuite1() {
     const provider = new NodeProvider('http://127.0.0.1:22973')
 
-    const add = await Contract.fromSource(provider, 'add/add.ral')
-    const sub = await Contract.fromSource(provider, 'sub/sub.ral')
+    // ignore unused private function warnings
+    const add = await Contract.fromSource('add/add.ral', false)
+    const sub = await Contract.fromSource('sub/sub.ral')
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
@@ -91,7 +95,7 @@ describe('contract', function () {
     expect(fetchedAddState.fields.subContractId).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(0)
 
-    const main = await Script.fromSource(provider, 'main.ral')
+    const main = await Script.fromSource('main.ral')
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { addContractId: addContractId }
     })
@@ -110,9 +114,7 @@ describe('contract', function () {
   }
 
   async function testSuite2() {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-
-    const greeter = await Contract.fromSource(provider, 'greeter/greeter.ral')
+    const greeter = await Contract.fromSource('greeter/greeter.ral')
 
     const testParams: TestContractParams = {
       initialFields: { btcPrice: 1 }
@@ -136,7 +138,7 @@ describe('contract', function () {
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
-    const main = await Script.fromSource(provider, 'greeter_main.ral')
+    const main = await Script.fromSource('greeter_main.ral')
 
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { greeterContractId: greeterContractId }
@@ -177,8 +179,7 @@ describe('contract', function () {
   })
 
   it('should extract metadata of contracts', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    const contract = await Contract.fromSource(provider, 'test/metadata.ral')
+    const contract = await Contract.fromSource('test/metadata.ral', false)
     expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(contract.publicFunctions()).toEqual(['foo'])
     expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
@@ -186,15 +187,14 @@ describe('contract', function () {
   })
 
   it('should handle compiler warnings', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    const contract = await Contract.fromSource(provider, 'test/warnings.ral', false)
+    const contract = await Contract.fromSource('test/warnings.ral', false)
     expect(contract.publicFunctions()).toEqual(['foo'])
 
-    await expect(Contract.fromSource(provider, 'test/warnings.ral')).rejects.toThrowError(
-      'Compilation warnings:\n  - Found unused variables in function foo: foo.y\n  - Found unused fields: b'
+    await expect(Contract.fromSource('test/warnings.ral')).rejects.toThrowError(
+      'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused fields in Warnings: b'
     )
-    await expect(Contract.fromSource(provider, 'test/warnings.ral', true, false)).rejects.toThrowError(
-      'Compilation warnings:\n  - Found unused variables in function foo: foo.y\n  - Found unused constants: C\n  - Found unused fields: b'
+    await expect(Contract.fromSource('test/warnings.ral', true, false)).rejects.toThrowError(
+      'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused constants in Warnings: C\n  - Found unused fields in Warnings: b'
     )
   })
 })
