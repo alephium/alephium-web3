@@ -69,6 +69,7 @@ describe('transactions', function () {
     const counterAfterUnsubscribe = counter
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
-    expect(counterAfterUnsubscribe).toEqual(counter)
+    // There maybe a pending request when we unsubscribe
+    expect([counter, counter - 1]).toContain(counterAfterUnsubscribe)
   }, 10000)
 })
