@@ -27,8 +27,8 @@ import { SubscribeOptions, timeout } from '../src/utils'
 describe('events', function () {
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {
     const provider = new NodeProvider('http://127.0.0.1:22973')
-    const project = await Project.fromSource(provider)
-    const sub = project.contract('sub/sub.ral')
+    await Project.build(provider)
+    const sub = Project.contract('sub/sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
       initialTokenAmounts: []
@@ -38,7 +38,7 @@ describe('events', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     // ignore unused private function warnings
-    const add = project.contract('add/add.ral', false)
+    const add = Project.contract('add/add.ral', false)
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { subContractId: subContractId, result: 0 },
       initialTokenAmounts: []
@@ -57,7 +57,7 @@ describe('events', function () {
 
   it('should subscribe contract events', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
-    const project = await Project.fromSource(provider)
+    await Project.build(provider)
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(signer)
@@ -76,7 +76,7 @@ describe('events', function () {
       }
     }
     const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = project.script('main.ral')
+    const script = Project.script('main.ral')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
       signerAddress: (await signer.getAccounts())[0].address
@@ -98,7 +98,7 @@ describe('events', function () {
 
   it('should cancel event subscription', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
-    const project = await Project.fromSource(provider)
+    await Project.build(provider)
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(signer)
@@ -117,7 +117,7 @@ describe('events', function () {
       }
     }
     const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = project.script('main.ral')
+    const script = Project.script('main.ral')
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })

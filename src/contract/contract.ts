@@ -87,25 +87,25 @@ class Compiled<T extends Artifact> {
 class ProjectArtifact {
   static readonly artifactFileName = '.project.json'
 
-  files: Map<string, { sourceCodeHash: string; warnings: string[] }>
+  infos: Map<string, { sourceCodeHash: string; warnings: string[] }>
 
-  constructor(files: Map<string, { sourceCodeHash: string; warnings: string[] }>) {
-    this.files = files
+  constructor(infos: Map<string, { sourceCodeHash: string; warnings: string[] }>) {
+    this.infos = infos
   }
 
   async saveToFile(rootPath: string): Promise<void> {
     const filepath = rootPath + '/' + ProjectArtifact.artifactFileName
-    const content = JSON.stringify(Object.fromEntries(this.files), null, 2)
+    const content = JSON.stringify(Object.fromEntries(this.infos), null, 2)
     return fsPromises.writeFile(filepath, content)
   }
 
   sourceHasChanged(files: SourceFile[]): boolean {
-    if (files.length !== this.files.size) {
+    if (files.length !== this.infos.size) {
       return true
     }
     for (const file of files) {
-      const f = this.files.get(file.contractPath)
-      if (typeof f === 'undefined' || f.sourceCodeHash !== file.sourceCodeHash) {
+      const info = this.infos.get(file.contractPath)
+      if (typeof info === 'undefined' || info.sourceCodeHash !== file.sourceCodeHash) {
         return true
       }
     }
@@ -133,6 +133,8 @@ export class Project {
   readonly contractsRootPath: string
   readonly artifactsRootPath: string
   readonly nodeProvider: NodeProvider
+
+  static currentProject: Project
 
   static readonly abstractContractMatcher = new TypedMatcher<SourceType>(
     '^Abstract Contract [A-Z][a-zA-Z0-9]*',
@@ -190,9 +192,9 @@ export class Project {
     }
   }
 
-  contract(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Contract {
-    const contractPath = this.getContractPath(path)
-    const contract = this.contracts.find((c) => c.sourceFile.contractPath === contractPath)
+  static contract(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Contract {
+    const contractPath = Project.currentProject.getContractPath(path)
+    const contract = Project.currentProject.contracts.find((c) => c.sourceFile.contractPath === contractPath)
     if (typeof contract === 'undefined') {
       throw new Error(`Contract ${contractPath} does not exist`)
     }
@@ -200,9 +202,9 @@ export class Project {
     return contract.artifact
   }
 
-  script(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Script {
-    const contractPath = this.getContractPath(path)
-    const script = this.scripts.find((c) => c.sourceFile.contractPath === contractPath)
+  static script(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Script {
+    const contractPath = Project.currentProject.getContractPath(path)
+    const script = Project.currentProject.scripts.find((c) => c.sourceFile.contractPath === contractPath)
     if (typeof script === 'undefined') {
       throw new Error(`Script ${contractPath} does not exist`)
     }
@@ -274,7 +276,7 @@ export class Project {
     const contracts: Compiled<Contract>[] = []
     const scripts: Compiled<Script>[] = []
     result.contracts.forEach((contractResult, index) => {
-      const sourceFile = files[index]
+      const sourceFile = files[`${index}`]
       const contract = Contract.fromCompileResult(contractResult)
       contracts.push(new Compiled(sourceFile, contract, contractResult.warnings))
     })
@@ -300,7 +302,11 @@ export class Project {
       const contracts: Compiled<Contract>[] = []
       const scripts: Compiled<Script>[] = []
       for (const file of files) {
-        const warnings = projectArtifact.files.get(file.contractPath)!.warnings
+        const info = projectArtifact.infos.get(file.contractPath)
+        if (typeof info === 'undefined') {
+          throw Error(`Unable to find project info for ${file.contractPath}, please rebuild the project`)
+        }
+        const warnings = info.warnings
         const artifactPath = file.getArtifactPath(artifactsRootPath)
         if (file.type === SourceType.Contract) {
           const artifact = await Contract.fromArtifactFile(artifactPath)
@@ -334,7 +340,7 @@ export class Project {
       throw new Error(`Multiple definitions in file: ${contractPath}`)
     }
     const matcherIndex = results.indexOf(1)
-    const type = this.matchers[matcherIndex].type
+    const type = this.matchers[`${matcherIndex}`].type
     return new SourceFile(type, sourceStr, contractPath)
   }
 
@@ -362,17 +368,23 @@ export class Project {
     return sourceFiles.sort((a, b) => a.type - b.type)
   }
 
-  static async fromSource(
+  static async build(
     provider: NodeProvider,
     contractsRootPath = 'contracts',
     artifactsRootPath = 'artifacts'
-  ): Promise<Project> {
+  ): Promise<void> {
     const sourceFiles = await Project.loadSourceFiles(contractsRootPath)
     const projectArtifact = await ProjectArtifact.from(artifactsRootPath)
     if (typeof projectArtifact === 'undefined' || projectArtifact.sourceHasChanged(sourceFiles)) {
-      return Project.compile(provider, sourceFiles, contractsRootPath, artifactsRootPath)
+      Project.currentProject = await Project.compile(provider, sourceFiles, contractsRootPath, artifactsRootPath)
     } else {
-      return Project.loadArtifacts(provider, sourceFiles, projectArtifact, contractsRootPath, artifactsRootPath)
+      Project.currentProject = await Project.loadArtifacts(
+        provider,
+        sourceFiles,
+        projectArtifact,
+        contractsRootPath,
+        artifactsRootPath
+      )
     }
   }
 }
@@ -451,9 +463,11 @@ export class Contract extends Artifact {
     return Contract.fromJson(artifact)
   }
 
-  async fetchState(project: Project, address: string, group: number): Promise<ContractState> {
-    const state = await project.nodeProvider.contracts.getContractsAddressState(address, { group: group })
-    return this.fromApiContractState(project, state)
+  async fetchState(address: string, group: number): Promise<ContractState> {
+    const state = await Project.currentProject.nodeProvider.contracts.getContractsAddressState(address, {
+      group: group
+    })
+    return this.fromApiContractState(state)
   }
 
   override toString(): string {
@@ -487,32 +501,31 @@ export class Contract extends Artifact {
   }
 
   private async _test(
-    project: Project,
     funcName: string,
     params: TestContractParams,
     expectPublic: boolean,
     accessType: string
   ): Promise<TestContractResult> {
     const apiParams: node.TestContract = this.toTestContract(funcName, params)
-    const apiResult = await project.nodeProvider.contracts.postContractsTestContract(apiParams)
+    const apiResult = await Project.currentProject.nodeProvider.contracts.postContractsTestContract(apiParams)
 
     const methodIndex =
       typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
     const isPublic = this.functions[`${methodIndex}`].isPublic
     if (isPublic === expectPublic) {
-      const result = await this.fromTestContractResult(project, methodIndex, apiResult)
+      const result = await this.fromTestContractResult(methodIndex, apiResult)
       return result
     } else {
       throw new Error(`The test method ${funcName} is not ${accessType}`)
     }
   }
 
-  async testPublicMethod(project: Project, funcName: string, params: TestContractParams): Promise<TestContractResult> {
-    return this._test(project, funcName, params, true, 'public')
+  async testPublicMethod(funcName: string, params: TestContractParams): Promise<TestContractResult> {
+    return this._test(funcName, params, true, 'public')
   }
 
-  async testPrivateMethod(project: Project, funcName: string, params: TestContractParams): Promise<TestContractResult> {
-    return this._test(project, funcName, params, false, 'private')
+  async testPrivateMethod(funcName: string, params: TestContractParams): Promise<TestContractResult> {
+    return this._test(funcName, params, false, 'private')
   }
 
   toApiFields(fields?: Fields): node.Val[] {
@@ -558,8 +571,8 @@ export class Contract extends Artifact {
     }
   }
 
-  async fromApiContractState(project: Project, state: node.ContractState): Promise<ContractState> {
-    const contract = project.contractByCodeHash(state.codeHash)
+  async fromApiContractState(state: node.ContractState): Promise<ContractState> {
+    const contract = Project.currentProject.contractByCodeHash(state.codeHash)
     return {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
@@ -585,7 +598,6 @@ export class Contract extends Artifact {
   }
 
   static async fromApiEvent(
-    project: Project,
     event: node.ContractEventByTxId,
     codeHash: string | undefined
   ): Promise<ContractEventByTxId> {
@@ -596,7 +608,7 @@ export class Contract extends Artifact {
     } else if (event.eventIndex == -2) {
       eventSig = this.ContractDestroyedEvent
     } else {
-      const contract = project.contractByCodeHash(codeHash!)
+      const contract = Project.currentProject.contractByCodeHash(codeHash!)
       eventSig = contract.eventsSig[event.eventIndex]
     }
 
@@ -608,11 +620,7 @@ export class Contract extends Artifact {
     }
   }
 
-  async fromTestContractResult(
-    project: Project,
-    methodIndex: number,
-    result: node.TestContractResult
-  ): Promise<TestContractResult> {
+  async fromTestContractResult(methodIndex: number, result: node.TestContractResult): Promise<TestContractResult> {
     const addressToCodeHash = new Map<string, string>()
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
@@ -621,14 +629,14 @@ export class Contract extends Artifact {
       contractId: binToHex(contractIdFromAddress(result.address)),
       returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
-      contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(project, contract))),
+      contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
       txOutputs: result.txOutputs.map(fromApiOutput),
       events: await Promise.all(
         result.events.map((event) => {
           const contractAddress = event.contractAddress
           const codeHash = addressToCodeHash.get(contractAddress)
           if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
-            return Contract.fromApiEvent(project, event, codeHash)
+            return Contract.fromApiEvent(event, codeHash)
           } else {
             throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
           }

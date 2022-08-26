@@ -26,8 +26,8 @@ import { SubscribeOptions, timeout } from '../src/utils'
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
-    const project = await Project.fromSource(provider)
-    const sub = project.contract('sub/sub.ral')
+    await Project.build(provider)
+    const sub = Project.contract('sub/sub.ral')
     const signer = await testWallet(provider)
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
