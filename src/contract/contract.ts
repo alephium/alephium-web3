@@ -71,22 +71,24 @@ class SourceFile {
   }
 }
 
-class ArtifactInfo<T extends Artifact> {
+class Compiled<T extends Artifact> {
   sourceFile: SourceFile
   artifact: T
+  warnings: string[]
 
-  constructor(sourceFile: SourceFile, artifact: T) {
+  constructor(sourceFile: SourceFile, artifact: T, warnings: string[]) {
     this.sourceFile = sourceFile
     this.artifact = artifact
+    this.warnings = warnings
   }
 }
 
 class ProjectArtifact {
   static readonly artifactFileName = '.project.json'
 
-  files: Map<string, string> // file path -> source code hash
+  files: Map<string, { sourceCodeHash: string; warnings: string[] }>
 
-  constructor(files: Map<string, string>) {
+  constructor(files: Map<string, { sourceCodeHash: string; warnings: string[] }>) {
     this.files = files
   }
 
@@ -97,12 +99,12 @@ class ProjectArtifact {
   }
 
   sourceHasChanged(files: SourceFile[]): boolean {
-    if (files.length != this.files.size) {
+    if (files.length !== this.files.size) {
       return true
     }
     for (const file of files) {
-      const sourceCodeHash = this.files.get(file.contractPath)
-      if (typeof sourceCodeHash === 'undefined' || sourceCodeHash != file.sourceCodeHash) {
+      const f = this.files.get(file.contractPath)
+      if (typeof f === 'undefined' || f.sourceCodeHash !== file.sourceCodeHash) {
         return true
       }
     }
@@ -115,15 +117,17 @@ class ProjectArtifact {
       return undefined
     }
     const content = await fsPromises.readFile(filepath)
-    const files = new Map(Object.entries<string>(JSON.parse(content.toString())))
+    const files = new Map(
+      Object.entries<{ sourceCodeHash: string; warnings: string[] }>(JSON.parse(content.toString()))
+    )
     return new ProjectArtifact(files)
   }
 }
 
 export class Project {
   sourceFiles: SourceFile[]
-  contracts: ArtifactInfo<Contract>[]
-  scripts: ArtifactInfo<Script>[]
+  contracts: Compiled<Contract>[]
+  scripts: Compiled<Script>[]
 
   private static instance: Project
   private static nodeProvider: NodeProvider
@@ -145,7 +149,7 @@ export class Project {
     Project.scriptMatcher
   ]
 
-  private constructor(sourceFiles: SourceFile[], contracts: ArtifactInfo<Contract>[], scripts: ArtifactInfo<Script>[]) {
+  private constructor(sourceFiles: SourceFile[], contracts: Compiled<Contract>[], scripts: Compiled<Script>[]) {
     this.sourceFiles = sourceFiles
     this.contracts = contracts
     this.scripts = scripts
@@ -163,32 +167,52 @@ export class Project {
       : Project.contractsPath + '/' + path
   }
 
-  contract(path: string): Contract {
-    const contractPath = Project.getContractPath(path)
-    const selected = this.contracts.filter((c) => c.sourceFile.contractPath === contractPath)
-    if (selected.length === 0) {
-      throw new Error(`Contract ${contractPath} does not exist`)
+  private static checkCompilerWarnings(
+    warnings: string[],
+    errorOnWarnings: boolean,
+    ignoreUnusedConstantsWarnings: boolean
+  ): void {
+    const remains = ignoreUnusedConstantsWarnings ? warnings.filter((s) => !s.includes('unused constants')) : warnings
+    if (remains.length !== 0) {
+      const prefixPerWarning = '  - '
+      const warningString = prefixPerWarning + remains.join('\n' + prefixPerWarning)
+      const output = 'Compilation warnings:\n' + warningString + '\n'
+      if (errorOnWarnings) {
+        throw new Error(output)
+      } else {
+        console.log(output)
+      }
     }
-    return selected[0].artifact
   }
 
-  script(path: string): Script {
+  contract(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Contract {
     const contractPath = Project.getContractPath(path)
-    const selected = this.scripts.filter((c) => c.sourceFile.contractPath === contractPath)
-    if (selected.length === 0) {
+    const contract = this.contracts.find((c) => c.sourceFile.contractPath === contractPath)
+    if (typeof contract === 'undefined') {
+      throw new Error(`Contract ${contractPath} does not exist`)
+    }
+    Project.checkCompilerWarnings(contract.warnings, errorOnWarnings, ignoreUnusedConstantsWarnings)
+    return contract.artifact
+  }
+
+  script(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Script {
+    const contractPath = Project.getContractPath(path)
+    const script = this.scripts.find((c) => c.sourceFile.contractPath === contractPath)
+    if (typeof script === 'undefined') {
       throw new Error(`Script ${contractPath} does not exist`)
     }
-    return selected[0].artifact
+    Project.checkCompilerWarnings(script.warnings, errorOnWarnings, ignoreUnusedConstantsWarnings)
+    return script.artifact
   }
 
   private async saveArtifactsToFile(): Promise<void> {
-    const saveToFile = async function (info: ArtifactInfo<Artifact>): Promise<void> {
-      const index = info.sourceFile.artifactPath.lastIndexOf('/')
-      const folder = info.sourceFile.artifactPath.slice(0, index)
+    const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
+      const index = compiled.sourceFile.artifactPath.lastIndexOf('/')
+      const folder = compiled.sourceFile.artifactPath.slice(0, index)
       if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder, { recursive: true })
       }
-      return fsPromises.writeFile(info.sourceFile.artifactPath, info.artifact.toString())
+      return fsPromises.writeFile(compiled.sourceFile.artifactPath, compiled.artifact.toString())
     }
     for (const contract of this.contracts) {
       await saveToFile(contract)
@@ -199,15 +223,34 @@ export class Project {
   }
 
   contractByCodeHash(codeHash: string): Contract {
-    const selected = this.contracts.filter((c) => c.artifact.codeHash === codeHash)
-    if (selected.length === 0) {
+    const contract = this.contracts.find((c) => c.artifact.codeHash === codeHash)
+    if (typeof contract === 'undefined') {
       throw new Error(`Unknown code with code hash: ${codeHash}`)
     }
-    return selected[0].artifact
+    return contract.artifact
   }
 
   private async saveProjectArtifactToFile(): Promise<void> {
-    const files = new Map(this.sourceFiles.map((f) => [f.contractPath, f.sourceCodeHash]))
+    const files: Map<string, { sourceCodeHash: string; warnings: string[] }> = new Map()
+    this.contracts.forEach((c) => {
+      files.set(c.sourceFile.contractPath, {
+        sourceCodeHash: c.sourceFile.sourceCodeHash,
+        warnings: c.warnings
+      })
+    })
+    this.scripts.forEach((s) => {
+      files.set(s.sourceFile.contractPath, {
+        sourceCodeHash: s.sourceFile.sourceCodeHash,
+        warnings: s.warnings
+      })
+    })
+    const compiledSize = this.contracts.length + this.scripts.length
+    this.sourceFiles.slice(compiledSize).forEach((c) => {
+      files.set(c.contractPath, {
+        sourceCodeHash: c.sourceCodeHash,
+        warnings: []
+      })
+    })
     const projectArtifact = new ProjectArtifact(files)
     await projectArtifact.saveToFile(Project.artifactsPath)
   }
@@ -217,17 +260,17 @@ export class Project {
     const result = await Project.nodeProvider.contracts.postContractsCompileProject({
       code: sourceStr
     })
-    const contracts: ArtifactInfo<Contract>[] = []
-    const scripts: ArtifactInfo<Script>[] = []
+    const contracts: Compiled<Contract>[] = []
+    const scripts: Compiled<Script>[] = []
     result.contracts.forEach((contractResult, index) => {
       const sourceFile = files[index]
       const contract = Contract.fromCompileResult(contractResult)
-      contracts.push(new ArtifactInfo(sourceFile, contract))
+      contracts.push(new Compiled(sourceFile, contract, contractResult.warnings))
     })
     result.scripts.forEach((scriptResult, index) => {
       const sourceFile = files[index + contracts.length]
       const script = Script.fromCompileResult(scriptResult)
-      scripts.push(new ArtifactInfo(sourceFile, script))
+      scripts.push(new Compiled(sourceFile, script, scriptResult.warnings))
     })
     const project = new Project(files, contracts, scripts)
     await project.saveArtifactsToFile()
@@ -235,17 +278,18 @@ export class Project {
     return project
   }
 
-  private static async loadArtifacts(files: SourceFile[]): Promise<Project> {
+  private static async loadArtifacts(files: SourceFile[], projectArtifact: ProjectArtifact): Promise<Project> {
     try {
-      const contracts: ArtifactInfo<Contract>[] = []
-      const scripts: ArtifactInfo<Script>[] = []
+      const contracts: Compiled<Contract>[] = []
+      const scripts: Compiled<Script>[] = []
       for (const file of files) {
+        const warnings = projectArtifact.files.get(file.sourceCodeHash)!.warnings
         if (file.type === SourceType.Contract) {
           const artifact = await Contract.fromArtifactFile(file.artifactPath)
-          contracts.push(new ArtifactInfo(file, artifact))
+          contracts.push(new Compiled(file, artifact, warnings))
         } else if (file.type === SourceType.Script) {
           const artifact = await Script.fromArtifactFile(file.artifactPath)
-          scripts.push(new ArtifactInfo(file, artifact))
+          scripts.push(new Compiled(file, artifact, warnings))
         }
       }
       return new Project(files, contracts, scripts)
@@ -307,7 +351,7 @@ export class Project {
     if (typeof projectArtifact === 'undefined' || projectArtifact.sourceHasChanged(sourceFiles)) {
       Project.instance = await Project.compile(sourceFiles)
     } else {
-      Project.instance = await Project.loadArtifacts(sourceFiles)
+      Project.instance = await Project.loadArtifacts(sourceFiles, projectArtifact)
     }
     return Project.instance
   }
@@ -325,11 +369,9 @@ export class Project {
 
 export abstract class Artifact {
   readonly functions: FunctionSig[]
-  readonly warnings: string[]
 
-  constructor(functions: FunctionSig[], warnings: string[]) {
+  constructor(functions: FunctionSig[]) {
     this.functions = functions
-    this.warnings = warnings
   }
 
   abstract buildByteCodeToDeploy(initialFields?: Fields): string
@@ -345,26 +387,6 @@ export abstract class Artifact {
   usingAssetsInContractFunctions(): string[] {
     return this.functions.filter((func) => func.useAssetsInContract).map((func) => func.name)
   }
-
-  protected static checkCompilerWarnings(
-    compiled: { warnings: string[] },
-    errorOnWarnings: boolean,
-    ignoreUnusedConstantsWarnings: boolean
-  ): void {
-    const warnings = ignoreUnusedConstantsWarnings
-      ? compiled.warnings.filter((s) => !s.includes('unused constants'))
-      : compiled.warnings
-    if (warnings.length !== 0) {
-      const prefixPerWarning = '  - '
-      const warningString = prefixPerWarning + warnings.join('\n' + prefixPerWarning)
-      const output = 'Compilation warnings:\n' + warningString + '\n'
-      if (errorOnWarnings) {
-        throw new Error(output)
-      } else {
-        console.log(output)
-      }
-    }
-  }
 }
 
 export class Contract extends Artifact {
@@ -378,10 +400,9 @@ export class Contract extends Artifact {
     codeHash: string,
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
-    functions: FunctionSig[],
-    warnings: string[]
+    functions: FunctionSig[]
   ) {
-    super(functions, warnings)
+    super(functions)
     this.bytecode = bytecode
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
@@ -394,9 +415,7 @@ export class Contract extends Artifact {
     ignoreUnusedConstantsWarnings = true
   ): Promise<Contract> {
     const project = await Project.getInstance()
-    const contract = project.contract(path)
-    Artifact.checkCompilerWarnings(contract, errorOnWarnings, ignoreUnusedConstantsWarnings)
-    return contract
+    return project.contract(path, errorOnWarnings, ignoreUnusedConstantsWarnings)
   }
 
   // TODO: safely parse json
@@ -410,27 +429,18 @@ export class Contract extends Artifact {
     ) {
       throw Error('The artifact JSON for contract is incomplete')
     }
-    const warnings = artifact.warnings == null ? [] : artifact.warnings
     const contract = new Contract(
       artifact.bytecode,
       artifact.codeHash,
       artifact.fieldsSig,
       artifact.eventsSig,
-      artifact.functions,
-      warnings
+      artifact.functions
     )
     return contract
   }
 
   static fromCompileResult(result: CompileContractResult): Contract {
-    return new Contract(
-      result.bytecode,
-      result.codeHash,
-      result.fields,
-      result.events,
-      result.functions,
-      result.warnings
-    )
+    return new Contract(result.bytecode, result.codeHash, result.fields, result.events, result.functions)
   }
 
   // support both 'code.ral' and 'code.ral.json'
@@ -446,15 +456,12 @@ export class Contract extends Artifact {
   }
 
   override toString(): string {
-    const object: any = {
+    const object = {
       bytecode: this.bytecode,
       codeHash: this.codeHash,
       fieldsSig: this.fieldsSig,
       eventsSig: this.eventsSig,
       functions: this.functions
-    }
-    if (this.warnings.length !== 0) {
-      object.warnings = this.warnings
     }
     return JSON.stringify(object, null, 2)
   }
@@ -676,21 +683,19 @@ export class Script extends Artifact {
   readonly bytecodeTemplate: string
   readonly fieldsSig: FieldsSig
 
-  constructor(bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[], warnings: string[]) {
-    super(functions, warnings)
+  constructor(bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[]) {
+    super(functions)
     this.bytecodeTemplate = bytecodeTemplate
     this.fieldsSig = fieldsSig
   }
 
   static async fromSource(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Promise<Script> {
     const project = await Project.getInstance()
-    const script = project.script(path)
-    Artifact.checkCompilerWarnings(script, errorOnWarnings, ignoreUnusedConstantsWarnings)
-    return script
+    return project.script(path, errorOnWarnings, ignoreUnusedConstantsWarnings)
   }
 
   static fromCompileResult(result: CompileScriptResult): Script {
-    return new Script(result.bytecodeTemplate, result.fields, result.functions, result.warnings)
+    return new Script(result.bytecodeTemplate, result.fields, result.functions)
   }
 
   // TODO: safely parse json
@@ -698,8 +703,7 @@ export class Script extends Artifact {
     if (artifact.bytecodeTemplate == null || artifact.fieldsSig == null || artifact.functions == null) {
       throw Error('The artifact JSON for script is incomplete')
     }
-    const warnings = artifact.warnings == null ? [] : artifact.warnings
-    return new Script(artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions, warnings)
+    return new Script(artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
   }
 
   static async fromArtifactFile(path: string): Promise<Script> {
@@ -709,13 +713,10 @@ export class Script extends Artifact {
   }
 
   override toString(): string {
-    const object: any = {
+    const object = {
       bytecodeTemplate: this.bytecodeTemplate,
       fieldsSig: this.fieldsSig,
       functions: this.functions
-    }
-    if (this.warnings.length !== 0) {
-      object.warnings = this.warnings
     }
     return JSON.stringify(object, null, 2)
   }
