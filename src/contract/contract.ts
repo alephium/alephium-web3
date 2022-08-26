@@ -57,17 +57,18 @@ class TypedMatcher<T extends SourceType> {
 class SourceFile {
   type: SourceType
   contractPath: string
-  artifactPath: string
   sourceCode: string
   sourceCodeHash: string
 
-  constructor(type: SourceType, dirPath: string, filename: string, sourceCode: string) {
+  getArtifactPath(artifactsRootPath: string): string {
+    return artifactsRootPath + this.contractPath.slice(this.contractPath.indexOf('/')) + '.json'
+  }
+
+  constructor(type: SourceType, sourceCode: string, contractPath: string) {
     this.type = type
-    this.contractPath = dirPath + '/' + filename
-    const relativePath = this.contractPath.slice(Project.contractsPath.length)
-    this.artifactPath = Project.artifactsPath + relativePath + '.json'
     this.sourceCode = sourceCode
     this.sourceCodeHash = cryptojs.SHA256(sourceCode).toString()
+    this.contractPath = contractPath
   }
 }
 
@@ -129,11 +130,9 @@ export class Project {
   contracts: Compiled<Contract>[]
   scripts: Compiled<Script>[]
 
-  private static instance: Project
-  private static nodeProvider: NodeProvider
-
-  static readonly contractsPath = 'contracts'
-  static readonly artifactsPath = 'artifacts'
+  readonly contractsRootPath: string
+  readonly artifactsRootPath: string
+  readonly nodeProvider: NodeProvider
 
   static readonly abstractContractMatcher = new TypedMatcher<SourceType>(
     '^Abstract Contract [A-Z][a-zA-Z0-9]*',
@@ -149,22 +148,28 @@ export class Project {
     Project.scriptMatcher
   ]
 
-  private constructor(sourceFiles: SourceFile[], contracts: Compiled<Contract>[], scripts: Compiled<Script>[]) {
+  private constructor(
+    provider: NodeProvider,
+    contractsRootPath: string,
+    artifactsRootPath: string,
+    sourceFiles: SourceFile[],
+    contracts: Compiled<Contract>[],
+    scripts: Compiled<Script>[]
+  ) {
+    this.nodeProvider = provider
+    this.contractsRootPath = contractsRootPath
+    this.artifactsRootPath = artifactsRootPath
     this.sourceFiles = sourceFiles
     this.contracts = contracts
     this.scripts = scripts
   }
 
-  static setNodeProvider(nodeProvider: NodeProvider) {
-    Project.nodeProvider = nodeProvider
-  }
-
-  private static getContractPath(path: string): string {
-    return path.startsWith(`./${Project.contractsPath}`)
+  private getContractPath(path: string): string {
+    return path.startsWith(`./${this.contractsRootPath}`)
       ? path.slice(2)
-      : path.startsWith(Project.contractsPath)
+      : path.startsWith(this.contractsRootPath)
       ? path
-      : Project.contractsPath + '/' + path
+      : this.contractsRootPath + '/' + path
   }
 
   private static checkCompilerWarnings(
@@ -186,7 +191,7 @@ export class Project {
   }
 
   contract(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Contract {
-    const contractPath = Project.getContractPath(path)
+    const contractPath = this.getContractPath(path)
     const contract = this.contracts.find((c) => c.sourceFile.contractPath === contractPath)
     if (typeof contract === 'undefined') {
       throw new Error(`Contract ${contractPath} does not exist`)
@@ -196,7 +201,7 @@ export class Project {
   }
 
   script(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Script {
-    const contractPath = Project.getContractPath(path)
+    const contractPath = this.getContractPath(path)
     const script = this.scripts.find((c) => c.sourceFile.contractPath === contractPath)
     if (typeof script === 'undefined') {
       throw new Error(`Script ${contractPath} does not exist`)
@@ -206,13 +211,14 @@ export class Project {
   }
 
   private async saveArtifactsToFile(): Promise<void> {
+    const artifactsRootPath = this.artifactsRootPath
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
-      const index = compiled.sourceFile.artifactPath.lastIndexOf('/')
-      const folder = compiled.sourceFile.artifactPath.slice(0, index)
+      const artifactPath = compiled.sourceFile.getArtifactPath(artifactsRootPath)
+      const folder = artifactPath.slice(0, artifactPath.lastIndexOf('/'))
       if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder, { recursive: true })
       }
-      return fsPromises.writeFile(compiled.sourceFile.artifactPath, compiled.artifact.toString())
+      return fsPromises.writeFile(artifactPath, compiled.artifact.toString())
     }
     for (const contract of this.contracts) {
       await saveToFile(contract)
@@ -252,12 +258,17 @@ export class Project {
       })
     })
     const projectArtifact = new ProjectArtifact(files)
-    await projectArtifact.saveToFile(Project.artifactsPath)
+    await projectArtifact.saveToFile(this.artifactsRootPath)
   }
 
-  private static async compile(files: SourceFile[]): Promise<Project> {
+  private static async compile(
+    provider: NodeProvider,
+    files: SourceFile[],
+    contractsRootPath: string,
+    artifactsRootPath: string
+  ): Promise<Project> {
     const sourceStr = files.map((f) => f.sourceCode).join('\n')
-    const result = await Project.nodeProvider.contracts.postContractsCompileProject({
+    const result = await provider.contracts.postContractsCompileProject({
       code: sourceStr
     })
     const contracts: Compiled<Contract>[] = []
@@ -272,55 +283,62 @@ export class Project {
       const script = Script.fromCompileResult(scriptResult)
       scripts.push(new Compiled(sourceFile, script, scriptResult.warnings))
     })
-    const project = new Project(files, contracts, scripts)
+    const project = new Project(provider, contractsRootPath, artifactsRootPath, files, contracts, scripts)
     await project.saveArtifactsToFile()
     await project.saveProjectArtifactToFile()
     return project
   }
 
-  private static async loadArtifacts(files: SourceFile[], projectArtifact: ProjectArtifact): Promise<Project> {
+  private static async loadArtifacts(
+    provider: NodeProvider,
+    files: SourceFile[],
+    projectArtifact: ProjectArtifact,
+    contractsRootPath: string,
+    artifactsRootPath: string
+  ): Promise<Project> {
     try {
       const contracts: Compiled<Contract>[] = []
       const scripts: Compiled<Script>[] = []
       for (const file of files) {
         const warnings = projectArtifact.files.get(file.sourceCodeHash)!.warnings
+        const artifactPath = file.getArtifactPath(artifactsRootPath)
         if (file.type === SourceType.Contract) {
-          const artifact = await Contract.fromArtifactFile(file.artifactPath)
+          const artifact = await Contract.fromArtifactFile(artifactPath)
           contracts.push(new Compiled(file, artifact, warnings))
         } else if (file.type === SourceType.Script) {
-          const artifact = await Script.fromArtifactFile(file.artifactPath)
+          const artifact = await Script.fromArtifactFile(artifactPath)
           scripts.push(new Compiled(file, artifact, warnings))
         }
       }
-      return new Project(files, contracts, scripts)
+      return new Project(provider, contractsRootPath, artifactsRootPath, files, contracts, scripts)
     } catch (error) {
       console.log('Failed to load artifacts, try to re-compile contracts...')
-      return Project.compile(files)
+      return Project.compile(provider, files, contractsRootPath, artifactsRootPath)
     }
   }
 
   private static async loadSourceFile(dirPath: string, filename: string): Promise<SourceFile> {
-    const fullPath = dirPath + '/' + filename
+    const contractPath = dirPath + '/' + filename
     if (!filename.endsWith('.ral')) {
-      throw new Error(`Invalid filename: ${fullPath}, smart contract file name should end with ".ral"`)
+      throw new Error(`Invalid filename: ${contractPath}, smart contract file name should end with ".ral"`)
     }
 
-    const sourceBuffer = await fsPromises.readFile(fullPath)
+    const sourceBuffer = await fsPromises.readFile(contractPath)
     const sourceStr = sourceBuffer.toString()
     const results = this.matchers.map((m) => m.match(sourceStr))
     const matchNumber = results.reduce((a, b) => a + b, 0)
     if (matchNumber === 0) {
-      throw new Error(`No contract defined in file: ${fullPath}`)
+      throw new Error(`No contract defined in file: ${contractPath}`)
     }
     if (matchNumber > 1) {
-      throw new Error(`Multiple definitions in file: ${fullPath}`)
+      throw new Error(`Multiple definitions in file: ${contractPath}`)
     }
     const matcherIndex = results.indexOf(1)
     const type = this.matchers[matcherIndex].type
-    return new SourceFile(type, dirPath, filename, sourceStr)
+    return new SourceFile(type, sourceStr, contractPath)
   }
 
-  private static async loadSourceFiles(rootPath: string): Promise<SourceFile[]> {
+  private static async loadSourceFiles(contractsRootPath: string): Promise<SourceFile[]> {
     const loadDir = async function (dirPath: string, results: SourceFile[]): Promise<void> {
       const dirents = await fsPromises.readdir(dirPath, { withFileTypes: true })
       for (const dirent of dirents) {
@@ -334,7 +352,7 @@ export class Project {
       }
     }
     const sourceFiles: SourceFile[] = []
-    await loadDir(rootPath, sourceFiles)
+    await loadDir(contractsRootPath, sourceFiles)
     const contractAndScriptSize = sourceFiles.filter(
       (f) => f.type === SourceType.Contract || f.type === SourceType.Script
     ).length
@@ -344,25 +362,18 @@ export class Project {
     return sourceFiles.sort((a, b) => a.type - b.type)
   }
 
-  static async load(): Promise<Project> {
-    const sourceFiles = await Project.loadSourceFiles(Project.contractsPath)
-    const projectArtifact = await ProjectArtifact.from(Project.artifactsPath)
+  static async fromSource(
+    provider: NodeProvider,
+    contractsRootPath = 'contracts',
+    artifactsRootPath = 'artifacts'
+  ): Promise<Project> {
+    const sourceFiles = await Project.loadSourceFiles(contractsRootPath)
+    const projectArtifact = await ProjectArtifact.from(artifactsRootPath)
     if (typeof projectArtifact === 'undefined' || projectArtifact.sourceHasChanged(sourceFiles)) {
-      Project.instance = await Project.compile(sourceFiles)
+      return Project.compile(provider, sourceFiles, contractsRootPath, artifactsRootPath)
     } else {
-      Project.instance = await Project.loadArtifacts(sourceFiles, projectArtifact)
+      return Project.loadArtifacts(provider, sourceFiles, projectArtifact, contractsRootPath, artifactsRootPath)
     }
-    return Project.instance
-  }
-
-  static async getInstance(): Promise<Project> {
-    if (!Project.instance) {
-      if (!Project.nodeProvider) {
-        throw new Error('Please set the node provider by calling Project.setNodeProvider')
-      }
-      await Project.load()
-    }
-    return Project.instance
   }
 }
 
@@ -408,15 +419,6 @@ export class Contract extends Artifact {
     this.eventsSig = eventsSig
   }
 
-  static async fromSource(
-    path: string,
-    errorOnWarnings = true,
-    ignoreUnusedConstantsWarnings = true
-  ): Promise<Contract> {
-    const project = await Project.getInstance()
-    return project.contract(path, errorOnWarnings, ignoreUnusedConstantsWarnings)
-  }
-
   // TODO: safely parse json
   static fromJson(artifact: any): Contract {
     if (
@@ -449,9 +451,9 @@ export class Contract extends Artifact {
     return Contract.fromJson(artifact)
   }
 
-  async fetchState(provider: NodeProvider, address: string, group: number): Promise<ContractState> {
-    const state = await provider.contracts.getContractsAddressState(address, { group: group })
-    return this.fromApiContractState(state)
+  async fetchState(project: Project, address: string, group: number): Promise<ContractState> {
+    const state = await project.nodeProvider.contracts.getContractsAddressState(address, { group: group })
+    return this.fromApiContractState(project, state)
   }
 
   override toString(): string {
@@ -485,40 +487,32 @@ export class Contract extends Artifact {
   }
 
   private async _test(
-    provider: NodeProvider,
+    project: Project,
     funcName: string,
     params: TestContractParams,
     expectPublic: boolean,
     accessType: string
   ): Promise<TestContractResult> {
     const apiParams: node.TestContract = this.toTestContract(funcName, params)
-    const apiResult = await provider.contracts.postContractsTestContract(apiParams)
+    const apiResult = await project.nodeProvider.contracts.postContractsTestContract(apiParams)
 
     const methodIndex =
       typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
     const isPublic = this.functions[`${methodIndex}`].isPublic
     if (isPublic === expectPublic) {
-      const result = await this.fromTestContractResult(methodIndex, apiResult)
+      const result = await this.fromTestContractResult(project, methodIndex, apiResult)
       return result
     } else {
       throw new Error(`The test method ${funcName} is not ${accessType}`)
     }
   }
 
-  async testPublicMethod(
-    provider: NodeProvider,
-    funcName: string,
-    params: TestContractParams
-  ): Promise<TestContractResult> {
-    return this._test(provider, funcName, params, true, 'public')
+  async testPublicMethod(project: Project, funcName: string, params: TestContractParams): Promise<TestContractResult> {
+    return this._test(project, funcName, params, true, 'public')
   }
 
-  async testPrivateMethod(
-    provider: NodeProvider,
-    funcName: string,
-    params: TestContractParams
-  ): Promise<TestContractResult> {
-    return this._test(provider, funcName, params, false, 'private')
+  async testPrivateMethod(project: Project, funcName: string, params: TestContractParams): Promise<TestContractResult> {
+    return this._test(project, funcName, params, false, 'private')
   }
 
   toApiFields(fields?: Fields): node.Val[] {
@@ -564,17 +558,8 @@ export class Contract extends Artifact {
     }
   }
 
-  static async fromCodeHash(codeHash: string): Promise<Contract> {
-    const project = await Project.getInstance()
-    return project.contractByCodeHash(codeHash)
-  }
-
-  static async getFieldsSig(state: node.ContractState): Promise<FieldsSig> {
-    return Contract.fromCodeHash(state.codeHash).then((contract) => contract.fieldsSig)
-  }
-
-  async fromApiContractState(state: node.ContractState): Promise<ContractState> {
-    const contract = await Contract.fromCodeHash(state.codeHash)
+  async fromApiContractState(project: Project, state: node.ContractState): Promise<ContractState> {
+    const contract = project.contractByCodeHash(state.codeHash)
     return {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
@@ -582,7 +567,7 @@ export class Contract extends Artifact {
       initialStateHash: state.initialStateHash,
       codeHash: state.codeHash,
       fields: fromApiFields(state.fields, contract.fieldsSig),
-      fieldsSig: await Contract.getFieldsSig(state),
+      fieldsSig: contract.fieldsSig,
       asset: fromApiAsset(state.asset)
     }
   }
@@ -600,6 +585,7 @@ export class Contract extends Artifact {
   }
 
   static async fromApiEvent(
+    project: Project,
     event: node.ContractEventByTxId,
     codeHash: string | undefined
   ): Promise<ContractEventByTxId> {
@@ -610,7 +596,7 @@ export class Contract extends Artifact {
     } else if (event.eventIndex == -2) {
       eventSig = this.ContractDestroyedEvent
     } else {
-      const contract = await Contract.fromCodeHash(codeHash!)
+      const contract = project.contractByCodeHash(codeHash!)
       eventSig = contract.eventsSig[event.eventIndex]
     }
 
@@ -622,7 +608,11 @@ export class Contract extends Artifact {
     }
   }
 
-  async fromTestContractResult(methodIndex: number, result: node.TestContractResult): Promise<TestContractResult> {
+  async fromTestContractResult(
+    project: Project,
+    methodIndex: number,
+    result: node.TestContractResult
+  ): Promise<TestContractResult> {
     const addressToCodeHash = new Map<string, string>()
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
@@ -631,14 +621,14 @@ export class Contract extends Artifact {
       contractId: binToHex(contractIdFromAddress(result.address)),
       returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
-      contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
+      contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(project, contract))),
       txOutputs: result.txOutputs.map(fromApiOutput),
       events: await Promise.all(
         result.events.map((event) => {
           const contractAddress = event.contractAddress
           const codeHash = addressToCodeHash.get(contractAddress)
           if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
-            return Contract.fromApiEvent(event, codeHash)
+            return Contract.fromApiEvent(project, event, codeHash)
           } else {
             throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
           }
@@ -686,11 +676,6 @@ export class Script extends Artifact {
     super(functions)
     this.bytecodeTemplate = bytecodeTemplate
     this.fieldsSig = fieldsSig
-  }
-
-  static async fromSource(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Promise<Script> {
-    const project = await Project.getInstance()
-    return project.script(path, errorOnWarnings, ignoreUnusedConstantsWarnings)
   }
 
   static fromCompileResult(result: CompileScriptResult): Script {

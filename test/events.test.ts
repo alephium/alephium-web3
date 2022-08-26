@@ -18,18 +18,17 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { NodeProvider } from '../src/api'
 import { subscribeToEvents } from '../src/contract/events'
-import { Contract, Project, Script } from '../src/contract'
+import { Project, Script } from '../src/contract'
 import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { ContractEvent } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
 import { SubscribeOptions, timeout } from '../src/utils'
 
 describe('events', function () {
-  const provider = new NodeProvider('http://127.0.0.1:22973')
-  Project.setNodeProvider(provider)
-
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {
-    const sub = await Contract.fromSource('sub/sub.ral')
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const project = await Project.fromSource(provider)
+    const sub = project.contract('sub/sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
       initialTokenAmounts: []
@@ -39,7 +38,7 @@ describe('events', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     // ignore unused private function warnings
-    const add = await Contract.fromSource('add/add.ral', false)
+    const add = project.contract('add/add.ral', false)
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { subContractId: subContractId, result: 0 },
       initialTokenAmounts: []
@@ -58,6 +57,7 @@ describe('events', function () {
 
   it('should subscribe contract events', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
+    const project = await Project.fromSource(provider)
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(signer)
@@ -76,7 +76,7 @@ describe('events', function () {
       }
     }
     const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = await Script.fromSource('main.ral')
+    const script = project.script('main.ral')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
       signerAddress: (await signer.getAccounts())[0].address
@@ -98,6 +98,7 @@ describe('events', function () {
 
   it('should cancel event subscription', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
+    const project = await Project.fromSource(provider)
     const signer = await testWallet(provider)
 
     const [contractAddress, contractId] = await deployContract(signer)
@@ -116,7 +117,7 @@ describe('events', function () {
       }
     }
     const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = await Script.fromSource('main.ral')
+    const script = project.script('main.ral')
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })

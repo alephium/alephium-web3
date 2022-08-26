@@ -25,15 +25,13 @@ import { testWallet } from '../src/test'
 import { addressFromContractId } from '../src/utils'
 
 describe('contract', function () {
-  const provider = new NodeProvider('http://127.0.0.1:22973')
-  Project.setNodeProvider(provider)
-
   async function testSuite1() {
     const provider = new NodeProvider('http://127.0.0.1:22973')
+    const project = await Project.fromSource(provider)
 
     // ignore unused private function warnings
-    const add = await Contract.fromSource('add/add.ral', false)
-    const sub = await Contract.fromSource('sub/sub.ral')
+    const add = project.contract('add/add.ral', false)
+    const sub = project.contract('sub/sub.ral')
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
@@ -41,7 +39,7 @@ describe('contract', function () {
       testArgs: { array: [2, 1] },
       existingContracts: [subState]
     }
-    const testResult = await add.testPublicMethod(provider, 'add', testParams)
+    const testResult = await add.testPublicMethod(project, 'add', testParams)
     expect(testResult.returns).toEqual([[3, 1]])
     expect(testResult.contracts[0].codeHash).toEqual(sub.codeHash)
     expect(testResult.contracts[0].fields.result).toEqual(1)
@@ -56,7 +54,7 @@ describe('contract', function () {
     expect(events[1].fields.x).toEqual(2)
     expect(events[1].fields.y).toEqual(1)
 
-    const testResultPrivate = await add.testPrivateMethod(provider, 'addPrivate', testParams)
+    const testResultPrivate = await add.testPrivateMethod(project, 'addPrivate', testParams)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
     const signer = await testWallet(provider)
@@ -89,13 +87,13 @@ describe('contract', function () {
     const addContractAddress = addressFromContractId(addContractId)
 
     // Check state for add/sub before main script is executed
-    let fetchedSubState = await sub.fetchState(provider, subContractAddress, 0)
+    let fetchedSubState = await sub.fetchState(project, subContractAddress, 0)
     expect(fetchedSubState.fields.result).toEqual(0)
-    let fetchedAddState = await add.fetchState(provider, addContractAddress, 0)
+    let fetchedAddState = await add.fetchState(project, addContractAddress, 0)
     expect(fetchedAddState.fields.subContractId).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(0)
 
-    const main = await Script.fromSource('main.ral')
+    const main = project.script('main.ral')
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { addContractId: addContractId }
     })
@@ -106,20 +104,23 @@ describe('contract', function () {
     expect(mainSubmitResult.toGroup).toEqual(0)
 
     // Check state for add/sub after main script is executed
-    fetchedSubState = await sub.fetchState(provider, subContractAddress, 0)
+    fetchedSubState = await sub.fetchState(project, subContractAddress, 0)
     expect(fetchedSubState.fields.result).toEqual(1)
-    fetchedAddState = await add.fetchState(provider, addContractAddress, 0)
+    fetchedAddState = await add.fetchState(project, addContractAddress, 0)
     expect(fetchedAddState.fields.subContractId).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(3)
   }
 
   async function testSuite2() {
-    const greeter = await Contract.fromSource('greeter/greeter.ral')
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const project = await Project.fromSource(provider)
+
+    const greeter = project.contract('greeter/greeter.ral')
 
     const testParams: TestContractParams = {
       initialFields: { btcPrice: 1 }
     }
-    const testResult = await greeter.testPublicMethod(provider, 'greet', testParams)
+    const testResult = await greeter.testPublicMethod(project, 'greet', testParams)
     expect(testResult.returns).toEqual([1])
     expect(testResult.contracts[0].codeHash).toEqual(greeter.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1)
@@ -138,7 +139,7 @@ describe('contract', function () {
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
-    const main = await Script.fromSource('greeter_main.ral')
+    const main = project.script('greeter_main.ral')
 
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { greeterContractId: greeterContractId }
@@ -187,7 +188,9 @@ describe('contract', function () {
   })
 
   it('should extract metadata of contracts', async () => {
-    const contract = await Contract.fromSource('test/metadata.ral', false)
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const project = await Project.fromSource(provider)
+    const contract = project.contract('test/metadata.ral', false)
     expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(contract.publicFunctions()).toEqual(['foo'])
     expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
@@ -195,13 +198,15 @@ describe('contract', function () {
   })
 
   it('should handle compiler warnings', async () => {
-    const contract = await Contract.fromSource('test/warnings.ral', false)
+    const provider = new NodeProvider('http://127.0.0.1:22973')
+    const project = await Project.fromSource(provider)
+    const contract = project.contract('test/warnings.ral', false)
     expect(contract.publicFunctions()).toEqual(['foo'])
 
-    await expect(Contract.fromSource('test/warnings.ral')).rejects.toThrowError(
+    expect(() => project.contract('test/warnings.ral')).toThrowError(
       'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused fields in Warnings: b'
     )
-    await expect(Contract.fromSource('test/warnings.ral', true, false)).rejects.toThrowError(
+    expect(() => project.contract('test/warnings.ral', true, false)).toThrowError(
       'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused constants in Warnings: C\n  - Found unused fields in Warnings: b'
     )
   })
