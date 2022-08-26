@@ -300,7 +300,7 @@ export class Project {
       const contracts: Compiled<Contract>[] = []
       const scripts: Compiled<Script>[] = []
       for (const file of files) {
-        const warnings = projectArtifact.files.get(file.sourceCodeHash)!.warnings
+        const warnings = projectArtifact.files.get(file.contractPath)!.warnings
         const artifactPath = file.getArtifactPath(artifactsRootPath)
         if (file.type === SourceType.Contract) {
           const artifact = await Contract.fromArtifactFile(artifactPath)
@@ -312,7 +312,7 @@ export class Project {
       }
       return new Project(provider, contractsRootPath, artifactsRootPath, files, contracts, scripts)
     } catch (error) {
-      console.log('Failed to load artifacts, try to re-compile contracts...')
+      console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
       return Project.compile(provider, files, contractsRootPath, artifactsRootPath)
     }
   }
