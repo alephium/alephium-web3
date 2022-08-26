@@ -169,6 +169,14 @@ describe('contract', function () {
     Script.fromJson(loadJson(fileName))
   }
 
+  it('should load source files by order', async () => {
+    const sourceFiles = await Project['loadSourceFiles']('./contracts') // `loadSourceFiles` is a private method
+    expect(sourceFiles.length).toEqual(8)
+    sourceFiles.slice(0, 5).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(5, 7).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(7).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+  })
+
   it('should load contract from json', async () => {
     loadContract('./artifacts/add/add.ral.json')
     loadContract('./artifacts/sub/sub.ral.json')

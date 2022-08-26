@@ -333,20 +333,19 @@ export class Project {
         }
       }
     }
-    const results: SourceFile[] = []
-    await loadDir(rootPath, results)
-    return results
-  }
-
-  static async load(): Promise<Project> {
-    const sourceFiles = await Project.loadSourceFiles(Project.contractsPath)
+    const sourceFiles: SourceFile[] = []
+    await loadDir(rootPath, sourceFiles)
     const contractAndScriptSize = sourceFiles.filter(
       (f) => f.type === SourceType.Contract || f.type === SourceType.Script
     ).length
     if (sourceFiles.length === 0 || contractAndScriptSize === 0) {
       throw new Error('Project have no source files')
     }
-    sourceFiles.sort((a, b) => a.type - b.type)
+    return sourceFiles.sort((a, b) => a.type - b.type)
+  }
+
+  static async load(): Promise<Project> {
+    const sourceFiles = await Project.loadSourceFiles(Project.contractsPath)
     const projectArtifact = await ProjectArtifact.from(Project.artifactsPath)
     if (typeof projectArtifact === 'undefined' || projectArtifact.sourceHasChanged(sourceFiles)) {
       Project.instance = await Project.compile(sourceFiles)
