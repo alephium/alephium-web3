@@ -432,6 +432,11 @@ export interface CompileContractResult {
   warnings: string[]
 }
 
+export interface CompileProjectResult {
+  contracts: CompileContractResult[]
+  scripts: CompileScriptResult[]
+}
+
 export interface CompileScriptResult {
   bytecodeTemplate: string
   fields: FieldsSig
@@ -705,6 +710,10 @@ export interface Penalty {
   /** @format int32 */
   value: number
   type: string
+}
+
+export interface Project {
+  code: string
 }
 
 export interface Reachable {
@@ -2157,6 +2166,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/contracts/compile-contract`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
+     * @name PostContractsCompileProject
+     * @summary Compile a project
+     * @request POST:/contracts/compile-project
+     */
+    postContractsCompileProject: (data: Project, params: RequestParams = {}) =>
+      this.request<
+        CompileProjectResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/contracts/compile-project`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

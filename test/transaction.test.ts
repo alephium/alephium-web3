@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { NodeProvider } from '../src/api'
 import { subscribeToTxStatus } from '../src/transaction/status'
-import { Contract } from '../src/contract'
+import { Project } from '../src/contract'
 import { TxStatus } from '../src/api/api-alephium'
 import { testWallet } from '../src/test'
 import { SubscribeOptions, timeout } from '../src/utils'
@@ -26,7 +26,8 @@ import { SubscribeOptions, timeout } from '../src/utils'
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
-    const sub = await Contract.fromSource(provider, 'sub/sub.ral')
+    await Project.build(provider)
+    const sub = Project.contract('sub/sub.ral')
     const signer = await testWallet(provider)
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
@@ -67,6 +68,7 @@ describe('transactions', function () {
     const counterAfterUnsubscribe = counter
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
-    expect(counterAfterUnsubscribe).toEqual(counter)
+    // There maybe a pending request when we unsubscribe
+    expect([counter, counter - 1]).toContain(counterAfterUnsubscribe)
   }, 10000)
 })

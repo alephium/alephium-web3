@@ -11,6 +11,7 @@ Contract MetaData() {
         return
     }
 
+    @using(readonly = true)
     fn baz() -> () {
         return
     }
