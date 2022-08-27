@@ -7,4 +7,3 @@ web/
 coverage/
 /dev/
 !dev/user.conf
-/artifacts/

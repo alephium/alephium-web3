@@ -1,0 +1,69 @@
+{
+  "bytecode": "02020d40340100020202041600160100010200000203021405160016015fa0001702a00116002a16012aa101a001160016010e0d1602010002",
+  "codeHash": "cac878b12d651b89795885149cb66271a3ee916f10c998729237e439a76639d3",
+  "fieldsSig": {
+    "names": [
+      "subContractId",
+      "result"
+    ],
+    "types": [
+      "ByteVec",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      true
+    ]
+  },
+  "eventsSig": [
+    {
+      "name": "Add",
+      "fieldNames": [
+        "x",
+        "y"
+      ],
+      "fieldTypes": [
+        "U256",
+        "U256"
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "add",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "array"
+      ],
+      "paramTypes": [
+        "[U256;2]"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "[U256;2]"
+      ]
+    },
+    {
+      "name": "addPrivate",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": false,
+      "paramNames": [
+        "array"
+      ],
+      "paramTypes": [
+        "[U256;2]"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "[U256;2]"
+      ]
+    }
+  ]
+}
