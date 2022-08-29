@@ -39,7 +39,7 @@ enum SourceType {
   Interface = 3
 }
 
-type CompilerOptions = {
+export type CompilerOptions = {
   errorOnWarnings: boolean
   ignoreUnusedConstantsWarnings: boolean
 }
