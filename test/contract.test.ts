@@ -30,7 +30,7 @@ describe('contract', function () {
     await Project.build(provider)
 
     // ignore unused private function warnings
-    const add = Project.contract('add/add.ral', false)
+    const add = Project.contract('add/add.ral', { errorOnWarnings: false })
     const sub = Project.contract('sub/sub.ral')
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
@@ -190,7 +190,7 @@ describe('contract', function () {
   it('should extract metadata of contracts', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
     await Project.build(provider)
-    const contract = Project.contract('test/metadata.ral', false)
+    const contract = Project.contract('test/metadata.ral', { errorOnWarnings: false })
     expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(contract.publicFunctions()).toEqual(['foo'])
     expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
@@ -200,13 +200,13 @@ describe('contract', function () {
   it('should handle compiler warnings', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
     await Project.build(provider)
-    const contract = Project.contract('test/warnings.ral', false)
+    const contract = Project.contract('test/warnings.ral', { errorOnWarnings: false })
     expect(contract.publicFunctions()).toEqual(['foo'])
 
     expect(() => Project.contract('test/warnings.ral')).toThrowError(
       'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused fields in Warnings: b'
     )
-    expect(() => Project.contract('test/warnings.ral', true, false)).toThrowError(
+    expect(() => Project.contract('test/warnings.ral', { ignoreUnusedConstantsWarnings: false })).toThrowError(
       'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused constants in Warnings: C\n  - Found unused fields in Warnings: b'
     )
   })

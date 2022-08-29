@@ -39,6 +39,16 @@ enum SourceType {
   Interface = 3
 }
 
+type CompilerOptions = {
+  errorOnWarnings: boolean
+  ignoreUnusedConstantsWarnings: boolean
+}
+
+export const DEFAULT_COMPILER_OPTIONS: CompilerOptions = {
+  errorOnWarnings: true,
+  ignoreUnusedConstantsWarnings: true
+}
+
 class TypedMatcher<T extends SourceType> {
   matcher: RegExp
   type: T
@@ -174,17 +184,15 @@ export class Project {
       : this.contractsRootPath + '/' + path
   }
 
-  private static checkCompilerWarnings(
-    warnings: string[],
-    errorOnWarnings: boolean,
-    ignoreUnusedConstantsWarnings: boolean
-  ): void {
-    const remains = ignoreUnusedConstantsWarnings ? warnings.filter((s) => !s.includes('unused constants')) : warnings
+  private static checkCompilerWarnings(warnings: string[], compilerOptions: CompilerOptions): void {
+    const remains = compilerOptions.ignoreUnusedConstantsWarnings
+      ? warnings.filter((s) => !s.includes('unused constants'))
+      : warnings
     if (remains.length !== 0) {
       const prefixPerWarning = '  - '
       const warningString = prefixPerWarning + remains.join('\n' + prefixPerWarning)
       const output = 'Compilation warnings:\n' + warningString + '\n'
-      if (errorOnWarnings) {
+      if (compilerOptions.errorOnWarnings) {
         throw new Error(output)
       } else {
         console.log(output)
@@ -192,23 +200,23 @@ export class Project {
     }
   }
 
-  static contract(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Contract {
+  static contract(path: string, compilerOptions?: Partial<CompilerOptions>): Contract {
     const contractPath = Project.currentProject.getContractPath(path)
     const contract = Project.currentProject.contracts.find((c) => c.sourceFile.contractPath === contractPath)
     if (typeof contract === 'undefined') {
       throw new Error(`Contract ${contractPath} does not exist`)
     }
-    Project.checkCompilerWarnings(contract.warnings, errorOnWarnings, ignoreUnusedConstantsWarnings)
+    Project.checkCompilerWarnings(contract.warnings, { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptions })
     return contract.artifact
   }
 
-  static script(path: string, errorOnWarnings = true, ignoreUnusedConstantsWarnings = true): Script {
+  static script(path: string, compilerOptions?: Partial<CompilerOptions>): Script {
     const contractPath = Project.currentProject.getContractPath(path)
     const script = Project.currentProject.scripts.find((c) => c.sourceFile.contractPath === contractPath)
     if (typeof script === 'undefined') {
       throw new Error(`Script ${contractPath} does not exist`)
     }
-    Project.checkCompilerWarnings(script.warnings, errorOnWarnings, ignoreUnusedConstantsWarnings)
+    Project.checkCompilerWarnings(script.warnings, { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptions })
     return script.artifact
   }
 
