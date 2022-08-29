@@ -38,7 +38,7 @@ describe('events', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     // ignore unused private function warnings
-    const add = Project.contract('add/add.ral', false)
+    const add = Project.contract('add/add.ral', { errorOnWarnings: false })
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { subContractId: subContractId, result: 0 },
       initialTokenAmounts: []
