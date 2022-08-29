@@ -35,7 +35,7 @@ describe('contract', function () {
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
-      initialFields: { subContractId: subState.contractId, result: 0 },
+      initialFields: { sub: subState.contractId, result: 0 },
       testArgs: { array: [2, 1] },
       existingContracts: [subState]
     }
@@ -44,7 +44,7 @@ describe('contract', function () {
     expect(testResult.contracts[0].codeHash).toEqual(sub.codeHash)
     expect(testResult.contracts[0].fields.result).toEqual(1)
     expect(testResult.contracts[1].codeHash).toEqual(add.codeHash)
-    expect(testResult.contracts[1].fields.subContractId).toEqual(subState.contractId)
+    expect(testResult.contracts[1].fields.sub).toEqual(subState.contractId)
     expect(testResult.contracts[1].fields.result).toEqual(3)
     const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
     expect(events[0].name).toEqual('Add')
@@ -73,7 +73,7 @@ describe('contract', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const addDeployTx = await add.transactionForDeployment(signer, {
-      initialFields: { subContractId: subContractId, result: 0 },
+      initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
     })
     expect(addDeployTx.fromGroup).toEqual(0)
@@ -90,7 +90,7 @@ describe('contract', function () {
     let fetchedSubState = await sub.fetchState(subContractAddress, 0)
     expect(fetchedSubState.fields.result).toEqual(0)
     let fetchedAddState = await add.fetchState(addContractAddress, 0)
-    expect(fetchedAddState.fields.subContractId).toEqual(subContractId)
+    expect(fetchedAddState.fields.sub).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(0)
 
     const main = Project.script('main.ral')
@@ -107,7 +107,7 @@ describe('contract', function () {
     fetchedSubState = await sub.fetchState(subContractAddress, 0)
     expect(fetchedSubState.fields.result).toEqual(1)
     fetchedAddState = await add.fetchState(addContractAddress, 0)
-    expect(fetchedAddState.fields.subContractId).toEqual(subContractId)
+    expect(fetchedAddState.fields.sub).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(3)
   }
 
