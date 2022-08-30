@@ -1,7 +1,7 @@
 Contract Greeter(btcPrice: U256) implements GreeterInterface {
     @using(readonly = true)
     pub fn greet() -> U256 {
-        checkPermission!(true, 0)
+        checkCaller!(true, 0)
         return btcPrice
     }
 }

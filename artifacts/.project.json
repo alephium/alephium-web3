@@ -4,11 +4,11 @@
     "warnings": []
   },
   "contracts/greeter/greeter.ral": {
-    "sourceCodeHash": "2c78fe8a7b1f0ce58db39c9afd653df6e2ebcd3d9a66dfeadb43cb6e83e2fea3",
+    "sourceCodeHash": "0bd98208e4c770df3aa0dd421ec785d5bb7d787c53d2f166653a5ee71d936d39",
     "warnings": []
   },
   "contracts/sub/sub.ral": {
-    "sourceCodeHash": "2cbb0ea75687f9894dfd261ed69a9cf77026f5acdb663e800df42e9a3538a201",
+    "sourceCodeHash": "409518aa25bdace56cefe167d6607f04cd955204a7050f00a050466703cdf0f0",
     "warnings": []
   },
   "contracts/test/metadata.ral": {
