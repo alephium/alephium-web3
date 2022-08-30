@@ -40,7 +40,7 @@ describe('events', function () {
     // ignore unused private function warnings
     const add = Project.contract('add/add.ral', { errorOnWarnings: false })
     const addDeployTx = await add.transactionForDeployment(signer, {
-      initialFields: { subContractId: subContractId, result: 0 },
+      initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
     })
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)

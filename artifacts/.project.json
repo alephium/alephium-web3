@@ -1,6 +1,6 @@
 {
   "contracts/add/add.ral": {
-    "sourceCodeHash": "7a67e42199755c9f7c2d9f7195caa95c4f72a4e372be86a8a1ff1f78666b30f5",
+    "sourceCodeHash": "c1e952e47d26bdf616ba4254030a830a477e6a3e1bb5cb551b63fab877d574c8",
     "warnings": []
   },
   "contracts/greeter/greeter.ral": {
