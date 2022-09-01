@@ -16,15 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NodeProvider } from '../api'
 import { Account, SignerWithNodeProvider } from '../signer'
 
 export class NodeWallet extends SignerWithNodeProvider {
   public walletName: string
   public accounts: Account[] | undefined
 
-  constructor(provider: NodeProvider, walletName: string, alwaysSubmitTx = true) {
-    super(provider, alwaysSubmitTx)
+  constructor(walletName: string, alwaysSubmitTx = true) {
+    super(alwaysSubmitTx)
     this.walletName = walletName
   }
 
@@ -43,14 +42,6 @@ export class NodeWallet extends SignerWithNodeProvider {
       group: acc.group
     }))
     return accounts
-  }
-
-  static async FromCliqueClient(
-    provider: NodeProvider,
-    walletName: string,
-    alwaysSubmitTx = true
-  ): Promise<NodeWallet> {
-    return new NodeWallet(provider, walletName, alwaysSubmitTx)
   }
 
   async signRaw(signerAddress: string, hexString: string): Promise<string> {

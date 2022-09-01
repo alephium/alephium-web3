@@ -23,6 +23,7 @@ import * as utils from '../utils'
 import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
 import { Token } from '../api/api-alephium'
+import { getCurrentNodeProvider } from '../global'
 
 const ec = new EC('secp256k1')
 
@@ -167,8 +168,8 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     }
   }
 
-  constructor(provider: NodeProvider, alwaysSubmitTx: boolean) {
-    this.provider = provider
+  constructor(alwaysSubmitTx: boolean) {
+    this.provider = getCurrentNodeProvider()
     this.alwaysSubmitTx = alwaysSubmitTx
   }
 

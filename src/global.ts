@@ -16,11 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
+import { NodeProvider } from './api'
 
-export * from './constants'
-export * from './global'
+let _currentNodeProvider: NodeProvider | undefined = undefined
+
+export function setCurrentNodeProvider(provider: NodeProvider | string): void {
+  if (typeof provider == 'string') {
+    _currentNodeProvider = new NodeProvider(provider)
+  } else {
+    _currentNodeProvider = provider
+  }
+}
+
+export function getCurrentNodeProvider(): NodeProvider {
+  if (typeof _currentNodeProvider === 'undefined') {
+    throw Error('No node provider is set.')
+  }
+  return _currentNodeProvider
+}

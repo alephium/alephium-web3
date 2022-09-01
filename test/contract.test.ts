@@ -18,16 +18,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as fs from 'fs'
 import * as path from 'path'
-
-import { NodeProvider } from '../src/api'
+import { setCurrentNodeProvider } from '../src'
 import { Contract, Project, Script, TestContractParams } from '../src/contract'
-import { testWallet } from '../src/test'
+import { testNodeWallet } from '../src/test'
 import { addressFromContractId } from '../src/utils'
 
 describe('contract', function () {
   async function testSuite1() {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
 
     // ignore unused private function warnings
     const add = Project.contract('add/add.ral', { errorOnWarnings: false })
@@ -57,7 +56,7 @@ describe('contract', function () {
     const testResultPrivate = await add.testPrivateMethod('addPrivate', testParams)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
-    const signer = await testWallet(provider)
+    const signer = await testNodeWallet()
 
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
@@ -112,8 +111,8 @@ describe('contract', function () {
   }
 
   async function testSuite2() {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
 
     const greeter = Project.contract('greeter/greeter.ral')
 
@@ -125,7 +124,7 @@ describe('contract', function () {
     expect(testResult.contracts[0].codeHash).toEqual(greeter.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1)
 
-    const signer = await testWallet(provider)
+    const signer = await testNodeWallet()
 
     const deployTx = await greeter.transactionForDeployment(signer, {
       initialFields: { btcPrice: 1 },
@@ -188,8 +187,9 @@ describe('contract', function () {
   })
 
   it('should extract metadata of contracts', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
+
     const contract = Project.contract('test/metadata.ral', { errorOnWarnings: false })
     expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(contract.publicFunctions()).toEqual(['foo'])
@@ -198,8 +198,8 @@ describe('contract', function () {
   })
 
   it('should handle compiler warnings', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
     const contract = Project.contract('test/warnings.ral', { errorOnWarnings: false })
     expect(contract.publicFunctions()).toEqual(['foo'])
 

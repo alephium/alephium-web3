@@ -21,12 +21,12 @@ import * as cryptojs from 'crypto-js'
 import * as crypto from 'crypto'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
-import { NodeProvider } from '../api'
-import { node } from '../api'
+import { node, NodeProvider } from '../api'
 import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerWithNodeProvider } from '../signer'
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 import { CompileContractResult, CompileScriptResult } from '../api/api-alephium'
+import { getCurrentNodeProvider } from '../global'
 
 type FieldsSig = node.FieldsSig
 type EventSig = node.EventSig
@@ -376,11 +376,8 @@ export class Project {
     return sourceFiles.sort((a, b) => a.type - b.type)
   }
 
-  static async build(
-    provider: NodeProvider,
-    contractsRootPath = 'contracts',
-    artifactsRootPath = 'artifacts'
-  ): Promise<void> {
+  static async build(contractsRootPath = 'contracts', artifactsRootPath = 'artifacts'): Promise<void> {
+    const provider = getCurrentNodeProvider()
     const sourceFiles = await Project.loadSourceFiles(contractsRootPath)
     const projectArtifact = await ProjectArtifact.from(artifactsRootPath)
     if (typeof projectArtifact === 'undefined' || projectArtifact.sourceHasChanged(sourceFiles)) {

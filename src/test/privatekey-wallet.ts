@@ -17,7 +17,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { NodeProvider } from '../api'
 import { Account, SignerWithNodeProvider } from '../signer'
 import * as utils from '../utils'
 
@@ -29,17 +28,17 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
   readonly address: string
   readonly group: number
 
-  constructor(provider: NodeProvider, privateKey: string, alwaysSubmitTx = true) {
-    super(provider, alwaysSubmitTx)
+  constructor(privateKey: string, alwaysSubmitTx = true) {
+    super(alwaysSubmitTx)
     this.privateKey = privateKey
     this.publicKey = utils.publicKeyFromPrivateKey(privateKey)
     this.address = utils.addressFromPublicKey(this.publicKey)
     this.group = utils.groupOfAddress(this.address)
   }
 
-  static Random(provider: NodeProvider, alwaysSubmitTx = true): PrivateKeyWallet {
+  static Random(alwaysSubmitTx = true): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    return new PrivateKeyWallet(provider, keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
+    return new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
   }
 
   async getAccounts(): Promise<Account[]> {
