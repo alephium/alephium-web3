@@ -16,19 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NodeProvider } from '../src/api'
 import { subscribeToTxStatus } from '../src/transaction/status'
 import { Project } from '../src/contract'
 import { TxStatus } from '../src/api/api-alephium'
-import { testWallet } from '../src/test'
+import { testNodeWallet } from '../src/test'
 import { SubscribeOptions, timeout } from '../src/utils'
+import { setCurrentNodeProvider } from '../src'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
     const sub = Project.contract('sub/sub.ral')
-    const signer = await testWallet(provider)
+    const signer = await testNodeWallet()
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
       initialTokenAmounts: []
@@ -37,7 +37,6 @@ describe('transactions', function () {
     let txStatus: TxStatus | undefined = undefined
     let counter = 0
     const subscriptOptions: SubscribeOptions<TxStatus> = {
-      provider: provider,
       pollingInterval: 500,
       messageCallback: (status: TxStatus): Promise<void> => {
         txStatus = status

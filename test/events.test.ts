@@ -16,18 +16,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NodeProvider } from '../src/api'
 import { subscribeToEvents } from '../src/contract/events'
-import { Project, Script } from '../src/contract'
+import { Project } from '../src/contract'
 import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
 import { ContractEvent } from '../src/api/api-alephium'
-import { testWallet } from '../src/test'
+import { testNodeWallet } from '../src/test'
 import { SubscribeOptions, timeout } from '../src/utils'
+import { setCurrentNodeProvider } from '../src'
 
 describe('events', function () {
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
     const sub = Project.contract('sub/sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
@@ -56,14 +56,13 @@ describe('events', function () {
   }
 
   it('should subscribe contract events', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
-    const signer = await testWallet(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
+    const signer = await testNodeWallet()
 
     const [contractAddress, contractId] = await deployContract(signer)
     const events: Array<ContractEvent> = []
     const subscriptOptions: SubscribeOptions<ContractEvent> = {
-      provider: provider,
       pollingInterval: 500,
       messageCallback: (event: ContractEvent): Promise<void> => {
         events.push(event)
@@ -97,14 +96,13 @@ describe('events', function () {
   }, 15000)
 
   it('should cancel event subscription', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await Project.build(provider)
-    const signer = await testWallet(provider)
+    setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build()
+    const signer = await testNodeWallet()
 
     const [contractAddress, contractId] = await deployContract(signer)
     const events: Array<ContractEvent> = []
     const subscriptOptions = {
-      provider: provider,
       pollingInterval: 500,
       messageCallback: (event: ContractEvent): Promise<void> => {
         events.push(event)

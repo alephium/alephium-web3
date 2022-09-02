@@ -17,13 +17,13 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import EventEmitter from 'eventemitter3'
+import { getCurrentNodeProvider } from '../global'
 import { NodeProvider } from '../api'
 
 type MessageCallback<Message> = (message: Message) => Promise<void>
 type ErrorCallback<Message> = (error: any, subscription: Subscription<Message>) => Promise<void>
 
 export interface SubscribeOptions<Message> {
-  provider: NodeProvider
   pollingInterval: number
   messageCallback: MessageCallback<Message>
   errorCallback: ErrorCallback<Message>
@@ -40,7 +40,7 @@ export abstract class Subscription<Message> {
   protected cancelled: boolean
 
   constructor(options: SubscribeOptions<Message>) {
-    this.provider = options.provider
+    this.provider = getCurrentNodeProvider()
     this.pollingInterval = options.pollingInterval
     this.messageCallback = options.messageCallback
     this.errorCallback = options.errorCallback

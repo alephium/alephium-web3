@@ -2,21 +2,22 @@
  * greeter.ts
  */
 
-import { NodeProvider, Contract, Script, TestContractParams } from '@alephium/web3'
-import { testWallet } from '@alephium/web3/test'
+import { TestContractParams, setCurrentNodeProvider, Project } from '@alephium/web3'
+import { testNodeWallet } from '@alephium/web3/test'
 
 async function greet() {
-  const provider = new NodeProvider('http://127.0.0.1:22973')
+  setCurrentNodeProvider('http://127.0.0.1:22973')
+  await Project.build()
 
-  const greeter = await Contract.fromSource(provider, 'greeter.ral')
+  const greeter = Project.contract('greeter/greeter.ral')
 
   const testParams: TestContractParams = {
     initialFields: { btcPrice: 1 }
   }
-  const testResult = await greeter.testPublicMethod(provider, 'greet', testParams)
+  const testResult = await greeter.testPublicMethod('greet', testParams)
   console.log(testResult)
 
-  const signer = await testWallet(provider)
+  const signer = await testNodeWallet()
 
   const deployTx = await greeter.transactionForDeployment(signer, { initialFields: testParams.initialFields })
   const greeterContractId = deployTx.contractId
@@ -26,7 +27,7 @@ async function greet() {
   const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
   console.log(submitResult)
 
-  const main = await Script.fromSource(provider, 'greeter_main.ral')
+  const main = Project.script('greeter_main.ral')
 
   const mainScriptTx = await main.transactionForDeployment(signer, {
     initialFields: { greeterContractId: greeterContractId }
