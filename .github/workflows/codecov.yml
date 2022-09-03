@@ -10,9 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: npm ci
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm ci && npm run build
       - run: npm run start-devnet
-      - run: npm test
+      - run: npm run test
       - name: Upload test coverage to Codecov
         uses: codecov/codecov-action@v2.1.0
         with:

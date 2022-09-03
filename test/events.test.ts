@@ -16,18 +16,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { subscribeToEvents } from '../src/contract/events'
-import { Project } from '../src/contract'
-import { NodeWallet, SignExecuteScriptTxParams } from '../src/signer'
-import { ContractEvent } from '../src/api/api-alephium'
-import { testNodeWallet } from '../src/test'
-import { SubscribeOptions, timeout } from '../src/utils'
-import { setCurrentNodeProvider } from '../src'
+import { subscribeToEvents } from '@alephium/web3'
+import { Project } from '@alephium/web3'
+import { SignExecuteScriptTxParams } from '@alephium/web3'
+import { node } from '@alephium/web3'
+import { NodeWallet, testNodeWallet } from '@alephium/web3-wallet'
+import { SubscribeOptions, timeout } from '@alephium/web3'
+import { setCurrentNodeProvider } from '@alephium/web3'
 
 describe('events', function () {
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
+    await Project.build({ errorOnWarnings: false })
     const sub = Project.contract('sub/sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
@@ -38,7 +38,7 @@ describe('events', function () {
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     // ignore unused private function warnings
-    const add = Project.contract('add/add.ral', { errorOnWarnings: false })
+    const add = Project.contract('add/add.ral')
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
@@ -57,14 +57,14 @@ describe('events', function () {
 
   it('should subscribe contract events', async () => {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
+    await Project.build({ errorOnWarnings: false })
     const signer = await testNodeWallet()
 
     const [contractAddress, contractId] = await deployContract(signer)
-    const events: Array<ContractEvent> = []
-    const subscriptOptions: SubscribeOptions<ContractEvent> = {
+    const events: Array<node.ContractEvent> = []
+    const subscriptOptions: SubscribeOptions<node.ContractEvent> = {
       pollingInterval: 500,
-      messageCallback: (event: ContractEvent): Promise<void> => {
+      messageCallback: (event: node.ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },
@@ -97,14 +97,14 @@ describe('events', function () {
 
   it('should cancel event subscription', async () => {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
+    await Project.build({ errorOnWarnings: false })
     const signer = await testNodeWallet()
 
     const [contractAddress, contractId] = await deployContract(signer)
-    const events: Array<ContractEvent> = []
+    const events: Array<node.ContractEvent> = []
     const subscriptOptions = {
       pollingInterval: 500,
-      messageCallback: (event: ContractEvent): Promise<void> => {
+      messageCallback: (event: node.ContractEvent): Promise<void> => {
         events.push(event)
         return Promise.resolve()
       },

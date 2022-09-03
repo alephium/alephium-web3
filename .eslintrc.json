@@ -8,7 +8,7 @@
   ],
   "parser": "@typescript-eslint/parser",
   "rules": {
-    "header/header": [2, "scripts/header.js"]
+    "header/header": [2, "./configs/header.js"]
   },
   "overrides": [
     {
