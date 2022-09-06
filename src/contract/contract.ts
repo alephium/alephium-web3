@@ -52,20 +52,26 @@ export const DEFAULT_COMPILER_OPTIONS: CompilerOptions = {
 class TypedMatcher<T extends SourceType> {
   matcher: RegExp
   type: T
+  name: string | undefined
 
   constructor(pattern: string, type: T) {
     this.matcher = new RegExp(pattern, 'mg')
     this.type = type
+    this.name = undefined
   }
 
   match(str: string): number {
-    const results = str.match(this.matcher)
-    return results === null ? 0 : results.length
+    const results = [...str.matchAll(this.matcher)]
+    if (results.length > 0) {
+      this.name = results[0][1]
+    }
+    return results.length
   }
 }
 
 class SourceFile {
   type: SourceType
+  typeId: string
   contractPath: string
   sourceCode: string
   sourceCodeHash: string
@@ -74,8 +80,9 @@ class SourceFile {
     return artifactsRootPath + this.contractPath.slice(this.contractPath.indexOf('/')) + '.json'
   }
 
-  constructor(type: SourceType, sourceCode: string, contractPath: string) {
+  constructor(type: SourceType, typeId: string, sourceCode: string, contractPath: string) {
     this.type = type
+    this.typeId = typeId
     this.sourceCode = sourceCode
     this.sourceCodeHash = cryptojs.SHA256(sourceCode).toString()
     this.contractPath = contractPath
@@ -147,12 +154,12 @@ export class Project {
   static currentProject: Project
 
   static readonly abstractContractMatcher = new TypedMatcher<SourceType>(
-    '^Abstract Contract [A-Z][a-zA-Z0-9]*',
+    '^Abstract Contract ([A-Z][a-zA-Z0-9]*)\\(*',
     SourceType.AbstractContract
   )
-  static readonly contractMatcher = new TypedMatcher('^Contract [A-Z][a-zA-Z0-9]*', SourceType.Contract)
-  static readonly interfaceMatcher = new TypedMatcher('^Interface [A-Z][a-zA-Z0-9]* \\{', SourceType.Interface)
-  static readonly scriptMatcher = new TypedMatcher('^TxScript [A-Z][a-zA-Z0-9]*', SourceType.Script)
+  static readonly contractMatcher = new TypedMatcher('^Contract ([A-Z][a-zA-Z0-9]*)\\(*', SourceType.Contract)
+  static readonly interfaceMatcher = new TypedMatcher('^Interface ([A-Z][a-zA-Z0-9]*) \\{', SourceType.Interface)
+  static readonly scriptMatcher = new TypedMatcher('^TxScript ([A-Z][a-zA-Z0-9]*)( \\{*|\\(*)', SourceType.Script)
   static readonly matchers = [
     Project.abstractContractMatcher,
     Project.contractMatcher,
@@ -285,12 +292,12 @@ export class Project {
     const scripts: Compiled<Script>[] = []
     result.contracts.forEach((contractResult, index) => {
       const sourceFile = files[`${index}`]
-      const contract = Contract.fromCompileResult(contractResult)
+      const contract = Contract.fromCompileResult(sourceFile.typeId, contractResult)
       contracts.push(new Compiled(sourceFile, contract, contractResult.warnings))
     })
     result.scripts.forEach((scriptResult, index) => {
       const sourceFile = files[index + contracts.length]
-      const script = Script.fromCompileResult(scriptResult)
+      const script = Script.fromCompileResult(sourceFile.typeId, scriptResult)
       scripts.push(new Compiled(sourceFile, script, scriptResult.warnings))
     })
     const project = new Project(provider, contractsRootPath, artifactsRootPath, files, contracts, scripts)
@@ -348,8 +355,12 @@ export class Project {
       throw new Error(`Multiple definitions in file: ${contractPath}`)
     }
     const matcherIndex = results.indexOf(1)
-    const type = this.matchers[`${matcherIndex}`].type
-    return new SourceFile(type, sourceStr, contractPath)
+    const matcher = this.matchers[`${matcherIndex}`]
+    const type = matcher.type
+    if (matcher.name === undefined) {
+      throw new Error(`Invalid definition in file: ${contractPath}`)
+    }
+    return new SourceFile(type, matcher.name, sourceStr, contractPath)
   }
 
   private static async loadSourceFiles(contractsRootPath: string): Promise<SourceFile[]> {
@@ -395,9 +406,11 @@ export class Project {
 }
 
 export abstract class Artifact {
+  readonly typeId: string
   readonly functions: FunctionSig[]
 
-  constructor(functions: FunctionSig[]) {
+  constructor(typeId: string, functions: FunctionSig[]) {
+    this.typeId = typeId
     this.functions = functions
   }
 
@@ -423,13 +436,14 @@ export class Contract extends Artifact {
   readonly eventsSig: EventSig[]
 
   constructor(
+    typeId: string,
     bytecode: string,
     codeHash: string,
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
     functions: FunctionSig[]
   ) {
-    super(functions)
+    super(typeId, functions)
     this.bytecode = bytecode
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
@@ -448,6 +462,7 @@ export class Contract extends Artifact {
       throw Error('The artifact JSON for contract is incomplete')
     }
     const contract = new Contract(
+      artifact.typeId,
       artifact.bytecode,
       artifact.codeHash,
       artifact.fieldsSig,
@@ -457,8 +472,8 @@ export class Contract extends Artifact {
     return contract
   }
 
-  static fromCompileResult(result: CompileContractResult): Contract {
-    return new Contract(result.bytecode, result.codeHash, result.fields, result.events, result.functions)
+  static fromCompileResult(typeId: string, result: CompileContractResult): Contract {
+    return new Contract(typeId, result.bytecode, result.codeHash, result.fields, result.events, result.functions)
   }
 
   // support both 'code.ral' and 'code.ral.json'
@@ -477,6 +492,7 @@ export class Contract extends Artifact {
 
   override toString(): string {
     const object = {
+      typeId: this.typeId,
       bytecode: this.bytecode,
       codeHash: this.codeHash,
       fieldsSig: this.fieldsSig,
@@ -685,14 +701,14 @@ export class Script extends Artifact {
   readonly bytecodeTemplate: string
   readonly fieldsSig: FieldsSig
 
-  constructor(bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[]) {
-    super(functions)
+  constructor(typeId: string, bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[]) {
+    super(typeId, functions)
     this.bytecodeTemplate = bytecodeTemplate
     this.fieldsSig = fieldsSig
   }
 
-  static fromCompileResult(result: CompileScriptResult): Script {
-    return new Script(result.bytecodeTemplate, result.fields, result.functions)
+  static fromCompileResult(typeId: string, result: CompileScriptResult): Script {
+    return new Script(typeId, result.bytecodeTemplate, result.fields, result.functions)
   }
 
   // TODO: safely parse json
@@ -700,7 +716,7 @@ export class Script extends Artifact {
     if (artifact.bytecodeTemplate == null || artifact.fieldsSig == null || artifact.functions == null) {
       throw Error('The artifact JSON for script is incomplete')
     }
-    return new Script(artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
+    return new Script(artifact.typeId, artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
   }
 
   static async fromArtifactFile(path: string): Promise<Script> {
@@ -711,6 +727,7 @@ export class Script extends Artifact {
 
   override toString(): string {
     const object = {
+      typeId: this.typeId,
       bytecodeTemplate: this.bytecodeTemplate,
       fieldsSig: this.fieldsSig,
       functions: this.functions

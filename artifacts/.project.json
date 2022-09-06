@@ -27,7 +27,7 @@
     ]
   },
   "contracts/greeter_main.ral": {
-    "sourceCodeHash": "23173eec182bc6a85592d606d3fa34c50000ae3c6f81e9795c33e2b81fa51361",
+    "sourceCodeHash": "b73c6e7ace059017085a9aba7bc6b797c6e26bc1b10312c0862ff84e973dfdff",
     "warnings": []
   },
   "contracts/main.ral": {
