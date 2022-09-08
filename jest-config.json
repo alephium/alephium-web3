@@ -1,0 +1,14 @@
+{
+  "testPathIgnorePatterns": [".*/node_modules/"],
+  "transform": {
+    "^.+\\.(t|j)sx?$": "ts-jest"
+  },
+  "testMatch": ["**/(src|test)/**/*.test.ts"],
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+  "collectCoverage": true,
+  "coverageDirectory": "./coverage/",
+  "collectCoverageFrom": ["packages/*/src/**/*.ts"],
+  "moduleDirectories": [
+    "node_modules"
+  ]
+}

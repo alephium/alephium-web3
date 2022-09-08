@@ -18,18 +18,18 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { setCurrentNodeProvider } from '../src'
-import { Contract, Project, Script, TestContractParams } from '../src/contract'
-import { testNodeWallet } from '../src/test'
-import { addressFromContractId } from '../src/utils'
+import { setCurrentNodeProvider } from '@alephium/web3'
+import { Contract, Project, Script, TestContractParams } from '@alephium/web3'
+import { testNodeWallet } from '@alephium/web3-wallet'
+import { addressFromContractId } from '@alephium/web3'
 
 describe('contract', function () {
   async function testSuite1() {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
+    await Project.build({ errorOnWarnings: false })
 
     // ignore unused private function warnings
-    const add = Project.contract('add/add.ral', { errorOnWarnings: false })
+    const add = Project.contract('add/add.ral')
     const sub = Project.contract('sub/sub.ral')
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
@@ -112,7 +112,7 @@ describe('contract', function () {
 
   async function testSuite2() {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
+    await Project.build({ errorOnWarnings: false })
 
     const greeter = Project.contract('greeter/greeter.ral')
 
@@ -188,9 +188,9 @@ describe('contract', function () {
 
   it('should extract metadata of contracts', async () => {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
+    await Project.build({ errorOnWarnings: false })
 
-    const contract = Project.contract('test/metadata.ral', { errorOnWarnings: false })
+    const contract = Project.contract('test/metadata.ral')
     expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(contract.publicFunctions()).toEqual(['foo'])
     expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
@@ -199,15 +199,19 @@ describe('contract', function () {
 
   it('should handle compiler warnings', async () => {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
-    const contract = Project.contract('test/warnings.ral', { errorOnWarnings: false })
-    expect(contract.publicFunctions()).toEqual(['foo'])
+    await expect(Project.build()).rejects.toThrow(/Compilation warnings\:/)
 
-    expect(() => Project.contract('test/warnings.ral')).toThrowError(
-      'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused fields in Warnings: b'
-    )
-    expect(() => Project.contract('test/warnings.ral', { ignoreUnusedConstantsWarnings: false })).toThrowError(
-      'Compilation warnings:\n  - Found unused variables in Warnings: foo.y\n  - Found unused constants in Warnings: C\n  - Found unused fields in Warnings: b'
-    )
+    await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
+    expect(Project.currentProject.projectArtifact.infos.get('contracts/test/warnings.ral')!.warnings).toEqual([
+      'Found unused variables in Warnings: foo.y',
+      'Found unused fields in Warnings: b'
+    ])
+
+    await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: false })
+    expect(Project.currentProject.projectArtifact.infos.get('contracts/test/warnings.ral')!.warnings).toEqual([
+      'Found unused variables in Warnings: foo.y',
+      'Found unused constants in Warnings: C',
+      'Found unused fields in Warnings: b'
+    ])
   })
 })

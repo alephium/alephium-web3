@@ -16,17 +16,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { subscribeToTxStatus } from '../src/transaction/status'
-import { Project } from '../src/contract'
-import { TxStatus } from '../src/api/api-alephium'
-import { testNodeWallet } from '../src/test'
-import { SubscribeOptions, timeout } from '../src/utils'
-import { setCurrentNodeProvider } from '../src'
+import { subscribeToTxStatus } from '@alephium/web3'
+import { Project } from '@alephium/web3'
+import { node } from '@alephium/web3'
+import { testNodeWallet } from '@alephium/web3-wallet'
+import { SubscribeOptions, timeout } from '@alephium/web3'
+import { setCurrentNodeProvider } from '@alephium/web3'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
     setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build()
+    await Project.build({ errorOnWarnings: false })
     const sub = Project.contract('sub/sub.ral')
     const signer = await testNodeWallet()
     const subDeployTx = await sub.transactionForDeployment(signer, {
@@ -34,11 +34,11 @@ describe('transactions', function () {
       initialTokenAmounts: []
     })
 
-    let txStatus: TxStatus | undefined = undefined
+    let txStatus: node.TxStatus | undefined = undefined
     let counter = 0
-    const subscriptOptions: SubscribeOptions<TxStatus> = {
+    const subscriptOptions: SubscribeOptions<node.TxStatus> = {
       pollingInterval: 500,
-      messageCallback: (status: TxStatus): Promise<void> => {
+      messageCallback: (status: node.TxStatus): Promise<void> => {
         txStatus = status
         counter = counter + 1
         return Promise.resolve()

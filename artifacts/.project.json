@@ -1,41 +1,51 @@
 {
-  "contracts/add/add.ral": {
-    "sourceCodeHash": "c1e952e47d26bdf616ba4254030a830a477e6a3e1bb5cb551b63fab877d574c8",
-    "warnings": []
+  "compilerOptionsUsed": {
+    "ignoreUnusedConstantsWarnings": false,
+    "ignoreUnusedVariablesWarnings": false,
+    "ignoreUnusedFieldsWarnings": false,
+    "ignoreUnusedPrivateFunctionsWarnings": false,
+    "ignoreReadonlyCheckWarnings": false,
+    "ignoreExternalCallCheckWarnings": false
   },
-  "contracts/greeter/greeter.ral": {
-    "sourceCodeHash": "0bd98208e4c770df3aa0dd421ec785d5bb7d787c53d2f166653a5ee71d936d39",
-    "warnings": []
-  },
-  "contracts/sub/sub.ral": {
-    "sourceCodeHash": "409518aa25bdace56cefe167d6607f04cd955204a7050f00a050466703cdf0f0",
-    "warnings": []
-  },
-  "contracts/test/metadata.ral": {
-    "sourceCodeHash": "d5f097718d0fea891ab452dbea847184063e56cf9998cfcbac7362c6d205556c",
-    "warnings": [
-      "Private function MetaData.bar is not used",
-      "Private function MetaData.baz is not used"
-    ]
-  },
-  "contracts/test/warnings.ral": {
-    "sourceCodeHash": "c515f934f6fc15bf835f15b7a36927baab1cc094166cba6b7fa71ecb3013facf",
-    "warnings": [
-      "Found unused variables in Warnings: foo.y",
-      "Found unused constants in Warnings: C",
-      "Found unused fields in Warnings: b"
-    ]
-  },
-  "contracts/greeter_main.ral": {
-    "sourceCodeHash": "23173eec182bc6a85592d606d3fa34c50000ae3c6f81e9795c33e2b81fa51361",
-    "warnings": []
-  },
-  "contracts/main.ral": {
-    "sourceCodeHash": "8cc5c1a2de002650a5904078f91005932982e700f7b0a393cbe4e3a64cfdf842",
-    "warnings": []
-  },
-  "contracts/greeter/greeter_interface.ral": {
-    "sourceCodeHash": "bdaebc05fc42ed1c40309788bcee4f6a9377b47a347321d6c2f60ba9b74883aa",
-    "warnings": []
+  "infos": {
+    "contracts/add/add.ral": {
+      "sourceCodeHash": "c1e952e47d26bdf616ba4254030a830a477e6a3e1bb5cb551b63fab877d574c8",
+      "warnings": []
+    },
+    "contracts/greeter/greeter.ral": {
+      "sourceCodeHash": "0bd98208e4c770df3aa0dd421ec785d5bb7d787c53d2f166653a5ee71d936d39",
+      "warnings": []
+    },
+    "contracts/sub/sub.ral": {
+      "sourceCodeHash": "409518aa25bdace56cefe167d6607f04cd955204a7050f00a050466703cdf0f0",
+      "warnings": []
+    },
+    "contracts/test/metadata.ral": {
+      "sourceCodeHash": "d5f097718d0fea891ab452dbea847184063e56cf9998cfcbac7362c6d205556c",
+      "warnings": [
+        "Private function MetaData.bar is not used",
+        "Private function MetaData.baz is not used"
+      ]
+    },
+    "contracts/test/warnings.ral": {
+      "sourceCodeHash": "c515f934f6fc15bf835f15b7a36927baab1cc094166cba6b7fa71ecb3013facf",
+      "warnings": [
+        "Found unused variables in Warnings: foo.y",
+        "Found unused constants in Warnings: C",
+        "Found unused fields in Warnings: b"
+      ]
+    },
+    "contracts/greeter_main.ral": {
+      "sourceCodeHash": "23173eec182bc6a85592d606d3fa34c50000ae3c6f81e9795c33e2b81fa51361",
+      "warnings": []
+    },
+    "contracts/main.ral": {
+      "sourceCodeHash": "8cc5c1a2de002650a5904078f91005932982e700f7b0a393cbe4e3a64cfdf842",
+      "warnings": []
+    },
+    "contracts/greeter/greeter_interface.ral": {
+      "sourceCodeHash": "bdaebc05fc42ed1c40309788bcee4f6a9377b47a347321d6c2f60ba9b74883aa",
+      "warnings": []
+    }
   }
 }

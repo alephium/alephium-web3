@@ -12,8 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'
-      - run: npm ci
+          node-version: 16
+      - run: cd packages/web3 && npm ci
+      # Wait for this issue to be resolved: https://github.com/acacode/swagger-typescript-api/issues/370
       - run: npm run update-schemas && test -z "$(git status --porcelain)"

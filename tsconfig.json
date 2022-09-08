@@ -1,6 +1,4 @@
 {
-  "include": ["src/**/*", "scripts/**/*"],
-  "exclude": ["node_modules", "test", "src/**/*.test.ts", "src/**/fixtures/*"],
   "compilerOptions": {
     "target": "es2020",
     "allowJs": true,
@@ -11,7 +9,6 @@
     "forceConsistentCasingInFileNames": true,
     "module": "commonjs",
     "declaration": true,
-    "outDir": "dist",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "experimentalDecorators": true,
