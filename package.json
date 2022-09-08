@@ -22,7 +22,7 @@
     "audit": "lerna exec -- npm audit --production",
     "update-schemas": "lerna run update-schemas",
     "version": "lerna version --no-push --no-private",
-    "publish": "npm run build && lerna exec -- npm publish",
+    "publish": "npm run build && lerna exec -- npm publish --access public",
     "start-devnet": "lerna run start-devnet",
     "stop-devnet": "lerna run stop-devnet",
     "restart-devnet": "lerna run restart-devnet"
