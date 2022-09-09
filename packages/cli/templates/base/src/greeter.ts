@@ -3,7 +3,7 @@
  */
 
 import { TestContractParams, web3, Project } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3/test'
+import { testNodeWallet } from '@alephium/web3-wallet'
 
 async function greet() {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')

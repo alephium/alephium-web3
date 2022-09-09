@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 const fs = require('fs')
+const fsExtra = require('fs-extra')
 const process = require('process')
 const path = require('path')
 const fetch = require('cross-fetch')
@@ -72,7 +73,7 @@ function launchDevnet(devDir, jarFile) {
 }
 
 const testWallet = 'alephium-web3-test-only-wallet'
-const password = 'alph'
+const testWalletPwd = 'alph'
 const mnemonic =
   'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
 
@@ -89,7 +90,7 @@ async function createWallet() {
   console.log('Create the test wallet')
   await fetch('http://127.0.0.1:22973/wallets', {
     method: 'Put',
-    body: `{"password":"${password}","mnemonic":"${mnemonic}","walletName":"${testWallet}"}`
+    body: `{"password":"${testWalletPwd}","mnemonic":"${mnemonic}","walletName":"${testWallet}"}`
   })
 }
 
@@ -125,17 +126,15 @@ async function wait() {
   }
 }
 
-async function main() {
-  const tag = process.argv[2]
+export async function startDevnet(tag, configPath) {
   console.log(`Full node version: ${tag}`)
   const devDir = path.resolve(process.cwd() + path.sep + 'dev')
   const jarFile = `${devDir}${path.sep}alephium-${tag}.jar`
 
   console.log(`Dev folder: ${devDir}`)
   await downloadFullNode(tag, devDir, jarFile)
+  await fsExtra.copy(configPath, path.join(devDir, "user.conf"))
   launchDevnet(devDir, jarFile)
   await wait()
   await prepareWallet()
 }
-
-main()

@@ -1,0 +1,45 @@
+{
+  "name": "@alephium/cli",
+  "version": "0.2.0-rc.12",
+  "description": "Alephium command line tool",
+  "license": "GPL",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:alephium/alephium-web3.git"
+  },
+  "homepage": "https://github.com/alephium/alephium-web3",
+  "bugs": {
+    "url": "https://github.com/alephium/alephium-web3/issues"
+  },
+  "author": "Alephium dev <dev@alephium.org>",
+  "config": {
+    "alephium_version": "1.5.0-rc7"
+  },
+  "scripts": {
+    "build": "rm -rf dist/* && npx tsc --build . && node scripts/copy-template.js",
+    "start-devnet": "node dist/cli.js node start",
+    "stop-devnet": "node dist/cli.js node stop",
+    "restart-devnet": "node dist/clj.ts node start"
+  },
+  "bin": "dist/cli.js",
+  "type": "commonjs",
+  "dependencies": {
+    "jest": "^28.1.0",
+    "crypto-js": "^4.1.1",
+    "commander": "^9.4.0",
+    "cross-fetch": "^3.1.5",
+    "fs-extra": "^10.0.1",
+    "@alephium/web3": "0.2.0-rc.12",
+    "@alephium/web3-wallet": "0.2.0-rc.12"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.5.1",
+    "@types/node": "^16.7.8",
+    "ts-node": "^10.7.0",
+    "typescript": "4.7.4"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  }
+}
