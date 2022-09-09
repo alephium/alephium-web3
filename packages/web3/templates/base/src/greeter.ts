@@ -2,11 +2,11 @@
  * greeter.ts
  */
 
-import { TestContractParams, setCurrentNodeProvider, Project } from '@alephium/web3'
+import { TestContractParams, web3, Project } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3/test'
 
 async function greet() {
-  setCurrentNodeProvider('http://127.0.0.1:22973')
+  web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   await Project.build()
 
   const greeter = Project.contract('greeter/greeter.ral')

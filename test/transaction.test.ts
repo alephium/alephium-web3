@@ -21,11 +21,11 @@ import { Project } from '@alephium/web3'
 import { node } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-wallet'
 import { SubscribeOptions, timeout } from '@alephium/web3'
-import { setCurrentNodeProvider } from '@alephium/web3'
+import { web3 } from '@alephium/web3'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
     const sub = Project.contract('sub/sub.ral')
     const signer = await testNodeWallet()

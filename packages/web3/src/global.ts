@@ -20,9 +20,11 @@ import { NodeProvider } from './api'
 
 let _currentNodeProvider: NodeProvider | undefined = undefined
 
-export function setCurrentNodeProvider(provider: NodeProvider | string): void {
+export function setCurrentNodeProvider(provider: NodeProvider): void
+export function setCurrentNodeProvider(baseUrl: string, apiKey?: string): void
+export function setCurrentNodeProvider(provider: NodeProvider | string, apiKey?: string): void {
   if (typeof provider == 'string') {
-    _currentNodeProvider = new NodeProvider(provider)
+    _currentNodeProvider = new NodeProvider(provider, apiKey)
   } else {
     _currentNodeProvider = provider
   }

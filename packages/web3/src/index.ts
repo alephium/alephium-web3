@@ -23,6 +23,6 @@ export * from './utils'
 export * from './transaction'
 
 export * from './constants'
-export * from './global'
+export * as web3 from './global'
 
 export * as utils from './utils'

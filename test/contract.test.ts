@@ -18,14 +18,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { setCurrentNodeProvider } from '@alephium/web3'
+import { web3 } from '@alephium/web3'
 import { Contract, Project, Script, TestContractParams } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-wallet'
 import { addressFromContractId } from '@alephium/web3'
 
 describe('contract', function () {
   async function testSuite1() {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
     // ignore unused private function warnings
@@ -111,7 +111,7 @@ describe('contract', function () {
   }
 
   async function testSuite2() {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
     const greeter = Project.contract('greeter/greeter.ral')
@@ -187,7 +187,7 @@ describe('contract', function () {
   })
 
   it('should extract metadata of contracts', async () => {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
     const contract = Project.contract('test/metadata.ral')
@@ -198,7 +198,7 @@ describe('contract', function () {
   })
 
   it('should handle compiler warnings', async () => {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await expect(Project.build()).rejects.toThrow(/Compilation warnings\:/)
 
     await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
