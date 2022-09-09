@@ -22,11 +22,11 @@ import { SignExecuteScriptTxParams } from '@alephium/web3'
 import { node } from '@alephium/web3'
 import { NodeWallet, testNodeWallet } from '@alephium/web3-wallet'
 import { SubscribeOptions, timeout } from '@alephium/web3'
-import { setCurrentNodeProvider } from '@alephium/web3'
+import { web3 } from '@alephium/web3'
 
 describe('events', function () {
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
     const sub = Project.contract('sub/sub.ral')
     const subDeployTx = await sub.transactionForDeployment(signer, {
@@ -56,7 +56,7 @@ describe('events', function () {
   }
 
   it('should subscribe contract events', async () => {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
     const signer = await testNodeWallet()
 
@@ -96,7 +96,7 @@ describe('events', function () {
   }, 15000)
 
   it('should cancel event subscription', async () => {
-    setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
     const signer = await testNodeWallet()
 
