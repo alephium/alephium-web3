@@ -177,9 +177,12 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     return (await this.getAccounts())[0].address
   }
 
-  async submitTransaction(unsignedTx: string, txHash: string, signerAddress?: string): Promise<SubmissionResult> {
+  async submitTransaction(unsignedTx: string, signerAddress?: string): Promise<SubmissionResult> {
+    const decoded = await this.provider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: unsignedTx })
+    const txId = decoded.unsignedTx.txId
+
     const address = typeof signerAddress !== 'undefined' ? signerAddress : await this.defaultSignerAddress()
-    const signature = await this.signRaw(address, txHash)
+    const signature = await this.signRaw(address, txId)
     const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
     return this.provider.transactions.postTransactionsSubmit(params)
   }

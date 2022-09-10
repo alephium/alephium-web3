@@ -29,8 +29,8 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
 
     // ignore unused private function warnings
-    const add = Project.contract('add/add.ral')
-    const sub = Project.contract('sub/sub.ral')
+    const add = Project.contract('Add')
+    const sub = Project.contract('Sub')
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
@@ -66,7 +66,7 @@ describe('contract', function () {
     const subContractAddress = addressFromContractId(subContractId)
     expect(subDeployTx.fromGroup).toEqual(0)
     expect(subDeployTx.toGroup).toEqual(0)
-    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
+    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx)
     expect(subSubmitResult.fromGroup).toEqual(0)
     expect(subSubmitResult.toGroup).toEqual(0)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
@@ -77,7 +77,7 @@ describe('contract', function () {
     })
     expect(addDeployTx.fromGroup).toEqual(0)
     expect(addDeployTx.toGroup).toEqual(0)
-    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
+    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx)
     expect(addSubmitResult.fromGroup).toEqual(0)
     expect(addSubmitResult.toGroup).toEqual(0)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
@@ -92,13 +92,13 @@ describe('contract', function () {
     expect(fetchedAddState.fields.sub).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(0)
 
-    const main = Project.script('main.ral')
+    const main = Project.script('Main')
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { addContractId: addContractId }
     })
     expect(mainScriptTx.fromGroup).toEqual(0)
     expect(mainScriptTx.toGroup).toEqual(0)
-    const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
+    const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx)
     expect(mainSubmitResult.fromGroup).toEqual(0)
     expect(mainSubmitResult.toGroup).toEqual(0)
 
@@ -114,7 +114,7 @@ describe('contract', function () {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
-    const greeter = Project.contract('greeter/greeter.ral')
+    const greeter = Project.contract('Greeter')
 
     const testParams: TestContractParams = {
       initialFields: { btcPrice: 1 }
@@ -132,20 +132,20 @@ describe('contract', function () {
     })
     expect(deployTx.fromGroup).toEqual(0)
     expect(deployTx.toGroup).toEqual(0)
-    const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
+    const submitResult = await signer.submitTransaction(deployTx.unsignedTx)
     expect(submitResult.fromGroup).toEqual(0)
     expect(submitResult.toGroup).toEqual(0)
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
-    const main = Project.script('greeter_main.ral')
+    const main = Project.script('GreeterMain')
 
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { greeterContractId: greeterContractId }
     })
     expect(mainScriptTx.fromGroup).toEqual(0)
     expect(mainScriptTx.toGroup).toEqual(0)
-    const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
+    const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx)
     expect(mainSubmitResult.fromGroup).toEqual(0)
     expect(mainSubmitResult.toGroup).toEqual(0)
   }
@@ -190,7 +190,7 @@ describe('contract', function () {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
-    const contract = Project.contract('test/metadata.ral')
+    const contract = Project.contract('MetaData')
     expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(contract.publicFunctions()).toEqual(['foo'])
     expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])

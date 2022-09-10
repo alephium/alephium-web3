@@ -28,22 +28,22 @@ describe('events', function () {
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
-    const sub = Project.contract('sub/sub.ral')
+    const sub = Project.contract('Sub')
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
       initialTokenAmounts: []
     })
     const subContractId = subDeployTx.contractId
-    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
+    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     // ignore unused private function warnings
-    const add = Project.contract('add/add.ral')
+    const add = Project.contract('Add')
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
     })
-    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
+    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
     return [addDeployTx.contractAddress, addDeployTx.contractId]
   }
@@ -51,7 +51,7 @@ describe('events', function () {
   async function executeScript(params: SignExecuteScriptTxParams, signer: NodeWallet, times: number) {
     for (let i = 0; i < times; i++) {
       const scriptTx = await signer.buildScriptTx(params)
-      await signer.submitTransaction(scriptTx.unsignedTx, scriptTx.txId)
+      await signer.submitTransaction(scriptTx.unsignedTx)
     }
   }
 
@@ -75,7 +75,7 @@ describe('events', function () {
       }
     }
     const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = Project.script('main.ral')
+    const script = Project.script('Main')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
       signerAddress: (await signer.getAccounts())[0].address
@@ -115,11 +115,11 @@ describe('events', function () {
       }
     }
     const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = Project.script('main.ral')
+    const script = Project.script('Main')
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId)
+    await signer.submitTransaction(scriptTx0.unsignedTx)
     await timeout(1500)
     subscription.unsubscribe()
 
@@ -134,7 +134,7 @@ describe('events', function () {
     const scriptTx1 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId)
+    await signer.submitTransaction(scriptTx1.unsignedTx)
     await timeout(1500)
     expect(events.length).toEqual(1)
   })
