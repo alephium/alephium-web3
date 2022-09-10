@@ -17,9 +17,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
+import { Val } from '../api'
 import { bs58, isHexString } from '../utils'
-import { node } from '../api'
-import { Fields, Val } from './contract'
+import { Fields, FieldsSig } from './contract'
 
 const bigIntZero = BigInt(0)
 
@@ -236,7 +236,7 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
 
 const scriptFieldRegex = /\{([0-9]*)\}/g
 
-export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fieldsSig: node.FieldsSig): string {
+export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fieldsSig: FieldsSig): string {
   return bytecodeTemplate.replace(scriptFieldRegex, (_, fieldIndex: string) => {
     const fieldName = fieldsSig.names[`${fieldIndex}`]
     const fieldType = fieldsSig.types[`${fieldIndex}`]
@@ -249,7 +249,7 @@ export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fi
   })
 }
 
-export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSig: node.FieldsSig): string {
+export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSig: FieldsSig): string {
   const fieldsEncoded = fieldsSig.names.flatMap((fieldName, fieldIndex) => {
     const fieldType = fieldsSig.types[`${fieldIndex}`]
     if (fieldName in fields) {

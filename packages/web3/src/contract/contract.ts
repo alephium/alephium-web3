@@ -20,16 +20,32 @@ import { Buffer } from 'buffer/'
 import { webcrypto as crypto } from 'crypto'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
-import { node, NodeProvider } from '../api'
+import {
+  fromApiArray,
+  fromApiNumber256,
+  toApiNumber256,
+  NamedVals,
+  node,
+  NodeProvider,
+  Number256,
+  toApiToken,
+  toApiVal,
+  Token,
+  Val,
+  toApiTokens,
+  fromApiTokens,
+  fromApiVals
+} from '../api'
 import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerWithNodeProvider } from '../signer'
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
-import { CompileContractResult, CompileScriptResult } from '../api/api-alephium'
 import { getCurrentNodeProvider } from '../global'
 
-type FieldsSig = node.FieldsSig
-type EventSig = node.EventSig
-type FunctionSig = node.FunctionSig
+export type FieldsSig = node.FieldsSig
+export type EventSig = node.EventSig
+export type FunctionSig = node.FunctionSig
+export type Fields = NamedVals
+export type Arguments = NamedVals
 
 enum SourceType {
   Contract = 0,
@@ -549,7 +565,7 @@ export class Contract extends Artifact {
     return contract
   }
 
-  static fromCompileResult(result: CompileContractResult): Contract {
+  static fromCompileResult(result: node.CompileContractResult): Contract {
     return new Contract(result.name, result.bytecode, result.codeHash, result.fields, result.events, result.functions)
   }
 
@@ -752,7 +768,7 @@ export class Contract extends Artifact {
       bytecode: bytecode,
       initialAttoAlphAmount: extractOptionalNumber256(params.initialAttoAlphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
-      initialTokenAmounts: params.initialTokenAmounts?.map(toApiToken),
+      initialTokenAmounts: toApiTokens(params.initialTokenAmounts),
       gasAmount: params.gasAmount,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
@@ -786,7 +802,7 @@ export class Script extends Artifact {
     this.fieldsSig = fieldsSig
   }
 
-  static fromCompileResult(result: CompileScriptResult): Script {
+  static fromCompileResult(result: node.CompileScriptResult): Script {
     return new Script(result.name, result.bytecodeTemplate, result.fields, result.functions)
   }
 
@@ -824,7 +840,7 @@ export class Script extends Artifact {
       signerAddress: params.signerAddress,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
       attoAlphAmount: extractOptionalNumber256(params.attoAlphAmount),
-      tokens: typeof params.tokens !== 'undefined' ? params.tokens.map(toApiToken) : undefined,
+      tokens: toApiTokens(params.tokens),
       gasAmount: params.gasAmount,
       gasPrice: extractOptionalNumber256(params.gasPrice)
     }
@@ -847,162 +863,8 @@ export class Script extends Artifact {
   }
 }
 
-export type Number256 = number | bigint | string
-export type Val = Number256 | boolean | string | Val[]
-export type NamedVals = Record<string, Val>
-export type Fields = NamedVals
-export type Arguments = NamedVals
-
-function extractBoolean(v: Val): boolean {
-  if (typeof v === 'boolean') {
-    return v
-  } else {
-    throw new Error(`Invalid boolean value: ${v}`)
-  }
-}
-
-// TODO: check integer bounds
-function extractNumber256(v: Val): string {
-  if ((typeof v === 'number' && Number.isInteger(v)) || typeof v === 'bigint') {
-    return v.toString()
-  } else if (typeof v === 'string') {
-    return v
-  } else {
-    throw new Error(`Invalid 256 bit number: ${v}`)
-  }
-}
-
 function extractOptionalNumber256(v?: Val): string | undefined {
-  return typeof v !== 'undefined' ? extractNumber256(v) : undefined
-}
-
-// TODO: check hex string
-function extractByteVec(v: Val): string {
-  if (typeof v === 'string') {
-    // try to convert from address to contract id
-    try {
-      const address = bs58.decode(v)
-      if (address.length == 33 && address[0] == 3) {
-        return Buffer.from(address.slice(1)).toString('hex')
-      }
-    } catch (_) {
-      return v as string
-    }
-    return v as string
-  } else {
-    throw new Error(`Invalid string: ${v}`)
-  }
-}
-
-function extractBs58(v: Val): string {
-  if (typeof v === 'string') {
-    try {
-      bs58.decode(v)
-      return v as string
-    } catch (error) {
-      throw new Error(`Invalid base58 string: ${v}`)
-    }
-  } else {
-    throw new Error(`Invalid string: ${v}`)
-  }
-}
-
-function decodeNumber256(n: string): Number256 {
-  if (Number.isSafeInteger(Number.parseInt(n))) {
-    return Number(n)
-  } else {
-    return BigInt(n)
-  }
-}
-
-export function extractArray(tpe: string, v: Val): node.Val {
-  if (!Array.isArray(v)) {
-    throw new Error(`Expected array, got ${v}`)
-  }
-
-  const semiColonIndex = tpe.lastIndexOf(';')
-  if (semiColonIndex == -1) {
-    throw new Error(`Invalid Val type: ${tpe}`)
-  }
-
-  const subType = tpe.slice(1, semiColonIndex)
-  const dim = parseInt(tpe.slice(semiColonIndex + 1, -1))
-  if ((v as Val[]).length != dim) {
-    throw new Error(`Invalid val dimension: ${v}`)
-  } else {
-    return { value: (v as Val[]).map((v) => toApiVal(v, subType)), type: 'Array' }
-  }
-}
-
-export function toApiVal(v: Val, tpe: string): node.Val {
-  if (tpe === 'Bool') {
-    return { value: extractBoolean(v), type: tpe }
-  } else if (tpe === 'U256' || tpe === 'I256') {
-    return { value: extractNumber256(v), type: tpe }
-  } else if (tpe === 'ByteVec') {
-    return { value: extractByteVec(v), type: tpe }
-  } else if (tpe === 'Address') {
-    return { value: extractBs58(v), type: tpe }
-  } else {
-    return extractArray(tpe, v)
-  }
-}
-
-function decodeArrayType(tpe: string): [baseType: string, dims: number[]] {
-  const semiColonIndex = tpe.lastIndexOf(';')
-  if (semiColonIndex === -1) {
-    throw new Error(`Invalid Val type: ${tpe}`)
-  }
-
-  const subType = tpe.slice(1, semiColonIndex)
-  const dim = parseInt(tpe.slice(semiColonIndex + 1, -1))
-  if (subType[0] == '[') {
-    const [baseType, subDim] = decodeArrayType(subType)
-    return [baseType, (subDim.unshift(dim), subDim)]
-  } else {
-    return [subType, [dim]]
-  }
-}
-
-function foldVals(vals: Val[], dims: number[]): Val {
-  if (dims.length == 1) {
-    return vals
-  } else {
-    const result: Val[] = []
-    const chunkSize = vals.length / dims[0]
-    const chunkDims = dims.slice(1)
-    for (let i = 0; i < vals.length; i += chunkSize) {
-      const chunk = vals.slice(i, i + chunkSize)
-      result.push(foldVals(chunk, chunkDims))
-    }
-    return result
-  }
-}
-
-function _fromApiVal(vals: node.Val[], valIndex: number, tpe: string): [result: Val, nextIndex: number] {
-  if (vals.length === 0) {
-    throw new Error('Not enough Vals')
-  }
-
-  const firstVal = vals[`${valIndex}`]
-  if (tpe === 'Bool' && firstVal.type === tpe) {
-    return [firstVal.value as boolean, valIndex + 1]
-  } else if ((tpe === 'U256' || tpe === 'I256') && firstVal.type === tpe) {
-    return [decodeNumber256(firstVal.value as string), valIndex + 1]
-  } else if ((tpe === 'ByteVec' || tpe === 'Address') && firstVal.type === tpe) {
-    return [firstVal.value as string, valIndex + 1]
-  } else {
-    const [baseType, dims] = decodeArrayType(tpe)
-    const arraySize = dims.reduce((a, b) => a * b)
-    const nextIndex = valIndex + arraySize
-    const valsToUse = vals.slice(valIndex, nextIndex)
-    if (valsToUse.length == arraySize && valsToUse.every((val) => val.type === baseType)) {
-      const localVals = valsToUse.map((val) => fromApiVal(val, baseType))
-      return [foldVals(localVals, dims), nextIndex]
-    } else {
-      throw new Error(`Invalid array Val type: ${valsToUse}, ${tpe}`)
-    }
-  }
+  return typeof v !== 'undefined' ? toApiNumber256(v) : undefined
 }
 
 function fromApiFields(vals: node.Val[], fieldsSig: node.FieldsSig): Fields {
@@ -1013,70 +875,22 @@ function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig): Fields {
   return fromApiVals(vals, eventSig.fieldNames, eventSig.fieldTypes)
 }
 
-function fromApiVals(vals: node.Val[], names: string[], types: string[]): Fields {
-  let valIndex = 0
-  const result: Fields = {}
-  types.forEach((currentType, index) => {
-    const currentName = names[`${index}`]
-    const [val, nextIndex] = _fromApiVal(vals, valIndex, currentType)
-    valIndex = nextIndex
-    result[`${currentName}`] = val
-  })
-  return result
-}
-
-function fromApiArray(vals: node.Val[], types: string[]): Val[] {
-  let valIndex = 0
-  const result: Val[] = []
-  for (const currentType of types) {
-    const [val, nextIndex] = _fromApiVal(vals, valIndex, currentType)
-    result.push(val)
-    valIndex = nextIndex
-  }
-  return result
-}
-
-function fromApiVal(v: node.Val, tpe: string): Val {
-  if (v.type === 'Bool' && v.type === tpe) {
-    return v.value as boolean
-  } else if ((v.type === 'U256' || v.type === 'I256') && v.type === tpe) {
-    return decodeNumber256(v.value as string)
-  } else if ((v.type === 'ByteVec' || v.type === 'Address') && v.type === tpe) {
-    return v.value as string
-  } else {
-    throw new Error(`Invalid node.Val type: ${v}`)
-  }
-}
-
 export interface Asset {
   alphAmount: Number256
   tokens?: Token[]
 }
 
-export interface Token {
-  id: string
-  amount: Number256
-}
-
-function toApiToken(token: Token): node.Token {
-  return { id: token.id, amount: extractNumber256(token.amount) }
-}
-
-function fromApiToken(token: node.Token): Token {
-  return { id: token.id, amount: decodeNumber256(token.amount) }
-}
-
 function toApiAsset(asset: Asset): node.AssetState {
   return {
-    attoAlphAmount: extractNumber256(asset.alphAmount),
+    attoAlphAmount: toApiNumber256(asset.alphAmount),
     tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(toApiToken) : []
   }
 }
 
 function fromApiAsset(asset: node.AssetState): Asset {
   return {
-    alphAmount: decodeNumber256(asset.attoAlphAmount),
-    tokens: typeof asset.tokens !== 'undefined' ? asset.tokens.map(fromApiToken) : undefined
+    alphAmount: fromApiNumber256(asset.attoAlphAmount),
+    tokens: fromApiTokens(asset.tokens)
   }
 }
 
@@ -1184,7 +998,7 @@ export interface ContractOutput {
   type: string
   address: string
   alphAmount: Number256
-  tokens: Token[]
+  tokens?: Token[]
 }
 
 function fromApiOutput(output: node.Output): Output {
@@ -1193,8 +1007,8 @@ function fromApiOutput(output: node.Output): Output {
     return {
       type: 'AssetOutput',
       address: asset.address,
-      alphAmount: decodeNumber256(asset.attoAlphAmount),
-      tokens: asset.tokens.map(fromApiToken),
+      alphAmount: fromApiNumber256(asset.attoAlphAmount),
+      tokens: fromApiTokens(asset.tokens),
       lockTime: asset.lockTime,
       message: asset.message
     }
@@ -1203,8 +1017,8 @@ function fromApiOutput(output: node.Output): Output {
     return {
       type: 'ContractOutput',
       address: asset.address,
-      alphAmount: decodeNumber256(asset.attoAlphAmount),
-      tokens: asset.tokens.map(fromApiToken)
+      alphAmount: fromApiNumber256(asset.attoAlphAmount),
+      tokens: fromApiTokens(asset.tokens)
     }
   } else {
     throw new Error(`Unknown output type: ${output}`)

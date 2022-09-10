@@ -16,8 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { TxStatus } from '../api/api-alephium'
+import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
+
+export type TxStatus = node.TxStatus
 
 export class TxStatusSubscription extends Subscription<TxStatus> {
   readonly txId: string

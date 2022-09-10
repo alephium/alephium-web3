@@ -22,6 +22,7 @@ import { node } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-wallet'
 import { SubscribeOptions, timeout } from '@alephium/web3'
 import { web3 } from '@alephium/web3'
+import { TxStatus } from '@alephium/web3'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
@@ -34,11 +35,11 @@ describe('transactions', function () {
       initialTokenAmounts: []
     })
 
-    let txStatus: node.TxStatus | undefined = undefined
+    let txStatus: TxStatus | undefined = undefined
     let counter = 0
     const subscriptOptions: SubscribeOptions<node.TxStatus> = {
       pollingInterval: 500,
-      messageCallback: (status: node.TxStatus): Promise<void> => {
+      messageCallback: (status: TxStatus): Promise<void> => {
         txStatus = status
         counter = counter + 1
         return Promise.resolve()

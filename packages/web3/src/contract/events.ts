@@ -16,14 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ContractEvent } from '../api/api-alephium'
+import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
 
-export class EventSubscription extends Subscription<ContractEvent> {
+export class EventSubscription extends Subscription<node.ContractEvent> {
   readonly contractAddress: string
   private fromCount: number
 
-  constructor(options: SubscribeOptions<ContractEvent>, contractAddress: string, fromCount?: number) {
+  constructor(options: SubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
     super(options)
     this.contractAddress = contractAddress
     this.fromCount = typeof fromCount === 'undefined' ? 0 : fromCount
@@ -67,7 +67,7 @@ export class EventSubscription extends Subscription<ContractEvent> {
 }
 
 export function subscribeToEvents(
-  options: SubscribeOptions<ContractEvent>,
+  options: SubscribeOptions<node.ContractEvent>,
   contractAddress: string,
   fromCount?: number
 ): EventSubscription {

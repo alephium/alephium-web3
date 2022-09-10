@@ -43,3 +43,4 @@ export class ExplorerProvider extends ExplorerApi<null> {
 
 export * as node from './api-alephium'
 export * as explorer from './api-explorer'
+export * from './types'

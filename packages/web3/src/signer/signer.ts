@@ -17,13 +17,23 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { NodeProvider } from '../api'
+import {
+  fromApiNumber256,
+  fromApiTokens,
+  NodeProvider,
+  Number256,
+  toApiNumber256,
+  toApiNumber256Optional,
+  toApiTokens,
+  Token
+} from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
 import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
-import { Token } from '../api/api-alephium'
 import { getCurrentNodeProvider } from '../global'
+
+export type OutputRef = node.OutputRef
 
 const ec = new EC('secp256k1')
 
@@ -50,13 +60,13 @@ export type GetAccountsResult = Account[]
 
 export interface SignTransferTxParams {
   signerAddress: string
-  destinations: node.Destination[]
-  utxos?: node.OutputRef[]
+  destinations: Destination[]
+  utxos?: OutputRef[]
   gasAmount?: number
-  gasPrice?: string
+  gasPrice?: Number256
   submitTx?: boolean
 }
-assertType<Eq<SignTransferTxParams, TxBuildParams<node.BuildTransaction>>>()
+assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransaction>>>()
 export interface SignTransferTxResult {
   fromGroup: number
   toGroup: number
@@ -69,14 +79,14 @@ assertType<Eq<SignTransferTxResult, SignResult>>()
 export interface SignDeployContractTxParams {
   signerAddress: string
   bytecode: string
-  initialAttoAlphAmount?: string
+  initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
-  issueTokenAmount?: string
+  issueTokenAmount?: Number256
   gasAmount?: number
-  gasPrice?: string
+  gasPrice?: Number256
   submitTx?: boolean
 }
-assertType<Eq<SignDeployContractTxParams, TxBuildParams<node.BuildDeployContractTx>>>()
+assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignDeployContractTxResult {
   fromGroup: number
   toGroup: number
@@ -92,12 +102,12 @@ export interface SignExecuteScriptTxParams {
   signerAddress: string
   bytecode: string
   attoAlphAmount?: string
-  tokens?: node.Token[]
+  tokens?: Token[]
   gasAmount?: number
   gasPrice?: string
   submitTx?: boolean
 }
-assertType<Eq<SignExecuteScriptTxParams, TxBuildParams<node.BuildExecuteScriptTx>>>()
+assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {
   fromGroup: number
   toGroup: number
@@ -210,7 +220,12 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
   }
 
   async buildTransferTx(params: SignTransferTxParams): Promise<node.BuildTransactionResult> {
-    return this.provider.transactions.postTransactionsBuild(await this.usePublicKey(params))
+    const data: node.BuildTransaction = {
+      ...(await this.usePublicKey(params)),
+      destinations: toApiDestinations(params.destinations),
+      gasPrice: toApiNumber256Optional(params.gasPrice)
+    }
+    return this.provider.transactions.postTransactionsBuild(data)
   }
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
@@ -224,7 +239,14 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
   }
 
   async buildContractCreationTx(params: SignDeployContractTxParams): Promise<node.BuildDeployContractTxResult> {
-    return this.provider.contracts.postContractsUnsignedTxDeployContract(await this.usePublicKey(params))
+    const data: node.BuildDeployContractTx = {
+      ...(await this.usePublicKey(params)),
+      initialAttoAlphAmount: toApiNumber256Optional(params.initialAttoAlphAmount),
+      initialTokenAmounts: toApiTokens(params.initialTokenAmounts),
+      issueTokenAmount: toApiNumber256Optional(params.issueTokenAmount),
+      gasPrice: toApiNumber256Optional(params.gasPrice)
+    }
+    return this.provider.contracts.postContractsUnsignedTxDeployContract(data)
   }
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
@@ -233,7 +255,11 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
   }
 
   async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
-    return this.provider.contracts.postContractsUnsignedTxExecuteScript(await this.usePublicKey(params))
+    const data: node.BuildExecuteScriptTx = {
+      ...(await this.usePublicKey(params)),
+      tokens: toApiTokens(params.tokens)
+    }
+    return this.provider.contracts.postContractsUnsignedTxExecuteScript(data)
   }
 
   // in general, wallet should show the decoded information to user for confirmation
@@ -314,4 +340,25 @@ export function verifySignedMessage(message: string, publicKey: string, signatur
   const extendedMessage = extendMessage(message)
   const messageHash = blake.blake2b(extendedMessage, undefined, 32)
   return verifyHexString(utils.binToHex(messageHash), publicKey, signature)
+}
+
+export interface Destination {
+  address: string
+  attoAlphAmount: Number256
+  tokens?: Token[]
+  lockTime?: number
+  message?: string
+}
+assertType<Eq<keyof Destination, keyof node.Destination>>
+
+export function toApiDestination(data: Destination): node.Destination {
+  return { ...data, attoAlphAmount: toApiNumber256(data.attoAlphAmount), tokens: toApiTokens(data.tokens) }
+}
+
+export function toApiDestinations(data: Destination[]): node.Destination[] {
+  return data.map(toApiDestination)
+}
+
+export function fromApiDestination(data: node.Destination): Destination {
+  return { ...data, attoAlphAmount: fromApiNumber256(data.attoAlphAmount), tokens: fromApiTokens(data.tokens) }
 }
