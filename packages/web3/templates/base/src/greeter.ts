@@ -24,7 +24,7 @@ async function greet() {
   console.log(deployTx.fromGroup)
   console.log(deployTx.toGroup)
 
-  const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
+  const submitResult = await signer.submitTransaction(deployTx.unsignedTx)
   console.log(submitResult)
 
   const main = Project.script('GreeterMain')
@@ -35,7 +35,7 @@ async function greet() {
   console.log(mainScriptTx.fromGroup)
   console.log(mainScriptTx.toGroup)
 
-  const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx, mainScriptTx.txId)
+  const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx)
   console.log(mainSubmitResult)
 }
 

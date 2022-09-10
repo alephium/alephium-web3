@@ -34,7 +34,7 @@ describe('events', function () {
       initialTokenAmounts: []
     })
     const subContractId = subDeployTx.contractId
-    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx, subDeployTx.txId)
+    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     // ignore unused private function warnings
@@ -43,7 +43,7 @@ describe('events', function () {
       initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
     })
-    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx, addDeployTx.txId)
+    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
     return [addDeployTx.contractAddress, addDeployTx.contractId]
   }
@@ -51,7 +51,7 @@ describe('events', function () {
   async function executeScript(params: SignExecuteScriptTxParams, signer: NodeWallet, times: number) {
     for (let i = 0; i < times; i++) {
       const scriptTx = await signer.buildScriptTx(params)
-      await signer.submitTransaction(scriptTx.unsignedTx, scriptTx.txId)
+      await signer.submitTransaction(scriptTx.unsignedTx)
     }
   }
 
@@ -119,7 +119,7 @@ describe('events', function () {
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx0.unsignedTx, scriptTx0.txId)
+    await signer.submitTransaction(scriptTx0.unsignedTx)
     await timeout(1500)
     subscription.unsubscribe()
 
@@ -134,7 +134,7 @@ describe('events', function () {
     const scriptTx1 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx1.unsignedTx, scriptTx1.txId)
+    await signer.submitTransaction(scriptTx1.unsignedTx)
     await timeout(1500)
     expect(events.length).toEqual(1)
   })
