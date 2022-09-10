@@ -484,9 +484,11 @@ export class Project {
 }
 
 export abstract class Artifact {
+  readonly name: string
   readonly functions: FunctionSig[]
 
-  constructor(functions: FunctionSig[]) {
+  constructor(name: string, functions: FunctionSig[]) {
+    this.name = name
     this.functions = functions
   }
 
@@ -512,13 +514,14 @@ export class Contract extends Artifact {
   readonly eventsSig: EventSig[]
 
   constructor(
+    name: string,
     bytecode: string,
     codeHash: string,
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
     functions: FunctionSig[]
   ) {
-    super(functions)
+    super(name, functions)
     this.bytecode = bytecode
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
@@ -528,6 +531,7 @@ export class Contract extends Artifact {
   // TODO: safely parse json
   static fromJson(artifact: any): Contract {
     if (
+      artifact.name == null ||
       artifact.bytecode == null ||
       artifact.codeHash == null ||
       artifact.fieldsSig == null ||
@@ -537,6 +541,7 @@ export class Contract extends Artifact {
       throw Error('The artifact JSON for contract is incomplete')
     }
     const contract = new Contract(
+      artifact.name,
       artifact.bytecode,
       artifact.codeHash,
       artifact.fieldsSig,
@@ -547,7 +552,7 @@ export class Contract extends Artifact {
   }
 
   static fromCompileResult(result: CompileContractResult): Contract {
-    return new Contract(result.bytecode, result.codeHash, result.fields, result.events, result.functions)
+    return new Contract(result.name, result.bytecode, result.codeHash, result.fields, result.events, result.functions)
   }
 
   // support both 'code.ral' and 'code.ral.json'
@@ -566,6 +571,7 @@ export class Contract extends Artifact {
 
   override toString(): string {
     const object = {
+      name: this.name,
       bytecode: this.bytecode,
       codeHash: this.codeHash,
       fieldsSig: this.fieldsSig,
@@ -776,22 +782,27 @@ export class Script extends Artifact {
   readonly bytecodeTemplate: string
   readonly fieldsSig: FieldsSig
 
-  constructor(bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[]) {
-    super(functions)
+  constructor(name: string, bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[]) {
+    super(name, functions)
     this.bytecodeTemplate = bytecodeTemplate
     this.fieldsSig = fieldsSig
   }
 
   static fromCompileResult(result: CompileScriptResult): Script {
-    return new Script(result.bytecodeTemplate, result.fields, result.functions)
+    return new Script(result.name, result.bytecodeTemplate, result.fields, result.functions)
   }
 
   // TODO: safely parse json
   static fromJson(artifact: any): Script {
-    if (artifact.bytecodeTemplate == null || artifact.fieldsSig == null || artifact.functions == null) {
+    if (
+      artifact.name == null ||
+      artifact.bytecodeTemplate == null ||
+      artifact.fieldsSig == null ||
+      artifact.functions == null
+    ) {
       throw Error('The artifact JSON for script is incomplete')
     }
-    return new Script(artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
+    return new Script(artifact.name, artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
   }
 
   static async fromArtifactFile(path: string): Promise<Script> {
@@ -802,6 +813,7 @@ export class Script extends Artifact {
 
   override toString(): string {
     const object = {
+      name: this.name,
       bytecodeTemplate: this.bytecodeTemplate,
       fieldsSig: this.fieldsSig,
       functions: this.functions
