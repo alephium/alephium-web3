@@ -16,10 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node } from '../api'
 import * as ralph from './ralph'
 import * as utils from '../utils'
-import { Fields } from './contract'
+import { Fields, FieldsSig } from './contract'
 
 describe('contract', function () {
   it('should encode I256', async () => {
@@ -132,7 +131,7 @@ describe('contract', function () {
 
   it('should test buildScriptByteCode', async () => {
     const variables = { x: true, y: 0x05, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
-    const fieldsSig: node.FieldsSig = {
+    const fieldsSig: FieldsSig = {
       names: ['x', 'y', 'z', 'a'],
       types: ['Bool', 'U256', 'ByteVec', 'Address'],
       isMutable: [false, false, false, false]
@@ -149,7 +148,7 @@ describe('contract', function () {
       d: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
       e: [false, true]
     }
-    const fieldsSig: node.FieldsSig = {
+    const fieldsSig: FieldsSig = {
       names: ['a', 'b', 'c', 'd', 'e'],
       types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]'],
       isMutable: [false, false, false, false]
