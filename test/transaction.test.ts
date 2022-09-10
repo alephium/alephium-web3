@@ -27,7 +27,7 @@ describe('transactions', function () {
   it('should subscribe transaction status', async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
-    const sub = Project.contract('sub/sub.ral')
+    const sub = Project.contract('Sub')
     const signer = await testNodeWallet()
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },

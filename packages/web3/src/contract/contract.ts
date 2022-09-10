@@ -275,20 +275,18 @@ export class Project {
     }
   }
 
-  static contract(path: string): Contract {
-    const contractPath = Project.currentProject.getContractPath(path)
-    const contract = Project.currentProject.contracts.find((c) => c.sourceFile.contractPath === contractPath)
+  static contract(name: string): Contract {
+    const contract = Project.currentProject.contracts.find((c) => c.artifact.name === name)
     if (typeof contract === 'undefined') {
-      throw new Error(`Contract ${contractPath} does not exist`)
+      throw new Error(`Contract "${name}" does not exist`)
     }
     return contract.artifact
   }
 
-  static script(path: string): Script {
-    const contractPath = Project.currentProject.getContractPath(path)
-    const script = Project.currentProject.scripts.find((c) => c.sourceFile.contractPath === contractPath)
+  static script(name: string): Script {
+    const script = Project.currentProject.scripts.find((c) => c.artifact.name === name)
     if (typeof script === 'undefined') {
-      throw new Error(`Script ${contractPath} does not exist`)
+      throw new Error(`Script "${name}" does not exist`)
     }
     return script.artifact
   }

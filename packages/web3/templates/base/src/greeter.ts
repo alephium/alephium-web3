@@ -9,7 +9,7 @@ async function greet() {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   await Project.build()
 
-  const greeter = Project.contract('greeter/greeter.ral')
+  const greeter = Project.contract('Greeter')
 
   const testParams: TestContractParams = {
     initialFields: { btcPrice: 1 }
@@ -27,7 +27,7 @@ async function greet() {
   const submitResult = await signer.submitTransaction(deployTx.unsignedTx, deployTx.txId)
   console.log(submitResult)
 
-  const main = Project.script('greeter_main.ral')
+  const main = Project.script('GreeterMain')
 
   const mainScriptTx = await main.transactionForDeployment(signer, {
     initialFields: { greeterContractId: greeterContractId }

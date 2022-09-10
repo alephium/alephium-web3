@@ -29,8 +29,8 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
 
     // ignore unused private function warnings
-    const add = Project.contract('add/add.ral')
-    const sub = Project.contract('sub/sub.ral')
+    const add = Project.contract('Add')
+    const sub = Project.contract('Sub')
 
     const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
@@ -92,7 +92,7 @@ describe('contract', function () {
     expect(fetchedAddState.fields.sub).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(0)
 
-    const main = Project.script('main.ral')
+    const main = Project.script('Main')
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { addContractId: addContractId }
     })
@@ -114,7 +114,7 @@ describe('contract', function () {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
-    const greeter = Project.contract('greeter/greeter.ral')
+    const greeter = Project.contract('Greeter')
 
     const testParams: TestContractParams = {
       initialFields: { btcPrice: 1 }
@@ -138,7 +138,7 @@ describe('contract', function () {
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
-    const main = Project.script('greeter_main.ral')
+    const main = Project.script('GreeterMain')
 
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { greeterContractId: greeterContractId }
@@ -190,7 +190,7 @@ describe('contract', function () {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
-    const contract = Project.contract('test/metadata.ral')
+    const contract = Project.contract('MetaData')
     expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(contract.publicFunctions()).toEqual(['foo'])
     expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
