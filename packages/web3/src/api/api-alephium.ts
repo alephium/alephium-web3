@@ -1298,7 +1298,6 @@ export class HttpClient<SecurityDataType = unknown> {
         this.abortControllers.delete(cancelToken)
       }
 
-      if (!response.ok) throw data
       return data
     })
   }
