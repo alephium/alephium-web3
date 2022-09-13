@@ -20,16 +20,8 @@ import EC from 'elliptic'
 import assert from 'assert'
 
 import * as utils from './utils'
-import { NodeProvider } from '../api/index'
 
 describe('utils', function () {
-  it('should throw API error', async () => {
-    const provider = new NodeProvider('http://127.0.0.1:22973')
-    await expect(provider.addresses.getAddressesAddressGroup('000')).rejects.toThrowError(
-      new Error('[Node API Error] - Invalid value for: path parameter address (Unable to decode address from 000: 000)')
-    )
-  })
-
   it('should throw an error when decoding invalid signature', () => {
     const ec = new EC.ec('secp256k1')
     const signature = 'signature-with-wrong-length'
