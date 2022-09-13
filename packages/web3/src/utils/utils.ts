@@ -29,16 +29,6 @@ import * as explorer from '../api/api-explorer'
 
 const ec = new EC('secp256k1')
 
-export function convertHttpResponse<T>(
-  response: node.HttpResponse<T, { detail: string }> | explorer.HttpResponse<T, { detail: string }>
-): T {
-  if (response.error) {
-    throw new Error(response.error.detail)
-  } else {
-    return response.data
-  }
-}
-
 export function signatureEncode(signature: EC.Signature): string {
   let sNormalized = signature.s
   if (ec.n && signature.s.cmp(ec.nh) === 1) {

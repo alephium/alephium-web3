@@ -278,16 +278,7 @@ export interface UnconfirmedTransaction {
 }
 
 import 'cross-fetch/polyfill'
-
-function convertHttpResponse<T>(
-  response: HttpResponse<T, { detail: string }> | HttpResponse<T, { detail: string }>
-): T {
-  if (response.error) {
-    throw new Error(response.error.detail)
-  } else {
-    return response.data
-  }
-}
+import { convertHttpResponse } from './utils'
 
 export type QueryParamsType = Record<string | number, any>
 export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>
@@ -491,7 +482,6 @@ export class HttpClient<SecurityDataType = unknown> {
         this.abortControllers.delete(cancelToken)
       }
 
-      if (!response.ok) throw data
       return data
     })
   }
