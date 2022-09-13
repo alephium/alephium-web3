@@ -12,7 +12,7 @@
     "stop-devnet": "node scripts/stop-devnet.js"
   },
   "dependencies": {
-    "@alephium/web3": "0.2.0-rc.11"
+    "@alephium/web3": "0.2.0-rc.12"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
