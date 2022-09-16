@@ -15,6 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { Project, web3 } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
@@ -34,33 +35,30 @@ function getAlephiumVersion(): string {
     const json = JSON.parse(content)
     return json.config.alephium_version as string
   } catch (error) {
-    program.error('failed to get alephium version, error: ' + error)
+    program.error('Failed to get alephium version, error: ' + error)
   }
 }
 
 program
   .command('init')
-  .description('Creates a new and empty project')
-  .option('-d, --dir [project-directory]', 'Project directory', '.')
-  .option('-t, --type [template-type]', 'Specify a template for the project: either base or react', 'base')
+  .description('creates a new and empty project')
+  .option('-d, --dir <project-directory>', 'project directory', '.')
+  .option('-t, --template <template-type>', 'specify a template for the project: either base or react', 'base')
   .action(async (options) => {
-    const templateType = options.type as string
+    const templateType = options.template as string
     if (!['base', 'react'].includes(templateType)) {
-      program.error(`invalid template type ${templateType}, expect either base or react`)
+      program.error(`Invalid template type ${templateType}, expected either base or react`)
     }
     const projectRoot = path.resolve(options.dir as string)
-    if (!fs.existsSync(projectRoot)) {
-      fs.mkdirSync(projectRoot, { recursive: true })
-    }
     createProject(templateType, __dirname, projectRoot)
   })
 
-const nodeCommand = program.command('node')
+const nodeCommand = program.command('devnet').description('start/stop a devnet')
 nodeCommand
   .command('start')
-  .description('Start devnet')
-  .option('-v, --version [full-node-version]', 'Alephium full node version')
-  .option('-c, --config [full-node-user-config]', 'Alephium full node config')
+  .description('start devnet')
+  .option('-v, --version <full-node-version>', 'Alephium full node version')
+  .option('-c, --config <full-node-user-config>', 'Alephium full node config')
   .action(async (options) => {
     const version = options.version ? (options.version as string) : getAlephiumVersion()
     const configPath = options.config ? (options.config as string) : path.join(__dirname, 'devnet-user.conf')
@@ -68,14 +66,14 @@ nodeCommand
   })
 nodeCommand
   .command('stop')
-  .description('Stop devnet')
+  .description('stop devnet')
   .action(() => stopDevnet())
 
 program
   .command('compile')
-  .description('Compile the project')
-  .option('-c, --config [config-file]', 'Build config file')
-  .option('-n, --network [network-type]', 'Network type')
+  .description('compile the project')
+  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
+  .option('-n, --network <network-type>', 'network type')
   .action(async (options) => {
     try {
       const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -84,21 +82,21 @@ program
       const nodeUrl = config.networks[networkType].nodeUrl
       web3.setCurrentNodeProvider(nodeUrl)
       await Project.build(config.compilerOptions, config.sourcePath, config.artifactPath)
-      console.log('compile completed!')
+      console.log('Compilation completed!')
     } catch (error) {
-      program.error(`failed to compile, error: ${error}`)
+      program.error(`Failed to compile, error: ${error}`)
     }
   })
 
 program
   .command('test')
-  .description('Test the contracts')
-  .option('-p, --path [test-dir-path]', 'Test directory path', 'test')
-  .option('-f, --file [test-file]', 'Test only one file')
-  .option('-g, --grep [pattern]', 'Run only tests with a name that matches the regex pattern')
-  .option('-i, --runInBand', 'Run all tests serially in the current process', false)
-  .option('-v, --verbose', 'Display individual test results with the test suite hierarchy', false)
-  .option('-s, --silent', 'Prevent tests from printing messages through the console', false)
+  .description('test contracts')
+  .option('-p, --path <test-dir-path>', 'test directory path', 'test')
+  .option('-f, --file <test-file>', 'test only one file')
+  .option('-g, --grep <pattern>', 'run only tests with a name that matches the regex pattern')
+  .option('-i, --runInBand', 'run all tests serially in the current process', false)
+  .option('-v, --verbose', 'display individual test results with the test suite hierarchy', false)
+  .option('-s, --silent', 'prevent tests from printing messages through the console', false)
   .action(async (options) => {
     const jestOptions: string[] = []
     const testPath = options.path as string
@@ -131,9 +129,9 @@ program
 
 program
   .command('deploy')
-  .description('Deploy contracts')
-  .option('-c, --config [config-file]', 'Build config file')
-  .option('-n, --network [network-type]', 'Specify the network to use')
+  .description('deploy contracts')
+  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
+  .option('-n, --network <network-type>', 'specify the network to use')
   .action(async (options) => {
     try {
       const configFile = options.config ? (options.config as string) : getConfigFile()
