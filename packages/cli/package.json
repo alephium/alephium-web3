@@ -17,9 +17,9 @@
   },
   "scripts": {
     "build": "rm -rf dist/* && npx tsc --build . && node scripts/copy-template.js",
-    "start-devnet": "npx ts-node cli_internal.ts node start",
-    "stop-devnet": "npx ts-node cli_internal.ts node stop",
-    "restart-devnet": "npx ts-node cli_internal.ts node start"
+    "start-devnet": "npx ts-node cli_internal.ts devnet start",
+    "stop-devnet": "npx ts-node cli_internal.ts devnet stop",
+    "restart-devnet": "npx ts-node cli_internal.ts devnet start"
   },
   "bin": "cli.js",
   "type": "commonjs",
