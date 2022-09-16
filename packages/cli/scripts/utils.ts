@@ -19,47 +19,8 @@ import path from 'path'
 import fs from 'fs'
 import { Configuration } from '../types'
 
-let tsOutputDir: string | undefined
-
-function getTsOutputDir(): string {
-  if (tsOutputDir !== undefined) {
-    return tsOutputDir
-  }
-  const projectRoot = path.resolve(process.cwd())
-  const tsConfig = path.join(projectRoot, 'tsconfig.json')
-  if (!fs.existsSync(tsConfig)) {
-    throw new Error('typescript config file does not exist')
-  }
-  const content = fs.readFileSync(tsConfig).toString()
-  const json = JSON.parse(content)
-  if (json.compilerOptions.outDir === undefined) {
-    throw new Error('please specify `outDir` in tsconfig.json')
-  }
-  const outDir = JSON.parse(content).compilerOptions.outDir as string
-  tsOutputDir = path.join(projectRoot, outDir)
-  return tsOutputDir
-}
-
-export function getOutputPath(filename: string): string {
-  if (filename.endsWith('.ts')) {
-    const projectRootPath = path.resolve(process.cwd())
-    const fileFullpath = path.resolve(filename)
-    const relativePath = path.relative(projectRootPath, fileFullpath)
-    const jsFileRelativePath = relativePath.slice(0, -2) + 'js'
-    const outputPath = path.join(getTsOutputDir(), jsFileRelativePath)
-    if (!fs.existsSync(outputPath)) {
-      throw new Error(`${outputPath} does not exist, please compile to javascript first`)
-    }
-    return outputPath
-  } else if (filename.endsWith('.js')) {
-    return path.resolve(filename)
-  } else {
-    throw new Error(`invalid config file ${filename}, expect typescript or javascript file`)
-  }
-}
-
 export async function loadConfig<Settings = unknown>(filename: string): Promise<Configuration<Settings>> {
-  const configPath = getOutputPath(filename)
+  const configPath = path.resolve(filename)
   if (!fs.existsSync(configPath)) {
     throw new Error(`${configPath} does not exist`)
   }

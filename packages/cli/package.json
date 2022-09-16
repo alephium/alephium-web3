@@ -21,7 +21,7 @@
     "stop-devnet": "node dist/cli.js node stop",
     "restart-devnet": "node dist/clj.ts node start"
   },
-  "bin": "dist/cli.js",
+  "bin": "cli.js",
   "type": "commonjs",
   "dependencies": {
     "jest": "^28.1.0",

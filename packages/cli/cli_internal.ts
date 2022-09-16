@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*
 Copyright 2018 - 2022 The Alephium Authors
 This file is part of the alephium project.
@@ -30,7 +29,7 @@ import { getConfigFile, loadConfig } from './scripts/utils'
 
 function getAlephiumVersion(): string {
   try {
-    const pkgPath = path.join(__filename, '..', '..', 'package.json')
+    const pkgPath = path.join(__dirname, 'package.json')
     const content = fs.readFileSync(pkgPath).toString()
     const json = JSON.parse(content)
     return json.config.alephium_version as string

@@ -32,7 +32,6 @@ import {
   RunScriptParams,
   ExecutionResult
 } from '../types'
-import { getOutputPath } from './utils'
 
 class Deployments {
   deployContractResults: Map<string, DeployContractResult>
@@ -318,9 +317,8 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
 
   const scriptFiles = await getDeployScriptFiles(path.resolve(configuration.deployScriptsPath))
   const scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[] = []
-  for (const filepath of scriptFiles) {
+  for (const scriptFilePath of scriptFiles) {
     try {
-      const scriptFilePath = getOutputPath(filepath)
       /* eslint-disable @typescript-eslint/no-var-requires */
       const content = require(scriptFilePath)
       /* eslint-enable @typescript-eslint/no-var-requires */
@@ -333,7 +331,7 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
         throw new Error(`no default deploy function exported from ${scriptFilePath}`)
       }
     } catch (error) {
-      throw new Error(`failed to load deploy script, filepath: ${filepath}, error: ${error}`)
+      throw new Error(`failed to load deploy script, filepath: ${scriptFilePath}, error: ${error}`)
     }
   }
 
