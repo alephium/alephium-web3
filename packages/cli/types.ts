@@ -29,11 +29,11 @@ import {
 import { getConfigFile, loadConfig } from './scripts/utils'
 
 export interface Network<Settings = unknown> {
-  networkId: number
+  networkId?: number
   nodeUrl: string
   mnemonic: string
-  deploymentFile: string
-  confirmations: number
+  deploymentFile?: string
+  confirmations?: number
   settings: Settings
 }
 
@@ -43,8 +43,8 @@ export interface Configuration<Settings = unknown> {
   sourcePath?: string
   artifactPath?: string
 
-  deployScriptsPath: string
-  compilerOptions: CompilerOptions
+  deployScriptsPath?: string
+  compilerOptions?: CompilerOptions
 
   defaultNetwork: NetworkType
   networks: Record<NetworkType, Network<Settings>>

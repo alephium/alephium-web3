@@ -172,6 +172,7 @@ async function createDeployer<Settings = unknown>(
   const signer = PrivateKeyWallet.FromMnemonic(network.mnemonic)
   const accounts = await signer.getAccounts()
   const account = accounts[0]
+  const confirmations = network.confirmations ? network.confirmations : 0
 
   const deployContract = async (
     contract: Contract,
@@ -201,7 +202,7 @@ async function createDeployer<Settings = unknown>(
     console.log(`Deploying contract ${taskId}...`)
     const result = await contract.transactionForDeployment(signer, params)
     await signer.submitTransaction(result.unsignedTx)
-    const confirmed = await waitTxConfirmed(signer.provider, result.txId, network.confirmations)
+    const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
     const deployContractResult: DeployContractResult = {
       fromGroup: result.fromGroup,
       toGroup: result.toGroup,
@@ -239,7 +240,7 @@ async function createDeployer<Settings = unknown>(
     console.log(`Executing script ${taskId}...`)
     const result = await script.transactionForDeployment(signer, params)
     await signer.submitTransaction(result.unsignedTx)
-    const confirmed = await waitTxConfirmed(signer.provider, result.txId, network.confirmations)
+    const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
     const runScriptResult: RunScriptResult = {
       fromGroup: result.fromGroup,
       toGroup: result.toGroup,
@@ -289,6 +290,19 @@ async function saveDeploymentsToFile(
   await deployments.saveToFile(filepath)
 }
 
+function getNetworkId(networkType: NetworkType): number {
+  if (networkType === 'devnet') {
+    return 4
+  }
+  if (networkType === 'testnet') {
+    return 1
+  }
+  if (networkType === 'mainnet') {
+    return 0
+  }
+  throw new Error(`invalid network type: ${networkType}`)
+}
+
 async function getDeployScriptFiles(rootPath: string): Promise<string[]> {
   const regex = '^([0-9]+)_.*\\.(ts|js)$'
   const dirents = await fsPromises.readdir(rootPath, { withFileTypes: true })
@@ -315,7 +329,8 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
     throw new Error(`no network ${networkType} config`)
   }
 
-  const scriptFiles = await getDeployScriptFiles(path.resolve(configuration.deployScriptsPath))
+  const deployScriptsRootPath = configuration.deployScriptsPath ? configuration.deployScriptsPath : 'scripts'
+  const scriptFiles = await getDeployScriptFiles(path.resolve(deployScriptsRootPath))
   const scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[] = []
   for (const scriptFilePath of scriptFiles) {
     try {
@@ -338,7 +353,8 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
   let deployContractResults = new Map<string, DeployContractResult>()
   let runScriptResults = new Map<string, RunScriptResult>()
   let migrations = new Map<string, number>()
-  const deployments = await Deployments.from(network.deploymentFile)
+  const deploymentsFile = network.deploymentFile ? network.deploymentFile : '.deployments.json'
+  const deployments = await Deployments.from(deploymentsFile)
   if (typeof deployments !== 'undefined') {
     deployContractResults = deployments.deployContractResults
     runScriptResults = deployments.runScriptResults
@@ -347,10 +363,9 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
 
   web3.setCurrentNodeProvider(network.nodeUrl)
   const chainParams = await web3.getCurrentNodeProvider().infos.getInfosChainParams()
-  if (chainParams.networkId !== network.networkId) {
-    throw new Error(
-      `The node chain id ${chainParams.networkId} is different from configured chain id ${network.networkId}`
-    )
+  const networkId = getNetworkId(networkType)
+  if (chainParams.networkId !== networkId) {
+    throw new Error(`The node chain id ${chainParams.networkId} is different from configured chain id ${networkId}`)
   }
 
   const deployer = await createDeployer(network, deployContractResults, runScriptResults)
@@ -381,11 +396,11 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
         migrations.set(script.func.id, Date.now())
       }
     } catch (error) {
-      await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, network.deploymentFile)
+      await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, deploymentsFile)
       throw new Error(`failed to execute deploy script, filepath: ${script.scriptFilePath}, error: ${error}`)
     }
   }
 
-  await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, network.deploymentFile)
+  await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, deploymentsFile)
   console.log('Deployment script execution completed')
 }
