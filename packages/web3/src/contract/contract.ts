@@ -310,12 +310,12 @@ export class Project {
   private async saveArtifactsToFile(): Promise<void> {
     const artifactsRootPath = this.artifactsRootPath
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
-      const artifactPath = compiled.sourceFile.getArtifactPath(artifactsRootPath)
-      const folder = artifactPath.slice(0, artifactPath.lastIndexOf('/'))
+      const artifactDir = compiled.sourceFile.getArtifactPath(artifactsRootPath)
+      const folder = artifactDir.slice(0, artifactDir.lastIndexOf('/'))
       if (!fs.existsSync(folder)) {
         fs.mkdirSync(folder, { recursive: true })
       }
-      return fsPromises.writeFile(artifactPath, compiled.artifact.toString())
+      return fsPromises.writeFile(artifactDir, compiled.artifact.toString())
     }
     for (const contract of this.contracts) {
       await saveToFile(contract)
@@ -392,12 +392,12 @@ export class Project {
           throw Error(`Unable to find project info for ${file.contractPath}, please rebuild the project`)
         }
         const warnings = info.warnings
-        const artifactPath = file.getArtifactPath(artifactsRootPath)
+        const artifactDir = file.getArtifactPath(artifactsRootPath)
         if (file.type === SourceType.Contract) {
-          const artifact = await Contract.fromArtifactFile(artifactPath)
+          const artifact = await Contract.fromArtifactFile(artifactDir)
           contracts.push(new Compiled(file, artifact, warnings))
         } else if (file.type === SourceType.Script) {
-          const artifact = await Script.fromArtifactFile(artifactPath)
+          const artifact = await Script.fromArtifactFile(artifactDir)
           scripts.push(new Compiled(file, artifact, warnings))
         }
       }
@@ -463,10 +463,13 @@ export class Project {
     return sourceFiles.sort((a, b) => a.type - b.type)
   }
 
+  static readonly DEFAULT_CONTRACTS_DIR = 'contracts'
+  static readonly DEFAULT_ARTIFACTS_DIR = 'artifacts'
+
   static async build(
     compilerOptionsPartial: Partial<CompilerOptions> = {},
-    contractsRootPath = 'contracts',
-    artifactsRootPath = 'artifacts'
+    contractsRootPath = Project.DEFAULT_CONTRACTS_DIR,
+    artifactsRootPath = Project.DEFAULT_ARTIFACTS_DIR
   ): Promise<void> {
     const provider = getCurrentNodeProvider()
     const sourceFiles = await Project.loadSourceFiles(contractsRootPath)

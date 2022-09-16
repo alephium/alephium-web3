@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import path from 'path'
 import fs from 'fs'
-import { Configuration } from '../types'
+import { Configuration, DEFAULT_CONFIGURATION_VALUES } from '../types'
 
 export async function loadConfig<Settings = unknown>(filename: string): Promise<Configuration<Settings>> {
   const configPath = path.resolve(filename)
@@ -30,7 +30,8 @@ export async function loadConfig<Settings = unknown>(filename: string): Promise<
   if (!content.default) {
     throw new Error(`config file ${filename} have no default export`)
   }
-  return content.default as Configuration<Settings>
+  const configurationInput = content.default as Configuration<Settings>
+  return { ...DEFAULT_CONFIGURATION_VALUES, ...configurationInput }
 }
 
 export function getConfigFile(): string {

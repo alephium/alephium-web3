@@ -72,7 +72,7 @@ function prepareReact(packageRoot: string, projectRoot: string) {
   console.log()
 }
 
-export function createProject(templateType: string, packageRoot: string, projectRoot: string) {
+export function createProject(templateType: string, packageRoot: string, projectRoot: string): void {
   if (!fsExtra.existsSync(projectRoot)) {
     fsExtra.mkdirSync(projectRoot, { recursive: true })
   } else {

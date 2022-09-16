@@ -30,7 +30,8 @@ import {
   Configuration,
   DeployContractParams,
   RunScriptParams,
-  ExecutionResult
+  ExecutionResult,
+  DEFAULT_CONFIGURATION_VALUES
 } from '../types'
 
 class Deployments {
@@ -172,7 +173,7 @@ async function createDeployer<Settings = unknown>(
   const signer = PrivateKeyWallet.FromMnemonic(network.mnemonic)
   const accounts = await signer.getAccounts()
   const account = accounts[0]
-  const confirmations = network.confirmations ? network.confirmations : 0
+  const confirmations = network.confirmations ? network.confirmations : 1
 
   const deployContract = async (
     contract: Contract,
@@ -290,19 +291,6 @@ async function saveDeploymentsToFile(
   await deployments.saveToFile(filepath)
 }
 
-function getNetworkId(networkType: NetworkType): number {
-  if (networkType === 'devnet') {
-    return 4
-  }
-  if (networkType === 'testnet') {
-    return 1
-  }
-  if (networkType === 'mainnet') {
-    return 0
-  }
-  throw new Error(`invalid network type: ${networkType}`)
-}
-
 async function getDeployScriptFiles(rootPath: string): Promise<string[]> {
   const regex = '^([0-9]+)_.*\\.(ts|js)$'
   const dirents = await fsPromises.readdir(rootPath, { withFileTypes: true })
@@ -323,13 +311,20 @@ async function getDeployScriptFiles(rootPath: string): Promise<string[]> {
   return scripts.map((f) => path.join(rootPath, f.filename))
 }
 
-export async function deploy<Settings = unknown>(configuration: Configuration<Settings>, networkType: NetworkType) {
-  const network = configuration.networks[networkType]
+export async function deploy<Settings = unknown>(
+  configuration: Configuration<Settings>,
+  networkType: NetworkType
+): Promise<void> {
+  const networkInput = configuration.networks[networkType]
+  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
+  const network = { ...defaultValues, ...networkInput }
   if (typeof network === 'undefined') {
     throw new Error(`no network ${networkType} config`)
   }
 
-  const deployScriptsRootPath = configuration.deployScriptsPath ? configuration.deployScriptsPath : 'scripts'
+  const deployScriptsRootPath = configuration.deploymentScriptDir
+    ? configuration.deploymentScriptDir
+    : DEFAULT_CONFIGURATION_VALUES.deploymentScriptDir
   const scriptFiles = await getDeployScriptFiles(path.resolve(deployScriptsRootPath))
   const scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[] = []
   for (const scriptFilePath of scriptFiles) {
@@ -353,7 +348,9 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
   let deployContractResults = new Map<string, DeployContractResult>()
   let runScriptResults = new Map<string, RunScriptResult>()
   let migrations = new Map<string, number>()
-  const deploymentsFile = network.deploymentFile ? network.deploymentFile : '.deployments.json'
+  const deploymentsFile = network.deploymentStatusFile
+    ? network.deploymentStatusFile
+    : `.deployments.${networkType}.json`
   const deployments = await Deployments.from(deploymentsFile)
   if (typeof deployments !== 'undefined') {
     deployContractResults = deployments.deployContractResults
@@ -363,13 +360,17 @@ export async function deploy<Settings = unknown>(configuration: Configuration<Se
 
   web3.setCurrentNodeProvider(network.nodeUrl)
   const chainParams = await web3.getCurrentNodeProvider().infos.getInfosChainParams()
-  const networkId = getNetworkId(networkType)
+  const networkId = network.networkId
   if (chainParams.networkId !== networkId) {
     throw new Error(`The node chain id ${chainParams.networkId} is different from configured chain id ${networkId}`)
   }
 
   const deployer = await createDeployer(network, deployContractResults, runScriptResults)
-  await Project.build(configuration.compilerOptions, configuration.sourcePath, configuration.artifactPath)
+  await Project.build(
+    configuration.compilerOptions,
+    configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
+    configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
+  )
   configuration.defaultNetwork = networkType
 
   for (const script of scripts) {

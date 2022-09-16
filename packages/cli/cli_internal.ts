@@ -81,7 +81,7 @@ program
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
       const nodeUrl = config.networks[networkType].nodeUrl
       web3.setCurrentNodeProvider(nodeUrl)
-      await Project.build(config.compilerOptions, config.sourcePath, config.artifactPath)
+      await Project.build(config.compilerOptions, config.sourceDir, config.artifactDir)
       console.log('Compilation completed!')
     } catch (error) {
       program.error(`Failed to compile, error: ${error}`)

@@ -7,8 +7,8 @@ export type Settings = {
 const defaultSettings: Settings = { btcPrice: 1 }
 
 const configuration: Configuration<Settings> = {
-  sourcePath: "contracts",
-  artifactPath: "artifacts",
+  sourceDir: "contracts",
+  artifactDir: "artifacts",
 
   defaultNetwork: "devnet",
   networks: {
