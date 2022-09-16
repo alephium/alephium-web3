@@ -22,6 +22,9 @@ const process = require('process')
 const path = require('path')
 const fetch = require('cross-fetch')
 const spawn = require('child_process').spawn
+const os = require('os')
+
+export const devDir = path.join(os.homedir(), '.alephium-dev')
 
 async function _downloadFullNode(tag, fileName) {
   const url = `https://github.com/alephium/alephium/releases/download/v${tag}/alephium-${tag}.jar`
@@ -128,7 +131,6 @@ async function wait() {
 
 export async function startDevnet(tag, configPath) {
   console.log(`Full node version: ${tag}`)
-  const devDir = path.resolve(process.cwd() + path.sep + 'dev')
   const jarFile = `${devDir}${path.sep}alephium-${tag}.jar`
 
   console.log(`Dev folder: ${devDir}`)

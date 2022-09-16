@@ -19,9 +19,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 const fs = require('fs')
 const process = require('process')
 const path = require('path')
+const { devDir } = require('./start-devnet')
 
 export function stopDevnet() {
-  const pidFile = process.cwd() + path.sep + 'dev' + path.sep + 'alephium.pid'
+  const pidFile = path.join(devDir, 'alephium.pid')
   try {
     const pid = parseInt(fs.readFileSync(pidFile).toString())
     if (pid) {
