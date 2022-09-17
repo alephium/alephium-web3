@@ -24,7 +24,8 @@ import {
   BuildExecuteScriptTx,
   CompilerOptions,
   web3,
-  Project
+  Project,
+  DEFAULT_COMPILER_OPTIONS
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './scripts/utils'
 
@@ -32,7 +33,7 @@ export interface Network<Settings = unknown> {
   networkId?: number
   nodeUrl: string
   mnemonic: string
-  deploymentFile?: string
+  deploymentStatusFile?: string
   confirmations?: number
   settings: Settings
 }
@@ -40,14 +41,37 @@ export interface Network<Settings = unknown> {
 export type NetworkType = 'mainnet' | 'testnet' | 'devnet'
 
 export interface Configuration<Settings = unknown> {
-  sourcePath?: string
-  artifactPath?: string
+  sourceDir?: string
+  artifactDir?: string
 
-  deployScriptsPath?: string
+  deploymentScriptDir?: string
   compilerOptions?: CompilerOptions
 
   defaultNetwork: NetworkType
   networks: Record<NetworkType, Network<Settings>>
+}
+
+export const DEFAULT_CONFIGURATION_VALUES = {
+  sourceDir: Project.DEFAULT_CONTRACTS_DIR,
+  artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
+  compilerOptions: DEFAULT_COMPILER_OPTIONS,
+  deploymentScriptDir: 'scripts',
+  networks: {
+    devnet: {
+      networkId: 4,
+      confirmations: 1,
+      mnemonic:
+        'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
+    },
+    testnet: {
+      networkId: 1,
+      confirmations: 2
+    },
+    mainnet: {
+      networkId: 0,
+      confirmations: 2
+    }
+  }
 }
 
 export interface Environment<Settings = unknown> {
@@ -62,7 +86,7 @@ export async function getEnv<Settings = unknown>(configFileName?: string): Promi
   const config = await loadConfig<Settings>(configFile)
   const network = config.networks[config.defaultNetwork]
   web3.setCurrentNodeProvider(network.nodeUrl)
-  await Project.build(config.compilerOptions, config.sourcePath, config.artifactPath)
+  await Project.build(config.compilerOptions, config.sourceDir, config.artifactDir)
   return {
     config: config,
     network: network,

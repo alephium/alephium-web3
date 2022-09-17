@@ -39,7 +39,7 @@ function prepareShared(packageRoot: string, projectRoot: string) {
   console.log('...')
 
   fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
-  copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes'])
+  copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes', '.npmignore'])
   if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
     fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
   } else {
@@ -72,7 +72,14 @@ function prepareReact(packageRoot: string, projectRoot: string) {
   console.log()
 }
 
-export function createProject(templateType: string, packageRoot: string, projectRoot: string) {
+export function createProject(templateType: string, packageRoot: string, projectRoot: string): void {
+  if (!fsExtra.existsSync(projectRoot)) {
+    fsExtra.mkdirSync(projectRoot, { recursive: true })
+  } else {
+    console.log(`Project folder ${projectRoot} already exists!`)
+    console.log()
+    process.exit(1)
+  }
   switch (templateType) {
     case 'base':
       prepareBase(packageRoot, projectRoot)

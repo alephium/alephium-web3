@@ -8,6 +8,7 @@ const deployGreeter: DeployFunction<Settings> = async (deployer: Deployer, netwo
     'btcPrice': network.settings.btcPrice
   }})
   console.log("Greeter contract id: " + result.contractId)
+  console.log("Greeter contract address: " + result.contractAddress)
 }
 
 export default deployGreeter
