@@ -44,5 +44,5 @@ export function getConfigFile(): string {
   if (fs.existsSync(jsConfig)) {
     return jsConfig
   }
-  throw new Error('no config file found')
+  return path.join(__dirname, '../templates/base/alephium.config.ts')
 }

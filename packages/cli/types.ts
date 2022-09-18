@@ -15,6 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import {
   NodeProvider,
   Contract,
@@ -41,6 +42,9 @@ export interface Network<Settings = unknown> {
 export type NetworkType = 'mainnet' | 'testnet' | 'devnet'
 
 export interface Configuration<Settings = unknown> {
+  nodeVersion?: string
+  nodeConfigFile?: string
+
   sourceDir?: string
   artifactDir?: string
 
@@ -52,6 +56,8 @@ export interface Configuration<Settings = unknown> {
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {
+  nodeVersion: '1.5.0-rc7',
+  nodeConfigFile: 'devnet-user.conf',
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
   compilerOptions: DEFAULT_COMPILER_OPTIONS,
