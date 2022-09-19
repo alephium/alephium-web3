@@ -76,7 +76,7 @@ export function createProject(templateType: string, packageRoot: string, project
   if (!fsExtra.existsSync(projectRoot)) {
     fsExtra.mkdirSync(projectRoot, { recursive: true })
   } else {
-    console.log(`Project folder ${projectRoot} already exists!`)
+    console.log(`Project folder <${projectRoot}> already exists!`)
     console.log()
     process.exit(1)
   }

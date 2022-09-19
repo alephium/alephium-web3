@@ -19,24 +19,18 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Project, web3 } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
-import fs from 'fs'
 import path from 'path'
 import { deploy } from './scripts/deployment'
-import { NetworkType } from './types'
+import { Configuration, NetworkType } from './types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
 import { getConfigFile, loadConfig } from './scripts/utils'
 
-function getAlephiumVersion(): string {
-  try {
-    const pkgPath = path.join(__dirname, 'package.json')
-    const content = fs.readFileSync(pkgPath).toString()
-    const json = JSON.parse(content)
-    return json.config.alephium_version as string
-  } catch (error) {
-    program.error('Failed to get alephium version, error: ' + error)
-  }
+async function getConfig(options: any): Promise<Configuration> {
+  const configFile = options.config ? (options.config as string) : getConfigFile()
+  console.log(`Load alephium config file: ${configFile}`)
+  return loadConfig(configFile)
 }
 
 program
@@ -57,12 +51,12 @@ const nodeCommand = program.command('devnet').description('start/stop a devnet')
 nodeCommand
   .command('start')
   .description('start devnet')
-  .option('-v, --version <full-node-version>', 'Alephium full node version')
-  .option('-c, --config <full-node-user-config>', 'Alephium full node config')
+  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .action(async (options) => {
-    const version = options.version ? (options.version as string) : getAlephiumVersion()
-    const configPath = options.config ? (options.config as string) : path.join(__dirname, 'devnet-user.conf')
-    await startDevnet(version, path.resolve(configPath))
+    const config = await getConfig(options)
+    const version = config.nodeVersion! // there is a default value always
+    const nodeConfigFile = path.join(__dirname, config.nodeConfigFile!) // there is a default value always
+    await startDevnet(version, nodeConfigFile)
   })
 nodeCommand
   .command('stop')
@@ -76,8 +70,8 @@ program
   .option('-n, --network <network-type>', 'network type')
   .action(async (options) => {
     try {
-      const configFile = options.config ? (options.config as string) : getConfigFile()
-      const config = await loadConfig(configFile)
+      const config = await getConfig(options)
+      console.log(`Full node version: ${config.nodeVersion}`)
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
       const nodeUrl = config.networks[networkType].nodeUrl
       web3.setCurrentNodeProvider(nodeUrl)
@@ -134,12 +128,11 @@ program
   .option('-n, --network <network-type>', 'specify the network to use')
   .action(async (options) => {
     try {
-      const configFile = options.config ? (options.config as string) : getConfigFile()
-      const config = await loadConfig(configFile)
+      const config = await getConfig(options)
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
       await deploy(config, networkType)
     } catch (error) {
-      program.error(`failed to deploy contracts, error: ${error}`)
+      program.error(`Failed to deploy contracts, error: ${error}`)
     }
   })
 
