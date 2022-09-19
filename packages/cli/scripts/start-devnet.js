@@ -68,7 +68,7 @@ function launchDevnet(devDir, jarFile) {
   const p = spawn('java', ['-jar', jarFile], {
     detached: true,
     stdio: 'ignore',
-    env: { ...process.env, ALEPHIUM_HOME: devDir, ALEPHIUM_ENABLE_DEBUG_LOGGING: 'true' }
+    env: { ...process.env, ALEPHIUM_HOME: devDir, ALEPHIUM_FILE_LOG_LEVEL: 'DEBUG' }
   })
   p.unref()
   console.log(`Devnet is launching with pid: ${p.pid}`)

@@ -124,6 +124,11 @@ export interface Banned {
   type: string
 }
 
+export interface BlockAndEvents {
+  block: BlockEntry
+  events: ContractEventByBlockHash[]
+}
+
 export interface BlockEntry {
   /** @format block-hash */
   hash: string
@@ -172,6 +177,14 @@ export interface BlockHeaderEntry {
   /** @format int32 */
   height: number
   deps: string[]
+}
+
+export interface BlocksAndEventsPerTimeStampRange {
+  blocksAndEvents: BlockAndEvents[][]
+}
+
+export interface BlocksPerTimeStampRange {
+  blocks: BlockEntry[][]
 }
 
 export interface BrokerInfo {
@@ -490,6 +503,18 @@ export interface ContractEvent {
   fields: Val[]
 }
 
+export interface ContractEventByBlockHash {
+  /** @format 32-byte-hash */
+  txId: string
+
+  /** @format address */
+  contractAddress: string
+
+  /** @format int32 */
+  eventIndex: number
+  fields: Val[]
+}
+
 export interface ContractEventByTxId {
   /** @format block-hash */
   blockHash: string
@@ -509,11 +534,12 @@ export interface ContractEvents {
   nextStart: number
 }
 
+export interface ContractEventsByBlockHash {
+  events: ContractEventByBlockHash[]
+}
+
 export interface ContractEventsByTxId {
   events: ContractEventByTxId[]
-
-  /** @format int32 */
-  nextStart: number
 }
 
 export interface ContractOutput {
@@ -582,10 +608,6 @@ export interface EventSig {
   name: string
   fieldNames: string[]
   fieldTypes: string[]
-}
-
-export interface FetchResponse {
-  blocks: BlockEntry[][]
 }
 
 export interface FieldsSig {
@@ -1847,13 +1869,36 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Blockflow
-     * @name GetBlockflow
+     * @name GetBlockflowBlocks
      * @summary List blocks on the given time interval
-     * @request GET:/blockflow
+     * @request GET:/blockflow/blocks
      */
-    getBlockflow: (query: { fromTs: number; toTs?: number }, params: RequestParams = {}) =>
-      this.request<FetchResponse, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/blockflow`,
+    getBlockflowBlocks: (query: { fromTs: number; toTs?: number }, params: RequestParams = {}) =>
+      this.request<
+        BlocksPerTimeStampRange,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/blockflow/blocks`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Blockflow
+     * @name GetBlockflowBlocksWithEvents
+     * @summary List blocks with events on the given time interval
+     * @request GET:/blockflow/blocks-with-events
+     */
+    getBlockflowBlocksWithEvents: (query: { fromTs: number; toTs?: number }, params: RequestParams = {}) =>
+      this.request<
+        BlocksAndEventsPerTimeStampRange,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/blockflow/blocks-with-events`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -1871,6 +1916,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getBlockflowBlocksBlockHash: (blockHash: string, params: RequestParams = {}) =>
       this.request<BlockEntry, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/blockflow/blocks/${blockHash}`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Blockflow
+     * @name GetBlockflowBlocksWithEventsBlockHash
+     * @summary Get a block and events with hash
+     * @request GET:/blockflow/blocks-with-events/{block_hash}
+     */
+    getBlockflowBlocksWithEventsBlockHash: (blockHash: string, params: RequestParams = {}) =>
+      this.request<BlockAndEvents, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/blockflow/blocks-with-events/${blockHash}`,
         method: 'GET',
         format: 'json',
         ...params
@@ -2393,6 +2454,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Miners
+     * @name PostMinersCpuMiningMineOneBlock
+     * @summary Mine a block on CPU miner. !!! for test only !!!
+     * @request POST:/miners/cpu-mining/mine-one-block
+     */
+    postMinersCpuMiningMineOneBlock: (query: { fromGroup: number; toGroup: number }, params: RequestParams = {}) =>
+      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/miners/cpu-mining/mine-one-block`,
+        method: 'POST',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Miners
      * @name GetMinersAddresses
      * @summary List miner's addresses
      * @request GET:/miners/addresses
@@ -2433,7 +2511,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getEventsContractContractaddress: (
       contractAddress: string,
-      query: { start: number; end?: number; group?: number },
+      query: { start: number; limit?: number; group?: number },
       params: RequestParams = {}
     ) =>
       this.request<ContractEvents, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -2465,7 +2543,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags Events
      * @name GetEventsTxIdTxid
-     * @summary Get events for a TxScript
+     * @summary Get contract events for a transaction
      * @request GET:/events/tx-id/{txId}
      */
     getEventsTxIdTxid: (txId: string, query?: { group?: number }, params: RequestParams = {}) =>
@@ -2474,6 +2552,26 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/events/tx-id/${txId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Events
+     * @name GetEventsBlockHashBlockhash
+     * @summary Get contract events for a block
+     * @request GET:/events/block-hash/{blockHash}
+     */
+    getEventsBlockHashBlockhash: (blockHash: string, query?: { group?: number }, params: RequestParams = {}) =>
+      this.request<
+        ContractEventsByBlockHash,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/events/block-hash/${blockHash}`,
         method: 'GET',
         query: query,
         format: 'json',
