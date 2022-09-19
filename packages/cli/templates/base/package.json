@@ -2,22 +2,23 @@
   "name": "my-dapp-template",
   "version": "0.1.0",
   "license": "GPL",
-  "config": {
-    "alephium_version": "1.5.0-rc7"
-  },
   "scripts": {
     "build": "rm -rf dist && npx tsc --build .",
-    "start-devnet": "node scripts/start-devnet.js ${npm_package_config_alephium_version}",
-    "restart-devnet": "npm run start-devnet",
-    "stop-devnet": "node scripts/stop-devnet.js"
+    "greeter": "npm run build && node dist/src/greeter.js"
   },
   "dependencies": {
-    "@alephium/web3": "0.2.0-rc.12"
+    "@alephium/web3": "0.2.0-rc.12",
+    "@alephium/web3-wallet": "0.2.0-rc.12",
+    "@alephium/cli": "0.2.0-rc.12"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
     "@types/node": "^16.7.8",
-    "typescript": "^4.4.2"
+    "typescript": "^4.4.2",
+    "ts-node": "^10.7.0",
+    "jest": "^28.1.0",
+    "@types/jest": "^27.5.1",
+    "ts-jest": "^28.0.2"
   },
   "engines": {
     "node": ">=14.0.0",

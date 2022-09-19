@@ -1,0 +1,8 @@
+const fsExtra = require('fs-extra')
+fsExtra.copySync("contracts", "dist/contracts")
+fsExtra.copySync("templates", "dist/templates")
+fsExtra.copySync("devnet-user.conf", "dist/devnet-user.conf")
+fsExtra.copySync(".editorconfig", "dist/.editorconfig")
+fsExtra.copySync(".eslintignore", "dist/.eslintignore")
+fsExtra.copySync(".gitattributes", "dist/.gitattributes")
+fsExtra.copySync("gitignore", "dist/gitignore")

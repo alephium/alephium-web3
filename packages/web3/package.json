@@ -36,24 +36,15 @@
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
     "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
     "update-schema:explorer": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
-    "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}",
-    "start-devnet": "node scripts/start-devnet.js ${npm_package_config_alephium_version}",
-    "restart-devnet": "npm run start-devnet",
-    "stop-devnet": "node scripts/stop-devnet.js"
+    "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}"
   },
   "type": "commonjs",
-  "bin": {
-    "alephium": "dist/scripts/create-project.js"
-  },
   "dependencies": {
     "base-x": "4.0.0",
     "blakejs": "1.2.1",
     "buffer": "^6.0.3",
-    "commander": "^9.1.0",
     "cross-fetch": "^3.1.5",
-    "eventemitter3": "^4.0.7",
-    "find-up": "^2.1.0",
-    "fs-extra": "^10.0.1"
+    "eventemitter3": "^4.0.7"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.9",

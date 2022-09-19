@@ -15,5 +15,6 @@
     "strictFunctionTypes": true,
     "esModuleInterop": true
   },
-  "exclude": ["node_modules", "templates"]
+  "exclude": ["node_modules", "templates"],
+  "include": ["src/**/*", "scripts/**/*", "alephium.config.ts"]
 }
