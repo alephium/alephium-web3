@@ -36,14 +36,17 @@ async function getConfig(options: any): Promise<Configuration> {
 program
   .command('init')
   .description('creates a new and empty project')
-  .option('-d, --dir <project-directory>', 'project directory', '.')
+  .argument('<dir>', 'project directory')
   .option('-t, --template <template-type>', 'specify a template for the project: either base or react', 'base')
-  .action(async (options) => {
+  .action(async (dir, options) => {
+    if (dir === undefined) {
+      program.error('Please specify the project directory')
+    }
     const templateType = options.template as string
     if (!['base', 'react'].includes(templateType)) {
       program.error(`Invalid template type ${templateType}, expected either base or react`)
     }
-    const projectRoot = path.resolve(options.dir as string)
+    const projectRoot = path.resolve(dir as string)
     createProject(templateType, __dirname, projectRoot)
   })
 

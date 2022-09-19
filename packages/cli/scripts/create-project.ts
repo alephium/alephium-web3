@@ -39,13 +39,10 @@ function prepareShared(packageRoot: string, projectRoot: string) {
   console.log('...')
 
   fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
-  copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes', '.npmignore'])
-  if (fsExtra.existsSync(path.join(packageRoot, 'gitignore'))) {
-    fsExtra.copySync(path.join(packageRoot, 'gitignore'), path.join(projectRoot, '.gitignore'))
-  } else {
-    fsExtra.copySync(path.join(packageRoot, '.gitignore'), path.join(projectRoot, '.gitignore'))
-  }
-
+  copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes'])
+  const outputDir = path.join(packageRoot, 'dist')
+  fsExtra.copySync(path.join(outputDir, 'gitignore'), path.join(projectRoot, '.gitignore'))
+  fsExtra.copySync(path.join(outputDir, 'npmignore'), path.join(projectRoot, '.npmignore'))
   console.log()
 }
 
