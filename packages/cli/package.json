@@ -21,8 +21,8 @@
   "bin": "cli.js",
   "type": "commonjs",
   "dependencies": {
-    "@alephium/web3": "^0.2.0-rc.14",
-    "@alephium/web3-wallet": "^0.2.0-rc.14",
+    "@alephium/web3": "0.2.0-rc.14",
+    "@alephium/web3-wallet": "0.2.0-rc.14",
     "commander": "^9.4.0",
     "cross-fetch": "^3.1.5",
     "crypto-js": "^4.1.1",
