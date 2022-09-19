@@ -28,6 +28,29 @@ export interface AddressInfo {
   txNumber: number
 }
 
+export interface AssetOutput {
+  /** @format int32 */
+  hint: number
+
+  /** @format 32-byte-hash */
+  key: string
+
+  /** @format uint256 */
+  attoAlphAmount: string
+  address: string
+  tokens?: Token[]
+
+  /** @format int64 */
+  lockTime?: number
+
+  /** @format hex-string */
+  message?: string
+
+  /** @format 32-byte-hash */
+  spent?: string
+  type: string
+}
+
 export interface BadRequest {
   detail: string
 }
@@ -76,6 +99,23 @@ export interface ConfirmedTransaction {
   type: string
 }
 
+export interface ContractOutput {
+  /** @format int32 */
+  hint: number
+
+  /** @format 32-byte-hash */
+  key: string
+
+  /** @format uint256 */
+  attoAlphAmount: string
+  address: string
+  tokens?: Token[]
+
+  /** @format 32-byte-hash */
+  spent?: string
+  type: string
+}
+
 export interface ExplorerInfo {
   releaseVersion: string
   commit: string
@@ -90,14 +130,14 @@ export interface Hashrate {
 
 export interface Input {
   outputRef: OutputRef
-  unlockScript?: string
 
-  /** @format 32-byte-hash */
-  txHashRef: string
-  address: string
+  /** @format hex-string */
+  unlockScript?: string
+  address?: string
 
   /** @format uint256 */
-  amount: string
+  attoAlphAmount?: string
+  tokens?: Token[]
 }
 
 export interface InternalServerError {
@@ -110,28 +150,17 @@ export interface ListBlocks {
   blocks?: BlockEntryLite[]
 }
 
+export interface LogbackValue {
+  name: string
+  level: string
+}
+
 export interface NotFound {
   detail: string
   resource: string
 }
 
-export interface Output {
-  /** @format int32 */
-  hint: number
-
-  /** @format 32-byte-hash */
-  key: string
-
-  /** @format uint256 */
-  amount: string
-  address: string
-
-  /** @format int64 */
-  lockTime?: number
-
-  /** @format 32-byte-hash */
-  spent?: string
-}
+export type Output = AssetOutput | ContractOutput
 
 export interface OutputRef {
   /** @format int32 */
@@ -198,6 +227,14 @@ export interface TimedCount {
   totalCountAllChains: number
 }
 
+export interface Token {
+  /** @format 32-byte-hash */
+  id: string
+
+  /** @format uint256 */
+  amount: string
+}
+
 export interface TokenSupply {
   /** @format int64 */
   timestamp: number
@@ -239,20 +276,6 @@ export interface Transaction {
 
 export type TransactionLike = ConfirmedTransaction | UnconfirmedTransaction
 
-export interface UInput {
-  outputRef: OutputRef
-  unlockScript?: string
-}
-
-export interface UOutput {
-  /** @format uint256 */
-  amount: string
-  address: string
-
-  /** @format int64 */
-  lockTime?: number
-}
-
 export interface Unauthorized {
   detail: string
 }
@@ -266,14 +289,17 @@ export interface UnconfirmedTransaction {
 
   /** @format int32 */
   chainTo: number
-  inputs?: UInput[]
-  outputs?: UOutput[]
+  inputs?: Input[]
+  outputs?: AssetOutput[]
 
   /** @format int32 */
   gasAmount: number
 
   /** @format uint256 */
   gasPrice: string
+
+  /** @format int64 */
+  lastSeen: number
   type: string
 }
 
@@ -560,6 +586,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         ...params
       }).then(convertHttpResponse)
   }
+  transactionByOutputRefKey = {
+    /**
+     * @description Get a transaction from a output reference key
+     *
+     * @tags Transactions
+     * @name GetTransactionByOutputRefKeyOutputRefKey
+     * @request GET:/transaction-by-output-ref-key/{output-ref-key}
+     */
+    getTransactionByOutputRefKeyOutputRefKey: (outputRefKey: string, params: RequestParams = {}) =>
+      this.request<
+        ConfirmedTransaction,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/transaction-by-output-ref-key/${outputRefKey}`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
   addresses = {
     /**
      * @description Get address information
@@ -612,6 +657,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }).then(convertHttpResponse),
 
     /**
+     * @description List unconfirmed transactions of a given address
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressUnconfirmedTransactions
+     * @request GET:/addresses/{address}/unconfirmed-transactions
+     */
+    getAddressesAddressUnconfirmedTransactions: (address: string, params: RequestParams = {}) =>
+      this.request<
+        UnconfirmedTransaction[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/addresses/${address}/unconfirmed-transactions`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
      * @description Get address balance
      *
      * @tags Addresses
@@ -622,6 +685,75 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<AddressBalance, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/balance`,
         method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description List address tokens
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressTokens
+     * @request GET:/addresses/{address}/tokens
+     */
+    getAddressesAddressTokens: (address: string, params: RequestParams = {}) =>
+      this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/tokens`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description List address tokens
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressTokensTokenIdTransactions
+     * @request GET:/addresses/{address}/tokens/{token-id}/transactions
+     */
+    getAddressesAddressTokensTokenIdTransactions: (
+      address: string,
+      tokenId: string,
+      query?: { page?: number; limit?: number; reverse?: boolean },
+      params: RequestParams = {}
+    ) =>
+      this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/tokens/${tokenId}/transactions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Get address balance of given token
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressTokensTokenIdBalance
+     * @request GET:/addresses/{address}/tokens/{token-id}/balance
+     */
+    getAddressesAddressTokensTokenIdBalance: (address: string, tokenId: string, params: RequestParams = {}) =>
+      this.request<AddressBalance, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/tokens/${tokenId}/balance`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  addressesActive = {
+    /**
+     * @description Are the addresses active (at least 1 transaction)
+     *
+     * @tags Addresses
+     * @name PostAddressesActive
+     * @request POST:/addresses-active
+     */
+    postAddressesActive: (data?: string[], params: RequestParams = {}) =>
+      this.request<boolean[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses-active`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params
       }).then(convertHttpResponse)
@@ -760,6 +892,66 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         }
       ).then(convertHttpResponse)
   }
+  unconfirmedTransactions = {
+    /**
+     * @description list unconfirmed transactions
+     *
+     * @tags Unconfirmed Transactions
+     * @name GetUnconfirmedTransactions
+     * @request GET:/unconfirmed-transactions
+     */
+    getUnconfirmedTransactions: (
+      query?: { page?: number; limit?: number; reverse?: boolean },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        UnconfirmedTransaction[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/unconfirmed-transactions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  tokens = {
+    /**
+     * @description List tokens
+     *
+     * @tags Tokens
+     * @name GetTokens
+     * @request GET:/tokens
+     */
+    getTokens: (query?: { page?: number; limit?: number; reverse?: boolean }, params: RequestParams = {}) =>
+      this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/tokens`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description List token transactions
+     *
+     * @tags Tokens
+     * @name GetTokensTokenIdTransactions
+     * @request GET:/tokens/{token-id}/transactions
+     */
+    getTokensTokenIdTransactions: (
+      tokenId: string,
+      query?: { page?: number; limit?: number; reverse?: boolean },
+      params: RequestParams = {}
+    ) =>
+      this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/tokens/${tokenId}/transactions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
   charts = {
     /**
      * @description `interval-type` query param: hourly, daily
@@ -855,17 +1047,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }).then(convertHttpResponse),
 
     /**
-     * @description Update logging file, only logback.xml is accepted
+     * @description Update logback values
      *
      * @tags Utils
      * @name PutUtilsUpdateLogConfig
      * @request PUT:/utils/update-log-config
      */
-    putUtilsUpdateLogConfig: (data: string, params: RequestParams = {}) =>
+    putUtilsUpdateLogConfig: (data?: LogbackValue[], params: RequestParams = {}) =>
       this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/utils/update-log-config`,
         method: 'PUT',
         body: data,
+        type: ContentType.Json,
         ...params
       }).then(convertHttpResponse)
   }
