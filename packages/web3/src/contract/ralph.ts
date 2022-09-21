@@ -343,6 +343,31 @@ function invalidVal(tpe: string, value: Val): Error {
   return Error(`Invalid API value ${value} for type ${tpe}`)
 }
 
+export function buildDebugBytecode(bytecode: string, bytecodePatch: string): string {
+  if (bytecodePatch === '') {
+    return bytecode
+  }
+
+  const pattern = /[=+-][0-9a-f]*/g
+  let result = ''
+  let index = 0
+  for (const parts of bytecodePatch.matchAll(pattern)) {
+    const part = parts[0]
+    const diffType = part[0]
+    if (diffType === '=') {
+      const length = parseInt(part.substring(1))
+      result = result + bytecode.slice(index, index + length)
+      index = index + length
+    } else if (diffType === '+') {
+      result = result + part.substring(1)
+    } else {
+      const length = parseInt(part.substring(1))
+      index = index + length
+    }
+  }
+  return result
+}
+
 // export function buildContractByteCode(
 //   compiled: node.TemplateContractByteCode,
 //   templateVariables: TemplateVariables

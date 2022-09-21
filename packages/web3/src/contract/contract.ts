@@ -119,11 +119,13 @@ class Compiled<T extends Artifact> {
   }
 }
 
+type CodeInfo = { sourceCodeHash: string; bytecodeDebugPatch: string; codeHashDebug: string; warnings: string[] }
+
 class ProjectArtifact {
   static readonly artifactFileName = '.project.json'
 
   compilerOptionsUsed: node.CompilerOptions
-  infos: Map<string, { sourceCodeHash: string; warnings: string[] }>
+  infos: Map<string, CodeInfo>
 
   static checkCompilerOptionsParameter(compilerOptions: node.CompilerOptions): void {
     if (Object.keys(compilerOptions).length != Object.keys(DEFAULT_NODE_COMPILER_OPTIONS).length) {
@@ -136,10 +138,7 @@ class ProjectArtifact {
     }
   }
 
-  constructor(
-    compilerOptionsUsed: node.CompilerOptions,
-    infos: Map<string, { sourceCodeHash: string; warnings: string[] }>
-  ) {
+  constructor(compilerOptionsUsed: node.CompilerOptions, infos: Map<string, CodeInfo>) {
     ProjectArtifact.checkCompilerOptionsParameter(compilerOptionsUsed)
     this.compilerOptionsUsed = compilerOptionsUsed
     this.infos = infos
@@ -184,7 +183,7 @@ class ProjectArtifact {
     const content = await fsPromises.readFile(filepath)
     const json = JSON.parse(content.toString())
     const compilerOptionsUsed = json.compilerOptionsUsed as node.CompilerOptions
-    const files = new Map(Object.entries<{ sourceCodeHash: string; warnings: string[] }>(json.infos))
+    const files = new Map(Object.entries<CodeInfo>(json.infos))
     return new ProjectArtifact(compilerOptionsUsed, files)
   }
 }
@@ -221,16 +220,20 @@ export class Project {
     scripts: Compiled<Script>[],
     compilerOptions: node.CompilerOptions
   ): ProjectArtifact {
-    const files: Map<string, { sourceCodeHash: string; warnings: string[] }> = new Map()
+    const files: Map<string, CodeInfo> = new Map()
     contracts.forEach((c) => {
       files.set(c.sourceFile.contractPath, {
         sourceCodeHash: c.sourceFile.sourceCodeHash,
+        bytecodeDebugPatch: c.artifact.bytecodeDebugPatch,
+        codeHashDebug: c.artifact.codeHashDebug,
         warnings: c.warnings
       })
     })
     scripts.forEach((s) => {
       files.set(s.sourceFile.contractPath, {
         sourceCodeHash: s.sourceFile.sourceCodeHash,
+        bytecodeDebugPatch: s.artifact.bytecodeDebugPatch,
+        codeHashDebug: '',
         warnings: s.warnings
       })
     })
@@ -238,6 +241,8 @@ export class Project {
     sourceFiles.slice(compiledSize).forEach((c) => {
       files.set(c.contractPath, {
         sourceCodeHash: c.sourceCodeHash,
+        bytecodeDebugPatch: '',
+        codeHashDebug: '',
         warnings: []
       })
     })
@@ -327,7 +332,9 @@ export class Project {
   }
 
   contractByCodeHash(codeHash: string): Contract {
-    const contract = this.contracts.find((c) => c.artifact.codeHash === codeHash)
+    const contract = this.contracts.find(
+      (c) => c.artifact.codeHash === codeHash || c.artifact.codeHashDebug == codeHash
+    )
     if (typeof contract === 'undefined') {
       throw new Error(`Unknown code with code hash: ${codeHash}`)
     }
@@ -394,10 +401,10 @@ export class Project {
         const warnings = info.warnings
         const artifactDir = file.getArtifactPath(artifactsRootDir)
         if (file.type === SourceType.Contract) {
-          const artifact = await Contract.fromArtifactFile(artifactDir)
+          const artifact = await Contract.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, info.codeHashDebug)
           contracts.push(new Compiled(file, artifact, warnings))
         } else if (file.type === SourceType.Script) {
-          const artifact = await Script.fromArtifactFile(artifactDir)
+          const artifact = await Script.fromArtifactFile(artifactDir, info.bytecodeDebugPatch)
           scripts.push(new Compiled(file, artifact, warnings))
         }
       }
@@ -526,27 +533,37 @@ export abstract class Artifact {
 
 export class Contract extends Artifact {
   readonly bytecode: string
+  readonly bytecodeDebugPatch: string
   readonly codeHash: string
   readonly fieldsSig: FieldsSig
   readonly eventsSig: EventSig[]
 
+  readonly bytecodeDebug: string
+  readonly codeHashDebug: string
+
   constructor(
     name: string,
     bytecode: string,
+    bytecodeDebugPatch: string,
     codeHash: string,
+    codeHashDebug: string,
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
     functions: FunctionSig[]
   ) {
     super(name, functions)
     this.bytecode = bytecode
+    this.bytecodeDebugPatch = bytecodeDebugPatch
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
     this.eventsSig = eventsSig
+
+    this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
+    this.codeHashDebug = codeHashDebug
   }
 
   // TODO: safely parse json
-  static fromJson(artifact: any): Contract {
+  static fromJson(artifact: any, bytecodeDebugPatch = '', codeHashDebug = ''): Contract {
     if (
       artifact.name == null ||
       artifact.bytecode == null ||
@@ -560,7 +577,9 @@ export class Contract extends Artifact {
     const contract = new Contract(
       artifact.name,
       artifact.bytecode,
+      bytecodeDebugPatch,
       artifact.codeHash,
+      codeHashDebug ? codeHashDebug : artifact.codeHash,
       artifact.fieldsSig,
       artifact.eventsSig,
       artifact.functions
@@ -569,14 +588,23 @@ export class Contract extends Artifact {
   }
 
   static fromCompileResult(result: node.CompileContractResult): Contract {
-    return new Contract(result.name, result.bytecode, result.codeHash, result.fields, result.events, result.functions)
+    return new Contract(
+      result.name,
+      result.bytecode,
+      result.bytecodeDebugPatch,
+      result.codeHash,
+      result.codeHashDebug,
+      result.fields,
+      result.events,
+      result.functions
+    )
   }
 
   // support both 'code.ral' and 'code.ral.json'
-  static async fromArtifactFile(path: string): Promise<Contract> {
+  static async fromArtifactFile(path: string, bytecodeDebugPatch: string, codeHashDebug: string): Promise<Contract> {
     const content = await fsPromises.readFile(path)
     const artifact = JSON.parse(content.toString())
-    return Contract.fromJson(artifact)
+    return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug)
   }
 
   async fetchState(address: string, group: number): Promise<ContractState> {
@@ -680,7 +708,7 @@ export class Contract extends Artifact {
     return {
       group: params.group,
       address: params.address,
-      bytecode: this.bytecode,
+      bytecode: this.bytecodeDebug,
       initialFields: this.toApiFields(params.initialFields),
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
       methodIndex: this.getMethodIndex(funcName),
@@ -746,6 +774,7 @@ export class Contract extends Artifact {
     return {
       address: result.address,
       contractId: binToHex(contractIdFromAddress(result.address)),
+      contractAddress: result.address,
       returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
       contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
@@ -760,7 +789,8 @@ export class Contract extends Artifact {
             throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
           }
         })
-      )
+      ),
+      debugMessages: result.debugMessages
     }
   }
 
@@ -797,20 +827,28 @@ export class Contract extends Artifact {
 
 export class Script extends Artifact {
   readonly bytecodeTemplate: string
+  readonly bytecodeDebugPatch: string
   readonly fieldsSig: FieldsSig
 
-  constructor(name: string, bytecodeTemplate: string, fieldsSig: FieldsSig, functions: FunctionSig[]) {
+  constructor(
+    name: string,
+    bytecodeTemplate: string,
+    bytecodeDebugPatch: string,
+    fieldsSig: FieldsSig,
+    functions: FunctionSig[]
+  ) {
     super(name, functions)
     this.bytecodeTemplate = bytecodeTemplate
+    this.bytecodeDebugPatch = bytecodeDebugPatch
     this.fieldsSig = fieldsSig
   }
 
   static fromCompileResult(result: node.CompileScriptResult): Script {
-    return new Script(result.name, result.bytecodeTemplate, result.fields, result.functions)
+    return new Script(result.name, result.bytecodeTemplate, result.bytecodeDebugPatch, result.fields, result.functions)
   }
 
   // TODO: safely parse json
-  static fromJson(artifact: any): Script {
+  static fromJson(artifact: any, bytecodeDebugPatch = ''): Script {
     if (
       artifact.name == null ||
       artifact.bytecodeTemplate == null ||
@@ -819,13 +857,19 @@ export class Script extends Artifact {
     ) {
       throw Error('The artifact JSON for script is incomplete')
     }
-    return new Script(artifact.name, artifact.bytecodeTemplate, artifact.fieldsSig, artifact.functions)
+    return new Script(
+      artifact.name,
+      artifact.bytecodeTemplate,
+      bytecodeDebugPatch,
+      artifact.fieldsSig,
+      artifact.functions
+    )
   }
 
-  static async fromArtifactFile(path: string): Promise<Script> {
+  static async fromArtifactFile(path: string, bytecodeDebugPatch: string): Promise<Script> {
     const content = await fsPromises.readFile(path)
     const artifact = JSON.parse(content.toString())
-    return this.fromJson(artifact)
+    return this.fromJson(artifact, bytecodeDebugPatch)
   }
 
   override toString(): string {
@@ -981,14 +1025,18 @@ export interface ContractEventByTxId {
   fields: Fields
 }
 
+export type DebugMessage = node.DebugMessage
+
 export interface TestContractResult {
   address: string
   contractId: string
+  contractAddress: string
   returns: Val[]
   gasUsed: number
   contracts: ContractState[]
   txOutputs: Output[]
   events: ContractEventByTxId[]
+  debugMessages: DebugMessage[]
 }
 export declare type Output = AssetOutput | ContractOutput
 export interface AssetOutput extends Asset {
