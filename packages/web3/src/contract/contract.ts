@@ -647,11 +647,19 @@ export class Contract extends Artifact {
     return bs58.encode(bytes)
   }
 
+  private _printDebugMessages(funcName: string, messages: DebugMessage[]) {
+    if (messages.length != 0) {
+      console.log(`Testing ${this.name}.${funcName}:`)
+      messages.forEach((m) => console.log(`Debug - ${m.contractAddress} - ${m.message}`))
+    }
+  }
+
   private async _test(
     funcName: string,
     params: TestContractParams,
     expectPublic: boolean,
-    accessType: string
+    accessType: string,
+    printDebugMessages: boolean
   ): Promise<TestContractResult> {
     const apiParams: node.TestContract = this.toTestContract(funcName, params)
     const apiResult = await Project.currentProject.nodeProvider.contracts.postContractsTestContract(apiParams)
@@ -659,6 +667,9 @@ export class Contract extends Artifact {
     const methodIndex =
       typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
     const isPublic = this.functions[`${methodIndex}`].isPublic
+    if (printDebugMessages) {
+      this._printDebugMessages(funcName, apiResult.debugMessages)
+    }
     if (isPublic === expectPublic) {
       const result = await this.fromTestContractResult(methodIndex, apiResult)
       return result
@@ -667,12 +678,20 @@ export class Contract extends Artifact {
     }
   }
 
-  async testPublicMethod(funcName: string, params: TestContractParams): Promise<TestContractResult> {
-    return this._test(funcName, params, true, 'public')
+  async testPublicMethod(
+    funcName: string,
+    params: TestContractParams,
+    printDebugMessages = true
+  ): Promise<TestContractResult> {
+    return this._test(funcName, params, true, 'public', printDebugMessages)
   }
 
-  async testPrivateMethod(funcName: string, params: TestContractParams): Promise<TestContractResult> {
-    return this._test(funcName, params, false, 'private')
+  async testPrivateMethod(
+    funcName: string,
+    params: TestContractParams,
+    printDebugMessages = true
+  ): Promise<TestContractResult> {
+    return this._test(funcName, params, false, 'private', printDebugMessages)
   }
 
   toApiFields(fields?: Fields): node.Val[] {
