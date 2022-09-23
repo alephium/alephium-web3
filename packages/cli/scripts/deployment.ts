@@ -200,7 +200,7 @@ async function createDeployer<Settings = unknown>(
       console.log(`The deployment of contract ${taskId} is skipped as it has been deployed`)
       return previous!
     }
-    console.log(`Deploying contract ${taskId}...`)
+    console.log(`Deploying contract ${taskId}`)
     const result = await contract.transactionForDeployment(signer, params)
     await signer.submitTransaction(result.unsignedTx)
     const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
@@ -238,7 +238,7 @@ async function createDeployer<Settings = unknown>(
       console.log(`The execution of script ${taskId} is skipped as it has been executed`)
       return previous!
     }
-    console.log(`Executing script ${taskId}...`)
+    console.log(`Executing script ${taskId}`)
     const result = await script.transactionForDeployment(signer, params)
     await signer.submitTransaction(result.unsignedTx)
     const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
@@ -384,7 +384,7 @@ export async function deploy<Settings = unknown>(
         skip = await script.func.skip(configuration)
       }
       if (skip) {
-        console.log(`Skip executing ${script.scriptFilePath}`)
+        console.log(`Skip the execution of ${script.scriptFilePath}`)
         continue
       }
       const result = await script.func(deployer, network)
@@ -403,5 +403,5 @@ export async function deploy<Settings = unknown>(
   }
 
   await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, deploymentsFile)
-  console.log('Deployment script execution completed')
+  console.log('Deployment scripts executed!')
 }

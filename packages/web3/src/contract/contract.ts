@@ -483,7 +483,7 @@ export class Project {
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(artifactsRootDir)
     if (typeof projectArtifact === 'undefined' || projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles)) {
-      console.log(`Compile contracts in folder "${contractsRootDir}"`)
+      console.log(`Compiling contracts in folder "${contractsRootDir}"`)
       Project.currentProject = await Project.compile(
         provider,
         sourceFiles,
@@ -493,7 +493,7 @@ export class Project {
         nodeCompilerOptions
       )
     } else {
-      console.log(`Load compiled contracts from folder "${artifactsRootDir}"`)
+      console.log(`Contracts are compiled already. Loading them from folder "${artifactsRootDir}"`)
       Project.currentProject = await Project.loadArtifacts(
         provider,
         sourceFiles,

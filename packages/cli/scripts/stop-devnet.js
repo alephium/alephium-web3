@@ -26,7 +26,7 @@ export function stopDevnet() {
   try {
     const pid = parseInt(fs.readFileSync(pidFile).toString())
     if (pid) {
-      console.log(`Stopping the running devnet: ${pid}`)
+      console.log(`Stopping the running Devnet. PID: ${pid}`)
       process.kill(pid)
     }
   } catch (e) {

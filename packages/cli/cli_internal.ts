@@ -25,11 +25,11 @@ import { Configuration, NetworkType } from './types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
-import { getConfigFile, loadConfig } from './scripts/utils'
+import { getConfigFile, loadConfig } from './src'
 
 async function getConfig(options: any): Promise<Configuration> {
   const configFile = options.config ? (options.config as string) : getConfigFile()
-  console.log(`Load alephium config file: ${configFile}`)
+  console.log(`Loading alephium config file: ${configFile}`)
   return loadConfig(configFile)
 }
 

@@ -7,7 +7,7 @@ async function runScript(deployer, network) {
   const result = await deployer.runScript(script, {initialFields: {
     'greeterContractId': greeterContractId
   }})
-  console.log("Run script tx id: " + result.txId)
+  console.log("Script execution TX id: " + result.txId)
 }
 
 module.exports.default = runScript

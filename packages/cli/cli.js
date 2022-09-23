@@ -31,7 +31,6 @@ const argString = process.argv.slice(index + 1).join(' ')
 const cliRootPath = path.resolve(__dirname)
 const cliInternalPath = path.join(cliRootPath, 'cli_internal.ts')
 const command = `npx ts-node --transpile-only ${cliInternalPath} ${argString}`
-console.log(`Run command: "${command}"`)
 execSync(command, {
   stdio: 'inherit',
   cwd: process.cwd(),

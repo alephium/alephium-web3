@@ -56,12 +56,10 @@ function launchDevnet(devDir, jarFile) {
   try {
     const pid = parseInt(fs.readFileSync(pidFile).toString())
     if (pid) {
-      console.log(`Clearing the running devnet: ${pid}`)
+      console.log(`Clearing the running Devnet. PID: ${pid}`)
       process.kill(pid)
     }
-  } catch (e) {
-    console.log(`Error in clearing the running devnet: ${e}`)
-  }
+  } catch (e) {}
   fs.rmSync(devDir + path.sep + 'logs', { recursive: true, force: true })
   fs.rmSync(devDir + path.sep + 'network-4', { recursive: true, force: true })
 
@@ -71,7 +69,7 @@ function launchDevnet(devDir, jarFile) {
     env: { ...process.env, ALEPHIUM_HOME: devDir, ALEPHIUM_FILE_LOG_LEVEL: 'DEBUG' }
   })
   p.unref()
-  console.log(`Devnet is launching with pid: ${p.pid}`)
+  console.log(`Launching Devnet with pid: ${p.pid}`)
   fs.writeFileSync(devDir + path.sep + 'alephium.pid', p.pid.toString(), { falg: 'w' })
 }
 
@@ -90,7 +88,7 @@ async function prepareWallet() {
 }
 
 async function createWallet() {
-  console.log('Create the test wallet')
+  console.log('Creating the test wallet')
   await fetch('http://127.0.0.1:22973/wallets', {
     method: 'Put',
     body: `{"password":"${testWalletPwd}","mnemonic":"${mnemonic}","walletName":"${testWallet}"}`
@@ -98,7 +96,7 @@ async function createWallet() {
 }
 
 async function unlockWallet() {
-  console.log('Unlock the test wallet')
+  console.log('Unlocking the test wallet')
   await fetch('http://127.0.0.1:22973/wallets/alephium-web3-test-only-wallet/unlock', {
     method: 'POST',
     body: '{ "password": "alph" }'
@@ -110,14 +108,12 @@ function timeout(ms) {
 }
 
 async function wait() {
-  console.log('...')
   try {
     const res = await fetch('http://127.0.0.1:22973/infos/node', { method: 'Get' })
     if (res.status != 200) {
       await timeout(1000)
       await wait()
     } else {
-      console.log('Devnet is ready')
       await timeout(1000)
       new Promise((resolve) => {
         resolve()
@@ -135,8 +131,9 @@ export async function startDevnet(tag, configPath) {
 
   console.log(`Dev folder: ${devDir}`)
   await downloadFullNode(tag, devDir, jarFile)
-  await fsExtra.copy(configPath, path.join(devDir, "user.conf"))
+  await fsExtra.copy(configPath, path.join(devDir, 'user.conf'))
   launchDevnet(devDir, jarFile)
   await wait()
   await prepareWallet()
+  console.log('Devnet is ready!')
 }
