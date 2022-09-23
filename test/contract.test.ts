@@ -171,10 +171,10 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('./contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(8)
-    sourceFiles.slice(0, 5).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(5, 7).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(7).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    expect(sourceFiles.length).toEqual(9)
+    sourceFiles.slice(0, 6).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(6, 8).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(9).forEach((i) => expect(i.type).toEqual(3)) // interfaces
   })
 
   it('should load contract from json', async () => {
@@ -213,5 +213,15 @@ describe('contract', function () {
       'Found unused constants in Warnings: C',
       'Found unused fields in Warnings: b'
     ])
+  })
+
+  it('should debug', async () => {
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build({ errorOnWarnings: false })
+    const contract = Project.contract('Debug')
+    const result = await contract.testPublicMethod('debug', {})
+    expect(result.debugMessages.length).toEqual(1)
+    expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
+    expect(result.debugMessages[0].message).toEqual(`Hello, ${result.contractAddress}!`)
   })
 })

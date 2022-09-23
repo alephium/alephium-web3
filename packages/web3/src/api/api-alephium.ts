@@ -437,9 +437,13 @@ export interface ChangeActiveAddress {
 export interface CompileContractResult {
   name: string
   bytecode: string
+  bytecodeDebugPatch: string
 
   /** @format 32-byte-hash */
   codeHash: string
+
+  /** @format 32-byte-hash */
+  codeHashDebug: string
   fields: FieldsSig
   functions: FunctionSig[]
   events: EventSig[]
@@ -454,6 +458,7 @@ export interface CompileProjectResult {
 export interface CompileScriptResult {
   name: string
   bytecodeTemplate: string
+  bytecodeDebugPatch: string
   fields: FieldsSig
   functions: FunctionSig[]
   warnings: string[]
@@ -572,6 +577,12 @@ export interface ContractState {
   initialStateHash?: string
   fields: Val[]
   asset: AssetState
+}
+
+export interface DebugMessage {
+  /** @format address */
+  contractAddress: string
+  message: string
 }
 
 export interface DecodeUnsignedTx {
@@ -895,6 +906,7 @@ export interface TestContractResult {
   txInputs: string[]
   txOutputs: Output[]
   events: ContractEventByTxId[]
+  debugMessages: DebugMessage[]
 }
 
 export interface TestInputAsset {

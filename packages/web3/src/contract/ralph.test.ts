@@ -159,6 +159,15 @@ describe('contract', function () {
     )
   })
 
+  it('should test buildDebugBytecode', async () => {
+    const bytecode = '0701402901010707061005a000a001a003a00461b413c40de0b6b3a7640000a916011602160316041605160602'
+    const patch = '=7-1+e=11-1+1=20+7e01027878=50'
+    const debugBytecode = ralph.buildDebugBytecode(bytecode, patch)
+    expect(debugBytecode).toEqual(
+      '0701402e01010707061105a000a001a003a004617e01027878b413c40de0b6b3a7640000a916011602160316041605160602'
+    )
+  })
+
   // it('should test buildByteCode', async () => {
   //   const compiled = {
   //     type: 'TemplateContractByteCode',

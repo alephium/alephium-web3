@@ -10,18 +10,34 @@
   "infos": {
     "contracts/add/add.ral": {
       "sourceCodeHash": "c1e952e47d26bdf616ba4254030a830a477e6a3e1bb5cb551b63fab877d574c8",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "a20cffb6f8f9416decd7aec0375b12e04475e8cf19ba80775f8f2d7633e2556d",
       "warnings": []
     },
     "contracts/greeter/greeter.ral": {
       "sourceCodeHash": "0bd98208e4c770df3aa0dd421ec785d5bb7d787c53d2f166653a5ee71d936d39",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "23a48462286d2c2ffc6d3a19192060dd42c178e7d331819e75e059c5be3c042f",
       "warnings": []
     },
     "contracts/sub/sub.ral": {
       "sourceCodeHash": "409518aa25bdace56cefe167d6607f04cd955204a7050f00a050466703cdf0f0",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
       "warnings": []
+    },
+    "contracts/test/debug.ral": {
+      "sourceCodeHash": "efa22ac6e656804d892a1482b63acd840b6e5fe2d6fd87c4a3bea157c7831e8e",
+      "bytecodeDebugPatch": "=4-2+13=11+2ca7e=1+20748656c6c6f2c200121",
+      "codeHashDebug": "0ffc72054e3668c8933e53c892947dea1963c0c24cc006a4fb0aa028c13a7e13",
+      "warnings": [
+        "Function Debug.debug is readonly, please use @using(readonly = true) for the function"
+      ]
     },
     "contracts/test/metadata.ral": {
       "sourceCodeHash": "d5f097718d0fea891ab452dbea847184063e56cf9998cfcbac7362c6d205556c",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f",
       "warnings": [
         "Private function MetaData.bar is not used",
         "Private function MetaData.baz is not used"
@@ -29,6 +45,8 @@
     },
     "contracts/test/warnings.ral": {
       "sourceCodeHash": "c515f934f6fc15bf835f15b7a36927baab1cc094166cba6b7fa71ecb3013facf",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2",
       "warnings": [
         "Found unused variables in Warnings: foo.y",
         "Found unused constants in Warnings: C",
@@ -37,14 +55,20 @@
     },
     "contracts/greeter_main.ral": {
       "sourceCodeHash": "b73c6e7ace059017085a9aba7bc6b797c6e26bc1b10312c0862ff84e973dfdff",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
       "warnings": []
     },
     "contracts/main.ral": {
       "sourceCodeHash": "8cc5c1a2de002650a5904078f91005932982e700f7b0a393cbe4e3a64cfdf842",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
       "warnings": []
     },
     "contracts/greeter/greeter_interface.ral": {
       "sourceCodeHash": "bdaebc05fc42ed1c40309788bcee4f6a9377b47a347321d6c2f60ba9b74883aa",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
       "warnings": []
     }
   }
