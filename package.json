@@ -1,5 +1,5 @@
 {
-  "name": "@alephium/web3-root",
+  "name": "@alephium/ts-root",
   "private": true,
   "license": "GPL",
   "workspaces": [
