@@ -9,7 +9,7 @@
     "@types/node": "^16.11.26",
     "@types/react": "^18.0.3",
     "@types/react-dom": "^18.0.0",
-    "@alephium/web3": "0.2.0-rc.14",
+    "@alephium/web3": "0.2.0-rc.16",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-scripts": "5.0.1",

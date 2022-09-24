@@ -3,13 +3,15 @@
   "version": "0.1.0",
   "license": "GPL",
   "scripts": {
-    "build": "rm -rf dist && npx tsc --build .",
+    "build": "npm run clean:windows && npm run clean:unix && npx tsc --build .",
+    "clean:windows": "node -e \"if (process.platform === 'win32') process.exit(1)\" || , if exist dist rmdir /Q /S dist",
+    "clean:unix": "node -e \"if (process.platform !== 'win32') process.exit(1)\" || rm -rf dist",
     "greeter": "npm run build && node dist/src/greeter.js"
   },
   "dependencies": {
-    "@alephium/web3": "0.2.0-rc.14",
-    "@alephium/web3-wallet": "0.2.0-rc.14",
-    "@alephium/cli": "0.2.0-rc.14"
+    "@alephium/web3": "0.2.0-rc.16",
+    "@alephium/web3-wallet": "0.2.0-rc.16",
+    "@alephium/cli": "0.2.0-rc.16"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
