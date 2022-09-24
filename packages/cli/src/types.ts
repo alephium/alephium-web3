@@ -28,7 +28,7 @@ import {
   Project,
   DEFAULT_COMPILER_OPTIONS
 } from '@alephium/web3'
-import { getConfigFile, loadConfig } from './scripts/utils'
+import { getConfigFile, loadConfig } from './utils'
 
 export interface Network<Settings = unknown> {
   networkId?: number

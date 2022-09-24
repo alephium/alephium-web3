@@ -32,7 +32,7 @@ import {
   RunScriptParams,
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
-} from '../types'
+} from '../src/types'
 
 class Deployments {
   deployContractResults: Map<string, DeployContractResult>
