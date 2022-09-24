@@ -16,6 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { isDevnetLive } from '../src'
+
 const fs = require('fs')
 const fsExtra = require('fs-extra')
 const process = require('process')
@@ -56,7 +58,7 @@ function launchDevnet(devDir, jarFile) {
   try {
     const pid = parseInt(fs.readFileSync(pidFile).toString())
     if (pid) {
-      console.log(`Clearing the running Devnet. PID: ${pid}`)
+      console.log(`Clearing the running Devnet (PID: ${pid})`)
       process.kill(pid)
     }
   } catch (e) {}
@@ -69,7 +71,7 @@ function launchDevnet(devDir, jarFile) {
     env: { ...process.env, ALEPHIUM_HOME: devDir, ALEPHIUM_FILE_LOG_LEVEL: 'DEBUG' }
   })
   p.unref()
-  console.log(`Launching Devnet with pid: ${p.pid}`)
+  console.log(`Launching Devnet (PID: ${p.pid}).`)
   fs.writeFileSync(devDir + path.sep + 'alephium.pid', p.pid.toString(), { falg: 'w' })
 }
 
@@ -109,8 +111,8 @@ function timeout(ms) {
 
 async function wait() {
   try {
-    const res = await fetch('http://127.0.0.1:22973/infos/node', { method: 'Get' })
-    if (res.status != 200) {
+    const isReady = await isDevnetLive()
+    if (!isReady) {
       await timeout(1000)
       await wait()
     } else {
@@ -129,9 +131,14 @@ export async function startDevnet(tag, configPath) {
   console.log(`Full node version: ${tag}`)
   const jarFile = `${devDir}${path.sep}alephium-${tag}.jar`
 
-  console.log(`Dev folder: ${devDir}`)
   await downloadFullNode(tag, devDir, jarFile)
   await fsExtra.copy(configPath, path.join(devDir, 'user.conf'))
+
+  if (await isDevnetLive()) {
+    console.log('Devnet is running already, please stop it to restart a new one')
+    process.exit()
+  }
+
   launchDevnet(devDir, jarFile)
   await wait()
   await prepareWallet()

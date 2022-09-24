@@ -15,6 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import path from 'path'
 import fs from 'fs'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './types'
@@ -45,4 +46,13 @@ export function getConfigFile(): string {
     return jsConfig
   }
   return path.join(__dirname, '../templates/base/alephium.config.ts')
+}
+
+export async function isDevnetLive(): Promise<boolean> {
+  try {
+    const res = await fetch('http://127.0.0.1:22973/infos/node', { method: 'Get' })
+    return res.status === 200
+  } catch (e) {
+    return false
+  }
 }

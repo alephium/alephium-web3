@@ -30,7 +30,7 @@ if (index === -1) {
 const argString = process.argv.slice(index + 1).join(' ')
 const cliRootPath = path.resolve(__dirname)
 const cliInternalPath = path.join(cliRootPath, 'cli_internal.ts')
-const command = `npx ts-node --transpile-only ${cliInternalPath} ${argString}`
+const command = `npx --yes ts-node --transpile-only ${cliInternalPath} ${argString}`
 execSync(command, {
   stdio: 'inherit',
   cwd: process.cwd(),

@@ -25,12 +25,19 @@ import { Configuration, NetworkType } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
-import { getConfigFile, loadConfig } from './src'
+import { getConfigFile, isDevnetLive, loadConfig } from './src'
 
 async function getConfig(options: any): Promise<Configuration> {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   return loadConfig(configFile)
+}
+
+async function checkDevnet(): Promise<void> {
+  if (!(await isDevnetLive())) {
+    console.log('Devnet is not live, please launch it first')
+    process.exit(1)
+  }
 }
 
 program
@@ -73,6 +80,8 @@ program
   .option('-n, --network <network-type>', 'network type')
   .action(async (options) => {
     try {
+      await checkDevnet()
+
       const config = await getConfig(options)
       console.log(`Full node version: ${config.nodeVersion}`)
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
