@@ -1,4 +1,4 @@
-import { Configuration } from '@alephium/cli/types'
+import { Configuration } from '@alephium/cli'
 
 export type Settings = {
   btcPrice: number
