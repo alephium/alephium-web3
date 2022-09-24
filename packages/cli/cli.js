@@ -24,7 +24,7 @@ const { exit } = require('process')
 // remove the `npx cli` prefix
 const index = process.argv.findIndex((arg) => arg.includes('@alephium/cli') || arg.includes('cli.js') || arg.includes('cli'))
 if (index === -1) {
-  console.log('Please run "npx @alephium/cli@0.2.0-rc.18 <command>"')
+  console.log('Please run "npx @alephium/cli@0.2.0-rc.19 <command>"')
   exit(-1)
 }
 const argString = process.argv.slice(index + 1).join(' ')
