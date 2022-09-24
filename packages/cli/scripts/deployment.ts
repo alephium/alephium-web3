@@ -403,5 +403,5 @@ export async function deploy<Settings = unknown>(
   }
 
   await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, deploymentsFile)
-  console.log('Deployment scripts executed!')
+  console.log('✅ Deployment scripts executed!')
 }

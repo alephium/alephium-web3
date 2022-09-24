@@ -88,7 +88,7 @@ program
       const nodeUrl = config.networks[networkType].nodeUrl
       web3.setCurrentNodeProvider(nodeUrl)
       await Project.build(config.compilerOptions, config.sourceDir, config.artifactDir)
-      console.log('Compilation completed!')
+      console.log('✅ Compilation completed!')
     } catch (error) {
       program.error(`Failed to compile, error: ${error}`)
     }

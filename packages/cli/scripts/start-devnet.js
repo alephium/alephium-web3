@@ -71,7 +71,7 @@ function launchDevnet(devDir, jarFile) {
     env: { ...process.env, ALEPHIUM_HOME: devDir, ALEPHIUM_FILE_LOG_LEVEL: 'DEBUG' }
   })
   p.unref()
-  console.log(`Launching Devnet (PID: ${p.pid}).`)
+  console.log(`Launching Devnet (PID: ${p.pid})`)
   fs.writeFileSync(devDir + path.sep + 'alephium.pid', p.pid.toString(), { falg: 'w' })
 }
 
@@ -142,5 +142,5 @@ export async function startDevnet(tag, configPath) {
   launchDevnet(devDir, jarFile)
   await wait()
   await prepareWallet()
-  console.log('Devnet is ready!')
+  console.log('✅ Devnet is ready!')
 }

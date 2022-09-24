@@ -36,7 +36,6 @@ function prepareShared(packageRoot: string, projectRoot: string) {
   console.log('Copying files')
   console.log(`  from ${packageRoot}`)
   console.log(`  to ${projectRoot}`)
-  console.log('...')
 
   fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
   copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes'])
