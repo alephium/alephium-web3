@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { subscribeToTxStatus } from '@alephium/web3'
 import { Project } from '@alephium/web3'
 import { node } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-wallet'
+import { testNodeWallet } from '@alephium/web3-test'
 import { SubscribeOptions, timeout } from '@alephium/web3'
 import { web3 } from '@alephium/web3'
 import { TxStatus } from '@alephium/web3'

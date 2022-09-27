@@ -1,0 +1,53 @@
+{
+  "name": "@alephium/web3-test",
+  "version": "0.2.0-rc.19",
+  "description": "Utility functions for Alephium test",
+  "keywords": [
+    "alephium",
+    "web3"
+  ],
+  "license": "GPL",
+  "main": "dist/src/index.js",
+  "browser": "dist/alephium-web3.min.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:alephium/alephium-web3.git"
+  },
+  "homepage": "https://github.com/alephium/alephium-web3",
+  "bugs": {
+    "url": "https://github.com/alephium/alephium-web3/issues"
+  },
+  "author": "Alephium dev <dev@alephium.org>",
+  "scripts": {
+    "build": "rm -rf dist/* && npx tsc --build .",
+    "test": "jest -i --config ./jest-config.json"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "@alephium/web3": "^0.2.0-rc.19",
+    "@alephium/web3-wallet": "^0.2.0-rc.19",
+    "@types/node": "16.7.8",
+    "bip32": "2.0.6",
+    "bip39": "3.0.4",
+    "buffer": "^6.0.3",
+    "fs-extra": "10.0.1"
+  },
+  "devDependencies": {
+    "@types/find-up": "^2.1.0",
+    "@types/fs-extra": "^9.0.13",
+    "@types/jest": "^27.5.1",
+    "@types/mock-fs": "^4.13.1",
+    "@types/rewire": "^2.5.28",
+    "@typescript-eslint/eslint-plugin": "^4.30.0",
+    "@typescript-eslint/parser": "^4.30.0",
+    "crypto-browserify": "^3.12.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  }
+}

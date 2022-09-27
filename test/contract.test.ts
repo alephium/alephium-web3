@@ -20,7 +20,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { web3 } from '@alephium/web3'
 import { Contract, Project, Script, TestContractParams } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-wallet'
+import { testNodeWallet } from '@alephium/web3-test'
 import { addressFromContractId } from '@alephium/web3'
 
 describe('contract', function () {
