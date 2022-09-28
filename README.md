@@ -1,7 +1,6 @@
 # Alephium Web3
 
 [![Github CI][test-badge]][test-link]
-[![Code Coverage][coverage-badge]][coverage-link]
 [![NPM][npm-badge]][npm-link]
 [![code style: prettier][prettier-badge]][prettier-link]
 
@@ -29,8 +28,6 @@ Please refer to `package.json`.
 
 [test-badge]: https://github.com/alephium/alephium-web3/actions/workflows/test.yml/badge.svg
 [test-link]: https://github.com/alephium/alephium-web3/actions/workflows/test.yml
-[coverage-badge]: https://codecov.io/gh/alephium/alephium-web3/branch/master/graph/badge.svg
-[coverage-link]: https://codecov.io/gh/alephium/alephium-web3
 [npm-badge]: https://img.shields.io/npm/v/@alephium/web3.svg
 [npm-link]: https://www.npmjs.org/package/@alephium/web3
 [prettier-badge]: https://img.shields.io/badge/code_style-prettier-ff69b4.svg
