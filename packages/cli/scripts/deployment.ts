@@ -405,7 +405,8 @@ export async function deploy<Settings = unknown>(
       await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
     } catch (error) {
       await deployments.saveToFile(deploymentsFile)
-      throw new Error(`failed to deploy to group ${groupIndex}: ${error}`)
+      console.error(`Failed to deploy to group ${groupIndex}`)
+      throw error
     }
   }
 
