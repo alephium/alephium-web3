@@ -44,6 +44,7 @@ export type NetworkType = 'mainnet' | 'testnet' | 'devnet'
 export interface Configuration<Settings = unknown> {
   nodeVersion?: string
   nodeConfigFile?: string
+  groups?: number[]
 
   sourceDir?: string
   artifactDir?: string
@@ -58,6 +59,7 @@ export interface Configuration<Settings = unknown> {
 export const DEFAULT_CONFIGURATION_VALUES = {
   nodeVersion: '1.5.0-rc9',
   nodeConfigFile: 'devnet-user.conf',
+  groups: [0],
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
   compilerOptions: DEFAULT_COMPILER_OPTIONS,
@@ -101,8 +103,7 @@ export async function getEnv<Settings = unknown>(configFileName?: string): Promi
 }
 
 export interface ExecutionResult {
-  fromGroup: number
-  toGroup: number
+  groupIndex: number
   txId: string
   blockHash: string
   codeHash: string

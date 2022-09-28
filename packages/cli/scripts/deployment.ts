@@ -15,11 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { NodeProvider, Project, Contract, Script, node, web3, Token } from '@alephium/web3'
+import { Account, NodeProvider, Project, Contract, Script, node, web3, Token } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
 import fs, { promises as fsPromises } from 'fs'
 import * as cryptojs from 'crypto-js'
+import * as bip39 from 'bip39'
+import { deriveNewAddressData } from '@alephium/sdk'
 import {
   DeployContractResult,
   RunScriptResult,
@@ -35,6 +37,42 @@ import {
 } from '../src/types'
 
 class Deployments {
+  groups: Map<number, DeploymentsPerGroup>
+
+  constructor(groups: Map<number, DeploymentsPerGroup>) {
+    this.groups = groups
+  }
+
+  async saveToFile(filepath: string): Promise<void> {
+    const dirpath = path.dirname(filepath)
+    if (!fs.existsSync(dirpath)) {
+      fs.mkdirSync(dirpath, { recursive: true })
+    }
+    const object: any = {}
+    this.groups.forEach((value, groupIndex) => {
+      object[`${groupIndex}`] = value.marshal()
+    })
+    const content = JSON.stringify(object, null, 2)
+    return fsPromises.writeFile(filepath, content)
+  }
+
+  static async from(filepath: string): Promise<Deployments> {
+    if (!fs.existsSync(filepath)) {
+      return new Deployments(new Map())
+    }
+    const content = await fsPromises.readFile(filepath)
+    const json = JSON.parse(content.toString())
+    const groups = new Map<number, DeploymentsPerGroup>()
+    Object.entries<any>(json).forEach(([key, value]) => {
+      const groupIndex = parseInt(key)
+      const deploymentsPerGroup = DeploymentsPerGroup.unmarshal(value)
+      groups.set(groupIndex, deploymentsPerGroup)
+    })
+    return new Deployments(groups)
+  }
+}
+
+class DeploymentsPerGroup {
   deployContractResults: Map<string, DeployContractResult>
   runScriptResults: Map<string, RunScriptResult>
   migrations: Map<string, number>
@@ -49,30 +87,23 @@ class Deployments {
     this.migrations = migrations
   }
 
-  async saveToFile(filepath: string): Promise<void> {
-    const dirpath = path.dirname(filepath)
-    if (!fs.existsSync(dirpath)) {
-      fs.mkdirSync(dirpath, { recursive: true })
-    }
-    const json = {
+  static empty(): DeploymentsPerGroup {
+    return new DeploymentsPerGroup(new Map(), new Map(), new Map())
+  }
+
+  marshal(): any {
+    return {
       deployContractResults: Object.fromEntries(this.deployContractResults),
       runScriptResults: Object.fromEntries(this.runScriptResults),
       migrations: Object.fromEntries(this.migrations)
     }
-    const content = JSON.stringify(json, null, 2)
-    return fsPromises.writeFile(filepath, content)
   }
 
-  static async from(filepath: string): Promise<Deployments | undefined> {
-    if (!fs.existsSync(filepath)) {
-      return undefined
-    }
-    const content = await fsPromises.readFile(filepath)
-    const json = JSON.parse(content.toString())
+  static unmarshal(json: any): DeploymentsPerGroup {
     const deployContractResults = new Map(Object.entries<DeployContractResult>(json.deployContractResults))
     const runScriptResults = new Map(Object.entries<RunScriptResult>(json.runScriptResults))
     const migrations = new Map(Object.entries<number>(json.migrations))
-    return new Deployments(deployContractResults, runScriptResults, migrations)
+    return new DeploymentsPerGroup(deployContractResults, runScriptResults, migrations)
   }
 }
 
@@ -167,12 +198,18 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
 
 async function createDeployer<Settings = unknown>(
   network: Network<Settings>,
+  groupIndex: number,
   deployContractResults: Map<string, DeployContractResult>,
   runScriptResults: Map<string, RunScriptResult>
 ): Promise<Deployer> {
-  const signer = PrivateKeyWallet.FromMnemonic(network.mnemonic)
-  const accounts = await signer.getAccounts()
-  const account = accounts[0]
+  const seed = bip39.mnemonicToSeedSync(network.mnemonic)
+  const addressData = deriveNewAddressData(seed, groupIndex)
+  const signer = new PrivateKeyWallet(addressData.privateKey, true)
+  const account: Account = {
+    address: addressData.address,
+    group: groupIndex,
+    publicKey: addressData.publicKey
+  }
   const confirmations = network.confirmations ? network.confirmations : 1
 
   const deployContract = async (
@@ -205,8 +242,7 @@ async function createDeployer<Settings = unknown>(
     await signer.submitTransaction(result.unsignedTx)
     const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
     const deployContractResult: DeployContractResult = {
-      fromGroup: result.fromGroup,
-      toGroup: result.toGroup,
+      groupIndex: result.fromGroup,
       txId: result.txId,
       blockHash: confirmed.blockHash,
       contractId: result.contractId,
@@ -243,8 +279,7 @@ async function createDeployer<Settings = unknown>(
     await signer.submitTransaction(result.unsignedTx)
     const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
     const runScriptResult: RunScriptResult = {
-      fromGroup: result.fromGroup,
-      toGroup: result.toGroup,
+      groupIndex: result.fromGroup,
       txId: result.txId,
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
@@ -281,16 +316,6 @@ async function createDeployer<Settings = unknown>(
   }
 }
 
-async function saveDeploymentsToFile(
-  deployContractResults: Map<string, DeployContractResult>,
-  runScriptResults: Map<string, RunScriptResult>,
-  migrations: Map<string, number>,
-  filepath: string
-) {
-  const deployments = new Deployments(deployContractResults, runScriptResults, migrations)
-  await deployments.saveToFile(filepath)
-}
-
 async function getDeployScriptFiles(rootPath: string): Promise<string[]> {
   const regex = '^([0-9]+)_.*\\.(ts|js)$'
   const dirents = await fsPromises.readdir(rootPath, { withFileTypes: true })
@@ -309,6 +334,22 @@ async function getDeployScriptFiles(rootPath: string): Promise<string[]> {
     }
   }
   return scripts.map((f) => path.join(rootPath, f.filename))
+}
+
+async function validateChainParams(networkId: number, groups: number[]): Promise<void> {
+  const chainParams = await web3.getCurrentNodeProvider().infos.getInfosChainParams()
+  if (chainParams.networkId !== networkId) {
+    throw new Error(`The node chain id ${chainParams.networkId} is different from configured chain id ${networkId}`)
+  }
+  if (groups.some((group, index) => groups.indexOf(group) !== index)) {
+    throw new Error(`Found duplicated groups in: ${groups}`)
+  }
+  if (groups.length > chainParams.groups) {
+    throw new Error(`The number of group cannot larger than ${chainParams.groups}`)
+  }
+  if (groups.some((group) => group >= chainParams.groups)) {
+    throw new Error(`Group index cannot larger than ${chainParams.groups - 1}`)
+  }
 }
 
 export async function deploy<Settings = unknown>(
@@ -345,27 +386,10 @@ export async function deploy<Settings = unknown>(
     }
   }
 
-  let deployContractResults = new Map<string, DeployContractResult>()
-  let runScriptResults = new Map<string, RunScriptResult>()
-  let migrations = new Map<string, number>()
-  const deploymentsFile = network.deploymentStatusFile
-    ? network.deploymentStatusFile
-    : `.deployments.${networkType}.json`
-  const deployments = await Deployments.from(deploymentsFile)
-  if (typeof deployments !== 'undefined') {
-    deployContractResults = deployments.deployContractResults
-    runScriptResults = deployments.runScriptResults
-    migrations = deployments.migrations
-  }
-
   web3.setCurrentNodeProvider(network.nodeUrl)
-  const chainParams = await web3.getCurrentNodeProvider().infos.getInfosChainParams()
-  const networkId = network.networkId
-  if (chainParams.networkId !== networkId) {
-    throw new Error(`The node chain id ${chainParams.networkId} is different from configured chain id ${networkId}`)
-  }
+  const deployGroups = configuration.groups ?? DEFAULT_CONFIGURATION_VALUES.groups
+  await validateChainParams(network.networkId, deployGroups)
 
-  const deployer = await createDeployer(network, deployContractResults, runScriptResults)
   await Project.build(
     configuration.compilerOptions,
     configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
@@ -373,9 +397,42 @@ export async function deploy<Settings = unknown>(
   )
   configuration.defaultNetwork = networkType
 
+  const deploymentsFile = network.deploymentStatusFile
+    ? network.deploymentStatusFile
+    : `.deployments.${networkType}.json`
+  const deployments = await Deployments.from(deploymentsFile)
+  for (const groupIndex of deployGroups) {
+    const deploymentsPerGroup = deployments.groups.get(groupIndex) ?? DeploymentsPerGroup.empty()
+    deployments.groups.set(groupIndex, deploymentsPerGroup)
+    try {
+      await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
+    } catch (error) {
+      await deployments.saveToFile(deploymentsFile)
+      throw new Error(`failed to deploy to group ${groupIndex}: ${error}`)
+    }
+  }
+
+  await deployments.saveToFile(deploymentsFile)
+  console.log('✅ Deployment scripts executed!')
+}
+
+async function deployToGroup<Settings = unknown>(
+  configuration: Configuration<Settings>,
+  deployments: DeploymentsPerGroup,
+  groupIndex: number,
+  network: Network<Settings>,
+  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
+) {
+  const deployer = await createDeployer(
+    network,
+    groupIndex,
+    deployments.deployContractResults,
+    deployments.runScriptResults
+  )
+
   for (const script of scripts) {
     try {
-      if (script.func.id && migrations.get(script.func.id) !== undefined) {
+      if (script.func.id && deployments.migrations.get(script.func.id) !== undefined) {
         console.log(`Skipping ${script.scriptFilePath} as the script already executed and complete`)
         continue
       }
@@ -394,14 +451,10 @@ export async function deploy<Settings = unknown>(
             `${script.scriptFilePath} return true to not be executed again, but does not provide an id. The script function needs to have the field "id" to be set`
           )
         }
-        migrations.set(script.func.id, Date.now())
+        deployments.migrations.set(script.func.id, Date.now())
       }
     } catch (error) {
-      await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, deploymentsFile)
       throw new Error(`failed to execute deploy script, filepath: ${script.scriptFilePath}, error: ${error}`)
     }
   }
-
-  await saveDeploymentsToFile(deployContractResults, runScriptResults, migrations, deploymentsFile)
-  console.log('✅ Deployment scripts executed!')
 }
