@@ -61,4 +61,3 @@ export function getHDWalletPath(addressIndex: number): string {
 
   return `m/44'/${coinType}/0'/0/${addressIndex}`
 }
-
