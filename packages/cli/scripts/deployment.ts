@@ -21,7 +21,6 @@ import path from 'path'
 import fs, { promises as fsPromises } from 'fs'
 import * as cryptojs from 'crypto-js'
 import * as bip39 from 'bip39'
-import { deriveNewAddressData } from '@alephium/sdk'
 import {
   DeployContractResult,
   RunScriptResult,
@@ -35,6 +34,7 @@ import {
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from '../src/types'
+import { deriveHDWalletPrivateKeyForGroup } from '../../web3-wallet/src'
 
 class Deployments {
   groups: Map<number, DeploymentsPerGroup>
@@ -202,13 +202,11 @@ async function createDeployer<Settings = unknown>(
   deployContractResults: Map<string, DeployContractResult>,
   runScriptResults: Map<string, RunScriptResult>
 ): Promise<Deployer> {
-  const seed = bip39.mnemonicToSeedSync(network.mnemonic)
-  const addressData = deriveNewAddressData(seed, groupIndex)
-  const signer = new PrivateKeyWallet(addressData.privateKey, true)
+  const signer = PrivateKeyWallet.FromMnemonicWithGroup(network.mnemonic, groupIndex)
   const account: Account = {
-    address: addressData.address,
+    address: signer.address,
     group: groupIndex,
-    publicKey: addressData.publicKey
+    publicKey: signer.publicKey
   }
   const confirmations = network.confirmations ? network.confirmations : 1
 

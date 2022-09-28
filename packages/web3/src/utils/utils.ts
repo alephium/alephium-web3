@@ -151,6 +151,10 @@ export function binToHex(bin: Uint8Array): string {
   return Buffer.from(bin).toString('hex')
 }
 
+export function groupOfPrivateKey(privateKey: string): number {
+  return groupOfAddress(addressFromPublicKey(publicKeyFromPrivateKey(privateKey)))
+}
+
 export function publicKeyFromPrivateKey(privateKey: string): string {
   const key = ec.keyFromPrivate(privateKey)
   return key.getPublic(true, 'hex')
