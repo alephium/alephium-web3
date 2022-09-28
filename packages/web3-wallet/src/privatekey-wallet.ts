@@ -40,9 +40,14 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
     this.group = utils.groupOfAddress(this.address)
   }
 
-  static Random(alwaysSubmitTx = true): PrivateKeyWallet {
+  static Random(targetGroup?: number, alwaysSubmitTx = true): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    return new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
+    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
+    if (targetGroup === undefined || wallet.group === targetGroup) {
+      return wallet
+    } else {
+      return PrivateKeyWallet.Random(targetGroup, alwaysSubmitTx)
+    }
   }
 
   static FromMnemonic(
