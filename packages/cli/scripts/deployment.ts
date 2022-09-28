@@ -20,7 +20,6 @@ import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
 import fs, { promises as fsPromises } from 'fs'
 import * as cryptojs from 'crypto-js'
-import * as bip39 from 'bip39'
 import {
   DeployContractResult,
   RunScriptResult,
@@ -34,7 +33,6 @@ import {
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from '../src/types'
-import { deriveHDWalletPrivateKeyForGroup } from '../../web3-wallet/src'
 
 class Deployments {
   groups: Map<number, DeploymentsPerGroup>
@@ -345,8 +343,8 @@ async function validateChainParams(networkId: number, groups: number[]): Promise
   if (groups.length > chainParams.groups) {
     throw new Error(`The number of group cannot larger than ${chainParams.groups}`)
   }
-  if (groups.some((group) => group >= chainParams.groups)) {
-    throw new Error(`Group index cannot larger than ${chainParams.groups - 1}`)
+  if (groups.some((group) => group >= chainParams.groups || group < 0)) {
+    throw new Error(`Group indexes should be subset of [${[...Array(chainParams.groups).keys()]}]`)
   }
 }
 
@@ -385,8 +383,8 @@ export async function deploy<Settings = unknown>(
   }
 
   web3.setCurrentNodeProvider(network.nodeUrl)
-  const deployGroups = configuration.groups ?? DEFAULT_CONFIGURATION_VALUES.groups
-  await validateChainParams(network.networkId, deployGroups)
+  const toDeployGroups = configuration.toDeployGroups ?? DEFAULT_CONFIGURATION_VALUES.toDeployGroups
+  await validateChainParams(network.networkId, toDeployGroups)
 
   await Project.build(
     configuration.compilerOptions,
@@ -399,7 +397,7 @@ export async function deploy<Settings = unknown>(
     ? network.deploymentStatusFile
     : `.deployments.${networkType}.json`
   const deployments = await Deployments.from(deploymentsFile)
-  for (const groupIndex of deployGroups) {
+  for (const groupIndex of toDeployGroups) {
     const deploymentsPerGroup = deployments.groups.get(groupIndex) ?? DeploymentsPerGroup.empty()
     deployments.groups.set(groupIndex, deploymentsPerGroup)
     try {
