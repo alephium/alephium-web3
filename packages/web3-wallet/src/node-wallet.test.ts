@@ -21,8 +21,23 @@ import { randomBytes } from 'crypto'
 import { NodeWallet } from './node-wallet'
 
 describe('node wallet', () => {
-  it('should work', async () => {
+  beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+  })
+
+  it('should transfer', async () => {
+    const wallet = new NodeWallet('alephium-web3-test-only-wallet')
+    const accounts = await wallet.getAccounts()
+    const toAccount = accounts[0]
+    for (const fromAccount of accounts) {
+      await wallet.signTransferTx({
+        signerAddress: fromAccount.address,
+        destinations: [{ address: toAccount.address, attoAlphAmount: BigInt(1e18) }]
+      })
+    }
+  })
+
+  it('should change active address', async () => {
     const provider = web3.getCurrentNodeProvider()
 
     const walletName = randomBytes(32).toString('hex')

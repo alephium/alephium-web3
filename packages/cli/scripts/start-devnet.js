@@ -64,11 +64,12 @@ function launchDevnet(devDir, jarFile) {
   } catch (e) {}
   fs.rmSync(devDir + path.sep + 'logs', { recursive: true, force: true })
   fs.rmSync(devDir + path.sep + 'network-4', { recursive: true, force: true })
+  fs.rmSync(devDir + path.sep + '.alephium-wallets', { recursive: true, force: true })
 
   const p = spawn('java', ['-jar', jarFile], {
     detached: true,
     stdio: 'ignore',
-    env: { ...process.env, ALEPHIUM_HOME: devDir, ALEPHIUM_FILE_LOG_LEVEL: 'DEBUG' }
+    env: { ...process.env, ALEPHIUM_HOME: devDir, ALEPHIUM_FILE_LOG_LEVEL: 'DEBUG', ALEPHIUM_WALLET_HOME: devDir }
   })
   p.unref()
   console.log(`Launching Devnet (PID: ${p.pid})`)
@@ -93,7 +94,11 @@ async function createWallet() {
   console.log('Creating the test wallet')
   await fetch('http://127.0.0.1:22973/wallets', {
     method: 'Put',
-    body: `{"password":"${testWalletPwd}","mnemonic":"${mnemonic}","walletName":"${testWallet}"}`
+    body: `{"password":"${testWalletPwd}","mnemonic":"${mnemonic}","walletName":"${testWallet}","isMiner": true}`
+  })
+  await fetch('http://127.0.0.1:22973/wallets/alephium-web3-test-only-wallet/change-active-address', {
+    method: 'Post',
+    body: `{"address": "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH"}`
   })
 }
 

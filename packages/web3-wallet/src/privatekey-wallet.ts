@@ -73,7 +73,7 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
   async setActiveAccount(addressIndex: number): Promise<void>
   async setActiveAccount(address: string): Promise<void>
   async setActiveAccount(input: string | number): Promise<void> {
-    throw Error(`Private key wallet should not change active account`)
+    return
   }
 
   async getActiveAccount(): Promise<Account> {

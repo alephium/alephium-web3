@@ -17,9 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { addressFromContractId, isBase58 } from '@alephium/web3'
-import { NodeWallet } from '@alephium/web3-wallet'
+import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
 
+export const testMnemonic =
+  'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
 export const testWalletName = 'alephium-web3-test-only-wallet'
 export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
 export const testPassword = 'alph'
@@ -41,4 +43,13 @@ export function randomContractId(): string {
 
 export function randomContractAddress(): string {
   return addressFromContractId(randomContractId())
+}
+
+export function randomPrivateKeyWallet(targetGroup?: number, alwaysSubmitTx = true): PrivateKeyWallet {
+  const wallet = PrivateKeyWallet.Random(alwaysSubmitTx)
+  if (targetGroup === undefined || wallet.group === targetGroup) {
+    return wallet
+  } else {
+    return randomPrivateKeyWallet(targetGroup, alwaysSubmitTx)
+  }
 }
