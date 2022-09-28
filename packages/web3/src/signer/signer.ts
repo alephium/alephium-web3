@@ -186,17 +186,13 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     this.alwaysSubmitTx = alwaysSubmitTx
   }
 
-  private async defaultSignerAddress(): Promise<string> {
-    return (await this.getAccounts())[0].address
-  }
-
   async submitTransaction(unsignedTx: string, signerAddress?: string): Promise<SubmissionResult> {
     const decoded = await web3
       .getCurrentNodeProvider()
       .transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: unsignedTx })
     const txId = decoded.unsignedTx.txId
 
-    const address = typeof signerAddress !== 'undefined' ? signerAddress : await this.defaultSignerAddress()
+    const address = typeof signerAddress !== 'undefined' ? signerAddress : (await this.getActiveAccount()).address
     const signature = await this.signRaw(address, txId)
     const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
     return web3.getCurrentNodeProvider().transactions.postTransactionsSubmit(params)

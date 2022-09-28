@@ -40,9 +40,14 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
     this.group = utils.groupOfAddress(this.address)
   }
 
-  static Random(alwaysSubmitTx = true): PrivateKeyWallet {
+  static Random(targetGroup?: number, alwaysSubmitTx = true): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    return new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
+    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
+    if (targetGroup === undefined || wallet.group === targetGroup) {
+      return wallet
+    } else {
+      return PrivateKeyWallet.Random(targetGroup, alwaysSubmitTx)
+    }
   }
 
   static FromMnemonic(
@@ -73,7 +78,7 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
   async setActiveAccount(addressIndex: number): Promise<void>
   async setActiveAccount(address: string): Promise<void>
   async setActiveAccount(input: string | number): Promise<void> {
-    throw Error(`Private key wallet should not change active account`)
+    return
   }
 
   async getActiveAccount(): Promise<Account> {

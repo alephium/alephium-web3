@@ -20,6 +20,8 @@ import { addressFromContractId, isBase58 } from '@alephium/web3'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
 
+export const testMnemonic =
+  'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
 export const testWalletName = 'alephium-web3-test-only-wallet'
 export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
 export const testPassword = 'alph'
