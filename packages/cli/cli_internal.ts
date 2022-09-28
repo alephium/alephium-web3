@@ -90,7 +90,7 @@ program
       await Project.build(config.compilerOptions, config.sourceDir, config.artifactDir)
       console.log('✅ Compilation completed!')
     } catch (error) {
-      program.error(`Failed to compile, error: ${error.stack}`)
+      program.error(`Failed to compile, error: ${(error as Error).stack}`)
     }
   })
 
@@ -144,7 +144,7 @@ program
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
       await deploy(config, networkType)
     } catch (error) {
-      program.error(`Failed to deploy contracts, error: ${error.stack}`)
+      program.error(`Failed to deploy contracts, error: ${(error as Error).stack}`)
     }
   })
 
