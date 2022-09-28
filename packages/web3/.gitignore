@@ -1,5 +1,5 @@
 node_modules/
 coverage/
 lerna-debug.log
-*/**/dist
-*/**/dev
+/dist
+/dev

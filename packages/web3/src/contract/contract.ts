@@ -40,6 +40,7 @@ import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerWithNodePr
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 import { getCurrentNodeProvider } from '../global'
+import { web3 } from '..'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -196,7 +197,6 @@ export class Project {
 
   readonly contractsRootDir: string
   readonly artifactsRootDir: string
-  readonly nodeProvider: NodeProvider
 
   static currentProject: Project
 
@@ -250,7 +250,6 @@ export class Project {
   }
 
   private constructor(
-    provider: NodeProvider,
     contractsRootDir: string,
     artifactsRootDir: string,
     sourceFiles: SourceFile[],
@@ -259,7 +258,6 @@ export class Project {
     errorOnWarnings: boolean,
     projectArtifact: ProjectArtifact
   ) {
-    this.nodeProvider = provider
     this.contractsRootDir = contractsRootDir
     this.artifactsRootDir = artifactsRootDir
     this.sourceFiles = sourceFiles
@@ -368,7 +366,6 @@ export class Project {
     })
     const projectArtifact = Project.buildProjectArtifact(files, contracts, scripts, compilerOptions)
     const project = new Project(
-      provider,
       contractsRootDir,
       artifactsRootDir,
       files,
@@ -410,7 +407,6 @@ export class Project {
       }
 
       return new Project(
-        provider,
         contractsRootDir,
         artifactsRootDir,
         files,
@@ -608,7 +604,7 @@ export class Contract extends Artifact {
   }
 
   async fetchState(address: string, group: number): Promise<ContractState> {
-    const state = await Project.currentProject.nodeProvider.contracts.getContractsAddressState(address, {
+    const state = await web3.getCurrentNodeProvider().contracts.getContractsAddressState(address, {
       group: group
     })
     return this.fromApiContractState(state)
@@ -662,7 +658,7 @@ export class Contract extends Artifact {
     printDebugMessages: boolean
   ): Promise<TestContractResult> {
     const apiParams: node.TestContract = this.toTestContract(funcName, params)
-    const apiResult = await Project.currentProject.nodeProvider.contracts.postContractsTestContract(apiParams)
+    const apiResult = await web3.getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
 
     const methodIndex =
       typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
@@ -791,7 +787,6 @@ export class Contract extends Artifact {
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
     return {
-      address: result.address,
       contractId: binToHex(contractIdFromAddress(result.address)),
       contractAddress: result.address,
       returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
@@ -1047,7 +1042,6 @@ export interface ContractEventByTxId {
 export type DebugMessage = node.DebugMessage
 
 export interface TestContractResult {
-  address: string
   contractId: string
   contractAddress: string
   returns: Val[]

@@ -1,0 +1,6 @@
+Contract Assert() {
+    const Error = 3
+    pub fn test() -> () {
+        assert!(1 == 2, Error)
+    }
+}

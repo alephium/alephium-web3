@@ -20,8 +20,9 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { web3 } from '@alephium/web3'
 import { Contract, Project, Script, TestContractParams } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-wallet'
+import { testNodeWallet } from '@alephium/web3-test'
 import { addressFromContractId } from '@alephium/web3'
+import { expectAssertionError, randomContractAddress } from '../packages/web3-test/src'
 
 describe('contract', function () {
   async function testSuite1() {
@@ -171,10 +172,10 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('./contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(9)
-    sourceFiles.slice(0, 6).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(6, 8).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(9).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    expect(sourceFiles.length).toEqual(10)
+    sourceFiles.slice(0, 7).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(7, 9).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(10).forEach((i) => expect(i.type).toEqual(3)) // interfaces
   })
 
   it('should load contract from json', async () => {
@@ -223,5 +224,13 @@ describe('contract', function () {
     expect(result.debugMessages.length).toEqual(1)
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
     expect(result.debugMessages[0].message).toEqual(`Hello, ${result.contractAddress}!`)
+  })
+
+  it('should test assert!', async () => {
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    await Project.build({ errorOnWarnings: false })
+    const contract = Project.contract('Assert')
+    const testAddress = randomContractAddress()
+    expectAssertionError(contract.testPublicMethod('test', { address: testAddress }), testAddress, 3)
   })
 })

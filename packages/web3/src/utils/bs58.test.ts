@@ -16,7 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './hd-wallet'
-export * from './node-wallet'
-export * from './privatekey-wallet'
-export * from './password-crypto'
+import { isBase58 } from './bs58'
+
+describe('bs58', () => {
+  it('should validate bs58 string', () => {
+    expect(isBase58('32UWxgjUHwH7P1J61tb12')).toEqual(true)
+    expect(isBase58('32U.WxgjUHwH7P1J61tb12')).toEqual(false)
+    expect(isBase58('')).toEqual(false)
+  })
+})

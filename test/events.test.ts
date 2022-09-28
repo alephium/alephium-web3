@@ -20,9 +20,10 @@ import { subscribeToEvents } from '@alephium/web3'
 import { Project } from '@alephium/web3'
 import { SignExecuteScriptTxParams } from '@alephium/web3'
 import { node } from '@alephium/web3'
-import { NodeWallet, testNodeWallet } from '@alephium/web3-wallet'
+import { NodeWallet } from '@alephium/web3-wallet'
 import { SubscribeOptions, timeout } from '@alephium/web3'
 import { web3 } from '@alephium/web3'
+import { testNodeWallet } from '@alephium/web3-test'
 
 describe('events', function () {
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {

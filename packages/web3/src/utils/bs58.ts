@@ -23,4 +23,15 @@ const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 export const bs58 = basex(ALPHABET)
 
+export function isBase58(s: string): boolean {
+  if (s === '' || s.trim() === '') {
+    return false
+  }
+  try {
+    return bs58.encode(bs58.decode(s)) === s
+  } catch (err) {
+    return false
+  }
+}
+
 export default bs58

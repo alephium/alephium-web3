@@ -1,5 +1,5 @@
 Contract Debug() {
     pub fn debug() -> () {
-        debug!(`Hello, ${nullContractAddress!()}!`)
+        emit Debug(`Hello, ${nullContractAddress!()}!`)
     }
 }
