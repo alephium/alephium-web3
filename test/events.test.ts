@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { subscribeToEvents } from '@alephium/web3'
+import { Account, subscribeToEvents } from '@alephium/web3'
 import { Project } from '@alephium/web3'
 import { SignExecuteScriptTxParams } from '@alephium/web3'
 import { node } from '@alephium/web3'
@@ -26,9 +26,19 @@ import { web3 } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 
 describe('events', function () {
-  async function deployContract(signer: NodeWallet): Promise<[string, string]> {
+  let signer: NodeWallet
+  let activeAccount: Account
+  let accountGroup: number
+
+  beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    signer = await testNodeWallet()
+    activeAccount = await signer.getActiveAccount()
+    accountGroup = activeAccount.group
     await Project.build({ errorOnWarnings: false })
+  })
+
+  async function deployContract(signer: NodeWallet): Promise<[string, string]> {
     const sub = Project.contract('Sub')
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
@@ -57,9 +67,6 @@ describe('events', function () {
   }
 
   it('should subscribe contract events', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build({ errorOnWarnings: false })
-    const signer = await testNodeWallet()
 
     const [contractAddress, contractId] = await deployContract(signer)
     const events: Array<node.ContractEvent> = []
@@ -79,7 +86,7 @@ describe('events', function () {
     const script = Project.script('Main')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
-      signerAddress: (await signer.getAccounts())[0].address
+      signerAddress: activeAccount.address
     })
     await executeScript(scriptTxParams, signer, 3)
     await timeout(3000)
@@ -99,7 +106,6 @@ describe('events', function () {
   it('should cancel event subscription', async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
-    const signer = await testNodeWallet()
 
     const [contractAddress, contractId] = await deployContract(signer)
     const events: Array<node.ContractEvent> = []

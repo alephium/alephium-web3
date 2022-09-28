@@ -25,8 +25,11 @@ import { addressFromContractId } from '@alephium/web3'
 import { expectAssertionError, randomContractAddress } from '../packages/web3-test/src'
 
 describe('contract', function () {
-  async function testSuite1() {
+  beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+  })
+
+  async function testSuite1() {
     await Project.build({ errorOnWarnings: false })
 
     // ignore unused private function warnings
@@ -58,6 +61,7 @@ describe('contract', function () {
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
     const signer = await testNodeWallet()
+    const accountGroup = (await signer.getActiveAccount()).group
 
     const subDeployTx = await sub.transactionForDeployment(signer, {
       initialFields: { result: 0 },
@@ -65,31 +69,31 @@ describe('contract', function () {
     })
     const subContractId = subDeployTx.contractId
     const subContractAddress = addressFromContractId(subContractId)
-    expect(subDeployTx.fromGroup).toEqual(0)
-    expect(subDeployTx.toGroup).toEqual(0)
+    expect(subDeployTx.fromGroup).toEqual(accountGroup)
+    expect(subDeployTx.toGroup).toEqual(accountGroup)
     const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx)
-    expect(subSubmitResult.fromGroup).toEqual(0)
-    expect(subSubmitResult.toGroup).toEqual(0)
+    expect(subSubmitResult.fromGroup).toEqual(accountGroup)
+    expect(subSubmitResult.toGroup).toEqual(accountGroup)
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     const addDeployTx = await add.transactionForDeployment(signer, {
       initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
     })
-    expect(addDeployTx.fromGroup).toEqual(0)
-    expect(addDeployTx.toGroup).toEqual(0)
+    expect(addDeployTx.fromGroup).toEqual(accountGroup)
+    expect(addDeployTx.toGroup).toEqual(accountGroup)
     const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx)
-    expect(addSubmitResult.fromGroup).toEqual(0)
-    expect(addSubmitResult.toGroup).toEqual(0)
+    expect(addSubmitResult.fromGroup).toEqual(accountGroup)
+    expect(addSubmitResult.toGroup).toEqual(accountGroup)
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
 
     const addContractId = addDeployTx.contractId
     const addContractAddress = addressFromContractId(addContractId)
 
     // Check state for add/sub before main script is executed
-    let fetchedSubState = await sub.fetchState(subContractAddress, 0)
+    let fetchedSubState = await sub.fetchState(subContractAddress, accountGroup)
     expect(fetchedSubState.fields.result).toEqual(0)
-    let fetchedAddState = await add.fetchState(addContractAddress, 0)
+    let fetchedAddState = await add.fetchState(addContractAddress, accountGroup)
     expect(fetchedAddState.fields.sub).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(0)
 
@@ -97,22 +101,21 @@ describe('contract', function () {
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { addContractId: addContractId }
     })
-    expect(mainScriptTx.fromGroup).toEqual(0)
-    expect(mainScriptTx.toGroup).toEqual(0)
+    expect(mainScriptTx.fromGroup).toEqual(accountGroup)
+    expect(mainScriptTx.toGroup).toEqual(accountGroup)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx)
-    expect(mainSubmitResult.fromGroup).toEqual(0)
-    expect(mainSubmitResult.toGroup).toEqual(0)
+    expect(mainSubmitResult.fromGroup).toEqual(accountGroup)
+    expect(mainSubmitResult.toGroup).toEqual(accountGroup)
 
     // Check state for add/sub after main script is executed
-    fetchedSubState = await sub.fetchState(subContractAddress, 0)
+    fetchedSubState = await sub.fetchState(subContractAddress, accountGroup)
     expect(fetchedSubState.fields.result).toEqual(1)
-    fetchedAddState = await add.fetchState(addContractAddress, 0)
+    fetchedAddState = await add.fetchState(addContractAddress, accountGroup)
     expect(fetchedAddState.fields.sub).toEqual(subContractId)
     expect(fetchedAddState.fields.result).toEqual(3)
   }
 
   async function testSuite2() {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
     const greeter = Project.contract('Greeter')
@@ -126,16 +129,17 @@ describe('contract', function () {
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1)
 
     const signer = await testNodeWallet()
+    const accountGroup = (await signer.getActiveAccount()).group
 
     const deployTx = await greeter.transactionForDeployment(signer, {
       initialFields: { btcPrice: 1 },
       initialTokenAmounts: []
     })
-    expect(deployTx.fromGroup).toEqual(0)
-    expect(deployTx.toGroup).toEqual(0)
+    expect(deployTx.fromGroup).toEqual(accountGroup)
+    expect(deployTx.toGroup).toEqual(accountGroup)
     const submitResult = await signer.submitTransaction(deployTx.unsignedTx)
-    expect(submitResult.fromGroup).toEqual(0)
-    expect(submitResult.toGroup).toEqual(0)
+    expect(submitResult.fromGroup).toEqual(accountGroup)
+    expect(submitResult.toGroup).toEqual(accountGroup)
     expect(submitResult.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
@@ -144,11 +148,11 @@ describe('contract', function () {
     const mainScriptTx = await main.transactionForDeployment(signer, {
       initialFields: { greeterContractId: greeterContractId }
     })
-    expect(mainScriptTx.fromGroup).toEqual(0)
-    expect(mainScriptTx.toGroup).toEqual(0)
+    expect(mainScriptTx.fromGroup).toEqual(accountGroup)
+    expect(mainScriptTx.toGroup).toEqual(accountGroup)
     const mainSubmitResult = await signer.submitTransaction(mainScriptTx.unsignedTx)
-    expect(mainSubmitResult.fromGroup).toEqual(0)
-    expect(mainSubmitResult.toGroup).toEqual(0)
+    expect(mainSubmitResult.fromGroup).toEqual(accountGroup)
+    expect(mainSubmitResult.toGroup).toEqual(accountGroup)
   }
 
   it('should test contracts', async () => {
@@ -188,7 +192,6 @@ describe('contract', function () {
   })
 
   it('should extract metadata of contracts', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
 
     const contract = Project.contract('MetaData')
@@ -199,7 +202,6 @@ describe('contract', function () {
   })
 
   it('should handle compiler warnings', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await expect(Project.build()).rejects.toThrow(/Compilation warnings\:/)
 
     await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
@@ -217,7 +219,6 @@ describe('contract', function () {
   })
 
   it('should debug', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
     const contract = Project.contract('Debug')
     const result = await contract.testPublicMethod('debug', {})
@@ -227,7 +228,6 @@ describe('contract', function () {
   })
 
   it('should test assert!', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build({ errorOnWarnings: false })
     const contract = Project.contract('Assert')
     const testAddress = randomContractAddress()
