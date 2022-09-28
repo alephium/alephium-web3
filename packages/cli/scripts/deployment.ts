@@ -234,6 +234,7 @@ async function createDeployer<Settings = unknown>(
       return previous!
     }
     console.log(`Deploying contract ${taskId}`)
+    console.log(`Deployer - group ${signer.group} - ${signer.address}`)
     const result = await contract.transactionForDeployment(signer, params)
     await signer.submitTransaction(result.unsignedTx)
     const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
