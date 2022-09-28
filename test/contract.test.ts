@@ -18,11 +18,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { web3 } from '@alephium/web3'
-import { Contract, Project, Script, TestContractParams } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-test'
+import { web3 } from '../packages/web3'
+import { Contract, Project, Script, TestContractParams } from '../packages/web3'
+import { testNodeWallet } from '../packages/web3-test'
 import { addressFromContractId } from '@alephium/web3'
-import { expectAssertionError, randomContractAddress } from '../packages/web3-test/src'
+import { expectAssertionError, randomContractAddress } from '../packages/web3-test'
 
 describe('contract', function () {
   beforeAll(async () => {

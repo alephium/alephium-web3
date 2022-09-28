@@ -16,14 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Account, subscribeToEvents } from '@alephium/web3'
-import { Project } from '@alephium/web3'
-import { SignExecuteScriptTxParams } from '@alephium/web3'
-import { node } from '@alephium/web3'
-import { NodeWallet } from '@alephium/web3-wallet'
-import { SubscribeOptions, timeout } from '@alephium/web3'
-import { web3 } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-test'
+import { Account, subscribeToEvents } from '../packages/web3'
+import { Project } from '../packages/web3'
+import { SignExecuteScriptTxParams } from '../packages/web3'
+import { node } from '../packages/web3'
+import { NodeWallet } from '../packages/web3-wallet'
+import { SubscribeOptions, timeout } from '../packages/web3'
+import { web3 } from '../packages/web3'
+import { testNodeWallet } from '../packages/web3-test'
 
 describe('events', function () {
   let signer: NodeWallet
@@ -67,7 +67,6 @@ describe('events', function () {
   }
 
   it('should subscribe contract events', async () => {
-
     const [contractAddress, contractId] = await deployContract(signer)
     const events: Array<node.ContractEvent> = []
     const subscriptOptions: SubscribeOptions<node.ContractEvent> = {

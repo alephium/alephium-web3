@@ -16,13 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { subscribeToTxStatus } from '@alephium/web3'
-import { Project } from '@alephium/web3'
-import { node } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-test'
-import { SubscribeOptions, timeout } from '@alephium/web3'
-import { web3 } from '@alephium/web3'
-import { TxStatus } from '@alephium/web3'
+import { subscribeToTxStatus } from '../packages/web3'
+import { Project } from '../packages/web3'
+import { node } from '../packages/web3'
+import { testNodeWallet } from '../packages/web3-test'
+import { SubscribeOptions, timeout } from '../packages/web3'
+import { web3 } from '../packages/web3'
+import { TxStatus } from '../packages/web3'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
