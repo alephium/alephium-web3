@@ -828,7 +828,7 @@ export class Contract extends Artifact {
   ): Promise<DeployContractTransaction> {
     const signerParams = await this.paramsForDeployment({
       ...params,
-      signerAddress: (await signer.getAccounts())[0].address
+      signerAddress: (await signer.getActiveAccount()).address
     })
     const response = await signer.buildContractCreationTx(signerParams)
     return fromApiDeployContractUnsignedTx(response)
@@ -914,7 +914,7 @@ export class Script extends Artifact {
   ): Promise<BuildScriptTxResult> {
     const signerParams = await this.paramsForDeployment({
       ...params,
-      signerAddress: (await signer.getAccounts())[0].address
+      signerAddress: (await signer.getActiveAccount()).address
     })
     return await signer.buildScriptTx(signerParams)
   }

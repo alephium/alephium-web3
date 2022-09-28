@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { web3 } from '..'
 import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
 
@@ -37,7 +38,7 @@ export class TxStatusSubscription extends Subscription<TxStatus> {
 
   override async polling(): Promise<void> {
     try {
-      const txStatus = await this.provider.transactions.getTransactionsStatus({
+      const txStatus = await web3.getCurrentNodeProvider().transactions.getTransactionsStatus({
         txId: this.txId,
         fromGroup: this.fromGroup,
         toGroup: this.toGroup

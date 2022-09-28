@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { web3 } from '..'
 import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
 
@@ -44,7 +45,7 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
 
   override async polling(): Promise<void> {
     try {
-      const events = await this.provider.events.getEventsContractContractaddress(this.contractAddress, {
+      const events = await web3.getCurrentNodeProvider().events.getEventsContractContractaddress(this.contractAddress, {
         start: this.fromCount
       })
       if (this.cancelled) {

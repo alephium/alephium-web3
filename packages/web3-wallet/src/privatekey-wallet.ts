@@ -28,6 +28,10 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
   readonly address: string
   readonly group: number
 
+  get account(): Account {
+    return { address: this.address, publicKey: this.publicKey, group: this.group }
+  }
+
   constructor(privateKey: string, alwaysSubmitTx = true) {
     super(alwaysSubmitTx)
     this.privateKey = privateKey
@@ -63,7 +67,17 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
   }
 
   async getAccounts(): Promise<Account[]> {
-    return [{ address: this.address, publicKey: this.publicKey, group: this.group }]
+    return [this.account]
+  }
+
+  async setActiveAccount(addressIndex: number): Promise<void>
+  async setActiveAccount(address: string): Promise<void>
+  async setActiveAccount(input: string | number): Promise<void> {
+    throw Error(`Private key wallet should not change active account`)
+  }
+
+  async getActiveAccount(): Promise<Account> {
+    return this.account
   }
 
   async signRaw(signerAddress: string, hexString: string): Promise<string> {
