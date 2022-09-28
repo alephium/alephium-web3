@@ -36,13 +36,15 @@ export class NodeWallet extends SignerWithNodeProvider {
 
   async setActiveAccount(addressIndex: number): Promise<void>
   async setActiveAccount(address: string): Promise<void>
-  async setActiveAccount(input: string | number): Promise<void> {
+  async setActiveAccount(input: unknown): Promise<void> {
     let address: string
     if (typeof input === 'string') {
       address = input
-    } else {
+    } else if (typeof input === 'number') {
       const accounts = await this.getAccounts()
       address = accounts[`${input}`].address
+    } else {
+      throw Error(`Invalid parameter for 'setActiveAccount'`)
     }
     await web3
       .getCurrentNodeProvider()

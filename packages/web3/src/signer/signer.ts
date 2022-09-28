@@ -178,7 +178,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
 
   abstract setActiveAccount(addressIndex: number): Promise<void>
   abstract setActiveAccount(address: string): Promise<void>
-  abstract setActiveAccount(input: string | number): Promise<void>
+  abstract setActiveAccount(input: unknown): Promise<void>
 
   abstract getActiveAccount(): Promise<Account>
 
