@@ -16,7 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { addressFromContractId, isBase58 } from "@alephium/web3"
 import { NodeWallet } from "@alephium/web3-wallet"
+import { randomBytes } from "crypto"
 
 export const testWalletName = 'alephium-web3-test-only-wallet'
 export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
@@ -26,4 +28,17 @@ export async function testNodeWallet(): Promise<NodeWallet> {
   const wallet = new NodeWallet(testWalletName)
   await wallet.unlock(testPassword)
   return wallet
+}
+
+export async function expectAssertionError(p: Promise<unknown>, address: string, errorCode: number): Promise<void> {
+  expect(isBase58(address)).toEqual(true)
+  await expect(p).rejects.toThrowError(new RegExp(`AssertionFailedWithErrorCode\\\(${address},${errorCode}\\\)`, 'mg'))
+}
+
+export function randomContractId(): string {
+  return randomBytes(32).toString('hex')
+}
+
+export function randomContractAddress(): string {
+  return addressFromContractId(randomContractId())
 }

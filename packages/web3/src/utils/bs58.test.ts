@@ -16,22 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** This source is under MIT License and come originally from https://github.com/cryptocoinjs/bs58 **/
-import basex from 'base-x'
+import { isBase58 } from './bs58'
 
-const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
-
-export const bs58 = basex(ALPHABET)
-
-export function isBase58(s: string): boolean {
-  if (s === '' || s.trim() === '') {
-    return false
-  }
-  try {
-    return bs58.encode(bs58.decode(s)) === s
-  } catch (err) {
-    return false
-  }
-}
-
-export default bs58
+describe('bs58', () => {
+  it('should validate bs58 string', () => {
+    expect(isBase58('32UWxgjUHwH7P1J61tb12')).toEqual(true)
+    expect(isBase58('32U.WxgjUHwH7P1J61tb12')).toEqual(false)
+    expect(isBase58('')).toEqual(false)
+  })
+})
