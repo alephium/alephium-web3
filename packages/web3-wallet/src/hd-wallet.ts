@@ -17,8 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { groupOfPrivateKey, TOTAL_NUMBER_OF_GROUPS } from '@alephium/web3'
-import * as bip32 from 'bip32'
+import { BIP32Factory } from 'bip32'
 import * as bip39 from 'bip39'
+import * as ecc from 'tiny-secp256k1'
+
+const bip32 = BIP32Factory(ecc)
 
 export function deriveHDWalletPrivateKey(mnemonic: string, addressIndex: number, passphrase?: string): string {
   const seed = bip39.mnemonicToSeedSync(mnemonic, passphrase)
