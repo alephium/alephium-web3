@@ -20,7 +20,6 @@ import { ec as EC } from 'elliptic'
 import {
   fromApiNumber256,
   fromApiTokens,
-  NodeProvider,
   Number256,
   toApiNumber256,
   toApiNumber256Optional,
@@ -31,7 +30,7 @@ import { node } from '../api'
 import * as utils from '../utils'
 import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
-import { getCurrentNodeProvider } from '../global'
+import { web3 } from '..'
 
 export type OutputRef = node.OutputRef
 
@@ -163,7 +162,6 @@ export interface SignerProvider {
 }
 
 export abstract class SignerWithNodeProvider implements SignerProvider {
-  readonly provider: NodeProvider
   alwaysSubmitTx: boolean
 
   abstract getAccounts(): Promise<Account[]>
@@ -178,8 +176,13 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     }
   }
 
+  abstract setActiveAccount(addressIndex: number): Promise<void>
+  abstract setActiveAccount(address: string): Promise<void>
+  abstract setActiveAccount(input: string | number): Promise<void>
+
+  abstract getActiveAccount(): Promise<Account>
+
   constructor(alwaysSubmitTx: boolean) {
-    this.provider = getCurrentNodeProvider()
     this.alwaysSubmitTx = alwaysSubmitTx
   }
 
@@ -188,13 +191,15 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
   }
 
   async submitTransaction(unsignedTx: string, signerAddress?: string): Promise<SubmissionResult> {
-    const decoded = await this.provider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: unsignedTx })
+    const decoded = await web3
+      .getCurrentNodeProvider()
+      .transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: unsignedTx })
     const txId = decoded.unsignedTx.txId
 
     const address = typeof signerAddress !== 'undefined' ? signerAddress : await this.defaultSignerAddress()
     const signature = await this.signRaw(address, txId)
     const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
-    return this.provider.transactions.postTransactionsSubmit(params)
+    return web3.getCurrentNodeProvider().transactions.postTransactionsSubmit(params)
   }
 
   private shouldSubmitTx(params: SubmitTx): boolean {
@@ -225,7 +230,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
       destinations: toApiDestinations(params.destinations),
       gasPrice: toApiNumber256Optional(params.gasPrice)
     }
-    return this.provider.transactions.postTransactionsBuild(data)
+    return web3.getCurrentNodeProvider().transactions.postTransactionsBuild(data)
   }
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
@@ -246,7 +251,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
       issueTokenAmount: toApiNumber256Optional(params.issueTokenAmount),
       gasPrice: toApiNumber256Optional(params.gasPrice)
     }
-    return this.provider.contracts.postContractsUnsignedTxDeployContract(data)
+    return web3.getCurrentNodeProvider().contracts.postContractsUnsignedTxDeployContract(data)
   }
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
@@ -259,14 +264,14 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
       ...(await this.usePublicKey(params)),
       tokens: toApiTokens(params.tokens)
     }
-    return this.provider.contracts.postContractsUnsignedTxExecuteScript(data)
+    return web3.getCurrentNodeProvider().contracts.postContractsUnsignedTxExecuteScript(data)
   }
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
-    const decoded = await this.provider.transactions.postTransactionsDecodeUnsignedTx(data)
+    const decoded = await web3.getCurrentNodeProvider().transactions.postTransactionsDecodeUnsignedTx(data)
     return this.handleSign(
       {
         fromGroup: decoded.fromGroup,
@@ -287,7 +292,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
     const signature = await this.signRaw(response.signerAddress, response.txId)
     // submit the tx if required
     if (submitTx) {
-      await this.provider.transactions.postTransactionsSubmit({
+      await web3.getCurrentNodeProvider().transactions.postTransactionsSubmit({
         unsignedTx: response.unsignedTx,
         signature: signature
       })

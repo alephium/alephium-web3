@@ -30,7 +30,6 @@ export interface SubscribeOptions<Message> {
 }
 
 export abstract class Subscription<Message> {
-  provider: NodeProvider
   pollingInterval: number
 
   protected messageCallback: MessageCallback<Message>
@@ -40,7 +39,6 @@ export abstract class Subscription<Message> {
   protected cancelled: boolean
 
   constructor(options: SubscribeOptions<Message>) {
-    this.provider = getCurrentNodeProvider()
     this.pollingInterval = options.pollingInterval
     this.messageCallback = options.messageCallback
     this.errorCallback = options.errorCallback

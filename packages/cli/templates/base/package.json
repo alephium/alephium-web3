@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@alephium/web3": "0.2.0-rc.21",
+    "@alephium/web3-test": "0.2.0-rc.21",
     "@alephium/web3-wallet": "0.2.0-rc.21",
     "@alephium/cli": "0.2.0-rc.21"
   },

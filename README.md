@@ -10,15 +10,17 @@ A JS/TS library for building decentralized applications on Alephium.
 You could run the following command to scaffold a skeleton project for smart contract development:
 
 ```
-npx @alephium/web3 <project-dir> [-t (base | react)]
+npx @alephium/cli <project-dir> [-t (base | react)]
 ```
 
 ## Packages
 
 There are a few packages in this repository:
 
-1. `@alephium/web3` is the core and base package for all dApp development.
-2. `@alephium/web3-wallet` contains wallet related functions.
+1. `@alephium/cli` is the CLI tool for dApp development.
+2. `@alephium/web3` is the core and base package for all dApp development.
+3. `@alephium/web3-wallet` contains wallet related functions.
+4. `@alephium/web3-test` contains test related functions.
 
 ## Development
 

@@ -221,7 +221,7 @@ async function createDeployer<Settings = unknown>(
     const tokens = params.initialTokenAmounts ? getTokenRecord(params.initialTokenAmounts) : undefined
     const issueTokenAmount: string | undefined = params.issueTokenAmount?.toString()
     const needToDeploy = await needToDeployContract(
-      signer.provider,
+      web3.getCurrentNodeProvider(),
       previous,
       params.initialAttoAlphAmount,
       tokens,
@@ -237,7 +237,7 @@ async function createDeployer<Settings = unknown>(
     console.log(`Deployer - group ${signer.group} - ${signer.address}`)
     const result = await contract.transactionForDeployment(signer, params)
     await signer.submitTransaction(result.unsignedTx)
-    const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
+    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), result.txId, confirmations)
     const deployContractResult: DeployContractResult = {
       groupIndex: result.fromGroup,
       txId: result.txId,
@@ -260,7 +260,7 @@ async function createDeployer<Settings = unknown>(
     const previous = runScriptResults.get(taskId)
     const tokens = params.tokens ? getTokenRecord(params.tokens) : undefined
     const needToRun = await needToRunScript(
-      signer.provider,
+      web3.getCurrentNodeProvider(),
       previous,
       params.attoAlphAmount?.toString(),
       tokens,
@@ -274,7 +274,7 @@ async function createDeployer<Settings = unknown>(
     console.log(`Executing script ${taskId}`)
     const result = await script.transactionForDeployment(signer, params)
     await signer.submitTransaction(result.unsignedTx)
-    const confirmed = await waitTxConfirmed(signer.provider, result.txId, confirmations)
+    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), result.txId, confirmations)
     const runScriptResult: RunScriptResult = {
       groupIndex: result.fromGroup,
       txId: result.txId,
@@ -304,7 +304,7 @@ async function createDeployer<Settings = unknown>(
   }
 
   return {
-    provider: signer.provider,
+    provider: web3.getCurrentNodeProvider(),
     account: account,
     deployContract: deployContract,
     runScript: runScript,
