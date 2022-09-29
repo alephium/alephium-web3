@@ -47,6 +47,22 @@ export class Deployments {
     return new Deployments(new Map())
   }
 
+  getDeployedContractResult(group: number, name: string): DeployContractResult {
+    const result = this.groups.get(group)?.deployContractResults.get(name)
+    if (result === undefined) {
+      throw Error(`Cannot find deployed contract for group ${group} and name ${name}`)
+    }
+    return result
+  }
+
+  getExecutedScriptResult(group: number, name: string): RunScriptResult {
+    const result = this.groups.get(group)?.runScriptResults.get(name)
+    if (result === undefined) {
+      throw Error(`Cannot find executed script for group ${group} and name ${name}`)
+    }
+    return result
+  }
+
   async saveToFile(filepath: string): Promise<void> {
     const dirpath = path.dirname(filepath)
     if (!fs.existsSync(dirpath)) {
