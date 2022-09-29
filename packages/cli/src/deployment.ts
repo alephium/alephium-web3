@@ -15,6 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { Account, NodeProvider, Project, Contract, Script, node, web3, Token } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -34,7 +35,7 @@ import {
   DEFAULT_CONFIGURATION_VALUES
 } from '../src/types'
 
-class Deployments {
+export class Deployments {
   groups: Map<number, DeploymentsPerGroup>
 
   constructor(groups: Map<number, DeploymentsPerGroup>) {
@@ -74,7 +75,7 @@ class Deployments {
   }
 }
 
-class DeploymentsPerGroup {
+export class DeploymentsPerGroup {
   deployContractResults: Map<string, DeployContractResult>
   runScriptResults: Map<string, RunScriptResult>
   migrations: Map<string, number>
@@ -353,7 +354,7 @@ async function validateChainParams(networkId: number, groups: number[]): Promise
   }
 }
 
-async function deploy<Settings = unknown>(
+export async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkType: NetworkType,
   deployments: Deployments
@@ -404,29 +405,6 @@ async function deploy<Settings = unknown>(
     deployments.groups.set(groupIndex, deploymentsPerGroup)
     await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
   }
-}
-
-export async function deployAndSaveProgress<Settings = unknown>(
-  configuration: Configuration<Settings>,
-  networkType: NetworkType
-): Promise<void> {
-  const networkInput = configuration.networks[networkType]
-  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
-  const network = { ...defaultValues, ...networkInput }
-  const deploymentsFile = network.deploymentStatusFile
-    ? network.deploymentStatusFile
-    : `.deployments.${networkType}.json`
-  const deployments = await Deployments.from(deploymentsFile)
-  try {
-    await deploy(configuration, networkType, deployments)
-  } catch (error) {
-    await deployments.saveToFile(deploymentsFile)
-    console.error(`Failed to deploy the project`)
-    throw error
-  }
-
-  await deployments.saveToFile(deploymentsFile)
-  console.log('✅ Deployment scripts executed!')
 }
 
 export async function deployDevnet<Settings = unknown>(configuration: Configuration<Settings>): Promise<Deployments> {
