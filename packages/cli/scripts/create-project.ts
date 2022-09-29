@@ -38,7 +38,7 @@ function prepareShared(packageRoot: string, projectRoot: string) {
   console.log(`  to ${projectRoot}`)
 
   fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
-  copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes'])
+  copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes', 'jest-config.json'])
   const outputDir = path.join(packageRoot, 'dist')
   fsExtra.copySync(path.join(outputDir, 'gitignore'), path.join(projectRoot, '.gitignore'))
   fsExtra.copySync(path.join(outputDir, 'npmignore'), path.join(projectRoot, '.npmignore'))
@@ -47,8 +47,6 @@ function prepareShared(packageRoot: string, projectRoot: string) {
 
 function prepareBase(packageRoot: string, projectRoot: string) {
   prepareShared(packageRoot, projectRoot)
-  copy(packageRoot, projectRoot, 'contracts', ['greeter_main.ral'])
-  copy(packageRoot, projectRoot, 'contracts/greeter', ['greeter.ral', 'greeter_interface.ral'])
   fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
 }
 

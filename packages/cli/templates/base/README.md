@@ -1,4 +1,4 @@
-# My dApp
+# My dApp Template
 
 ## Install
 
@@ -6,29 +6,28 @@
 npm install
 ```
 
+## Start a local devnet for testing and development
+
+```
+npx @alephium/cli@latest devnet start
+```
+
 ## Compile
 
 Compile the TypeScript files into JavaScript:
 
 ```
-npm run build
-```
-
-## Start a devnet
-
-```
-npm run start-devnet // this will start a devnet for smart contract tests
+npx @alephium/cli@latest compile 
 ```
 
 ## Stop/restart devnet
 
 ```
-npm run stop-devnet
-npm run restart-devnet
+npx @alephium/cli@latest devnet stop
 ```
 
 ## Testing
 
 ```
-npm test
+npx @alephium/cli@latest test
 ```

@@ -1,12 +1,15 @@
 import { Configuration } from '@alephium/cli'
+import { Number256 } from '@alephium/web3'
 
+// Settings are usually for configuring
 export type Settings = {
-  btcPrice: number
+  issueTokenAmount: Number256
 }
-const defaultSettings: Settings = { btcPrice: 1 }
+const defaultSettings: Settings = { issueTokenAmount: 100 }
 
 const configuration: Configuration<Settings> = {
   defaultNetwork: 'devnet',
+  toDeployGroups: [0, 1, 2, 3], // here we could configure which addresses to deploy the contract
   networks: {
     devnet: {
       nodeUrl: 'http://localhost:22973',
@@ -16,13 +19,13 @@ const configuration: Configuration<Settings> = {
     },
 
     testnet: {
-      nodeUrl: 'http://localhost:22973',
+      nodeUrl: process.env.NODE_URL as string,
       mnemonic: process.env.MNEMONIC as string,
       settings: defaultSettings
     },
 
     mainnet: {
-      nodeUrl: 'http://localhost:22973',
+      nodeUrl: process.env.NODE_URL as string,
       mnemonic: process.env.MNEMONIC as string,
       settings: defaultSettings
     }
