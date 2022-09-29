@@ -33,7 +33,7 @@ import {
   RunScriptParams,
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
-} from '../src/types'
+} from './types'
 import { getConfigFile, loadConfig } from './utils'
 
 export class Deployments {
