@@ -1,6 +1,6 @@
 import { web3, Project, TestContractParams, addressFromContractId, AssetOutput, Contract, Script } from '@alephium/web3'
 import { expectAssertionError, randomContractId, testAddress, testNodeWallet } from '@alephium/web3-test'
-import deploymentResults from '../.deployments.devnet.json'
+import { deployToDevnet } from '@alephium/cli'
 import tokenContractJson from '../artifacts/token.ral.json'
 import withdrawJson from '../artifacts/withdraw.ral.json'
 
@@ -98,6 +98,7 @@ describe("integration tests", () => {
   it("should withdraw on devnet", async () => {
     const script = Script.fromJson(withdrawJson)
     const signer = await testNodeWallet()
+    const deployments = await deployToDevnet()
 
     // Test with all of the addresses of the wallet
     for (const account of await signer.getAccounts()) {
@@ -106,7 +107,7 @@ describe("integration tests", () => {
       const testGroup = account.group
 
       // The contract is deployed to all groups
-      const deployed = deploymentResults[testGroup].deployContractResults.TokenFaucet
+      const deployed = deployments.getDeployedContractResult(testGroup, 'TokenFaucet')
       const tokenId = deployed.contractId
       const tokenAddress = deployed.contractAddress
       expect(deployed.groupIndex).toEqual(testGroup)
