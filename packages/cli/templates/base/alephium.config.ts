@@ -9,7 +9,7 @@ const defaultSettings: Settings = { issueTokenAmount: 100 }
 
 const configuration: Configuration<Settings> = {
   defaultNetwork: 'devnet',
-  toDeployGroups: [0, 1, 2, 3], // here we could configure which addresses to deploy the contract
+  toDeployGroups: [0, 1, 2, 3], // here we could configure which address groups to deploy the contract
   networks: {
     devnet: {
       nodeUrl: 'http://localhost:22973',
