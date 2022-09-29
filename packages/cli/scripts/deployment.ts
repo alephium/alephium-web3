@@ -41,6 +41,10 @@ class Deployments {
     this.groups = groups
   }
 
+  static empty(): Deployments {
+    return new Deployments(new Map())
+  }
+
   async saveToFile(filepath: string): Promise<void> {
     const dirpath = path.dirname(filepath)
     if (!fs.existsSync(dirpath)) {
@@ -349,9 +353,10 @@ async function validateChainParams(networkId: number, groups: number[]): Promise
   }
 }
 
-export async function deploy<Settings = unknown>(
+async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkType: NetworkType
+  networkType: NetworkType,
+  deployments: Deployments
 ): Promise<void> {
   const networkInput = configuration.networks[networkType]
   const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
@@ -394,24 +399,40 @@ export async function deploy<Settings = unknown>(
   )
   configuration.defaultNetwork = networkType
 
+  for (const groupIndex of toDeployGroups) {
+    const deploymentsPerGroup = deployments.groups.get(groupIndex) ?? DeploymentsPerGroup.empty()
+    deployments.groups.set(groupIndex, deploymentsPerGroup)
+    await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
+  }
+}
+
+export async function deployAndSaveProgress<Settings = unknown>(
+  configuration: Configuration<Settings>,
+  networkType: NetworkType
+): Promise<void> {
+  const networkInput = configuration.networks[networkType]
+  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
+  const network = { ...defaultValues, ...networkInput }
   const deploymentsFile = network.deploymentStatusFile
     ? network.deploymentStatusFile
     : `.deployments.${networkType}.json`
   const deployments = await Deployments.from(deploymentsFile)
-  for (const groupIndex of toDeployGroups) {
-    const deploymentsPerGroup = deployments.groups.get(groupIndex) ?? DeploymentsPerGroup.empty()
-    deployments.groups.set(groupIndex, deploymentsPerGroup)
-    try {
-      await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
-    } catch (error) {
-      await deployments.saveToFile(deploymentsFile)
-      console.error(`Failed to deploy to group ${groupIndex}`)
-      throw error
-    }
+  try {
+    await deploy(configuration, networkType, deployments)
+  } catch (error) {
+    await deployments.saveToFile(deploymentsFile)
+    console.error(`Failed to deploy the project`)
+    throw error
   }
 
   await deployments.saveToFile(deploymentsFile)
   console.log('✅ Deployment scripts executed!')
+}
+
+export async function deployDevnet<Settings = unknown>(configuration: Configuration<Settings>): Promise<Deployments> {
+  const deployments = Deployments.empty()
+  await deploy(configuration, 'devnet', deployments)
+  return deployments
 }
 
 async function deployToGroup<Settings = unknown>(
