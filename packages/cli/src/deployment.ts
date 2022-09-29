@@ -34,6 +34,7 @@ import {
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from '../src/types'
+import { getConfigFile, loadConfig } from './utils'
 
 export class Deployments {
   groups: Map<number, DeploymentsPerGroup>
@@ -407,8 +408,9 @@ export async function deploy<Settings = unknown>(
   }
 }
 
-export async function deployDevnet<Settings = unknown>(configuration: Configuration<Settings>): Promise<Deployments> {
+export async function deployToDevnet<Settings = unknown>(): Promise<Deployments> {
   const deployments = Deployments.empty()
+  const configuration = await loadConfig(getConfigFile())
   await deploy(configuration, 'devnet', deployments)
   return deployments
 }
