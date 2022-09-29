@@ -15,6 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { Account, NodeProvider, Project, Contract, Script, node, web3, Token } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -33,12 +34,33 @@ import {
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from '../src/types'
+import { getConfigFile, loadConfig } from './utils'
 
-class Deployments {
+export class Deployments {
   groups: Map<number, DeploymentsPerGroup>
 
   constructor(groups: Map<number, DeploymentsPerGroup>) {
     this.groups = groups
+  }
+
+  static empty(): Deployments {
+    return new Deployments(new Map())
+  }
+
+  getDeployedContractResult(group: number, name: string): DeployContractResult {
+    const result = this.groups.get(group)?.deployContractResults.get(name)
+    if (result === undefined) {
+      throw Error(`Cannot find deployed contract for group ${group} and name ${name}`)
+    }
+    return result
+  }
+
+  getExecutedScriptResult(group: number, name: string): RunScriptResult {
+    const result = this.groups.get(group)?.runScriptResults.get(name)
+    if (result === undefined) {
+      throw Error(`Cannot find executed script for group ${group} and name ${name}`)
+    }
+    return result
   }
 
   async saveToFile(filepath: string): Promise<void> {
@@ -70,7 +92,7 @@ class Deployments {
   }
 }
 
-class DeploymentsPerGroup {
+export class DeploymentsPerGroup {
   deployContractResults: Map<string, DeployContractResult>
   runScriptResults: Map<string, RunScriptResult>
   migrations: Map<string, number>
@@ -351,7 +373,8 @@ async function validateChainParams(networkId: number, groups: number[]): Promise
 
 export async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkType: NetworkType
+  networkType: NetworkType,
+  deployments: Deployments
 ): Promise<void> {
   const networkInput = configuration.networks[networkType]
   const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
@@ -394,24 +417,18 @@ export async function deploy<Settings = unknown>(
   )
   configuration.defaultNetwork = networkType
 
-  const deploymentsFile = network.deploymentStatusFile
-    ? network.deploymentStatusFile
-    : `.deployments.${networkType}.json`
-  const deployments = await Deployments.from(deploymentsFile)
   for (const groupIndex of toDeployGroups) {
     const deploymentsPerGroup = deployments.groups.get(groupIndex) ?? DeploymentsPerGroup.empty()
     deployments.groups.set(groupIndex, deploymentsPerGroup)
-    try {
-      await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
-    } catch (error) {
-      await deployments.saveToFile(deploymentsFile)
-      console.error(`Failed to deploy to group ${groupIndex}`)
-      throw error
-    }
+    await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
   }
+}
 
-  await deployments.saveToFile(deploymentsFile)
-  console.log('✅ Deployment scripts executed!')
+export async function deployToDevnet<Settings = unknown>(): Promise<Deployments> {
+  const deployments = Deployments.empty()
+  const configuration = await loadConfig(getConfigFile())
+  await deploy(configuration, 'devnet', deployments)
+  return deployments
 }
 
 async function deployToGroup<Settings = unknown>(

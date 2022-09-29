@@ -6,7 +6,9 @@
     "build": "npm run clean:windows && npm run clean:unix && npx tsc --build .",
     "clean:windows": "node -e \"if (process.platform === 'win32') process.exit(1)\" || , if exist dist rmdir /Q /S dist",
     "clean:unix": "node -e \"if (process.platform !== 'win32') process.exit(1)\" || rm -rf dist",
-    "greeter": "npm run build && node dist/src/greeter.js"
+    "test": "jest -i --config ./jest-config.json",
+    "lint": "eslint . --ext ts",
+    "lint:fix": "eslint . --fix --ext ts"
   },
   "dependencies": {
     "@alephium/web3": "0.2.0-rc.23",
@@ -17,6 +19,10 @@
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
     "@types/node": "^16.7.8",
+    "@typescript-eslint/eslint-plugin": "^4.30.0",
+    "@typescript-eslint/parser": "^4.30.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.5.0",
     "typescript": "^4.4.2",
     "ts-node": "^10.7.0",
     "jest": "^28.1.0",

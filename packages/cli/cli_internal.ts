@@ -20,7 +20,7 @@ import { Project, web3 } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
-import { deploy } from './scripts/deployment'
+import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, NetworkType } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
@@ -142,7 +142,7 @@ program
     try {
       const config = await getConfig(options)
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
-      await deploy(config, networkType)
+      await deployAndSaveProgress(config, networkType)
     } catch (error) {
       program.error(`Failed to deploy contracts, error: ${(error as Error).stack}`)
     }
