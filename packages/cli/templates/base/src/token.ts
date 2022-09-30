@@ -1,6 +1,7 @@
+import { Deployments } from '@alephium/cli'
 import { web3, Script, Project, Contract } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
-import deploymentResult from '../.deployments.devnet.json'
+import configuration from '../alephium.config'
 import tokenContractJson from '../artifacts/token.ral.json'
 import withdrawJson from '../artifacts/withdraw.ral.json'
 
@@ -16,6 +17,8 @@ async function withdraw() {
   // Attention: test wallet is used for demonstration purpose
   const signer = await testNodeWallet()
 
+  const deployments = await Deployments.load(configuration, 'devnet')
+
   // The test wallet has four accounts with one in each address group
   // The wallet calls withdraw function for all of the address groups
   for (const account of await signer.getAccounts()) {
@@ -24,7 +27,7 @@ async function withdraw() {
     const accountGroup = account.group
 
     // Load the metadata of the deployed contract in the right group
-    const deployed = deploymentResult[accountGroup].deployContractResults.TokenFaucet
+    const deployed = deployments.getDeployedContractResult(accountGroup, 'TokenFaucet')
     const tokenId = deployed.contractId
     const tokenAddress = deployed.contractAddress
 

@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import path from 'path'
 import fs from 'fs'
-import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './types'
+import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network, NetworkType } from './types'
 
 export async function loadConfig<Settings = unknown>(filename: string): Promise<Configuration<Settings>> {
   const configPath = path.resolve(filename)
@@ -55,4 +55,17 @@ export async function isDevnetLive(): Promise<boolean> {
   } catch (e) {
     return false
   }
+}
+
+export function getDeploymentFilePath(networkType: NetworkType, network: Network): string {
+  return network.deploymentStatusFile ? network.deploymentStatusFile : `.deployments.${networkType}.json`
+}
+
+export function getNetwork<Settings = unknown>(
+  configuration: Configuration<Settings>,
+  networkType: NetworkType
+): Network<Settings> & { networkId: number } {
+  const networkInput = configuration.networks[networkType]
+  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
+  return { ...defaultValues, ...networkInput }
 }
