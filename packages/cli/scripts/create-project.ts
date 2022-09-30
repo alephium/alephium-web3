@@ -48,6 +48,10 @@ function prepareShared(packageRoot: string, projectRoot: string) {
 function prepareBase(packageRoot: string, projectRoot: string) {
   prepareShared(packageRoot, projectRoot)
   fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
+
+  console.log('Initializing the project')
+  execSync('npm install', { cwd: projectRoot })
+  console.log()
 }
 
 function prepareReact(packageRoot: string, projectRoot: string) {
@@ -57,7 +61,7 @@ function prepareReact(packageRoot: string, projectRoot: string) {
   prepareShared(packageRoot, projectRoot)
   fsExtra.copySync(path.join(packageRoot, 'templates/react'), projectRoot)
 
-  console.log('Initialize the project')
+  console.log('Initializing the project')
   execSync(
     'npm install --save-dev react-app-rewired crypto-browserify stream-browserify buffer process eslint-config-prettier eslint-plugin-header eslint-plugin-prettier eslint-plugin-react',
     { cwd: projectRoot }
