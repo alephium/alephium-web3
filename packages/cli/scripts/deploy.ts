@@ -16,19 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NetworkType, Configuration, DEFAULT_CONFIGURATION_VALUES } from '../src/types'
+import { NetworkType, Configuration } from '../src/types'
 import { deploy, Deployments } from '../src/deployment'
+import { getDeploymentFilePath, getNetwork } from '../src'
 
 export async function deployAndSaveProgress<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkType: NetworkType
 ): Promise<void> {
-  const networkInput = configuration.networks[networkType]
-  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
-  const network = { ...defaultValues, ...networkInput }
-  const deploymentsFile = network.deploymentStatusFile
-    ? network.deploymentStatusFile
-    : `.deployments.${networkType}.json`
+  const network = getNetwork(configuration, networkType)
+  const deploymentsFile = getDeploymentFilePath(networkType, network)
   const deployments = await Deployments.from(deploymentsFile)
   try {
     await deploy(configuration, networkType, deployments)

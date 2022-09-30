@@ -1,5 +1,5 @@
 // Defines a contract named `TokenFaucet`.
-// A contract is a collection of fields and functions (its state).
+// A contract is a collection of fields (its state) and functions.
 // Once deployed, a contract resides at a specific address on the Alephium blockchain.
 // Contract fields are permanently stored in contract storage.
 // A contract can issue an initial amount of token at its deployment.

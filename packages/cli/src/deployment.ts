@@ -34,7 +34,7 @@ import {
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from './types'
-import { getConfigFile, loadConfig } from './utils'
+import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './utils'
 
 export class Deployments {
   groups: Map<number, DeploymentsPerGroup>
@@ -89,6 +89,12 @@ export class Deployments {
       groups.set(groupIndex, deploymentsPerGroup)
     })
     return new Deployments(groups)
+  }
+
+  static async load(configuration: Configuration, networkType: NetworkType): Promise<Deployments> {
+    const network = getNetwork(configuration, networkType)
+    const deploymentsFile = getDeploymentFilePath(networkType, network)
+    return Deployments.from(deploymentsFile)
   }
 }
 
@@ -376,9 +382,7 @@ export async function deploy<Settings = unknown>(
   networkType: NetworkType,
   deployments: Deployments
 ): Promise<void> {
-  const networkInput = configuration.networks[networkType]
-  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
-  const network = { ...defaultValues, ...networkInput }
+  const network = await getNetwork(configuration, networkType)
   if (typeof network === 'undefined') {
     throw new Error(`no network ${networkType} config`)
   }
@@ -424,7 +428,7 @@ export async function deploy<Settings = unknown>(
   }
 }
 
-export async function deployToDevnet<Settings = unknown>(): Promise<Deployments> {
+export async function deployToDevnet(): Promise<Deployments> {
   const deployments = Deployments.empty()
   const configuration = await loadConfig(getConfigFile())
   await deploy(configuration, 'devnet', deployments)
