@@ -129,5 +129,5 @@ describe("integration tests", () => {
         expect(newBalance).toEqual(initialBalance - i - 1)
       }
     }
-  })
+  }, 20000)
 })
