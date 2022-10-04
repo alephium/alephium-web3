@@ -27,7 +27,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "1.5.0-rc10",
+    "alephium_version": "1.5.0-rc11",
     "explorer_backend_version": "1.9.0-rc0"
   },
   "scripts": {
