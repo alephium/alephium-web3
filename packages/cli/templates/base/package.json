@@ -11,10 +11,10 @@
     "lint:fix": "eslint . --fix --ext ts"
   },
   "dependencies": {
-    "@alephium/web3": "0.2.0-rc.29",
-    "@alephium/web3-test": "0.2.0-rc.29",
-    "@alephium/web3-wallet": "0.2.0-rc.29",
-    "@alephium/cli": "0.2.0-rc.29"
+    "@alephium/web3": "0.2.0-rc.30",
+    "@alephium/web3-test": "0.2.0-rc.30",
+    "@alephium/web3-wallet": "0.2.0-rc.30",
+    "@alephium/cli": "0.2.0-rc.30"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
