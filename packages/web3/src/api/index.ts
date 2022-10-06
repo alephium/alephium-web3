@@ -19,22 +19,60 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Api as NodeApi } from './api-alephium'
 import { Api as ExplorerApi } from './api-explorer'
 
-export class NodeProvider extends NodeApi<string> {
+export class NodeProvider {
+  wallets: NodeApi<string>['wallets']
+  infos: NodeApi<string>['infos']
+  blockflow: NodeApi<string>['blockflow']
+  addresses: NodeApi<string>['addresses']
+  transactions: NodeApi<string>['transactions']
+  contracts: NodeApi<string>['contracts']
+  multisig: NodeApi<string>['multisig']
+  utils: NodeApi<string>['utils']
+  miners: NodeApi<string>['miners']
+  events: NodeApi<string>['events']
+
   constructor(baseUrl: string, apiKey?: string) {
-    super({
+    const nodeApi = new NodeApi<string>({
       baseUrl: baseUrl,
       baseApiParams: { secure: true },
       securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {})
     })
-    this.setSecurityData(apiKey ?? null)
+    nodeApi.setSecurityData(apiKey ?? null)
+
+    this.wallets = nodeApi.wallets
+    this.infos = nodeApi.infos
+    this.blockflow = nodeApi.blockflow
+    this.addresses = nodeApi.addresses
+    this.transactions = nodeApi.transactions
+    this.contracts = nodeApi.contracts
+    this.multisig = nodeApi.multisig
+    this.utils = nodeApi.utils
+    this.miners = nodeApi.miners
+    this.events = nodeApi.events
   }
 
+  // Have to duplicate the code above due to proxy pattern
   reset(baseUrl: string, apiKey?: string): void {
-    this.baseUrl = baseUrl
-    this.setSecurityData(apiKey ?? null)
+    const nodeApi = new NodeApi<string>({
+      baseUrl: baseUrl,
+      baseApiParams: { secure: true },
+      securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {})
+    })
+    nodeApi.setSecurityData(apiKey ?? null)
+    this.wallets = nodeApi.wallets
+    this.infos = nodeApi.infos
+    this.blockflow = nodeApi.blockflow
+    this.addresses = nodeApi.addresses
+    this.transactions = nodeApi.transactions
+    this.contracts = nodeApi.contracts
+    this.multisig = nodeApi.multisig
+    this.utils = nodeApi.utils
+    this.miners = nodeApi.miners
+    this.events = nodeApi.events
   }
 }
 
+// TODO: use proxy provider once the endpoints are refined.
 export class ExplorerProvider extends ExplorerApi<null> {
   constructor(baseUrl: string) {
     super({ baseUrl: baseUrl })
