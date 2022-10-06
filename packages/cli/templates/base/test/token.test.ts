@@ -122,7 +122,10 @@ describe("integration tests", () => {
           initialFields: { token: tokenId, amount: 1 }
         })
 
-        await signer.submitTransaction(withdrawTX.unsignedTx)
+        await signer.signAndSubmitUnsignedTx({
+          unsignedTx: withdrawTX.unsignedTx,
+          signerAddress: testAddress
+        })
 
         const newState = await token.fetchState(tokenAddress, testGroup)
         const newBalance = newState.fields.balance as number
