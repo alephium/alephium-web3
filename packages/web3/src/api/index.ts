@@ -21,17 +21,17 @@ import { Api as ExplorerApi } from './api-explorer'
 
 export class NodeProvider extends NodeApi<string> {
   constructor(baseUrl: string, apiKey?: string) {
-    // eslint-disable-next-line security/detect-possible-timing-attacks
-    if (apiKey === undefined) {
-      super({ baseUrl: baseUrl })
-    } else {
-      super({
-        baseUrl: baseUrl,
-        baseApiParams: { secure: true },
-        securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {})
-      })
-      this.setSecurityData(apiKey)
-    }
+    super({
+      baseUrl: baseUrl,
+      baseApiParams: { secure: true },
+      securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {})
+    })
+    this.setSecurityData(apiKey ?? null)
+  }
+
+  reset(baseUrl: string, apiKey?: string): void {
+    this.baseUrl = baseUrl
+    this.setSecurityData(apiKey ?? null)
   }
 }
 
