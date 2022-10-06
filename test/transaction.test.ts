@@ -57,7 +57,10 @@ describe('transactions', function () {
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'TxNotFound' })
 
-    await signer.submitTransaction(subDeployTx.unsignedTx)
+    await signer.signAndSubmitUnsignedTx({
+      unsignedTx: subDeployTx.unsignedTx,
+      signerAddress: (await signer.getSelectedAccount()).address
+    })
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
 

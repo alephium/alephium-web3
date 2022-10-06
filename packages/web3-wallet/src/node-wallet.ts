@@ -16,15 +16,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Account, SignerWithNodeProvider } from '@alephium/web3'
+import { web3, Account, SignerProviderWithMultipleAccounts, NodeProvider } from '@alephium/web3'
 
-export class NodeWallet extends SignerWithNodeProvider {
+export class NodeWallet extends SignerProviderWithMultipleAccounts {
   public walletName: string
   private accounts: Account[] | undefined
+  public readonly nodeProvider: NodeProvider
 
-  constructor(walletName: string, alwaysSubmitTx = true) {
-    super(alwaysSubmitTx)
+  constructor(walletName: string, nodeProvider?: NodeProvider) {
+    super()
     this.walletName = walletName
+    this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
   }
 
   async getAccounts(): Promise<Account[]> {
@@ -34,25 +36,12 @@ export class NodeWallet extends SignerWithNodeProvider {
     return this.accounts
   }
 
-  async setActiveAccount(addressIndex: number): Promise<void>
-  async setActiveAccount(address: string): Promise<void>
-  async setActiveAccount(input: unknown): Promise<void> {
-    let address: string
-    if (typeof input === 'string') {
-      address = input
-    } else if (typeof input === 'number') {
-      const accounts = await this.getAccounts()
-      address = accounts[`${input}`].address
-    } else {
-      throw Error(`Invalid parameter for 'setActiveAccount'`)
-    }
-    await web3
-      .getCurrentNodeProvider()
-      .wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: address })
+  async setSelectedAccount(address: string): Promise<void> {
+    await this.nodeProvider.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: address })
   }
 
-  async getActiveAccount(): Promise<Account> {
-    const activeAddress = await web3.getCurrentNodeProvider().wallets.getWalletsWalletNameAddresses(this.walletName)
+  async getSelectedAccount(): Promise<Account> {
+    const activeAddress = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const accounts = await this.getAccounts()
     const activeAccount = accounts.find((account) => {
       return account.address === activeAddress.activeAddress
@@ -64,7 +53,7 @@ export class NodeWallet extends SignerWithNodeProvider {
   }
 
   private async getAllAccounts(): Promise<Account[]> {
-    const walletAddresses = await web3.getCurrentNodeProvider().wallets.getWalletsWalletNameAddresses(this.walletName)
+    const walletAddresses = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const accounts: Account[] = walletAddresses.addresses.map<Account>((acc) => ({
       publicKey: acc.publicKey,
       address: acc.address,
@@ -74,7 +63,7 @@ export class NodeWallet extends SignerWithNodeProvider {
   }
 
   async signRaw(signerAddress: string, hexString: string): Promise<string> {
-    const provider = web3.getCurrentNodeProvider()
+    const provider = this.nodeProvider
     const currentActiveAddressResponse = await provider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const { activeAddress } = currentActiveAddressResponse
     await provider.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: signerAddress })
@@ -86,10 +75,10 @@ export class NodeWallet extends SignerWithNodeProvider {
   }
 
   async unlock(password: string): Promise<void> {
-    return await web3.getCurrentNodeProvider().wallets.postWalletsWalletNameUnlock(this.walletName, { password })
+    return await this.nodeProvider.wallets.postWalletsWalletNameUnlock(this.walletName, { password })
   }
 
   async lock(): Promise<void> {
-    return await web3.getCurrentNodeProvider().wallets.postWalletsWalletNameLock(this.walletName)
+    return await this.nodeProvider.wallets.postWalletsWalletNameLock(this.walletName)
   }
 }

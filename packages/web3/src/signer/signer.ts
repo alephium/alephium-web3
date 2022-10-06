@@ -20,6 +20,7 @@ import { ec as EC } from 'elliptic'
 import {
   fromApiNumber256,
   fromApiTokens,
+  NodeProvider,
   Number256,
   toApiNumber256,
   toApiNumber256Optional,
@@ -50,9 +51,8 @@ export interface Account {
   publicKey: string
 }
 
-export type SubmitTx = { submitTx?: boolean }
 export type SignerAddress = { signerAddress: string }
-type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress & SubmitTx
+type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress
 
 export type GetAccountsParams = undefined
 export type GetAccountsResult = Account[]
@@ -63,7 +63,6 @@ export interface SignTransferTxParams {
   utxos?: OutputRef[]
   gasAmount?: number
   gasPrice?: Number256
-  submitTx?: boolean
 }
 assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransaction>>>()
 export interface SignTransferTxResult {
@@ -83,7 +82,6 @@ export interface SignDeployContractTxParams {
   issueTokenAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
-  submitTx?: boolean
 }
 assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignDeployContractTxResult {
@@ -104,7 +102,6 @@ export interface SignExecuteScriptTxParams {
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: string
-  submitTx?: boolean
 }
 assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {
@@ -119,9 +116,8 @@ assertType<Eq<SignExecuteScriptTxResult, SignResult>>()
 export interface SignUnsignedTxParams {
   signerAddress: string
   unsignedTx: string
-  submitTx?: boolean
 }
-assertType<Eq<SignUnsignedTxParams, { unsignedTx: string } & SubmitTx & SignerAddress>>()
+assertType<Eq<SignUnsignedTxParams, { unsignedTx: string } & SignerAddress>>()
 export interface SignUnsignedTxResult {
   fromGroup: number
   toGroup: number
@@ -151,8 +147,8 @@ export interface SignMessageResult {
 }
 assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 
-export interface SignerProvider {
-  getAccounts(): Promise<Account[]>
+export interface SignerProviderWithoutNodeProvider {
+  getSelectedAccount(): Promise<Account>
   signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
   signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
   signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
@@ -161,63 +157,47 @@ export interface SignerProvider {
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
-export abstract class SignerWithNodeProvider implements SignerProvider {
-  alwaysSubmitTx: boolean
+export abstract class SignerProvider implements SignerProviderWithoutNodeProvider {
+  abstract get nodeProvider(): NodeProvider
+  abstract getSelectedAccount(): Promise<Account>
 
-  abstract getAccounts(): Promise<Account[]>
-
-  async getAccount(signerAddress: string): Promise<Account> {
-    const accounts = await this.getAccounts()
-    const account = accounts.find((a) => a.address === signerAddress)
-    if (typeof account === 'undefined') {
-      throw new Error('Unmatched signerAddress')
-    } else {
-      return account
-    }
-  }
-
-  abstract setActiveAccount(addressIndex: number): Promise<void>
-  abstract setActiveAccount(address: string): Promise<void>
-  abstract setActiveAccount(input: unknown): Promise<void>
-
-  abstract getActiveAccount(): Promise<Account>
-
-  constructor(alwaysSubmitTx: boolean) {
-    this.alwaysSubmitTx = alwaysSubmitTx
-  }
-
-  async submitTransaction(unsignedTx: string, signerAddress?: string): Promise<SubmissionResult> {
-    const decoded = await web3
-      .getCurrentNodeProvider()
-      .transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: unsignedTx })
-    const txId = decoded.unsignedTx.txId
-
-    const address = typeof signerAddress !== 'undefined' ? signerAddress : (await this.getActiveAccount()).address
-    const signature = await this.signRaw(address, txId)
+  async submitTransaction(unsignedTx: string, signature: string): Promise<SubmissionResult> {
     const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
-    return web3.getCurrentNodeProvider().transactions.postTransactionsSubmit(params)
+    return this.nodeProvider.transactions.postTransactionsSubmit(params)
   }
 
-  private shouldSubmitTx(params: SubmitTx): boolean {
-    return this.alwaysSubmitTx || (params.submitTx ? params.submitTx : true)
+  async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SubmissionResult> {
+    const signResult = await this.signTransferTx(params)
+    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+  }
+  async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SubmissionResult> {
+    const signResult = await this.signDeployContractTx(params)
+    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+  }
+  async signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SubmissionResult> {
+    const signResult = await this.signExecuteScriptTx(params)
+    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+  }
+  async signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SubmissionResult> {
+    const signResult = await this.signUnsignedTx(params)
+    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
   }
 
   private async usePublicKey<T extends SignerAddress>(
     params: T
   ): Promise<Omit<T, 'signerAddress'> & { fromPublicKey: string }> {
     const { signerAddress, ...restParams } = params
-    const allAccounts = await this.getAccounts()
-    const signerAccount = allAccounts.find((account) => account.address === signerAddress)
-    if (typeof signerAccount === 'undefined') {
-      throw new Error('Unknown signer address')
+    const selectedAccount = await this.getSelectedAccount()
+    if (signerAddress !== selectedAccount.address) {
+      throw new Error('The signer address is not the selected address')
     } else {
-      return { fromPublicKey: signerAccount.publicKey, ...restParams }
+      return { fromPublicKey: selectedAccount.publicKey, ...restParams }
     }
   }
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const response = await this.buildTransferTx(params)
-    return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
+    return this.handleSign({ signerAddress: params.signerAddress, ...response })
   }
 
   async buildTransferTx(params: SignTransferTxParams): Promise<node.BuildTransactionResult> {
@@ -231,10 +211,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     const response = await this.buildContractCreationTx(params)
-    const result = await this.handleSign(
-      { signerAddress: params.signerAddress, ...response },
-      this.shouldSubmitTx(params)
-    )
+    const result = await this.handleSign({ signerAddress: params.signerAddress, ...response })
     const contractId = utils.binToHex(utils.contractIdFromAddress(response.contractAddress))
     return { ...result, contractId: contractId, contractAddress: response.contractAddress }
   }
@@ -252,7 +229,7 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
     const response = await this.buildScriptTx(params)
-    return this.handleSign({ signerAddress: params.signerAddress, ...response }, this.shouldSubmitTx(params))
+    return this.handleSign({ signerAddress: params.signerAddress, ...response })
   }
 
   async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
@@ -268,31 +245,24 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
     const decoded = await web3.getCurrentNodeProvider().transactions.postTransactionsDecodeUnsignedTx(data)
-    return this.handleSign(
-      {
-        fromGroup: decoded.fromGroup,
-        toGroup: decoded.toGroup,
-        signerAddress: params.signerAddress,
-        unsignedTx: params.unsignedTx,
-        txId: decoded.unsignedTx.txId
-      },
-      params.submitTx ? params.submitTx : true // we don't consider `alwaysSubmitTx` as the tx might needs multiple signatures
-    )
+    return this.handleSign({
+      fromGroup: decoded.fromGroup,
+      toGroup: decoded.toGroup,
+      signerAddress: params.signerAddress,
+      unsignedTx: params.unsignedTx,
+      txId: decoded.unsignedTx.txId
+    })
   }
 
-  protected async handleSign(
-    response: { fromGroup: number; toGroup: number; signerAddress: string; unsignedTx: string; txId: string },
-    submitTx: boolean
-  ): Promise<SignResult> {
+  protected async handleSign(response: {
+    fromGroup: number
+    toGroup: number
+    signerAddress: string
+    unsignedTx: string
+    txId: string
+  }): Promise<SignResult> {
     // sign the tx
     const signature = await this.signRaw(response.signerAddress, response.txId)
-    // submit the tx if required
-    if (submitTx) {
-      await web3.getCurrentNodeProvider().transactions.postTransactionsSubmit({
-        unsignedTx: response.unsignedTx,
-        signature: signature
-      })
-    }
     // return the signature back to the provider
     return {
       fromGroup: response.fromGroup,
@@ -316,6 +286,22 @@ export abstract class SignerWithNodeProvider implements SignerProvider {
   }
 
   abstract signRaw(signerAddress: string, hexString: string): Promise<string>
+}
+
+export abstract class SignerProviderWithMultipleAccounts extends SignerProvider {
+  abstract getAccounts(): Promise<Account[]>
+
+  async getAccount(signerAddress: string): Promise<Account> {
+    const accounts = await this.getAccounts()
+    const account = accounts.find((a) => a.address === signerAddress)
+    if (typeof account === 'undefined') {
+      throw new Error('Unmatched signerAddress')
+    } else {
+      return account
+    }
+  }
+
+  abstract setSelectedAccount(address: string): Promise<void>
 }
 
 export interface SubmissionResult {

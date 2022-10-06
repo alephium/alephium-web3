@@ -36,7 +36,7 @@ import {
   fromApiTokens,
   fromApiVals
 } from '../api'
-import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerWithNodeProvider } from '../signer'
+import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerProvider } from '../signer'
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 import { getCurrentNodeProvider } from '../global'
@@ -823,12 +823,12 @@ export class Contract extends Artifact {
   }
 
   async transactionForDeployment(
-    signer: SignerWithNodeProvider,
+    signer: SignerProvider,
     params: Omit<BuildDeployContractTx, 'signerAddress'>
   ): Promise<DeployContractTransaction> {
     const signerParams = await this.paramsForDeployment({
       ...params,
-      signerAddress: (await signer.getActiveAccount()).address
+      signerAddress: (await signer.getSelectedAccount()).address
     })
     const response = await signer.buildContractCreationTx(signerParams)
     return fromApiDeployContractUnsignedTx(response)
@@ -909,12 +909,12 @@ export class Script extends Artifact {
   }
 
   async transactionForDeployment(
-    signer: SignerWithNodeProvider,
+    signer: SignerProvider,
     params: Omit<BuildExecuteScriptTx, 'signerAddress'>
   ): Promise<BuildScriptTxResult> {
     const signerParams = await this.paramsForDeployment({
       ...params,
-      signerAddress: (await signer.getActiveAccount()).address
+      signerAddress: (await signer.getSelectedAccount()).address
     })
     return await signer.buildScriptTx(signerParams)
   }
@@ -1112,7 +1112,6 @@ export interface BuildDeployContractTx {
   issueTokenAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
-  submitTx?: boolean
 }
 assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignDeployContractTxParams>>>()
 
@@ -1123,7 +1122,6 @@ export interface BuildExecuteScriptTx {
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
-  submitTx?: boolean
 }
 assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignExecuteScriptTxParams>>>()
 

@@ -17,36 +17,42 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { Account, SignerWithNodeProvider, utils } from '@alephium/web3'
+import { Account, NodeProvider, SignerProvider, utils, web3 } from '@alephium/web3'
 import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd-wallet'
 
 const ec = new EC('secp256k1')
 
-export class PrivateKeyWallet extends SignerWithNodeProvider {
+export class PrivateKeyWallet extends SignerProvider {
   readonly privateKey: string
   readonly publicKey: string
   readonly address: string
   readonly group: number
+  readonly nodeProvider: NodeProvider
+
+  getSelectedAccount(): Promise<Account> {
+    return Promise.resolve(this.account)
+  }
 
   get account(): Account {
     return { address: this.address, publicKey: this.publicKey, group: this.group }
   }
 
-  constructor(privateKey: string, alwaysSubmitTx = true) {
-    super(alwaysSubmitTx)
+  constructor(privateKey: string, nodeProvider?: NodeProvider) {
+    super()
     this.privateKey = privateKey
     this.publicKey = utils.publicKeyFromPrivateKey(privateKey)
     this.address = utils.addressFromPublicKey(this.publicKey)
     this.group = utils.groupOfAddress(this.address)
+    this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
   }
 
-  static Random(targetGroup?: number, alwaysSubmitTx = true): PrivateKeyWallet {
+  static Random(targetGroup?: number, alwaysSubmitTx = true, nodeProvider?: NodeProvider): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), alwaysSubmitTx)
+    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'))
     if (targetGroup === undefined || wallet.group === targetGroup) {
       return wallet
     } else {
-      return PrivateKeyWallet.Random(targetGroup, alwaysSubmitTx)
+      return PrivateKeyWallet.Random(targetGroup, alwaysSubmitTx, nodeProvider)
     }
   }
 
@@ -54,10 +60,10 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
     mnemonic: string,
     addressIndex?: number,
     passphrase?: string,
-    alwaysSubmitTx = true
+    nodeProvider?: NodeProvider
   ): PrivateKeyWallet {
     const privateKey = deriveHDWalletPrivateKey(mnemonic, addressIndex ?? 0, passphrase)
-    return new PrivateKeyWallet(privateKey, alwaysSubmitTx)
+    return new PrivateKeyWallet(privateKey, nodeProvider)
   }
 
   static FromMnemonicWithGroup(
@@ -65,24 +71,10 @@ export class PrivateKeyWallet extends SignerWithNodeProvider {
     targetGroup: number,
     fromAddressIndex?: number,
     passphrase?: string,
-    alwaysSubmitTx = true
+    nodeProvider?: NodeProvider
   ): PrivateKeyWallet {
     const privateKey = deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, fromAddressIndex, passphrase)
-    return new PrivateKeyWallet(privateKey, alwaysSubmitTx)
-  }
-
-  async getAccounts(): Promise<Account[]> {
-    return [this.account]
-  }
-
-  async setActiveAccount(addressIndex: number): Promise<void>
-  async setActiveAccount(address: string): Promise<void>
-  async setActiveAccount(): Promise<void> {
-    return
-  }
-
-  async getActiveAccount(): Promise<Account> {
-    return this.account
+    return new PrivateKeyWallet(privateKey, nodeProvider)
   }
 
   async signRaw(signerAddress: string, hexString: string): Promise<string> {

@@ -264,7 +264,10 @@ async function createDeployer<Settings = unknown>(
     console.log(`Deploying contract ${taskId}`)
     console.log(`Deployer - group ${signer.group} - ${signer.address}`)
     const result = await contract.transactionForDeployment(signer, params)
-    await signer.submitTransaction(result.unsignedTx)
+    await signer.signAndSubmitUnsignedTx({
+      unsignedTx: result.unsignedTx,
+      signerAddress: (await signer.getSelectedAccount()).address
+    })
     const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), result.txId, confirmations)
     const deployContractResult: DeployContractResult = {
       groupIndex: result.fromGroup,
@@ -301,7 +304,10 @@ async function createDeployer<Settings = unknown>(
     }
     console.log(`Executing script ${taskId}`)
     const result = await script.transactionForDeployment(signer, params)
-    await signer.submitTransaction(result.unsignedTx)
+    await signer.signAndSubmitUnsignedTx({
+      unsignedTx: result.unsignedTx,
+      signerAddress: (await signer.getSelectedAccount()).address
+    })
     const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), result.txId, confirmations)
     const runScriptResult: RunScriptResult = {
       groupIndex: result.fromGroup,

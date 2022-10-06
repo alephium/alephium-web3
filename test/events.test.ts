@@ -27,14 +27,16 @@ import { testNodeWallet } from '../packages/web3-test'
 
 describe('events', function () {
   let signer: NodeWallet
-  let activeAccount: Account
-  let accountGroup: number
+  let signerAccount: Account
+  let signerAddress: string
+  let signerGroup: number
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     signer = await testNodeWallet()
-    activeAccount = await signer.getActiveAccount()
-    accountGroup = activeAccount.group
+    signerAccount = await signer.getSelectedAccount()
+    signerAddress = signerAccount.address
+    signerGroup = signerAccount.group
     await Project.build({ errorOnWarnings: false })
   })
 
@@ -45,7 +47,10 @@ describe('events', function () {
       initialTokenAmounts: []
     })
     const subContractId = subDeployTx.contractId
-    const subSubmitResult = await signer.submitTransaction(subDeployTx.unsignedTx)
+    const subSubmitResult = await signer.signAndSubmitUnsignedTx({
+      unsignedTx: subDeployTx.unsignedTx,
+      signerAddress: signerAddress
+    })
     expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
 
     // ignore unused private function warnings
@@ -54,7 +59,10 @@ describe('events', function () {
       initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
     })
-    const addSubmitResult = await signer.submitTransaction(addDeployTx.unsignedTx)
+    const addSubmitResult = await signer.signAndSubmitUnsignedTx({
+      unsignedTx: addDeployTx.unsignedTx,
+      signerAddress: signerAddress
+    })
     expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
     return [addDeployTx.contractAddress, addDeployTx.contractId]
   }
@@ -62,7 +70,7 @@ describe('events', function () {
   async function executeScript(params: SignExecuteScriptTxParams, signer: NodeWallet, times: number) {
     for (let i = 0; i < times; i++) {
       const scriptTx = await signer.buildScriptTx(params)
-      await signer.submitTransaction(scriptTx.unsignedTx)
+      await signer.signAndSubmitUnsignedTx({ unsignedTx: scriptTx.unsignedTx, signerAddress: signerAddress })
     }
   }
 
@@ -85,7 +93,7 @@ describe('events', function () {
     const script = Project.script('Main')
     const scriptTxParams = await script.paramsForDeployment({
       initialFields: { addContractId: contractId },
-      signerAddress: activeAccount.address
+      signerAddress: signerAccount.address
     })
     await executeScript(scriptTxParams, signer, 3)
     await timeout(3000)
@@ -125,7 +133,7 @@ describe('events', function () {
     const scriptTx0 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx0.unsignedTx)
+    await signer.signAndSubmitUnsignedTx({ unsignedTx: scriptTx0.unsignedTx, signerAddress: signerAddress })
     await timeout(1500)
     subscription.unsubscribe()
 
@@ -140,7 +148,7 @@ describe('events', function () {
     const scriptTx1 = await script.transactionForDeployment(signer, {
       initialFields: { addContractId: contractId }
     })
-    await signer.submitTransaction(scriptTx1.unsignedTx)
+    await signer.signAndSubmitUnsignedTx({ unsignedTx: scriptTx1.unsignedTx, signerAddress: signerAddress })
     await timeout(1500)
     expect(events.length).toEqual(1)
   })
