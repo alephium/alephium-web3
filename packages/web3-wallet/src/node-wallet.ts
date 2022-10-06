@@ -16,11 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Account, SignerProviderWithMultipleAccounts, NodeProvider } from '@alephium/web3'
+import { web3, Account, SignerProviderWithMultipleAccounts, NodeProvider, groupOfAddress } from '@alephium/web3'
 
 export class NodeWallet extends SignerProviderWithMultipleAccounts {
   public walletName: string
-  private accounts: Account[] | undefined
   public readonly nodeProvider: NodeProvider
 
   constructor(walletName: string, nodeProvider?: NodeProvider) {
@@ -29,30 +28,11 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
   }
 
-  async getAccounts(): Promise<Account[]> {
-    if (typeof this.accounts === 'undefined') {
-      this.accounts = await this.getAllAccounts()
-    }
-    return this.accounts
-  }
-
   async setSelectedAccount(address: string): Promise<void> {
     await this.nodeProvider.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: address })
   }
 
-  async getSelectedAccount(): Promise<Account> {
-    const activeAddress = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
-    const accounts = await this.getAccounts()
-    const activeAccount = accounts.find((account) => {
-      return account.address === activeAddress.activeAddress
-    })
-    if (activeAccount === undefined) {
-      throw Error(`The active account is a new one, please re-initiate your TS node wallet.`)
-    }
-    return activeAccount
-  }
-
-  private async getAllAccounts(): Promise<Account[]> {
+  async getAccounts(): Promise<Account[]> {
     const walletAddresses = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const accounts: Account[] = walletAddresses.addresses.map<Account>((acc) => ({
       publicKey: acc.publicKey,
@@ -60,6 +40,16 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
       group: acc.group
     }))
     return accounts
+  }
+
+  async getSelectedAccount(): Promise<Account> {
+    const response = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
+    const selectedAddressInfo = response.addresses.find((info) => info.address === response.activeAddress)!
+    return {
+      address: selectedAddressInfo.address,
+      group: groupOfAddress(selectedAddressInfo.address),
+      publicKey: selectedAddressInfo.publicKey
+    }
   }
 
   async signRaw(signerAddress: string, hexString: string): Promise<string> {

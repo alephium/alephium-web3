@@ -31,7 +31,6 @@ import { node } from '../api'
 import * as utils from '../utils'
 import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
-import { web3 } from '..'
 
 export type OutputRef = node.OutputRef
 
@@ -206,7 +205,7 @@ export abstract class SignerProvider implements SignerProviderWithoutNodeProvide
       destinations: toApiDestinations(params.destinations),
       gasPrice: toApiNumber256Optional(params.gasPrice)
     }
-    return web3.getCurrentNodeProvider().transactions.postTransactionsBuild(data)
+    return this.nodeProvider.transactions.postTransactionsBuild(data)
   }
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
@@ -224,7 +223,7 @@ export abstract class SignerProvider implements SignerProviderWithoutNodeProvide
       issueTokenAmount: toApiNumber256Optional(params.issueTokenAmount),
       gasPrice: toApiNumber256Optional(params.gasPrice)
     }
-    return web3.getCurrentNodeProvider().contracts.postContractsUnsignedTxDeployContract(data)
+    return this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
   }
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
@@ -237,14 +236,14 @@ export abstract class SignerProvider implements SignerProviderWithoutNodeProvide
       ...(await this.usePublicKey(params)),
       tokens: toApiTokens(params.tokens)
     }
-    return web3.getCurrentNodeProvider().contracts.postContractsUnsignedTxExecuteScript(data)
+    return this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
   }
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
-    const decoded = await web3.getCurrentNodeProvider().transactions.postTransactionsDecodeUnsignedTx(data)
+    const decoded = await this.nodeProvider.transactions.postTransactionsDecodeUnsignedTx(data)
     return this.handleSign({
       fromGroup: decoded.fromGroup,
       toGroup: decoded.toGroup,

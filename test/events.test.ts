@@ -29,14 +29,12 @@ describe('events', function () {
   let signer: NodeWallet
   let signerAccount: Account
   let signerAddress: string
-  let signerGroup: number
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     signer = await testNodeWallet()
     signerAccount = await signer.getSelectedAccount()
     signerAddress = signerAccount.address
-    signerGroup = signerAccount.group
     await Project.build({ errorOnWarnings: false })
   })
 
