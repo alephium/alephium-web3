@@ -30,16 +30,16 @@ function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
 }
 
 export class NodeProvider {
-  wallets: NodeApi<string>['wallets']
-  infos: NodeApi<string>['infos']
-  blockflow: NodeApi<string>['blockflow']
-  addresses: NodeApi<string>['addresses']
-  transactions: NodeApi<string>['transactions']
-  contracts: NodeApi<string>['contracts']
-  multisig: NodeApi<string>['multisig']
-  utils: NodeApi<string>['utils']
-  miners: NodeApi<string>['miners']
-  events: NodeApi<string>['events']
+  readonly wallets: NodeApi<string>['wallets']
+  readonly infos: NodeApi<string>['infos']
+  readonly blockflow: NodeApi<string>['blockflow']
+  readonly addresses: NodeApi<string>['addresses']
+  readonly transactions: NodeApi<string>['transactions']
+  readonly contracts: NodeApi<string>['contracts']
+  readonly multisig: NodeApi<string>['multisig']
+  readonly utils: NodeApi<string>['utils']
+  readonly miners: NodeApi<string>['miners']
+  readonly events: NodeApi<string>['events']
 
   constructor(baseUrl: string, apiKey?: string) {
     const nodeApi = initializeNodeApi(baseUrl, apiKey)
