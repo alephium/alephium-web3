@@ -55,22 +55,6 @@ export class NodeProvider {
     this.miners = nodeApi.miners
     this.events = nodeApi.events
   }
-
-  // Have to duplicate the code above due to proxy pattern
-  reset(baseUrl: string, apiKey?: string): void {
-    const nodeApi = initializeNodeApi(baseUrl, apiKey)
-
-    this.wallets = nodeApi.wallets
-    this.infos = nodeApi.infos
-    this.blockflow = nodeApi.blockflow
-    this.addresses = nodeApi.addresses
-    this.transactions = nodeApi.transactions
-    this.contracts = nodeApi.contracts
-    this.multisig = nodeApi.multisig
-    this.utils = nodeApi.utils
-    this.miners = nodeApi.miners
-    this.events = nodeApi.events
-  }
 }
 
 // TODO: use proxy provider once the endpoints are refined.
