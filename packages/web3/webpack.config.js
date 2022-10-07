@@ -51,6 +51,9 @@ module.exports = {
       type: 'umd'
     }
   },
+  experiments: {
+    asyncWebAssembly: true
+  },
   optimization: {
     minimize: true
   }
