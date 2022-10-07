@@ -146,23 +146,20 @@ export interface SignMessageResult {
 }
 assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 
-export interface SignerProviderWithoutNodeProvider {
-  getSelectedAccount(): Promise<Account>
-  signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
-  signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
-  signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
-  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
-  signHexString(params: SignHexStringParams): Promise<SignHexStringResult>
-  signMessage(params: SignMessageParams): Promise<SignMessageResult>
-}
-
-export abstract class SignerProvider implements SignerProviderWithoutNodeProvider {
-  abstract get nodeProvider(): NodeProvider
+export abstract class SignerProvider {
+  abstract get nodeProvider(): NodeProvider | undefined
   abstract getSelectedAccount(): Promise<Account>
+
+  private getNodeProvider(): NodeProvider {
+    if (this.nodeProvider === undefined) {
+      throw Error('The signer does not contain a node provider')
+    }
+    return this.nodeProvider
+  }
 
   async submitTransaction(unsignedTx: string, signature: string): Promise<SubmissionResult> {
     const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
-    return this.nodeProvider.transactions.postTransactionsSubmit(params)
+    return this.getNodeProvider().transactions.postTransactionsSubmit(params)
   }
 
   async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SubmissionResult> {
@@ -205,7 +202,7 @@ export abstract class SignerProvider implements SignerProviderWithoutNodeProvide
       destinations: toApiDestinations(params.destinations),
       gasPrice: toApiNumber256Optional(params.gasPrice)
     }
-    return this.nodeProvider.transactions.postTransactionsBuild(data)
+    return this.getNodeProvider().transactions.postTransactionsBuild(data)
   }
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
@@ -223,7 +220,7 @@ export abstract class SignerProvider implements SignerProviderWithoutNodeProvide
       issueTokenAmount: toApiNumber256Optional(params.issueTokenAmount),
       gasPrice: toApiNumber256Optional(params.gasPrice)
     }
-    return this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
+    return this.getNodeProvider().contracts.postContractsUnsignedTxDeployContract(data)
   }
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
@@ -236,14 +233,14 @@ export abstract class SignerProvider implements SignerProviderWithoutNodeProvide
       ...(await this.usePublicKey(params)),
       tokens: toApiTokens(params.tokens)
     }
-    return this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
+    return this.getNodeProvider().contracts.postContractsUnsignedTxExecuteScript(data)
   }
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
-    const decoded = await this.nodeProvider.transactions.postTransactionsDecodeUnsignedTx(data)
+    const decoded = await this.getNodeProvider().transactions.postTransactionsDecodeUnsignedTx(data)
     return this.handleSign({
       fromGroup: decoded.fromGroup,
       toGroup: decoded.toGroup,
@@ -301,6 +298,25 @@ export abstract class SignerProviderWithMultipleAccounts extends SignerProvider 
   }
 
   abstract setSelectedAccount(address: string): Promise<void>
+}
+
+export class SignerProviderWrapper extends SignerProvider {
+  signer: SignerProvider
+  nodeProvider: NodeProvider
+
+  constructor(signer: SignerProvider, nodeProvider: NodeProvider) {
+    super()
+    this.signer = signer
+    this.nodeProvider = nodeProvider
+  }
+
+  getSelectedAccount(): Promise<Account> {
+    return this.signer.getSelectedAccount()
+  }
+
+  signRaw(signerAddress: string, hexString: string): Promise<string> {
+    return this.signer.signRaw(signerAddress, hexString)
+  }
 }
 
 export interface SubmissionResult {

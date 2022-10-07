@@ -24,6 +24,7 @@ export const testMnemonic =
   'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
 export const testWalletName = 'alephium-web3-test-only-wallet'
 export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
+export const testPrivateKey = 'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5'
 export const testPassword = 'alph'
 
 export async function testNodeWallet(): Promise<NodeWallet> {
