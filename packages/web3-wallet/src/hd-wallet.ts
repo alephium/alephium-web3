@@ -21,10 +21,9 @@ import { BIP32Factory } from 'bip32'
 import * as bip39 from 'bip39'
 import * as ecc from 'tiny-secp256k1'
 
-const bip32 = BIP32Factory(ecc)
-
 export function deriveHDWalletPrivateKey(mnemonic: string, addressIndex: number, passphrase?: string): string {
   const seed = bip39.mnemonicToSeedSync(mnemonic, passphrase)
+  const bip32 = BIP32Factory(ecc)
   const masterKey = bip32.fromSeed(seed)
   const keyPair = masterKey.derivePath(getHDWalletPath(addressIndex))
 
