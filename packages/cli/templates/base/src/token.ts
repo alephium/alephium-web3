@@ -23,7 +23,7 @@ async function withdraw() {
   // The wallet calls withdraw function for all of the address groups
   for (const account of await signer.getAccounts()) {
     // Set an active account to prepare and sign transactions
-    await signer.setActiveAccount(account.address)
+    await signer.setSelectedAccount(account.address)
     const accountGroup = account.group
 
     // Load the metadata of the deployed contract in the right group
@@ -36,7 +36,10 @@ async function withdraw() {
       initialFields: { token: tokenId, amount: 1 }
     })
     // Sign and submit the transaction to the local Devnet
-    await signer.submitTransaction(withdrawTX.unsignedTx)
+    await signer.signAndSubmitUnsignedTx({
+      unsignedTx: withdrawTX.unsignedTx,
+      signerAddress: account.address
+    })
 
     // Fetch the latest state of the token contract
     let state = await token.fetchState(tokenAddress, accountGroup)

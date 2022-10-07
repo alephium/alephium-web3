@@ -30,6 +30,7 @@ describe('node wallet', () => {
     const accounts = await wallet.getAccounts()
     const toAccount = accounts[0]
     for (const fromAccount of accounts) {
+      await wallet.setSelectedAccount(fromAccount.address)
       await wallet.signTransferTx({
         signerAddress: fromAccount.address,
         destinations: [{ address: toAccount.address, attoAlphAmount: BigInt(1e18) }]
@@ -42,16 +43,16 @@ describe('node wallet', () => {
     const accounts = await wallet.getAccounts()
     const toAccount = accounts[0]
     for (const fromAccount of accounts) {
-      wallet.setActiveAccount(fromAccount.address)
+      await wallet.setSelectedAccount(fromAccount.address)
       const tx = await wallet.buildTransferTx({
         signerAddress: fromAccount.address,
         destinations: [{ address: toAccount.address, attoAlphAmount: BigInt(1e18) }]
       })
-      await wallet.submitTransaction(tx.unsignedTx, fromAccount.address)
+      await wallet.signAndSubmitUnsignedTx({ unsignedTx: tx.unsignedTx, signerAddress: fromAccount.address })
     }
   })
 
-  it('should change active address', async () => {
+  it('should change selected address', async () => {
     const provider = web3.getCurrentNodeProvider()
 
     const walletName = randomBytes(32).toString('hex')
@@ -62,13 +63,13 @@ describe('node wallet', () => {
     expect(accounts.length).toEqual(4)
 
     for (const account of accounts) {
-      await nodeWallet.setActiveAccount(account.address)
-      expect(await nodeWallet.getActiveAccount()).toEqual(account)
+      await nodeWallet.setSelectedAccount(account.address)
+      expect(await nodeWallet.getSelectedAccount()).toEqual(account)
     }
     for (let i = 0; i < 4; i++) {
       const account = accounts[`${i}`]
-      await nodeWallet.setActiveAccount(i)
-      expect(await nodeWallet.getActiveAccount()).toEqual(account)
+      await nodeWallet.setSelectedAccount(account.address)
+      expect(await nodeWallet.getSelectedAccount()).toEqual(account)
     }
   })
 })

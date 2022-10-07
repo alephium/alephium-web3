@@ -17,8 +17,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import EventEmitter from 'eventemitter3'
-import { getCurrentNodeProvider } from '../global'
-import { NodeProvider } from '../api'
 
 type MessageCallback<Message> = (message: Message) => Promise<void>
 type ErrorCallback<Message> = (error: any, subscription: Subscription<Message>) => Promise<void>

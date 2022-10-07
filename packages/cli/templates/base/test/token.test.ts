@@ -103,7 +103,7 @@ describe("integration tests", () => {
     // Test with all of the addresses of the wallet
     for (const account of await signer.getAccounts()) {
       const testAddress = account.address
-      await signer.setActiveAccount(testAddress)
+      await signer.setSelectedAccount(testAddress)
       const testGroup = account.group
 
       // The contract is deployed to all groups
@@ -122,7 +122,10 @@ describe("integration tests", () => {
           initialFields: { token: tokenId, amount: 1 }
         })
 
-        await signer.submitTransaction(withdrawTX.unsignedTx)
+        await signer.signAndSubmitUnsignedTx({
+          unsignedTx: withdrawTX.unsignedTx,
+          signerAddress: testAddress
+        })
 
         const newState = await token.fetchState(tokenAddress, testGroup)
         const newBalance = newState.fields.balance as number
