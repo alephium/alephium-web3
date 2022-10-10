@@ -29,7 +29,20 @@ function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
   return nodeApi
 }
 
-export class NodeProvider {
+interface INodeProvider {
+  readonly wallets: NodeApi<string>['wallets']
+  readonly infos: NodeApi<string>['infos']
+  readonly blockflow: NodeApi<string>['blockflow']
+  readonly addresses: NodeApi<string>['addresses']
+  readonly transactions: NodeApi<string>['transactions']
+  readonly contracts: NodeApi<string>['contracts']
+  readonly multisig: NodeApi<string>['multisig']
+  readonly utils: NodeApi<string>['utils']
+  readonly miners: NodeApi<string>['miners']
+  readonly events: NodeApi<string>['events']
+}
+
+export class NodeProvider implements INodeProvider {
   readonly wallets: NodeApi<string>['wallets']
   readonly infos: NodeApi<string>['infos']
   readonly blockflow: NodeApi<string>['blockflow']
@@ -41,8 +54,15 @@ export class NodeProvider {
   readonly miners: NodeApi<string>['miners']
   readonly events: NodeApi<string>['events']
 
-  constructor(baseUrl: string, apiKey?: string) {
-    const nodeApi = initializeNodeApi(baseUrl, apiKey)
+  constructor(provider: INodeProvider)
+  constructor(baseUrl: string, apiKey?: string)
+  constructor(param0: string | INodeProvider, apiKey?: string) {
+    let nodeApi: INodeProvider
+    if (typeof param0 === 'string') {
+      nodeApi = initializeNodeApi(param0, apiKey)
+    } else {
+      nodeApi = param0 as INodeProvider
+    }
 
     this.wallets = nodeApi.wallets
     this.infos = nodeApi.infos
@@ -54,6 +74,11 @@ export class NodeProvider {
     this.utils = nodeApi.utils
     this.miners = nodeApi.miners
     this.events = nodeApi.events
+  }
+
+  // This can prevent the proxied node provider from being modified
+  static Proxy(nodeProvider: NodeProvider): NodeProvider {
+    return new NodeProvider(nodeProvider)
   }
 }
 
