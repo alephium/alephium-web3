@@ -48,7 +48,7 @@ export class PrivateKeyWallet extends SignerProvider {
 
   static Random(targetGroup?: number, nodeProvider?: NodeProvider): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'))
+    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), nodeProvider)
     if (targetGroup === undefined || wallet.group === targetGroup) {
       return wallet
     } else {
