@@ -82,6 +82,39 @@ export class NodeProvider implements INodeProvider {
   }
 }
 
+export interface RequestArguments {
+  path: string
+  method: string
+  params?: any
+}
+
+export class RemoteNodeProvider implements INodeProvider {
+  readonly wallets!: NodeApi<string>['wallets']
+  readonly infos!: NodeApi<string>['infos']
+  readonly blockflow!: NodeApi<string>['blockflow']
+  readonly addresses!: NodeApi<string>['addresses']
+  readonly transactions!: NodeApi<string>['transactions']
+  readonly contracts!: NodeApi<string>['contracts']
+  readonly multisig!: NodeApi<string>['multisig']
+  readonly utils!: NodeApi<string>['utils']
+  readonly miners!: NodeApi<string>['miners']
+  readonly events!: NodeApi<string>['events']
+
+  constructor(request: (request: RequestArguments) => Promise<any>) {
+    const fakeNodeProvide = new NodeProvider('https://1.2.3.4:12973')
+    Object.assign(this, fakeNodeProvide) // Initialize the class
+
+    // Update class properties to forward requests
+    for (const [path, pathObject] of Object.entries(this)) {
+      for (const method of Object.keys(pathObject)) {
+        pathObject[`${method}`] = async (params: any): Promise<any> => {
+          return request({ path, method, params })
+        }
+      }
+    }
+  }
+}
+
 // TODO: use proxy provider once the endpoints are refined.
 export class ExplorerProvider extends ExplorerApi<null> {
   constructor(baseUrl: string) {
