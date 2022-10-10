@@ -46,13 +46,13 @@ export class PrivateKeyWallet extends SignerProvider {
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
   }
 
-  static Random(targetGroup?: number, alwaysSubmitTx = true, nodeProvider?: NodeProvider): PrivateKeyWallet {
+  static Random(targetGroup?: number, nodeProvider?: NodeProvider): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'))
+    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), nodeProvider)
     if (targetGroup === undefined || wallet.group === targetGroup) {
       return wallet
     } else {
-      return PrivateKeyWallet.Random(targetGroup, alwaysSubmitTx, nodeProvider)
+      return PrivateKeyWallet.Random(targetGroup, nodeProvider)
     }
   }
 
