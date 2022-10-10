@@ -30,34 +30,18 @@ function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
 }
 
 export class NodeProvider {
-  wallets: NodeApi<string>['wallets']
-  infos: NodeApi<string>['infos']
-  blockflow: NodeApi<string>['blockflow']
-  addresses: NodeApi<string>['addresses']
-  transactions: NodeApi<string>['transactions']
-  contracts: NodeApi<string>['contracts']
-  multisig: NodeApi<string>['multisig']
-  utils: NodeApi<string>['utils']
-  miners: NodeApi<string>['miners']
-  events: NodeApi<string>['events']
+  readonly wallets: NodeApi<string>['wallets']
+  readonly infos: NodeApi<string>['infos']
+  readonly blockflow: NodeApi<string>['blockflow']
+  readonly addresses: NodeApi<string>['addresses']
+  readonly transactions: NodeApi<string>['transactions']
+  readonly contracts: NodeApi<string>['contracts']
+  readonly multisig: NodeApi<string>['multisig']
+  readonly utils: NodeApi<string>['utils']
+  readonly miners: NodeApi<string>['miners']
+  readonly events: NodeApi<string>['events']
 
   constructor(baseUrl: string, apiKey?: string) {
-    const nodeApi = initializeNodeApi(baseUrl, apiKey)
-
-    this.wallets = nodeApi.wallets
-    this.infos = nodeApi.infos
-    this.blockflow = nodeApi.blockflow
-    this.addresses = nodeApi.addresses
-    this.transactions = nodeApi.transactions
-    this.contracts = nodeApi.contracts
-    this.multisig = nodeApi.multisig
-    this.utils = nodeApi.utils
-    this.miners = nodeApi.miners
-    this.events = nodeApi.events
-  }
-
-  // Have to duplicate the code above due to proxy pattern
-  reset(baseUrl: string, apiKey?: string): void {
     const nodeApi = initializeNodeApi(baseUrl, apiKey)
 
     this.wallets = nodeApi.wallets
