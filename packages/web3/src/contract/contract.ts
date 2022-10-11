@@ -808,10 +808,13 @@ export class Contract extends Artifact {
     }
   }
 
-  async paramsForDeployment(params: BuildDeployContractTx): Promise<SignDeployContractTxParams> {
+  async txParamsForDeployment(
+    signer: SignerProvider,
+    params: Omit<BuildDeployContractTx, 'signerAddress'>
+  ): Promise<SignDeployContractTxParams> {
     const bytecode = this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
     const signerParams: SignDeployContractTxParams = {
-      signerAddress: params.signerAddress,
+      signerAddress: (await signer.getSelectedAccount()).address,
       bytecode: bytecode,
       initialAttoAlphAmount: extractOptionalNumber256(params.initialAttoAlphAmount),
       issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
@@ -822,15 +825,12 @@ export class Contract extends Artifact {
     return signerParams
   }
 
-  async transactionForDeployment(
+  async deploy(
     signer: SignerProvider,
     params: Omit<BuildDeployContractTx, 'signerAddress'>
   ): Promise<DeployContractTransaction> {
-    const signerParams = await this.paramsForDeployment({
-      ...params,
-      signerAddress: (await signer.getSelectedAccount()).address
-    })
-    const response = await signer.buildContractCreationTx(signerParams)
+    const signerParams = await this.txParamsForDeployment(signer, params)
+    const response = await signer.signAndSubmitDeployContractTx(signerParams)
     return fromApiDeployContractUnsignedTx(response)
   }
 
@@ -896,9 +896,12 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  async paramsForDeployment(params: BuildExecuteScriptTx): Promise<SignExecuteScriptTxParams> {
+  async txParamsForDeployment(
+    signer: SignerProvider,
+    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
+  ): Promise<SignExecuteScriptTxParams> {
     const signerParams: SignExecuteScriptTxParams = {
-      signerAddress: params.signerAddress,
+      signerAddress: (await signer.getSelectedAccount()).address,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
       attoAlphAmount: extractOptionalNumber256(params.attoAlphAmount),
       tokens: toApiTokens(params.tokens),
@@ -908,15 +911,12 @@ export class Script extends Artifact {
     return signerParams
   }
 
-  async transactionForDeployment(
+  async execute(
     signer: SignerProvider,
     params: Omit<BuildExecuteScriptTx, 'signerAddress'>
   ): Promise<BuildScriptTxResult> {
-    const signerParams = await this.paramsForDeployment({
-      ...params,
-      signerAddress: (await signer.getSelectedAccount()).address
-    })
-    return await signer.buildScriptTx(signerParams)
+    const signerParams = await this.txParamsForDeployment(signer, params)
+    return await signer.signAndSubmitExecuteScriptTx(signerParams)
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {

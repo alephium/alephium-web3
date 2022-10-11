@@ -123,16 +123,6 @@ export interface SignUnsignedTxResult {
 }
 assertType<Eq<SignUnsignedTxResult, SignResult>>()
 
-export interface SignHexStringParams {
-  signerAddress: string
-  hexString: string
-}
-assertType<Eq<SignHexStringParams, { hexString: string } & SignerAddress>>()
-export interface SignHexStringResult {
-  signature: string
-}
-assertType<Eq<SignHexStringResult, Pick<SignResult, 'signature'>>>()
-
 export interface SignMessageParams {
   signerAddress: string
   message: string
@@ -143,7 +133,33 @@ export interface SignMessageResult {
 }
 assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 
-export abstract class SignerProvider {
+export interface SubmitTransactionParams {
+  unsignedTx: string
+  signature: string
+}
+export interface SubmissionResult {
+  txId: string
+  fromGroup: number
+  toGroup: number
+}
+
+export interface SignerProvider {
+  get nodeProvider(): NodeProvider | undefined
+
+  getSelectedAccount(): Promise<Account>
+
+  signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
+  signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
+  signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
+  signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+
+  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  // The message will be prefixed with 'Alephium Signed Message: ' before signing
+  // so that the resulted signature cannot be reused for building transactions.
+  signMessage(params: SignMessageParams): Promise<SignMessageResult>
+}
+
+export abstract class SignerProviderSimple implements SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
   abstract getSelectedAccount(): Promise<Account>
 
@@ -154,26 +170,30 @@ export abstract class SignerProvider {
     return this.nodeProvider
   }
 
-  async submitTransaction(unsignedTx: string, signature: string): Promise<SubmissionResult> {
-    const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
-    return this.getNodeProvider().transactions.postTransactionsSubmit(params)
+  async submitTransaction(params: SubmitTransactionParams): Promise<SubmissionResult> {
+    const data: node.SubmitTransaction = { unsignedTx: params.unsignedTx, signature: params.signature }
+    return this.getNodeProvider().transactions.postTransactionsSubmit(data)
   }
 
-  async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SubmissionResult> {
+  async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const signResult = await this.signTransferTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
-  async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SubmissionResult> {
+  async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     const signResult = await this.signDeployContractTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
-  async signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SubmissionResult> {
+  async signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
     const signResult = await this.signExecuteScriptTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
-  async signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SubmissionResult> {
+  async signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const signResult = await this.signUnsignedTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
 
   private async usePublicKey<T extends SignerAddress>(
@@ -266,11 +286,6 @@ export abstract class SignerProvider {
     }
   }
 
-  async signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
-    const signature = await this.signRaw(params.signerAddress, params.hexString)
-    return { signature: signature }
-  }
-
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
     const extendedMessage = extendMessage(params.message)
     const messageHash = blake.blake2b(extendedMessage, undefined, 32)
@@ -281,7 +296,7 @@ export abstract class SignerProvider {
   abstract signRaw(signerAddress: string, hexString: string): Promise<string>
 }
 
-export abstract class SignerProviderWithMultipleAccounts extends SignerProvider {
+export abstract class SignerProviderWithMultipleAccounts extends SignerProviderSimple {
   abstract getAccounts(): Promise<Account[]>
 
   async getAccount(signerAddress: string): Promise<Account> {
@@ -297,12 +312,11 @@ export abstract class SignerProviderWithMultipleAccounts extends SignerProvider 
   abstract setSelectedAccount(address: string): Promise<void>
 }
 
-export class SignerProviderWrapper extends SignerProvider {
+export class SignerProviderWrapper implements SignerProvider {
   signer: SignerProvider
   nodeProvider: NodeProvider
 
   constructor(signer: SignerProvider, nodeProvider: NodeProvider) {
-    super()
     this.signer = signer
     this.nodeProvider = nodeProvider
   }
@@ -310,16 +324,24 @@ export class SignerProviderWrapper extends SignerProvider {
   getSelectedAccount(): Promise<Account> {
     return this.signer.getSelectedAccount()
   }
-
-  signRaw(signerAddress: string, hexString: string): Promise<string> {
-    return this.signer.signRaw(signerAddress, hexString)
+  signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
+    return this.signer.signAndSubmitTransferTx(params)
   }
-}
-
-export interface SubmissionResult {
-  txId: string
-  fromGroup: number
-  toGroup: number
+  signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
+    return this.signer.signAndSubmitDeployContractTx(params)
+  }
+  signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
+    return this.signer.signAndSubmitExecuteScriptTx(params)
+  }
+  signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
+    return this.signer.signAndSubmitUnsignedTx(params)
+  }
+  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
+    return this.signer.signUnsignedTx(params)
+  }
+  signMessage(params: SignMessageParams): Promise<SignMessageResult> {
+    return this.signer.signMessage(params)
+  }
 }
 
 export function verifyHexString(hexString: string, publicKey: string, signature: string): boolean {
