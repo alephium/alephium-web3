@@ -118,13 +118,8 @@ describe("integration tests", () => {
 
       // Call `withdraw` function 10 times
       for (let i = 0; i < 10; i++) {
-        const withdrawTX = await script.transactionForDeployment(signer, {
+        const withdrawTX = await script.execute(signer, {
           initialFields: { token: tokenId, amount: 1 }
-        })
-
-        await signer.signAndSubmitUnsignedTx({
-          unsignedTx: withdrawTX.unsignedTx,
-          signerAddress: testAddress
         })
 
         const newState = await token.fetchState(tokenAddress, testGroup)

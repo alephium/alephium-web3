@@ -895,7 +895,7 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  async txParamsForDeployment(
+  async txParamsForExecution(
     signer: SignerProvider,
     params: Omit<BuildExecuteScriptTx, 'signerAddress'>
   ): Promise<SignExecuteScriptTxParams> {
@@ -914,7 +914,7 @@ export class Script extends Artifact {
     signer: SignerProvider,
     params: Omit<BuildExecuteScriptTx, 'signerAddress'>
   ): Promise<BuildScriptTxResult> {
-    const signerParams = await this.txParamsForDeployment(signer, params)
+    const signerParams = await this.txParamsForExecution(signer, params)
     return await signer.signAndSubmitExecuteScriptTx(signerParams)
   }
 
