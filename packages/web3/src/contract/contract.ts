@@ -32,7 +32,6 @@ import {
   toApiVal,
   Token,
   Val,
-  toApiTokens,
   fromApiTokens,
   fromApiVals
 } from '../api'
