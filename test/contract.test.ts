@@ -21,7 +21,6 @@ import * as path from 'path'
 import { Account, web3 } from '../packages/web3'
 import { Contract, Project, Script, TestContractParams } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
-import { addressFromContractId } from '@alephium/web3'
 import { expectAssertionError, randomContractAddress } from '../packages/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
 
@@ -70,38 +69,30 @@ describe('contract', function () {
     const testResultPrivate = await add.testPrivateMethod('addPrivate', testParams)
     expect(testResultPrivate.returns).toEqual([[3, 1]])
 
-    const subDeployTx = await sub.transactionForDeployment(signer, {
+    const subDeployTx = await sub.deploy(signer, {
       initialFields: { result: 0 },
       initialTokenAmounts: []
     })
     const subContractId = subDeployTx.contractId
-    const subContractAddress = addressFromContractId(subContractId)
+    const subContractAddress = subDeployTx.contractAddress
     expect(subDeployTx.fromGroup).toEqual(signerGroup)
     expect(subDeployTx.toGroup).toEqual(signerGroup)
-    const subSubmitResult = await signer.signAndSubmitUnsignedTx({
-      unsignedTx: subDeployTx.unsignedTx,
-      signerAddress: signerAddress
-    })
-    expect(subSubmitResult.fromGroup).toEqual(signerGroup)
-    expect(subSubmitResult.toGroup).toEqual(signerGroup)
-    expect(subSubmitResult.txId).toEqual(subDeployTx.txId)
+    expect(subDeployTx.fromGroup).toEqual(signerGroup)
+    expect(subDeployTx.toGroup).toEqual(signerGroup)
+    expect(subDeployTx.txId).toEqual(subDeployTx.txId)
 
-    const addDeployTx = await add.transactionForDeployment(signer, {
+    const addDeployTx = await add.deploy(signer, {
       initialFields: { sub: subContractId, result: 0 },
       initialTokenAmounts: []
     })
     expect(addDeployTx.fromGroup).toEqual(signerGroup)
     expect(addDeployTx.toGroup).toEqual(signerGroup)
-    const addSubmitResult = await signer.signAndSubmitUnsignedTx({
-      unsignedTx: addDeployTx.unsignedTx,
-      signerAddress: signerAddress
-    })
-    expect(addSubmitResult.fromGroup).toEqual(signerGroup)
-    expect(addSubmitResult.toGroup).toEqual(signerGroup)
-    expect(addSubmitResult.txId).toEqual(addDeployTx.txId)
+    expect(addDeployTx.fromGroup).toEqual(signerGroup)
+    expect(addDeployTx.toGroup).toEqual(signerGroup)
+    expect(addDeployTx.txId).toEqual(addDeployTx.txId)
 
     const addContractId = addDeployTx.contractId
-    const addContractAddress = addressFromContractId(addContractId)
+    const addContractAddress = addDeployTx.contractAddress
 
     // Check state for add/sub before main script is executed
     let fetchedSubState = await sub.fetchState(subContractAddress, signerGroup)
@@ -111,17 +102,13 @@ describe('contract', function () {
     expect(fetchedAddState.fields.result).toEqual(0)
 
     const main = Project.script('Main')
-    const mainScriptTx = await main.transactionForDeployment(signer, {
+    const mainScriptTx = await main.execute(signer, {
       initialFields: { addContractId: addContractId }
     })
     expect(mainScriptTx.fromGroup).toEqual(signerGroup)
     expect(mainScriptTx.toGroup).toEqual(signerGroup)
-    const mainSubmitResult = await signer.signAndSubmitUnsignedTx({
-      unsignedTx: mainScriptTx.unsignedTx,
-      signerAddress: signerAddress
-    })
-    expect(mainSubmitResult.fromGroup).toEqual(signerGroup)
-    expect(mainSubmitResult.toGroup).toEqual(signerGroup)
+    expect(mainScriptTx.fromGroup).toEqual(signerGroup)
+    expect(mainScriptTx.toGroup).toEqual(signerGroup)
 
     // Check state for add/sub after main script is executed
     fetchedSubState = await sub.fetchState(subContractAddress, signerGroup)
@@ -144,34 +131,26 @@ describe('contract', function () {
     expect(testResult.contracts[0].codeHash).toEqual(greeter.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1)
 
-    const deployTx = await greeter.transactionForDeployment(signer, {
+    const deployTx = await greeter.deploy(signer, {
       initialFields: { btcPrice: 1 },
       initialTokenAmounts: []
     })
     expect(deployTx.fromGroup).toEqual(signerGroup)
     expect(deployTx.toGroup).toEqual(signerGroup)
-    const submitResult = await signer.signAndSubmitUnsignedTx({
-      unsignedTx: deployTx.unsignedTx,
-      signerAddress: signerAddress
-    })
-    expect(submitResult.fromGroup).toEqual(signerGroup)
-    expect(submitResult.toGroup).toEqual(signerGroup)
-    expect(submitResult.txId).toEqual(deployTx.txId)
+    expect(deployTx.fromGroup).toEqual(signerGroup)
+    expect(deployTx.toGroup).toEqual(signerGroup)
+    expect(deployTx.txId).toEqual(deployTx.txId)
 
     const greeterContractId = deployTx.contractId
     const main = Project.script('GreeterMain')
 
-    const mainScriptTx = await main.transactionForDeployment(signer, {
+    const mainScriptTx = await main.execute(signer, {
       initialFields: { greeterContractId: greeterContractId }
     })
     expect(mainScriptTx.fromGroup).toEqual(signerGroup)
     expect(mainScriptTx.toGroup).toEqual(signerGroup)
-    const mainSubmitResult = await signer.signAndSubmitUnsignedTx({
-      unsignedTx: mainScriptTx.unsignedTx,
-      signerAddress: signerAddress
-    })
-    expect(mainSubmitResult.fromGroup).toEqual(signerGroup)
-    expect(mainSubmitResult.toGroup).toEqual(signerGroup)
+    expect(mainScriptTx.fromGroup).toEqual(signerGroup)
+    expect(mainScriptTx.toGroup).toEqual(signerGroup)
   }
 
   it('should test contracts', async () => {

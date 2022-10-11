@@ -298,38 +298,6 @@ export abstract class SignerProviderWithMultipleAccounts extends SignerProviderS
   abstract setSelectedAccount(address: string): Promise<void>
 }
 
-export class SignerProviderWrapper implements SignerProvider {
-  signer: SignerProvider
-  nodeProvider: NodeProvider
-
-  constructor(signer: SignerProvider, nodeProvider: NodeProvider) {
-    this.signer = signer
-    this.nodeProvider = nodeProvider
-  }
-
-  getSelectedAccount(): Promise<Account> {
-    return this.signer.getSelectedAccount()
-  }
-  signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
-    return this.signer.signAndSubmitTransferTx(params)
-  }
-  signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
-    return this.signer.signAndSubmitDeployContractTx(params)
-  }
-  signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
-    return this.signer.signAndSubmitExecuteScriptTx(params)
-  }
-  signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
-    return this.signer.signAndSubmitUnsignedTx(params)
-  }
-  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
-    return this.signer.signUnsignedTx(params)
-  }
-  signMessage(params: SignMessageParams): Promise<SignMessageResult> {
-    return this.signer.signMessage(params)
-  }
-}
-
 export function verifyHexString(hexString: string, publicKey: string, signature: string): boolean {
   try {
     const key = ec.keyFromPublic(publicKey, 'hex')
