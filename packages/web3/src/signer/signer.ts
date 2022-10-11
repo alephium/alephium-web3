@@ -53,9 +53,6 @@ export interface Account {
 export type SignerAddress = { signerAddress: string }
 type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress
 
-export type GetAccountsParams = undefined
-export type GetAccountsResult = Account[]
-
 export interface SignTransferTxParams {
   signerAddress: string
   destinations: Destination[]
