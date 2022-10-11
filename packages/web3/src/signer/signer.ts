@@ -36,14 +36,6 @@ export type OutputRef = node.OutputRef
 
 const ec = new EC('secp256k1')
 
-export interface SignResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-}
-
 export interface Account {
   address: string
   group: number
@@ -52,6 +44,7 @@ export interface Account {
 
 export type SignerAddress = { signerAddress: string }
 type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress
+type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string; gasPrice: Number256 }
 
 export interface SignTransferTxParams {
   signerAddress: string
@@ -67,8 +60,10 @@ export interface SignTransferTxResult {
   unsignedTx: string
   txId: string
   signature: string
+  gasAmount: number
+  gasPrice: Number256
 }
-assertType<Eq<SignTransferTxResult, SignResult>>()
+assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransactionResult>>>()
 
 export interface SignDeployContractTxParams {
   signerAddress: string
@@ -88,8 +83,10 @@ export interface SignDeployContractTxResult {
   signature: string
   contractId: string
   contractAddress: string
+  gasAmount: number
+  gasPrice: Number256
 }
-assertType<Eq<SignDeployContractTxResult, SignResult & { contractId: string; contractAddress: string }>>()
+assertType<Eq<SignDeployContractTxResult, SignResult<node.BuildDeployContractTxResult> & { contractId: string }>>()
 
 export interface SignExecuteScriptTxParams {
   signerAddress: string
@@ -106,8 +103,10 @@ export interface SignExecuteScriptTxResult {
   unsignedTx: string
   txId: string
   signature: string
+  gasAmount: number
+  gasPrice: Number256
 }
-assertType<Eq<SignExecuteScriptTxResult, SignResult>>()
+assertType<Eq<SignExecuteScriptTxResult, SignResult<node.BuildExecuteScriptTxResult>>>()
 
 export interface SignUnsignedTxParams {
   signerAddress: string
@@ -120,18 +119,10 @@ export interface SignUnsignedTxResult {
   unsignedTx: string
   txId: string
   signature: string
+  gasAmount: number
+  gasPrice: Number256
 }
-assertType<Eq<SignUnsignedTxResult, SignResult>>()
-
-export interface SignHexStringParams {
-  signerAddress: string
-  hexString: string
-}
-assertType<Eq<SignHexStringParams, { hexString: string } & SignerAddress>>()
-export interface SignHexStringResult {
-  signature: string
-}
-assertType<Eq<SignHexStringResult, Pick<SignResult, 'signature'>>>()
+assertType<Eq<SignUnsignedTxResult, SignTransferTxResult>>
 
 export interface SignMessageParams {
   signerAddress: string
@@ -141,9 +132,34 @@ assertType<Eq<SignMessageParams, { message: string } & SignerAddress>>()
 export interface SignMessageResult {
   signature: string
 }
-assertType<Eq<SignMessageResult, Pick<SignResult, 'signature'>>>()
 
-export abstract class SignerProvider {
+export interface SubmitTransactionParams {
+  unsignedTx: string
+  signature: string
+}
+export interface SubmissionResult {
+  txId: string
+  fromGroup: number
+  toGroup: number
+}
+
+export interface SignerProvider {
+  get nodeProvider(): NodeProvider | undefined
+
+  getSelectedAccount(): Promise<Account>
+
+  signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
+  signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
+  signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
+  signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+
+  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  // The message will be prefixed with 'Alephium Signed Message: ' before signing
+  // so that the resulted signature cannot be reused for building transactions.
+  signMessage(params: SignMessageParams): Promise<SignMessageResult>
+}
+
+export abstract class SignerProviderSimple implements SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
   abstract getSelectedAccount(): Promise<Account>
 
@@ -154,26 +170,30 @@ export abstract class SignerProvider {
     return this.nodeProvider
   }
 
-  async submitTransaction(unsignedTx: string, signature: string): Promise<SubmissionResult> {
-    const params: node.SubmitTransaction = { unsignedTx: unsignedTx, signature: signature }
-    return this.getNodeProvider().transactions.postTransactionsSubmit(params)
+  async submitTransaction(params: SubmitTransactionParams): Promise<SubmissionResult> {
+    const data: node.SubmitTransaction = { unsignedTx: params.unsignedTx, signature: params.signature }
+    return this.getNodeProvider().transactions.postTransactionsSubmit(data)
   }
 
-  async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SubmissionResult> {
+  async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const signResult = await this.signTransferTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
-  async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SubmissionResult> {
+  async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     const signResult = await this.signDeployContractTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
-  async signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SubmissionResult> {
+  async signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
     const signResult = await this.signExecuteScriptTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
-  async signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SubmissionResult> {
+  async signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const signResult = await this.signUnsignedTx(params)
-    return this.submitTransaction(signResult.unsignedTx, signResult.signature)
+    await this.submitTransaction(signResult)
+    return signResult
   }
 
   private async usePublicKey<T extends SignerAddress>(
@@ -190,7 +210,8 @@ export abstract class SignerProvider {
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const response = await this.buildTransferTx(params)
-    return this.handleSign({ signerAddress: params.signerAddress, ...response })
+    const signature = await this.signRaw(params.signerAddress, response.txId)
+    return { ...response, signature, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
   async buildTransferTx(params: SignTransferTxParams): Promise<node.BuildTransactionResult> {
@@ -204,9 +225,9 @@ export abstract class SignerProvider {
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     const response = await this.buildContractCreationTx(params)
-    const result = await this.handleSign({ signerAddress: params.signerAddress, ...response })
+    const signature = await this.signRaw(params.signerAddress, response.txId)
     const contractId = utils.binToHex(utils.contractIdFromAddress(response.contractAddress))
-    return { ...result, contractId: contractId, contractAddress: response.contractAddress }
+    return { ...response, contractId, signature, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
   async buildContractCreationTx(params: SignDeployContractTxParams): Promise<node.BuildDeployContractTxResult> {
@@ -222,7 +243,8 @@ export abstract class SignerProvider {
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
     const response = await this.buildScriptTx(params)
-    return this.handleSign({ signerAddress: params.signerAddress, ...response })
+    const signature = await this.signRaw(params.signerAddress, response.txId)
+    return { ...response, signature, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
   async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
@@ -238,37 +260,16 @@ export abstract class SignerProvider {
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
     const decoded = await this.getNodeProvider().transactions.postTransactionsDecodeUnsignedTx(data)
-    return this.handleSign({
+    const signature = await this.signRaw(params.signerAddress, decoded.unsignedTx.txId)
+    return {
       fromGroup: decoded.fromGroup,
       toGroup: decoded.toGroup,
-      signerAddress: params.signerAddress,
       unsignedTx: params.unsignedTx,
-      txId: decoded.unsignedTx.txId
-    })
-  }
-
-  protected async handleSign(response: {
-    fromGroup: number
-    toGroup: number
-    signerAddress: string
-    unsignedTx: string
-    txId: string
-  }): Promise<SignResult> {
-    // sign the tx
-    const signature = await this.signRaw(response.signerAddress, response.txId)
-    // return the signature back to the provider
-    return {
-      fromGroup: response.fromGroup,
-      toGroup: response.toGroup,
-      unsignedTx: response.unsignedTx,
-      txId: response.txId,
-      signature: signature
+      txId: decoded.unsignedTx.txId,
+      signature,
+      gasAmount: decoded.unsignedTx.gasAmount,
+      gasPrice: fromApiNumber256(decoded.unsignedTx.gasPrice)
     }
-  }
-
-  async signHexString(params: SignHexStringParams): Promise<SignHexStringResult> {
-    const signature = await this.signRaw(params.signerAddress, params.hexString)
-    return { signature: signature }
   }
 
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
@@ -281,7 +282,7 @@ export abstract class SignerProvider {
   abstract signRaw(signerAddress: string, hexString: string): Promise<string>
 }
 
-export abstract class SignerProviderWithMultipleAccounts extends SignerProvider {
+export abstract class SignerProviderWithMultipleAccounts extends SignerProviderSimple {
   abstract getAccounts(): Promise<Account[]>
 
   async getAccount(signerAddress: string): Promise<Account> {
@@ -295,31 +296,6 @@ export abstract class SignerProviderWithMultipleAccounts extends SignerProvider 
   }
 
   abstract setSelectedAccount(address: string): Promise<void>
-}
-
-export class SignerProviderWrapper extends SignerProvider {
-  signer: SignerProvider
-  nodeProvider: NodeProvider
-
-  constructor(signer: SignerProvider, nodeProvider: NodeProvider) {
-    super()
-    this.signer = signer
-    this.nodeProvider = nodeProvider
-  }
-
-  getSelectedAccount(): Promise<Account> {
-    return this.signer.getSelectedAccount()
-  }
-
-  signRaw(signerAddress: string, hexString: string): Promise<string> {
-    return this.signer.signRaw(signerAddress, hexString)
-  }
-}
-
-export interface SubmissionResult {
-  txId: string
-  fromGroup: number
-  toGroup: number
 }
 
 export function verifyHexString(hexString: string, publicKey: string, signature: string): boolean {

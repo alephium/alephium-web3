@@ -31,14 +31,9 @@ async function withdraw() {
     const tokenId = deployed.contractId
     const tokenAddress = deployed.contractAddress
 
-    // Prepare a transaction to use the transaction script
-    const withdrawTX = await script.transactionForDeployment(signer, {
+    // Submit a transaction to use the transaction script
+    const withdrawTX = await script.execute(signer, {
       initialFields: { token: tokenId, amount: 1 }
-    })
-    // Sign and submit the transaction to the local Devnet
-    await signer.signAndSubmitUnsignedTx({
-      unsignedTx: withdrawTX.unsignedTx,
-      signerAddress: account.address
     })
 
     // Fetch the latest state of the token contract

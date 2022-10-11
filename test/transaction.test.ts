@@ -30,10 +30,11 @@ describe('transactions', function () {
     await Project.build({ errorOnWarnings: false })
     const sub = Project.contract('Sub')
     const signer = await testNodeWallet()
-    const subDeployTx = await sub.transactionForDeployment(signer, {
+    const txParams = await sub.txParamsForDeployment(signer, {
       initialFields: { result: 0 },
       initialTokenAmounts: []
     })
+    const subDeployTx = await signer.buildContractCreationTx(txParams)
 
     let txStatus: TxStatus | undefined = undefined
     let counter = 0
