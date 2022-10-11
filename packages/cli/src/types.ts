@@ -26,7 +26,8 @@ import {
   CompilerOptions,
   web3,
   Project,
-  DEFAULT_COMPILER_OPTIONS
+  DEFAULT_COMPILER_OPTIONS,
+  Number256
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 
@@ -107,14 +108,14 @@ export interface ExecutionResult {
   txId: string
   blockHash: string
   codeHash: string
-  attoAlphAmount?: string
+  attoAlphAmount?: Number256
   tokens?: Record<string, string>
 }
 
 export interface DeployContractResult extends ExecutionResult {
   contractId: string
   contractAddress: string
-  issueTokenAmount?: string
+  issueTokenAmount?: Number256
 }
 
 export type RunScriptResult = ExecutionResult

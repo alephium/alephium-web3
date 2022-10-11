@@ -43,32 +43,32 @@ describe('contract', function () {
     const add = Project.contract('Add')
     const sub = Project.contract('Sub')
 
-    const subState = sub.toState({ result: 0 }, { alphAmount: BigInt('1000000000000000000') })
+    const subState = sub.toState({ result: 0n }, { alphAmount: BigInt('1000000000000000000') })
     const testParams: TestContractParams = {
-      initialFields: { sub: subState.contractId, result: 0 },
-      testArgs: { array: [2, 1] },
+      initialFields: { sub: subState.contractId, result: 0n },
+      testArgs: { array: [2n, 1n] },
       existingContracts: [subState]
     }
     const testResult = await add.testPublicMethod('add', testParams)
-    expect(testResult.returns).toEqual([[3, 1]])
+    expect(testResult.returns).toEqual([[3n, 1n]])
     expect(testResult.contracts[0].codeHash).toEqual(sub.codeHash)
-    expect(testResult.contracts[0].fields.result).toEqual(1)
+    expect(testResult.contracts[0].fields.result).toEqual(1n)
     expect(testResult.contracts[1].codeHash).toEqual(add.codeHash)
     expect(testResult.contracts[1].fields.sub).toEqual(subState.contractId)
-    expect(testResult.contracts[1].fields.result).toEqual(3)
+    expect(testResult.contracts[1].fields.result).toEqual(3n)
     const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
     expect(events[0].name).toEqual('Add')
-    expect(events[0].fields.x).toEqual(2)
-    expect(events[0].fields.y).toEqual(1)
+    expect(events[0].fields.x).toEqual(2n)
+    expect(events[0].fields.y).toEqual(1n)
     expect(events[1].name).toEqual('Sub')
-    expect(events[1].fields.x).toEqual(2)
-    expect(events[1].fields.y).toEqual(1)
+    expect(events[1].fields.x).toEqual(2n)
+    expect(events[1].fields.y).toEqual(1n)
 
     const testResultPrivate = await add.testPrivateMethod('addPrivate', testParams)
-    expect(testResultPrivate.returns).toEqual([[3, 1]])
+    expect(testResultPrivate.returns).toEqual([[3n, 1n]])
 
     const subDeployTx = await sub.deploy(signer, {
-      initialFields: { result: 0 },
+      initialFields: { result: 0n },
       initialTokenAmounts: []
     })
     const subContractId = subDeployTx.contractId
@@ -80,7 +80,7 @@ describe('contract', function () {
     expect(subDeployTx.txId).toEqual(subDeployTx.txId)
 
     const addDeployTx = await add.deploy(signer, {
-      initialFields: { sub: subContractId, result: 0 },
+      initialFields: { sub: subContractId, result: 0n },
       initialTokenAmounts: []
     })
     expect(addDeployTx.fromGroup).toEqual(signerGroup)
@@ -94,10 +94,10 @@ describe('contract', function () {
 
     // Check state for add/sub before main script is executed
     let fetchedSubState = await sub.fetchState(subContractAddress, signerGroup)
-    expect(fetchedSubState.fields.result).toEqual(0)
+    expect(fetchedSubState.fields.result).toEqual(0n)
     let fetchedAddState = await add.fetchState(addContractAddress, signerGroup)
     expect(fetchedAddState.fields.sub).toEqual(subContractId)
-    expect(fetchedAddState.fields.result).toEqual(0)
+    expect(fetchedAddState.fields.result).toEqual(0n)
 
     const main = Project.script('Main')
     const mainScriptTx = await main.execute(signer, {
@@ -110,10 +110,10 @@ describe('contract', function () {
 
     // Check state for add/sub after main script is executed
     fetchedSubState = await sub.fetchState(subContractAddress, signerGroup)
-    expect(fetchedSubState.fields.result).toEqual(1)
+    expect(fetchedSubState.fields.result).toEqual(1n)
     fetchedAddState = await add.fetchState(addContractAddress, signerGroup)
     expect(fetchedAddState.fields.sub).toEqual(subContractId)
-    expect(fetchedAddState.fields.result).toEqual(3)
+    expect(fetchedAddState.fields.result).toEqual(3n)
   }
 
   async function testSuite2() {
@@ -122,15 +122,15 @@ describe('contract', function () {
     const greeter = Project.contract('Greeter')
 
     const testParams: TestContractParams = {
-      initialFields: { btcPrice: 1 }
+      initialFields: { btcPrice: 1n }
     }
     const testResult = await greeter.testPublicMethod('greet', testParams)
-    expect(testResult.returns).toEqual([1])
+    expect(testResult.returns).toEqual([1n])
     expect(testResult.contracts[0].codeHash).toEqual(greeter.codeHash)
-    expect(testResult.contracts[0].fields.btcPrice).toEqual(1)
+    expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
     const deployTx = await greeter.deploy(signer, {
-      initialFields: { btcPrice: 1 },
+      initialFields: { btcPrice: 1n },
       initialTokenAmounts: []
     })
     expect(deployTx.fromGroup).toEqual(signerGroup)

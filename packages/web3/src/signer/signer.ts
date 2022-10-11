@@ -91,10 +91,10 @@ assertType<Eq<SignDeployContractTxResult, SignResult<node.BuildDeployContractTxR
 export interface SignExecuteScriptTxParams {
   signerAddress: string
   bytecode: string
-  attoAlphAmount?: string
+  attoAlphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
-  gasPrice?: string
+  gasPrice?: Number256
 }
 assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {
@@ -250,7 +250,9 @@ export abstract class SignerProviderSimple implements SignerProvider {
   async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
     const data: node.BuildExecuteScriptTx = {
       ...(await this.usePublicKey(params)),
-      tokens: toApiTokens(params.tokens)
+      attoAlphAmount: toApiNumber256Optional(params.attoAlphAmount),
+      tokens: toApiTokens(params.tokens),
+      gasPrice: toApiNumber256Optional(params.gasPrice)
     }
     return this.getNodeProvider().contracts.postContractsUnsignedTxExecuteScript(data)
   }

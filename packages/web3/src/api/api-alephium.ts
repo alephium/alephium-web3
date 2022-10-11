@@ -201,7 +201,7 @@ export interface BrokerInfo {
   address: { addr: string; port: number }
 }
 
-export interface BuildDeployContractTx {
+export interface BuildDeployContractTx { 
   /** @format public-key */
   fromPublicKey: string
 

@@ -816,11 +816,11 @@ export class Contract extends Artifact {
     const signerParams: SignDeployContractTxParams = {
       signerAddress: (await signer.getSelectedAccount()).address,
       bytecode: bytecode,
-      initialAttoAlphAmount: extractOptionalNumber256(params.initialAttoAlphAmount),
-      issueTokenAmount: extractOptionalNumber256(params.issueTokenAmount),
-      initialTokenAmounts: toApiTokens(params.initialTokenAmounts),
+      initialAttoAlphAmount: params.initialAttoAlphAmount,
+      issueTokenAmount: params.issueTokenAmount,
+      initialTokenAmounts: params.initialTokenAmounts,
       gasAmount: params.gasAmount,
-      gasPrice: extractOptionalNumber256(params.gasPrice)
+      gasPrice: params.gasPrice
     }
     return signerParams
   }
@@ -902,10 +902,10 @@ export class Script extends Artifact {
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: (await signer.getSelectedAccount()).address,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
-      attoAlphAmount: extractOptionalNumber256(params.attoAlphAmount),
-      tokens: toApiTokens(params.tokens),
+      attoAlphAmount: params.attoAlphAmount,
+      tokens: params.tokens,
       gasAmount: params.gasAmount,
-      gasPrice: extractOptionalNumber256(params.gasPrice)
+      gasPrice: params.gasPrice
     }
     return signerParams
   }
@@ -921,10 +921,6 @@ export class Script extends Artifact {
   buildByteCodeToDeploy(initialFields: Fields): string {
     return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig)
   }
-}
-
-function extractOptionalNumber256(v?: Val): string | undefined {
-  return typeof v !== 'undefined' ? toApiNumber256(v) : undefined
 }
 
 function fromApiFields(vals: node.Val[], fieldsSig: node.FieldsSig): Fields {
@@ -1102,7 +1098,7 @@ type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
 export interface BuildDeployContractTx {
   signerAddress: string
   initialFields?: Fields
-  initialAttoAlphAmount?: string
+  initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
   issueTokenAmount?: Number256
   gasAmount?: number

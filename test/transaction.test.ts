@@ -31,7 +31,7 @@ describe('transactions', function () {
     const sub = Project.contract('Sub')
     const signer = await testNodeWallet()
     const txParams = await sub.txParamsForDeployment(signer, {
-      initialFields: { result: 0 },
+      initialFields: { result: 0n },
       initialTokenAmounts: []
     })
     const subDeployTx = await signer.buildContractCreationTx(txParams)
