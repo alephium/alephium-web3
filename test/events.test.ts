@@ -16,9 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Account, subscribeToEvents } from '../packages/web3'
-import { Project, Script } from '../packages/web3'
-import { SignExecuteScriptTxParams } from '../packages/web3'
+import { subscribeToEvents } from '../packages/web3'
+import { Project } from '../packages/web3'
 import { node } from '../packages/web3'
 import { NodeWallet } from '../packages/web3-wallet'
 import { SubscribeOptions, timeout } from '../packages/web3'
@@ -27,14 +26,10 @@ import { testNodeWallet } from '../packages/web3-test'
 
 describe('events', function () {
   let signer: NodeWallet
-  let signerAccount: Account
-  let signerAddress: string
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     signer = await testNodeWallet()
-    signerAccount = await signer.getSelectedAccount()
-    signerAddress = signerAccount.address
     await Project.build({ errorOnWarnings: false })
   })
 

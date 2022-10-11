@@ -1097,10 +1097,6 @@ export interface DeployContractTransaction {
   contractId: string
 }
 
-function fromApiDeployContractUnsignedTx(result: node.BuildDeployContractTxResult): DeployContractTransaction {
-  return { ...result, contractId: binToHex(contractIdFromAddress(result.contractAddress)) }
-}
-
 type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
 
 export interface BuildDeployContractTx {

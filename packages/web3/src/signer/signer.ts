@@ -44,7 +44,7 @@ export interface Account {
 
 export type SignerAddress = { signerAddress: string }
 type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress
-type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string, gasPrice: Number256 }
+type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string; gasPrice: Number256 }
 
 export interface SignTransferTxParams {
   signerAddress: string
