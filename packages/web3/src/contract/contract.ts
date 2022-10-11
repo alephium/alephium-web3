@@ -830,8 +830,7 @@ export class Contract extends Artifact {
     params: Omit<BuildDeployContractTx, 'signerAddress'>
   ): Promise<DeployContractTransaction> {
     const signerParams = await this.txParamsForDeployment(signer, params)
-    const response = await signer.signAndSubmitDeployContractTx(signerParams)
-    return fromApiDeployContractUnsignedTx(response)
+    return signer.signAndSubmitDeployContractTx(signerParams)
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {

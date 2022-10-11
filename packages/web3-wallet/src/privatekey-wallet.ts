@@ -17,12 +17,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { Account, NodeProvider, SignerProvider, utils, web3 } from '@alephium/web3'
+import { Account, NodeProvider, SignerProviderSimple, utils, web3 } from '@alephium/web3'
 import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd-wallet'
 
 const ec = new EC('secp256k1')
 
-export class PrivateKeyWallet extends SignerProvider {
+export class PrivateKeyWallet extends SignerProviderSimple {
   readonly privateKey: string
   readonly publicKey: string
   readonly address: string
