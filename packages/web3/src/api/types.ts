@@ -68,12 +68,8 @@ export function toApiNumber256Optional(v?: Val): string | undefined {
   return v === undefined ? undefined : toApiNumber256(v)
 }
 
-export function fromApiNumber256(n: string): Number256 {
-  if (Number.isSafeInteger(Number.parseInt(n))) {
-    return Number(n)
-  } else {
-    return BigInt(n)
-  }
+export function fromApiNumber256(n: string): bigint {
+  return BigInt(n)
 }
 
 // TODO: check hex string
