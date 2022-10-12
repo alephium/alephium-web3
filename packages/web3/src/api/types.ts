@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { assertType, bs58, Eq } from '../utils'
 import * as node from './api-alephium'
 
-export type Number256 = number | bigint | string
+export type Number256 = bigint
 export type Val = Number256 | boolean | string | Val[]
 export type NamedVals = Record<string, Val>
 
@@ -68,12 +68,8 @@ export function toApiNumber256Optional(v?: Val): string | undefined {
   return v === undefined ? undefined : toApiNumber256(v)
 }
 
-export function fromApiNumber256(n: string): Number256 {
-  if (Number.isSafeInteger(Number.parseInt(n))) {
-    return Number(n)
-  } else {
-    return BigInt(n)
-  }
+export function fromApiNumber256(n: string): bigint {
+  return BigInt(n)
 }
 
 // TODO: check hex string

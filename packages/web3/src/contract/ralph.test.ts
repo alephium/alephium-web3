@@ -130,7 +130,7 @@ describe('contract', function () {
   })
 
   it('should test buildScriptByteCode', async () => {
-    const variables = { x: true, y: 0x05, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
+    const variables = { x: true, y: 0x05n, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
     const fieldsSig: FieldsSig = {
       names: ['x', 'y', 'z', 'a'],
       types: ['Bool', 'U256', 'ByteVec', 'Address'],
@@ -142,8 +142,8 @@ describe('contract', function () {
 
   it('should test buildContractByteCode', async () => {
     const fields: Fields = {
-      a: -1,
-      b: 1,
+      a: -1n,
+      b: 1n,
       c: '23',
       d: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
       e: [false, true]

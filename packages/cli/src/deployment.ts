@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Account, NodeProvider, Project, Contract, Script, node, web3, Token } from '@alephium/web3'
+import { Account, NodeProvider, Project, Contract, Script, node, web3, Token, Number256 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
 import fs, { promises as fsPromises } from 'fs'
@@ -155,7 +155,7 @@ function recordEqual(left: Record<string, string>, right: Record<string, string>
 async function needToRetry(
   provider: NodeProvider,
   previous: ExecutionResult | undefined,
-  attoAlphAmount: string | undefined,
+  attoAlphAmount: Number256 | undefined,
   tokens: Record<string, string> | undefined,
   codeHash: string
 ): Promise<boolean> {
@@ -175,9 +175,9 @@ async function needToRetry(
 async function needToDeployContract(
   provider: NodeProvider,
   previous: DeployContractResult | undefined,
-  attoAlphAmount: string | undefined,
+  attoAlphAmount: Number256 | undefined,
   tokens: Record<string, string> | undefined,
-  issueTokenAmount: string | undefined,
+  issueTokenAmount: Number256 | undefined,
   codeHash: string
 ): Promise<boolean> {
   const retry = await needToRetry(provider, previous, attoAlphAmount, tokens, codeHash)
@@ -191,7 +191,7 @@ async function needToDeployContract(
 async function needToRunScript(
   provider: NodeProvider,
   previous: RunScriptResult | undefined,
-  attoAlphAmount: string | undefined,
+  attoAlphAmount: Number256 | undefined,
   tokens: Record<string, string> | undefined,
   codeHash: string
 ): Promise<boolean> {
@@ -247,13 +247,12 @@ async function createDeployer<Settings = unknown>(
     const taskId = getTaskId(contract, taskTag)
     const previous = deployContractResults.get(taskId)
     const tokens = params.initialTokenAmounts ? getTokenRecord(params.initialTokenAmounts) : undefined
-    const issueTokenAmount: string | undefined = params.issueTokenAmount?.toString()
     const needToDeploy = await needToDeployContract(
       web3.getCurrentNodeProvider(),
       previous,
       params.initialAttoAlphAmount,
       tokens,
-      issueTokenAmount,
+      params.issueTokenAmount,
       codeHash
     )
     if (!needToDeploy) {
@@ -274,7 +273,7 @@ async function createDeployer<Settings = unknown>(
       codeHash: codeHash,
       attoAlphAmount: params.initialAttoAlphAmount,
       tokens: tokens,
-      issueTokenAmount: issueTokenAmount
+      issueTokenAmount: params.issueTokenAmount
     }
     deployContractResults.set(taskId, deployContractResult)
     return deployContractResult
@@ -289,7 +288,7 @@ async function createDeployer<Settings = unknown>(
     const needToRun = await needToRunScript(
       web3.getCurrentNodeProvider(),
       previous,
-      params.attoAlphAmount?.toString(),
+      params.attoAlphAmount,
       tokens,
       codeHash
     )
@@ -306,7 +305,7 @@ async function createDeployer<Settings = unknown>(
       txId: result.txId,
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
-      attoAlphAmount: params.attoAlphAmount?.toString(),
+      attoAlphAmount: params.attoAlphAmount,
       tokens: tokens
     }
     runScriptResults.set(taskId, runScriptResult)

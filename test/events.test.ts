@@ -36,7 +36,7 @@ describe('events', function () {
   async function deployContract(signer: NodeWallet): Promise<[string, string]> {
     const sub = Project.contract('Sub')
     const subDeployTx = await sub.deploy(signer, {
-      initialFields: { result: 0 },
+      initialFields: { result: 0n },
       initialTokenAmounts: []
     })
     const subContractId = subDeployTx.contractId
@@ -44,7 +44,7 @@ describe('events', function () {
     // ignore unused private function warnings
     const add = Project.contract('Add')
     const addDeployTx = await add.deploy(signer, {
-      initialFields: { sub: subContractId, result: 0 },
+      initialFields: { sub: subContractId, result: 0n },
       initialTokenAmounts: []
     })
     return [addDeployTx.contractAddress, addDeployTx.contractId]

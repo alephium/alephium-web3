@@ -33,7 +33,7 @@ async function withdraw() {
 
     // Submit a transaction to use the transaction script
     const withdrawTX = await script.execute(signer, {
-      initialFields: { token: tokenId, amount: 1 }
+      initialFields: { token: tokenId, amount: 1n }
     })
 
     // Fetch the latest state of the token contract

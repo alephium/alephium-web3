@@ -5,7 +5,7 @@ import { Number256 } from '@alephium/web3'
 export type Settings = {
   issueTokenAmount: Number256
 }
-const defaultSettings: Settings = { issueTokenAmount: 100 }
+const defaultSettings: Settings = { issueTokenAmount: 100n }
 
 const configuration: Configuration<Settings> = {
   defaultNetwork: 'devnet',
