@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC } from 'elliptic'
 import {
+  ExplorerProvider,
   fromApiNumber256,
   fromApiTokens,
   NodeProvider,
@@ -145,6 +146,7 @@ export interface SubmissionResult {
 
 export interface SignerProvider {
   get nodeProvider(): NodeProvider | undefined
+  get explorerProvider(): ExplorerProvider | undefined
 
   getSelectedAccount(): Promise<Account>
 
@@ -161,6 +163,7 @@ export interface SignerProvider {
 
 export abstract class SignerProviderSimple implements SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
+  abstract get explorerProvider(): ExplorerProvider | undefined
   abstract getSelectedAccount(): Promise<Account>
 
   private getNodeProvider(): NodeProvider {

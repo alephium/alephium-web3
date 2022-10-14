@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { Account, NodeProvider, SignerProviderSimple, utils, web3 } from '@alephium/web3'
+import { Account, ExplorerProvider, NodeProvider, SignerProviderSimple, utils, web3 } from '@alephium/web3'
 import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd-wallet'
 
 const ec = new EC('secp256k1')
@@ -28,6 +28,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   readonly address: string
   readonly group: number
   readonly nodeProvider: NodeProvider
+  readonly explorerProvider: ExplorerProvider | undefined
 
   getSelectedAccount(): Promise<Account> {
     return Promise.resolve(this.account)
@@ -37,13 +38,14 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     return { address: this.address, publicKey: this.publicKey, group: this.group }
   }
 
-  constructor(privateKey: string, nodeProvider?: NodeProvider) {
+  constructor(privateKey: string, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
     super()
     this.privateKey = privateKey
     this.publicKey = utils.publicKeyFromPrivateKey(privateKey)
     this.address = utils.addressFromPublicKey(this.publicKey)
     this.group = utils.groupOfAddress(this.address)
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
+    this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
   }
 
   static Random(targetGroup?: number, nodeProvider?: NodeProvider): PrivateKeyWallet {
