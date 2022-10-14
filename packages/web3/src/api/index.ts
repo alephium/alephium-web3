@@ -19,6 +19,24 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Api as NodeApi } from './api-alephium'
 import { Api as ExplorerApi } from './api-explorer'
 
+export interface ApiRequestArguments {
+  path: string
+  method: string
+  params: any[]
+}
+export type ApiRequestHandler = (request: ApiRequestArguments) => Promise<any>
+
+function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): void {
+  // Update class properties to forward requests
+  for (const [path, pathObject] of Object.entries(api)) {
+    for (const method of Object.keys(pathObject)) {
+      pathObject[`${method}`] = async (...params: any): Promise<any> => {
+        return handler({ path, method, params })
+      }
+    }
+  }
+}
+
 function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
     baseUrl: baseUrl,
@@ -29,20 +47,7 @@ function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
   return nodeApi
 }
 
-interface INodeProvider {
-  readonly wallets: NodeApi<string>['wallets']
-  readonly infos: NodeApi<string>['infos']
-  readonly blockflow: NodeApi<string>['blockflow']
-  readonly addresses: NodeApi<string>['addresses']
-  readonly transactions: NodeApi<string>['transactions']
-  readonly contracts: NodeApi<string>['contracts']
-  readonly multisig: NodeApi<string>['multisig']
-  readonly utils: NodeApi<string>['utils']
-  readonly miners: NodeApi<string>['miners']
-  readonly events: NodeApi<string>['events']
-}
-
-export class NodeProvider implements INodeProvider {
+export class NodeProvider {
   readonly wallets: NodeApi<string>['wallets']
   readonly infos: NodeApi<string>['infos']
   readonly blockflow: NodeApi<string>['blockflow']
@@ -54,14 +59,18 @@ export class NodeProvider implements INodeProvider {
   readonly miners: NodeApi<string>['miners']
   readonly events: NodeApi<string>['events']
 
-  constructor(provider: INodeProvider)
   constructor(baseUrl: string, apiKey?: string)
-  constructor(param0: string | INodeProvider, apiKey?: string) {
-    let nodeApi: INodeProvider
+  constructor(provider: NodeProvider)
+  constructor(handler: ApiRequestHandler)
+  constructor(param0: string | NodeProvider | ApiRequestHandler, apiKey?: string) {
+    let nodeApi: NodeProvider
     if (typeof param0 === 'string') {
       nodeApi = initializeNodeApi(param0, apiKey)
+    } else if (typeof param0 === 'function') {
+      nodeApi = new NodeProvider('https://1.2.3.4:0')
+      forwardRequests(nodeApi, param0 as ApiRequestHandler)
     } else {
-      nodeApi = param0 as INodeProvider
+      nodeApi = param0 as NodeProvider
     }
 
     this.wallets = nodeApi.wallets
@@ -76,42 +85,18 @@ export class NodeProvider implements INodeProvider {
     this.events = nodeApi.events
   }
 
+  request = (args: ApiRequestArguments): Promise<any> => {
+    const call = this[`${args.path}`][`${args.method}`] as (...any) => Promise<any>
+    return call(...args.params)
+  }
+
   // This can prevent the proxied node provider from being modified
   static Proxy(nodeProvider: NodeProvider): NodeProvider {
     return new NodeProvider(nodeProvider)
   }
-}
 
-export interface RequestArguments {
-  path: string
-  method: string
-  params?: any
-}
-
-export class RemoteNodeProvider implements INodeProvider {
-  readonly wallets!: NodeApi<string>['wallets']
-  readonly infos!: NodeApi<string>['infos']
-  readonly blockflow!: NodeApi<string>['blockflow']
-  readonly addresses!: NodeApi<string>['addresses']
-  readonly transactions!: NodeApi<string>['transactions']
-  readonly contracts!: NodeApi<string>['contracts']
-  readonly multisig!: NodeApi<string>['multisig']
-  readonly utils!: NodeApi<string>['utils']
-  readonly miners!: NodeApi<string>['miners']
-  readonly events!: NodeApi<string>['events']
-
-  constructor(request: (request: RequestArguments) => Promise<any>) {
-    const fakeNodeProvide = new NodeProvider('https://1.2.3.4:12973')
-    Object.assign(this, fakeNodeProvide) // Initialize the class
-
-    // Update class properties to forward requests
-    for (const [path, pathObject] of Object.entries(this)) {
-      for (const method of Object.keys(pathObject)) {
-        pathObject[`${method}`] = async (params: any): Promise<any> => {
-          return request({ path, method, params })
-        }
-      }
-    }
+  static Remote(handler: ApiRequestHandler): NodeProvider {
+    return new NodeProvider(handler)
   }
 }
 
