@@ -24,7 +24,7 @@ export interface ApiRequestArguments {
   method: string
   params: any[]
 }
-export type ApiRequestHandler = (request: ApiRequestArguments) => Promise<any>
+export type ApiRequestHandler = (args: ApiRequestArguments) => Promise<any>
 
 function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): void {
   // Update class properties to forward requests
@@ -35,6 +35,11 @@ function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): 
       }
     }
   }
+}
+
+async function request(provider: Record<string, any>, args: ApiRequestArguments): Promise<any> {
+  const call = provider[`${args.path}`][`${args.method}`] as (...any) => Promise<any>
+  return call(...args.params)
 }
 
 function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
@@ -86,8 +91,7 @@ export class NodeProvider {
   }
 
   request = (args: ApiRequestArguments): Promise<any> => {
-    const call = this[`${args.path}`][`${args.method}`] as (...any) => Promise<any>
-    return call(...args.params)
+    return request(this, args)
   }
 
   // This can prevent the proxied node provider from being modified
@@ -100,10 +104,65 @@ export class NodeProvider {
   }
 }
 
-// TODO: use proxy provider once the endpoints are refined.
-export class ExplorerProvider extends ExplorerApi<null> {
-  constructor(baseUrl: string) {
-    super({ baseUrl: baseUrl })
+function initializeExplorerApi(baseUrl: string, apiKey?: string): ExplorerApi<string> {
+  const explorerApi = new ExplorerApi<string>({
+    baseUrl: baseUrl,
+    baseApiParams: { secure: true },
+    securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {})
+  })
+  explorerApi.setSecurityData(apiKey ?? null)
+  return explorerApi
+}
+
+export class ExplorerProvider {
+  readonly blocks = ExplorerApi['blocks']
+  readonly transactions = ExplorerApi['transactions']
+  readonly transactionByOutputRefKey = ExplorerApi['transactionByOutputRefKey']
+  readonly addresses = ExplorerApi['addresses']
+  readonly addressesActive = ExplorerApi['addressesActive']
+  readonly infos = ExplorerApi['infos']
+  readonly unconfirmedTransactions = ExplorerApi['unconfirmedTransactions']
+  readonly tokens = ExplorerApi['tokens']
+  readonly charts = ExplorerApi['charts']
+  readonly utils = ExplorerApi['utils']
+
+  constructor(baseUrl: string, apiKey?: string)
+  constructor(provider: ExplorerProvider)
+  constructor(handler: ApiRequestHandler)
+  constructor(param0: string | ExplorerProvider | ApiRequestHandler, apiKey?: string) {
+    let explorerApi: ExplorerProvider
+    if (typeof param0 === 'string') {
+      explorerApi = initializeExplorerApi(param0, apiKey)
+    } else if (typeof param0 === 'function') {
+      explorerApi = new ExplorerProvider('https://1.2.3.4:0')
+      forwardRequests(explorerApi, param0 as ApiRequestHandler)
+    } else {
+      explorerApi = param0 as ExplorerProvider
+    }
+
+    this.blocks = explorerApi.blocks
+    this.transactions = explorerApi.transactions
+    this.transactionByOutputRefKey = explorerApi.transactionByOutputRefKey
+    this.addresses = explorerApi.addresses
+    this.addressesActive = explorerApi.addressesActive
+    this.infos = explorerApi.infos
+    this.unconfirmedTransactions = explorerApi.unconfirmedTransactions
+    this.tokens = explorerApi.tokens
+    this.charts = explorerApi.charts
+    this.utils = explorerApi.utils
+  }
+
+  request = (args: ApiRequestArguments): Promise<any> => {
+    return request(this, args)
+  }
+
+  // This can prevent the proxied explorer provider from being modified
+  static Proxy(explorerProvider: ExplorerProvider): ExplorerProvider {
+    return new ExplorerProvider(explorerProvider)
+  }
+
+  static Remote(handler: ApiRequestHandler): ExplorerProvider {
+    return new ExplorerProvider(handler)
   }
 }
 
