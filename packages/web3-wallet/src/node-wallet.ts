@@ -16,16 +16,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Account, SignerProviderWithMultipleAccounts, NodeProvider, groupOfAddress } from '@alephium/web3'
+import {
+  web3,
+  Account,
+  SignerProviderWithMultipleAccounts,
+  NodeProvider,
+  groupOfAddress,
+  ExplorerProvider
+} from '@alephium/web3'
 
 export class NodeWallet extends SignerProviderWithMultipleAccounts {
-  public walletName: string
-  public readonly nodeProvider: NodeProvider
+  walletName: string
+  readonly nodeProvider: NodeProvider
+  readonly explorerProvider: ExplorerProvider | undefined
 
-  constructor(walletName: string, nodeProvider?: NodeProvider) {
+  constructor(walletName: string, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
     super()
     this.walletName = walletName
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
+    this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
   }
 
   async setSelectedAccount(address: string): Promise<void> {

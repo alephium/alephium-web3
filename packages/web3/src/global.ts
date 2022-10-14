@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NodeProvider } from './api'
+import { ExplorerProvider, NodeProvider } from './api'
 
 let _currentNodeProvider: NodeProvider | undefined = undefined
 
@@ -35,4 +35,22 @@ export function getCurrentNodeProvider(): NodeProvider {
     throw Error('No node provider is set.')
   }
   return _currentNodeProvider
+}
+
+let _currentExplorerProvider: ExplorerProvider | undefined = undefined
+
+export function setCurrentExplorerProvider(provider: ExplorerProvider): void
+export function setCurrentExplorerProvider(baseUrl: string, apiKey?: string): void
+export function setCurrentExplorerProvider(provider: ExplorerProvider | string, apiKey?: string): void {
+  if (typeof provider == 'string') {
+    _currentExplorerProvider = new ExplorerProvider(provider, apiKey)
+  } else {
+    _currentExplorerProvider = provider
+  }
+}
+
+// Different from `NodeProvider`, this may return `undefined`
+// as ExplorerProvider is not necessary for all applications
+export function getCurrentExplorerProvider(): ExplorerProvider | undefined {
+  return _currentExplorerProvider
 }
