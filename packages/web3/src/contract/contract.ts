@@ -320,7 +320,7 @@ export class Project {
       return fsPromises.writeFile(artifactDir, compiled.artifact.toString())
     }
     for (const contract of this.contracts) {
-      await saveToFile(contract)
+      saveToFile(contract)
     }
     for (const script of this.scripts) {
       await saveToFile(script)
@@ -732,7 +732,7 @@ export class Contract extends Artifact {
     }
   }
 
-  async fromApiContractState(state: node.ContractState): Promise<ContractState> {
+  fromApiContractState(state: node.ContractState): ContractState {
     const contract = Project.currentProject.contractByCodeHash(state.codeHash)
     return {
       address: state.address,
@@ -758,10 +758,7 @@ export class Contract extends Artifact {
     fieldTypes: ['Address']
   }
 
-  static async fromApiEvent(
-    event: node.ContractEventByTxId,
-    codeHash: string | undefined
-  ): Promise<ContractEventByTxId> {
+  static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined): ContractEventByTxId {
     let eventSig: EventSig
 
     if (event.eventIndex == -1) {
@@ -781,7 +778,7 @@ export class Contract extends Artifact {
     }
   }
 
-  async fromTestContractResult(methodIndex: number, result: node.TestContractResult): Promise<TestContractResult> {
+  fromTestContractResult(methodIndex: number, result: node.TestContractResult): TestContractResult {
     const addressToCodeHash = new Map<string, string>()
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
@@ -790,19 +787,17 @@ export class Contract extends Artifact {
       contractAddress: result.address,
       returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
       gasUsed: result.gasUsed,
-      contracts: await Promise.all(result.contracts.map((contract) => this.fromApiContractState(contract))),
+      contracts: result.contracts.map((contract) => this.fromApiContractState(contract)),
       txOutputs: result.txOutputs.map(fromApiOutput),
-      events: await Promise.all(
-        result.events.map((event) => {
-          const contractAddress = event.contractAddress
-          const codeHash = addressToCodeHash.get(contractAddress)
-          if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
-            return Contract.fromApiEvent(event, codeHash)
-          } else {
-            throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
-          }
-        })
-      ),
+      events: result.events.map((event) => {
+        const contractAddress = event.contractAddress
+        const codeHash = addressToCodeHash.get(contractAddress)
+        if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
+          return Contract.fromApiEvent(event, codeHash)
+        } else {
+          throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
+        }
+      }),
       debugMessages: result.debugMessages
     }
   }

@@ -27,7 +27,7 @@ import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
 import { getConfigFile, isDevnetLive, loadConfig } from './src'
 
-async function getConfig(options: any): Promise<Configuration> {
+function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   return loadConfig(configFile)
@@ -45,7 +45,7 @@ program
   .description('creates a new and empty project')
   .argument('<dir>', 'project directory')
   .option('-t, --template <template-type>', 'specify a template for the project: either base or react', 'base')
-  .action(async (dir, options) => {
+  .action((dir, options) => {
     if (dir === undefined) {
       program.error('Please specify the project directory')
     }

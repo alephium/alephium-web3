@@ -79,6 +79,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     return new PrivateKeyWallet(privateKey, nodeProvider)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async signRaw(signerAddress: string, hexString: string): Promise<string> {
     if (signerAddress !== this.address) {
       throw Error('Unmatched signer address')

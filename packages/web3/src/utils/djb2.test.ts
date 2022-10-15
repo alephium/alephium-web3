@@ -20,7 +20,7 @@ import { Buffer } from 'buffer/'
 import djb2 from './djb2'
 
 describe('djb2', function () {
-  it('djb2', async () => {
+  it('djb2', () => {
     function check(str: string, expected: number) {
       const bytes = Buffer.from(str, 'utf8')
       expect(djb2(bytes)).toEqual(expected)

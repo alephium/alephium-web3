@@ -21,7 +21,7 @@ import * as utils from '../utils'
 import { Fields, FieldsSig } from './contract'
 
 describe('contract', function () {
-  it('should encode I256', async () => {
+  it('should encode I256', () => {
     function test(i256: bigint, expected: string) {
       expect(utils.binToHex(ralph.encodeI256(i256))).toEqual(expected)
     }
@@ -79,7 +79,7 @@ describe('contract', function () {
     fail(BigInt('-57896044618658097711785492504343953926634992332820282019728792003956564819970'))
   })
 
-  it('should encode U256', async () => {
+  it('should encode U256', () => {
     function test(u256: bigint, expected: string) {
       expect(utils.binToHex(ralph.encodeU256(u256))).toEqual(expected)
     }
@@ -123,13 +123,13 @@ describe('contract', function () {
     fail(BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639937'))
   })
 
-  it('should encode ByteVec', async () => {
+  it('should encode ByteVec', () => {
     const bytes = 'b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae'
     const bytecode = ralph.encodeScriptFieldAsString('ByteVec', bytes)
     expect(bytecode).toEqual('144020b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae')
   })
 
-  it('should test buildScriptByteCode', async () => {
+  it('should test buildScriptByteCode', () => {
     const variables = { x: true, y: 0x05n, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
     const fieldsSig: FieldsSig = {
       names: ['x', 'y', 'z', 'a'],
@@ -140,7 +140,7 @@ describe('contract', function () {
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
   })
 
-  it('should test buildContractByteCode', async () => {
+  it('should test buildContractByteCode', () => {
     const fields: Fields = {
       a: -1n,
       b: 1n,
@@ -159,7 +159,7 @@ describe('contract', function () {
     )
   })
 
-  it('should test buildDebugBytecode', async () => {
+  it('should test buildDebugBytecode', () => {
     const bytecode = '0701402901010707061005a000a001a003a00461b413c40de0b6b3a7640000a916011602160316041605160602'
     const patch = '=7-1+e=11-1+1=20+7e01027878=50'
     const debugBytecode = ralph.buildDebugBytecode(bytecode, patch)

@@ -178,7 +178,7 @@ describe('contract', function () {
     sourceFiles.slice(10).forEach((i) => expect(i.type).toEqual(3)) // interfaces
   })
 
-  it('should load contract from json', async () => {
+  it('should load contract from json', () => {
     loadContract('./artifacts/add/add.ral.json')
     loadContract('./artifacts/sub/sub.ral.json')
     loadScript('./artifacts/main.ral.json')
