@@ -3,31 +3,45 @@
   "version": "0.1.0",
   "license": "GPL",
   "scripts": {
-    "build": "npm run clean:windows && npm run clean:unix && npx tsc --build .",
-    "clean:windows": "node -e \"if (process.platform === 'win32') process.exit(1)\" || , if exist dist rmdir /Q /S dist",
+    "build": "npm run clean:windows && npm run clean:unix && npx --yes tsc --build .",
     "clean:unix": "node -e \"if (process.platform !== 'win32') process.exit(1)\" || rm -rf dist",
-    "test": "jest -i --config ./jest-config.json",
+    "clean:windows": "node -e \"if (process.platform === 'win32') process.exit(1)\" || , if exist dist rmdir /Q /S dist",
+    "devnet:start": "npx --yes @alephium/cli@latest devnet start",
+    "devnet:stop": "npx --yes @alephium/cli@latest devnet stop",
+    "compile": "npx --yes @alephium/cli@latest compile",
+    "deploy": "npx --yes @alephium/cli@latest deploy",
     "lint": "eslint . --ext ts",
-    "lint:fix": "eslint . --fix --ext ts"
+    "lint:fix": "eslint . --fix --ext ts",
+    "test": "jest -i --config ./jest-config.json"
+  },
+  "prettier": {
+    "bracketSameLine": false,
+    "printWidth": 120,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "none",
+    "useTabs": false
   },
   "dependencies": {
+    "@alephium/cli": "0.2.0-rc.36",
     "@alephium/web3": "0.2.0-rc.36",
     "@alephium/web3-test": "0.2.0-rc.36",
-    "@alephium/web3-wallet": "0.2.0-rc.36",
-    "@alephium/cli": "0.2.0-rc.36"
+    "@alephium/web3-wallet": "0.2.0-rc.36"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.13",
+    "@types/jest": "^27.5.1",
     "@types/node": "^16.7.8",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.5.0",
-    "typescript": "^4.4.2",
-    "ts-node": "^10.7.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "jest": "^28.1.0",
-    "@types/jest": "^27.5.1",
-    "ts-jest": "^28.0.2"
+    "ts-jest": "^28.0.2",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.4.2"
   },
   "engines": {
     "node": ">=14.0.0",
