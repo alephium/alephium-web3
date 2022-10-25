@@ -35,7 +35,13 @@ import {
   fromApiTokens,
   fromApiVals
 } from '../api'
-import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerProvider } from '../signer'
+import {
+  SignDeployContractTxParams,
+  SignExecuteScriptTxParams,
+  SignerProvider,
+  SignExecuteScriptTxResult,
+  SignDeployContractTxResult
+} from '../signer'
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 import { getCurrentNodeProvider } from '../global'
@@ -822,7 +828,7 @@ export class Contract extends Artifact {
   async deploy(
     signer: SignerProvider,
     params: Omit<BuildDeployContractTx, 'signerAddress'>
-  ): Promise<DeployContractTransaction> {
+  ): Promise<SignDeployContractTxResult> {
     const signerParams = await this.txParamsForDeployment(signer, params)
     return signer.signAndSubmitDeployContractTx(signerParams)
   }
@@ -907,7 +913,7 @@ export class Script extends Artifact {
   async execute(
     signer: SignerProvider,
     params: Omit<BuildExecuteScriptTx, 'signerAddress'>
-  ): Promise<BuildScriptTxResult> {
+  ): Promise<SignExecuteScriptTxResult> {
     const signerParams = await this.txParamsForExecution(signer, params)
     return await signer.signAndSubmitExecuteScriptTx(signerParams)
   }

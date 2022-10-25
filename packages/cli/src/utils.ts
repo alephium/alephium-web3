@@ -65,7 +65,7 @@ export function getNetwork<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkType: NetworkType
 ): Network<Settings> & { networkId: number } {
-  const networkInput = configuration.networks[networkType]
-  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
+  const networkInput = configuration.networks[`${networkType}`]
+  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[`${networkType}`]
   return { ...defaultValues, ...networkInput }
 }
