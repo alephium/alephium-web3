@@ -21,7 +21,7 @@ import { randomBytes } from 'crypto'
 import { NodeWallet } from './node-wallet'
 
 describe('node wallet', () => {
-  beforeAll(async () => {
+  beforeAll(() => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   })
 

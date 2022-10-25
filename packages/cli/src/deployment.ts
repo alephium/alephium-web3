@@ -222,12 +222,12 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
   return taskTag ? `${code.name}:${taskTag}` : code.name
 }
 
-async function createDeployer<Settings = unknown>(
+function createDeployer<Settings = unknown>(
   network: Network<Settings>,
   groupIndex: number,
   deployContractResults: Map<string, DeployContractResult>,
   runScriptResults: Map<string, RunScriptResult>
-): Promise<Deployer> {
+): Deployer {
   const signer = PrivateKeyWallet.FromMnemonicWithGroup(network.mnemonic, groupIndex)
   const account: Account = {
     address: signer.address,

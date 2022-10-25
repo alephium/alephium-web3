@@ -32,12 +32,12 @@ async function withdraw() {
     const tokenAddress = deployed.contractAddress
 
     // Submit a transaction to use the transaction script
-    const withdrawTX = await script.execute(signer, {
+    await script.execute(signer, {
       initialFields: { token: tokenId, amount: 1n }
     })
 
     // Fetch the latest state of the token contract
-    let state = await token.fetchState(tokenAddress, accountGroup)
+    const state = await token.fetchState(tokenAddress, accountGroup)
     console.log(JSON.stringify(state.fields, null, '  '))
   }
 }

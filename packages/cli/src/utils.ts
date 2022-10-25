@@ -20,7 +20,7 @@ import path from 'path'
 import fs from 'fs'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network, NetworkType } from './types'
 
-export async function loadConfig<Settings = unknown>(filename: string): Promise<Configuration<Settings>> {
+export function loadConfig<Settings = unknown>(filename: string): Configuration<Settings> {
   const configPath = path.resolve(filename)
   if (!fs.existsSync(configPath)) {
     throw new Error(`${configPath} does not exist`)
@@ -65,7 +65,7 @@ export function getNetwork<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkType: NetworkType
 ): Network<Settings> & { networkId: number } {
-  const networkInput = configuration.networks[networkType]
-  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[networkType]
+  const networkInput = configuration.networks[`${networkType}`]
+  const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[`${networkType}`]
   return { ...defaultValues, ...networkInput }
 }

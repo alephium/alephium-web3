@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { addressToGroup } from './address'
 
 describe('address', function () {
-  it('should derive group', async () => {
+  it('should derive group', () => {
     function check(address: string, expected: number) {
       const group = addressToGroup(address, 4)
       expect(group).toEqual(expected)

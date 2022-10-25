@@ -8,6 +8,7 @@
   "type": "commonjs",
   "devDependencies": {
     "eslint": "^7.32.0",
+    "eslint-plugin-jest": "^27.1.2",
     "jest": "^28.1.0",
     "lerna": "^5.5.0"
   },

@@ -4,7 +4,7 @@ import { deployToDevnet } from '@alephium/cli'
 import tokenContractJson from '../artifacts/token.ral.json'
 import withdrawJson from '../artifacts/withdraw.ral.json'
 
-describe("unit tests", () => {
+describe('unit tests', () => {
   let token: Contract
   let testContractId: string
   let testTokenId: string
@@ -23,7 +23,7 @@ describe("unit tests", () => {
       // a random address that the test contract resides in the tests
       address: testContractAddress,
       // assets owned by the test contract before a test
-      initialAsset: { alphAmount: 10n ** 18n, tokens: [{id: testTokenId, amount: 10n }]},
+      initialAsset: { alphAmount: 10n ** 18n, tokens: [{ id: testTokenId, amount: 10n }] },
       // initial state of the test contract
       initialFields: { supply: 10n ** 18n, balance: 10n },
       // arguments to test the target function of the test contract
@@ -33,7 +33,7 @@ describe("unit tests", () => {
     }
   })
 
-  it("test withdraw", async () => {
+  it('test withdraw', async () => {
     const testParams = testParamsFixture
     const testResult = await token.testPublicMethod('withdraw', testParams)
 
@@ -44,7 +44,7 @@ describe("unit tests", () => {
     // the balance of the test token is: 10 - 1 = 9
     expect(contractState.fields.balance).toEqual(9n)
     // double check the balance of the contract assets
-    expect(contractState.asset).toEqual({ alphAmount: 10n ** 18n, tokens: [{id: testTokenId, amount: 9n }]})
+    expect(contractState.asset).toEqual({ alphAmount: 10n ** 18n, tokens: [{ id: testTokenId, amount: 9n }] })
 
     // two transaction outputs in total
     expect(testResult.txOutputs.length).toEqual(2)
@@ -79,23 +79,25 @@ describe("unit tests", () => {
 
     // the test framework support debug messages too
     // debug will be disabled automatically at the deployment to real networks
-    expect(testResult.debugMessages).toEqual([{contractAddress: testContractAddress, message: 'The current balance is 10'}])
+    expect(testResult.debugMessages).toEqual([
+      { contractAddress: testContractAddress, message: 'The current balance is 10' }
+    ])
   })
 
-  it("test withdraw", async () => {
+  it('test withdraw', async () => {
     const testParams: TestContractParams = { ...testParamsFixture, testArgs: { amount: 3n } }
     // test that assertion failed in the withdraw function
     await expectAssertionError(token.testPublicMethod('withdraw', testParams), testContractAddress, 0)
   })
 })
 
-describe("integration tests", () => {
+describe('integration tests', () => {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build()
   })
 
-  it("should withdraw on devnet", async () => {
+  it('should withdraw on devnet', async () => {
     const script = Script.fromJson(withdrawJson)
     const signer = await testNodeWallet()
     const deployments = await deployToDevnet()
@@ -118,7 +120,7 @@ describe("integration tests", () => {
 
       // Call `withdraw` function 10 times
       for (let i = 0; i < 10; i++) {
-        const withdrawTX = await script.execute(signer, {
+        await script.execute(signer, {
           initialFields: { token: tokenId, amount: 1n }
         })
 
