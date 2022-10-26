@@ -12,6 +12,8 @@ You could run the following command to scaffold a skeleton project for smart con
 npx @alephium/cli <project-dir> [-t (base | react)]
 ```
 
+Please read the [documentation](https://wiki.alephium.org/dapps/alephium-web3) for more.
+
 ## Packages
 
 There are a few packages in this repository:
