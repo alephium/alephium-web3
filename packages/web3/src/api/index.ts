@@ -78,16 +78,16 @@ export class NodeProvider {
       nodeApi = param0 as NodeProvider
     }
 
-    this.wallets = nodeApi.wallets
-    this.infos = nodeApi.infos
-    this.blockflow = nodeApi.blockflow
-    this.addresses = nodeApi.addresses
-    this.transactions = nodeApi.transactions
-    this.contracts = nodeApi.contracts
-    this.multisig = nodeApi.multisig
-    this.utils = nodeApi.utils
-    this.miners = nodeApi.miners
-    this.events = nodeApi.events
+    this.wallets = { ...nodeApi.wallets }
+    this.infos = { ...nodeApi.infos }
+    this.blockflow = { ...nodeApi.blockflow }
+    this.addresses = { ...nodeApi.addresses }
+    this.transactions = { ...nodeApi.transactions }
+    this.contracts = { ...nodeApi.contracts }
+    this.multisig = { ...nodeApi.multisig }
+    this.utils = { ...nodeApi.utils }
+    this.miners = { ...nodeApi.miners }
+    this.events = { ...nodeApi.events }
   }
 
   request = (args: ApiRequestArguments): Promise<any> => {
@@ -140,16 +140,16 @@ export class ExplorerProvider {
       explorerApi = param0 as ExplorerProvider
     }
 
-    this.blocks = explorerApi.blocks
-    this.transactions = explorerApi.transactions
-    this.transactionByOutputRefKey = explorerApi.transactionByOutputRefKey
-    this.addresses = explorerApi.addresses
-    this.addressesActive = explorerApi.addressesActive
-    this.infos = explorerApi.infos
-    this.unconfirmedTransactions = explorerApi.unconfirmedTransactions
-    this.tokens = explorerApi.tokens
-    this.charts = explorerApi.charts
-    this.utils = explorerApi.utils
+    this.blocks = { ...explorerApi.blocks }
+    this.transactions = { ...explorerApi.transactions }
+    this.transactionByOutputRefKey = { ...explorerApi.transactionByOutputRefKey }
+    this.addresses = { ...explorerApi.addresses }
+    this.addressesActive = { ...explorerApi.addressesActive }
+    this.infos = { ...explorerApi.infos }
+    this.unconfirmedTransactions = { ...explorerApi.unconfirmedTransactions }
+    this.tokens = { ...explorerApi.tokens }
+    this.charts = { ...explorerApi.charts }
+    this.utils = { ...explorerApi.utils }
   }
 
   request = (args: ApiRequestArguments): Promise<any> => {
