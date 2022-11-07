@@ -509,10 +509,12 @@ export class Project {
 }
 
 export abstract class Artifact {
+  readonly version: string
   readonly name: string
   readonly functions: FunctionSig[]
 
-  constructor(name: string, functions: FunctionSig[]) {
+  constructor(version: string, name: string, functions: FunctionSig[]) {
+    this.version = version
     this.name = name
     this.functions = functions
   }
@@ -543,6 +545,7 @@ export class Contract extends Artifact {
   readonly codeHashDebug: string
 
   constructor(
+    version: string,
     name: string,
     bytecode: string,
     bytecodeDebugPatch: string,
@@ -552,7 +555,7 @@ export class Contract extends Artifact {
     eventsSig: EventSig[],
     functions: FunctionSig[]
   ) {
-    super(name, functions)
+    super(version, name, functions)
     this.bytecode = bytecode
     this.bytecodeDebugPatch = bytecodeDebugPatch
     this.codeHash = codeHash
@@ -566,6 +569,7 @@ export class Contract extends Artifact {
   // TODO: safely parse json
   static fromJson(artifact: any, bytecodeDebugPatch = '', codeHashDebug = ''): Contract {
     if (
+      artifact.version == null ||
       artifact.name == null ||
       artifact.bytecode == null ||
       artifact.codeHash == null ||
@@ -576,6 +580,7 @@ export class Contract extends Artifact {
       throw Error('The artifact JSON for contract is incomplete')
     }
     const contract = new Contract(
+      artifact.version,
       artifact.name,
       artifact.bytecode,
       bytecodeDebugPatch,
@@ -590,6 +595,7 @@ export class Contract extends Artifact {
 
   static fromCompileResult(result: node.CompileContractResult): Contract {
     return new Contract(
+      result.version,
       result.name,
       result.bytecode,
       result.bytecodeDebugPatch,
@@ -617,6 +623,7 @@ export class Contract extends Artifact {
 
   override toString(): string {
     const object = {
+      version: this.version,
       name: this.name,
       bytecode: this.bytecode,
       codeHash: this.codeHash,
@@ -844,25 +851,34 @@ export class Script extends Artifact {
   readonly fieldsSig: FieldsSig
 
   constructor(
+    version: string,
     name: string,
     bytecodeTemplate: string,
     bytecodeDebugPatch: string,
     fieldsSig: FieldsSig,
     functions: FunctionSig[]
   ) {
-    super(name, functions)
+    super(version, name, functions)
     this.bytecodeTemplate = bytecodeTemplate
     this.bytecodeDebugPatch = bytecodeDebugPatch
     this.fieldsSig = fieldsSig
   }
 
   static fromCompileResult(result: node.CompileScriptResult): Script {
-    return new Script(result.name, result.bytecodeTemplate, result.bytecodeDebugPatch, result.fields, result.functions)
+    return new Script(
+      result.version,
+      result.name,
+      result.bytecodeTemplate,
+      result.bytecodeDebugPatch,
+      result.fields,
+      result.functions
+    )
   }
 
   // TODO: safely parse json
   static fromJson(artifact: any, bytecodeDebugPatch = ''): Script {
     if (
+      artifact.version == null ||
       artifact.name == null ||
       artifact.bytecodeTemplate == null ||
       artifact.fieldsSig == null ||
@@ -871,6 +887,7 @@ export class Script extends Artifact {
       throw Error('The artifact JSON for script is incomplete')
     }
     return new Script(
+      artifact.version,
       artifact.name,
       artifact.bytecodeTemplate,
       bytecodeDebugPatch,
@@ -887,6 +904,7 @@ export class Script extends Artifact {
 
   override toString(): string {
     const object = {
+      version: this.version,
       name: this.name,
       bytecodeTemplate: this.bytecodeTemplate,
       fieldsSig: this.fieldsSig,
