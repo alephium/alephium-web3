@@ -27,7 +27,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "1.5.0-rc12",
+    "alephium_version": "1.5.0-rc13",
     "explorer_backend_version": "1.9.0-rc2"
   },
   "scripts": {
@@ -80,7 +80,7 @@
     "ts-jest": "^28.0.2",
     "ts-node": "^10.7.0",
     "tslib": "^2.3.1",
-    "typescript": "4.7.4",
+    "typescript": "^4.7.4",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2"
   },
