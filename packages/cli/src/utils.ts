@@ -48,13 +48,17 @@ export function getConfigFile(): string {
   return path.join(__dirname, '../templates/base/alephium.config.ts')
 }
 
-export async function isDevnetLive(): Promise<boolean> {
+export async function isNetworkLive(url: string): Promise<boolean> {
   try {
-    const res = await fetch('http://127.0.0.1:22973/infos/node', { method: 'Get' })
+    const res = await fetch(`${url}/infos/node`, { method: 'Get' })
     return res.status === 200
   } catch (e) {
     return false
   }
+}
+
+export async function isDevnetLive(): Promise<boolean> {
+  return await isNetworkLive('http://127.0.0.1:22973')
 }
 
 export function getDeploymentFilePath(networkType: NetworkType, network: Network): string {
