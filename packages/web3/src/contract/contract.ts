@@ -69,7 +69,7 @@ export const DEFAULT_NODE_COMPILER_OPTIONS: node.CompilerOptions = {
   ignoreUnusedVariablesWarnings: false,
   ignoreUnusedFieldsWarnings: false,
   ignoreUnusedPrivateFunctionsWarnings: false,
-  ignoreReadonlyCheckWarnings: false,
+  ignoreUpdateFieldsCheckWarnings: false,
   ignoreExternalCallCheckWarnings: false
 }
 

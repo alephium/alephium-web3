@@ -1,5 +1,5 @@
 Contract Greeter(btcPrice: U256) implements GreeterInterface {
-    @using(readonly = true)
+    @using(updateFields = false)
     pub fn greet() -> U256 {
         checkCaller!(true, 0)
         return btcPrice
