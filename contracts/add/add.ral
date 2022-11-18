@@ -1,6 +1,7 @@
 Contract Add(sub: Sub, mut result : U256) {
     event Add(x: U256, y: U256)
 
+    @using(updateFields = true)
     pub fn add(array: [U256; 2]) -> ([U256; 2]) {
         return addPrivate(array)
     }

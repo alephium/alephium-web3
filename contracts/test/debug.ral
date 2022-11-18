@@ -1,4 +1,5 @@
 Contract Debug() {
+    @using(updateFields = false)
     pub fn debug() -> () {
         emit Debug(`Hello, ${nullContractAddress!()}!`)
     }
