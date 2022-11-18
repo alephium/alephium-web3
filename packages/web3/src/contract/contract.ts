@@ -618,7 +618,7 @@ export class Contract extends Artifact {
     const state = await web3.getCurrentNodeProvider().contracts.getContractsAddressState(address, {
       group: group
     })
-    return this._fromApiContractState(state)
+    return this.fromApiContractState(state)
   }
 
   override toString(): string {
@@ -745,7 +745,7 @@ export class Contract extends Artifact {
     }
   }
 
-  private _fromApiContractState(state: node.ContractState): ContractState {
+  fromApiContractState(state: node.ContractState): ContractState {
     return {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
@@ -760,7 +760,7 @@ export class Contract extends Artifact {
 
   static fromApiContractState(state: node.ContractState): ContractState {
     const contract = Project.currentProject.contractByCodeHash(state.codeHash)
-    return contract._fromApiContractState(state)
+    return contract.fromApiContractState(state)
   }
 
   static ContractCreatedEvent: EventSig = {
