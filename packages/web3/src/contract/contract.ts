@@ -821,11 +821,12 @@ export class Contract extends Artifact {
 
   async txParamsForDeployment(
     signer: SignerProvider,
-    params: Omit<BuildDeployContractTx, 'signerAddress'>
+    params: Omit<BuildDeployContractTx, 'signerAddress'>,
+    targetGroup?: number
   ): Promise<SignDeployContractTxParams> {
     const bytecode = this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
     const signerParams: SignDeployContractTxParams = {
-      signerAddress: (await signer.getSelectedAccount()).address,
+      signerAddress: (await signer.getSelectedAccount(targetGroup)).address,
       bytecode: bytecode,
       initialAttoAlphAmount: params.initialAttoAlphAmount,
       issueTokenAmount: params.issueTokenAmount,
@@ -919,10 +920,11 @@ export class Script extends Artifact {
 
   async txParamsForExecution(
     signer: SignerProvider,
-    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
+    params: Omit<BuildExecuteScriptTx, 'signerAddress'>,
+    targetGroup?: number
   ): Promise<SignExecuteScriptTxParams> {
     const signerParams: SignExecuteScriptTxParams = {
-      signerAddress: (await signer.getSelectedAccount()).address,
+      signerAddress: (await signer.getSelectedAccount(targetGroup)).address,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
       attoAlphAmount: params.attoAlphAmount,
       tokens: params.tokens,

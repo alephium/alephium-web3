@@ -148,7 +148,8 @@ export interface SignerProvider {
   get nodeProvider(): NodeProvider | undefined
   get explorerProvider(): ExplorerProvider | undefined
 
-  getSelectedAccount(): Promise<Account>
+  // If the target group is specified, the signer should return an account from that group
+  getSelectedAccount(targetGroup?: number): Promise<Account>
 
   signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
   signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
@@ -164,7 +165,7 @@ export interface SignerProvider {
 export abstract class SignerProviderSimple implements SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
   abstract get explorerProvider(): ExplorerProvider | undefined
-  abstract getSelectedAccount(): Promise<Account>
+  abstract getSelectedAccount(targetGroup?: number): Promise<Account>
 
   private getNodeProvider(): NodeProvider {
     if (this.nodeProvider === undefined) {

@@ -30,7 +30,11 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   readonly nodeProvider: NodeProvider
   readonly explorerProvider: ExplorerProvider | undefined
 
-  getSelectedAccount(): Promise<Account> {
+  getSelectedAccount(targetGroup?: number): Promise<Account> {
+    if (targetGroup !== undefined && this.group !== targetGroup) {
+      throw new Error(`The selected account is not in the target group: ${targetGroup}`)
+    }
+
     return Promise.resolve(this.account)
   }
 

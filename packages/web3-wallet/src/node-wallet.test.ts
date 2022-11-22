@@ -65,11 +65,25 @@ describe('node wallet', () => {
     for (const account of accounts) {
       await nodeWallet.setSelectedAccount(account.address)
       expect(await nodeWallet.getSelectedAccount()).toEqual(account)
+      expect(await nodeWallet.getSelectedAccount(account.group)).toEqual(account)
+      expect(nodeWallet.getSelectedAccount(account.group - 1)).rejects.toThrow(
+        'The selected account is not in the target group'
+      )
+      expect(nodeWallet.getSelectedAccount(account.group + 1)).rejects.toThrow(
+        'The selected account is not in the target group'
+      )
     }
     for (let i = 0; i < 4; i++) {
       const account = accounts[`${i}`]
       await nodeWallet.setSelectedAccount(account.address)
       expect(await nodeWallet.getSelectedAccount()).toEqual(account)
+      expect(await nodeWallet.getSelectedAccount(account.group)).toEqual(account)
+      expect(nodeWallet.getSelectedAccount(account.group - 1)).rejects.toThrow(
+        'The selected account is not in the target group'
+      )
+      expect(nodeWallet.getSelectedAccount(account.group + 1)).rejects.toThrow(
+        'The selected account is not in the target group'
+      )
     }
   })
 })

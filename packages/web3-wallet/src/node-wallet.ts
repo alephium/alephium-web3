@@ -51,9 +51,14 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
     return accounts
   }
 
-  async getSelectedAccount(): Promise<Account> {
+  async getSelectedAccount(targetGroup?: number): Promise<Account> {
     const response = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const selectedAddressInfo = response.addresses.find((info) => info.address === response.activeAddress)!
+
+    if (targetGroup !== undefined && selectedAddressInfo.group !== targetGroup) {
+      throw new Error(`The selected account is not in the target group: ${targetGroup}`)
+    }
+
     return {
       address: selectedAddressInfo.address,
       group: groupOfAddress(selectedAddressInfo.address),
