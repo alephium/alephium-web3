@@ -46,6 +46,7 @@ import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import { web3 } from '..'
+import * as path from 'path'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -92,8 +93,12 @@ class SourceType {
   sourceCode: string
   sourceCodeHash: string
 
-  getArtifactPath(artifactsRootDir: string): string {
-    return artifactsRootDir + this.contractPath.slice(this.contractPath.indexOf('/')) + '.json'
+  relative(contractsRootDir: string): string {
+    return path.relative(contractsRootDir, this.contractPath)
+  }
+
+  getArtifactPath(artifactsRootDir: string, contractsRootDir: string): string {
+    return path.join(artifactsRootDir, this.relative(contractsRootDir)) + '.json'
   }
 
   constructor(type: SourceKind, name: string, sourceCode: string, sourceCodeHash: string, contractPath: string) {
@@ -154,7 +159,7 @@ class ProjectArtifact {
   }
 
   async saveToFile(rootPath: string): Promise<void> {
-    const filepath = rootPath + '/' + ProjectArtifact.artifactFileName
+    const filepath = path.join(rootPath, ProjectArtifact.artifactFileName)
     const artifact = {
       compilerOptionsUsed: this.compilerOptionsUsed,
       infos: Object.fromEntries(new Map([...this.infos].sort()))
@@ -178,7 +183,7 @@ class ProjectArtifact {
       return true
     }
     for (const sourceType of sourceTypes) {
-      const info = this.infos.get(sourceType.contractPath)
+      const info = this.infos.get(sourceType.name)
       if (typeof info === 'undefined' || info.sourceCodeHash !== sourceType.sourceCodeHash) {
         return true
       }
@@ -188,7 +193,7 @@ class ProjectArtifact {
   }
 
   static async from(rootPath: string): Promise<ProjectArtifact | undefined> {
-    const filepath = rootPath + '/' + ProjectArtifact.artifactFileName
+    const filepath = path.join(rootPath, ProjectArtifact.artifactFileName)
     if (!fs.existsSync(filepath)) {
       return undefined
     }
@@ -226,6 +231,7 @@ export class Project {
   ]
 
   static buildProjectArtifact(
+    contractsRootDir: string,
     sourceTypes: SourceType[],
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
@@ -234,7 +240,7 @@ export class Project {
     const files: Map<string, CodeInfo> = new Map()
     contracts.forEach((c) => {
       files.set(c.artifact.name, {
-        sourceFile: c.sourceType.contractPath,
+        sourceFile: c.sourceType.relative(contractsRootDir),
         sourceCodeHash: c.sourceType.sourceCodeHash,
         bytecodeDebugPatch: c.artifact.bytecodeDebugPatch,
         codeHashDebug: c.artifact.codeHashDebug,
@@ -243,7 +249,7 @@ export class Project {
     })
     scripts.forEach((s) => {
       files.set(s.artifact.name, {
-        sourceFile: s.sourceType.contractPath,
+        sourceFile: s.sourceType.relative(contractsRootDir),
         sourceCodeHash: s.sourceType.sourceCodeHash,
         bytecodeDebugPatch: s.artifact.bytecodeDebugPatch,
         codeHashDebug: '',
@@ -253,7 +259,7 @@ export class Project {
     const compiledSize = contracts.size + scripts.size
     sourceTypes.slice(compiledSize).forEach((c) => {
       files.set(c.name, {
-        sourceFile: c.contractPath,
+        sourceFile: c.relative(contractsRootDir),
         sourceCodeHash: c.sourceCodeHash,
         bytecodeDebugPatch: '',
         codeHashDebug: '',
@@ -290,14 +296,6 @@ export class Project {
     }
   }
 
-  private getContractPath(path: string): string {
-    return path.startsWith(`./${this.contractsRootDir}`)
-      ? path.slice(2)
-      : path.startsWith(this.contractsRootDir)
-      ? path
-      : this.contractsRootDir + '/' + path
-  }
-
   static checkCompilerWarnings(warnings: string[], errorOnWarnings: boolean): void {
     if (warnings.length !== 0) {
       const prefixPerWarning = '  - '
@@ -329,13 +327,14 @@ export class Project {
 
   private async saveArtifactsToFile(): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
+    const contractsRootDir = this.contractsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
-      const artifactDir = compiled.sourceType.getArtifactPath(artifactsRootDir)
-      const folder = artifactDir.slice(0, artifactDir.lastIndexOf('/'))
-      if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder, { recursive: true })
+      const artifactPath = compiled.sourceType.getArtifactPath(artifactsRootDir, contractsRootDir)
+      const dirname = path.dirname(artifactPath)
+      if (!fs.existsSync(dirname)) {
+        fs.mkdirSync(dirname, { recursive: true })
       }
-      return fsPromises.writeFile(artifactDir, compiled.artifact.toString())
+      return fsPromises.writeFile(artifactPath, compiled.artifact.toString())
     }
     this.contracts.forEach((contract) => saveToFile(contract))
     this.scripts.forEach((script) => saveToFile(script))
@@ -377,7 +376,13 @@ export class Project {
       const script = Script.fromCompileResult(scriptResult)
       scripts.set(script.name, new Compiled(sourceType, script, scriptResult.warnings))
     })
-    const projectArtifact = Project.buildProjectArtifact(sourceTypes, contracts, scripts, compilerOptions)
+    const projectArtifact = Project.buildProjectArtifact(
+      contractsRootDir,
+      sourceTypes,
+      contracts,
+      scripts,
+      compilerOptions
+    )
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,
@@ -409,7 +414,7 @@ export class Project {
           throw Error(`Unable to find project info for ${sourceType.name}, please rebuild the project`)
         }
         const warnings = info.warnings
-        const artifactDir = sourceType.getArtifactPath(artifactsRootDir)
+        const artifactDir = sourceType.getArtifactPath(artifactsRootDir, contractsRootDir)
         if (sourceType.type === SourceKind.Contract) {
           const artifact = await Contract.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, info.codeHashDebug)
           contracts.set(artifact.name, new Compiled(sourceType, artifact, warnings))
@@ -442,7 +447,7 @@ export class Project {
   }
 
   private static async loadSourceFile(dirPath: string, filename: string): Promise<SourceType[]> {
-    const contractPath = dirPath + '/' + filename
+    const contractPath = path.join(dirPath, filename)
     if (!filename.endsWith('.ral')) {
       throw new Error(`Invalid filename: ${contractPath}, smart contract file name should end with ".ral"`)
     }
@@ -468,7 +473,7 @@ export class Project {
           const sourceTypes = await Project.loadSourceFile(dirPath, dirent.name)
           results.push(...sourceTypes)
         } else {
-          const newPath = dirPath + '/' + dirent.name
+          const newPath = path.join(dirPath, dirent.name)
           await loadDir(newPath, results)
         }
       }
