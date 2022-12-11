@@ -201,13 +201,13 @@ describe('contract', function () {
     await expect(Project.build()).rejects.toThrow(/Compilation warnings\:/)
 
     await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
-    expect(Project.currentProject.projectArtifact.infos.get('contracts/test/warnings.ral')!.warnings).toEqual([
+    expect(Project.currentProject.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
       'Found unused variables in Warnings: foo.y',
       'Found unused fields in Warnings: b'
     ])
 
     await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: false })
-    expect(Project.currentProject.projectArtifact.infos.get('contracts/test/warnings.ral')!.warnings).toEqual([
+    expect(Project.currentProject.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
       'Found unused variables in Warnings: foo.y',
       'Found unused constants in Warnings: C',
       'Found unused fields in Warnings: b'
