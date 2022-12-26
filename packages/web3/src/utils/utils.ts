@@ -63,7 +63,7 @@ export function xorByte(intValue: number): number {
 }
 
 export function isHexString(input: string): boolean {
-  return input.length % 2 === 0 && /[0-9a-f]*$/.test(input)
+  return input.length % 2 === 0 && /^[0-9a-fA-F]*$/.test(input)
 }
 
 enum AddressType {
