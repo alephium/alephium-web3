@@ -165,4 +165,14 @@ describe('utils', function () {
     expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
     expect(utils.hexToString('48656c6c6f20416c65706869756d21')).toBe('Hello Alephium!')
   })
+
+  it('should check hex string', () => {
+    expect(utils.isHexString('')).toBe(true)
+    expect(utils.isHexString('0011aaAAbbBBccCCddDDeeEEffFF')).toBe(true)
+
+    expect(utils.isHexString('0011aaAAbbBBccCCddDDeeEEffFFgg')).toBe(false)
+    expect(utils.isHexString('001')).toBe(false)
+    expect(utils.isHexString('0x1111')).toBe(false)
+    expect(utils.isHexString('1111xxzz')).toBe(false)
+  })
 })
