@@ -979,13 +979,13 @@ export interface UTXO {
 
   /** @format uint256 */
   amount: string
-  tokens: Token[]
+  tokens?: Token[]
 
   /** @format int64 */
-  lockTime: number
+  lockTime?: number
 
   /** @format hex-string */
-  additionalData: string
+  additionalData?: string
 }
 
 export interface UTXOs {
@@ -1332,7 +1332,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.5.3
+ * @version 1.6.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
