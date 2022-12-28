@@ -181,10 +181,16 @@ export function contractIdFromTx(txId: string, outputIndex: number): string {
   return binToHex(hash)
 }
 
-export function subContractId(parentContractId: string, pathInHex: string): string {
+export function subContractId(parentContractId: string, pathInHex: string, group: number): string {
+  if (group < 0 || group >= TOTAL_NUMBER_OF_GROUPS) {
+    throw new Error(`Invalid group ${group}`)
+  }
   const data = Buffer.concat([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
-
-  return binToHex(blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32))
+  const bytes = Buffer.concat([
+    blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32).slice(0, -1),
+    Buffer.from([group])
+  ])
+  return binToHex(bytes)
 }
 
 export function stringToHex(str: string): string {
