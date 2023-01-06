@@ -27,7 +27,7 @@ import djb2 from './djb2'
 
 const ec = new EC('secp256k1')
 
-export function signatureEncode(signature: EC.Signature): string {
+export function encodeSignature(signature: EC.Signature | { r: BN; s: BN }): string {
   let sNormalized = signature.s
   if (ec.n && signature.s.cmp(ec.nh) === 1) {
     sNormalized = ec.n.sub(signature.s)
@@ -36,6 +36,10 @@ export function signatureEncode(signature: EC.Signature): string {
   const r = signature.r.toString('hex', 66).slice(2)
   const s = sNormalized.toString('hex', 66).slice(2)
   return r + s
+}
+
+export function encodeHexSignature(rHex: string, sHex: string): string {
+  return encodeSignature({ r: new BN(rHex, 'hex'), s: new BN(sHex, 'hex') })
 }
 
 // the signature should be in hex string format for 64 bytes

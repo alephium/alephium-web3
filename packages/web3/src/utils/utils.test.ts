@@ -72,8 +72,12 @@ describe('utils', function () {
 
       const message = vector[0]
       const sha256 = ec.hash().update(message).digest()
-      const signature = utils.signatureEncode(keyPair.sign(sha256))
+      const typedSig = keyPair.sign(sha256)
+      const signature = utils.encodeSignature(typedSig)
       assert.deepStrictEqual(signature, signatureExpected)
+
+      const anotherSig = utils.encodeHexSignature(typedSig.r.toString('hex'), typedSig.s.toString('hex'))
+      expect(anotherSig).toBe(signature)
     })
   })
 

@@ -49,6 +49,7 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.9",
+    "@types/elliptic": "^6.4.13",
     "@types/find-up": "^2.1.0",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^27.5.1",
