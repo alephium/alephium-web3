@@ -472,7 +472,7 @@ export interface CompilerOptions {
   ignoreUnusedFieldsWarnings?: boolean
   ignoreUnusedPrivateFunctionsWarnings?: boolean
   ignoreUpdateFieldsCheckWarnings?: boolean
-  ignoreExternalCallCheckWarnings?: boolean
+  ignoreCheckExternalCallerWarnings?: boolean
 }
 
 export interface Confirmed {
