@@ -87,6 +87,6 @@ export class PrivateKeyWallet extends SignerProviderSimple {
 
     const key = ec.keyFromPrivate(this.privateKey)
     const signature = key.sign(hexString)
-    return utils.signatureEncode(signature)
+    return utils.encodeSignature(signature)
   }
 }

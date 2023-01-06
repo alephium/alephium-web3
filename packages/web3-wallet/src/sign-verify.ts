@@ -25,7 +25,7 @@ export function transactionSign(txHash: string, privateKey: string): string {
   const keyPair = ec.keyFromPrivate(privateKey)
   const signature = keyPair.sign(txHash)
 
-  return utils.signatureEncode(signature)
+  return utils.encodeSignature(signature)
 }
 
 export function transactionVerifySignature(txHash: string, publicKey: string, signature: string): boolean {
