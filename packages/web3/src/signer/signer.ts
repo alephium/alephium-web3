@@ -22,127 +22,32 @@ import {
   fromApiNumber256,
   fromApiTokens,
   NodeProvider,
-  Number256,
   toApiNumber256,
   toApiNumber256Optional,
   toApiTokens,
-  Token
 } from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
-import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
-
-export type OutputRef = node.OutputRef
+import {
+  Account,
+  Destination,
+  SignDeployContractTxParams,
+  SignDeployContractTxResult,
+  SignerAddress,
+  SignExecuteScriptTxParams,
+  SignExecuteScriptTxResult,
+  SignMessageParams,
+  SignMessageResult,
+  SignTransferTxParams,
+  SignTransferTxResult,
+  SignUnsignedTxParams,
+  SignUnsignedTxResult,
+  SubmissionResult,
+  SubmitTransactionParams
+} from './types'
 
 const ec = new EC('secp256k1')
-
-export interface Account {
-  address: string
-  group: number
-  publicKey: string
-}
-
-export type SignerAddress = { signerAddress: string }
-type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress
-type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string; gasPrice: Number256 }
-
-export interface SignTransferTxParams {
-  signerAddress: string
-  destinations: Destination[]
-  utxos?: OutputRef[]
-  gasAmount?: number
-  gasPrice?: Number256
-}
-assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransaction>>>()
-export interface SignTransferTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransactionResult>>>()
-
-export interface SignDeployContractTxParams {
-  signerAddress: string
-  bytecode: string
-  initialAttoAlphAmount?: Number256
-  initialTokenAmounts?: Token[]
-  issueTokenAmount?: Number256
-  gasAmount?: number
-  gasPrice?: Number256
-}
-assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
-export interface SignDeployContractTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  contractId: string
-  contractAddress: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignDeployContractTxResult, SignResult<node.BuildDeployContractTxResult> & { contractId: string }>>()
-
-export interface SignExecuteScriptTxParams {
-  signerAddress: string
-  bytecode: string
-  attoAlphAmount?: Number256
-  tokens?: Token[]
-  gasAmount?: number
-  gasPrice?: Number256
-}
-assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
-export interface SignExecuteScriptTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignExecuteScriptTxResult, SignResult<node.BuildExecuteScriptTxResult>>>()
-
-export interface SignUnsignedTxParams {
-  signerAddress: string
-  unsignedTx: string
-}
-assertType<Eq<SignUnsignedTxParams, { unsignedTx: string } & SignerAddress>>()
-export interface SignUnsignedTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignUnsignedTxResult, SignTransferTxResult>>
-
-export interface SignMessageParams {
-  signerAddress: string
-  message: string
-}
-assertType<Eq<SignMessageParams, { message: string } & SignerAddress>>()
-export interface SignMessageResult {
-  signature: string
-}
-
-export interface SubmitTransactionParams {
-  unsignedTx: string
-  signature: string
-}
-export interface SubmissionResult {
-  txId: string
-  fromGroup: number
-  toGroup: number
-}
 
 export interface SignerProvider {
   get nodeProvider(): NodeProvider | undefined
@@ -321,15 +226,6 @@ export function verifySignedMessage(message: string, publicKey: string, signatur
   const messageHash = blake.blake2b(extendedMessage, undefined, 32)
   return verifyHexString(utils.binToHex(messageHash), publicKey, signature)
 }
-
-export interface Destination {
-  address: string
-  attoAlphAmount: Number256
-  tokens?: Token[]
-  lockTime?: number
-  message?: string
-}
-assertType<Eq<keyof Destination, keyof node.Destination>>
 
 export function toApiDestination(data: Destination): node.Destination {
   return { ...data, attoAlphAmount: toApiNumber256(data.attoAlphAmount), tokens: toApiTokens(data.tokens) }
