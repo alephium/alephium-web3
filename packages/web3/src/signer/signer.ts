@@ -31,6 +31,7 @@ import * as utils from '../utils'
 import blake from 'blakejs'
 import {
   Account,
+  Address,
   Destination,
   SignDeployContractTxParams,
   SignDeployContractTxResult,
@@ -53,7 +54,7 @@ export interface SignerProvider {
   get nodeProvider(): NodeProvider | undefined
   get explorerProvider(): ExplorerProvider | undefined
 
-  getSelectedAccount(): Promise<Account>
+  getSelectedAddress(): Promise<Address>
 
   signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
   signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
@@ -70,6 +71,10 @@ export abstract class SignerProviderSimple implements SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
   abstract get explorerProvider(): ExplorerProvider | undefined
   abstract getSelectedAccount(): Promise<Account>
+
+  async getSelectedAddress(): Promise<Address> {
+    return (await this.getSelectedAccount()).address
+  }
 
   private getNodeProvider(): NodeProvider {
     if (this.nodeProvider === undefined) {

@@ -20,6 +20,8 @@ import { Number256, Token } from '../api'
 import { node } from '../api'
 import { Eq, assertType } from '../utils'
 
+export type Address = string
+
 export type OutputRef = node.OutputRef
 
 export interface Destination {
