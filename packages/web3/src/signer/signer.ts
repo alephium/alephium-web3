@@ -24,7 +24,7 @@ import {
   NodeProvider,
   toApiNumber256,
   toApiNumber256Optional,
-  toApiTokens,
+  toApiTokens
 } from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
@@ -67,13 +67,21 @@ export interface SignerProvider {
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
+// Abstraction for interactive signer (e.g. WalletConnect instance, Extension wallet object)
+export interface InteractiveSignerProvider<ConnectOptions extends { chainGroup?: number }> extends SignerProvider {
+  // @param chainGroup - specify whether to use addresses from a specific group
+  connect(opt?: ConnectOptions): Promise<void>
+}
+
 export abstract class SignerProviderSimple implements SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
   abstract get explorerProvider(): ExplorerProvider | undefined
+
   abstract getSelectedAccount(): Promise<Account>
 
   async getSelectedAddress(): Promise<Address> {
-    return (await this.getSelectedAccount()).address
+    const account = await this.getSelectedAccount()
+    return account.address
   }
 
   private getNodeProvider(): NodeProvider {
@@ -109,16 +117,14 @@ export abstract class SignerProviderSimple implements SignerProvider {
     return signResult
   }
 
+  protected abstract getPublicKey(address: string): Promise<string>
+
   private async usePublicKey<T extends SignerAddress>(
     params: T
   ): Promise<Omit<T, 'signerAddress'> & { fromPublicKey: string }> {
     const { signerAddress, ...restParams } = params
-    const selectedAccount = await this.getSelectedAccount()
-    if (signerAddress !== selectedAccount.address) {
-      throw new Error('The signer address is not the selected address')
-    } else {
-      return { fromPublicKey: selectedAccount.publicKey, ...restParams }
-    }
+    const publicKey = await this.getPublicKey(signerAddress)
+    return { fromPublicKey: publicKey, ...restParams }
   }
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
@@ -198,6 +204,8 @@ export abstract class SignerProviderSimple implements SignerProvider {
 }
 
 export abstract class SignerProviderWithMultipleAccounts extends SignerProviderSimple {
+  abstract setSelectedAddress(address: string): Promise<void>
+
   abstract getAccounts(): Promise<Account[]>
 
   async getAccount(signerAddress: string): Promise<Account> {
@@ -210,7 +218,46 @@ export abstract class SignerProviderWithMultipleAccounts extends SignerProviderS
     }
   }
 
-  abstract setSelectedAccount(address: string): Promise<void>
+  async getPublicKey(signerAddress: string): Promise<string> {
+    const account = await this.getAccount(signerAddress)
+    return account.publicKey
+  }
+}
+
+export abstract class SignerProviderWithCachedAccounts<T extends Account> extends SignerProviderWithMultipleAccounts {
+  private _selectedAccount: T | undefined = undefined
+  protected readonly _accounts = new Map<Address, T>()
+
+  getSelectedAccount(): Promise<T> {
+    if (this._selectedAccount === undefined) {
+      throw Error('No account is selected yet')
+    } else {
+      return Promise.resolve(this._selectedAccount)
+    }
+  }
+
+  setSelectedAddress(address: string): Promise<void> {
+    const accountOpt = this._accounts.get(address)
+    if (accountOpt === undefined) {
+      throw Error('The address is not in the accounts')
+    } else {
+      this._selectedAccount = accountOpt
+      return Promise.resolve()
+    }
+  }
+
+  getAccounts(): Promise<T[]> {
+    return Promise.resolve(Array.from(this._accounts.values()))
+  }
+
+  override async getAccount(address: string): Promise<T> {
+    const account = this._accounts.get(address)
+    if (account === undefined) {
+      throw Error('The address is not in the accounts')
+    }
+
+    return Promise.resolve(account)
+  }
 }
 
 export function verifyHexString(hexString: string, publicKey: string, signature: string): boolean {

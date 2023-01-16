@@ -34,6 +34,14 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     return Promise.resolve(this.account)
   }
 
+  protected getPublicKey(address: string): Promise<string> {
+    if (address !== this.address) {
+      throw Error('The signer address is invalid')
+    }
+
+    return Promise.resolve(this.publicKey)
+  }
+
   get account(): Account {
     return { address: this.address, publicKey: this.publicKey, group: this.group }
   }
@@ -75,7 +83,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     passphrase?: string,
     nodeProvider?: NodeProvider
   ): PrivateKeyWallet {
-    const privateKey = deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, fromAddressIndex, passphrase)
+    const [privateKey] = deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, fromAddressIndex, passphrase)
     return new PrivateKeyWallet(privateKey, nodeProvider)
   }
 
@@ -85,7 +93,11 @@ export class PrivateKeyWallet extends SignerProviderSimple {
       throw Error('Unmatched signer address')
     }
 
-    const key = ec.keyFromPrivate(this.privateKey)
+    return PrivateKeyWallet.sign(this.privateKey, hexString)
+  }
+
+  static sign(privateKey: string, hexString: string): string {
+    const key = ec.keyFromPrivate(privateKey)
     const signature = key.sign(hexString)
     return utils.encodeSignature(signature)
   }

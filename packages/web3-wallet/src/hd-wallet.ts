@@ -16,16 +16,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { groupOfPrivateKey, TOTAL_NUMBER_OF_GROUPS } from '@alephium/web3'
+import { publicKeyFromPrivateKey } from '@alephium/web3'
+import { Account, ExplorerProvider, NodeProvider } from '@alephium/web3'
+import { addressFromPublicKey } from '@alephium/web3'
+import { Address } from '@alephium/web3'
+import { groupOfAddress } from '@alephium/web3'
+import { groupOfPrivateKey, SignerProviderWithCachedAccounts, TOTAL_NUMBER_OF_GROUPS, web3 } from '@alephium/web3'
 import { BIP32Factory } from 'bip32'
 import * as bip39 from 'bip39'
 import * as ecc from 'tiny-secp256k1'
+import { PrivateKeyWallet } from './privatekey-wallet'
 
-export function deriveHDWalletPrivateKey(mnemonic: string, addressIndex: number, passphrase?: string): string {
+export function deriveHDWalletPrivateKey(mnemonic: string, _fromAddressIndex?: number, passphrase?: string): string {
   const seed = bip39.mnemonicToSeedSync(mnemonic, passphrase)
   const bip32 = BIP32Factory(ecc)
   const masterKey = bip32.fromSeed(seed)
-  const keyPair = masterKey.derivePath(getHDWalletPath(addressIndex))
+  const fromAddressIndex = _fromAddressIndex ?? 0
+  const keyPair = masterKey.derivePath(getHDWalletPath(fromAddressIndex))
 
   if (!keyPair.privateKey) throw new Error('Missing private key')
 
@@ -37,7 +44,7 @@ export function deriveHDWalletPrivateKeyForGroup(
   targetGroup: number,
   _fromAddressIndex?: number,
   passphrase?: string
-): string {
+): [string, number] {
   if (targetGroup < 0 || targetGroup > TOTAL_NUMBER_OF_GROUPS) {
     throw Error(`Invalid target group for HD wallet derivation: ${targetGroup}`)
   }
@@ -45,7 +52,7 @@ export function deriveHDWalletPrivateKeyForGroup(
   const fromAddressIndex = _fromAddressIndex ?? 0
   const privateKey = deriveHDWalletPrivateKey(mnemonic, fromAddressIndex, passphrase)
   if (groupOfPrivateKey(privateKey) === targetGroup) {
-    return privateKey
+    return [privateKey, fromAddressIndex]
   } else {
     return deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, fromAddressIndex + 1, passphrase)
   }
@@ -59,4 +66,68 @@ export function getHDWalletPath(addressIndex: number): string {
   const coinType = "1234'"
 
   return `m/44'/${coinType}/0'/0/${addressIndex}`
+}
+
+export type HDWalletAccount = Account & { addressIndex: number }
+
+export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> {
+  private readonly mnemonic: string
+  private readonly passphrase?: string
+  readonly nodeProvider: NodeProvider
+  readonly explorerProvider: ExplorerProvider | undefined
+
+  constructor(mnemonic: string, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider, passphrase?: string) {
+    super()
+    this.mnemonic = mnemonic
+    this.passphrase = passphrase
+    this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
+    this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
+  }
+
+  private getNextFromAddressIndex(targetGroup?: number): number {
+    let usedAddressIndex = -1
+    for (const account of this._accounts.values()) {
+      if ((targetGroup === undefined || account.group == targetGroup) && account.addressIndex > usedAddressIndex) {
+        usedAddressIndex = account.addressIndex
+      }
+    }
+    return usedAddressIndex + 1
+  }
+
+  deriveNewAccount(targetGroup?: number): HDWalletAccount {
+    const fromAddressIndex = this.getNextFromAddressIndex(targetGroup)
+
+    let priKey: string
+    let addressIndex: number = fromAddressIndex
+    if (targetGroup !== undefined) {
+      const [_priKey, _addressIndex] = deriveHDWalletPrivateKeyForGroup(
+        this.mnemonic,
+        targetGroup,
+        fromAddressIndex,
+        this.passphrase
+      )
+      priKey = _priKey
+      addressIndex = _addressIndex
+    } else {
+      priKey = deriveHDWalletPrivateKey(this.mnemonic, fromAddressIndex, this.passphrase)
+    }
+
+    const publicKey = publicKeyFromPrivateKey(priKey)
+    const address = addressFromPublicKey(publicKey)
+    const group = groupOfAddress(address)
+    return { address, group, publicKey, addressIndex }
+  }
+
+  deriveAndAddNewAccount(targetGroup?: number): HDWalletAccount {
+    const account = this.deriveNewAccount(targetGroup)
+    this._accounts.set(account.address, account)
+    return account
+  }
+
+  async signRaw(signerAddress: Address, hexString: string): Promise<string> {
+    const account = await this.getAccount(signerAddress)
+    const privateKey = deriveHDWalletPrivateKey(this.mnemonic, account.addressIndex, this.passphrase)
+
+    return PrivateKeyWallet.sign(privateKey, hexString)
+  }
 }
