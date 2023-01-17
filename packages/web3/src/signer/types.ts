@@ -139,3 +139,10 @@ export interface SubmissionResult {
   fromGroup: number
   toGroup: number
 }
+
+export interface ConnectOptionsBase {
+  // chainGroup - specify whether to use addresses from a specific group
+  chainGroup?: number
+  onDisconnected: () => Promise<void>
+  onNetworkChanged: (network: { networkName: string; networkId: number }) => Promise<void>
+}

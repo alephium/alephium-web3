@@ -32,6 +32,7 @@ import blake from 'blakejs'
 import {
   Account,
   Address,
+  ConnectOptionsBase,
   Destination,
   SignDeployContractTxParams,
   SignDeployContractTxResult,
@@ -68,9 +69,10 @@ export interface SignerProvider {
 }
 
 // Abstraction for interactive signer (e.g. WalletConnect instance, Extension wallet object)
-export interface InteractiveSignerProvider<ConnectOptions extends { chainGroup?: number }> extends SignerProvider {
-  // @param chainGroup - specify whether to use addresses from a specific group
+export interface InteractiveSignerProvider<ConnectOptions extends ConnectOptionsBase = ConnectOptionsBase>
+  extends SignerProvider {
   connect(opt?: ConnectOptions): Promise<void>
+  disconnect(): Promise<void>
 }
 
 export abstract class SignerProviderSimple implements SignerProvider {
