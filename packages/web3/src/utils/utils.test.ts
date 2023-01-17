@@ -72,8 +72,12 @@ describe('utils', function () {
 
       const message = vector[0]
       const sha256 = ec.hash().update(message).digest()
-      const signature = utils.signatureEncode(keyPair.sign(sha256))
+      const typedSig = keyPair.sign(sha256)
+      const signature = utils.encodeSignature(typedSig)
       assert.deepStrictEqual(signature, signatureExpected)
+
+      const anotherSig = utils.encodeHexSignature(typedSig.r.toString('hex'), typedSig.s.toString('hex'))
+      expect(anotherSig).toBe(signature)
     })
   })
 
@@ -153,16 +157,36 @@ describe('utils', function () {
   })
 
   it('should compute id of the sub contract', () => {
-    expect(
-      utils.subContractId(
-        '0a38bc48fbb4300f1e305b201cd6129372d867122efb814d871d18c0bfe43b56',
-        '4f51cd1f0af97cf5ec9c7a3397eaeea549d55a93c216e54f2ab4a8cf29f6f865'
-      )
-    ).toBe('0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a268a9')
+    const parentContractId = '0a38bc48fbb4300f1e305b201cd6129372d867122efb814d871d18c0bfe43b56'
+    const pathInHex = '4f51cd1f0af97cf5ec9c7a3397eaeea549d55a93c216e54f2ab4a8cf29f6f865'
+    expect(() => utils.subContractId(parentContractId, pathInHex, -1)).toThrow('Invalid group -1')
+    expect(() => utils.subContractId(parentContractId, pathInHex, 4)).toThrow('Invalid group 4')
+    expect(utils.subContractId(parentContractId, pathInHex, 0)).toBe(
+      '0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a26800'
+    )
+    expect(utils.subContractId(parentContractId, pathInHex, 1)).toBe(
+      '0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a26801'
+    )
+    expect(utils.subContractId(parentContractId, pathInHex, 2)).toBe(
+      '0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a26802'
+    )
+    expect(utils.subContractId(parentContractId, pathInHex, 3)).toBe(
+      '0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a26803'
+    )
   })
 
   it('should convert from string to hex and back', () => {
     expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
     expect(utils.hexToString('48656c6c6f20416c65706869756d21')).toBe('Hello Alephium!')
+  })
+
+  it('should check hex string', () => {
+    expect(utils.isHexString('')).toBe(true)
+    expect(utils.isHexString('0011aaAAbbBBccCCddDDeeEEffFF')).toBe(true)
+
+    expect(utils.isHexString('0011aaAAbbBBccCCddDDeeEEffFFgg')).toBe(false)
+    expect(utils.isHexString('001')).toBe(false)
+    expect(utils.isHexString('0x1111')).toBe(false)
+    expect(utils.isHexString('1111xxzz')).toBe(false)
   })
 })

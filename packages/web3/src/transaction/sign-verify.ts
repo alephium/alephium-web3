@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { utils } from '@alephium/web3'
+import * as utils from '../utils'
 import { ec as EC } from 'elliptic'
 
 const ec = new EC('secp256k1')
@@ -25,7 +25,7 @@ export function transactionSign(txHash: string, privateKey: string): string {
   const keyPair = ec.keyFromPrivate(privateKey)
   const signature = keyPair.sign(txHash)
 
-  return utils.signatureEncode(signature)
+  return utils.encodeSignature(signature)
 }
 
 export function transactionVerifySignature(txHash: string, publicKey: string, signature: string): boolean {
