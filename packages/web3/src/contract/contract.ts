@@ -89,29 +89,36 @@ class TypedMatcher<T extends SourceKind> {
 class SourceInfo {
   type: SourceKind
   name: string
-  contractPath: string
+  contractRelativePath: string
   sourceCode: string
   sourceCodeHash: string
 
-  getRelativeContractPath(contractsRootDir: string): string {
-    return path.relative(contractsRootDir, this.contractPath)
+  getArtifactPath(artifactsRootDir: string): string {
+    return path.join(artifactsRootDir, this.contractRelativePath) + '.json'
   }
 
-  getArtifactPath(artifactsRootDir: string, contractsRootDir: string): string {
-    return path.join(artifactsRootDir, this.getRelativeContractPath(contractsRootDir)) + '.json'
-  }
-
-  constructor(type: SourceKind, name: string, sourceCode: string, sourceCodeHash: string, contractPath: string) {
+  constructor(
+    type: SourceKind,
+    name: string,
+    sourceCode: string,
+    sourceCodeHash: string,
+    contractRelativePath: string
+  ) {
     this.type = type
     this.name = name
     this.sourceCode = sourceCode
     this.sourceCodeHash = sourceCodeHash
-    this.contractPath = contractPath
+    this.contractRelativePath = contractRelativePath
   }
 
-  static async from(type: SourceKind, name: string, sourceCode: string, contractPath: string): Promise<SourceInfo> {
+  static async from(
+    type: SourceKind,
+    name: string,
+    sourceCode: string,
+    contractRelativePath: string
+  ): Promise<SourceInfo> {
     const sourceCodeHash = await crypto.subtle.digest('SHA-256', Buffer.from(sourceCode))
-    return new SourceInfo(type, name, sourceCode, Buffer.from(sourceCodeHash).toString('hex'), contractPath)
+    return new SourceInfo(type, name, sourceCode, Buffer.from(sourceCodeHash).toString('hex'), contractRelativePath)
   }
 }
 
@@ -231,7 +238,6 @@ export class Project {
   ]
 
   static buildProjectArtifact(
-    contractsRootDir: string,
     sourceInfos: SourceInfo[],
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
@@ -240,7 +246,7 @@ export class Project {
     const files: Map<string, CodeInfo> = new Map()
     contracts.forEach((c) => {
       files.set(c.artifact.name, {
-        sourceFile: c.sourceInfo.getRelativeContractPath(contractsRootDir),
+        sourceFile: c.sourceInfo.contractRelativePath,
         sourceCodeHash: c.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: c.artifact.bytecodeDebugPatch,
         codeHashDebug: c.artifact.codeHashDebug,
@@ -249,7 +255,7 @@ export class Project {
     })
     scripts.forEach((s) => {
       files.set(s.artifact.name, {
-        sourceFile: s.sourceInfo.getRelativeContractPath(contractsRootDir),
+        sourceFile: s.sourceInfo.contractRelativePath,
         sourceCodeHash: s.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: s.artifact.bytecodeDebugPatch,
         codeHashDebug: '',
@@ -259,7 +265,7 @@ export class Project {
     const compiledSize = contracts.size + scripts.size
     sourceInfos.slice(compiledSize).forEach((c) => {
       files.set(c.name, {
-        sourceFile: c.getRelativeContractPath(contractsRootDir),
+        sourceFile: c.contractRelativePath,
         sourceCodeHash: c.sourceCodeHash,
         bytecodeDebugPatch: '',
         codeHashDebug: '',
@@ -327,9 +333,8 @@ export class Project {
 
   private async saveArtifactsToFile(): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
-    const contractsRootDir = this.contractsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
-      const artifactPath = compiled.sourceInfo.getArtifactPath(artifactsRootDir, contractsRootDir)
+      const artifactPath = compiled.sourceInfo.getArtifactPath(artifactsRootDir)
       const dirname = path.dirname(artifactPath)
       if (!fs.existsSync(dirname)) {
         fs.mkdirSync(dirname, { recursive: true })
@@ -376,13 +381,7 @@ export class Project {
       const script = Script.fromCompileResult(scriptResult)
       scripts.set(script.name, new Compiled(sourceInfo, script, scriptResult.warnings))
     })
-    const projectArtifact = Project.buildProjectArtifact(
-      contractsRootDir,
-      sourceInfos,
-      contracts,
-      scripts,
-      compilerOptions
-    )
+    const projectArtifact = Project.buildProjectArtifact(sourceInfos, contracts, scripts, compilerOptions)
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,
@@ -414,7 +413,7 @@ export class Project {
           throw Error(`Unable to find project info for ${sourceInfo.name}, please rebuild the project`)
         }
         const warnings = info.warnings
-        const artifactDir = sourceInfo.getArtifactPath(artifactsRootDir, contractsRootDir)
+        const artifactDir = sourceInfo.getArtifactPath(artifactsRootDir)
         if (sourceInfo.type === SourceKind.Contract) {
           const artifact = await Contract.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, info.codeHashDebug)
           contracts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
@@ -446,8 +445,13 @@ export class Project {
     }
   }
 
-  private static async loadSourceFile(dirPath: string, filename: string): Promise<SourceInfo[]> {
+  private static async loadSourceFile(
+    contractsRootDir: string,
+    dirPath: string,
+    filename: string
+  ): Promise<SourceInfo[]> {
     const contractPath = path.join(dirPath, filename)
+    const contractRelativePath = path.relative(contractsRootDir, contractPath)
     if (!filename.endsWith('.ral')) {
       throw new Error(`Invalid filename: ${contractPath}, smart contract file name should end with ".ral"`)
     }
@@ -458,7 +462,7 @@ export class Project {
     for (const matcher of this.matchers) {
       const results = sourceStr.matchAll(matcher.matcher)
       for (const result of results) {
-        const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceStr, contractPath)
+        const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceStr, contractRelativePath)
         sourceInfos.push(sourceInfo)
       }
     }
@@ -470,7 +474,7 @@ export class Project {
       const dirents = await fsPromises.readdir(dirPath, { withFileTypes: true })
       for (const dirent of dirents) {
         if (dirent.isFile()) {
-          const sourceInfos = await Project.loadSourceFile(dirPath, dirent.name)
+          const sourceInfos = await Project.loadSourceFile(contractsRootDir, dirPath, dirent.name)
           results.push(...sourceInfos)
         } else {
           const newPath = path.join(dirPath, dirent.name)
