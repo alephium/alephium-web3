@@ -93,12 +93,12 @@ class SourceInfo {
   sourceCode: string
   sourceCodeHash: string
 
-  relative(contractsRootDir: string): string {
+  getRelativeContractPath(contractsRootDir: string): string {
     return path.relative(contractsRootDir, this.contractPath)
   }
 
   getArtifactPath(artifactsRootDir: string, contractsRootDir: string): string {
-    return path.join(artifactsRootDir, this.relative(contractsRootDir)) + '.json'
+    return path.join(artifactsRootDir, this.getRelativeContractPath(contractsRootDir)) + '.json'
   }
 
   constructor(type: SourceKind, name: string, sourceCode: string, sourceCodeHash: string, contractPath: string) {
@@ -240,7 +240,7 @@ export class Project {
     const files: Map<string, CodeInfo> = new Map()
     contracts.forEach((c) => {
       files.set(c.artifact.name, {
-        sourceFile: c.sourceInfo.relative(contractsRootDir),
+        sourceFile: c.sourceInfo.getRelativeContractPath(contractsRootDir),
         sourceCodeHash: c.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: c.artifact.bytecodeDebugPatch,
         codeHashDebug: c.artifact.codeHashDebug,
@@ -249,7 +249,7 @@ export class Project {
     })
     scripts.forEach((s) => {
       files.set(s.artifact.name, {
-        sourceFile: s.sourceInfo.relative(contractsRootDir),
+        sourceFile: s.sourceInfo.getRelativeContractPath(contractsRootDir),
         sourceCodeHash: s.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: s.artifact.bytecodeDebugPatch,
         codeHashDebug: '',
@@ -259,7 +259,7 @@ export class Project {
     const compiledSize = contracts.size + scripts.size
     sourceInfos.slice(compiledSize).forEach((c) => {
       files.set(c.name, {
-        sourceFile: c.relative(contractsRootDir),
+        sourceFile: c.getRelativeContractPath(contractsRootDir),
         sourceCodeHash: c.sourceCodeHash,
         bytecodeDebugPatch: '',
         codeHashDebug: '',
