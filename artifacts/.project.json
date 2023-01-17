@@ -8,37 +8,57 @@
     "ignoreCheckExternalCallerWarnings": false
   },
   "infos": {
-    "contracts/add/add.ral": {
+    "Add": {
+      "sourceFile": "add/add.ral",
       "sourceCodeHash": "77c642410e257b6da0a1bc8385b9af562286e407f278a13789f10ac5279693c1",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "a20cffb6f8f9416decd7aec0375b12e04475e8cf19ba80775f8f2d7633e2556d",
       "warnings": []
     },
-    "contracts/greeter/greeter.ral": {
-      "sourceCodeHash": "66c5ae4dc1029150388645f19e5658daf97420c6357cf8ea849038f1de2ee74a",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "23a48462286d2c2ffc6d3a19192060dd42c178e7d331819e75e059c5be3c042f",
-      "warnings": []
-    },
-    "contracts/sub/sub.ral": {
-      "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
-      "warnings": []
-    },
-    "contracts/test/assert.ral": {
+    "Assert": {
+      "sourceFile": "test/assert.ral",
       "sourceCodeHash": "9b4654791b1ea966c94c14055182f54f1de4ad51b05520658b067076a824dc08",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
       "warnings": []
     },
-    "contracts/test/debug.ral": {
+    "Debug": {
+      "sourceFile": "test/debug.ral",
       "sourceCodeHash": "0d7cdfad264cf2009dd8907b716ba0d79cc4cf722b35773129645c5415bcb4dc",
       "bytecodeDebugPatch": "=4-2+13=11+2ca7e=1+20748656c6c6f2c200121",
       "codeHashDebug": "0ffc72054e3668c8933e53c892947dea1963c0c24cc006a4fb0aa028c13a7e13",
       "warnings": []
     },
-    "contracts/test/metadata.ral": {
+    "Greeter": {
+      "sourceFile": "greeter/greeter.ral",
+      "sourceCodeHash": "66c5ae4dc1029150388645f19e5658daf97420c6357cf8ea849038f1de2ee74a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "23a48462286d2c2ffc6d3a19192060dd42c178e7d331819e75e059c5be3c042f",
+      "warnings": []
+    },
+    "GreeterInterface": {
+      "sourceFile": "greeter/greeter_interface.ral",
+      "sourceCodeHash": "00adef627e3e3d00a232cb082ffead857cc8001c86036831675e676336bb7935",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "GreeterMain": {
+      "sourceFile": "greeter_main.ral",
+      "sourceCodeHash": "b73c6e7ace059017085a9aba7bc6b797c6e26bc1b10312c0862ff84e973dfdff",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "Main": {
+      "sourceFile": "main.ral",
+      "sourceCodeHash": "8cc5c1a2de002650a5904078f91005932982e700f7b0a393cbe4e3a64cfdf842",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "MetaData": {
+      "sourceFile": "test/metadata.ral",
       "sourceCodeHash": "79099ed139ae980aeb7010a648998ebeaf4ee4102cb76c40addb1a0d5dd9c684",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f",
@@ -47,7 +67,15 @@
         "Private function MetaData.baz is not used"
       ]
     },
-    "contracts/test/warnings.ral": {
+    "Sub": {
+      "sourceFile": "sub/sub.ral",
+      "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
+      "warnings": []
+    },
+    "Warnings": {
+      "sourceFile": "test/warnings.ral",
       "sourceCodeHash": "974d69b74d3b88e9c5c23e8c8674d78dcd2e9b261fcae7be5adafddb777a3d01",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2",
@@ -56,24 +84,6 @@
         "Found unused constants in Warnings: C",
         "Found unused fields in Warnings: b"
       ]
-    },
-    "contracts/greeter_main.ral": {
-      "sourceCodeHash": "b73c6e7ace059017085a9aba7bc6b797c6e26bc1b10312c0862ff84e973dfdff",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
-    },
-    "contracts/main.ral": {
-      "sourceCodeHash": "8cc5c1a2de002650a5904078f91005932982e700f7b0a393cbe4e3a64cfdf842",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
-    },
-    "contracts/greeter/greeter_interface.ral": {
-      "sourceCodeHash": "00adef627e3e3d00a232cb082ffead857cc8001c86036831675e676336bb7935",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
     }
   }
 }
