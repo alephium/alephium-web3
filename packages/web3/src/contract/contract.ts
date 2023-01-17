@@ -86,7 +86,7 @@ class TypedMatcher<T extends SourceKind> {
   }
 }
 
-class SourceType {
+class SourceInfo {
   type: SourceKind
   name: string
   contractPath: string
@@ -109,19 +109,19 @@ class SourceType {
     this.contractPath = contractPath
   }
 
-  static async from(type: SourceKind, name: string, sourceCode: string, contractPath: string): Promise<SourceType> {
+  static async from(type: SourceKind, name: string, sourceCode: string, contractPath: string): Promise<SourceInfo> {
     const sourceCodeHash = await crypto.subtle.digest('SHA-256', Buffer.from(sourceCode))
-    return new SourceType(type, name, sourceCode, Buffer.from(sourceCodeHash).toString('hex'), contractPath)
+    return new SourceInfo(type, name, sourceCode, Buffer.from(sourceCodeHash).toString('hex'), contractPath)
   }
 }
 
 class Compiled<T extends Artifact> {
-  sourceType: SourceType
+  sourceInfo: SourceInfo
   artifact: T
   warnings: string[]
 
-  constructor(sourceType: SourceType, artifact: T, warnings: string[]) {
-    this.sourceType = sourceType
+  constructor(sourceInfo: SourceInfo, artifact: T, warnings: string[]) {
+    this.sourceInfo = sourceInfo
     this.artifact = artifact
     this.warnings = warnings
   }
@@ -168,7 +168,7 @@ class ProjectArtifact {
     return fsPromises.writeFile(filepath, content)
   }
 
-  needToReCompile(compilerOptions: node.CompilerOptions, sourceTypes: SourceType[]): boolean {
+  needToReCompile(compilerOptions: node.CompilerOptions, sourceInfos: SourceInfo[]): boolean {
     ProjectArtifact.checkCompilerOptionsParameter(compilerOptions)
 
     const optionsMatched = Object.entries(compilerOptions).every(([key, inputOption]) => {
@@ -179,12 +179,12 @@ class ProjectArtifact {
       return true
     }
 
-    if (sourceTypes.length !== this.infos.size) {
+    if (sourceInfos.length !== this.infos.size) {
       return true
     }
-    for (const sourceType of sourceTypes) {
-      const info = this.infos.get(sourceType.name)
-      if (typeof info === 'undefined' || info.sourceCodeHash !== sourceType.sourceCodeHash) {
+    for (const sourceInfo of sourceInfos) {
+      const info = this.infos.get(sourceInfo.name)
+      if (typeof info === 'undefined' || info.sourceCodeHash !== sourceInfo.sourceCodeHash) {
         return true
       }
     }
@@ -206,7 +206,7 @@ class ProjectArtifact {
 }
 
 export class Project {
-  sourceTypes: SourceType[]
+  sourceInfos: SourceInfo[]
   contracts: Map<string, Compiled<Contract>>
   scripts: Map<string, Compiled<Script>>
   projectArtifact: ProjectArtifact
@@ -232,7 +232,7 @@ export class Project {
 
   static buildProjectArtifact(
     contractsRootDir: string,
-    sourceTypes: SourceType[],
+    sourceInfos: SourceInfo[],
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
     compilerOptions: node.CompilerOptions
@@ -240,8 +240,8 @@ export class Project {
     const files: Map<string, CodeInfo> = new Map()
     contracts.forEach((c) => {
       files.set(c.artifact.name, {
-        sourceFile: c.sourceType.relative(contractsRootDir),
-        sourceCodeHash: c.sourceType.sourceCodeHash,
+        sourceFile: c.sourceInfo.relative(contractsRootDir),
+        sourceCodeHash: c.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: c.artifact.bytecodeDebugPatch,
         codeHashDebug: c.artifact.codeHashDebug,
         warnings: c.warnings
@@ -249,15 +249,15 @@ export class Project {
     })
     scripts.forEach((s) => {
       files.set(s.artifact.name, {
-        sourceFile: s.sourceType.relative(contractsRootDir),
-        sourceCodeHash: s.sourceType.sourceCodeHash,
+        sourceFile: s.sourceInfo.relative(contractsRootDir),
+        sourceCodeHash: s.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: s.artifact.bytecodeDebugPatch,
         codeHashDebug: '',
         warnings: s.warnings
       })
     })
     const compiledSize = contracts.size + scripts.size
-    sourceTypes.slice(compiledSize).forEach((c) => {
+    sourceInfos.slice(compiledSize).forEach((c) => {
       files.set(c.name, {
         sourceFile: c.relative(contractsRootDir),
         sourceCodeHash: c.sourceCodeHash,
@@ -272,7 +272,7 @@ export class Project {
   private constructor(
     contractsRootDir: string,
     artifactsRootDir: string,
-    sourceTypes: SourceType[],
+    sourceInfos: SourceInfo[],
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
     errorOnWarnings: boolean,
@@ -280,7 +280,7 @@ export class Project {
   ) {
     this.contractsRootDir = contractsRootDir
     this.artifactsRootDir = artifactsRootDir
-    this.sourceTypes = sourceTypes
+    this.sourceInfos = sourceInfos
     this.contracts = contracts
     this.scripts = scripts
     this.projectArtifact = projectArtifact
@@ -329,7 +329,7 @@ export class Project {
     const artifactsRootDir = this.artifactsRootDir
     const contractsRootDir = this.contractsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
-      const artifactPath = compiled.sourceType.getArtifactPath(artifactsRootDir, contractsRootDir)
+      const artifactPath = compiled.sourceInfo.getArtifactPath(artifactsRootDir, contractsRootDir)
       const dirname = path.dirname(artifactPath)
       if (!fs.existsSync(dirname)) {
         fs.mkdirSync(dirname, { recursive: true })
@@ -353,13 +353,13 @@ export class Project {
 
   private static async compile(
     provider: NodeProvider,
-    sourceTypes: SourceType[],
+    sourceInfos: SourceInfo[],
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions
   ): Promise<Project> {
-    const sourceStr = sourceTypes.map((f) => f.sourceCode).join('\n')
+    const sourceStr = sourceInfos.map((f) => f.sourceCode).join('\n')
     const result = await provider.contracts.postContractsCompileProject({
       code: sourceStr,
       compilerOptions: compilerOptions
@@ -367,18 +367,18 @@ export class Project {
     const contracts = new Map<string, Compiled<Contract>>()
     const scripts = new Map<string, Compiled<Script>>()
     result.contracts.forEach((contractResult, index) => {
-      const sourceType = sourceTypes[`${index}`]
+      const sourceInfo = sourceInfos[`${index}`]
       const contract = Contract.fromCompileResult(contractResult)
-      contracts.set(contract.name, new Compiled(sourceType, contract, contractResult.warnings))
+      contracts.set(contract.name, new Compiled(sourceInfo, contract, contractResult.warnings))
     })
     result.scripts.forEach((scriptResult, index) => {
-      const sourceType = sourceTypes[index + contracts.size]
+      const sourceInfo = sourceInfos[index + contracts.size]
       const script = Script.fromCompileResult(scriptResult)
-      scripts.set(script.name, new Compiled(sourceType, script, scriptResult.warnings))
+      scripts.set(script.name, new Compiled(sourceInfo, script, scriptResult.warnings))
     })
     const projectArtifact = Project.buildProjectArtifact(
       contractsRootDir,
-      sourceTypes,
+      sourceInfos,
       contracts,
       scripts,
       compilerOptions
@@ -386,7 +386,7 @@ export class Project {
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,
-      sourceTypes,
+      sourceInfos,
       contracts,
       scripts,
       errorOnWarnings,
@@ -398,7 +398,7 @@ export class Project {
 
   private static async loadArtifacts(
     provider: NodeProvider,
-    sourceTypes: SourceType[],
+    sourceInfos: SourceInfo[],
     projectArtifact: ProjectArtifact,
     contractsRootDir: string,
     artifactsRootDir: string,
@@ -408,26 +408,26 @@ export class Project {
     try {
       const contracts = new Map<string, Compiled<Contract>>()
       const scripts = new Map<string, Compiled<Script>>()
-      for (const sourceType of sourceTypes) {
-        const info = projectArtifact.infos.get(sourceType.name)
+      for (const sourceInfo of sourceInfos) {
+        const info = projectArtifact.infos.get(sourceInfo.name)
         if (typeof info === 'undefined') {
-          throw Error(`Unable to find project info for ${sourceType.name}, please rebuild the project`)
+          throw Error(`Unable to find project info for ${sourceInfo.name}, please rebuild the project`)
         }
         const warnings = info.warnings
-        const artifactDir = sourceType.getArtifactPath(artifactsRootDir, contractsRootDir)
-        if (sourceType.type === SourceKind.Contract) {
+        const artifactDir = sourceInfo.getArtifactPath(artifactsRootDir, contractsRootDir)
+        if (sourceInfo.type === SourceKind.Contract) {
           const artifact = await Contract.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, info.codeHashDebug)
-          contracts.set(artifact.name, new Compiled(sourceType, artifact, warnings))
-        } else if (sourceType.type === SourceKind.Script) {
+          contracts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
+        } else if (sourceInfo.type === SourceKind.Script) {
           const artifact = await Script.fromArtifactFile(artifactDir, info.bytecodeDebugPatch)
-          scripts.set(artifact.name, new Compiled(sourceType, artifact, warnings))
+          scripts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
         }
       }
 
       return new Project(
         contractsRootDir,
         artifactsRootDir,
-        sourceTypes,
+        sourceInfos,
         contracts,
         scripts,
         errorOnWarnings,
@@ -437,7 +437,7 @@ export class Project {
       console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
       return Project.compile(
         provider,
-        sourceTypes,
+        sourceInfos,
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
@@ -446,7 +446,7 @@ export class Project {
     }
   }
 
-  private static async loadSourceFile(dirPath: string, filename: string): Promise<SourceType[]> {
+  private static async loadSourceFile(dirPath: string, filename: string): Promise<SourceInfo[]> {
     const contractPath = path.join(dirPath, filename)
     if (!filename.endsWith('.ral')) {
       throw new Error(`Invalid filename: ${contractPath}, smart contract file name should end with ".ral"`)
@@ -454,39 +454,39 @@ export class Project {
 
     const sourceBuffer = await fsPromises.readFile(contractPath)
     const sourceStr = sourceBuffer.toString()
-    const sourceTypes: SourceType[] = []
+    const sourceInfos: SourceInfo[] = []
     for (const matcher of this.matchers) {
       const results = sourceStr.matchAll(matcher.matcher)
       for (const result of results) {
-        const sourceType = await SourceType.from(matcher.type, result[1], sourceStr, contractPath)
-        sourceTypes.push(sourceType)
+        const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceStr, contractPath)
+        sourceInfos.push(sourceInfo)
       }
     }
-    return sourceTypes
+    return sourceInfos
   }
 
-  private static async loadSourceFiles(contractsRootDir: string): Promise<SourceType[]> {
-    const loadDir = async function (dirPath: string, results: SourceType[]): Promise<void> {
+  private static async loadSourceFiles(contractsRootDir: string): Promise<SourceInfo[]> {
+    const loadDir = async function (dirPath: string, results: SourceInfo[]): Promise<void> {
       const dirents = await fsPromises.readdir(dirPath, { withFileTypes: true })
       for (const dirent of dirents) {
         if (dirent.isFile()) {
-          const sourceTypes = await Project.loadSourceFile(dirPath, dirent.name)
-          results.push(...sourceTypes)
+          const sourceInfos = await Project.loadSourceFile(dirPath, dirent.name)
+          results.push(...sourceInfos)
         } else {
           const newPath = path.join(dirPath, dirent.name)
           await loadDir(newPath, results)
         }
       }
     }
-    const sourceTypes: SourceType[] = []
-    await loadDir(contractsRootDir, sourceTypes)
-    const contractAndScriptSize = sourceTypes.filter(
+    const sourceInfos: SourceInfo[] = []
+    await loadDir(contractsRootDir, sourceInfos)
+    const contractAndScriptSize = sourceInfos.filter(
       (f) => f.type === SourceKind.Contract || f.type === SourceKind.Script
     ).length
-    if (sourceTypes.length === 0 || contractAndScriptSize === 0) {
+    if (sourceInfos.length === 0 || contractAndScriptSize === 0) {
       throw new Error('Project have no source files')
     }
-    return sourceTypes.sort((a, b) => a.type - b.type)
+    return sourceInfos.sort((a, b) => a.type - b.type)
   }
 
   static readonly DEFAULT_CONTRACTS_DIR = 'contracts'
