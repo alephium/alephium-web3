@@ -83,12 +83,10 @@ describe('HD wallet', () => {
 
   it('should derive account', async () => {
     const wallet = new HDWallet(testMnemonic, undefined, undefined, 'Alephium')
-    expect(wallet.deriveNewAccount().addressIndex).toBe(0)
-    expect(wallet.deriveNewAccount().addressIndex).toBe(0) // derive again should yield the same result
-    const account0 = wallet.deriveNewAccount(0)
-    const account1 = wallet.deriveNewAccount(1)
-    const account2 = wallet.deriveNewAccount(2)
-    const account3 = wallet.deriveNewAccount(3)
+    const account0 = wallet.deriveAndAddNewAccount(0)
+    const account1 = wallet.deriveAndAddNewAccount(1)
+    const account2 = wallet.deriveAndAddNewAccount(2)
+    const account3 = wallet.deriveAndAddNewAccount(3)
     expect(account0.group).toBe(0)
     expect(account1.group).toBe(1)
     expect(account2.group).toBe(2)
@@ -105,21 +103,15 @@ describe('HD wallet', () => {
     expect(account3.publicKey).toEqual(
       publicKeyFromPrivateKey('9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e')
     )
-
-    // cache accounts
-    wallet.deriveAndAddNewAccount(0)
     expect(await wallet.getAccount(account0.address)).toStrictEqual(account0)
-    wallet.deriveAndAddNewAccount(1)
     expect(await wallet.getAccount(account1.address)).toStrictEqual(account1)
-    wallet.deriveAndAddNewAccount(2)
     expect(await wallet.getAccount(account2.address)).toStrictEqual(account2)
-    wallet.deriveAndAddNewAccount(3)
     expect(await wallet.getAccount(account3.address)).toStrictEqual(account3)
 
-    const newAccount0 = wallet.deriveNewAccount(0)
-    const newAccount1 = wallet.deriveNewAccount(1)
-    const newAccount2 = wallet.deriveNewAccount(2)
-    const newAccount3 = wallet.deriveNewAccount(3)
+    const newAccount0 = wallet.deriveAndAddNewAccount(0)
+    const newAccount1 = wallet.deriveAndAddNewAccount(1)
+    const newAccount2 = wallet.deriveAndAddNewAccount(2)
+    const newAccount3 = wallet.deriveAndAddNewAccount(3)
     expect(newAccount0.group).toBe(0)
     expect(newAccount1.group).toBe(1)
     expect(newAccount2.group).toBe(2)

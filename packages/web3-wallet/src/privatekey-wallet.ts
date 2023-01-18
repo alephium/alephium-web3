@@ -22,6 +22,7 @@ import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd
 
 const ec = new EC('secp256k1')
 
+// In-memory HDWallet for simple use cases.
 export class PrivateKeyWallet extends SignerProviderSimple {
   readonly privateKey: string
   readonly publicKey: string

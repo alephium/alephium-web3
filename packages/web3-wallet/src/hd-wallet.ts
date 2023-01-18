@@ -70,6 +70,7 @@ export function getHDWalletPath(addressIndex: number): string {
 
 export type HDWalletAccount = Account & { addressIndex: number }
 
+// In-memory HDWallet for simple use cases. Advanced wallet better used the derivation functions above.
 export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> {
   private readonly mnemonic: string
   private readonly passphrase?: string
@@ -94,7 +95,7 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
     return usedAddressIndex + 1
   }
 
-  deriveNewAccount(targetGroup?: number): HDWalletAccount {
+  deriveAndAddNewAccount(targetGroup?: number): HDWalletAccount {
     const fromAddressIndex = this.getNextFromAddressIndex(targetGroup)
 
     let priKey: string
@@ -115,11 +116,8 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
     const publicKey = publicKeyFromPrivateKey(priKey)
     const address = addressFromPublicKey(publicKey)
     const group = groupOfAddress(address)
-    return { address, group, publicKey, addressIndex }
-  }
+    const account = { address, group, publicKey, addressIndex }
 
-  deriveAndAddNewAccount(targetGroup?: number): HDWalletAccount {
-    const account = this.deriveNewAccount(targetGroup)
     this._accounts.set(account.address, account)
     return account
   }
