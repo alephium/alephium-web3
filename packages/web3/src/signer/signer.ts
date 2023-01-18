@@ -32,7 +32,7 @@ import blake from 'blakejs'
 import {
   Account,
   Address,
-  ConnectOptionsBase,
+  EnableOptionsBase,
   Destination,
   SignDeployContractTxParams,
   SignDeployContractTxResult,
@@ -69,9 +69,9 @@ export interface SignerProvider {
 }
 
 // Abstraction for interactive signer (e.g. WalletConnect instance, Extension wallet object)
-export interface InteractiveSignerProvider<ConnectOptions extends ConnectOptionsBase = ConnectOptionsBase>
+export interface InteractiveSignerProvider<EnableOptions extends EnableOptionsBase = EnableOptionsBase>
   extends SignerProvider {
-  connect(opt?: ConnectOptions): Promise<void>
+  enable(opt?: EnableOptions): Promise<void>
   disconnect(): Promise<void>
 }
 

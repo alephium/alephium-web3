@@ -140,7 +140,7 @@ export interface SubmissionResult {
   toGroup: number
 }
 
-export interface ConnectOptionsBase {
+export interface EnableOptionsBase {
   // chainGroup - specify whether to use addresses from a specific group
   chainGroup?: number
   onDisconnected: () => Promise<void>
