@@ -22,133 +22,40 @@ import {
   fromApiNumber256,
   fromApiTokens,
   NodeProvider,
-  Number256,
   toApiNumber256,
   toApiNumber256Optional,
-  toApiTokens,
-  Token
+  toApiTokens
 } from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
-import { Eq, assertType } from '../utils'
 import blake from 'blakejs'
-
-export type OutputRef = node.OutputRef
+import {
+  Account,
+  Address,
+  EnableOptionsBase,
+  Destination,
+  SignDeployContractTxParams,
+  SignDeployContractTxResult,
+  SignerAddress,
+  SignExecuteScriptTxParams,
+  SignExecuteScriptTxResult,
+  SignMessageParams,
+  SignMessageResult,
+  SignTransferTxParams,
+  SignTransferTxResult,
+  SignUnsignedTxParams,
+  SignUnsignedTxResult,
+  SubmissionResult,
+  SubmitTransactionParams
+} from './types'
 
 const ec = new EC('secp256k1')
-
-export interface Account {
-  address: string
-  group: number
-  publicKey: string
-}
-
-export type SignerAddress = { signerAddress: string }
-type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress
-type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string; gasPrice: Number256 }
-
-export interface SignTransferTxParams {
-  signerAddress: string
-  destinations: Destination[]
-  utxos?: OutputRef[]
-  gasAmount?: number
-  gasPrice?: Number256
-}
-assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransaction>>>()
-export interface SignTransferTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransactionResult>>>()
-
-export interface SignDeployContractTxParams {
-  signerAddress: string
-  bytecode: string
-  initialAttoAlphAmount?: Number256
-  initialTokenAmounts?: Token[]
-  issueTokenAmount?: Number256
-  gasAmount?: number
-  gasPrice?: Number256
-}
-assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
-export interface SignDeployContractTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  contractId: string
-  contractAddress: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignDeployContractTxResult, SignResult<node.BuildDeployContractTxResult> & { contractId: string }>>()
-
-export interface SignExecuteScriptTxParams {
-  signerAddress: string
-  bytecode: string
-  attoAlphAmount?: Number256
-  tokens?: Token[]
-  gasAmount?: number
-  gasPrice?: Number256
-}
-assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
-export interface SignExecuteScriptTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignExecuteScriptTxResult, SignResult<node.BuildExecuteScriptTxResult>>>()
-
-export interface SignUnsignedTxParams {
-  signerAddress: string
-  unsignedTx: string
-}
-assertType<Eq<SignUnsignedTxParams, { unsignedTx: string } & SignerAddress>>()
-export interface SignUnsignedTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  signature: string
-  gasAmount: number
-  gasPrice: Number256
-}
-assertType<Eq<SignUnsignedTxResult, SignTransferTxResult>>
-
-export interface SignMessageParams {
-  signerAddress: string
-  message: string
-}
-assertType<Eq<SignMessageParams, { message: string } & SignerAddress>>()
-export interface SignMessageResult {
-  signature: string
-}
-
-export interface SubmitTransactionParams {
-  unsignedTx: string
-  signature: string
-}
-export interface SubmissionResult {
-  txId: string
-  fromGroup: number
-  toGroup: number
-}
 
 export interface SignerProvider {
   get nodeProvider(): NodeProvider | undefined
   get explorerProvider(): ExplorerProvider | undefined
 
-  getSelectedAccount(): Promise<Account>
+  getSelectedAddress(): Promise<Address>
 
   signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
   signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
@@ -161,10 +68,23 @@ export interface SignerProvider {
   signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
+// Abstraction for interactive signer (e.g. WalletConnect instance, Extension wallet object)
+export interface InteractiveSignerProvider<EnableOptions extends EnableOptionsBase = EnableOptionsBase>
+  extends SignerProvider {
+  enable(opt?: EnableOptions): Promise<void>
+  disconnect(): Promise<void>
+}
+
 export abstract class SignerProviderSimple implements SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
   abstract get explorerProvider(): ExplorerProvider | undefined
+
   abstract getSelectedAccount(): Promise<Account>
+
+  async getSelectedAddress(): Promise<Address> {
+    const account = await this.getSelectedAccount()
+    return account.address
+  }
 
   private getNodeProvider(): NodeProvider {
     if (this.nodeProvider === undefined) {
@@ -199,16 +119,14 @@ export abstract class SignerProviderSimple implements SignerProvider {
     return signResult
   }
 
+  protected abstract getPublicKey(address: string): Promise<string>
+
   private async usePublicKey<T extends SignerAddress>(
     params: T
   ): Promise<Omit<T, 'signerAddress'> & { fromPublicKey: string }> {
     const { signerAddress, ...restParams } = params
-    const selectedAccount = await this.getSelectedAccount()
-    if (signerAddress !== selectedAccount.address) {
-      throw new Error('The signer address is not the selected address')
-    } else {
-      return { fromPublicKey: selectedAccount.publicKey, ...restParams }
-    }
+    const publicKey = await this.getPublicKey(signerAddress)
+    return { fromPublicKey: publicKey, ...restParams }
   }
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
@@ -288,6 +206,8 @@ export abstract class SignerProviderSimple implements SignerProvider {
 }
 
 export abstract class SignerProviderWithMultipleAccounts extends SignerProviderSimple {
+  abstract setSelectedAddress(address: string): Promise<void>
+
   abstract getAccounts(): Promise<Account[]>
 
   async getAccount(signerAddress: string): Promise<Account> {
@@ -300,7 +220,46 @@ export abstract class SignerProviderWithMultipleAccounts extends SignerProviderS
     }
   }
 
-  abstract setSelectedAccount(address: string): Promise<void>
+  async getPublicKey(signerAddress: string): Promise<string> {
+    const account = await this.getAccount(signerAddress)
+    return account.publicKey
+  }
+}
+
+export abstract class SignerProviderWithCachedAccounts<T extends Account> extends SignerProviderWithMultipleAccounts {
+  private _selectedAccount: T | undefined = undefined
+  protected readonly _accounts = new Map<Address, T>()
+
+  getSelectedAccount(): Promise<T> {
+    if (this._selectedAccount === undefined) {
+      throw Error('No account is selected yet')
+    } else {
+      return Promise.resolve(this._selectedAccount)
+    }
+  }
+
+  setSelectedAddress(address: string): Promise<void> {
+    const accountOpt = this._accounts.get(address)
+    if (accountOpt === undefined) {
+      throw Error('The address is not in the accounts')
+    } else {
+      this._selectedAccount = accountOpt
+      return Promise.resolve()
+    }
+  }
+
+  getAccounts(): Promise<T[]> {
+    return Promise.resolve(Array.from(this._accounts.values()))
+  }
+
+  override async getAccount(address: string): Promise<T> {
+    const account = this._accounts.get(address)
+    if (account === undefined) {
+      throw Error('The address is not in the accounts')
+    }
+
+    return Promise.resolve(account)
+  }
 }
 
 export function verifyHexString(hexString: string, publicKey: string, signature: string): boolean {
@@ -321,15 +280,6 @@ export function verifySignedMessage(message: string, publicKey: string, signatur
   const messageHash = blake.blake2b(extendedMessage, undefined, 32)
   return verifyHexString(utils.binToHex(messageHash), publicKey, signature)
 }
-
-export interface Destination {
-  address: string
-  attoAlphAmount: Number256
-  tokens?: Token[]
-  lockTime?: number
-  message?: string
-}
-assertType<Eq<keyof Destination, keyof node.Destination>>
 
 export function toApiDestination(data: Destination): node.Destination {
   return { ...data, attoAlphAmount: toApiNumber256(data.attoAlphAmount), tokens: toApiTokens(data.tokens) }

@@ -22,7 +22,8 @@ import {
   SignerProviderWithMultipleAccounts,
   NodeProvider,
   groupOfAddress,
-  ExplorerProvider
+  ExplorerProvider,
+  Address
 } from '@alephium/web3'
 
 export class NodeWallet extends SignerProviderWithMultipleAccounts {
@@ -37,7 +38,7 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
   }
 
-  async setSelectedAccount(address: string): Promise<void> {
+  async setSelectedAddress(address: Address): Promise<void> {
     await this.nodeProvider.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: address })
   }
 

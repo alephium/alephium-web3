@@ -847,7 +847,7 @@ export class Contract extends Artifact {
   ): Promise<SignDeployContractTxParams> {
     const bytecode = this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
     const signerParams: SignDeployContractTxParams = {
-      signerAddress: (await signer.getSelectedAccount()).address,
+      signerAddress: await signer.getSelectedAddress(),
       bytecode: bytecode,
       initialAttoAlphAmount: params.initialAttoAlphAmount,
       issueTokenAmount: params.issueTokenAmount,
@@ -944,7 +944,7 @@ export class Script extends Artifact {
     params: Omit<BuildExecuteScriptTx, 'signerAddress'>
   ): Promise<SignExecuteScriptTxParams> {
     const signerParams: SignExecuteScriptTxParams = {
-      signerAddress: (await signer.getSelectedAccount()).address,
+      signerAddress: await signer.getSelectedAddress(),
       bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
       attoAlphAmount: params.attoAlphAmount,
       tokens: params.tokens,
