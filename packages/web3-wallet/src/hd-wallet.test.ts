@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, verifySignedMessage } from '@alephium/web3'
+import { web3, verifySignedMessage, publicKeyFromPrivateKey } from '@alephium/web3'
 import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup, HDWallet } from './hd-wallet'
 
 describe('HD wallet', () => {
@@ -82,7 +82,7 @@ describe('HD wallet', () => {
   })
 
   it('should derive account', async () => {
-    const wallet = new HDWallet(testMnemonic, undefined, undefined, testMnemonic)
+    const wallet = new HDWallet(testMnemonic, undefined, undefined, 'Alephium')
     expect(wallet.deriveNewAccount().addressIndex).toBe(0)
     expect(wallet.deriveNewAccount().addressIndex).toBe(0) // derive again should yield the same result
     const account0 = wallet.deriveNewAccount(0)
@@ -93,6 +93,18 @@ describe('HD wallet', () => {
     expect(account1.group).toBe(1)
     expect(account2.group).toBe(2)
     expect(account3.group).toBe(3)
+    expect(account0.publicKey).toEqual(
+      publicKeyFromPrivateKey('62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce')
+    )
+    expect(account1.publicKey).toEqual(
+      publicKeyFromPrivateKey('f62df0157aec61806d51480425e1f7a4950e13fa9a2de87988ae1d861e09d2ae')
+    )
+    expect(account2.publicKey).toEqual(
+      publicKeyFromPrivateKey('cae87098274ff447f785bc408a71b3416d6140bd824e623375959cbf43d2a2d5')
+    )
+    expect(account3.publicKey).toEqual(
+      publicKeyFromPrivateKey('9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e')
+    )
 
     // cache accounts
     wallet.deriveAndAddNewAccount(0)
