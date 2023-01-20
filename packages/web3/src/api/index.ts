@@ -118,7 +118,6 @@ export class ExplorerProvider {
   readonly blocks = ExplorerApi['blocks']
   readonly transactions = ExplorerApi['transactions']
   readonly addresses = ExplorerApi['addresses']
-  readonly addressesActive = ExplorerApi['addressesActive']
   readonly infos = ExplorerApi['infos']
   readonly unconfirmedTransactions = ExplorerApi['unconfirmedTransactions']
   readonly tokens = ExplorerApi['tokens']
@@ -142,7 +141,6 @@ export class ExplorerProvider {
     this.blocks = { ...explorerApi.blocks }
     this.transactions = { ...explorerApi.transactions }
     this.addresses = { ...explorerApi.addresses }
-    this.addressesActive = { ...explorerApi.addressesActive }
     this.infos = { ...explorerApi.infos }
     this.unconfirmedTransactions = { ...explorerApi.unconfirmedTransactions }
     this.tokens = { ...explorerApi.tokens }
