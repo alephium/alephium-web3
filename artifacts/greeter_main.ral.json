@@ -1,5 +1,5 @@
 {
-  "version": "v1.6.1",
+  "version": "v1.6.2",
   "name": "GreeterMain",
   "bytecodeTemplate": "01010300020014{0}17000c0d160001000d2f0c7b{0}17010c0d160101000d2f0c7b",
   "fieldsSig": {
