@@ -38,7 +38,12 @@ import {
   SignUnsignedTxParams,
   SignUnsignedTxResult,
   SubmissionResult,
-  SubmitTransactionParams
+  SubmitTransactionParams,
+  ExtSignTransferTxParams,
+  ExtSignDeployContractTxParams,
+  ExtSignExecuteScriptTxParams,
+  ExtSignUnsignedTxParams,
+  ExtSignMessageParams
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 
@@ -64,8 +69,16 @@ export interface SignerProvider {
 // Abstraction for interactive signer (e.g. WalletConnect instance, Extension wallet object)
 export interface InteractiveSignerProvider<EnableOptions extends EnableOptionsBase = EnableOptionsBase>
   extends SignerProvider {
-  enable(opt?: EnableOptions): Promise<void>
+  enable(opt?: EnableOptions): Promise<Address>
   disconnect(): Promise<void>
+
+  // Methods inherited from SignerProvider, but require networkId in the params
+  signAndSubmitTransferTx(params: ExtSignTransferTxParams): Promise<SignTransferTxResult>
+  signAndSubmitDeployContractTx(params: ExtSignDeployContractTxParams): Promise<SignDeployContractTxResult>
+  signAndSubmitExecuteScriptTx(params: ExtSignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
+  signAndSubmitUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  signUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  signMessage(params: ExtSignMessageParams): Promise<SignMessageResult>
 }
 
 export abstract class SignerProviderSimple extends TransactionBuilder implements SignerProvider {

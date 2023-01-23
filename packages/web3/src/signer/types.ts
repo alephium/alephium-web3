@@ -143,6 +143,13 @@ export interface SubmissionResult {
 export interface EnableOptionsBase {
   // chainGroup - specify whether to use addresses from a specific group
   chainGroup?: number
+  networkId: string
   onDisconnected: () => Promise<void>
-  onNetworkChanged: (network: { networkName: string; networkId: number }) => Promise<void>
 }
+
+// Transaction Params for InteractiveSignerProvider
+export type ExtSignTransferTxParams = SignTransferTxParams & { networkId: string }
+export type ExtSignDeployContractTxParams = SignDeployContractTxParams & { networkId: string }
+export type ExtSignExecuteScriptTxParams = SignExecuteScriptTxParams & { networkId: string }
+export type ExtSignUnsignedTxParams = SignUnsignedTxParams & { networkId: string }
+export type ExtSignMessageParams = SignMessageParams & { networkId: string }
