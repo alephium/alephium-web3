@@ -17,15 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import {
-  ExplorerProvider,
-  fromApiNumber256,
-  fromApiTokens,
-  NodeProvider,
-  toApiNumber256,
-  toApiNumber256Optional,
-  toApiTokens
-} from '../api'
+import { ExplorerProvider, fromApiNumber256, fromApiTokens, NodeProvider, toApiNumber256, toApiTokens } from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
 import blake from 'blakejs'
@@ -48,6 +40,7 @@ import {
   SubmissionResult,
   SubmitTransactionParams
 } from './types'
+import { TransactionBuilder } from './tx-builder'
 
 const ec = new EC('secp256k1')
 
@@ -75,8 +68,7 @@ export interface InteractiveSignerProvider<EnableOptions extends EnableOptionsBa
   disconnect(): Promise<void>
 }
 
-export abstract class SignerProviderSimple implements SignerProvider {
-  abstract get nodeProvider(): NodeProvider | undefined
+export abstract class SignerProviderSimple extends TransactionBuilder implements SignerProvider {
   abstract get explorerProvider(): ExplorerProvider | undefined
 
   abstract getSelectedAccount(): Promise<Account>
@@ -86,16 +78,9 @@ export abstract class SignerProviderSimple implements SignerProvider {
     return account.address
   }
 
-  private getNodeProvider(): NodeProvider {
-    if (this.nodeProvider === undefined) {
-      throw Error('The signer does not contain a node provider')
-    }
-    return this.nodeProvider
-  }
-
   async submitTransaction(params: SubmitTransactionParams): Promise<SubmissionResult> {
     const data: node.SubmitTransaction = { unsignedTx: params.unsignedTx, signature: params.signature }
-    return this.getNodeProvider().transactions.postTransactionsSubmit(data)
+    return this.nodeProvider.transactions.postTransactionsSubmit(data)
   }
 
   async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
@@ -135,13 +120,8 @@ export abstract class SignerProviderSimple implements SignerProvider {
     return { ...response, signature, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
-  async buildTransferTx(params: SignTransferTxParams): Promise<node.BuildTransactionResult> {
-    const data: node.BuildTransaction = {
-      ...(await this.usePublicKey(params)),
-      destinations: toApiDestinations(params.destinations),
-      gasPrice: toApiNumber256Optional(params.gasPrice)
-    }
-    return this.getNodeProvider().transactions.postTransactionsBuild(data)
+  override async buildTransferTx(params: SignTransferTxParams): Promise<node.BuildTransactionResult> {
+    return super.buildTransferTx(params, await this.getPublicKey(params.signerAddress))
   }
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
@@ -151,15 +131,10 @@ export abstract class SignerProviderSimple implements SignerProvider {
     return { ...response, contractId, signature, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
-  async buildContractCreationTx(params: SignDeployContractTxParams): Promise<node.BuildDeployContractTxResult> {
-    const data: node.BuildDeployContractTx = {
-      ...(await this.usePublicKey(params)),
-      initialAttoAlphAmount: toApiNumber256Optional(params.initialAttoAlphAmount),
-      initialTokenAmounts: toApiTokens(params.initialTokenAmounts),
-      issueTokenAmount: toApiNumber256Optional(params.issueTokenAmount),
-      gasPrice: toApiNumber256Optional(params.gasPrice)
-    }
-    return this.getNodeProvider().contracts.postContractsUnsignedTxDeployContract(data)
+  override async buildContractCreationTx(
+    params: SignDeployContractTxParams
+  ): Promise<node.BuildDeployContractTxResult> {
+    return super.buildContractCreationTx(params, await this.getPublicKey(params.signerAddress))
   }
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
@@ -168,21 +143,15 @@ export abstract class SignerProviderSimple implements SignerProvider {
     return { ...response, signature, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
-  async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
-    const data: node.BuildExecuteScriptTx = {
-      ...(await this.usePublicKey(params)),
-      attoAlphAmount: toApiNumber256Optional(params.attoAlphAmount),
-      tokens: toApiTokens(params.tokens),
-      gasPrice: toApiNumber256Optional(params.gasPrice)
-    }
-    return this.getNodeProvider().contracts.postContractsUnsignedTxExecuteScript(data)
+  override async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
+    return super.buildScriptTx(params, await this.getPublicKey(params.signerAddress))
   }
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     const data = { unsignedTx: params.unsignedTx }
-    const decoded = await this.getNodeProvider().transactions.postTransactionsDecodeUnsignedTx(data)
+    const decoded = await this.nodeProvider.transactions.postTransactionsDecodeUnsignedTx(data)
     const signature = await this.signRaw(params.signerAddress, decoded.unsignedTx.txId)
     return {
       fromGroup: decoded.fromGroup,
