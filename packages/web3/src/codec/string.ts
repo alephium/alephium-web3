@@ -21,18 +21,18 @@ import { byteArray } from './byteArray'
 import { merge } from './merge'
 import { Decoder, Encoder, createCodec } from './codec'
 
-const textEncoder = new TextEncoder()
-const strEnc: Encoder<string> = (str) => {
+const StringEnc: Encoder<string> = (str) => {
+  const textEncoder = new TextEncoder()
   const val = textEncoder.encode(str)
   return merge(compact.enc(val.length), Int8Array.from(val))
 }
 
-const textDecoder = new TextDecoder()
-const strDec: Decoder<string> = byteArray((bytes) => {
+const StringDec: Decoder<string> = byteArray((bytes) => {
+  const textDecoder = new TextDecoder()
   const nElements = compact.dec(bytes) as number
   const result = textDecoder.decode(bytes.slice(bytes.pos, bytes.pos + nElements))
   bytes.pos += nElements
   return result
 })
 
-export const str = createCodec(strEnc, strDec)
+export const String = createCodec(StringEnc, StringDec)

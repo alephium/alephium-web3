@@ -39,7 +39,6 @@ const StructDec = <
   const keys = Object.keys(decoders)
   return enhanceDecoder(
     Tuple.dec(...Object.values(decoders)),
-    // eslint-disable-next-line security/detect-object-injection
     (tuple: Array<any>) => Object.fromEntries(tuple.map((value, idx) => [keys[idx], value])) as OT
   )
 }

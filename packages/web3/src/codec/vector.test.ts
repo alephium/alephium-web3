@@ -16,18 +16,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Encoder, Decoder, Codec, createCodec } from './codec'
-import { byteArray } from './byteArray'
+import { Struct } from './struct'
+import { Int } from './int'
+import { Vector } from './vector'
+import { Bool } from './bool'
 
-const ByteEnc: Encoder<number> = (n) => Int8Array.of(n)
+interface Point {
+  x: number
+  y: number
+  z: boolean
+}
 
-const ByteDec: Decoder<number> = byteArray((bytes) => {
-  const value = Number(bytes[0])
-  bytes.pos += 1
-  return value
+const pointsCodec = Vector<Point>(
+  Struct({
+    x: Int,
+    y: Int,
+    z: Bool
+  })
+)
+
+describe('Vector', function () {
+  it('Vector', () => {
+    expect(
+      pointsCodec.enc([
+        { x: 1, y: 3, z: true },
+        { x: 12, y: 15, z: false }
+      ])
+    ).toEqual(Int8Array.from([2, 1, 3, 1, 12, 15, 0]))
+  })
 })
-
-export const Byte: Codec<number> = createCodec(ByteEnc, ByteDec)
-
-Byte.enc = ByteEnc
-Byte.dec = ByteDec
