@@ -17,12 +17,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Codec, createCodec, Decoder, Encoder } from './codec'
-import { toInterBytes } from './interUint8Array'
+import { byteArray } from './byteArray'
 import { Byte } from './byte'
-import { merge as mergeUint8 } from './merge'
+import { merge } from './merge'
 
 const EitherDec = <T>(inner: Decoder<T>): Decoder<T | undefined | void> =>
-  toInterBytes<T | undefined>((bytes) => {
+  byteArray<T | undefined>((bytes) => {
     const val = Byte.dec(bytes)
     if (val === 0) return undefined
     return inner(bytes)
@@ -31,13 +31,13 @@ const EitherDec = <T>(inner: Decoder<T>): Decoder<T | undefined | void> =>
 const EitherEnc =
   <T>(inner: Encoder<T>): Encoder<T | undefined | void> =>
   (value) => {
-    const result = new Uint8Array(1)
+    const result = new Int8Array(1)
     if (value === undefined) {
       result[0] = 0
       return result
     }
     result[0] = 1
-    return mergeUint8(result, inner(value))
+    return merge(result, inner(value))
   }
 
 export const Either = <T>(inner: Codec<T>): Codec<T | undefined | void> =>

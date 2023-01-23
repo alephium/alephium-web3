@@ -22,12 +22,12 @@ describe('byte', function () {
   it('byte', () => {
     expect(Byte.enc(0).toString()).toEqual('0')
     expect(Byte.enc(1).toString()).toEqual('1')
-    expect(Byte.enc(-1).toString()).toEqual('255')
+    expect(Byte.enc(-1).toString()).toEqual('-1')
 
     expect(Byte.dec('00')).toEqual(0)
     expect(Byte.dec('01')).toEqual(1)
 
-    expect(Byte.enc(127).toString()).toEqual(Uint8Array.of(127).toString())
-    expect(Byte.enc(-128).toString()).toEqual(Uint8Array.of(-128).toString())
+    expect(Byte.enc(127).toString()).toEqual(Int8Array.of(127).toString())
+    expect(Byte.enc(-128).toString()).toEqual(Int8Array.of(-128).toString())
   })
 })

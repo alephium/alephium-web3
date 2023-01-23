@@ -17,22 +17,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { compact } from './compact'
-import { byteArray } from './byteArray'
-import { merge } from './merge'
-import { Decoder, Encoder, createCodec } from './codec'
+import { Int } from './int'
 
-const textEncoder = new TextEncoder()
-const strEnc: Encoder<string> = (str) => {
-  const val = textEncoder.encode(str)
-  return merge(compact.enc(val.length), Int8Array.from(val))
-}
-
-const textDecoder = new TextDecoder()
-const strDec: Decoder<string> = byteArray((bytes) => {
-  const nElements = compact.dec(bytes) as number
-  const result = textDecoder.decode(bytes.slice(bytes.pos, bytes.pos + nElements))
-  bytes.pos += nElements
-  return result
+describe('Int', function () {
+  it('Int', () => {
+    // 0x7fffffff
+    expect(Int.enc(0x7fffffff)).toEqual(Int8Array.from([0xc0, 127, -1, -1, -1]))
+    expect(Int.enc(-2147483648)).toEqual(Int8Array.from([0xc0, -128, 0, 0, 0]))
+  })
 })
-
-export const str = createCodec(strEnc, strDec)

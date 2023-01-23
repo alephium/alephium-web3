@@ -17,17 +17,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Codec, Decoder, Encoder, createCodec } from './codec'
-import { toInterBytes } from './interUint8Array'
-import { merge as mergeUint8 } from './merge'
+import { byteArray } from './byteArray'
+import { merge } from './merge'
 import { compact } from './compact'
 
 const VectorEnc = <T>(inner: Encoder<T>, size?: number): Encoder<Array<T>> =>
-  size! >= 0
-    ? (value) => mergeUint8(...value.map(inner))
-    : (value) => mergeUint8(compact.enc(value.length), ...value.map(inner))
+  size! >= 0 ? (value) => merge(...value.map(inner)) : (value) => merge(compact.enc(value.length), ...value.map(inner))
 
 const VectorDec = <T>(getter: Decoder<T>, size?: number): Decoder<Array<T>> =>
-  toInterBytes((bytes) => {
+  byteArray((bytes) => {
     const nElements = size! >= 0 ? size! : compact.dec(bytes)
     const result = new Array(nElements as number)
 

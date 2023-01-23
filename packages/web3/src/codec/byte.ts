@@ -17,11 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Encoder, Decoder, Codec, createCodec } from './codec'
-import { toInterBytes } from './interUint8Array'
+import { byteArray } from './byteArray'
 
-const byteEnc: Encoder<number> = (n) => Uint8Array.of(n)
+const byteEnc: Encoder<number> = (n) => Int8Array.of(n)
 
-const byteDec: Decoder<number> = toInterBytes((bytes) => {
+const byteDec: Decoder<number> = byteArray((bytes) => {
   const value = Number(bytes[0])
   bytes.pos += 1
   return value

@@ -15,11 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-export const merge = (...inputs: Array<Uint8Array>): Uint8Array => {
+export const merge = (...inputs: Array<Int8Array>): Int8Array => {
   const len = inputs.length
   let totalLen = 0
   for (let i = 0; i < len; i++) totalLen += inputs[i].byteLength
-  const result = new Uint8Array(totalLen)
+  const result = new Int8Array(totalLen)
 
   for (let idx = 0, at = 0; idx < len; idx++) {
     const current = inputs[idx]

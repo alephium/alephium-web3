@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Codec, createCodec, Decoder, Encoder } from './codec'
-import { toInterBytes } from './interUint8Array'
+import { byteArray } from './byteArray'
 
 const maskMode = 0x3f
 const maskRest = 0xc0
@@ -94,7 +94,7 @@ function incompleteData(expected: number, got: number): CodecError {
 }
 
 // Signed
-const compactDec: Decoder<number | bigint> = toInterBytes<number | bigint>((bytes) => {
+const compactDec: Decoder<number | bigint> = byteArray<number | bigint>((bytes) => {
   let result: number | bigint = 0
   if (bytes.length == 0) {
     throw incompleteData(1, 0)
@@ -163,23 +163,23 @@ const compactEnc: Encoder<number | bigint> = (input) => {
   if (n >= -0x20000000 && n < 0x20000000) {
     if (n >= 0) {
       if (n < Signed.oneByteBound) {
-        return new Uint8Array([n + singleByte.prefix])
+        return new Int8Array([n + singleByte.prefix])
       } else if (n < Signed.twoByteBound) {
-        return new Uint8Array([(n >> 8) + twoByte.prefix, n])
+        return new Int8Array([(n >> 8) + twoByte.prefix, n])
       } else if (n < Signed.fourByteBound) {
-        return new Uint8Array([(n >> 24) + fourByte.prefix, n >> 16, n >> 8, n])
+        return new Int8Array([(n >> 24) + fourByte.prefix, n >> 16, n >> 8, n])
       } else {
-        return new Uint8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
+        return new Int8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
       }
     } else {
       if (n >= -Signed.oneByteBound) {
-        return new Uint8Array([n ^ singleByte.negPrefix])
+        return new Int8Array([n ^ singleByte.negPrefix])
       } else if (n >= -Signed.twoByteBound) {
-        return new Uint8Array([(n >> 8) ^ twoByte.negPrefix, n])
+        return new Int8Array([(n >> 8) ^ twoByte.negPrefix, n])
       } else if (n >= -Signed.fourByteBound) {
-        return new Uint8Array([(n >> 24) ^ fourByte.negPrefix, n >> 16, n >> 8, n])
+        return new Int8Array([(n >> 24) ^ fourByte.negPrefix, n >> 16, n >> 8, n])
       } else {
-        return new Uint8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
+        return new Int8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
       }
     }
   } else {
@@ -193,7 +193,7 @@ const compactEnc: Encoder<number | bigint> = (input) => {
 }
 
 // n should be positive
-export function toByteArray(n: bigint, signed: boolean, notBit: boolean): Uint8Array {
+export function toByteArray(n: bigint, signed: boolean, notBit: boolean): Int8Array {
   let hex = n.toString(16)
   if (hex.length % 2 === 1) {
     hex = '0' + hex
@@ -202,7 +202,7 @@ export function toByteArray(n: bigint, signed: boolean, notBit: boolean): Uint8A
   }
 
   const byteLength = hex.length / 2
-  const bytes = new Uint8Array(byteLength + 1)
+  const bytes = new Int8Array(byteLength + 1)
   for (let index = 0; index < byteLength; index++) {
     const offset = index * 2
     const byte = parseInt(hex.slice(offset, offset + 2), 16)

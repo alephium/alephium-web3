@@ -16,12 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export function mapObject<K extends string | number | symbol, I, O>(
+export function map<K extends string | number | symbol, I, O>(
   input: Record<K, I>,
   mapper: (i: I, k: K) => O
 ): Record<K, O>
 
-export function mapObject<K extends string | number | symbol, I, O>(
+export function map<K extends string | number | symbol, I, O>(
   input: Record<K, I>,
   mapper: (i: I, k?: K) => O
 ): Record<K, O> {

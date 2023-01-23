@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Codec, Decoder, Encoder, createCodec, enhanceEncoder, enhanceDecoder, StringRecord } from './codec'
-import { mapObject } from './mapObject'
+import { map } from './map'
 import { Tuple } from './tuple'
 
 const StructEnc = <
@@ -49,8 +49,7 @@ export const Struct = <
   OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown }
 >(
   codecs: A
-): Codec<OT> =>
-  createCodec(StructEnc(mapObject(codecs, (x) => x[0]) as any), StructDec(mapObject(codecs, (x) => x[1]) as any))
+): Codec<OT> => createCodec(StructEnc(map(codecs, (x) => x[0]) as any), StructDec(map(codecs, (x) => x[1]) as any))
 
 Struct.enc = StructEnc
 Struct.dec = StructDec

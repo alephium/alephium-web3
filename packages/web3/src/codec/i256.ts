@@ -18,11 +18,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Codec, createCodec, Decoder, Encoder } from './codec'
 import { compact } from './compact'
-import { toInterBytes } from './interUint8Array'
+import { byteArray } from './byteArray'
 
 const I256Enc: Encoder<bigint> = (n) => compact.enc(n)
 
-const I256Dec: Decoder<bigint> = toInterBytes((bytes) => BigInt(compact.dec(bytes)))
+const I256Dec: Decoder<bigint> = byteArray((bytes) => BigInt(compact.dec(bytes)))
 
 export const I256: Codec<bigint> = createCodec(I256Enc, I256Dec)
 

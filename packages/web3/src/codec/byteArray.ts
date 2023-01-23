@@ -42,7 +42,7 @@ const hexMap: Record<string, number> = {
   E: 14,
   F: 15
 }
-export function fromHex(hexString: string): Uint8Array {
+export function fromHex(hexString: string): ArrayBuffer {
   const isOdd = hexString.length % 2
 
   const base = (hexString[1] === 'x' ? 2 : 0) + isOdd
@@ -60,7 +60,7 @@ export function fromHex(hexString: string): Uint8Array {
   return bytes
 }
 
-class InterUint8Array extends Uint8Array {
+class ByteArray extends Int8Array {
   // cursor = 0
   pos = 0
 
@@ -69,13 +69,10 @@ class InterUint8Array extends Uint8Array {
   }
 }
 
-export const toInterBytes =
-  <T>(fn: (input: InterUint8Array) => T): Decoder<T> =>
-  (buffer: string | ArrayBuffer | Uint8Array | InterUint8Array) =>
-    fn(
-      buffer instanceof InterUint8Array
-        ? buffer
-        : new InterUint8Array(
-            buffer instanceof Uint8Array ? buffer.buffer : typeof buffer === 'string' ? fromHex(buffer).buffer : buffer
-          )
+export const byteArray =
+  <T>(fn: (input: ByteArray) => T): Decoder<T> =>
+  (buffer: string | ArrayBuffer | Int8Array | Uint8Array | ByteArray) => {
+    return fn(
+      buffer instanceof ByteArray ? buffer : new ByteArray(typeof buffer === 'string' ? fromHex(buffer) : buffer)
     )
+  }
