@@ -130,51 +130,43 @@ export abstract class SignerProviderSimple extends TransactionBuilder implements
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const response = await this.buildTransferTx(params)
     const signature = await this.signRaw(params.signerAddress, response.txId)
-    return { ...response, signature, gasPrice: fromApiNumber256(response.gasPrice) }
+    return { signature, ...response }
   }
 
-  override async buildTransferTx(params: SignTransferTxParams): Promise<node.BuildTransactionResult> {
+  override async buildTransferTx(params: SignTransferTxParams): Promise<Omit<SignTransferTxResult, 'signature'>> {
     return super.buildTransferTx(params, await this.getPublicKey(params.signerAddress))
   }
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
-    const response = await this.buildContractCreationTx(params)
+    const response = await this.buildDeployContractTx(params)
     const signature = await this.signRaw(params.signerAddress, response.txId)
-    const contractId = utils.binToHex(utils.contractIdFromAddress(response.contractAddress))
-    return { ...response, contractId, signature, gasPrice: fromApiNumber256(response.gasPrice) }
+    return { signature, ...response }
   }
 
-  override async buildContractCreationTx(
+  override async buildDeployContractTx(
     params: SignDeployContractTxParams
-  ): Promise<node.BuildDeployContractTxResult> {
-    return super.buildContractCreationTx(params, await this.getPublicKey(params.signerAddress))
+  ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
+    return super.buildDeployContractTx(params, await this.getPublicKey(params.signerAddress))
   }
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
-    const response = await this.buildScriptTx(params)
+    const response = await this.buildExecuteScriptTx(params)
     const signature = await this.signRaw(params.signerAddress, response.txId)
-    return { ...response, signature, gasPrice: fromApiNumber256(response.gasPrice) }
+    return { signature, ...response }
   }
 
-  override async buildScriptTx(params: SignExecuteScriptTxParams): Promise<node.BuildExecuteScriptTxResult> {
-    return super.buildScriptTx(params, await this.getPublicKey(params.signerAddress))
+  override async buildExecuteScriptTx(
+    params: SignExecuteScriptTxParams
+  ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
+    return super.buildExecuteScriptTx(params, await this.getPublicKey(params.signerAddress))
   }
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
-    const data = { unsignedTx: params.unsignedTx }
-    const decoded = await this.nodeProvider.transactions.postTransactionsDecodeUnsignedTx(data)
-    const signature = await this.signRaw(params.signerAddress, decoded.unsignedTx.txId)
-    return {
-      fromGroup: decoded.fromGroup,
-      toGroup: decoded.toGroup,
-      unsignedTx: params.unsignedTx,
-      txId: decoded.unsignedTx.txId,
-      signature,
-      gasAmount: decoded.unsignedTx.gasAmount,
-      gasPrice: fromApiNumber256(decoded.unsignedTx.gasPrice)
-    }
+    const response = await this.buildUnsignedTx(params)
+    const signature = await this.signRaw(params.signerAddress, response.txId)
+    return { signature, ...response }
   }
 
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {

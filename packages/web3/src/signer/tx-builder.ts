@@ -16,10 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, NodeProvider, toApiNumber256Optional, toApiTokens } from '../api'
+import { utils } from '..'
+import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiTokens } from '../api'
 import { addressFromPublicKey } from '../utils'
 import { toApiDestinations } from './signer'
-import { SignDeployContractTxParams, SignerAddress, SignExecuteScriptTxParams, SignTransferTxParams } from './types'
+import {
+  SignDeployContractTxParams,
+  SignDeployContractTxResult,
+  SignerAddress,
+  SignExecuteScriptTxParams,
+  SignExecuteScriptTxResult,
+  SignTransferTxParams,
+  SignTransferTxResult,
+  SignUnsignedTxParams,
+  SignUnsignedTxResult
+} from './types'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -40,7 +51,10 @@ export abstract class TransactionBuilder {
     }
   }
 
-  async buildTransferTx(params: SignTransferTxParams, publicKey: string): Promise<node.BuildTransactionResult> {
+  async buildTransferTx(
+    params: SignTransferTxParams,
+    publicKey: string
+  ): Promise<Omit<SignTransferTxResult, 'signature'>> {
     TransactionBuilder.validatePublicKey(params, publicKey)
 
     const { destinations, gasPrice, ...rest } = params
@@ -50,13 +64,14 @@ export abstract class TransactionBuilder {
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
     }
-    return this.nodeProvider.transactions.postTransactionsBuild(data)
+    const response = await this.nodeProvider.transactions.postTransactionsBuild(data)
+    return { ...response, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
-  async buildContractCreationTx(
+  async buildDeployContractTx(
     params: SignDeployContractTxParams,
     publicKey: string
-  ): Promise<node.BuildDeployContractTxResult> {
+  ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
     TransactionBuilder.validatePublicKey(params, publicKey)
 
     const { initialAttoAlphAmount, initialTokenAmounts, issueTokenAmount, gasPrice, ...rest } = params
@@ -68,10 +83,15 @@ export abstract class TransactionBuilder {
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
     }
-    return this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
+    const response = await this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
+    const contractId = utils.binToHex(utils.contractIdFromAddress(response.contractAddress))
+    return { ...response, contractId, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
-  async buildScriptTx(params: SignExecuteScriptTxParams, publicKey: string): Promise<node.BuildExecuteScriptTxResult> {
+  async buildExecuteScriptTx(
+    params: SignExecuteScriptTxParams,
+    publicKey: string
+  ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
     TransactionBuilder.validatePublicKey(params, publicKey)
 
     const { attoAlphAmount, tokens, gasPrice, ...rest } = params
@@ -82,6 +102,20 @@ export abstract class TransactionBuilder {
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
     }
-    return this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
+    const response = await this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
+    return { ...response, gasPrice: fromApiNumber256(response.gasPrice) }
+  }
+
+  async buildUnsignedTx(params: SignUnsignedTxParams): Promise<Omit<SignUnsignedTxResult, 'signature'>> {
+    const data = { unsignedTx: params.unsignedTx }
+    const decoded = await this.nodeProvider.transactions.postTransactionsDecodeUnsignedTx(data)
+    return {
+      fromGroup: decoded.fromGroup,
+      toGroup: decoded.toGroup,
+      unsignedTx: params.unsignedTx,
+      txId: decoded.unsignedTx.txId,
+      gasAmount: decoded.unsignedTx.gasAmount,
+      gasPrice: fromApiNumber256(decoded.unsignedTx.gasPrice)
+    }
   }
 }
