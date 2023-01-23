@@ -34,7 +34,7 @@ describe('transactions', function () {
       initialFields: { result: 0n },
       initialTokenAmounts: []
     })
-    const subDeployTx = await signer.buildContractCreationTx(txParams)
+    const subDeployTx = await signer.buildDeployContractTx(txParams)
 
     let txStatus: TxStatus | undefined = undefined
     let counter = 0
