@@ -19,20 +19,19 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Codec, Decoder, Encoder, createCodec } from './codec'
 import { byteArray } from './byteArray'
 import { merge } from './merge'
-import { compact } from './compact'
+import { Int } from './int'
 
 const VectorEnc = <T>(inner: Encoder<T>, size?: number): Encoder<Array<T>> =>
-  size! >= 0 ? (value) => merge(...value.map(inner)) : (value) => merge(compact.enc(value.length), ...value.map(inner))
+  size! >= 0 ? (value) => merge(...value.map(inner)) : (value) => merge(Int.enc(value.length), ...value.map(inner))
 
-const VectorDec = <T>(getter: Decoder<T>, size?: number): Decoder<Array<T>> =>
+const VectorDec = <T>(decoder: Decoder<T>, size?: number): Decoder<Array<T>> =>
   byteArray((bytes) => {
-    const nElements = size! >= 0 ? size! : compact.dec(bytes)
+    const nElements = size! >= 0 ? size! : Int.dec(bytes)
     const result = new Array(nElements as number)
 
     for (let i = 0; i < nElements; i++) {
-      result[i] = getter(bytes)
+      result[i] = decoder(bytes)
     }
-
     return result
   })
 

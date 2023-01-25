@@ -16,23 +16,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { Encoder, Decoder, Codec, createCodec } from './codec'
 import { byteArray } from './byteArray'
 import { merge } from './merge'
-import { Decoder, Encoder, createCodec } from './codec'
 import { Int } from './int'
 
-const StringEnc: Encoder<string> = (str) => {
-  const textEncoder = new TextEncoder()
-  const val = textEncoder.encode(str)
-  return merge(Int.enc(val.length), Int8Array.from(val))
-}
+const ByteStringEnc: Encoder<Int8Array> = (bytes: Int8Array) => merge(Int.enc(bytes.byteLength), bytes)
 
-const StringDec: Decoder<string> = byteArray((bytes) => {
-  const textDecoder = new TextDecoder()
-  const nElements = Int.dec(bytes) as number
-  const result = textDecoder.decode(bytes.slice(bytes.pos, bytes.pos + nElements))
-  bytes.pos += nElements
+const ByteStringDec: Decoder<Int8Array> = byteArray((bytes) => {
+  const len = Int.dec(bytes)
+  const result = new Int8Array(bytes.buffer, bytes.pos, len)
+  bytes.pos += len
   return result
 })
 
-export const String = createCodec(StringEnc, StringDec)
+export const ByteString: Codec<Int8Array> = createCodec(ByteStringEnc, ByteStringDec)

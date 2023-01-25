@@ -22,7 +22,7 @@ import { byteArray } from './byteArray'
 const ByteEnc: Encoder<number> = (n) => Int8Array.of(n)
 
 const ByteDec: Decoder<number> = byteArray((bytes) => {
-  const value = Number(bytes[0])
+  const value = bytes[0]
   bytes.pos += 1
   return value
 })
