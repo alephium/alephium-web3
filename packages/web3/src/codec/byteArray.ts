@@ -73,7 +73,7 @@ export function bytesToHex(bytes: ArrayBuffer): string {
   return '0x' + hex.join('')
 }
 
-class ByteArray extends Int8Array {
+export class ByteArray extends Int8Array {
   // cursor = 0
   pos = 0
 

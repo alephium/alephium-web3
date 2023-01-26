@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Codec, createCodec, Decoder, Encoder } from './codec'
-import { byteArray } from './byteArray'
+import { Decoder, Encoder } from './codec'
+import { ByteArray, byteArray } from './byteArray'
 
 const maskMode = 0x3f
 const maskRest = 0xc0
@@ -43,7 +43,7 @@ const fourByte = <FixedWidth>{
   negPrefix: 0x40 // 0b01000000
 }
 
-const multiByte = <FixedWidth>{
+export const multiByte = <FixedWidth>{
   prefix: 0xc0 // 0b11000000
 }
 
@@ -59,6 +59,82 @@ export class Unsigned {
   static oneByteBound = 0x40 // 0b01000000
   static twoByteBound = Unsigned.oneByteBound << 8
   static fourByteBound = Unsigned.oneByteBound << (8 * 3)
+  static readonly u256UpperBound = BigInt(1) << BigInt(256)
+
+  static decode256: Decoder<bigint> = byteArray<bigint>((bytes) => {
+    if (isMulti(bytes)) {
+      return Unsigned.decode256Part(bytes)
+    }
+    return BigInt(Unsigned.decodeInt(bytes))
+  })
+
+  static decode256Part = (bytes: ByteArray) => {
+    //TODO
+    const expectedLen = (bytes[bytes.pos] & maskMode) + 4
+    bytes.pos += 1
+    const data = bytes.slice(bytes.pos, bytes.pos + expectedLen)
+    bytes.pos += expectedLen
+    return BigInt('0x' + Buffer.from(data).toString('hex'))
+  }
+
+  static decodeInt = (bytes: ByteArray) => {
+    let result = 0
+    switch (bytes[bytes.pos] & maskRest) {
+      case singleByte.prefix:
+        result = Number(bytes[bytes.pos])
+        bytes.pos++
+        break
+      case twoByte.prefix:
+        result = Number(((bytes[bytes.pos] & maskMode) << 8) | (bytes[bytes.pos + 1] & 0xff))
+        bytes.pos += 2
+        break
+      case fourByte.prefix:
+        const value =
+          ((bytes[bytes.pos] & maskMode) << 24) |
+          ((bytes[bytes.pos + 1] & 0xff) << 16) |
+          ((bytes[bytes.pos + 2] & 0xff) << 8) |
+          (bytes[bytes.pos + 3] & 0xff)
+        result = Number(value)
+        bytes.pos += 4
+    }
+    return result
+  }
+  static decode32: Decoder<number> = byteArray<number>((bytes) => {
+    if (isMulti(bytes)) {
+      const value = toInt(bytes.slice(bytes.pos + 1, bytes.pos + 5))
+      bytes.pos += 5
+      return value
+    }
+    return Unsigned.decodeInt(bytes)
+  })
+
+  static encode32: Encoder<number> = (n: number) => {
+    if (n < 0) {
+      throw Error(`number for uint: ${n}`)
+    } else if (n < Unsigned.oneByteBound) {
+      return new Int8Array([n + singleByte.prefix])
+    } else if (n < Unsigned.twoByteBound) {
+      return new Int8Array([(n >> 8) + twoByte.prefix, n])
+    } else if (n < Unsigned.fourByteBound) {
+      return new Int8Array([(n >> 24) + fourByte.prefix, n >> 16, n >> 8, n])
+    } else {
+      return new Int8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
+    }
+  }
+
+  static encode256: Encoder<bigint> = (input: bigint) => {
+    if (input < Unsigned.fourByteBound) {
+      return Unsigned.encode32(Number(input))
+    } else if (input < Unsigned.u256UpperBound) {
+      return BigIntToBytes(input, false, false)
+    } else {
+      throw Error(`Too large number for U256: ${input}`)
+    }
+  }
+}
+
+export function toInt(bytes: Int8Array): number {
+  return ((bytes[0] & 0xff) << 24) | ((bytes[1] & 0xff) << 16) | ((bytes[2] & 0xff) << 8) | (bytes[3] & 0xff)
 }
 
 /*
@@ -73,97 +149,61 @@ export class Signed {
   static oneByteBound = 0x20 // 0b00100000
   static twoByteBound = Signed.oneByteBound << 8
   static fourByteBound = Signed.oneByteBound << (8 * 3)
-
-  static compactDec: Decoder<number | bigint> = byteArray<number | bigint>((bytes) => {
-    let result: number | bigint = 0
-    if (bytes.length == 0) {
-      throw incompleteData(1, 0)
+  static decodeInt: Decoder<number> = byteArray((bytes) => {
+    if (isMulti(bytes)) {
+      const value = toInt(bytes.slice(bytes.pos + 1, bytes.pos + 5))
+      bytes.pos += 5
+      return value
     } else {
-      const isPositive = (bytes[bytes.pos] & Signed.signFlag) == 0
-      if (isPositive) {
-        switch (bytes[bytes.pos] & maskRest) {
-          case singleByte.prefix:
-            result = Number(bytes[bytes.pos])
-            bytes.pos++
-            break
-          case twoByte.prefix:
-            result = Number(((bytes[bytes.pos] & maskMode) << 8) | (bytes[bytes.pos + 1] & 0xff))
-            bytes.pos += 2
-            break
-          case fourByte.prefix:
-            const value =
-              ((bytes[bytes.pos] & maskMode) << 24) |
-              ((bytes[bytes.pos + 1] & 0xff) << 16) |
-              ((bytes[bytes.pos + 2] & 0xff) << 8) |
-              (bytes[bytes.pos + 3] & 0xff)
-            result = Number(value)
-            bytes.pos += 4
-            break
-          default:
-            // multi byte
-            const expectedLen = (bytes[bytes.pos] & maskMode) + 4
-            bytes.pos += 1
-            const data = bytes.slice(bytes.pos, bytes.pos + expectedLen)
-            bytes.pos += expectedLen
-            result = BigInt('0x' + Buffer.from(data).toString('hex'))
-        }
-      } else {
-        switch (bytes[bytes.pos] & maskRest) {
-          case singleByte.prefix:
-            result = Number(bytes[bytes.pos] | maskModeNeg)
-            bytes.pos++
-            break
-          case twoByte.prefix:
-            result = Number(((bytes[bytes.pos] | maskModeNeg) << 8) | (bytes[bytes.pos + 1] & 0xff))
-            bytes.pos += 2
-            break
-          case fourByte.prefix:
-            const value =
-              ((bytes[bytes.pos] | maskModeNeg) << 24) |
-              ((bytes[bytes.pos + 1] & 0xff) << 16) |
-              ((bytes[bytes.pos + 2] & 0xff) << 8) |
-              (bytes[bytes.pos + 3] & 0xff)
-            result = Number(value)
-            bytes.pos += 4
-            break
-          default:
-            const expectedLen = (bytes[bytes.pos] & maskMode) + 4
-            bytes.pos += 1
-            const data = bytes.slice(bytes.pos, bytes.pos + expectedLen)
-            bytes.pos += expectedLen
-            result = BigInt(Buffer.from(data).toString('hex'))
-        }
-      }
+      return Signed.decode(bytes)
     }
-    return result
   })
 
-  static compactEnc: Encoder<number | bigint> = (input) => {
-    const n = Number(input)
-    if (n >= -0x20000000 && n < 0x20000000) {
-      if (n >= 0) {
-        if (n < Signed.oneByteBound) {
-          return new Int8Array([n + singleByte.prefix])
-        } else if (n < Signed.twoByteBound) {
-          return new Int8Array([(n >> 8) + twoByte.prefix, n])
-        } else if (n < Signed.fourByteBound) {
-          return new Int8Array([(n >> 24) + fourByte.prefix, n >> 16, n >> 8, n])
-        } else {
-          return new Int8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
-        }
-      } else {
-        if (n >= -Signed.oneByteBound) {
-          return new Int8Array([n ^ singleByte.negPrefix])
-        } else if (n >= -Signed.twoByteBound) {
-          return new Int8Array([(n >> 8) ^ twoByte.negPrefix, n])
-        } else if (n >= -Signed.fourByteBound) {
-          return new Int8Array([(n >> 24) ^ fourByte.negPrefix, n >> 16, n >> 8, n])
-        } else {
-          return new Int8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
-        }
-      }
+  static decode = (bytes: ByteArray): number => {
+    const isPositive = (bytes[bytes.pos] & Signed.signFlag) == 0
+    if (isPositive) {
+      return Signed.decodePositiveInt(bytes)
     } else {
-      const n = BigInt(input)
+      return Signed.decodeNegativeInt(bytes)
+    }
+  }
+
+  static decodePositiveInt = Unsigned.decodeInt
+  static decodeNegativeInt = (bytes: ByteArray) => {
+    let result = 0
+    switch (bytes[bytes.pos] & maskRest) {
+      case singleByte.prefix:
+        result = Number(bytes[bytes.pos] | maskModeNeg)
+        bytes.pos++
+        break
+      case twoByte.prefix:
+        result = Number(((bytes[bytes.pos] | maskModeNeg) << 8) | (bytes[bytes.pos + 1] & 0xff))
+        bytes.pos += 2
+        break
+      case fourByte.prefix:
+        const value =
+          ((bytes[bytes.pos] | maskModeNeg) << 24) |
+          ((bytes[bytes.pos + 1] & 0xff) << 16) |
+          ((bytes[bytes.pos + 2] & 0xff) << 8) |
+          (bytes[bytes.pos + 3] & 0xff)
+        result = Number(value)
+        bytes.pos += 4
+        break
+    }
+    return result
+  }
+
+  static decode256: Decoder<bigint> = byteArray<bigint>((bytes) => {
+    if (isMulti(bytes)) {
+      return Unsigned.decode256Part(bytes)
+    }
+    return BigInt(Signed.decode(bytes))
+  })
+
+  static encode256: Encoder<bigint> = (n: bigint) => {
+    if (n >= -0x20000000 && n < 0x20000000) {
+      return Signed.encodeInt(Number(n))
+    } else {
       if (n >= 0) {
         return BigIntToBytes(n, true, false)
       } else {
@@ -172,7 +212,51 @@ export class Signed {
     }
   }
 
-  static compact: Codec<number | bigint> = createCodec(Signed.compactEnc, Signed.compactDec)
+  static encodeInt: Encoder<number> = (n: number) => {
+    if (n >= 0) {
+      return Signed.encodePositiveInt(n)
+    } else {
+      return Signed.encodeNegativeInt(n)
+    }
+  }
+  static encodePositiveInt: Encoder<number> = (n: number) => {
+    if (n < 0) {
+      throw Error(`number for uint: ${n}`)
+    } else if (n < Signed.oneByteBound) {
+      return new Int8Array([n + singleByte.prefix])
+    } else if (n < Signed.twoByteBound) {
+      return new Int8Array([(n >> 8) + twoByte.prefix, n])
+    } else if (n < Signed.fourByteBound) {
+      return new Int8Array([(n >> 24) + fourByte.prefix, n >> 16, n >> 8, n])
+    } else {
+      return new Int8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
+    }
+  }
+
+  static encodeNegativeInt: Encoder<number> = (n: number) => {
+    if (n >= -Signed.oneByteBound) {
+      return new Int8Array([n ^ singleByte.negPrefix])
+    } else if (n >= -Signed.twoByteBound) {
+      return new Int8Array([(n >> 8) ^ twoByte.negPrefix, n])
+    } else if (n >= -Signed.fourByteBound) {
+      return new Int8Array([(n >> 24) ^ fourByte.negPrefix, n >> 16, n >> 8, n])
+    } else {
+      return new Int8Array([multiByte.prefix, n >> 24, n >> 16, n >> 8, n])
+    }
+  }
+}
+
+function isMulti(bytes: ByteArray): boolean {
+  switch (bytes[bytes.pos] & maskRest) {
+    case singleByte.prefix:
+      return false
+    case twoByte.prefix:
+      return false
+    case fourByte.prefix:
+      return false
+    default:
+      return true
+  }
 }
 
 function checkSize(bs: Uint8Array, expected: number): Uint8Array {

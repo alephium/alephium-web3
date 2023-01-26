@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Signed } from './compact'
 import { Codec, createCodec } from './codec'
+import { Unsigned } from './compact'
 
-export const Int: Codec<number> = createCodec(Signed.encodeInt, Signed.decodeInt)
+export const U256: Codec<bigint> = createCodec(Unsigned.encode256, Unsigned.decode256)

@@ -16,15 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Codec, createCodec, Decoder, Encoder } from './codec'
+import { Codec, createCodec } from './codec'
 import { Signed } from './compact'
-import { byteArray } from './byteArray'
 
-const I256Enc: Encoder<bigint> = (n) => Signed.compact.enc(n)
-
-const I256Dec: Decoder<bigint> = byteArray((bytes) => BigInt(Signed.compact.dec(bytes)))
-
-export const I256: Codec<bigint> = createCodec(I256Enc, I256Dec)
-
-I256.enc = I256Enc
-I256.dec = I256Dec
+export const I256: Codec<bigint> = createCodec(Signed.encode256, Signed.decode256)
