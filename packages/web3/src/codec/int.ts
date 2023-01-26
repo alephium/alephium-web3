@@ -18,11 +18,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Encoder, Decoder, Codec, createCodec } from './codec'
 import { byteArray } from './byteArray'
-import { compact } from './compact'
+import { Signed } from './compact'
 
-const IntEnc: Encoder<number> = (n) => compact.enc(n)
+const IntEnc: Encoder<number> = (n) => Signed.compact.enc(n)
 
-const IntDec: Decoder<number> = byteArray((bytes) => Number(compact.dec(bytes)))
+const IntDec: Decoder<number> = byteArray((bytes) => Number(Signed.compact.dec(bytes)))
 
 export const Int: Codec<number> = createCodec(IntEnc, IntDec)
 

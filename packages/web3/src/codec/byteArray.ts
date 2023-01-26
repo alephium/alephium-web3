@@ -42,7 +42,9 @@ const hexMap: Record<string, number> = {
   E: 14,
   F: 15
 }
-export function fromHex(hexString: string): ArrayBuffer {
+
+// Convert a hex string to a  byte array
+export function hexTobytes(hexString: string): Uint8Array {
   const isOdd = hexString.length % 2
 
   const base = (hexString[1] === 'x' ? 2 : 0) + isOdd
@@ -60,6 +62,17 @@ export function fromHex(hexString: string): ArrayBuffer {
   return bytes
 }
 
+// Convert a byte array to a hex string
+export function bytesToHex(bytes: ArrayBuffer): string {
+  const hex: Array<string> = []
+  for (let i = 0; i < bytes.byteLength; i++) {
+    const current = bytes[i] < 0 ? bytes[i] + 256 : bytes[i]
+    hex.push((current >> 4).toString(16))
+    hex.push((current & 0xf).toString(16))
+  }
+  return '0x' + hex.join('')
+}
+
 class ByteArray extends Int8Array {
   // cursor = 0
   pos = 0
@@ -73,6 +86,6 @@ export const byteArray =
   <T>(fn: (input: ByteArray) => T): Decoder<T> =>
   (buffer: string | ArrayBuffer | Int8Array | Uint8Array | ByteArray) => {
     return fn(
-      buffer instanceof ByteArray ? buffer : new ByteArray(typeof buffer === 'string' ? fromHex(buffer) : buffer)
+      buffer instanceof ByteArray ? buffer : new ByteArray(typeof buffer === 'string' ? hexTobytes(buffer) : buffer)
     )
   }
