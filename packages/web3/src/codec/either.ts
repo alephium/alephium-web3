@@ -16,6 +16,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Option } from './option'
+import { Codec, createCodec, Decoder, Encoder } from './codec'
+import { byteArray } from './byteArray'
+import { merge } from './merge'
+import { Byte } from './byte'
 
-export const Either = Option
+type EitherPayload<L, R> = { flag: 0; value: L } | { flag: 1; value: R }
+
+const EitherDec = <L, R>(lDecoder: Decoder<L>, rDecoder: Decoder<R>): Decoder<EitherPayload<L, R>> =>
+  byteArray((bytes) => {
+    const flag = Byte.dec(bytes)
+    const decoder = flag === 0 ? lDecoder : rDecoder
+    const value = decoder(bytes)
+    return { flag, value } as EitherPayload<L, R>
+  })
+
+const EitherEnc =
+  <L, R>(lEncoder: Encoder<L>, rEncoder: Encoder<R>): Encoder<EitherPayload<L, R>> =>
+  ({ flag, value }) =>
+    merge(Byte.enc(flag), (flag === 0 ? lEncoder : rEncoder)(value as any))
+
+export const Either = <L, R>(lCodec: Codec<L>, rCodec: Codec<R>): Codec<EitherPayload<L, R>> =>
+  createCodec(EitherEnc(lCodec[0], rCodec[0]), EitherDec(lCodec[1], rCodec[1]))
+
+Either.dec = EitherDec
+Either.enc = EitherEnc

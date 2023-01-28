@@ -28,6 +28,3 @@ const ByteDec: Decoder<number> = byteArray((bytes) => {
 })
 
 export const Byte: Codec<number> = createCodec(ByteEnc, ByteDec)
-
-Byte.enc = ByteEnc
-Byte.dec = ByteDec

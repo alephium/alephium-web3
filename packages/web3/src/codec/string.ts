@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { byteArray } from './byteArray'
 import { merge } from './merge'
-import { Decoder, Encoder, createCodec } from './codec'
+import { Decoder, Encoder, createCodec, Codec } from './codec'
 import { Int } from './int'
 
 const StringEnc: Encoder<string> = (str) => {
@@ -35,4 +35,4 @@ const StringDec: Decoder<string> = byteArray((bytes) => {
   return result
 })
 
-export const String = createCodec(StringEnc, StringDec)
+export const String: Codec<string> = createCodec(StringEnc, StringDec)
