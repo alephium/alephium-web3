@@ -22,24 +22,24 @@ import { merge } from './merge'
 
 const TupleDec = <
   A extends Array<Decoder<any>>,
-  OT extends { [K in keyof A]: A[K] extends Decoder<infer D> ? D : unknown }
+  O extends { [K in keyof A]: A[K] extends Decoder<infer D> ? D : unknown }
 >(
   ...decoders: A
-): Decoder<[...OT]> => byteArray((bytes) => decoders.map((decoder) => decoder(bytes)) as [...OT])
+): Decoder<[...O]> => byteArray((bytes) => decoders.map((decoder) => decoder(bytes)) as [...O])
 
 const TupleEnc =
-  <A extends Array<Encoder<any>>, OT extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown }>(
+  <A extends Array<Encoder<any>>, O extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown }>(
     ...encoders: A
-  ): Encoder<[...OT]> =>
+  ): Encoder<[...O]> =>
   (values) =>
     merge(...values.map((value, idx) => encoders[idx](value)))
 
 export const Tuple = <
   A extends Array<Codec<any>>,
-  OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown }
+  O extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown }
 >(
   ...codecs: A
-): Codec<[...OT]> =>
+): Codec<[...O]> =>
   createCodec(TupleEnc(...codecs.map(([encoder]) => encoder)), TupleDec(...codecs.map(([, decoder]) => decoder)))
 
 Tuple.enc = TupleEnc

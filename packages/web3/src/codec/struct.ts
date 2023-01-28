@@ -22,33 +22,33 @@ import { Tuple } from './tuple'
 
 const StructEnc = <
   A extends StringRecord<Encoder<any>>,
-  OT extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown }
+  O extends { [K in keyof A]: A[K] extends Encoder<infer D> ? D : unknown }
 >(
   encoders: A
-): Encoder<OT> => {
+): Encoder<O> => {
   const keys = Object.keys(encoders)
-  return enhanceEncoder(Tuple.enc(...Object.values(encoders)), (input: OT) => keys.map((k) => input[k]))
+  return enhanceEncoder(Tuple.enc(...Object.values(encoders)), (input: O) => keys.map((k) => input[k]))
 }
 
 const StructDec = <
   A extends StringRecord<Decoder<any>>,
-  OT extends { [K in keyof A]: A[K] extends Decoder<infer D> ? D : unknown }
+  O extends { [K in keyof A]: A[K] extends Decoder<infer D> ? D : unknown }
 >(
   decoders: A
-): Decoder<OT> => {
+): Decoder<O> => {
   const keys = Object.keys(decoders)
   return enhanceDecoder(
     Tuple.dec(...Object.values(decoders)),
-    (tuple: Array<any>) => Object.fromEntries(tuple.map((value, idx) => [keys[idx], value])) as OT
+    (tuple: Array<any>) => Object.fromEntries(tuple.map((value, idx) => [keys[idx], value])) as O
   )
 }
 
 export const Struct = <
   A extends StringRecord<Codec<any>>,
-  OT extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown }
+  O extends { [K in keyof A]: A[K] extends Codec<infer D> ? D : unknown }
 >(
   codecs: A
-): Codec<OT> => createCodec(StructEnc(map(codecs, (x) => x[0]) as any), StructDec(map(codecs, (x) => x[1]) as any))
+): Codec<O> => createCodec(StructEnc(map(codecs, (x) => x[0]) as any), StructDec(map(codecs, (x) => x[1]) as any))
 
 Struct.enc = StructEnc
 Struct.dec = StructDec
