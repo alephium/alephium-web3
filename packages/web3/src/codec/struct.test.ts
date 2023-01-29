@@ -18,56 +18,46 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Struct } from './struct'
 import { Int } from './int'
+import { U32 } from './u32'
+import { String } from './string'
+import { I256 } from './i256'
 import { Vector } from './vector'
 import { Bool } from './bool'
+import { Option } from './option'
 
 interface Point {
   x: number
   y: number
 }
 
-interface Transaction {
-  unsigned: UnsignedTransaction
-  scriptExecutionOk: boolean
-  contractInputs: Array<ContractOutputRef>
-  generatedOutputs: Array<TxOutput>
-  inputSignatures: Array<Signature>
-  scriptSignatures: Array<Signature>
-  scriptExecutionFalse: boolean
-}
-
-interface UnsignedTransaction {
-  count: number
-}
-
-interface ContractOutputRef {}
-
-interface TxOutput {}
-
-interface Signature {}
-
 const Point = Struct({
   x: Int,
   y: Int
 })
-const UnsignedTransaction = Struct({
-  count: Int
-})
-const ContractOutputRef = Struct({})
-const TxOutput = Struct({})
-const Signature = Struct({})
-const TransactionCodec = Struct({
-  unsigned: UnsignedTransaction,
-  scriptExecutionOk: Bool,
-  contractInputs: Vector<ContractOutputRef>(ContractOutputRef),
-  generatedOutputs: Vector<TxOutput>(TxOutput),
-  inputSignatures: Vector<Signature>(Signature),
-  scriptSignatures: Vector<Signature>(Signature),
-  scriptExecutionFalse: Bool
+
+interface Student {
+  age: number
+  name: string
+
+  sex: boolean
+  money: bigint
+
+  address: Array<string>
+
+  books: number | undefined
+}
+
+const Student = Struct({
+  age: U32,
+  name: String,
+  sex: Bool,
+  money: I256,
+  address: Vector<string>(String),
+  books: Option<number>(Int)
 })
 
 describe('struct', function () {
-  it('struct', () => {
+  it('struct Point', () => {
     const point = <Point>{
       x: 12,
       y: 12000
@@ -75,17 +65,24 @@ describe('struct', function () {
     const encData = Point.enc(point)
     expect(point.x).toEqual(Point.dec(encData).x)
     expect(point.y).toEqual(Point.dec(encData).y)
-    const tx = <Transaction>{
-      unsigned: {
-        count: 12
-      },
-      scriptExecutionOk: true,
-      contractInputs: [],
-      generatedOutputs: [],
-      inputSignatures: [],
-      scriptSignatures: [],
-      scriptExecutionFalse: true
+  })
+
+  it('struct Student', () => {
+    const student = <Student>{
+      age: 12,
+      name: 'lili',
+      sex: true,
+      money: 1200000000n,
+      address: ['address1', 'address2'],
+      books: 10
     }
-    expect(TransactionCodec.enc(tx)).toEqual(Int8Array.from([12, 1, 0, 0, 0, 0, 1]))
+    const encData = Student.enc(student)
+    const actual = Student.dec(encData)
+    expect(actual).toEqual(student)
+    expect(actual.name).toEqual(student.name)
+    expect(actual.age).toEqual(student.age)
+    expect(actual.sex).toEqual(student.sex)
+    expect(actual.address).toEqual(student.address)
+    expect(actual.books).toEqual(student.books)
   })
 })

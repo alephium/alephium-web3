@@ -16,20 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Struct } from './struct'
 import { Int } from './int'
-import { Vector } from './vector'
-import { Bool } from './bool'
-import { Codec, createCodec, enhanceCodec } from './codec'
+import { Codec, enhanceCodec } from './codec'
 import { Byte } from './byte'
 import { Bytes } from './bytes'
 import { Hex } from './hex'
 import { U256 } from './u256'
 import { toInt } from './compact'
-import { ByteArray, byteArray } from './byteArray'
 
 // hex string
-//TODO fix
+// TODO fix
 export const Target = Hex(32)
 // export const Target = Hex(4)
 
