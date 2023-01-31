@@ -245,7 +245,7 @@ export class Project {
 
   static currentProject: Project
 
-  static readonly importRegex = new RegExp('^import "[^"./]+/([^"]+/)*[a-z][a-z_0-9]*.ral"', 'mg')
+  static readonly importRegex = new RegExp('^import "[^"./]+/[^"]*[a-z][a-z_0-9]*.ral"', 'mg')
   static readonly abstractContractMatcher = new TypedMatcher<SourceKind>(
     '^Abstract Contract ([A-Z][a-zA-Z0-9]*)',
     SourceKind.AbstractContract
