@@ -16,7 +16,13 @@ const deployFaucet: DeployFunction<Settings> = async (
     // The amount of token to be issued
     issueTokenAmount: issueTokenAmount,
     // The initial states of the faucet contract
-    initialFields: { supply: issueTokenAmount, balance: issueTokenAmount }
+    initialFields: {
+      symbol: Buffer.from('TF', 'utf8').toString('hex'),
+      name: Buffer.from('TokenFaucet', 'utf8').toString('hex'),
+      decimals: 18n,
+      supply: issueTokenAmount,
+      balance: issueTokenAmount
+    }
   })
   console.log('Token faucet contract id: ' + result.contractId)
   console.log('Token faucet contract address: ' + result.contractAddress)

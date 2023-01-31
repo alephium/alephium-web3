@@ -25,7 +25,13 @@ describe('unit tests', () => {
       // assets owned by the test contract before a test
       initialAsset: { alphAmount: 10n ** 18n, tokens: [{ id: testTokenId, amount: 10n }] },
       // initial state of the test contract
-      initialFields: { supply: 10n ** 18n, balance: 10n },
+      initialFields: {
+        symbol: Buffer.from('TF', 'utf8').toString('hex'),
+        name: Buffer.from('TokenFaucet', 'utf8').toString('hex'),
+        decimals: 18n,
+        supply: 10n ** 18n,
+        balance: 10n
+      },
       // arguments to test the target function of the test contract
       testArgs: { amount: 1n },
       // assets owned by the caller of the function

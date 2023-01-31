@@ -27,7 +27,8 @@
     "@alephium/cli": "0.3.0-rc.7",
     "@alephium/web3": "0.3.0-rc.7",
     "@alephium/web3-test": "0.3.0-rc.7",
-    "@alephium/web3-wallet": "0.3.0-rc.7"
+    "@alephium/web3-wallet": "0.3.0-rc.7",
+    "@alephium/contracts": "0.3.0-rc.7"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",

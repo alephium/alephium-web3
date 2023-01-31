@@ -1,9 +1,17 @@
+import "@alephium/contracts/token/token_interface.ral"
+
 // Defines a contract named `TokenFaucet`.
 // A contract is a collection of fields (its state) and functions.
 // Once deployed, a contract resides at a specific address on the Alephium blockchain.
 // Contract fields are permanently stored in contract storage.
 // A contract can issue an initial amount of token at its deployment.
-Contract TokenFaucet(supply: U256, mut balance: U256) {
+Contract TokenFaucet(
+    symbol: ByteVec,
+    name: ByteVec,
+    decimals: U256,
+    supply: U256,
+    mut balance: U256
+) implements IToken {
 
     // Events allow for logging of activities on the blockchain.
     // Alephium clients can listen to events in order to react to contract state changes.
@@ -15,8 +23,23 @@ Contract TokenFaucet(supply: U256, mut balance: U256) {
 
     // A public function that returns the initial supply of the contract's token.
     // Note that the field must be initialized as the amount of the issued token.
-    pub fn supply() -> U256 {
+    pub fn getTotalSupply() -> U256 {
         return supply
+    }
+
+    // A public function that returns the symbol of the token.
+    pub fn getSymbol() -> ByteVec {
+        return symbol
+    }
+
+    // A public function that returns the name of the token.
+    pub fn getName() -> ByteVec {
+        return name
+    }
+
+    // A public function that returns the decimals of the token.
+    pub fn getDecimals() -> U256 {
+        return decimals
     }
 
     // A public function that returns the current balance of the contract.
