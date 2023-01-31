@@ -34,7 +34,7 @@ describe('transactions', function () {
       initialFields: { result: 0n },
       initialTokenAmounts: []
     })
-    const subDeployTx = await signer.buildContractCreationTx(txParams)
+    const subDeployTx = await signer.buildDeployContractTx(txParams)
 
     let txStatus: TxStatus | undefined = undefined
     let counter = 0
@@ -60,7 +60,7 @@ describe('transactions', function () {
 
     await signer.signAndSubmitUnsignedTx({
       unsignedTx: subDeployTx.unsignedTx,
-      signerAddress: (await signer.getSelectedAccount()).address
+      signerAddress: await signer.getSelectedAddress()
     })
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })

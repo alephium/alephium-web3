@@ -16,9 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd-wallet'
+import { web3, verifySignedMessage, publicKeyFromPrivateKey } from '@alephium/web3'
+import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup, HDWallet } from './hd-wallet'
 
 describe('HD wallet', () => {
+  beforeAll(() => {
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+  })
+
   const testMnemonic =
     'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
 
@@ -50,29 +55,79 @@ describe('HD wallet', () => {
   })
 
   it('should derive private key for groups', () => {
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 0, 0, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 0, 0, 'Alephium')[0]).toEqual(
       '62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 1, 0, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 1, 0, 'Alephium')[0]).toEqual(
       'f62df0157aec61806d51480425e1f7a4950e13fa9a2de87988ae1d861e09d2ae'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 2, 0, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 2, 0, 'Alephium')[0]).toEqual(
       'cae87098274ff447f785bc408a71b3416d6140bd824e623375959cbf43d2a2d5'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 3, 0, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 3, 0, 'Alephium')[0]).toEqual(
       '9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 0, 100, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 0, 100, 'Alephium')[0]).toEqual(
       'c047f716a03c4961d98427d3cf494fe3d5f3fd0b48fe3107699d90a453f2dce6'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 1, 100, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 1, 100, 'Alephium')[0]).toEqual(
       '800fc78e24c87c04a76f23b8ab54179ef190f640d9346d3e89cbc3036ee69c9b'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 2, 100, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 2, 100, 'Alephium')[0]).toEqual(
       '51df72c50e1b392805c3f530d2dece7e0c1842f827a579f7cd24907a6c4ff533'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 3, 100, 'Alephium')).toEqual(
+    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 3, 100, 'Alephium')[0]).toEqual(
       '04528b7736eab20cbde90f0d2f0cb3a99481dfe92664757646077ae7851e4314'
     )
+  })
+
+  it('should derive account', async () => {
+    const wallet = new HDWallet(testMnemonic, undefined, undefined, 'Alephium')
+    const account0 = wallet.deriveAndAddNewAccount(0)
+    const account1 = wallet.deriveAndAddNewAccount(1)
+    const account2 = wallet.deriveAndAddNewAccount(2)
+    const account3 = wallet.deriveAndAddNewAccount(3)
+    expect(account0.group).toBe(0)
+    expect(account1.group).toBe(1)
+    expect(account2.group).toBe(2)
+    expect(account3.group).toBe(3)
+    expect(account0.publicKey).toEqual(
+      publicKeyFromPrivateKey('62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce')
+    )
+    expect(account1.publicKey).toEqual(
+      publicKeyFromPrivateKey('f62df0157aec61806d51480425e1f7a4950e13fa9a2de87988ae1d861e09d2ae')
+    )
+    expect(account2.publicKey).toEqual(
+      publicKeyFromPrivateKey('cae87098274ff447f785bc408a71b3416d6140bd824e623375959cbf43d2a2d5')
+    )
+    expect(account3.publicKey).toEqual(
+      publicKeyFromPrivateKey('9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e')
+    )
+    expect(await wallet.getAccount(account0.address)).toStrictEqual(account0)
+    expect(await wallet.getAccount(account1.address)).toStrictEqual(account1)
+    expect(await wallet.getAccount(account2.address)).toStrictEqual(account2)
+    expect(await wallet.getAccount(account3.address)).toStrictEqual(account3)
+
+    const newAccount0 = wallet.deriveAndAddNewAccount(0)
+    const newAccount1 = wallet.deriveAndAddNewAccount(1)
+    const newAccount2 = wallet.deriveAndAddNewAccount(2)
+    const newAccount3 = wallet.deriveAndAddNewAccount(3)
+    expect(newAccount0.group).toBe(0)
+    expect(newAccount1.group).toBe(1)
+    expect(newAccount2.group).toBe(2)
+    expect(newAccount3.group).toBe(3)
+    expect(newAccount0.addressIndex).toBeGreaterThan(account0.addressIndex)
+    expect(newAccount1.addressIndex).toBeGreaterThan(account1.addressIndex)
+    expect(newAccount2.addressIndex).toBeGreaterThan(account2.addressIndex)
+    expect(newAccount3.addressIndex).toBeGreaterThan(account3.addressIndex)
+  })
+
+  it('should sign', async () => {
+    const wallet = new HDWallet(testMnemonic)
+    const account = wallet.deriveAndAddNewAccount()
+    const message = 'Hello Alephium'
+    const result = await wallet.signMessage({ signerAddress: account.address, message: message })
+    const signature = result.signature
+    expect(verifySignedMessage(message, account.publicKey, signature)).toBe(true)
   })
 })
