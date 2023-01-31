@@ -23,7 +23,7 @@ async function withdraw() {
   // The wallet calls withdraw function for all of the address groups
   for (const account of await signer.getAccounts()) {
     // Set an active account to prepare and sign transactions
-    await signer.setSelectedAccount(account.address)
+    await signer.setSelectedAddress(account.address)
     const accountGroup = account.group
 
     // Load the metadata of the deployed contract in the right group

@@ -111,7 +111,7 @@ describe('integration tests', () => {
     // Test with all of the addresses of the wallet
     for (const account of await signer.getAccounts()) {
       const testAddress = account.address
-      await signer.setSelectedAccount(testAddress)
+      await signer.setSelectedAddress(testAddress)
       const testGroup = account.group
 
       // The contract is deployed to all groups
