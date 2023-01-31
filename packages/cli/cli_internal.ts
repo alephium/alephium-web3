@@ -82,7 +82,7 @@ program
         process.exit(1)
       }
       web3.setCurrentNodeProvider(nodeUrl)
-      await Project.build(config.compilerOptions, config.sourceDir, config.artifactDir)
+      await Project.build(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
       console.log('✅ Compilation completed!')
     } catch (error) {
       program.error(`Failed to compile, error: ${(error as Error).stack}`)

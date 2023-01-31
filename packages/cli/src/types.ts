@@ -30,6 +30,7 @@ import {
   Number256
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
+import path from 'path'
 
 export interface Network<Settings = unknown> {
   networkId?: number
@@ -95,7 +96,7 @@ export async function getEnv<Settings = unknown>(configFileName?: string): Promi
   const config = await loadConfig<Settings>(configFile)
   const network = config.networks[config.defaultNetwork]
   web3.setCurrentNodeProvider(network.nodeUrl)
-  await Project.build(config.compilerOptions, config.sourceDir, config.artifactDir)
+  await Project.build(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
   return {
     config: config,
     network: network,
