@@ -86,14 +86,32 @@ class TypedMatcher<T extends SourceKind> {
   }
 }
 
+function removeParentsPrefix(parts: string[]): string {
+  let index = 0
+  for (let i = 0; i < parts.length; i++) {
+    if (parts[`${i}`] === '..') {
+      index += 1
+    } else {
+      break
+    }
+  }
+  return path.join(...parts.slice(index))
+}
+
 class SourceInfo {
   type: SourceKind
   name: string
   contractRelativePath: string
   sourceCode: string
   sourceCodeHash: string
+  isExternal: boolean
 
   getArtifactPath(artifactsRootDir: string): string {
+    if (this.isExternal) {
+      const relativePath = removeParentsPrefix(this.contractRelativePath.split(path.sep))
+      const externalPath = path.join('.external', relativePath)
+      return path.join(artifactsRootDir, externalPath) + '.json'
+    }
     return path.join(artifactsRootDir, this.contractRelativePath) + '.json'
   }
 
@@ -102,23 +120,27 @@ class SourceInfo {
     name: string,
     sourceCode: string,
     sourceCodeHash: string,
-    contractRelativePath: string
+    contractRelativePath: string,
+    isExternal: boolean
   ) {
     this.type = type
     this.name = name
     this.sourceCode = sourceCode
     this.sourceCodeHash = sourceCodeHash
     this.contractRelativePath = contractRelativePath
+    this.isExternal = isExternal
   }
 
   static async from(
     type: SourceKind,
     name: string,
     sourceCode: string,
-    contractRelativePath: string
+    contractRelativePath: string,
+    isExternal: boolean
   ): Promise<SourceInfo> {
     const sourceCodeHash = await crypto.subtle.digest('SHA-256', Buffer.from(sourceCode))
-    return new SourceInfo(type, name, sourceCode, Buffer.from(sourceCodeHash).toString('hex'), contractRelativePath)
+    const sourceCodeHashHex = Buffer.from(sourceCodeHash).toString('hex')
+    return new SourceInfo(type, name, sourceCode, sourceCodeHashHex, contractRelativePath, isExternal)
   }
 }
 
@@ -223,12 +245,13 @@ export class Project {
 
   static currentProject: Project
 
+  static readonly importRegex = new RegExp('^import "[^"./]+/([^"]+/)*[a-z][a-z_0-9]*.ral"', 'mg')
   static readonly abstractContractMatcher = new TypedMatcher<SourceKind>(
     '^Abstract Contract ([A-Z][a-zA-Z0-9]*)',
     SourceKind.AbstractContract
   )
   static readonly contractMatcher = new TypedMatcher('^Contract ([A-Z][a-zA-Z0-9]*)', SourceKind.Contract)
-  static readonly interfaceMatcher = new TypedMatcher('^Interface ([A-Z][a-zA-Z0-9]*) \\{', SourceKind.Interface)
+  static readonly interfaceMatcher = new TypedMatcher('^Interface ([A-Z][a-zA-Z0-9]*)', SourceKind.Interface)
   static readonly scriptMatcher = new TypedMatcher('^TxScript ([A-Z][a-zA-Z0-9]*)', SourceKind.Script)
   static readonly matchers = [
     Project.abstractContractMatcher,
@@ -445,45 +468,83 @@ export class Project {
     }
   }
 
+  private static async handleImports(
+    projectRootDir: string,
+    contractRootDir: string,
+    sourceStr: string,
+    importsCache: string[]
+  ): Promise<[string, SourceInfo[]]> {
+    const localImportsCache: string[] = []
+    const result = sourceStr.replace(Project.importRegex, (match) => {
+      localImportsCache.push(match)
+      return ''
+    })
+    const externalSourceInfos: SourceInfo[] = []
+    for (const myImport of localImportsCache) {
+      const importPath = myImport.slice(8, -1)
+      if (!importsCache.includes(importPath)) {
+        importsCache.push(importPath)
+        const sourcePath = path.join(...[projectRootDir, 'node_modules', importPath])
+        const sourceInfos = await Project.loadSourceFile(
+          projectRootDir,
+          contractRootDir,
+          sourcePath,
+          importsCache,
+          true
+        )
+        externalSourceInfos.push(...sourceInfos)
+      }
+    }
+    return [result, externalSourceInfos]
+  }
+
   private static async loadSourceFile(
+    projectRootDir: string,
     contractsRootDir: string,
-    dirPath: string,
-    filename: string
+    sourcePath: string,
+    importsCache: string[],
+    isExternal: boolean
   ): Promise<SourceInfo[]> {
-    const contractPath = path.join(dirPath, filename)
-    const contractRelativePath = path.relative(contractsRootDir, contractPath)
-    if (!filename.endsWith('.ral')) {
-      throw new Error(`Invalid filename: ${contractPath}, smart contract file name should end with ".ral"`)
+    const contractRelativePath = path.relative(contractsRootDir, sourcePath)
+    if (!sourcePath.endsWith('.ral')) {
+      throw new Error(`Invalid filename: ${sourcePath}, smart contract file name should end with ".ral"`)
     }
 
-    const sourceBuffer = await fsPromises.readFile(contractPath)
-    const sourceStr = sourceBuffer.toString()
-    const sourceInfos: SourceInfo[] = []
+    const sourceBuffer = await fsPromises.readFile(sourcePath)
+    const [sourceStr, externalSourceInfos] = await Project.handleImports(
+      projectRootDir,
+      contractsRootDir,
+      sourceBuffer.toString(),
+      importsCache
+    )
+    const sourceInfos = externalSourceInfos
     for (const matcher of this.matchers) {
       const results = sourceStr.matchAll(matcher.matcher)
       for (const result of results) {
-        const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceStr, contractRelativePath)
+        const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceStr, contractRelativePath, isExternal)
         sourceInfos.push(sourceInfo)
       }
     }
     return sourceInfos
   }
 
-  private static async loadSourceFiles(contractsRootDir: string): Promise<SourceInfo[]> {
-    const loadDir = async function (dirPath: string, results: SourceInfo[]): Promise<void> {
+  private static async loadSourceFiles(projectRootDir: string, contractsRootDir: string): Promise<SourceInfo[]> {
+    const importsCache: string[] = []
+    const sourceInfos: SourceInfo[] = []
+    const loadDir = async function (dirPath: string): Promise<void> {
       const dirents = await fsPromises.readdir(dirPath, { withFileTypes: true })
       for (const dirent of dirents) {
         if (dirent.isFile()) {
-          const sourceInfos = await Project.loadSourceFile(contractsRootDir, dirPath, dirent.name)
-          results.push(...sourceInfos)
+          const sourcePath = path.join(dirPath, dirent.name)
+          const infos = await Project.loadSourceFile(projectRootDir, contractsRootDir, sourcePath, importsCache, false)
+          sourceInfos.push(...infos)
         } else {
           const newPath = path.join(dirPath, dirent.name)
-          await loadDir(newPath, results)
+          await loadDir(newPath)
         }
       }
     }
-    const sourceInfos: SourceInfo[] = []
-    await loadDir(contractsRootDir, sourceInfos)
+    await loadDir(contractsRootDir)
     const contractAndScriptSize = sourceInfos.filter(
       (f) => f.type === SourceKind.Contract || f.type === SourceKind.Script
     ).length
@@ -498,11 +559,12 @@ export class Project {
 
   static async build(
     compilerOptionsPartial: Partial<CompilerOptions> = {},
+    projectRootDir = '.',
     contractsRootDir = Project.DEFAULT_CONTRACTS_DIR,
     artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR
   ): Promise<void> {
     const provider = getCurrentNodeProvider()
-    const sourceFiles = await Project.loadSourceFiles(contractsRootDir)
+    const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(artifactsRootDir)
     if (typeof projectArtifact === 'undefined' || projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles)) {
