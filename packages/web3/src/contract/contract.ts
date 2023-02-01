@@ -245,7 +245,7 @@ export class Project {
 
   static currentProject: Project
 
-  static readonly importRegex = new RegExp('^import "[^"./]+/[^"]*[a-z][a-z_0-9]*.ral"', 'mg')
+  static readonly importRegex = new RegExp('^import "[^"./]+/[^"]*[a-z][a-z_0-9]*(.ral)?"', 'mg')
   static readonly abstractContractMatcher = new TypedMatcher<SourceKind>(
     '^Abstract Contract ([A-Z][a-zA-Z0-9]*)',
     SourceKind.AbstractContract
@@ -490,7 +490,8 @@ export class Project {
     })
     const externalSourceInfos: SourceInfo[] = []
     for (const myImport of localImportsCache) {
-      const importPath = myImport.slice(8, -1)
+      const originImportPath = myImport.slice(8, -1)
+      const importPath = originImportPath.endsWith('.ral') ? originImportPath : originImportPath + '.ral'
       if (!importsCache.includes(importPath)) {
         importsCache.push(importPath)
         const sourcePath = Project.getImportSourcePath(projectRootDir, importPath)
