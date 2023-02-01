@@ -474,7 +474,18 @@ export class Project {
       const currentDir = path.dirname(__filename)
       return path.join(...[currentDir, '..', '..', '..', importPath])
     }
-    return path.join(...[projectRootDir, 'node_modules', importPath])
+    let moduleDir = projectRootDir
+    while (true) {
+      const expectedPath = path.join(...[moduleDir, 'node_modules', importPath])
+      if (fs.existsSync(expectedPath)) {
+        return expectedPath
+      }
+      const oldModuleDir = moduleDir
+      moduleDir = path.join(moduleDir, '..')
+      if (oldModuleDir === moduleDir) {
+        throw new Error(`Specified import file does not exist: ${importPath}`)
+      }
+    }
   }
 
   private static async handleImports(
