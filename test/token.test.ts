@@ -30,7 +30,7 @@ describe('contract', function () {
     signer = await testNodeWallet()
     signerAccount = await signer.getSelectedAccount()
     signerGroup = signerAccount.group
-    await Project.build({}, './packages/contracts', './packages/contracts/token', './packages/contracts/artifacts')
+    await Project.build({ errorOnWarnings: false })
   })
 
   async function deployContract(

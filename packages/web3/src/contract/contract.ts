@@ -468,6 +468,15 @@ export class Project {
     }
   }
 
+  private static getImportSourcePath(projectRootDir: string, importPath: string): string {
+    const parts = importPath.split(path.sep)
+    if (parts.length > 1 && parts[0] === 'std') {
+      const currentDir = path.dirname(__filename)
+      return path.join(...[currentDir, '..', '..', '..', importPath])
+    }
+    return path.join(...[projectRootDir, 'node_modules', importPath])
+  }
+
   private static async handleImports(
     projectRootDir: string,
     contractRootDir: string,
@@ -484,7 +493,7 @@ export class Project {
       const importPath = myImport.slice(8, -1)
       if (!importsCache.includes(importPath)) {
         importsCache.push(importPath)
-        const sourcePath = path.join(...[projectRootDir, 'node_modules', importPath])
+        const sourcePath = Project.getImportSourcePath(projectRootDir, importPath)
         const sourceInfos = await Project.loadSourceFile(
           projectRootDir,
           contractRootDir,
@@ -517,6 +526,9 @@ export class Project {
       sourceBuffer.toString(),
       importsCache
     )
+    if (sourceStr.match(new RegExp('^import "', 'mg')) !== null) {
+      throw new Error(`Invalid import statements, source: ${sourcePath}`)
+    }
     const sourceInfos = externalSourceInfos
     for (const matcher of this.matchers) {
       const results = sourceStr.matchAll(matcher.matcher)

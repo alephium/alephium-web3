@@ -50,6 +50,13 @@
       "codeHashDebug": "",
       "warnings": []
     },
+    "IToken": {
+      "sourceFile": "../packages/web3/std/token_interface.ral",
+      "sourceCodeHash": "ec86200b80f31f7f0f68508cdce42042738326cdd4e8f109c402ba03e00033ba",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "Main": {
       "sourceFile": "main.ral",
       "sourceCodeHash": "8cc5c1a2de002650a5904078f91005932982e700f7b0a393cbe4e3a64cfdf842",
@@ -72,6 +79,13 @@
       "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
+      "warnings": []
+    },
+    "TokenTest": {
+      "sourceFile": "token_test.ral",
+      "sourceCodeHash": "21d0593b269089ee64e2d3fe82d8f32e9386352a66cc5343f32f2663cd548bfc",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "494960faa2f14f83e48646ae0c7b909541b73f8088fbd597906c21134ee888d0",
       "warnings": []
     },
     "Warnings": {
