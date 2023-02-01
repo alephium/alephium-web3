@@ -413,6 +413,7 @@ export async function deploy<Settings = unknown>(
 
   await Project.build(
     configuration.compilerOptions,
+    path.resolve(process.cwd()),
     configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
     configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   )

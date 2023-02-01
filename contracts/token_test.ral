@@ -1,0 +1,24 @@
+import "std/token_interface"
+
+Contract TokenTest(
+  symbol: ByteVec,
+  name: ByteVec,
+  decimals: U256,
+  totalSupply: U256
+) implements IToken {
+  pub fn getSymbol() -> ByteVec {
+    return symbol
+  }
+
+  pub fn getName() -> ByteVec {
+    return name
+  }
+
+  pub fn getDecimals() -> U256 {
+    return decimals
+  }
+
+  pub fn getTotalSupply() -> U256 {
+    return totalSupply
+  }
+}
