@@ -1,4 +1,4 @@
-import "std/token_interface.ral"
+import "std/token_interface"
 
 Contract TokenTest(
   symbol: ByteVec,

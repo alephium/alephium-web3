@@ -1,4 +1,4 @@
-import "std/token_interface.ral"
+import "std/token_interface"
 
 // Defines a contract named `TokenFaucet`.
 // A contract is a collection of fields (its state) and functions.
