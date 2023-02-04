@@ -12,7 +12,7 @@
       "sourceFile": "add/add.ral",
       "sourceCodeHash": "77c642410e257b6da0a1bc8385b9af562286e407f278a13789f10ac5279693c1",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "a20cffb6f8f9416decd7aec0375b12e04475e8cf19ba80775f8f2d7633e2556d",
+      "codeHashDebug": "45e656eed4bb10a58632b9ee6b25f03cc729b33a32271040ddae258fa3759a63",
       "warnings": []
     },
     "Assert": {
@@ -33,7 +33,7 @@
       "sourceFile": "greeter/greeter.ral",
       "sourceCodeHash": "66c5ae4dc1029150388645f19e5658daf97420c6357cf8ea849038f1de2ee74a",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "23a48462286d2c2ffc6d3a19192060dd42c178e7d331819e75e059c5be3c042f",
+      "codeHashDebug": "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a",
       "warnings": []
     },
     "GreeterInterface": {
@@ -85,7 +85,7 @@
       "sourceFile": "token_test.ral",
       "sourceCodeHash": "21d0593b269089ee64e2d3fe82d8f32e9386352a66cc5343f32f2663cd548bfc",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "494960faa2f14f83e48646ae0c7b909541b73f8088fbd597906c21134ee888d0",
+      "codeHashDebug": "d9c9fab84f779f2e90ca9e9b1fafd6d9c9dc0f8b84256169e20961f9c917bab8",
       "warnings": []
     },
     "Warnings": {

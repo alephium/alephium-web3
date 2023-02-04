@@ -59,7 +59,7 @@ export interface Configuration<Settings = unknown> {
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {
-  nodeVersion: '1.6.4',
+  nodeVersion: '1.7.0-rc0',
   nodeConfigFile: 'devnet-user.conf',
   toDeployGroups: [0],
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,

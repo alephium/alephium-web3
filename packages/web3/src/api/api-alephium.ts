@@ -577,7 +577,8 @@ export interface ContractState {
 
   /** @format 32-byte-hash */
   initialStateHash?: string
-  fields: Val[]
+  immFields: Val[]
+  mutFields: Val[]
   asset: AssetState
 }
 
@@ -884,7 +885,8 @@ export interface TestContract {
 
   /** @format contract */
   bytecode: string
-  initialFields?: Val[]
+  initialImmFields?: Val[]
+  initialMutFields?: Val[]
   initialAsset?: AssetState
 
   /** @format int32 */
