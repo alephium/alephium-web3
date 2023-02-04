@@ -840,11 +840,16 @@ export class Contract extends Artifact {
   }
 
   toTestContract(funcName: string, params: TestContractParams): node.TestContract {
+    const immFields =
+      params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, false)
+    const mutFields =
+      params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, true)
     return {
       group: params.group,
       address: params.address,
       bytecode: this.bytecodeDebug,
-      initialFields: this.toApiFields(params.initialFields),
+      initialImmFields: immFields,
+      initialMutFields: mutFields,
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
       methodIndex: this.getMethodIndex(funcName),
       args: this.toApiArgs(funcName, params.testArgs),
@@ -860,7 +865,7 @@ export class Contract extends Artifact {
       bytecode: state.bytecode,
       initialStateHash: state.initialStateHash,
       codeHash: state.codeHash,
-      fields: fromApiFields(state.fields, this.fieldsSig),
+      fields: fromApiFields(state.immFields, state.mutFields, this.fieldsSig),
       fieldsSig: this.fieldsSig,
       asset: fromApiAsset(state.asset)
     }
@@ -1053,7 +1058,19 @@ export class Script extends Artifact {
   }
 }
 
-function fromApiFields(vals: node.Val[], fieldsSig: node.FieldsSig): Fields {
+function fromApiFields(immFields: node.Val[], mutFields: node.Val[], fieldsSig: node.FieldsSig): Fields {
+  const vals: node.Val[] = []
+  let immIndex = 0
+  let mutIndex = 0
+  fieldsSig.isMutable.forEach((mutable) => {
+    if (mutable) {
+      vals.push(mutFields[`${mutIndex}`])
+      mutIndex += 1
+    } else {
+      vals.push(immFields[`${immIndex}`])
+      immIndex += 1
+    }
+  })
   return fromApiVals(vals, fieldsSig.names, fieldsSig.types)
 }
 
@@ -1104,13 +1121,23 @@ function getVal(vals: NamedVals, name: string): Val {
   }
 }
 
+function extractFields(fields: NamedVals, fieldsSig: FieldsSig, mutable: boolean) {
+  const fieldIndexes = fieldsSig.names
+    .map((_, index) => index)
+    .filter((index) => fieldsSig.isMutable[`${index}`] === mutable)
+  const fieldNames = fieldIndexes.map((index) => fieldsSig.names[`${index}`])
+  const fieldTypes = fieldIndexes.map((index) => fieldsSig.types[`${index}`])
+  return toApiVals(fields, fieldNames, fieldTypes)
+}
+
 function toApiContractState(state: ContractState): node.ContractState {
   return {
     address: state.address,
     bytecode: state.bytecode,
     codeHash: state.codeHash,
     initialStateHash: state.initialStateHash,
-    fields: toApiFields(state.fields, state.fieldsSig),
+    immFields: extractFields(state.fields, state.fieldsSig, false),
+    mutFields: extractFields(state.fields, state.fieldsSig, true),
     asset: toApiAsset(state.asset)
   }
 }

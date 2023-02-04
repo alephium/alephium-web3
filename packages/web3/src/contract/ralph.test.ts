@@ -151,11 +151,11 @@ describe('contract', function () {
     const fieldsSig: FieldsSig = {
       names: ['a', 'b', 'c', 'd', 'e'],
       types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]'],
-      isMutable: [false, false, false, false]
+      isMutable: [false, true, false, true, false]
     }
     const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig)
     expect(encoded).toEqual(
-      'ff06013f02010301230400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec00000001'
+      'ff04013f030123000000010202010400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec'
     )
   })
 

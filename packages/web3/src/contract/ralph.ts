@@ -249,8 +249,12 @@ export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fi
   })
 }
 
-export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSig: FieldsSig): string {
-  const fieldsEncoded = fieldsSig.names.flatMap((fieldName, fieldIndex) => {
+function encodeFields(fields: Fields, fieldsSig: FieldsSig, mutable: boolean) {
+  const fieldIndexes = fieldsSig.isMutable
+    .map((_, index) => index)
+    .filter((index) => fieldsSig.isMutable[`${index}`] === mutable)
+  const fieldsEncoded = fieldIndexes.flatMap((fieldIndex) => {
+    const fieldName = fieldsSig.names[`${fieldIndex}`]
     const fieldType = fieldsSig.types[`${fieldIndex}`]
     if (fieldName in fields) {
       const fieldValue = fields[`${fieldName}`]
@@ -260,7 +264,13 @@ export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSi
     }
   })
   const fieldsLength = Buffer.from(encodeI256(BigInt(fieldsEncoded.length))).toString('hex')
-  return bytecode + fieldsLength + fieldsEncoded.map((f) => Buffer.from(f).toString('hex')).join('')
+  return fieldsLength + fieldsEncoded.map((f) => Buffer.from(f).toString('hex')).join('')
+}
+
+export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSig: FieldsSig): string {
+  const encodedImmFields = encodeFields(fields, fieldsSig, false)
+  const encodedMutFields = encodeFields(fields, fieldsSig, true)
+  return bytecode + encodedImmFields + encodedMutFields
 }
 
 enum ApiValType {
