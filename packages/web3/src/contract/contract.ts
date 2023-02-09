@@ -33,7 +33,8 @@ import {
   Token,
   Val,
   fromApiTokens,
-  fromApiVals
+  fromApiVals,
+  typeLength
 } from '../api'
 import {
   SignDeployContractTxParams,
@@ -1062,7 +1063,10 @@ function fromApiFields(immFields: node.Val[], mutFields: node.Val[], fieldsSig: 
   const vals: node.Val[] = []
   let immIndex = 0
   let mutIndex = 0
-  fieldsSig.isMutable.forEach((mutable) => {
+  const isMutable = fieldsSig.types.flatMap((tpe, index) =>
+    Array(typeLength(tpe)).fill(fieldsSig.isMutable[`${index}`])
+  )
+  isMutable.forEach((mutable) => {
     if (mutable) {
       vals.push(mutFields[`${mutIndex}`])
       mutIndex += 1
