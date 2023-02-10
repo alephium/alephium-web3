@@ -46,8 +46,8 @@ describe('contract', function () {
     // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })
 
-    const subState = Sub.Contract.stateForTest(0n)
-    const testResult = await Add.Contract.testAddMethod(
+    const subState = Sub.stateForTest(0n)
+    const testResult = await Add.testAddMethod(
       { array: [2n, 1n] },
       { sub: subState.contractId, result: 0n },
       { existingContracts: [subState] }
@@ -69,7 +69,7 @@ describe('contract', function () {
     expect(events[2].fields.x).toEqual(2n)
     expect(events[2].fields.y).toEqual(1n)
 
-    const testResultPrivate = await Add.Contract.testAddPrivateMethod(
+    const testResultPrivate = await Add.testAddPrivateMethod(
       { array: [2n, 1n] },
       { sub: subState.contractId, result: 0n },
       { existingContracts: [subState] }
@@ -114,7 +114,7 @@ describe('contract', function () {
   async function testSuite2() {
     await Project.build({ errorOnWarnings: false })
 
-    const testResult = await Greeter.Contract.testGreetMethod({ btcPrice: 1n })
+    const testResult = await Greeter.testGreetMethod({ btcPrice: 1n })
     expect(testResult.returns).toEqual([1n])
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.artifact.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
@@ -206,6 +206,6 @@ describe('contract', function () {
   it('should test assert!', async () => {
     await Project.build({ errorOnWarnings: false })
     const testAddress = randomContractAddress()
-    expectAssertionError(Assert.Contract.testTestMethod({ address: testAddress }), testAddress, 3)
+    expectAssertionError(Assert.testTestMethod({ address: testAddress }), testAddress, 3)
   })
 })

@@ -22,7 +22,7 @@ import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { Sub } from '../.generated/Sub'
-import { Add } from '../.generated/Add'
+import { Add, AddInstance } from '../.generated/Add'
 import { Main } from '../.generated/scripts'
 
 describe('events', function () {
@@ -35,7 +35,7 @@ describe('events', function () {
     await Project.build({ errorOnWarnings: false })
   })
 
-  async function deployContract(signer: NodeWallet): Promise<Add.Contract> {
+  async function deployContract(signer: NodeWallet): Promise<AddInstance> {
     const sub = await Sub.deploy(signer, { result: 0n })
     return await Add.deploy(signer, { sub: sub.contractId, result: 0n })
   }
