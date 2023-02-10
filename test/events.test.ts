@@ -22,7 +22,7 @@ import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { Sub } from '../.generated/Sub'
-import { Add, AddAdd, AddAdd1 } from '../.generated/Add'
+import { Add } from '../.generated/Add'
 import { Main } from '../.generated/scripts'
 
 describe('events', function () {
@@ -35,17 +35,17 @@ describe('events', function () {
     await Project.build({ errorOnWarnings: false })
   })
 
-  async function deployContract(signer: NodeWallet): Promise<Add> {
-    const sub = await Sub.deploy(signer, 0n)
-    return await Add.deploy(signer, sub.contractId, 0n)
+  async function deployContract(signer: NodeWallet): Promise<Add.Contract> {
+    const sub = await Sub.deploy(signer, { result: 0n })
+    return await Add.deploy(signer, { sub: sub.contractId, result: 0n })
   }
 
   it('should subscribe contract events', async () => {
     const add = await deployContract(signer)
-    const addEvents: Array<AddAdd> = []
-    const subscriptOptions: SubscribeOptions<AddAdd> = {
+    const addEvents: Array<Add.AddEvent> = []
+    const subscriptOptions: SubscribeOptions<Add.AddEvent> = {
       pollingInterval: 500,
-      messageCallback: (event: AddAdd): Promise<void> => {
+      messageCallback: (event: Add.AddEvent): Promise<void> => {
         addEvents.push(event)
         return Promise.resolve()
       },
@@ -55,9 +55,9 @@ describe('events', function () {
         return Promise.resolve()
       }
     }
-    const subscription = add.subscribeAdd(subscriptOptions)
+    const subscription = add.subscribeAddEvent(subscriptOptions)
     for (let i = 0; i < 3; i++) {
-      await Main.execute(signer, add.contractId)
+      await Main.execute(signer, { addContractId: add.contractId })
     }
     await timeout(3000)
 
@@ -73,10 +73,10 @@ describe('events', function () {
 
   it('should subscribe all events', async () => {
     const add = await deployContract(signer)
-    const addEvents: Array<AddAdd | AddAdd1> = []
-    const subscriptOptions: SubscribeOptions<AddAdd | AddAdd1> = {
+    const addEvents: Array<Add.AddEvent | Add.Add1Event> = []
+    const subscriptOptions: SubscribeOptions<Add.AddEvent | Add.Add1Event> = {
       pollingInterval: 500,
-      messageCallback: (event: AddAdd | AddAdd1): Promise<void> => {
+      messageCallback: (event: Add.AddEvent | Add.Add1Event): Promise<void> => {
         addEvents.push(event)
         return Promise.resolve()
       },
@@ -88,12 +88,12 @@ describe('events', function () {
     }
     const subscription = add.subscribeEvents(subscriptOptions)
     for (let i = 0; i < 3; i++) {
-      await Main.execute(signer, add.contractId)
+      await Main.execute(signer, { addContractId: add.contractId })
     }
     await timeout(3000)
 
-    const isAdd = (event: AddAdd | AddAdd1): event is AddAdd => {
-      return (<AddAdd>event).x !== undefined
+    const isAdd = (event: Add.AddEvent | Add.Add1Event): event is Add.AddEvent => {
+      return (<Add.AddEvent>event).x !== undefined
     }
 
     expect(addEvents.length).toEqual(6)
@@ -113,10 +113,10 @@ describe('events', function () {
 
   it('should cancel event subscription', async () => {
     const add = await deployContract(signer)
-    const addEvents: Array<AddAdd> = []
-    const subscriptOptions: SubscribeOptions<AddAdd> = {
+    const addEvents: Array<Add.AddEvent> = []
+    const subscriptOptions: SubscribeOptions<Add.AddEvent> = {
       pollingInterval: 500,
-      messageCallback: (event: AddAdd): Promise<void> => {
+      messageCallback: (event: Add.AddEvent): Promise<void> => {
         addEvents.push(event)
         return Promise.resolve()
       },
@@ -126,8 +126,8 @@ describe('events', function () {
         return Promise.resolve()
       }
     }
-    const subscription = add.subscribeAdd(subscriptOptions)
-    const scriptTx0 = await Main.execute(signer, add.contractId)
+    const subscription = add.subscribeAddEvent(subscriptOptions)
+    const scriptTx0 = await Main.execute(signer, { addContractId: add.contractId })
     await timeout(1500)
     subscription.unsubscribe()
 
@@ -137,7 +137,7 @@ describe('events', function () {
     expect(addEvents[0].y).toEqual(1n)
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
-    await Main.execute(signer, add.contractId)
+    await Main.execute(signer, { addContractId: add.contractId })
     await timeout(1500)
     expect(addEvents.length).toEqual(1)
   })

@@ -35,11 +35,11 @@ describe('contract', function () {
     const name = Buffer.from('TestToken', 'utf8').toString('hex')
     const decimals = 18n
     const totalSupply = 1n << 128n
-    const tokenTest = await TokenTest.deploy(signer, symbol, name, decimals, totalSupply)
+    const tokenTest = await TokenTest.deploy(signer, { symbol, name, decimals, totalSupply })
 
-    expect(await tokenTest.getSymbolCall()).toEqual(symbol)
-    expect(await tokenTest.getNameCall()).toEqual(name)
-    expect(await tokenTest.getDecimalsCall()).toEqual(decimals)
-    expect(await tokenTest.getTotalSupplyCall()).toEqual(totalSupply)
+    expect(await tokenTest.callGetSymbolMethod()).toEqual(symbol)
+    expect(await tokenTest.callGetNameMethod()).toEqual(name)
+    expect(await tokenTest.callGetDecimalsMethod()).toEqual(decimals)
+    expect(await tokenTest.callGetTotalSupplyMethod()).toEqual(totalSupply)
   })
 })
