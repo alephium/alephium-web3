@@ -1154,7 +1154,7 @@ function toApiArgs(args: Arguments, funcSig: FunctionSig): node.Val[] {
   return toApiVals(args, funcSig.paramNames, funcSig.paramTypes)
 }
 
-function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
+export function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
   return names.map((name, index) => {
     const val = getVal(fields, name)
     const tpe = types[`${index}`]
