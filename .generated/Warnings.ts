@@ -4,7 +4,7 @@
 
 import {
   web3,
-  Contract,
+  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
@@ -15,21 +15,125 @@ import {
   TestContractResult,
   InputAsset,
   Asset,
-  Fields,
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
 } from "@alephium/web3";
 
-export type _WarningsFields = {
-  a: bigint;
-  b: bigint;
-};
+export namespace Warnings {
+  export type Fields = {
+    a: bigint;
+    b: bigint;
+  };
 
-export type _WarningsState = _WarningsFields & Omit<ContractState, "fields">;
+  export type State = Fields & Omit<ContractState, "fields">;
 
-export class Warnings {
-  static readonly contract: Contract = Contract.fromJson(
+  export async function deploy(
+    signer: SignerProvider,
+    initFields: Warnings.Fields,
+    deployParams?: {
+      initialAttoAlphAmount?: bigint;
+      initialTokenAmounts?: Token[];
+      issueTokenAmount?: bigint;
+      gasAmount?: number;
+      gasPrice?: bigint;
+    }
+  ): Promise<Contract> {
+    const deployResult = await artifact.deploy(signer, {
+      initialFields: initFields,
+      initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
+      initialTokenAmounts: deployParams?.initialTokenAmounts,
+      issueTokenAmount: deployParams?.issueTokenAmount,
+      gasAmount: deployParams?.gasAmount,
+      gasPrice: deployParams?.gasPrice,
+    });
+    return new Contract(
+      deployResult.contractAddress,
+      deployResult.contractId,
+      deployResult.fromGroup,
+      deployResult
+    );
+  }
+
+  export function attach(
+    address: string,
+    deployResult?: SignDeployContractTxResult
+  ): Contract {
+    const contractId = binToHex(contractIdFromAddress(address));
+    const groupIndex = parseInt(contractId.slice(-2));
+    return new Contract(address, contractId, groupIndex, deployResult);
+  }
+
+  export class Contract {
+    readonly address: Address;
+    readonly contractId: string;
+    readonly groupIndex: number;
+    deployResult: SignDeployContractTxResult | undefined;
+
+    constructor(
+      address: Address,
+      contractId: string,
+      groupIndex: number,
+      deployResult?: SignDeployContractTxResult
+    ) {
+      this.address = address;
+      this.contractId = contractId;
+      this.groupIndex = groupIndex;
+      this.deployResult = deployResult;
+    }
+
+    async fetchState(): Promise<State> {
+      const state = await artifact.fetchState(this.address, this.groupIndex);
+      return {
+        ...state,
+        a: state.fields["a"] as bigint,
+        b: state.fields["b"] as bigint,
+      };
+    }
+
+    // This is used for testing contract functions
+    static stateForTest(
+      a: bigint,
+      b: bigint,
+      asset?: Asset,
+      address?: string
+    ): ContractState {
+      const newAsset = {
+        alphAmount: asset?.alphAmount ?? BigInt(1000000000000000000),
+        tokens: asset?.tokens,
+      };
+      return artifact.toState({ a: a, b: b }, newAsset, address);
+    }
+
+    static async testFooMethod(
+      args: { x: bigint; y: bigint },
+      initFields: Warnings.Fields,
+      testParams?: {
+        group?: number;
+        address?: string;
+        initialAsset?: Asset;
+        existingContracts?: ContractState[];
+        inputAssets?: InputAsset[];
+      }
+    ): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
+      const initialAsset = {
+        alphAmount:
+          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
+        tokens: testParams?.initialAsset?.tokens,
+      };
+      const _testParams = {
+        ...testParams,
+        testMethodIndex: 0,
+        testArgs: args,
+        initialFields: initFields,
+        initialAsset: initialAsset,
+      };
+      const testResult = await artifact.testPublicMethod("foo", _testParams);
+      return { ...testResult, returns: testResult.returns as [] };
+    }
+  }
+
+  export const artifact = ContractArtifact.fromJson(
     JSON.parse(`{
   "version": "v1.7.0",
   "name": "Warnings",
@@ -73,114 +177,4 @@ export class Warnings {
   ]
 }`)
   );
-
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
-
-  private constructor(
-    address: Address,
-    contractId: string,
-    groupIndex: number,
-    deployResult?: SignDeployContractTxResult
-  ) {
-    this.address = address;
-    this.contractId = contractId;
-    this.groupIndex = groupIndex;
-    this.deployResult = deployResult;
-  }
-
-  static async deploy(
-    signer: SignerProvider,
-    a: bigint,
-    b: bigint,
-    _extraParams?: {
-      initialAttoAlphAmount?: bigint;
-      initialTokenAmounts?: Token[];
-      issueTokenAmount?: bigint;
-      gasAmount?: number;
-      gasPrice?: bigint;
-    }
-  ): Promise<Warnings> {
-    const _deployResult = await Warnings.contract.deploy(signer, {
-      initialFields: { a: a, b: b },
-      initialAttoAlphAmount: _extraParams?.initialAttoAlphAmount,
-      initialTokenAmounts: _extraParams?.initialTokenAmounts,
-      issueTokenAmount: _extraParams?.issueTokenAmount,
-      gasAmount: _extraParams?.gasAmount,
-      gasPrice: _extraParams?.gasPrice,
-    });
-    return new Warnings(
-      _deployResult.contractAddress,
-      _deployResult.contractId,
-      _deployResult.fromGroup,
-      _deployResult
-    );
-  }
-
-  static connect(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): Warnings {
-    const contractId = binToHex(contractIdFromAddress(address));
-    const groupIndex = parseInt(contractId.slice(-2));
-    return new Warnings(address, contractId, groupIndex, deployResult);
-  }
-
-  async fetchState(): Promise<_WarningsState> {
-    const state = await Warnings.contract.fetchState(
-      this.address,
-      this.groupIndex
-    );
-    return {
-      ...state,
-      a: state.fields["a"] as bigint,
-      b: state.fields["b"] as bigint,
-    };
-  }
-
-  // This is used for testing contract functions
-  static stateForTest(
-    a: bigint,
-    b: bigint,
-    asset?: Asset,
-    address?: string
-  ): ContractState {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? BigInt("1000000000000000000"),
-      tokens: asset?.tokens,
-    };
-    return Warnings.contract.toState({ a: a, b: b }, newAsset, address);
-  }
-
-  static async testFoo(
-    args: { x: bigint; y: bigint },
-    _initFields: _WarningsFields | Fields,
-    _extraParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
-    const _initialAsset = {
-      alphAmount:
-        _extraParams?.initialAsset?.alphAmount ?? BigInt("1000000000000000000"),
-      tokens: _extraParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ..._extraParams,
-      testMethodIndex: 0,
-      testArgs: args,
-      initialFields: _initFields as Fields,
-      initialAsset: _initialAsset,
-    };
-    const _testResult = await Warnings.contract.testPublicMethod(
-      "foo",
-      _testParams
-    );
-    return { ..._testResult, returns: _testResult.returns as [] };
-  }
 }

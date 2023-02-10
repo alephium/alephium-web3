@@ -4,7 +4,7 @@
 
 import {
   web3,
-  Contract,
+  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
@@ -15,16 +15,154 @@ import {
   TestContractResult,
   InputAsset,
   Asset,
-  Fields,
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
 } from "@alephium/web3";
 
-export type _MetaDataState = Omit<ContractState, "fields">;
+export namespace MetaData {
+  export type State = Omit<ContractState, "fields">;
 
-export class MetaData {
-  static readonly contract: Contract = Contract.fromJson(
+  export async function deploy(
+    signer: SignerProvider,
+    deployParams?: {
+      initialAttoAlphAmount?: bigint;
+      initialTokenAmounts?: Token[];
+      issueTokenAmount?: bigint;
+      gasAmount?: number;
+      gasPrice?: bigint;
+    }
+  ): Promise<Contract> {
+    const deployResult = await artifact.deploy(signer, {
+      initialFields: {},
+      initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
+      initialTokenAmounts: deployParams?.initialTokenAmounts,
+      issueTokenAmount: deployParams?.issueTokenAmount,
+      gasAmount: deployParams?.gasAmount,
+      gasPrice: deployParams?.gasPrice,
+    });
+    return new Contract(
+      deployResult.contractAddress,
+      deployResult.contractId,
+      deployResult.fromGroup,
+      deployResult
+    );
+  }
+
+  export function attach(
+    address: string,
+    deployResult?: SignDeployContractTxResult
+  ): Contract {
+    const contractId = binToHex(contractIdFromAddress(address));
+    const groupIndex = parseInt(contractId.slice(-2));
+    return new Contract(address, contractId, groupIndex, deployResult);
+  }
+
+  export class Contract {
+    readonly address: Address;
+    readonly contractId: string;
+    readonly groupIndex: number;
+    deployResult: SignDeployContractTxResult | undefined;
+
+    constructor(
+      address: Address,
+      contractId: string,
+      groupIndex: number,
+      deployResult?: SignDeployContractTxResult
+    ) {
+      this.address = address;
+      this.contractId = contractId;
+      this.groupIndex = groupIndex;
+      this.deployResult = deployResult;
+    }
+
+    async fetchState(): Promise<State> {
+      const state = await artifact.fetchState(this.address, this.groupIndex);
+      return {
+        ...state,
+      };
+    }
+
+    // This is used for testing contract functions
+    static stateForTest(asset?: Asset, address?: string): ContractState {
+      const newAsset = {
+        alphAmount: asset?.alphAmount ?? BigInt(1000000000000000000),
+        tokens: asset?.tokens,
+      };
+      return artifact.toState({}, newAsset, address);
+    }
+
+    static async testFooMethod(testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
+    }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
+      const initialAsset = {
+        alphAmount:
+          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
+        tokens: testParams?.initialAsset?.tokens,
+      };
+      const _testParams = {
+        ...testParams,
+        testMethodIndex: 0,
+        testArgs: {},
+        initialFields: {},
+        initialAsset: initialAsset,
+      };
+      const testResult = await artifact.testPublicMethod("foo", _testParams);
+      return { ...testResult, returns: testResult.returns as [] };
+    }
+
+    static async testBarMethod(testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
+    }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
+      const initialAsset = {
+        alphAmount:
+          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
+        tokens: testParams?.initialAsset?.tokens,
+      };
+      const _testParams = {
+        ...testParams,
+        testMethodIndex: 1,
+        testArgs: {},
+        initialFields: {},
+        initialAsset: initialAsset,
+      };
+      const testResult = await artifact.testPrivateMethod("bar", _testParams);
+      return { ...testResult, returns: testResult.returns as [] };
+    }
+
+    static async testBazMethod(testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
+    }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
+      const initialAsset = {
+        alphAmount:
+          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
+        tokens: testParams?.initialAsset?.tokens,
+      };
+      const _testParams = {
+        ...testParams,
+        testMethodIndex: 2,
+        testArgs: {},
+        initialFields: {},
+        initialAsset: initialAsset,
+      };
+      const testResult = await artifact.testPrivateMethod("baz", _testParams);
+      return { ...testResult, returns: testResult.returns as [] };
+    }
+  }
+
+  export const artifact = ContractArtifact.fromJson(
     JSON.parse(`{
   "version": "v1.7.0",
   "name": "MetaData",
@@ -70,153 +208,4 @@ export class MetaData {
   ]
 }`)
   );
-
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
-
-  private constructor(
-    address: Address,
-    contractId: string,
-    groupIndex: number,
-    deployResult?: SignDeployContractTxResult
-  ) {
-    this.address = address;
-    this.contractId = contractId;
-    this.groupIndex = groupIndex;
-    this.deployResult = deployResult;
-  }
-
-  static async deploy(
-    signer: SignerProvider,
-    _extraParams?: {
-      initialAttoAlphAmount?: bigint;
-      initialTokenAmounts?: Token[];
-      issueTokenAmount?: bigint;
-      gasAmount?: number;
-      gasPrice?: bigint;
-    }
-  ): Promise<MetaData> {
-    const _deployResult = await MetaData.contract.deploy(signer, {
-      initialFields: {},
-      initialAttoAlphAmount: _extraParams?.initialAttoAlphAmount,
-      initialTokenAmounts: _extraParams?.initialTokenAmounts,
-      issueTokenAmount: _extraParams?.issueTokenAmount,
-      gasAmount: _extraParams?.gasAmount,
-      gasPrice: _extraParams?.gasPrice,
-    });
-    return new MetaData(
-      _deployResult.contractAddress,
-      _deployResult.contractId,
-      _deployResult.fromGroup,
-      _deployResult
-    );
-  }
-
-  static connect(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): MetaData {
-    const contractId = binToHex(contractIdFromAddress(address));
-    const groupIndex = parseInt(contractId.slice(-2));
-    return new MetaData(address, contractId, groupIndex, deployResult);
-  }
-
-  async fetchState(): Promise<_MetaDataState> {
-    const state = await MetaData.contract.fetchState(
-      this.address,
-      this.groupIndex
-    );
-    return {
-      ...state,
-    };
-  }
-
-  // This is used for testing contract functions
-  static stateForTest(asset?: Asset, address?: string): ContractState {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? BigInt("1000000000000000000"),
-      tokens: asset?.tokens,
-    };
-    return MetaData.contract.toState({}, newAsset, address);
-  }
-
-  static async testFoo(_extraParams?: {
-    group?: number;
-    address?: string;
-    initialAsset?: Asset;
-    existingContracts?: ContractState[];
-    inputAssets?: InputAsset[];
-  }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
-    const _initialAsset = {
-      alphAmount:
-        _extraParams?.initialAsset?.alphAmount ?? BigInt("1000000000000000000"),
-      tokens: _extraParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ..._extraParams,
-      testMethodIndex: 0,
-      testArgs: {},
-      initialFields: {},
-      initialAsset: _initialAsset,
-    };
-    const _testResult = await MetaData.contract.testPublicMethod(
-      "foo",
-      _testParams
-    );
-    return { ..._testResult, returns: _testResult.returns as [] };
-  }
-
-  static async testBar(_extraParams?: {
-    group?: number;
-    address?: string;
-    initialAsset?: Asset;
-    existingContracts?: ContractState[];
-    inputAssets?: InputAsset[];
-  }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
-    const _initialAsset = {
-      alphAmount:
-        _extraParams?.initialAsset?.alphAmount ?? BigInt("1000000000000000000"),
-      tokens: _extraParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ..._extraParams,
-      testMethodIndex: 1,
-      testArgs: {},
-      initialFields: {},
-      initialAsset: _initialAsset,
-    };
-    const _testResult = await MetaData.contract.testPrivateMethod(
-      "bar",
-      _testParams
-    );
-    return { ..._testResult, returns: _testResult.returns as [] };
-  }
-
-  static async testBaz(_extraParams?: {
-    group?: number;
-    address?: string;
-    initialAsset?: Asset;
-    existingContracts?: ContractState[];
-    inputAssets?: InputAsset[];
-  }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
-    const _initialAsset = {
-      alphAmount:
-        _extraParams?.initialAsset?.alphAmount ?? BigInt("1000000000000000000"),
-      tokens: _extraParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ..._extraParams,
-      testMethodIndex: 2,
-      testArgs: {},
-      initialFields: {},
-      initialAsset: _initialAsset,
-    };
-    const _testResult = await MetaData.contract.testPrivateMethod(
-      "baz",
-      _testParams
-    );
-    return { ..._testResult, returns: _testResult.returns as [] };
-  }
 }

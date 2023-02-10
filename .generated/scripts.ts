@@ -14,8 +14,8 @@ export class GreeterMain {
 
   static async execute(
     signer: SignerProvider,
-    greeterContractId: string,
-    _extraParams?: {
+    initFields: { greeterContractId: string },
+    executeParams?: {
       attoAlphAmount?: bigint;
       tokens?: Token[];
       gasAmount?: number;
@@ -53,11 +53,11 @@ export class GreeterMain {
 }`)
     );
     return script.execute(signer, {
-      initialFields: { greeterContractId: greeterContractId },
-      attoAlphAmount: _extraParams?.attoAlphAmount,
-      tokens: _extraParams?.tokens,
-      gasAmount: _extraParams?.gasAmount,
-      gasPrice: _extraParams?.gasPrice,
+      initialFields: initFields,
+      attoAlphAmount: executeParams?.attoAlphAmount,
+      tokens: executeParams?.tokens,
+      gasAmount: executeParams?.gasAmount,
+      gasPrice: executeParams?.gasPrice,
     });
   }
 }
@@ -67,8 +67,8 @@ export class Main {
 
   static async execute(
     signer: SignerProvider,
-    addContractId: string,
-    _extraParams?: {
+    initFields: { addContractId: string },
+    executeParams?: {
       attoAlphAmount?: bigint;
       tokens?: Token[];
       gasAmount?: number;
@@ -106,11 +106,11 @@ export class Main {
 }`)
     );
     return script.execute(signer, {
-      initialFields: { addContractId: addContractId },
-      attoAlphAmount: _extraParams?.attoAlphAmount,
-      tokens: _extraParams?.tokens,
-      gasAmount: _extraParams?.gasAmount,
-      gasPrice: _extraParams?.gasPrice,
+      initialFields: initFields,
+      attoAlphAmount: executeParams?.attoAlphAmount,
+      tokens: executeParams?.tokens,
+      gasAmount: executeParams?.gasAmount,
+      gasPrice: executeParams?.gasPrice,
     });
   }
 }
