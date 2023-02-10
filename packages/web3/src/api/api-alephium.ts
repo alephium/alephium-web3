@@ -577,7 +577,8 @@ export interface ContractState {
 
   /** @format 32-byte-hash */
   initialStateHash?: string
-  fields: Val[]
+  immFields: Val[]
+  mutFields: Val[]
   asset: AssetState
 }
 
@@ -884,7 +885,8 @@ export interface TestContract {
 
   /** @format contract */
   bytecode: string
-  initialFields?: Val[]
+  initialImmFields?: Val[]
+  initialMutFields?: Val[]
   initialAsset?: AssetState
 
   /** @format int32 */
@@ -1332,7 +1334,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.6.4
+ * @version 1.7.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

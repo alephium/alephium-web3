@@ -227,3 +227,11 @@ function foldVals(vals: Val[], dims: number[]): Val {
     return result
   }
 }
+
+export function typeLength(tpe: string): number {
+  if (tpe === 'U256' || tpe === 'I256' || tpe === 'Bool' || tpe === 'ByteVec' || tpe === 'Address') {
+    return 1
+  }
+  const [, dims] = decodeArrayType(tpe)
+  return dims.reduce((a, b) => a * b)
+}
