@@ -25,7 +25,7 @@ import { Configuration, NetworkType } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
-import { getConfigFile, isNetworkLive, loadConfig } from './src'
+import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -56,7 +56,7 @@ nodeCommand
   .description('start devnet')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .action(async (options) => {
-    const config = await getConfig(options)
+    const config = getConfig(options)
     const version = config.nodeVersion! // there is a default value always
     const nodeConfigFile = path.join(__dirname, config.nodeConfigFile!) // there is a default value always
     await startDevnet(version, nodeConfigFile)
@@ -71,9 +71,11 @@ program
   .description('compile the project')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'network type')
+  .option('-g, --generate', 'generate typescript code by contract artifacts')
+  .option('-o, --outDir <out-dir>', 'the output directory')
   .action(async (options) => {
     try {
-      const config = await getConfig(options)
+      const config = getConfig(options)
       console.log(`Full node version: ${config.nodeVersion}`)
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
       const nodeUrl = config.networks[networkType].nodeUrl
@@ -82,8 +84,15 @@ program
         process.exit(1)
       }
       web3.setCurrentNodeProvider(nodeUrl)
-      await Project.build(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
+      const cwd = path.resolve(process.cwd())
+      await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir)
       console.log('✅ Compilation completed!')
+      if (options.generate) {
+        const outDir = options.outDir ?? '.generated'
+        const outPath = path.isAbsolute(outDir) ? outDir : path.join(cwd, outDir)
+        codegen(outPath)
+        console.log('✅ Codegen completed!')
+      }
     } catch (error) {
       program.error(`Failed to compile, error: ${(error as Error).stack}`)
     }
@@ -135,7 +144,7 @@ program
   .option('-n, --network <network-type>', 'specify the network to use')
   .action(async (options) => {
     try {
-      const config = await getConfig(options)
+      const config = getConfig(options)
       const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
       await deployAndSaveProgress(config, networkType)
     } catch (error) {
