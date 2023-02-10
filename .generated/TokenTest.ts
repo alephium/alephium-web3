@@ -19,6 +19,8 @@ import {
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
+  ONE_ALPH,
+  groupOfAddress,
 } from "@alephium/web3";
 
 export namespace TokenTest {
@@ -33,7 +35,7 @@ export namespace TokenTest {
 
   export async function deploy(
     signer: SignerProvider,
-    initFields: TokenTest.Fields,
+    initFields: Fields,
     deployParams?: {
       initialAttoAlphAmount?: bigint;
       initialTokenAmounts?: Token[];
@@ -41,7 +43,7 @@ export namespace TokenTest {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<Contract> {
+  ): Promise<TokenTestInstance> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -50,276 +52,148 @@ export namespace TokenTest {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new Contract(
-      deployResult.contractAddress,
-      deployResult.contractId,
-      deployResult.fromGroup,
-      deployResult
-    );
+    return new TokenTestInstance(deployResult.contractAddress, deployResult);
   }
 
   export function attach(
     address: string,
     deployResult?: SignDeployContractTxResult
-  ): Contract {
-    const contractId = binToHex(contractIdFromAddress(address));
-    const groupIndex = parseInt(contractId.slice(-2));
-    return new Contract(address, contractId, groupIndex, deployResult);
+  ): TokenTestInstance {
+    return new TokenTestInstance(address, deployResult);
   }
 
-  export class Contract {
-    readonly address: Address;
-    readonly contractId: string;
-    readonly groupIndex: number;
-    deployResult: SignDeployContractTxResult | undefined;
+  // This is used for testing contract functions
+  export function stateForTest(
+    symbol: HexString,
+    name: HexString,
+    decimals: bigint,
+    totalSupply: bigint,
+    asset?: Asset,
+    address?: string
+  ): ContractState {
+    const newAsset = {
+      alphAmount: asset?.alphAmount ?? ONE_ALPH,
+      tokens: asset?.tokens,
+    };
+    return TokenTest.artifact.toState(
+      {
+        symbol: symbol,
+        name: name,
+        decimals: decimals,
+        totalSupply: totalSupply,
+      },
+      newAsset,
+      address
+    );
+  }
 
-    constructor(
-      address: Address,
-      contractId: string,
-      groupIndex: number,
-      deployResult?: SignDeployContractTxResult
-    ) {
-      this.address = address;
-      this.contractId = contractId;
-      this.groupIndex = groupIndex;
-      this.deployResult = deployResult;
+  export async function testGetSymbolMethod(
+    initFields: Fields,
+    testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
     }
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 0,
+      testArgs: {},
+      initialFields: initFields,
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPublicMethod(
+      "getSymbol",
+      _testParams
+    );
+    return { ...testResult, returns: testResult.returns as [HexString] };
+  }
 
-    async fetchState(): Promise<State> {
-      const state = await artifact.fetchState(this.address, this.groupIndex);
-      return {
-        ...state,
-        symbol: state.fields["symbol"] as HexString,
-        name: state.fields["name"] as HexString,
-        decimals: state.fields["decimals"] as bigint,
-        totalSupply: state.fields["totalSupply"] as bigint,
-      };
+  export async function testGetNameMethod(
+    initFields: Fields,
+    testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
     }
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 1,
+      testArgs: {},
+      initialFields: initFields,
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPublicMethod("getName", _testParams);
+    return { ...testResult, returns: testResult.returns as [HexString] };
+  }
 
-    // This is used for testing contract functions
-    static stateForTest(
-      symbol: HexString,
-      name: HexString,
-      decimals: bigint,
-      totalSupply: bigint,
-      asset?: Asset,
-      address?: string
-    ): ContractState {
-      const newAsset = {
-        alphAmount: asset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: asset?.tokens,
-      };
-      return artifact.toState(
-        {
-          symbol: symbol,
-          name: name,
-          decimals: decimals,
-          totalSupply: totalSupply,
-        },
-        newAsset,
-        address
-      );
+  export async function testGetDecimalsMethod(
+    initFields: Fields,
+    testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
     }
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 2,
+      testArgs: {},
+      initialFields: initFields,
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPublicMethod(
+      "getDecimals",
+      _testParams
+    );
+    return { ...testResult, returns: testResult.returns as [bigint] };
+  }
 
-    static async testGetSymbolMethod(
-      initFields: TokenTest.Fields,
-      testParams?: {
-        group?: number;
-        address?: string;
-        initialAsset?: Asset;
-        existingContracts?: ContractState[];
-        inputAssets?: InputAsset[];
-      }
-    ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
-      const initialAsset = {
-        alphAmount:
-          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: testParams?.initialAsset?.tokens,
-      };
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: 0,
-        testArgs: {},
-        initialFields: initFields,
-        initialAsset: initialAsset,
-      };
-      const testResult = await artifact.testPublicMethod(
-        "getSymbol",
-        _testParams
-      );
-      return { ...testResult, returns: testResult.returns as [HexString] };
+  export async function testGetTotalSupplyMethod(
+    initFields: Fields,
+    testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
     }
-
-    static async testGetNameMethod(
-      initFields: TokenTest.Fields,
-      testParams?: {
-        group?: number;
-        address?: string;
-        initialAsset?: Asset;
-        existingContracts?: ContractState[];
-        inputAssets?: InputAsset[];
-      }
-    ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
-      const initialAsset = {
-        alphAmount:
-          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: testParams?.initialAsset?.tokens,
-      };
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: 1,
-        testArgs: {},
-        initialFields: initFields,
-        initialAsset: initialAsset,
-      };
-      const testResult = await artifact.testPublicMethod(
-        "getName",
-        _testParams
-      );
-      return { ...testResult, returns: testResult.returns as [HexString] };
-    }
-
-    static async testGetDecimalsMethod(
-      initFields: TokenTest.Fields,
-      testParams?: {
-        group?: number;
-        address?: string;
-        initialAsset?: Asset;
-        existingContracts?: ContractState[];
-        inputAssets?: InputAsset[];
-      }
-    ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
-      const initialAsset = {
-        alphAmount:
-          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: testParams?.initialAsset?.tokens,
-      };
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: 2,
-        testArgs: {},
-        initialFields: initFields,
-        initialAsset: initialAsset,
-      };
-      const testResult = await artifact.testPublicMethod(
-        "getDecimals",
-        _testParams
-      );
-      return { ...testResult, returns: testResult.returns as [bigint] };
-    }
-
-    static async testGetTotalSupplyMethod(
-      initFields: TokenTest.Fields,
-      testParams?: {
-        group?: number;
-        address?: string;
-        initialAsset?: Asset;
-        existingContracts?: ContractState[];
-        inputAssets?: InputAsset[];
-      }
-    ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
-      const initialAsset = {
-        alphAmount:
-          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: testParams?.initialAsset?.tokens,
-      };
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: 3,
-        testArgs: {},
-        initialFields: initFields,
-        initialAsset: initialAsset,
-      };
-      const testResult = await artifact.testPublicMethod(
-        "getTotalSupply",
-        _testParams
-      );
-      return { ...testResult, returns: testResult.returns as [bigint] };
-    }
-
-    async callGetSymbolMethod(callParams?: {
-      worldStateBlockHash?: string;
-      txId?: string;
-      existingContracts?: string[];
-      inputAssets?: node.TestInputAsset[];
-    }): Promise<HexString> {
-      const callResult = await web3
-        .getCurrentNodeProvider()
-        .contracts.postContractsCallContract({
-          group: this.groupIndex,
-          worldStateBlockHash: callParams?.worldStateBlockHash,
-          txId: callParams?.txId,
-          address: this.address,
-          methodIndex: 0,
-          args: [],
-          existingContracts: callParams?.existingContracts,
-          inputAssets: callParams?.inputAssets,
-        });
-      return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
-    }
-
-    async callGetNameMethod(callParams?: {
-      worldStateBlockHash?: string;
-      txId?: string;
-      existingContracts?: string[];
-      inputAssets?: node.TestInputAsset[];
-    }): Promise<HexString> {
-      const callResult = await web3
-        .getCurrentNodeProvider()
-        .contracts.postContractsCallContract({
-          group: this.groupIndex,
-          worldStateBlockHash: callParams?.worldStateBlockHash,
-          txId: callParams?.txId,
-          address: this.address,
-          methodIndex: 1,
-          args: [],
-          existingContracts: callParams?.existingContracts,
-          inputAssets: callParams?.inputAssets,
-        });
-      return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
-    }
-
-    async callGetDecimalsMethod(callParams?: {
-      worldStateBlockHash?: string;
-      txId?: string;
-      existingContracts?: string[];
-      inputAssets?: node.TestInputAsset[];
-    }): Promise<bigint> {
-      const callResult = await web3
-        .getCurrentNodeProvider()
-        .contracts.postContractsCallContract({
-          group: this.groupIndex,
-          worldStateBlockHash: callParams?.worldStateBlockHash,
-          txId: callParams?.txId,
-          address: this.address,
-          methodIndex: 2,
-          args: [],
-          existingContracts: callParams?.existingContracts,
-          inputAssets: callParams?.inputAssets,
-        });
-      return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
-    }
-
-    async callGetTotalSupplyMethod(callParams?: {
-      worldStateBlockHash?: string;
-      txId?: string;
-      existingContracts?: string[];
-      inputAssets?: node.TestInputAsset[];
-    }): Promise<bigint> {
-      const callResult = await web3
-        .getCurrentNodeProvider()
-        .contracts.postContractsCallContract({
-          group: this.groupIndex,
-          worldStateBlockHash: callParams?.worldStateBlockHash,
-          txId: callParams?.txId,
-          address: this.address,
-          methodIndex: 3,
-          args: [],
-          existingContracts: callParams?.existingContracts,
-          inputAssets: callParams?.inputAssets,
-        });
-      return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
-    }
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 3,
+      testArgs: {},
+      initialFields: initFields,
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPublicMethod(
+      "getTotalSupply",
+      _testParams
+    );
+    return { ...testResult, returns: testResult.returns as [bigint] };
   }
 
   export const artifact = ContractArtifact.fromJson(
@@ -401,4 +275,116 @@ export namespace TokenTest {
   ]
 }`)
   );
+}
+
+export class TokenTestInstance {
+  readonly address: Address;
+  readonly contractId: string;
+  readonly groupIndex: number;
+  deployResult: SignDeployContractTxResult | undefined;
+
+  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+    this.address = address;
+    this.contractId = binToHex(contractIdFromAddress(address));
+    this.groupIndex = groupOfAddress(address);
+    this.deployResult = deployResult;
+  }
+
+  async fetchState(): Promise<TokenTest.State> {
+    const state = await TokenTest.artifact.fetchState(
+      this.address,
+      this.groupIndex
+    );
+    return {
+      ...state,
+      symbol: state.fields["symbol"] as HexString,
+      name: state.fields["name"] as HexString,
+      decimals: state.fields["decimals"] as bigint,
+      totalSupply: state.fields["totalSupply"] as bigint,
+    };
+  }
+
+  async callGetSymbolMethod(callParams?: {
+    worldStateBlockHash?: string;
+    txId?: string;
+    existingContracts?: string[];
+    inputAssets?: node.TestInputAsset[];
+  }): Promise<HexString> {
+    const callResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsCallContract({
+        group: this.groupIndex,
+        worldStateBlockHash: callParams?.worldStateBlockHash,
+        txId: callParams?.txId,
+        address: this.address,
+        methodIndex: 0,
+        args: [],
+        existingContracts: callParams?.existingContracts,
+        inputAssets: callParams?.inputAssets,
+      });
+    return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
+  }
+
+  async callGetNameMethod(callParams?: {
+    worldStateBlockHash?: string;
+    txId?: string;
+    existingContracts?: string[];
+    inputAssets?: node.TestInputAsset[];
+  }): Promise<HexString> {
+    const callResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsCallContract({
+        group: this.groupIndex,
+        worldStateBlockHash: callParams?.worldStateBlockHash,
+        txId: callParams?.txId,
+        address: this.address,
+        methodIndex: 1,
+        args: [],
+        existingContracts: callParams?.existingContracts,
+        inputAssets: callParams?.inputAssets,
+      });
+    return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
+  }
+
+  async callGetDecimalsMethod(callParams?: {
+    worldStateBlockHash?: string;
+    txId?: string;
+    existingContracts?: string[];
+    inputAssets?: node.TestInputAsset[];
+  }): Promise<bigint> {
+    const callResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsCallContract({
+        group: this.groupIndex,
+        worldStateBlockHash: callParams?.worldStateBlockHash,
+        txId: callParams?.txId,
+        address: this.address,
+        methodIndex: 2,
+        args: [],
+        existingContracts: callParams?.existingContracts,
+        inputAssets: callParams?.inputAssets,
+      });
+    return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
+  }
+
+  async callGetTotalSupplyMethod(callParams?: {
+    worldStateBlockHash?: string;
+    txId?: string;
+    existingContracts?: string[];
+    inputAssets?: node.TestInputAsset[];
+  }): Promise<bigint> {
+    const callResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsCallContract({
+        group: this.groupIndex,
+        worldStateBlockHash: callParams?.worldStateBlockHash,
+        txId: callParams?.txId,
+        address: this.address,
+        methodIndex: 3,
+        args: [],
+        existingContracts: callParams?.existingContracts,
+        inputAssets: callParams?.inputAssets,
+      });
+    return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
+  }
 }

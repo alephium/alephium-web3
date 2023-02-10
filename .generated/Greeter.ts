@@ -19,6 +19,8 @@ import {
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
+  ONE_ALPH,
+  groupOfAddress,
 } from "@alephium/web3";
 
 export namespace Greeter {
@@ -30,7 +32,7 @@ export namespace Greeter {
 
   export async function deploy(
     signer: SignerProvider,
-    initFields: Greeter.Fields,
+    initFields: Fields,
     deployParams?: {
       initialAttoAlphAmount?: bigint;
       initialTokenAmounts?: Token[];
@@ -38,7 +40,7 @@ export namespace Greeter {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<Contract> {
+  ): Promise<GreeterInstance> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -47,108 +49,52 @@ export namespace Greeter {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new Contract(
-      deployResult.contractAddress,
-      deployResult.contractId,
-      deployResult.fromGroup,
-      deployResult
-    );
+    return new GreeterInstance(deployResult.contractAddress, deployResult);
   }
 
   export function attach(
     address: string,
     deployResult?: SignDeployContractTxResult
-  ): Contract {
-    const contractId = binToHex(contractIdFromAddress(address));
-    const groupIndex = parseInt(contractId.slice(-2));
-    return new Contract(address, contractId, groupIndex, deployResult);
+  ): GreeterInstance {
+    return new GreeterInstance(address, deployResult);
   }
 
-  export class Contract {
-    readonly address: Address;
-    readonly contractId: string;
-    readonly groupIndex: number;
-    deployResult: SignDeployContractTxResult | undefined;
+  // This is used for testing contract functions
+  export function stateForTest(
+    btcPrice: bigint,
+    asset?: Asset,
+    address?: string
+  ): ContractState {
+    const newAsset = {
+      alphAmount: asset?.alphAmount ?? ONE_ALPH,
+      tokens: asset?.tokens,
+    };
+    return Greeter.artifact.toState({ btcPrice: btcPrice }, newAsset, address);
+  }
 
-    constructor(
-      address: Address,
-      contractId: string,
-      groupIndex: number,
-      deployResult?: SignDeployContractTxResult
-    ) {
-      this.address = address;
-      this.contractId = contractId;
-      this.groupIndex = groupIndex;
-      this.deployResult = deployResult;
+  export async function testGreetMethod(
+    initFields: Fields,
+    testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
     }
-
-    async fetchState(): Promise<State> {
-      const state = await artifact.fetchState(this.address, this.groupIndex);
-      return {
-        ...state,
-        btcPrice: state.fields["btcPrice"] as bigint,
-      };
-    }
-
-    // This is used for testing contract functions
-    static stateForTest(
-      btcPrice: bigint,
-      asset?: Asset,
-      address?: string
-    ): ContractState {
-      const newAsset = {
-        alphAmount: asset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: asset?.tokens,
-      };
-      return artifact.toState({ btcPrice: btcPrice }, newAsset, address);
-    }
-
-    static async testGreetMethod(
-      initFields: Greeter.Fields,
-      testParams?: {
-        group?: number;
-        address?: string;
-        initialAsset?: Asset;
-        existingContracts?: ContractState[];
-        inputAssets?: InputAsset[];
-      }
-    ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
-      const initialAsset = {
-        alphAmount:
-          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: testParams?.initialAsset?.tokens,
-      };
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: 0,
-        testArgs: {},
-        initialFields: initFields,
-        initialAsset: initialAsset,
-      };
-      const testResult = await artifact.testPublicMethod("greet", _testParams);
-      return { ...testResult, returns: testResult.returns as [bigint] };
-    }
-
-    async callGreetMethod(callParams?: {
-      worldStateBlockHash?: string;
-      txId?: string;
-      existingContracts?: string[];
-      inputAssets?: node.TestInputAsset[];
-    }): Promise<bigint> {
-      const callResult = await web3
-        .getCurrentNodeProvider()
-        .contracts.postContractsCallContract({
-          group: this.groupIndex,
-          worldStateBlockHash: callParams?.worldStateBlockHash,
-          txId: callParams?.txId,
-          address: this.address,
-          methodIndex: 0,
-          args: [],
-          existingContracts: callParams?.existingContracts,
-          inputAssets: callParams?.inputAssets,
-        });
-      return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
-    }
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 0,
+      testArgs: {},
+      initialFields: initFields,
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPublicMethod("greet", _testParams);
+    return { ...testResult, returns: testResult.returns as [bigint] };
   }
 
   export const artifact = ContractArtifact.fromJson(
@@ -185,4 +131,50 @@ export namespace Greeter {
   ]
 }`)
   );
+}
+
+export class GreeterInstance {
+  readonly address: Address;
+  readonly contractId: string;
+  readonly groupIndex: number;
+  deployResult: SignDeployContractTxResult | undefined;
+
+  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+    this.address = address;
+    this.contractId = binToHex(contractIdFromAddress(address));
+    this.groupIndex = groupOfAddress(address);
+    this.deployResult = deployResult;
+  }
+
+  async fetchState(): Promise<Greeter.State> {
+    const state = await Greeter.artifact.fetchState(
+      this.address,
+      this.groupIndex
+    );
+    return {
+      ...state,
+      btcPrice: state.fields["btcPrice"] as bigint,
+    };
+  }
+
+  async callGreetMethod(callParams?: {
+    worldStateBlockHash?: string;
+    txId?: string;
+    existingContracts?: string[];
+    inputAssets?: node.TestInputAsset[];
+  }): Promise<bigint> {
+    const callResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsCallContract({
+        group: this.groupIndex,
+        worldStateBlockHash: callParams?.worldStateBlockHash,
+        txId: callParams?.txId,
+        address: this.address,
+        methodIndex: 0,
+        args: [],
+        existingContracts: callParams?.existingContracts,
+        inputAssets: callParams?.inputAssets,
+      });
+    return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
+  }
 }

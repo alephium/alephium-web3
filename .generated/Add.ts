@@ -19,6 +19,8 @@ import {
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
+  ONE_ALPH,
+  groupOfAddress,
   fromApiVals,
   subscribeToEvents,
   SubscribeOptions,
@@ -37,22 +39,22 @@ export namespace Add {
   export type AddEvent = {
     blockHash: string;
     txId: string;
-    eventIndex: number;
     x: bigint;
     y: bigint;
+    eventIndex: number;
   };
 
   export type Add1Event = {
     blockHash: string;
     txId: string;
-    eventIndex: number;
     a: bigint;
     b: bigint;
+    eventIndex: number;
   };
 
   export async function deploy(
     signer: SignerProvider,
-    initFields: Add.Fields,
+    initFields: Fields,
     deployParams?: {
       initialAttoAlphAmount?: bigint;
       initialTokenAmounts?: Token[];
@@ -60,7 +62,7 @@ export namespace Add {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<Contract> {
+  ): Promise<AddInstance> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -69,281 +71,91 @@ export namespace Add {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new Contract(
-      deployResult.contractAddress,
-      deployResult.contractId,
-      deployResult.fromGroup,
-      deployResult
-    );
+    return new AddInstance(deployResult.contractAddress, deployResult);
   }
 
   export function attach(
     address: string,
     deployResult?: SignDeployContractTxResult
-  ): Contract {
-    const contractId = binToHex(contractIdFromAddress(address));
-    const groupIndex = parseInt(contractId.slice(-2));
-    return new Contract(address, contractId, groupIndex, deployResult);
+  ): AddInstance {
+    return new AddInstance(address, deployResult);
   }
 
-  export class Contract {
-    readonly address: Address;
-    readonly contractId: string;
-    readonly groupIndex: number;
-    deployResult: SignDeployContractTxResult | undefined;
+  // This is used for testing contract functions
+  export function stateForTest(
+    sub: HexString,
+    result: bigint,
+    asset?: Asset,
+    address?: string
+  ): ContractState {
+    const newAsset = {
+      alphAmount: asset?.alphAmount ?? ONE_ALPH,
+      tokens: asset?.tokens,
+    };
+    return Add.artifact.toState(
+      { sub: sub, result: result },
+      newAsset,
+      address
+    );
+  }
 
-    constructor(
-      address: Address,
-      contractId: string,
-      groupIndex: number,
-      deployResult?: SignDeployContractTxResult
-    ) {
-      this.address = address;
-      this.contractId = contractId;
-      this.groupIndex = groupIndex;
-      this.deployResult = deployResult;
+  export async function testAddMethod(
+    args: { array: [bigint, bigint] },
+    initFields: Fields,
+    testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
     }
+  ): Promise<
+    Omit<TestContractResult, "returns"> & { returns: [[bigint, bigint]] }
+  > {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 0,
+      testArgs: args,
+      initialFields: initFields,
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPublicMethod("add", _testParams);
+    return { ...testResult, returns: testResult.returns as [[bigint, bigint]] };
+  }
 
-    async fetchState(): Promise<State> {
-      const state = await artifact.fetchState(this.address, this.groupIndex);
-      return {
-        ...state,
-        sub: state.fields["sub"] as HexString,
-        result: state.fields["result"] as bigint,
-      };
+  export async function testAddPrivateMethod(
+    args: { array: [bigint, bigint] },
+    initFields: Fields,
+    testParams?: {
+      group?: number;
+      address?: string;
+      initialAsset?: Asset;
+      existingContracts?: ContractState[];
+      inputAssets?: InputAsset[];
     }
-
-    private decodeAddEvent(event: node.ContractEvent): Add.AddEvent {
-      if (event.eventIndex !== 0) {
-        throw new Error(
-          "Invalid event index: " + event.eventIndex + ", expected: 0"
-        );
-      }
-      const fields = fromApiVals(event.fields, ["x", "y"], ["U256", "U256"]);
-      return {
-        blockHash: event.blockHash,
-        txId: event.txId,
-        eventIndex: event.eventIndex,
-        x: fields["x"] as bigint,
-        y: fields["y"] as bigint,
-      };
-    }
-
-    subscribeAddEvent(
-      options: SubscribeOptions<AddEvent>,
-      fromCount?: number
-    ): EventSubscription {
-      const messageCallback = (event: node.ContractEvent): Promise<void> => {
-        if (event.eventIndex !== 0) {
-          return Promise.resolve();
-        }
-        return options.messageCallback(this.decodeAddEvent(event));
-      };
-
-      const errorCallback = (
-        err: any,
-        subscription: Subscription<node.ContractEvent>
-      ): Promise<void> => {
-        return options.errorCallback(
-          err,
-          subscription as unknown as Subscription<AddEvent>
-        );
-      };
-      const opt: SubscribeOptions<node.ContractEvent> = {
-        pollingInterval: options.pollingInterval,
-        messageCallback: messageCallback,
-        errorCallback: errorCallback,
-      };
-      return subscribeToEvents(opt, this.address, fromCount);
-    }
-
-    private decodeAdd1Event(event: node.ContractEvent): Add.Add1Event {
-      if (event.eventIndex !== 1) {
-        throw new Error(
-          "Invalid event index: " + event.eventIndex + ", expected: 1"
-        );
-      }
-      const fields = fromApiVals(event.fields, ["a", "b"], ["U256", "U256"]);
-      return {
-        blockHash: event.blockHash,
-        txId: event.txId,
-        eventIndex: event.eventIndex,
-        a: fields["a"] as bigint,
-        b: fields["b"] as bigint,
-      };
-    }
-
-    subscribeAdd1Event(
-      options: SubscribeOptions<Add1Event>,
-      fromCount?: number
-    ): EventSubscription {
-      const messageCallback = (event: node.ContractEvent): Promise<void> => {
-        if (event.eventIndex !== 1) {
-          return Promise.resolve();
-        }
-        return options.messageCallback(this.decodeAdd1Event(event));
-      };
-
-      const errorCallback = (
-        err: any,
-        subscription: Subscription<node.ContractEvent>
-      ): Promise<void> => {
-        return options.errorCallback(
-          err,
-          subscription as unknown as Subscription<Add1Event>
-        );
-      };
-      const opt: SubscribeOptions<node.ContractEvent> = {
-        pollingInterval: options.pollingInterval,
-        messageCallback: messageCallback,
-        errorCallback: errorCallback,
-      };
-      return subscribeToEvents(opt, this.address, fromCount);
-    }
-
-    subscribeEvents(
-      options: SubscribeOptions<Add.AddEvent | Add.Add1Event>,
-      fromCount?: number
-    ): EventSubscription {
-      const messageCallback = (event: node.ContractEvent): Promise<void> => {
-        switch (event.eventIndex) {
-          case 0: {
-            return options.messageCallback(this.decodeAddEvent(event));
-          }
-
-          case 1: {
-            return options.messageCallback(this.decodeAdd1Event(event));
-          }
-
-          default:
-            throw new Error("Invalid event index: " + event.eventIndex);
-        }
-      };
-
-      const errorCallback = (
-        err: any,
-        subscription: Subscription<node.ContractEvent>
-      ): Promise<void> => {
-        return options.errorCallback(
-          err,
-          subscription as unknown as Subscription<Add.AddEvent | Add.Add1Event>
-        );
-      };
-      const opt: SubscribeOptions<node.ContractEvent> = {
-        pollingInterval: options.pollingInterval,
-        messageCallback: messageCallback,
-        errorCallback: errorCallback,
-      };
-      return subscribeToEvents(opt, this.address, fromCount);
-    }
-
-    // This is used for testing contract functions
-    static stateForTest(
-      sub: HexString,
-      result: bigint,
-      asset?: Asset,
-      address?: string
-    ): ContractState {
-      const newAsset = {
-        alphAmount: asset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: asset?.tokens,
-      };
-      return artifact.toState({ sub: sub, result: result }, newAsset, address);
-    }
-
-    static async testAddMethod(
-      args: { array: [bigint, bigint] },
-      initFields: Add.Fields,
-      testParams?: {
-        group?: number;
-        address?: string;
-        initialAsset?: Asset;
-        existingContracts?: ContractState[];
-        inputAssets?: InputAsset[];
-      }
-    ): Promise<
-      Omit<TestContractResult, "returns"> & { returns: [[bigint, bigint]] }
-    > {
-      const initialAsset = {
-        alphAmount:
-          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: testParams?.initialAsset?.tokens,
-      };
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: 0,
-        testArgs: args,
-        initialFields: initFields,
-        initialAsset: initialAsset,
-      };
-      const testResult = await artifact.testPublicMethod("add", _testParams);
-      return {
-        ...testResult,
-        returns: testResult.returns as [[bigint, bigint]],
-      };
-    }
-
-    static async testAddPrivateMethod(
-      args: { array: [bigint, bigint] },
-      initFields: Add.Fields,
-      testParams?: {
-        group?: number;
-        address?: string;
-        initialAsset?: Asset;
-        existingContracts?: ContractState[];
-        inputAssets?: InputAsset[];
-      }
-    ): Promise<
-      Omit<TestContractResult, "returns"> & { returns: [[bigint, bigint]] }
-    > {
-      const initialAsset = {
-        alphAmount:
-          testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
-        tokens: testParams?.initialAsset?.tokens,
-      };
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: 1,
-        testArgs: args,
-        initialFields: initFields,
-        initialAsset: initialAsset,
-      };
-      const testResult = await artifact.testPrivateMethod(
-        "addPrivate",
-        _testParams
-      );
-      return {
-        ...testResult,
-        returns: testResult.returns as [[bigint, bigint]],
-      };
-    }
-
-    async callAddMethod(
-      args: { array: [bigint, bigint] },
-      callParams?: {
-        worldStateBlockHash?: string;
-        txId?: string;
-        existingContracts?: string[];
-        inputAssets?: node.TestInputAsset[];
-      }
-    ): Promise<[bigint, bigint]> {
-      const callResult = await web3
-        .getCurrentNodeProvider()
-        .contracts.postContractsCallContract({
-          group: this.groupIndex,
-          worldStateBlockHash: callParams?.worldStateBlockHash,
-          txId: callParams?.txId,
-          address: this.address,
-          methodIndex: 0,
-          args: toApiVals({ array: args.array }, ["array"], ["[U256;2]"]),
-          existingContracts: callParams?.existingContracts,
-          inputAssets: callParams?.inputAssets,
-        });
-      return fromApiArray(callResult.returns, ["[U256;2]"])[0] as [
-        bigint,
-        bigint
-      ];
-    }
+  ): Promise<
+    Omit<TestContractResult, "returns"> & { returns: [[bigint, bigint]] }
+  > {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 1,
+      testArgs: args,
+      initialFields: initFields,
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPrivateMethod(
+      "addPrivate",
+      _testParams
+    );
+    return { ...testResult, returns: testResult.returns as [[bigint, bigint]] };
   }
 
   export const artifact = ContractArtifact.fromJson(
@@ -430,4 +242,178 @@ export namespace Add {
   ]
 }`)
   );
+}
+
+export class AddInstance {
+  readonly address: Address;
+  readonly contractId: string;
+  readonly groupIndex: number;
+  deployResult: SignDeployContractTxResult | undefined;
+
+  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+    this.address = address;
+    this.contractId = binToHex(contractIdFromAddress(address));
+    this.groupIndex = groupOfAddress(address);
+    this.deployResult = deployResult;
+  }
+
+  async fetchState(): Promise<Add.State> {
+    const state = await Add.artifact.fetchState(this.address, this.groupIndex);
+    return {
+      ...state,
+      sub: state.fields["sub"] as HexString,
+      result: state.fields["result"] as bigint,
+    };
+  }
+
+  private decodeAddEvent(event: node.ContractEvent): Add.AddEvent {
+    if (event.eventIndex !== 0) {
+      throw new Error(
+        "Invalid event index: " + event.eventIndex + ", expected: 0"
+      );
+    }
+    const fields = fromApiVals(event.fields, ["x", "y"], ["U256", "U256"]);
+    return {
+      blockHash: event.blockHash,
+      txId: event.txId,
+      x: fields["x"] as bigint,
+      y: fields["y"] as bigint,
+      eventIndex: event.eventIndex,
+    };
+  }
+
+  subscribeAddEvent(
+    options: SubscribeOptions<Add.AddEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    const messageCallback = (event: node.ContractEvent): Promise<void> => {
+      if (event.eventIndex !== 0) {
+        return Promise.resolve();
+      }
+      return options.messageCallback(this.decodeAddEvent(event));
+    };
+
+    const errorCallback = (
+      err: any,
+      subscription: Subscription<node.ContractEvent>
+    ): Promise<void> => {
+      return options.errorCallback(
+        err,
+        subscription as unknown as Subscription<Add.AddEvent>
+      );
+    };
+    const opt: SubscribeOptions<node.ContractEvent> = {
+      pollingInterval: options.pollingInterval,
+      messageCallback: messageCallback,
+      errorCallback: errorCallback,
+    };
+    return subscribeToEvents(opt, this.address, fromCount);
+  }
+
+  private decodeAdd1Event(event: node.ContractEvent): Add.Add1Event {
+    if (event.eventIndex !== 1) {
+      throw new Error(
+        "Invalid event index: " + event.eventIndex + ", expected: 1"
+      );
+    }
+    const fields = fromApiVals(event.fields, ["a", "b"], ["U256", "U256"]);
+    return {
+      blockHash: event.blockHash,
+      txId: event.txId,
+      a: fields["a"] as bigint,
+      b: fields["b"] as bigint,
+      eventIndex: event.eventIndex,
+    };
+  }
+
+  subscribeAdd1Event(
+    options: SubscribeOptions<Add.Add1Event>,
+    fromCount?: number
+  ): EventSubscription {
+    const messageCallback = (event: node.ContractEvent): Promise<void> => {
+      if (event.eventIndex !== 1) {
+        return Promise.resolve();
+      }
+      return options.messageCallback(this.decodeAdd1Event(event));
+    };
+
+    const errorCallback = (
+      err: any,
+      subscription: Subscription<node.ContractEvent>
+    ): Promise<void> => {
+      return options.errorCallback(
+        err,
+        subscription as unknown as Subscription<Add.Add1Event>
+      );
+    };
+    const opt: SubscribeOptions<node.ContractEvent> = {
+      pollingInterval: options.pollingInterval,
+      messageCallback: messageCallback,
+      errorCallback: errorCallback,
+    };
+    return subscribeToEvents(opt, this.address, fromCount);
+  }
+
+  subscribeEvents(
+    options: SubscribeOptions<Add.AddEvent | Add.Add1Event>,
+    fromCount?: number
+  ): EventSubscription {
+    const messageCallback = (event: node.ContractEvent): Promise<void> => {
+      switch (event.eventIndex) {
+        case 0: {
+          return options.messageCallback(this.decodeAddEvent(event));
+        }
+
+        case 1: {
+          return options.messageCallback(this.decodeAdd1Event(event));
+        }
+
+        default:
+          throw new Error("Invalid event index: " + event.eventIndex);
+      }
+    };
+
+    const errorCallback = (
+      err: any,
+      subscription: Subscription<node.ContractEvent>
+    ): Promise<void> => {
+      return options.errorCallback(
+        err,
+        subscription as unknown as Subscription<Add.AddEvent | Add.Add1Event>
+      );
+    };
+    const opt: SubscribeOptions<node.ContractEvent> = {
+      pollingInterval: options.pollingInterval,
+      messageCallback: messageCallback,
+      errorCallback: errorCallback,
+    };
+    return subscribeToEvents(opt, this.address, fromCount);
+  }
+
+  async callAddMethod(
+    args: { array: [bigint, bigint] },
+    callParams?: {
+      worldStateBlockHash?: string;
+      txId?: string;
+      existingContracts?: string[];
+      inputAssets?: node.TestInputAsset[];
+    }
+  ): Promise<[bigint, bigint]> {
+    const callResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsCallContract({
+        group: this.groupIndex,
+        worldStateBlockHash: callParams?.worldStateBlockHash,
+        txId: callParams?.txId,
+        address: this.address,
+        methodIndex: 0,
+        args: toApiVals({ array: args.array }, ["array"], ["[U256;2]"]),
+        existingContracts: callParams?.existingContracts,
+        inputAssets: callParams?.inputAssets,
+      });
+    return fromApiArray(callResult.returns, ["[U256;2]"])[0] as [
+      bigint,
+      bigint
+    ];
+  }
 }
