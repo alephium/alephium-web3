@@ -15,6 +15,7 @@ import {
   TestContractResult,
   InputAsset,
   Asset,
+  HexString,
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,

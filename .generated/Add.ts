@@ -15,6 +15,7 @@ import {
   TestContractResult,
   InputAsset,
   Asset,
+  HexString,
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
@@ -27,7 +28,7 @@ import {
 
 export namespace Add {
   export type Fields = {
-    sub: string;
+    sub: HexString;
     result: bigint;
   };
 
@@ -107,7 +108,7 @@ export namespace Add {
       const state = await artifact.fetchState(this.address, this.groupIndex);
       return {
         ...state,
-        sub: state.fields["sub"] as string,
+        sub: state.fields["sub"] as HexString,
         result: state.fields["result"] as bigint,
       };
     }
@@ -238,7 +239,7 @@ export namespace Add {
 
     // This is used for testing contract functions
     static stateForTest(
-      sub: string,
+      sub: HexString,
       result: bigint,
       asset?: Asset,
       address?: string

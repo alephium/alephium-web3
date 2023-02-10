@@ -15,6 +15,7 @@ import {
   TestContractResult,
   InputAsset,
   Asset,
+  HexString,
   SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
@@ -22,8 +23,8 @@ import {
 
 export namespace TokenTest {
   export type Fields = {
-    symbol: string;
-    name: string;
+    symbol: HexString;
+    name: HexString;
     decimals: bigint;
     totalSupply: bigint;
   };
@@ -88,8 +89,8 @@ export namespace TokenTest {
       const state = await artifact.fetchState(this.address, this.groupIndex);
       return {
         ...state,
-        symbol: state.fields["symbol"] as string,
-        name: state.fields["name"] as string,
+        symbol: state.fields["symbol"] as HexString,
+        name: state.fields["name"] as HexString,
         decimals: state.fields["decimals"] as bigint,
         totalSupply: state.fields["totalSupply"] as bigint,
       };
@@ -97,8 +98,8 @@ export namespace TokenTest {
 
     // This is used for testing contract functions
     static stateForTest(
-      symbol: string,
-      name: string,
+      symbol: HexString,
+      name: HexString,
       decimals: bigint,
       totalSupply: bigint,
       asset?: Asset,
@@ -129,7 +130,7 @@ export namespace TokenTest {
         existingContracts?: ContractState[];
         inputAssets?: InputAsset[];
       }
-    ): Promise<Omit<TestContractResult, "returns"> & { returns: [string] }> {
+    ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
       const initialAsset = {
         alphAmount:
           testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
@@ -146,7 +147,7 @@ export namespace TokenTest {
         "getSymbol",
         _testParams
       );
-      return { ...testResult, returns: testResult.returns as [string] };
+      return { ...testResult, returns: testResult.returns as [HexString] };
     }
 
     static async testGetNameMethod(
@@ -158,7 +159,7 @@ export namespace TokenTest {
         existingContracts?: ContractState[];
         inputAssets?: InputAsset[];
       }
-    ): Promise<Omit<TestContractResult, "returns"> & { returns: [string] }> {
+    ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
       const initialAsset = {
         alphAmount:
           testParams?.initialAsset?.alphAmount ?? BigInt(1000000000000000000),
@@ -175,7 +176,7 @@ export namespace TokenTest {
         "getName",
         _testParams
       );
-      return { ...testResult, returns: testResult.returns as [string] };
+      return { ...testResult, returns: testResult.returns as [HexString] };
     }
 
     static async testGetDecimalsMethod(
@@ -241,7 +242,7 @@ export namespace TokenTest {
       txId?: string;
       existingContracts?: string[];
       inputAssets?: node.TestInputAsset[];
-    }): Promise<string> {
+    }): Promise<HexString> {
       const callResult = await web3
         .getCurrentNodeProvider()
         .contracts.postContractsCallContract({
@@ -254,7 +255,7 @@ export namespace TokenTest {
           existingContracts: callParams?.existingContracts,
           inputAssets: callParams?.inputAssets,
         });
-      return fromApiArray(callResult.returns, ["ByteVec"])[0] as string;
+      return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
     }
 
     async callGetNameMethod(callParams?: {
@@ -262,7 +263,7 @@ export namespace TokenTest {
       txId?: string;
       existingContracts?: string[];
       inputAssets?: node.TestInputAsset[];
-    }): Promise<string> {
+    }): Promise<HexString> {
       const callResult = await web3
         .getCurrentNodeProvider()
         .contracts.postContractsCallContract({
@@ -275,7 +276,7 @@ export namespace TokenTest {
           existingContracts: callParams?.existingContracts,
           inputAssets: callParams?.inputAssets,
         });
-      return fromApiArray(callResult.returns, ["ByteVec"])[0] as string;
+      return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
     }
 
     async callGetDecimalsMethod(callParams?: {

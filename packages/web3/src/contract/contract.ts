@@ -54,6 +54,7 @@ export type EventSig = node.EventSig
 export type FunctionSig = node.FunctionSig
 export type Fields = NamedVals
 export type Arguments = NamedVals
+export type HexString = string
 
 enum SourceKind {
   Contract = 0,

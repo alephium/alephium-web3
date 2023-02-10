@@ -7,6 +7,7 @@ import {
   SignExecuteScriptTxResult,
   Script,
   SignerProvider,
+  HexString,
 } from "@alephium/web3";
 
 export class GreeterMain {
@@ -14,7 +15,7 @@ export class GreeterMain {
 
   static async execute(
     signer: SignerProvider,
-    initFields: { greeterContractId: string },
+    initFields: { greeterContractId: HexString },
     executeParams?: {
       attoAlphAmount?: bigint;
       tokens?: Token[];
@@ -67,7 +68,7 @@ export class Main {
 
   static async execute(
     signer: SignerProvider,
-    initFields: { addContractId: string },
+    initFields: { addContractId: HexString },
     executeParams?: {
       attoAlphAmount?: bigint;
       tokens?: Token[];

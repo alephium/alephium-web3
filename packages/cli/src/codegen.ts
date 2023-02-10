@@ -55,7 +55,7 @@ function toTsType(ralphType: string): string {
       return 'boolean'
     case 'Address':
     case 'ByteVec':
-      return 'string'
+      return 'HexString'
     default: // array type
       return parseArrayType(ralphType)
   }
@@ -339,7 +339,7 @@ function genContract(contract: Contract): string {
 
     import {
       web3, Contract as ContractArtifact, SignerProvider, Address, Token, toApiVals,
-      ContractState, node, binToHex, TestContractResult, InputAsset, Asset,
+      ContractState, node, binToHex, TestContractResult, InputAsset, Asset, HexString,
       SignDeployContractTxResult, contractIdFromAddress, fromApiArray, ${optionalImports}
     } from '@alephium/web3'
 
@@ -419,7 +419,8 @@ function genScripts(scripts: Script[]): string {
       Token,
       SignExecuteScriptTxResult,
       Script,
-      SignerProvider
+      SignerProvider,
+      HexString
     } from '@alephium/web3'
 
     ${scriptsSource}
