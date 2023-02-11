@@ -62,7 +62,7 @@ export namespace Add {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<AddInstance> {
+  ): Promise<SignDeployContractTxResult & { instance: AddInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -71,14 +71,12 @@ export namespace Add {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new AddInstance(deployResult.contractAddress, deployResult);
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ...deployResult };
   }
 
-  export function attach(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): AddInstance {
-    return new AddInstance(address, deployResult);
+  export function at(address: string): AddInstance {
+    return new AddInstance(address);
   }
 
   // This is used for testing contract functions
@@ -248,13 +246,11 @@ export class AddInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
 
-  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+  constructor(address: Address) {
     this.address = address;
     this.contractId = binToHex(contractIdFromAddress(address));
     this.groupIndex = groupOfAddress(address);
-    this.deployResult = deployResult;
   }
 
   async fetchState(): Promise<Add.State> {

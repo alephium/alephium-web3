@@ -43,7 +43,7 @@ export namespace TokenTest {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<TokenTestInstance> {
+  ): Promise<SignDeployContractTxResult & { instance: TokenTestInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -52,14 +52,12 @@ export namespace TokenTest {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new TokenTestInstance(deployResult.contractAddress, deployResult);
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ...deployResult };
   }
 
-  export function attach(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): TokenTestInstance {
-    return new TokenTestInstance(address, deployResult);
+  export function at(address: string): TokenTestInstance {
+    return new TokenTestInstance(address);
   }
 
   // This is used for testing contract functions
@@ -281,13 +279,11 @@ export class TokenTestInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
 
-  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+  constructor(address: Address) {
     this.address = address;
     this.contractId = binToHex(contractIdFromAddress(address));
     this.groupIndex = groupOfAddress(address);
-    this.deployResult = deployResult;
   }
 
   async fetchState(): Promise<TokenTest.State> {

@@ -37,7 +37,7 @@ describe('events', function () {
 
   async function deployContract(signer: NodeWallet): Promise<AddInstance> {
     const sub = await Sub.deploy(signer, { result: 0n })
-    return await Add.deploy(signer, { sub: sub.contractId, result: 0n })
+    return (await Add.deploy(signer, { sub: sub.contractId, result: 0n })).instance
   }
 
   it('should subscribe contract events', async () => {

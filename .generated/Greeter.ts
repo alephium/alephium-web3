@@ -40,7 +40,7 @@ export namespace Greeter {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<GreeterInstance> {
+  ): Promise<SignDeployContractTxResult & { instance: GreeterInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -49,14 +49,12 @@ export namespace Greeter {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new GreeterInstance(deployResult.contractAddress, deployResult);
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ...deployResult };
   }
 
-  export function attach(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): GreeterInstance {
-    return new GreeterInstance(address, deployResult);
+  export function at(address: string): GreeterInstance {
+    return new GreeterInstance(address);
   }
 
   // This is used for testing contract functions
@@ -137,13 +135,11 @@ export class GreeterInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
 
-  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+  constructor(address: Address) {
     this.address = address;
     this.contractId = binToHex(contractIdFromAddress(address));
     this.groupIndex = groupOfAddress(address);
-    this.deployResult = deployResult;
   }
 
   async fetchState(): Promise<Greeter.State> {

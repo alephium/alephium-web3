@@ -35,7 +35,7 @@ export namespace Debug {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<DebugInstance> {
+  ): Promise<SignDeployContractTxResult & { instance: DebugInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: {},
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -44,14 +44,12 @@ export namespace Debug {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new DebugInstance(deployResult.contractAddress, deployResult);
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ...deployResult };
   }
 
-  export function attach(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): DebugInstance {
-    return new DebugInstance(address, deployResult);
+  export function at(address: string): DebugInstance {
+    return new DebugInstance(address);
   }
 
   // This is used for testing contract functions
@@ -117,13 +115,11 @@ export class DebugInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
 
-  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+  constructor(address: Address) {
     this.address = address;
     this.contractId = binToHex(contractIdFromAddress(address));
     this.groupIndex = groupOfAddress(address);
-    this.deployResult = deployResult;
   }
 
   async fetchState(): Promise<Debug.State> {

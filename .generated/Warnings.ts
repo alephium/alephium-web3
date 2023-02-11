@@ -41,7 +41,7 @@ export namespace Warnings {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<WarningsInstance> {
+  ): Promise<SignDeployContractTxResult & { instance: WarningsInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -50,14 +50,12 @@ export namespace Warnings {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new WarningsInstance(deployResult.contractAddress, deployResult);
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ...deployResult };
   }
 
-  export function attach(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): WarningsInstance {
-    return new WarningsInstance(address, deployResult);
+  export function at(address: string): WarningsInstance {
+    return new WarningsInstance(address);
   }
 
   // This is used for testing contract functions
@@ -150,13 +148,11 @@ export class WarningsInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
 
-  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+  constructor(address: Address) {
     this.address = address;
     this.contractId = binToHex(contractIdFromAddress(address));
     this.groupIndex = groupOfAddress(address);
-    this.deployResult = deployResult;
   }
 
   async fetchState(): Promise<Warnings.State> {

@@ -126,7 +126,7 @@ function genDeploy(contract: Contract): string {
   const fieldsParam = getParamsFromFieldsSig(contract.fieldsSig, `Fields`)
   const instanceName = `${contract.name}Instance`
   return `
-  export async function deploy(signer: SignerProvider, ${fieldsParam}${deployParams}): Promise<${instanceName}> {
+  export async function deploy(signer: SignerProvider, ${fieldsParam}${deployParams}): Promise<SignDeployContractTxResult & { instance: ${instanceName} }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: ${getInitialFieldsFromFieldsSig(contract.fieldsSig)},
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -135,15 +135,16 @@ function genDeploy(contract: Contract): string {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice
     })
-    return new ${instanceName}(deployResult.contractAddress, deployResult)
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ... deployResult }
   }
   `
 }
 
 function genAttach(instanceName: string): string {
   return `
-  export function attach(address: string, deployResult?: SignDeployContractTxResult): ${instanceName} {
-    return new ${instanceName}(address, deployResult)
+  export function at(address: string): ${instanceName} {
+    return new ${instanceName}(address)
   }
   `
 }
@@ -361,16 +362,13 @@ function genContract(contract: Contract): string {
       readonly address: Address
       readonly contractId: string
       readonly groupIndex: number
-      deployResult: SignDeployContractTxResult | undefined
 
       constructor(
         address: Address,
-        deployResult?: SignDeployContractTxResult
       ) {
         this.address = address
         this.contractId = binToHex(contractIdFromAddress(address));
         this.groupIndex = groupOfAddress(address);
-        this.deployResult = deployResult
       }
 
       ${genFetchState(contract)}

@@ -35,7 +35,7 @@ describe('contract', function () {
     const name = Buffer.from('TestToken', 'utf8').toString('hex')
     const decimals = 18n
     const totalSupply = 1n << 128n
-    const tokenTest = await TokenTest.deploy(signer, { symbol, name, decimals, totalSupply })
+    const tokenTest = (await TokenTest.deploy(signer, { symbol, name, decimals, totalSupply })).instance
 
     expect(await tokenTest.callGetSymbolMethod()).toEqual(symbol)
     expect(await tokenTest.callGetNameMethod()).toEqual(name)

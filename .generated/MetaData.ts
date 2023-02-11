@@ -35,7 +35,7 @@ export namespace MetaData {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<MetaDataInstance> {
+  ): Promise<SignDeployContractTxResult & { instance: MetaDataInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: {},
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -44,14 +44,12 @@ export namespace MetaData {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new MetaDataInstance(deployResult.contractAddress, deployResult);
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ...deployResult };
   }
 
-  export function attach(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): MetaDataInstance {
-    return new MetaDataInstance(address, deployResult);
+  export function at(address: string): MetaDataInstance {
+    return new MetaDataInstance(address);
   }
 
   // This is used for testing contract functions
@@ -181,13 +179,11 @@ export class MetaDataInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
 
-  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+  constructor(address: Address) {
     this.address = address;
     this.contractId = binToHex(contractIdFromAddress(address));
     this.groupIndex = groupOfAddress(address);
-    this.deployResult = deployResult;
   }
 
   async fetchState(): Promise<MetaData.State> {

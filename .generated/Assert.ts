@@ -35,7 +35,7 @@ export namespace Assert {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<AssertInstance> {
+  ): Promise<SignDeployContractTxResult & { instance: AssertInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: {},
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -44,14 +44,12 @@ export namespace Assert {
       gasAmount: deployParams?.gasAmount,
       gasPrice: deployParams?.gasPrice,
     });
-    return new AssertInstance(deployResult.contractAddress, deployResult);
+    const instance = at(deployResult.contractAddress);
+    return { instance: instance, ...deployResult };
   }
 
-  export function attach(
-    address: string,
-    deployResult?: SignDeployContractTxResult
-  ): AssertInstance {
-    return new AssertInstance(address, deployResult);
+  export function at(address: string): AssertInstance {
+    return new AssertInstance(address);
   }
 
   // This is used for testing contract functions
@@ -117,13 +115,11 @@ export class AssertInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
-  deployResult: SignDeployContractTxResult | undefined;
 
-  constructor(address: Address, deployResult?: SignDeployContractTxResult) {
+  constructor(address: Address) {
     this.address = address;
     this.contractId = binToHex(contractIdFromAddress(address));
     this.groupIndex = groupOfAddress(address);
-    this.deployResult = deployResult;
   }
 
   async fetchState(): Promise<Assert.State> {
