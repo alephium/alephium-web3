@@ -390,12 +390,8 @@ function genScript(script: Script): string {
   const scriptFields = getParamsFromFieldsSig(script.fieldsSig, `{${formatParameters(script.fieldsSig)}}`)
   const scriptJson = script.toString()
   return `
-    export class ${script.name} {
-      private constructor() {
-      }
-
-      static async execute(signer: SignerProvider, ${scriptFields}${executeParams}): Promise<SignExecuteScriptTxResult> {
-        const script = Script.fromJson(JSON.parse(\`${scriptJson}\`))
+    export namespace ${script.name} {
+      export async function execute(signer: SignerProvider, ${scriptFields}${executeParams}): Promise<SignExecuteScriptTxResult> {
         return script.execute(signer, {
           initialFields: ${getInitialFieldsFromFieldsSig(script.fieldsSig)},
           ${usePreapprovedAssets ? 'attoAlphAmount: executeParams?.attoAlphAmount' : ''},
@@ -404,6 +400,8 @@ function genScript(script: Script): string {
           gasPrice: executeParams?.gasPrice
         })
       }
+
+      export const script = Script.fromJson(JSON.parse(\`${scriptJson}\`))
     }
   `
 }

@@ -10,10 +10,8 @@ import {
   HexString,
 } from "@alephium/web3";
 
-export class GreeterMain {
-  private constructor() {}
-
-  static async execute(
+export namespace GreeterMain {
+  export async function execute(
     signer: SignerProvider,
     initFields: { greeterContractId: HexString },
     executeParams?: {
@@ -23,8 +21,17 @@ export class GreeterMain {
       gasPrice?: bigint;
     }
   ): Promise<SignExecuteScriptTxResult> {
-    const script = Script.fromJson(
-      JSON.parse(`{
+    return script.execute(signer, {
+      initialFields: initFields,
+      attoAlphAmount: executeParams?.attoAlphAmount,
+      tokens: executeParams?.tokens,
+      gasAmount: executeParams?.gasAmount,
+      gasPrice: executeParams?.gasPrice,
+    });
+  }
+
+  export const script = Script.fromJson(
+    JSON.parse(`{
   "version": "v1.7.0",
   "name": "GreeterMain",
   "bytecodeTemplate": "01010300020014{0}17000c0d160001000d2f0c7b{0}17010c0d160101000d2f0c7b",
@@ -52,21 +59,11 @@ export class GreeterMain {
     }
   ]
 }`)
-    );
-    return script.execute(signer, {
-      initialFields: initFields,
-      attoAlphAmount: executeParams?.attoAlphAmount,
-      tokens: executeParams?.tokens,
-      gasAmount: executeParams?.gasAmount,
-      gasPrice: executeParams?.gasPrice,
-    });
-  }
+  );
 }
 
-export class Main {
-  private constructor() {}
-
-  static async execute(
+export namespace Main {
+  export async function execute(
     signer: SignerProvider,
     initFields: { addContractId: HexString },
     executeParams?: {
@@ -76,8 +73,17 @@ export class Main {
       gasPrice?: bigint;
     }
   ): Promise<SignExecuteScriptTxResult> {
-    const script = Script.fromJson(
-      JSON.parse(`{
+    return script.execute(signer, {
+      initialFields: initFields,
+      attoAlphAmount: executeParams?.attoAlphAmount,
+      tokens: executeParams?.tokens,
+      gasAmount: executeParams?.gasAmount,
+      gasPrice: executeParams?.gasPrice,
+    });
+  }
+
+  export const script = Script.fromJson(
+    JSON.parse(`{
   "version": "v1.7.0",
   "name": "Main",
   "bytecodeTemplate": "0101030001000a{0}17000e0d0e0e160001001818",
@@ -105,13 +111,5 @@ export class Main {
     }
   ]
 }`)
-    );
-    return script.execute(signer, {
-      initialFields: initFields,
-      attoAlphAmount: executeParams?.attoAlphAmount,
-      tokens: executeParams?.tokens,
-      gasAmount: executeParams?.gasAmount,
-      gasPrice: executeParams?.gasPrice,
-    });
-  }
+  );
 }
