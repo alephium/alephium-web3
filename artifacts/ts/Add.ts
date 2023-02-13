@@ -82,8 +82,7 @@ export namespace Add {
 
   // This is used for testing contract functions
   export function stateForTest(
-    sub: HexString,
-    result: bigint,
+    initFields: Fields,
     asset?: Asset,
     address?: string
   ): ContractState {
@@ -91,11 +90,7 @@ export namespace Add {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Add.artifact.toState(
-      { sub: sub, result: result },
-      newAsset,
-      address
-    );
+    return Add.artifact.toState(initFields, newAsset, address);
   }
 
   export async function testAddMethod(

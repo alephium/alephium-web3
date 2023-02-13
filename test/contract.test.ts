@@ -46,7 +46,7 @@ describe('contract', function () {
     // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })
 
-    const subState = Sub.stateForTest(0n)
+    const subState = Sub.stateForTest({ result: 0n })
     const testResult = await Add.testAddMethod(
       { array: [2n, 1n] },
       { sub: subState.contractId, result: 0n },

@@ -73,7 +73,7 @@ export namespace Sub {
 
   // This is used for testing contract functions
   export function stateForTest(
-    result: bigint,
+    initFields: Fields,
     asset?: Asset,
     address?: string
   ): ContractState {
@@ -81,7 +81,7 @@ export namespace Sub {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Sub.artifact.toState({ result: result }, newAsset, address);
+    return Sub.artifact.toState(initFields, newAsset, address);
   }
 
   export async function testSubMethod(

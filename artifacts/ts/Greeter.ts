@@ -60,7 +60,7 @@ export namespace Greeter {
 
   // This is used for testing contract functions
   export function stateForTest(
-    btcPrice: bigint,
+    initFields: Fields,
     asset?: Asset,
     address?: string
   ): ContractState {
@@ -68,7 +68,7 @@ export namespace Greeter {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Greeter.artifact.toState({ btcPrice: btcPrice }, newAsset, address);
+    return Greeter.artifact.toState(initFields, newAsset, address);
   }
 
   export async function testGreetMethod(

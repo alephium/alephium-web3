@@ -61,8 +61,7 @@ export namespace Warnings {
 
   // This is used for testing contract functions
   export function stateForTest(
-    a: bigint,
-    b: bigint,
+    initFields: Fields,
     asset?: Asset,
     address?: string
   ): ContractState {
@@ -70,7 +69,7 @@ export namespace Warnings {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Warnings.artifact.toState({ a: a, b: b }, newAsset, address);
+    return Warnings.artifact.toState(initFields, newAsset, address);
   }
 
   export async function testFooMethod(

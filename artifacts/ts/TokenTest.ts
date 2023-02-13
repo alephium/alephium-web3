@@ -63,10 +63,7 @@ export namespace TokenTest {
 
   // This is used for testing contract functions
   export function stateForTest(
-    symbol: HexString,
-    name: HexString,
-    decimals: bigint,
-    totalSupply: bigint,
+    initFields: Fields,
     asset?: Asset,
     address?: string
   ): ContractState {
@@ -74,16 +71,7 @@ export namespace TokenTest {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return TokenTest.artifact.toState(
-      {
-        symbol: symbol,
-        name: name,
-        decimals: decimals,
-        totalSupply: totalSupply,
-      },
-      newAsset,
-      address
-    );
+    return TokenTest.artifact.toState(initFields, newAsset, address);
   }
 
   export async function testGetSymbolMethod(
