@@ -4,11 +4,12 @@
 
 import {
   web3,
-  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
   toApiVals,
+  SignDeployContractTxResult,
+  Contract,
   ContractState,
   node,
   binToHex,
@@ -16,14 +17,14 @@ import {
   InputAsset,
   Asset,
   HexString,
-  SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
   groupOfAddress,
 } from "@alephium/web3";
+import { default as AssertContractJson } from "../test/assert.ral.json";
 
-export namespace Debug {
+export namespace Assert {
   export type State = Omit<ContractState, "fields">;
 
   export async function deploy(
@@ -35,7 +36,7 @@ export namespace Debug {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<SignDeployContractTxResult & { instance: DebugInstance }> {
+  ): Promise<SignDeployContractTxResult & { instance: AssertInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: {},
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -48,8 +49,8 @@ export namespace Debug {
     return { instance: instance, ...deployResult };
   }
 
-  export function at(address: string): DebugInstance {
-    return new DebugInstance(address);
+  export function at(address: string): AssertInstance {
+    return new AssertInstance(address);
   }
 
   // This is used for testing contract functions
@@ -58,10 +59,10 @@ export namespace Debug {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Debug.artifact.toState({}, newAsset, address);
+    return Assert.artifact.toState({}, newAsset, address);
   }
 
-  export async function testDebugMethod(testParams?: {
+  export async function testTestMethod(testParams?: {
     group?: number;
     address?: string;
     initialAsset?: Asset;
@@ -79,39 +80,14 @@ export namespace Debug {
       initialFields: {},
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("debug", _testParams);
+    const testResult = await artifact.testPublicMethod("test", _testParams);
     return { ...testResult, returns: testResult.returns as [] };
   }
 
-  export const artifact = ContractArtifact.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "Debug",
-  "bytecode": "000106010000000000",
-  "codeHash": "928360bf58942dd1fdd8d197e0e2ef59ecddbf71a6e8fe25d2c0665274f80ce3",
-  "fieldsSig": {
-    "names": [],
-    "types": [],
-    "isMutable": []
-  },
-  "eventsSig": [],
-  "functions": [
-    {
-      "name": "debug",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": []
-    }
-  ]
-}`)
-  );
+  export const artifact = Contract.fromJson(AssertContractJson);
 }
 
-export class DebugInstance {
+export class AssertInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
@@ -122,8 +98,8 @@ export class DebugInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Debug.State> {
-    const state = await Debug.artifact.fetchState(
+  async fetchState(): Promise<Assert.State> {
+    const state = await Assert.artifact.fetchState(
       this.address,
       this.groupIndex
     );

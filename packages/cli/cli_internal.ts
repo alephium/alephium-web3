@@ -71,8 +71,7 @@ program
   .description('compile the project')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'network type')
-  .option('-g, --generate', 'generate typescript code by contract artifacts')
-  .option('-o, --outDir <out-dir>', 'the output directory')
+  .option('--skipGenerate', 'skip generate typescript code by contract artifacts')
   .action(async (options) => {
     try {
       const config = getConfig(options)
@@ -87,12 +86,12 @@ program
       const cwd = path.resolve(process.cwd())
       await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir)
       console.log('✅ Compilation completed!')
-      if (options.generate) {
-        const outDir = options.outDir ?? '.generated'
-        const outPath = path.isAbsolute(outDir) ? outDir : path.join(cwd, outDir)
-        codegen(outPath)
-        console.log('✅ Codegen completed!')
+      if (options.skipGenerate) {
+        return
       }
+      const artifactDir = config.artifactDir! // this is a default value always
+      codegen(artifactDir)
+      console.log('✅ Codegen completed!')
     } catch (error) {
       program.error(`Failed to compile, error: ${(error as Error).stack}`)
     }

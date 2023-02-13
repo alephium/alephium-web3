@@ -4,11 +4,12 @@
 
 import {
   web3,
-  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
   toApiVals,
+  SignDeployContractTxResult,
+  Contract,
   ContractState,
   node,
   binToHex,
@@ -16,12 +17,12 @@ import {
   InputAsset,
   Asset,
   HexString,
-  SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
   groupOfAddress,
 } from "@alephium/web3";
+import { default as TokenTestContractJson } from "../token_test.ral.json";
 
 export namespace TokenTest {
   export type Fields = {
@@ -194,85 +195,7 @@ export namespace TokenTest {
     return { ...testResult, returns: testResult.returns as [bigint] };
   }
 
-  export const artifact = ContractArtifact.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "TokenTest",
-  "bytecode": "040409121b4024010000000102ce0002010000000102ce0102010000000102ce0202010000000102ce0302",
-  "codeHash": "d9c9fab84f779f2e90ca9e9b1fafd6d9c9dc0f8b84256169e20961f9c917bab8",
-  "fieldsSig": {
-    "names": [
-      "symbol",
-      "name",
-      "decimals",
-      "totalSupply"
-    ],
-    "types": [
-      "ByteVec",
-      "ByteVec",
-      "U256",
-      "U256"
-    ],
-    "isMutable": [
-      false,
-      false,
-      false,
-      false
-    ]
-  },
-  "eventsSig": [],
-  "functions": [
-    {
-      "name": "getSymbol",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "ByteVec"
-      ]
-    },
-    {
-      "name": "getName",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "ByteVec"
-      ]
-    },
-    {
-      "name": "getDecimals",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "U256"
-      ]
-    },
-    {
-      "name": "getTotalSupply",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "U256"
-      ]
-    }
-  ]
-}`)
-  );
+  export const artifact = Contract.fromJson(TokenTestContractJson);
 }
 
 export class TokenTestInstance {

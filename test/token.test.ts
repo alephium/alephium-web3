@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { web3, Project } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
-import { TokenTest } from '../.generated/TokenTest'
+import { TokenTest } from '../artifacts/ts/TokenTest'
 
 describe('contract', function () {
   let signer: NodeWallet

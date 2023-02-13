@@ -4,11 +4,12 @@
 
 import {
   web3,
-  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
   toApiVals,
+  SignDeployContractTxResult,
+  Contract,
   ContractState,
   node,
   binToHex,
@@ -16,7 +17,6 @@ import {
   InputAsset,
   Asset,
   HexString,
-  SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
@@ -27,6 +27,7 @@ import {
   Subscription,
   EventSubscription,
 } from "@alephium/web3";
+import { default as AddContractJson } from "../add/add.ral.json";
 
 export namespace Add {
   export type Fields = {
@@ -156,90 +157,7 @@ export namespace Add {
     return { ...testResult, returns: testResult.returns as [[bigint, bigint]] };
   }
 
-  export const artifact = ContractArtifact.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "Add",
-  "bytecode": "02020d40360100020402041600160100010200000202021605160016015f06160016015fa00016002a16012aa100a000160016010e0dce00010002",
-  "codeHash": "52d5893e97ce6b8d67d90fe1c51735e6e4f9946de732926fd160a0b50774f61b",
-  "fieldsSig": {
-    "names": [
-      "sub",
-      "result"
-    ],
-    "types": [
-      "ByteVec",
-      "U256"
-    ],
-    "isMutable": [
-      false,
-      true
-    ]
-  },
-  "eventsSig": [
-    {
-      "name": "Add",
-      "fieldNames": [
-        "x",
-        "y"
-      ],
-      "fieldTypes": [
-        "U256",
-        "U256"
-      ]
-    },
-    {
-      "name": "Add1",
-      "fieldNames": [
-        "a",
-        "b"
-      ],
-      "fieldTypes": [
-        "U256",
-        "U256"
-      ]
-    }
-  ],
-  "functions": [
-    {
-      "name": "add",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [
-        "array"
-      ],
-      "paramTypes": [
-        "[U256;2]"
-      ],
-      "paramIsMutable": [
-        false
-      ],
-      "returnTypes": [
-        "[U256;2]"
-      ]
-    },
-    {
-      "name": "addPrivate",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": false,
-      "paramNames": [
-        "array"
-      ],
-      "paramTypes": [
-        "[U256;2]"
-      ],
-      "paramIsMutable": [
-        false
-      ],
-      "returnTypes": [
-        "[U256;2]"
-      ]
-    }
-  ]
-}`)
-  );
+  export const artifact = Contract.fromJson(AddContractJson);
 }
 
 export class AddInstance {

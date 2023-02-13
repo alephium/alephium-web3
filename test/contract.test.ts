@@ -23,12 +23,12 @@ import { Contract, Project, Script } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { expectAssertionError, randomContractAddress } from '../packages/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
-import { Greeter } from '../.generated/Greeter'
-import { GreeterMain, Main } from '../.generated/scripts'
-import { Sub } from '../.generated/Sub'
-import { Add } from '../.generated/Add'
-import { MetaData } from '../.generated/MetaData'
-import { Assert } from '../.generated/Assert'
+import { Greeter } from '../artifacts/ts/Greeter'
+import { GreeterMain, Main } from '../artifacts/ts/scripts'
+import { Sub } from '../artifacts/ts/Sub'
+import { Add } from '../artifacts/ts/Add'
+import { MetaData } from '../artifacts/ts/MetaData'
+import { Assert } from '../artifacts/ts/Assert'
 
 describe('contract', function () {
   let signer: NodeWallet

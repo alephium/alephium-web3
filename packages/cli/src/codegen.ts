@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, Project, Script, Contract, EventSig, FieldsSig, ONE_ALPH } from '@alephium/web3'
+import { node, Project, Script, Contract, EventSig, FieldsSig } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
 import fs from 'fs'
@@ -330,8 +330,7 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
   `
 }
 
-function genContract(contract: Contract): string {
-  const contractJson = contract.toString()
+function genContract(contract: Contract, artifactRelativePath: string): string {
   const optionalImports =
     contract.eventsSig.length === 0
       ? ''
@@ -340,10 +339,11 @@ function genContract(contract: Contract): string {
     ${header}
 
     import {
-      web3, Contract as ContractArtifact, SignerProvider, Address, Token, toApiVals,
+      web3, SignerProvider, Address, Token, toApiVals, SignDeployContractTxResult, Contract,
       ContractState, node, binToHex, TestContractResult, InputAsset, Asset, HexString,
-      SignDeployContractTxResult, contractIdFromAddress, fromApiArray, ONE_ALPH, groupOfAddress, ${optionalImports}
+      contractIdFromAddress, fromApiArray, ONE_ALPH, groupOfAddress, ${optionalImports}
     } from '@alephium/web3'
+    import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
     export namespace ${contract.name} {
       ${genContractState(contract)}
@@ -355,7 +355,7 @@ function genContract(contract: Contract): string {
       ${genStateForTest(contract)}
       ${contract.functions.map((f, index) => genTestMethod(contract, f, index)).join('\n')}
 
-      export const artifact = ContractArtifact.fromJson(JSON.parse(\`${contractJson}\`))
+      export const artifact = Contract.fromJson(${contract.name}ContractJson)
     }
 
     export class ${contract.name}Instance {
@@ -388,7 +388,6 @@ function genScript(script: Script): string {
   const usePreapprovedAssets = script.functions[0].usePreapprovedAssets
   const executeParams = usePreapprovedAssets ? withAssets : withoutAssets
   const scriptFields = getParamsFromFieldsSig(script.fieldsSig, `{${formatParameters(script.fieldsSig)}}`)
-  const scriptJson = script.toString()
   return `
     export namespace ${script.name} {
       export async function execute(signer: SignerProvider, ${scriptFields}${executeParams}): Promise<SignExecuteScriptTxResult> {
@@ -401,13 +400,23 @@ function genScript(script: Script): string {
         })
       }
 
-      export const script = Script.fromJson(JSON.parse(\`${scriptJson}\`))
+      export const script = Script.fromJson(${script.name}ScriptJson)
     }
   `
 }
 
-function genScripts(scripts: Script[]): string {
-  const scriptsSource = scripts.map((s) => genScript(s)).join('\n')
+function genScripts(outDir: string, artifactDir: string, exports: string[]) {
+  exports.push('./scripts')
+  const scriptPath = path.join(outDir, 'scripts.ts')
+  const scripts = Array.from(Project.currentProject.scripts.values())
+  const importArtifacts = Array.from(scripts)
+    .map((s) => {
+      const artifactPath = s.sourceInfo.getArtifactPath(artifactDir)
+      const artifactRelativePath = path.relative(artifactDir, artifactPath)
+      return `import { default as ${s.artifact.name}ScriptJson } from '../${artifactRelativePath}'`
+    })
+    .join('\n')
+  const scriptsSource = scripts.map((s) => genScript(s.artifact)).join('\n')
   const source = `
     ${header}
 
@@ -418,40 +427,43 @@ function genScripts(scripts: Script[]): string {
       SignerProvider,
       HexString
     } from '@alephium/web3'
+    ${importArtifacts}
 
     ${scriptsSource}
   `
-  return prettier.format(source, { parser: 'typescript' })
+  const formatted = prettier.format(source, { parser: 'typescript' })
+  fs.writeFileSync(scriptPath, formatted, 'utf8')
 }
 
-function genIndexTs(exports: string[]): string {
+function genIndexTs(outDir: string, exports: string[]) {
+  const indexPath = path.join(outDir, 'index.ts')
   const exportStatements = exports.map((e) => `export * from "${e}"`).join('\n')
-  const source = header + exportStatements
-  return prettier.format(source, { parser: 'typescript' })
+  const source = prettier.format(header + exportStatements, { parser: 'typescript' })
+  fs.writeFileSync(indexPath, source, 'utf8')
 }
 
-export function codegen(outDir: string) {
-  const outPath = path.isAbsolute(outDir) ? outDir : path.resolve(outDir)
-  if (!fs.existsSync(outPath)) {
-    fs.mkdirSync(outPath, { recursive: true })
-  }
-
-  const exports: string[] = []
+function genContracts(outDir: string, artifactDir: string, exports: string[]) {
   Array.from(Project.currentProject.contracts.values()).forEach((c) => {
     console.log(`Generating code for contract ${c.artifact.name}`)
     exports.push(`./${c.artifact.name}`)
     const filename = `${c.artifact.name}.ts`
-    const sourcePath = path.join(outPath, filename)
-    const sourceCode = genContract(c.artifact)
+    const sourcePath = path.join(outDir, filename)
+    const artifactPath = c.sourceInfo.getArtifactPath(artifactDir)
+    const artifactRelativePath = path.relative(artifactDir, artifactPath)
+    const sourceCode = genContract(c.artifact, artifactRelativePath)
     fs.writeFileSync(sourcePath, sourceCode, 'utf8')
   })
+}
 
-  exports.push('./scripts')
-  const scriptPath = path.join(outPath, 'scripts.ts')
-  const scripts = Array.from(Project.currentProject.scripts.values()).map((s) => s.artifact)
-  const source = genScripts(scripts)
-  fs.writeFileSync(scriptPath, source, 'utf8')
+export function codegen(artifactDir: string) {
+  const outDirTemp = path.join(artifactDir, 'ts')
+  const outDir = path.isAbsolute(outDirTemp) ? outDirTemp : path.resolve(outDirTemp)
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir, { recursive: true })
+  }
 
-  const indexPath = path.join(outPath, 'index.ts')
-  fs.writeFileSync(indexPath, genIndexTs(exports), 'utf8')
+  const exports: string[] = []
+  genContracts(outDir, artifactDir, exports)
+  genScripts(outDir, artifactDir, exports)
+  genIndexTs(outDir, exports)
 }

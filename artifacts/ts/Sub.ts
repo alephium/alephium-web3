@@ -4,11 +4,12 @@
 
 import {
   web3,
-  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
   toApiVals,
+  SignDeployContractTxResult,
+  Contract,
   ContractState,
   node,
   binToHex,
@@ -16,19 +17,32 @@ import {
   InputAsset,
   Asset,
   HexString,
-  SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
   groupOfAddress,
+  fromApiVals,
+  subscribeToEvents,
+  SubscribeOptions,
+  Subscription,
+  EventSubscription,
 } from "@alephium/web3";
+import { default as SubContractJson } from "../sub/sub.ral.json";
 
-export namespace Greeter {
+export namespace Sub {
   export type Fields = {
-    btcPrice: bigint;
+    result: bigint;
   };
 
   export type State = Fields & Omit<ContractState, "fields">;
+
+  export type SubEvent = {
+    blockHash: string;
+    txId: string;
+    x: bigint;
+    y: bigint;
+    eventIndex: number;
+  };
 
   export async function deploy(
     signer: SignerProvider,
@@ -40,7 +54,7 @@ export namespace Greeter {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<SignDeployContractTxResult & { instance: GreeterInstance }> {
+  ): Promise<SignDeployContractTxResult & { instance: SubInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: initFields,
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -53,13 +67,13 @@ export namespace Greeter {
     return { instance: instance, ...deployResult };
   }
 
-  export function at(address: string): GreeterInstance {
-    return new GreeterInstance(address);
+  export function at(address: string): SubInstance {
+    return new SubInstance(address);
   }
 
   // This is used for testing contract functions
   export function stateForTest(
-    btcPrice: bigint,
+    result: bigint,
     asset?: Asset,
     address?: string
   ): ContractState {
@@ -67,10 +81,11 @@ export namespace Greeter {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Greeter.artifact.toState({ btcPrice: btcPrice }, newAsset, address);
+    return Sub.artifact.toState({ result: result }, newAsset, address);
   }
 
-  export async function testGreetMethod(
+  export async function testSubMethod(
+    args: { array: [bigint, bigint] },
     initFields: Fields,
     testParams?: {
       group?: number;
@@ -87,51 +102,18 @@ export namespace Greeter {
     const _testParams = {
       ...testParams,
       testMethodIndex: 0,
-      testArgs: {},
+      testArgs: args,
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("greet", _testParams);
+    const testResult = await artifact.testPublicMethod("sub", _testParams);
     return { ...testResult, returns: testResult.returns as [bigint] };
   }
 
-  export const artifact = ContractArtifact.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "Greeter",
-  "bytecode": "01010c010000000105030c7bce0002",
-  "codeHash": "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a",
-  "fieldsSig": {
-    "names": [
-      "btcPrice"
-    ],
-    "types": [
-      "U256"
-    ],
-    "isMutable": [
-      false
-    ]
-  },
-  "eventsSig": [],
-  "functions": [
-    {
-      "name": "greet",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "U256"
-      ]
-    }
-  ]
-}`)
-  );
+  export const artifact = Contract.fromJson(SubContractJson);
 }
 
-export class GreeterInstance {
+export class SubInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
@@ -142,23 +124,67 @@ export class GreeterInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Greeter.State> {
-    const state = await Greeter.artifact.fetchState(
-      this.address,
-      this.groupIndex
-    );
+  async fetchState(): Promise<Sub.State> {
+    const state = await Sub.artifact.fetchState(this.address, this.groupIndex);
     return {
       ...state,
-      btcPrice: state.fields["btcPrice"] as bigint,
+      result: state.fields["result"] as bigint,
     };
   }
 
-  async callGreetMethod(callParams?: {
-    worldStateBlockHash?: string;
-    txId?: string;
-    existingContracts?: string[];
-    inputAssets?: node.TestInputAsset[];
-  }): Promise<bigint> {
+  private decodeSubEvent(event: node.ContractEvent): Sub.SubEvent {
+    if (event.eventIndex !== 0) {
+      throw new Error(
+        "Invalid event index: " + event.eventIndex + ", expected: 0"
+      );
+    }
+    const fields = fromApiVals(event.fields, ["x", "y"], ["U256", "U256"]);
+    return {
+      blockHash: event.blockHash,
+      txId: event.txId,
+      x: fields["x"] as bigint,
+      y: fields["y"] as bigint,
+      eventIndex: event.eventIndex,
+    };
+  }
+
+  subscribeSubEvent(
+    options: SubscribeOptions<Sub.SubEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    const messageCallback = (event: node.ContractEvent): Promise<void> => {
+      if (event.eventIndex !== 0) {
+        return Promise.resolve();
+      }
+      return options.messageCallback(this.decodeSubEvent(event));
+    };
+
+    const errorCallback = (
+      err: any,
+      subscription: Subscription<node.ContractEvent>
+    ): Promise<void> => {
+      return options.errorCallback(
+        err,
+        subscription as unknown as Subscription<Sub.SubEvent>
+      );
+    };
+    const opt: SubscribeOptions<node.ContractEvent> = {
+      pollingInterval: options.pollingInterval,
+      messageCallback: messageCallback,
+      errorCallback: errorCallback,
+    };
+    return subscribeToEvents(opt, this.address, fromCount);
+  }
+
+  async callSubMethod(
+    args: { array: [bigint, bigint] },
+    callParams?: {
+      worldStateBlockHash?: string;
+      txId?: string;
+      existingContracts?: string[];
+      inputAssets?: node.TestInputAsset[];
+    }
+  ): Promise<bigint> {
     const callResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsCallContract({
@@ -167,7 +193,7 @@ export class GreeterInstance {
         txId: callParams?.txId,
         address: this.address,
         methodIndex: 0,
-        args: [],
+        args: toApiVals({ array: args.array }, ["array"], ["[U256;2]"]),
         existingContracts: callParams?.existingContracts,
         inputAssets: callParams?.inputAssets,
       });

@@ -9,6 +9,8 @@ import {
   SignerProvider,
   HexString,
 } from "@alephium/web3";
+import { default as GreeterMainScriptJson } from "../greeter_main.ral.json";
+import { default as MainScriptJson } from "../main.ral.json";
 
 export namespace GreeterMain {
   export async function execute(
@@ -30,36 +32,7 @@ export namespace GreeterMain {
     });
   }
 
-  export const script = Script.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "GreeterMain",
-  "bytecodeTemplate": "01010300020014{0}17000c0d160001000d2f0c7b{0}17010c0d160101000d2f0c7b",
-  "fieldsSig": {
-    "names": [
-      "greeterContractId"
-    ],
-    "types": [
-      "ByteVec"
-    ],
-    "isMutable": [
-      false
-    ]
-  },
-  "functions": [
-    {
-      "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": []
-    }
-  ]
-}`)
-  );
+  export const script = Script.fromJson(GreeterMainScriptJson);
 }
 
 export namespace Main {
@@ -82,34 +55,5 @@ export namespace Main {
     });
   }
 
-  export const script = Script.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "Main",
-  "bytecodeTemplate": "0101030001000a{0}17000e0d0e0e160001001818",
-  "fieldsSig": {
-    "names": [
-      "addContractId"
-    ],
-    "types": [
-      "ByteVec"
-    ],
-    "isMutable": [
-      false
-    ]
-  },
-  "functions": [
-    {
-      "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": []
-    }
-  ]
-}`)
-  );
+  export const script = Script.fromJson(MainScriptJson);
 }

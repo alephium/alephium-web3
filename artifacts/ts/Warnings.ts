@@ -4,11 +4,12 @@
 
 import {
   web3,
-  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
   toApiVals,
+  SignDeployContractTxResult,
+  Contract,
   ContractState,
   node,
   binToHex,
@@ -16,12 +17,12 @@ import {
   InputAsset,
   Asset,
   HexString,
-  SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
   groupOfAddress,
 } from "@alephium/web3";
+import { default as WarningsContractJson } from "../test/warnings.ral.json";
 
 export namespace Warnings {
   export type Fields = {
@@ -98,50 +99,7 @@ export namespace Warnings {
     return { ...testResult, returns: testResult.returns as [] };
   }
 
-  export const artifact = ContractArtifact.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "Warnings",
-  "bytecode": "02010701000202000102",
-  "codeHash": "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2",
-  "fieldsSig": {
-    "names": [
-      "a",
-      "b"
-    ],
-    "types": [
-      "U256",
-      "U256"
-    ],
-    "isMutable": [
-      false,
-      false
-    ]
-  },
-  "eventsSig": [],
-  "functions": [
-    {
-      "name": "foo",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [
-        "x",
-        "y"
-      ],
-      "paramTypes": [
-        "U256",
-        "U256"
-      ],
-      "paramIsMutable": [
-        false,
-        false
-      ],
-      "returnTypes": []
-    }
-  ]
-}`)
-  );
+  export const artifact = Contract.fromJson(WarningsContractJson);
 }
 
 export class WarningsInstance {

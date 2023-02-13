@@ -4,11 +4,12 @@
 
 import {
   web3,
-  Contract as ContractArtifact,
   SignerProvider,
   Address,
   Token,
   toApiVals,
+  SignDeployContractTxResult,
+  Contract,
   ContractState,
   node,
   binToHex,
@@ -16,14 +17,14 @@ import {
   InputAsset,
   Asset,
   HexString,
-  SignDeployContractTxResult,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
   groupOfAddress,
 } from "@alephium/web3";
+import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 
-export namespace Assert {
+export namespace MetaData {
   export type State = Omit<ContractState, "fields">;
 
   export async function deploy(
@@ -35,7 +36,7 @@ export namespace Assert {
       gasAmount?: number;
       gasPrice?: bigint;
     }
-  ): Promise<SignDeployContractTxResult & { instance: AssertInstance }> {
+  ): Promise<SignDeployContractTxResult & { instance: MetaDataInstance }> {
     const deployResult = await artifact.deploy(signer, {
       initialFields: {},
       initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
@@ -48,8 +49,8 @@ export namespace Assert {
     return { instance: instance, ...deployResult };
   }
 
-  export function at(address: string): AssertInstance {
-    return new AssertInstance(address);
+  export function at(address: string): MetaDataInstance {
+    return new MetaDataInstance(address);
   }
 
   // This is used for testing contract functions
@@ -58,10 +59,10 @@ export namespace Assert {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Assert.artifact.toState({}, newAsset, address);
+    return MetaData.artifact.toState({}, newAsset, address);
   }
 
-  export async function testTestMethod(testParams?: {
+  export async function testFooMethod(testParams?: {
     group?: number;
     address?: string;
     initialAsset?: Asset;
@@ -79,39 +80,58 @@ export namespace Assert {
       initialFields: {},
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("test", _testParams);
+    const testResult = await artifact.testPublicMethod("foo", _testParams);
     return { ...testResult, returns: testResult.returns as [] };
   }
 
-  export const artifact = ContractArtifact.fromJson(
-    JSON.parse(`{
-  "version": "v1.7.0",
-  "name": "Assert",
-  "bytecode": "00010b0100000000050d0e2f0f7b",
-  "codeHash": "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
-  "fieldsSig": {
-    "names": [],
-    "types": [],
-    "isMutable": []
-  },
-  "eventsSig": [],
-  "functions": [
-    {
-      "name": "test",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": []
-    }
-  ]
-}`)
-  );
+  export async function testBarMethod(testParams?: {
+    group?: number;
+    address?: string;
+    initialAsset?: Asset;
+    existingContracts?: ContractState[];
+    inputAssets?: InputAsset[];
+  }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 1,
+      testArgs: {},
+      initialFields: {},
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPrivateMethod("bar", _testParams);
+    return { ...testResult, returns: testResult.returns as [] };
+  }
+
+  export async function testBazMethod(testParams?: {
+    group?: number;
+    address?: string;
+    initialAsset?: Asset;
+    existingContracts?: ContractState[];
+    inputAssets?: InputAsset[];
+  }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
+    const initialAsset = {
+      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
+      tokens: testParams?.initialAsset?.tokens,
+    };
+    const _testParams = {
+      ...testParams,
+      testMethodIndex: 2,
+      testArgs: {},
+      initialFields: {},
+      initialAsset: initialAsset,
+    };
+    const testResult = await artifact.testPrivateMethod("baz", _testParams);
+    return { ...testResult, returns: testResult.returns as [] };
+  }
+
+  export const artifact = Contract.fromJson(MetaDataContractJson);
 }
 
-export class AssertInstance {
+export class MetaDataInstance {
   readonly address: Address;
   readonly contractId: string;
   readonly groupIndex: number;
@@ -122,8 +142,8 @@ export class AssertInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Assert.State> {
-    const state = await Assert.artifact.fetchState(
+  async fetchState(): Promise<MetaData.State> {
+    const state = await MetaData.artifact.fetchState(
       this.address,
       this.groupIndex
     );

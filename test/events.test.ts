@@ -21,9 +21,9 @@ import { NodeWallet } from '../packages/web3-wallet'
 import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
-import { Sub } from '../.generated/Sub'
-import { Add, AddInstance } from '../.generated/Add'
-import { Main } from '../.generated/scripts'
+import { Sub } from '../artifacts/ts/Sub'
+import { Add, AddInstance } from '../artifacts/ts/Add'
+import { Main } from '../artifacts/ts/scripts'
 
 describe('events', function () {
   let signer: NodeWallet
