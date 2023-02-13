@@ -939,29 +939,21 @@ export class Contract extends Artifact {
     }
   }
 
-  async txParamsForDeployment(
+  async txParamsForDeployment<P extends Fields | undefined>(
     signer: SignerProvider,
-    params: Omit<BuildDeployContractTx, 'signerAddress'>
+    params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
-    const bytecode = this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
     const signerParams: SignDeployContractTxParams = {
       signerAddress: await signer.getSelectedAddress(),
       bytecode: bytecode,
-      initialAttoAlphAmount: params.initialAttoAlphAmount,
-      issueTokenAmount: params.issueTokenAmount,
-      initialTokenAmounts: params.initialTokenAmounts,
-      gasAmount: params.gasAmount,
-      gasPrice: params.gasPrice
+      initialAttoAlphAmount: params?.initialAttoAlphAmount,
+      issueTokenAmount: params?.issueTokenAmount,
+      initialTokenAmounts: params?.initialTokenAmounts,
+      gasAmount: params?.gasAmount,
+      gasPrice: params?.gasPrice
     }
     return signerParams
-  }
-
-  async deploy(
-    signer: SignerProvider,
-    params: Omit<BuildDeployContractTx, 'signerAddress'>
-  ): Promise<SignDeployContractTxResult> {
-    const signerParams = await this.txParamsForDeployment(signer, params)
-    return signer.signAndSubmitDeployContractTx(signerParams)
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {
@@ -1251,27 +1243,38 @@ function fromApiOutput(output: node.Output): Output {
   }
 }
 
-export interface DeployContractTransaction {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  contractAddress: string
-  contractId: string
-}
-
 type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
 
-export interface BuildDeployContractTx {
-  signerAddress: string
-  initialFields?: Fields
+export interface DeployContractParams<P extends Fields | undefined> {
+  initialFields: P
   initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
   issueTokenAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
 }
-assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignDeployContractTxParams>>>()
+
+export interface DeployContractResult<T> {
+  instance: T
+  groupIndex: number
+  contractId: string
+  contractAddress: string
+  unsignedTx: string
+  txId: string
+  signature: string
+  gasAmount: number
+  gasPrice: bigint
+}
+
+export abstract class ContractFactory<T, P extends Fields | undefined> {
+  contract: Contract
+  constructor(contract: Contract) {
+    this.contract = contract
+  }
+
+  abstract deploy(signer: SignerProvider, params: DeployContractParams<P>): Promise<DeployContractResult<T>>
+  abstract at(address: string): T
+}
 
 export interface BuildExecuteScriptTx {
   signerAddress: string
@@ -1282,10 +1285,3 @@ export interface BuildExecuteScriptTx {
   gasPrice?: Number256
 }
 assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignExecuteScriptTxParams>>>()
-
-export interface BuildScriptTxResult {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-}

@@ -130,30 +130,49 @@ function genCallMethod(functionSig: node.FunctionSig, funcIndex: number): string
   `
 }
 
-function genDeploy(contract: Contract): string {
-  const deployParams =
-    'deployParams?: {initialAttoAlphAmount?: bigint, initialTokenAmounts?: Token[], issueTokenAmount?: bigint, gasAmount?: number, gasPrice?: bigint}'
-  const fieldsParam = getParamsFromFieldsSig(contract.fieldsSig, `Fields`)
-  const instanceName = `${contract.name}Instance`
+function getInstanceName(contract: Contract): string {
+  return `${contract.name}Instance`
+}
+
+function genContractFactory(contract: Contract): string {
+  const instanceName = getInstanceName(contract)
+  const paramsType = contract.fieldsSig.names.length > 0 ? 'Fields' : 'undefined'
   return `
-  export async function deploy(signer: SignerProvider, ${fieldsParam}${deployParams}): Promise<SignDeployContractTxResult & { instance: ${instanceName} }> {
-    const deployResult = await artifact.deploy(signer, {
-      initialFields: ${getInitialFieldsFromFieldsSig(contract.fieldsSig)},
-      initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
-      initialTokenAmounts: deployParams?.initialTokenAmounts,
-      issueTokenAmount: deployParams?.issueTokenAmount,
-      gasAmount: deployParams?.gasAmount,
-      gasPrice: deployParams?.gasPrice
-    })
-    const instance = at(deployResult.contractAddress);
-    return { instance: instance, ... deployResult }
+  export class Factory extends ContractFactory<${instanceName}, ${paramsType}> {
+    constructor(artifact: Contract) {
+      super(artifact)
+    }
+
+    ${genDeploy(instanceName, paramsType)}
+    ${genAttach(instanceName)}
+  }
+  `
+}
+
+function genDeploy(instanceName: string, paramsType: string): string {
+  const deployParams = `deployParams: DeployContractParams<${paramsType}>`
+  return `
+  async deploy(signer: SignerProvider, ${deployParams}): Promise<DeployContractResult<${instanceName}>> {
+    const signerParams = await artifact.txParamsForDeployment(signer, deployParams)
+    const result = await signer.signAndSubmitDeployContractTx(signerParams)
+    return {
+      instance: this.at(result.contractAddress),
+      groupIndex: result.fromGroup,
+      contractId: result.contractId,
+      contractAddress: result.contractAddress,
+      unsignedTx: result.unsignedTx,
+      txId: result.txId,
+      signature: result.signature,
+      gasAmount: result.gasAmount,
+      gasPrice: result.gasPrice
+    }
   }
   `
 }
 
 function genAttach(instanceName: string): string {
   return `
-  export function at(address: string): ${instanceName} {
+  at(address: string): ${instanceName} {
     return new ${instanceName}(address)
   }
   `
@@ -373,9 +392,9 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     ${header}
 
     import {
-      web3, SignerProvider, Address, Token, toApiVals, SignDeployContractTxResult, Contract,
-      ContractState, node, binToHex, TestContractResult, InputAsset, Asset, HexString,
-      contractIdFromAddress, fromApiArray, ONE_ALPH, groupOfAddress, ${optionalImports}
+      web3, SignerProvider, Address, toApiVals, DeployContractParams, DeployContractResult,
+      Contract, ContractState, node, binToHex, TestContractResult, InputAsset, Asset, HexString,
+      ContractFactory, contractIdFromAddress, fromApiArray, ONE_ALPH, groupOfAddress, ${optionalImports}
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
@@ -383,13 +402,13 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genContractStateType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
 
-      ${genDeploy(contract)}
-      ${genAttach(contract.name + 'Instance')}
+      ${genContractFactory(contract)}
 
       ${genStateForTest(contract)}
       ${contract.functions.map((f, index) => genTestMethod(contract, f, index)).join('\n')}
 
       export const artifact = Contract.fromJson(${contract.name}ContractJson)
+      export const factory = new Factory(artifact)
     }
 
     export class ${contract.name}Instance {

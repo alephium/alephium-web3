@@ -6,9 +6,9 @@ import {
   web3,
   SignerProvider,
   Address,
-  Token,
   toApiVals,
-  SignDeployContractTxResult,
+  DeployContractParams,
+  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -17,6 +17,7 @@ import {
   InputAsset,
   Asset,
   HexString,
+  ContractFactory,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
@@ -44,31 +45,36 @@ export namespace Sub {
     eventIndex: number;
   };
 
-  export async function deploy(
-    signer: SignerProvider,
-    initFields: Fields,
-    deployParams?: {
-      initialAttoAlphAmount?: bigint;
-      initialTokenAmounts?: Token[];
-      issueTokenAmount?: bigint;
-      gasAmount?: number;
-      gasPrice?: bigint;
+  export class Factory extends ContractFactory<SubInstance, Fields> {
+    constructor(artifact: Contract) {
+      super(artifact);
     }
-  ): Promise<SignDeployContractTxResult & { instance: SubInstance }> {
-    const deployResult = await artifact.deploy(signer, {
-      initialFields: initFields,
-      initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
-      initialTokenAmounts: deployParams?.initialTokenAmounts,
-      issueTokenAmount: deployParams?.issueTokenAmount,
-      gasAmount: deployParams?.gasAmount,
-      gasPrice: deployParams?.gasPrice,
-    });
-    const instance = at(deployResult.contractAddress);
-    return { instance: instance, ...deployResult };
-  }
 
-  export function at(address: string): SubInstance {
-    return new SubInstance(address);
+    async deploy(
+      signer: SignerProvider,
+      deployParams: DeployContractParams<Fields>
+    ): Promise<DeployContractResult<SubInstance>> {
+      const signerParams = await artifact.txParamsForDeployment(
+        signer,
+        deployParams
+      );
+      const result = await signer.signAndSubmitDeployContractTx(signerParams);
+      return {
+        instance: this.at(result.contractAddress),
+        groupIndex: result.fromGroup,
+        contractId: result.contractId,
+        contractAddress: result.contractAddress,
+        unsignedTx: result.unsignedTx,
+        txId: result.txId,
+        signature: result.signature,
+        gasAmount: result.gasAmount,
+        gasPrice: result.gasPrice,
+      };
+    }
+
+    at(address: string): SubInstance {
+      return new SubInstance(address);
+    }
   }
 
   // This is used for testing contract functions
@@ -115,6 +121,7 @@ export namespace Sub {
   }
 
   export const artifact = Contract.fromJson(SubContractJson);
+  export const factory = new Factory(artifact);
 }
 
 export class SubInstance {

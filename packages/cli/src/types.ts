@@ -21,13 +21,17 @@ import {
   Contract,
   Script,
   Account,
-  BuildDeployContractTx,
+  DeployContractParams,
+  DeployContractResult,
+  Fields,
+  ContractFactory,
   BuildExecuteScriptTx,
   CompilerOptions,
   web3,
   Project,
   DEFAULT_COMPILER_OPTIONS,
-  Number256
+  Number256,
+  SignerProvider
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 import path from 'path'
@@ -113,15 +117,17 @@ export interface ExecutionResult {
   tokens?: Record<string, string>
 }
 
-export interface DeployContractResult extends ExecutionResult {
+export interface DeployContractExecutionResult extends ExecutionResult {
   contractId: string
   contractAddress: string
+  unsignedTx: string
+  signature: string
+  gasAmount: number
+  gasPrice: bigint
   issueTokenAmount?: Number256
 }
 
 export type RunScriptResult = ExecutionResult
-
-export type DeployContractParams = Omit<BuildDeployContractTx, 'signerAddress'>
 
 export type RunScriptParams = Omit<BuildExecuteScriptTx, 'signerAddress'>
 
@@ -129,10 +135,14 @@ export interface Deployer {
   provider: NodeProvider
   account: Account
 
-  deployContract(contract: Contract, params: DeployContractParams, taskTag?: string): Promise<DeployContractResult>
+  deployContract<T, P extends Fields | undefined>(
+    constractFactory: ContractFactory<T, P>,
+    params: DeployContractParams<P>,
+    taskTag?: string
+  ): Promise<DeployContractResult<T>>
   runScript(script: Script, params: RunScriptParams, taskTag?: string): Promise<RunScriptResult>
 
-  getDeployContractResult(name: string): DeployContractResult
+  getDeployContractResult(name: string): DeployContractExecutionResult
   getRunScriptResult(name: string): RunScriptResult
 }
 

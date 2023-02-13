@@ -6,9 +6,9 @@ import {
   web3,
   SignerProvider,
   Address,
-  Token,
   toApiVals,
-  SignDeployContractTxResult,
+  DeployContractParams,
+  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -17,6 +17,7 @@ import {
   InputAsset,
   Asset,
   HexString,
+  ContractFactory,
   contractIdFromAddress,
   fromApiArray,
   ONE_ALPH,
@@ -27,30 +28,36 @@ import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 export namespace MetaData {
   export type State = Omit<ContractState, "fields">;
 
-  export async function deploy(
-    signer: SignerProvider,
-    deployParams?: {
-      initialAttoAlphAmount?: bigint;
-      initialTokenAmounts?: Token[];
-      issueTokenAmount?: bigint;
-      gasAmount?: number;
-      gasPrice?: bigint;
+  export class Factory extends ContractFactory<MetaDataInstance, undefined> {
+    constructor(artifact: Contract) {
+      super(artifact);
     }
-  ): Promise<SignDeployContractTxResult & { instance: MetaDataInstance }> {
-    const deployResult = await artifact.deploy(signer, {
-      initialFields: {},
-      initialAttoAlphAmount: deployParams?.initialAttoAlphAmount,
-      initialTokenAmounts: deployParams?.initialTokenAmounts,
-      issueTokenAmount: deployParams?.issueTokenAmount,
-      gasAmount: deployParams?.gasAmount,
-      gasPrice: deployParams?.gasPrice,
-    });
-    const instance = at(deployResult.contractAddress);
-    return { instance: instance, ...deployResult };
-  }
 
-  export function at(address: string): MetaDataInstance {
-    return new MetaDataInstance(address);
+    async deploy(
+      signer: SignerProvider,
+      deployParams: DeployContractParams<undefined>
+    ): Promise<DeployContractResult<MetaDataInstance>> {
+      const signerParams = await artifact.txParamsForDeployment(
+        signer,
+        deployParams
+      );
+      const result = await signer.signAndSubmitDeployContractTx(signerParams);
+      return {
+        instance: this.at(result.contractAddress),
+        groupIndex: result.fromGroup,
+        contractId: result.contractId,
+        contractAddress: result.contractAddress,
+        unsignedTx: result.unsignedTx,
+        txId: result.txId,
+        signature: result.signature,
+        gasAmount: result.gasAmount,
+        gasPrice: result.gasPrice,
+      };
+    }
+
+    at(address: string): MetaDataInstance {
+      return new MetaDataInstance(address);
+    }
   }
 
   // This is used for testing contract functions
@@ -138,6 +145,7 @@ export namespace MetaData {
   }
 
   export const artifact = Contract.fromJson(MetaDataContractJson);
+  export const factory = new Factory(artifact);
 }
 
 export class MetaDataInstance {

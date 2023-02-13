@@ -16,20 +16,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Account, NodeProvider, Project, Contract, Script, node, web3, Token, Number256 } from '@alephium/web3'
+import {
+  Account,
+  NodeProvider,
+  Project,
+  Contract,
+  Script,
+  node,
+  web3,
+  Token,
+  Number256,
+  DeployContractParams,
+  DeployContractResult,
+  Fields,
+  ContractFactory
+} from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
 import fs, { promises as fsPromises } from 'fs'
 import * as cryptojs from 'crypto-js'
 import {
-  DeployContractResult,
+  DeployContractExecutionResult,
   RunScriptResult,
   Network,
   NetworkType,
   Deployer,
   DeployFunction,
   Configuration,
-  DeployContractParams,
   RunScriptParams,
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
@@ -47,7 +60,7 @@ export class Deployments {
     return new Deployments(new Map())
   }
 
-  getDeployedContractResult(group: number, name: string): DeployContractResult {
+  getDeployedContractResult(group: number, name: string): DeployContractExecutionResult {
     const result = this.groups.get(group)?.deployContractResults.get(name)
     if (result === undefined) {
       throw Error(`Cannot find deployed contract for group ${group} and name ${name}`)
@@ -99,12 +112,12 @@ export class Deployments {
 }
 
 export class DeploymentsPerGroup {
-  deployContractResults: Map<string, DeployContractResult>
+  deployContractResults: Map<string, DeployContractExecutionResult>
   runScriptResults: Map<string, RunScriptResult>
   migrations: Map<string, number>
 
   constructor(
-    deployContractResults: Map<string, DeployContractResult>,
+    deployContractResults: Map<string, DeployContractExecutionResult>,
     runScriptResults: Map<string, RunScriptResult>,
     migrations: Map<string, number>
   ) {
@@ -126,7 +139,7 @@ export class DeploymentsPerGroup {
   }
 
   static unmarshal(json: any): DeploymentsPerGroup {
-    const deployContractResults = new Map(Object.entries<DeployContractResult>(json.deployContractResults))
+    const deployContractResults = new Map(Object.entries<DeployContractExecutionResult>(json.deployContractResults))
     const runScriptResults = new Map(Object.entries<RunScriptResult>(json.runScriptResults))
     const migrations = new Map(Object.entries<number>(json.migrations))
     return new DeploymentsPerGroup(deployContractResults, runScriptResults, migrations)
@@ -174,7 +187,7 @@ async function needToRetry(
 
 async function needToDeployContract(
   provider: NodeProvider,
-  previous: DeployContractResult | undefined,
+  previous: DeployContractExecutionResult | undefined,
   attoAlphAmount: Number256 | undefined,
   tokens: Record<string, string> | undefined,
   issueTokenAmount: Number256 | undefined,
@@ -225,7 +238,7 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
 function createDeployer<Settings = unknown>(
   network: Network<Settings>,
   groupIndex: number,
-  deployContractResults: Map<string, DeployContractResult>,
+  deployContractResults: Map<string, DeployContractExecutionResult>,
   runScriptResults: Map<string, RunScriptResult>
 ): Deployer {
   const signer = PrivateKeyWallet.FromMnemonicWithGroup(network.mnemonic, groupIndex)
@@ -236,15 +249,14 @@ function createDeployer<Settings = unknown>(
   }
   const confirmations = network.confirmations ? network.confirmations : 1
 
-  const deployContract = async (
-    contract: Contract,
-    params: DeployContractParams,
+  const deployContract = async <T, P extends Fields | undefined>(
+    contractFactory: ContractFactory<T, P>,
+    params: DeployContractParams<P>,
     taskTag?: string
-  ): Promise<DeployContractResult> => {
-    // TODO: improve this after migrating to SDK
-    const bytecode = contract.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
-    const codeHash = cryptojs.SHA256(bytecode).toString()
-    const taskId = getTaskId(contract, taskTag)
+  ): Promise<DeployContractResult<T>> => {
+    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(params.initialFields ?? {})
+    const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
+    const taskId = getTaskId(contractFactory.contract, taskTag)
     const previous = deployContractResults.get(taskId)
     const tokens = params.initialTokenAmounts ? getTokenRecord(params.initialTokenAmounts) : undefined
     const needToDeploy = await needToDeployContract(
@@ -258,25 +270,26 @@ function createDeployer<Settings = unknown>(
     if (!needToDeploy) {
       // we have checked in `needToDeployContract`
       console.log(`The deployment of contract ${taskId} is skipped as it has been deployed`)
-      return previous!
+      const previousDeployResult = previous!
+      return {
+        ...previousDeployResult,
+        instance: contractFactory.at(previousDeployResult.contractAddress)
+      }
     }
     console.log(`Deploying contract ${taskId}`)
     console.log(`Deployer - group ${signer.group} - ${signer.address}`)
-    const result = await contract.deploy(signer, params)
-    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), result.txId, confirmations)
-    const deployContractResult: DeployContractResult = {
-      groupIndex: result.fromGroup,
-      txId: result.txId,
+    const deployResult = await contractFactory.deploy(signer, params)
+    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), deployResult.txId, confirmations)
+    const result: DeployContractExecutionResult = {
+      ...deployResult,
       blockHash: confirmed.blockHash,
-      contractId: result.contractId,
-      contractAddress: result.contractAddress,
       codeHash: codeHash,
       attoAlphAmount: params.initialAttoAlphAmount,
       tokens: tokens,
       issueTokenAmount: params.issueTokenAmount
     }
-    deployContractResults.set(taskId, deployContractResult)
-    return deployContractResult
+    deployContractResults.set(taskId, result)
+    return deployResult
   }
 
   const runScript = async (script: Script, params: RunScriptParams, taskTag?: string): Promise<RunScriptResult> => {
@@ -312,7 +325,7 @@ function createDeployer<Settings = unknown>(
     return runScriptResult
   }
 
-  const getDeployContractResult = (name: string): DeployContractResult => {
+  const getDeployContractResult = (name: string): DeployContractExecutionResult => {
     const result = deployContractResults.get(name)
     if (result === undefined) {
       throw new Error(`Deployment result of contract "${name}" does not exist`)
