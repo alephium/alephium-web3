@@ -356,7 +356,7 @@ export class Project {
     return script.artifact
   }
 
-  private async saveArtifactsToFile(): Promise<void> {
+  private async saveArtifactsToFile(projectRootDir: string): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
       const artifactPath = compiled.sourceInfo.getArtifactPath(artifactsRootDir)
@@ -368,7 +368,7 @@ export class Project {
     }
     this.contracts.forEach((contract) => saveToFile(contract))
     this.scripts.forEach((script) => saveToFile(script))
-    await this.projectArtifact.saveToFile(this.artifactsRootDir)
+    await this.projectArtifact.saveToFile(projectRootDir)
   }
 
   contractByCodeHash(codeHash: string): Contract {
@@ -384,6 +384,7 @@ export class Project {
   private static async compile(
     provider: NodeProvider,
     sourceInfos: SourceInfo[],
+    projectRootDir: string,
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
@@ -416,7 +417,7 @@ export class Project {
       errorOnWarnings,
       projectArtifact
     )
-    await project.saveArtifactsToFile()
+    await project.saveArtifactsToFile(projectRootDir)
     return project
   }
 
@@ -424,6 +425,7 @@ export class Project {
     provider: NodeProvider,
     sourceInfos: SourceInfo[],
     projectArtifact: ProjectArtifact,
+    projectRootDir: string,
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
@@ -462,6 +464,7 @@ export class Project {
       return Project.compile(
         provider,
         sourceInfos,
+        projectRootDir,
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
@@ -592,12 +595,13 @@ export class Project {
     const provider = getCurrentNodeProvider()
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
-    const projectArtifact = await ProjectArtifact.from(artifactsRootDir)
+    const projectArtifact = await ProjectArtifact.from(projectRootDir)
     if (typeof projectArtifact === 'undefined' || projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles)) {
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
       Project.currentProject = await Project.compile(
         provider,
         sourceFiles,
+        projectRootDir,
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
@@ -609,6 +613,7 @@ export class Project {
         provider,
         sourceFiles,
         projectArtifact,
+        projectRootDir,
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
