@@ -4,7 +4,8 @@
 
 import {
   Token,
-  SignExecuteScriptTxResult,
+  ExecuteScriptParams,
+  ExecuteScriptResult,
   Script,
   SignerProvider,
   HexString,
@@ -15,21 +16,14 @@ import { default as MainScriptJson } from "../main.ral.json";
 export namespace GreeterMain {
   export async function execute(
     signer: SignerProvider,
-    initFields: { greeterContractId: HexString },
-    executeParams?: {
-      attoAlphAmount?: bigint;
-      tokens?: Token[];
-      gasAmount?: number;
-      gasPrice?: bigint;
-    }
-  ): Promise<SignExecuteScriptTxResult> {
-    return script.execute(signer, {
-      initialFields: initFields,
-      attoAlphAmount: executeParams?.attoAlphAmount,
-      tokens: executeParams?.tokens,
-      gasAmount: executeParams?.gasAmount,
-      gasPrice: executeParams?.gasPrice,
-    });
+    params: ExecuteScriptParams<{ greeterContractId: HexString }>
+  ): Promise<ExecuteScriptResult> {
+    const signerParams = await script.txParamsForExecution(signer, params);
+    const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
+    return {
+      ...result,
+      groupIndex: result.fromGroup,
+    };
   }
 
   export const script = Script.fromJson(GreeterMainScriptJson);
@@ -38,21 +32,14 @@ export namespace GreeterMain {
 export namespace Main {
   export async function execute(
     signer: SignerProvider,
-    initFields: { addContractId: HexString },
-    executeParams?: {
-      attoAlphAmount?: bigint;
-      tokens?: Token[];
-      gasAmount?: number;
-      gasPrice?: bigint;
-    }
-  ): Promise<SignExecuteScriptTxResult> {
-    return script.execute(signer, {
-      initialFields: initFields,
-      attoAlphAmount: executeParams?.attoAlphAmount,
-      tokens: executeParams?.tokens,
-      gasAmount: executeParams?.gasAmount,
-      gasPrice: executeParams?.gasPrice,
-    });
+    params: ExecuteScriptParams<{ addContractId: HexString }>
+  ): Promise<ExecuteScriptResult> {
+    const signerParams = await script.txParamsForExecution(signer, params);
+    const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
+    return {
+      ...result,
+      groupIndex: result.fromGroup,
+    };
   }
 
   export const script = Script.fromJson(MainScriptJson);

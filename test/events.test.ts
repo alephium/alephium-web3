@@ -57,7 +57,7 @@ describe('events', function () {
     }
     const subscription = add.subscribeAddEvent(subscriptOptions)
     for (let i = 0; i < 3; i++) {
-      await Main.execute(signer, { addContractId: add.contractId })
+      await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
     await timeout(3000)
 
@@ -88,7 +88,7 @@ describe('events', function () {
     }
     const subscription = add.subscribeEvents(subscriptOptions)
     for (let i = 0; i < 3; i++) {
-      await Main.execute(signer, { addContractId: add.contractId })
+      await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
     await timeout(3000)
 
@@ -127,7 +127,7 @@ describe('events', function () {
       }
     }
     const subscription = add.subscribeAddEvent(subscriptOptions)
-    const scriptTx0 = await Main.execute(signer, { addContractId: add.contractId })
+    const scriptTx0 = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await timeout(1500)
     subscription.unsubscribe()
 
@@ -137,7 +137,7 @@ describe('events', function () {
     expect(addEvents[0].y).toEqual(1n)
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
-    await Main.execute(signer, { addContractId: add.contractId })
+    await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await timeout(1500)
     expect(addEvents.length).toEqual(1)
   })

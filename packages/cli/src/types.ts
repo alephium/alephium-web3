@@ -18,20 +18,20 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import {
   NodeProvider,
-  Contract,
-  Script,
   Account,
   DeployContractParams,
   DeployContractResult,
   Fields,
   ContractFactory,
-  BuildExecuteScriptTx,
+  ExecuteScriptParams,
+  ExecuteScriptResult,
   CompilerOptions,
   web3,
   Project,
   DEFAULT_COMPILER_OPTIONS,
   Number256,
-  SignerProvider
+  SignerProvider,
+  Script
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 import path from 'path'
@@ -111,6 +111,10 @@ export async function getEnv<Settings = unknown>(configFileName?: string): Promi
 export interface ExecutionResult {
   groupIndex: number
   txId: string
+  unsignedTx: string
+  signature: string
+  gasAmount: number
+  gasPrice: bigint
   blockHash: string
   codeHash: string
   attoAlphAmount?: Number256
@@ -120,16 +124,10 @@ export interface ExecutionResult {
 export interface DeployContractExecutionResult extends ExecutionResult {
   contractId: string
   contractAddress: string
-  unsignedTx: string
-  signature: string
-  gasAmount: number
-  gasPrice: bigint
   issueTokenAmount?: Number256
 }
 
 export type RunScriptResult = ExecutionResult
-
-export type RunScriptParams = Omit<BuildExecuteScriptTx, 'signerAddress'>
 
 export interface Deployer {
   provider: NodeProvider
@@ -140,7 +138,13 @@ export interface Deployer {
     params: DeployContractParams<P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>>
-  runScript(script: Script, params: RunScriptParams, taskTag?: string): Promise<RunScriptResult>
+
+  runScript<P extends Fields | undefined>(
+    executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
+    script: Script,
+    params: ExecuteScriptParams<P>,
+    taskTag?: string
+  ): Promise<ExecuteScriptResult>
 
   getDeployContractResult(name: string): DeployContractExecutionResult
   getRunScriptResult(name: string): RunScriptResult

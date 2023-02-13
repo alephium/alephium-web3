@@ -435,22 +435,20 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
 function genScript(script: Script): string {
   console.log(`Generating code for script ${script.name}`)
-  const withAssets =
-    'executeParams?: {attoAlphAmount?: bigint, tokens?: Token[], gasAmount?: number, gasPrice?: bigint}'
-  const withoutAssets = 'executeParams?: {gasAmount?: number, gasPrice?: bigint}'
   const usePreapprovedAssets = script.functions[0].usePreapprovedAssets
-  const executeParams = usePreapprovedAssets ? withAssets : withoutAssets
-  const scriptFields = getParamsFromFieldsSig(script.fieldsSig, `{${formatParameters(script.fieldsSig)}}`)
+  const fieldsType = script.fieldsSig.names.length > 0 ? `{${formatParameters(script.fieldsSig)}}` : 'undefined'
+  const paramsType = usePreapprovedAssets
+    ? `ExecuteScriptParams<${fieldsType}>`
+    : `Omit<ExecuteScriptParams<${fieldsType}>, 'attoAlphAmount' | 'tokens'>`
   return `
     export namespace ${script.name} {
-      export async function execute(signer: SignerProvider, ${scriptFields}${executeParams}): Promise<SignExecuteScriptTxResult> {
-        return script.execute(signer, {
-          initialFields: ${getInitialFieldsFromFieldsSig(script.fieldsSig)},
-          ${usePreapprovedAssets ? 'attoAlphAmount: executeParams?.attoAlphAmount' : ''},
-          ${usePreapprovedAssets ? 'tokens: executeParams?.tokens' : ''},
-          gasAmount: executeParams?.gasAmount,
-          gasPrice: executeParams?.gasPrice
-        })
+      export async function execute(signer: SignerProvider, params: ${paramsType}): Promise<ExecuteScriptResult> {
+        const signerParams = await script.txParamsForExecution(signer, params)
+        const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
+        return {
+          ...result,
+          groupIndex: result.fromGroup
+        }
       }
 
       export const script = Script.fromJson(${script.name}ScriptJson)
@@ -475,7 +473,8 @@ function genScripts(outDir: string, artifactDir: string, exports: string[]) {
 
     import {
       Token,
-      SignExecuteScriptTxResult,
+      ExecuteScriptParams,
+      ExecuteScriptResult,
       Script,
       SignerProvider,
       HexString

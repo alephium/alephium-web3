@@ -93,9 +93,8 @@ describe('contract', function () {
     expect(addContractState0.address).toEqual(add.address)
     expect(addContractState0.contractId).toEqual(add.contractId)
 
-    const mainScriptTx = await Main.execute(signer, { addContractId: add.contractId })
-    expect(mainScriptTx.fromGroup).toEqual(signerGroup)
-    expect(mainScriptTx.toGroup).toEqual(signerGroup)
+    const mainScriptTx = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+    expect(mainScriptTx.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub after main script is executed
     const subContractState1 = await sub.fetchState()
@@ -124,9 +123,8 @@ describe('contract', function () {
     expect(contractState.address).toEqual(greeter.address)
     expect(contractState.contractId).toEqual(greeter.contractId)
 
-    const mainScriptTx = await GreeterMain.execute(signer, { greeterContractId: greeter.contractId })
-    expect(mainScriptTx.toGroup).toEqual(signerGroup)
-    expect(mainScriptTx.toGroup).toEqual(signerGroup)
+    const mainScriptTx = await GreeterMain.execute(signer, { initialFields: { greeterContractId: greeter.contractId } })
+    expect(mainScriptTx.groupIndex).toEqual(signerGroup)
   }
 
   it('should test contracts', async () => {

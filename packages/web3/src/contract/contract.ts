@@ -1029,27 +1029,19 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  async txParamsForExecution(
+  async txParamsForExecution<P extends Fields | undefined>(
     signer: SignerProvider,
-    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
+    params: ExecuteScriptParams<P>
   ): Promise<SignExecuteScriptTxParams> {
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: await signer.getSelectedAddress(),
-      bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
+      bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
       attoAlphAmount: params.attoAlphAmount,
       tokens: params.tokens,
       gasAmount: params.gasAmount,
       gasPrice: params.gasPrice
     }
     return signerParams
-  }
-
-  async execute(
-    signer: SignerProvider,
-    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
-  ): Promise<SignExecuteScriptTxResult> {
-    const signerParams = await this.txParamsForExecution(signer, params)
-    return await signer.signAndSubmitExecuteScriptTx(signerParams)
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {
@@ -1243,8 +1235,6 @@ function fromApiOutput(output: node.Output): Output {
   }
 }
 
-type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
-
 export interface DeployContractParams<P extends Fields | undefined> {
   initialFields: P
   initialAttoAlphAmount?: Number256
@@ -1263,7 +1253,7 @@ export interface DeployContractResult<T> {
   txId: string
   signature: string
   gasAmount: number
-  gasPrice: bigint
+  gasPrice: Number256
 }
 
 export abstract class ContractFactory<T, P extends Fields | undefined> {
@@ -1276,12 +1266,19 @@ export abstract class ContractFactory<T, P extends Fields | undefined> {
   abstract at(address: string): T
 }
 
-export interface BuildExecuteScriptTx {
-  signerAddress: string
-  initialFields?: Fields
+export interface ExecuteScriptParams<P extends Fields | undefined> {
+  initialFields: P
   attoAlphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
 }
-assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignExecuteScriptTxParams>>>()
+
+export interface ExecuteScriptResult {
+  groupIndex: number
+  unsignedTx: string
+  txId: string
+  signature: string
+  gasAmount: number
+  gasPrice: Number256
+}

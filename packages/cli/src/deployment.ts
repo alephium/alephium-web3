@@ -28,6 +28,9 @@ import {
   Number256,
   DeployContractParams,
   DeployContractResult,
+  ExecuteScriptParams,
+  ExecuteScriptResult,
+  SignerProvider,
   Fields,
   ContractFactory
 } from '@alephium/web3'
@@ -43,7 +46,6 @@ import {
   Deployer,
   DeployFunction,
   Configuration,
-  RunScriptParams,
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from './types'
@@ -292,9 +294,14 @@ function createDeployer<Settings = unknown>(
     return deployResult
   }
 
-  const runScript = async (script: Script, params: RunScriptParams, taskTag?: string): Promise<RunScriptResult> => {
-    const bytecode = script.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
-    const codeHash = cryptojs.SHA256(bytecode).toString()
+  const runScript = async <P extends Fields | undefined>(
+    executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
+    script: Script,
+    params: ExecuteScriptParams<P>,
+    taskTag?: string
+  ): Promise<ExecuteScriptResult> => {
+    const initFieldsAndByteCode = script.buildByteCodeToDeploy(params.initialFields ?? {})
+    const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(script, taskTag)
     const previous = runScriptResults.get(taskId)
     const tokens = params.tokens ? getTokenRecord(params.tokens) : undefined
@@ -308,21 +315,21 @@ function createDeployer<Settings = unknown>(
     if (!needToRun) {
       // we have checked in `needToRunScript`
       console.log(`The execution of script ${taskId} is skipped as it has been executed`)
-      return previous!
+      const previousExecuteResult = previous!
+      return { ...previousExecuteResult }
     }
     console.log(`Executing script ${taskId}`)
-    const result = await script.execute(signer, params)
-    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), result.txId, confirmations)
+    const executeResult = await executeFunc(signer, params)
+    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), executeResult.txId, confirmations)
     const runScriptResult: RunScriptResult = {
-      groupIndex: result.fromGroup,
-      txId: result.txId,
+      ...executeResult,
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
       attoAlphAmount: params.attoAlphAmount,
       tokens: tokens
     }
     runScriptResults.set(taskId, runScriptResult)
-    return runScriptResult
+    return executeResult
   }
 
   const getDeployContractResult = (name: string): DeployContractExecutionResult => {
