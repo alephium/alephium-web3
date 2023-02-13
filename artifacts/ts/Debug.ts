@@ -68,7 +68,7 @@ export namespace Debug {
     initialAsset?: Asset;
     existingContracts?: ContractState[];
     inputAssets?: InputAsset[];
-  }): Promise<Omit<TestContractResult, "returns"> & { returns: [] }> {
+  }): Promise<Omit<TestContractResult, "returns">> {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
       tokens: testParams?.initialAsset?.tokens,
@@ -81,7 +81,10 @@ export namespace Debug {
       initialAsset: initialAsset,
     };
     const testResult = await artifact.testPublicMethod("debug", _testParams);
-    return { ...testResult, returns: testResult.returns as [] };
+    const testReturns = testResult.returns as [];
+    return {
+      ...testResult,
+    };
   }
 
   export const artifact = Contract.fromJson(DebugContractJson);

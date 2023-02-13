@@ -104,7 +104,7 @@ export namespace Add {
       inputAssets?: InputAsset[];
     }
   ): Promise<
-    Omit<TestContractResult, "returns"> & { returns: [[bigint, bigint]] }
+    Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
   > {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
@@ -118,7 +118,11 @@ export namespace Add {
       initialAsset: initialAsset,
     };
     const testResult = await artifact.testPublicMethod("add", _testParams);
-    return { ...testResult, returns: testResult.returns as [[bigint, bigint]] };
+    const testReturns = testResult.returns as [[bigint, bigint]];
+    return {
+      ...testResult,
+      returns: testReturns[0],
+    };
   }
 
   export async function testAddPrivateMethod(
@@ -132,7 +136,7 @@ export namespace Add {
       inputAssets?: InputAsset[];
     }
   ): Promise<
-    Omit<TestContractResult, "returns"> & { returns: [[bigint, bigint]] }
+    Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
   > {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
@@ -149,7 +153,11 @@ export namespace Add {
       "addPrivate",
       _testParams
     );
-    return { ...testResult, returns: testResult.returns as [[bigint, bigint]] };
+    const testReturns = testResult.returns as [[bigint, bigint]];
+    return {
+      ...testResult,
+      returns: testReturns[0],
+    };
   }
 
   export const artifact = Contract.fromJson(AddContractJson);

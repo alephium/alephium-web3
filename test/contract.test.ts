@@ -52,7 +52,7 @@ describe('contract', function () {
       { sub: subState.contractId, result: 0n },
       { existingContracts: [subState] }
     )
-    expect(testResult.returns).toEqual([[3n, 1n]])
+    expect(testResult.returns).toEqual([3n, 1n])
     expect(testResult.contracts[0].codeHash).toEqual(subState.codeHash)
     expect(testResult.contracts[0].fields.result).toEqual(1n)
     expect(testResult.contracts[1].codeHash).toEqual(Add.artifact.codeHash)
@@ -74,7 +74,7 @@ describe('contract', function () {
       { sub: subState.contractId, result: 0n },
       { existingContracts: [subState] }
     )
-    expect(testResultPrivate.returns).toEqual([[3n, 1n]])
+    expect(testResultPrivate.returns).toEqual([3n, 1n])
 
     const sub = (await Sub.deploy(signer, { result: 0n })).instance
     expect(sub.groupIndex).toEqual(signerGroup)
@@ -113,7 +113,7 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
 
     const testResult = await Greeter.testGreetMethod({ btcPrice: 1n })
-    expect(testResult.returns).toEqual([1n])
+    expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.artifact.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 

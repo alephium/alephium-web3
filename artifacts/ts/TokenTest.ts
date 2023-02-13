@@ -83,7 +83,7 @@ export namespace TokenTest {
       existingContracts?: ContractState[];
       inputAssets?: InputAsset[];
     }
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
       tokens: testParams?.initialAsset?.tokens,
@@ -99,7 +99,11 @@ export namespace TokenTest {
       "getSymbol",
       _testParams
     );
-    return { ...testResult, returns: testResult.returns as [HexString] };
+    const testReturns = testResult.returns as [HexString];
+    return {
+      ...testResult,
+      returns: testReturns[0],
+    };
   }
 
   export async function testGetNameMethod(
@@ -111,7 +115,7 @@ export namespace TokenTest {
       existingContracts?: ContractState[];
       inputAssets?: InputAsset[];
     }
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: [HexString] }> {
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
       tokens: testParams?.initialAsset?.tokens,
@@ -124,7 +128,11 @@ export namespace TokenTest {
       initialAsset: initialAsset,
     };
     const testResult = await artifact.testPublicMethod("getName", _testParams);
-    return { ...testResult, returns: testResult.returns as [HexString] };
+    const testReturns = testResult.returns as [HexString];
+    return {
+      ...testResult,
+      returns: testReturns[0],
+    };
   }
 
   export async function testGetDecimalsMethod(
@@ -136,7 +144,7 @@ export namespace TokenTest {
       existingContracts?: ContractState[];
       inputAssets?: InputAsset[];
     }
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
       tokens: testParams?.initialAsset?.tokens,
@@ -152,7 +160,11 @@ export namespace TokenTest {
       "getDecimals",
       _testParams
     );
-    return { ...testResult, returns: testResult.returns as [bigint] };
+    const testReturns = testResult.returns as [bigint];
+    return {
+      ...testResult,
+      returns: testReturns[0],
+    };
   }
 
   export async function testGetTotalSupplyMethod(
@@ -164,7 +176,7 @@ export namespace TokenTest {
       existingContracts?: ContractState[];
       inputAssets?: InputAsset[];
     }
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
       tokens: testParams?.initialAsset?.tokens,
@@ -180,7 +192,11 @@ export namespace TokenTest {
       "getTotalSupply",
       _testParams
     );
-    return { ...testResult, returns: testResult.returns as [bigint] };
+    const testReturns = testResult.returns as [bigint];
+    return {
+      ...testResult,
+      returns: testReturns[0],
+    };
   }
 
   export const artifact = Contract.fromJson(TokenTestContractJson);

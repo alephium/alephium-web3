@@ -80,7 +80,7 @@ export namespace Greeter {
       existingContracts?: ContractState[];
       inputAssets?: InputAsset[];
     }
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: [bigint] }> {
+  ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
     const initialAsset = {
       alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
       tokens: testParams?.initialAsset?.tokens,
@@ -93,7 +93,11 @@ export namespace Greeter {
       initialAsset: initialAsset,
     };
     const testResult = await artifact.testPublicMethod("greet", _testParams);
-    return { ...testResult, returns: testResult.returns as [bigint] };
+    const testReturns = testResult.returns as [bigint];
+    return {
+      ...testResult,
+      returns: testReturns[0],
+    };
   }
 
   export const artifact = Contract.fromJson(GreeterContractJson);

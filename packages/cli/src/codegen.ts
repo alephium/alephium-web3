@@ -327,8 +327,13 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
   const testParams =
     'testParams?: {group?: number, address?: string, initialAsset?: Asset, existingContracts?: ContractState[], inputAssets?: InputAsset[]}'
   const fieldParam = getParamsFromFieldsSig(contract.fieldsSig, `Fields`)
-  const tsReturnTypes = `[${functionSig.returnTypes.map((tpe) => toTsType(tpe)).join(', ')}]`
-  const retType = `Omit<TestContractResult, 'returns'> & { returns: ${tsReturnTypes} }`
+  const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
+  const retType =
+    tsReturnTypes.length === 0
+      ? `Omit<TestContractResult, 'returns'>`
+      : tsReturnTypes.length === 1
+      ? `Omit<TestContractResult, 'returns'> & { returns: ${tsReturnTypes[0]} }`
+      : `Omit<TestContractResult, 'returns'> & { returns: [${tsReturnTypes.join(', ')}] }`
   const testFuncName = functionSig.isPublic ? 'testPublicMethod' : 'testPrivateMethod'
   return `
     export async function test${funcName}Method(${funcArgs}${fieldParam}${testParams}): Promise<${retType}> {
@@ -344,7 +349,17 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
         initialAsset: initialAsset,
       }
       const testResult = await artifact.${testFuncName}('${functionSig.name}', _testParams)
-      return { ...testResult, returns: testResult.returns as ${tsReturnTypes} }
+      const testReturns = testResult.returns as [${tsReturnTypes.join(', ')}]
+      return {
+        ...testResult,
+        ${
+          tsReturnTypes.length === 0
+            ? ''
+            : tsReturnTypes.length === 1
+            ? 'returns: testReturns[0]'
+            : 'returns: testReturns'
+        }
+      }
     }
   `
 }
