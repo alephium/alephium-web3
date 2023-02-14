@@ -3,7 +3,6 @@
 /* eslint-disable */
 
 import {
-  Token,
   ExecuteScriptParams,
   ExecuteScriptResult,
   Script,
@@ -19,8 +18,7 @@ export namespace GreeterMain {
     params: ExecuteScriptParams<{ greeterContractId: HexString }>
   ): Promise<ExecuteScriptResult> {
     const signerParams = await script.txParamsForExecution(signer, params);
-    const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
-    return result;
+    return await signer.signAndSubmitExecuteScriptTx(signerParams);
   }
 
   export const script = Script.fromJson(GreeterMainScriptJson);
@@ -32,8 +30,7 @@ export namespace Main {
     params: ExecuteScriptParams<{ addContractId: HexString }>
   ): Promise<ExecuteScriptResult> {
     const signerParams = await script.txParamsForExecution(signer, params);
-    const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
-    return result;
+    return await signer.signAndSubmitExecuteScriptTx(signerParams);
   }
 
   export const script = Script.fromJson(MainScriptJson);

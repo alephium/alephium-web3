@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,41 +34,37 @@ import {
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/greeter.ral.json";
 
-export namespace Greeter {
+export namespace GreeterTypes {
   export type Fields = {
     btcPrice: bigint;
   };
 
   export type State = ContractState<Fields>;
+}
 
-  export class Factory extends ContractFactory<GreeterInstance, Fields> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): GreeterInstance {
-      return new GreeterInstance(address);
-    }
+class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
+  at(address: string): GreeterInstance {
+    return new GreeterInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    initFields: Fields,
+  stateForTest(
+    initFields: GreeterTypes.Fields,
     asset?: Asset,
     address?: string
-  ): ContractState<Greeter.Fields> {
+  ): ContractState<GreeterTypes.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Greeter.contract.toState(initFields, newAsset, address);
+    return this.contract.toState(initFields, newAsset, address);
   }
 
-  export async function testGreetMethod(
-    params: Omit<TestContractParams<Greeter.Fields, {}>, "testArgs">
+  async testGreetMethod(
+    params: Omit<TestContractParams<GreeterTypes.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = Greeter.contract.toApiTestContractParams("greet", {
+    const apiParams = this.contract.toApiTestContractParams("greet", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -79,26 +72,27 @@ export namespace Greeter {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = Greeter.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    Greeter.contract.printDebugMessages("greet", testResult.debugMessages);
+    this.contract.printDebugMessages("greet", testResult.debugMessages);
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
       returns: testReturns[0],
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const Greeter = new Factory(
+  Contract.fromJson(
     GreeterContractJson,
     "",
     "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class GreeterInstance {
   readonly address: Address;
@@ -111,7 +105,7 @@ export class GreeterInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Greeter.State> {
+  async fetchState(): Promise<GreeterTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {
@@ -120,7 +114,7 @@ export class GreeterInstance {
     const state = Greeter.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: state.fields as Greeter.Fields,
+      fields: state.fields as GreeterTypes.Fields,
     };
   }
 

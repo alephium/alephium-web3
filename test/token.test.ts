@@ -36,7 +36,7 @@ describe('contract', function () {
     const decimals = 18n
     const totalSupply = 1n << 128n
     const initialFields = { symbol, name, decimals, totalSupply }
-    const tokenTest = (await TokenTest.factory.deploy(signer, { initialFields })).instance
+    const tokenTest = (await TokenTest.deploy(signer, { initialFields })).instance
 
     expect((await tokenTest.callGetSymbolMethod()).returns).toEqual(symbol)
     expect((await tokenTest.callGetNameMethod()).returns).toEqual(name)

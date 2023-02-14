@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,36 +34,29 @@ import {
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 
-export namespace MetaData {
+export namespace MetaDataTypes {
   export type State = Omit<ContractState<any>, "fields">;
+}
 
-  export class Factory extends ContractFactory<MetaDataInstance, {}> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): MetaDataInstance {
-      return new MetaDataInstance(address);
-    }
+class Factory extends ContractFactory<MetaDataInstance, {}> {
+  at(address: string): MetaDataInstance {
+    return new MetaDataInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    asset?: Asset,
-    address?: string
-  ): ContractState<{}> {
+  stateForTest(asset?: Asset, address?: string): ContractState<{}> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return MetaData.contract.toState({}, newAsset, address);
+    return this.contract.toState({}, newAsset, address);
   }
 
-  export async function testFooMethod(
+  async testFooMethod(
     params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
   ): Promise<Omit<TestContractResult, "returns">> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = MetaData.contract.toApiTestContractParams("foo", {
+    const apiParams = this.contract.toApiTestContractParams("foo", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -75,23 +65,23 @@ export namespace MetaData {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = MetaData.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    MetaData.contract.printDebugMessages("foo", testResult.debugMessages);
+    this.contract.printDebugMessages("foo", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
 
-  export async function testBarMethod(
+  async testBarMethod(
     params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
   ): Promise<Omit<TestContractResult, "returns">> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = MetaData.contract.toApiTestContractParams("bar", {
+    const apiParams = this.contract.toApiTestContractParams("bar", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -100,23 +90,23 @@ export namespace MetaData {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = MetaData.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       1,
       apiResult,
       txId
     );
-    MetaData.contract.printDebugMessages("bar", testResult.debugMessages);
+    this.contract.printDebugMessages("bar", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
 
-  export async function testBazMethod(
+  async testBazMethod(
     params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
   ): Promise<Omit<TestContractResult, "returns">> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = MetaData.contract.toApiTestContractParams("baz", {
+    const apiParams = this.contract.toApiTestContractParams("baz", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -125,25 +115,26 @@ export namespace MetaData {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = MetaData.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       2,
       apiResult,
       txId
     );
-    MetaData.contract.printDebugMessages("baz", testResult.debugMessages);
+    this.contract.printDebugMessages("baz", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const MetaData = new Factory(
+  Contract.fromJson(
     MetaDataContractJson,
     "",
     "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class MetaDataInstance {
   readonly address: Address;
@@ -156,7 +147,7 @@ export class MetaDataInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<MetaData.State> {
+  async fetchState(): Promise<MetaDataTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {

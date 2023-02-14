@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,7 +34,7 @@ import {
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
 
-export namespace Add {
+export namespace AddTypes {
   export type Fields = {
     sub: HexString;
     result: bigint;
@@ -47,49 +44,45 @@ export namespace Add {
 
   export type AddEvent = ContractEvent<{ x: bigint; y: bigint }>;
   export type Add1Event = ContractEvent<{ a: bigint; b: bigint }>;
+}
 
-  export class Factory extends ContractFactory<AddInstance, Fields> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): AddInstance {
-      return new AddInstance(address);
-    }
+class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
+  at(address: string): AddInstance {
+    return new AddInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    initFields: Fields,
+  stateForTest(
+    initFields: AddTypes.Fields,
     asset?: Asset,
     address?: string
-  ): ContractState<Add.Fields> {
+  ): ContractState<AddTypes.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Add.contract.toState(initFields, newAsset, address);
+    return this.contract.toState(initFields, newAsset, address);
   }
 
-  export async function testAddMethod(
-    params: TestContractParams<Add.Fields, { array: [bigint, bigint] }>
+  async testAddMethod(
+    params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
   ): Promise<
     Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
   > {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = Add.contract.toApiTestContractParams("add", {
+    const apiParams = this.contract.toApiTestContractParams("add", {
       ...params,
       txId: txId,
     });
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = Add.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    Add.contract.printDebugMessages("add", testResult.debugMessages);
+    this.contract.printDebugMessages("add", testResult.debugMessages);
     const testReturns = testResult.returns as [[bigint, bigint]];
     return {
       ...testResult,
@@ -97,39 +90,40 @@ export namespace Add {
     };
   }
 
-  export async function testAddPrivateMethod(
-    params: TestContractParams<Add.Fields, { array: [bigint, bigint] }>
+  async testAddPrivateMethod(
+    params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
   ): Promise<
     Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
   > {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = Add.contract.toApiTestContractParams("addPrivate", {
+    const apiParams = this.contract.toApiTestContractParams("addPrivate", {
       ...params,
       txId: txId,
     });
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = Add.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       1,
       apiResult,
       txId
     );
-    Add.contract.printDebugMessages("addPrivate", testResult.debugMessages);
+    this.contract.printDebugMessages("addPrivate", testResult.debugMessages);
     const testReturns = testResult.returns as [[bigint, bigint]];
     return {
       ...testResult,
       returns: testReturns[0],
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const Add = new Factory(
+  Contract.fromJson(
     AddContractJson,
     "",
     "52d5893e97ce6b8d67d90fe1c51735e6e4f9946de732926fd160a0b50774f61b"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class AddInstance {
   readonly address: Address;
@@ -142,7 +136,7 @@ export class AddInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Add.State> {
+  async fetchState(): Promise<AddTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {
@@ -151,7 +145,7 @@ export class AddInstance {
     const state = Add.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: state.fields as Add.Fields,
+      fields: state.fields as AddTypes.Fields,
     };
   }
 
@@ -191,7 +185,7 @@ export class AddInstance {
     );
   }
 
-  private decodeAddEvent(event: node.ContractEvent): Add.AddEvent {
+  private decodeAddEvent(event: node.ContractEvent): AddTypes.AddEvent {
     if (event.eventIndex !== 0) {
       throw new Error(
         "Invalid event index: " + event.eventIndex + ", expected: 0"
@@ -209,7 +203,7 @@ export class AddInstance {
   }
 
   subscribeAddEvent(
-    options: SubscribeOptions<Add.AddEvent>,
+    options: SubscribeOptions<AddTypes.AddEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeEventsFromContract(
@@ -221,7 +215,7 @@ export class AddInstance {
     );
   }
 
-  private decodeAdd1Event(event: node.ContractEvent): Add.Add1Event {
+  private decodeAdd1Event(event: node.ContractEvent): AddTypes.Add1Event {
     if (event.eventIndex !== 1) {
       throw new Error(
         "Invalid event index: " + event.eventIndex + ", expected: 1"
@@ -239,7 +233,7 @@ export class AddInstance {
   }
 
   subscribeAdd1Event(
-    options: SubscribeOptions<Add.Add1Event>,
+    options: SubscribeOptions<AddTypes.Add1Event>,
     fromCount?: number
   ): EventSubscription {
     return subscribeEventsFromContract(
@@ -253,8 +247,8 @@ export class AddInstance {
 
   subscribeEvents(
     options: SubscribeOptions<
-      | Add.AddEvent
-      | Add.Add1Event
+      | AddTypes.AddEvent
+      | AddTypes.Add1Event
       | ContractCreatedEvent
       | ContractDestroyedEvent
     >,
@@ -295,8 +289,8 @@ export class AddInstance {
       return options.errorCallback(
         err,
         subscription as unknown as Subscription<
-          | Add.AddEvent
-          | Add.Add1Event
+          | AddTypes.AddEvent
+          | AddTypes.Add1Event
           | ContractCreatedEvent
           | ContractDestroyedEvent
         >

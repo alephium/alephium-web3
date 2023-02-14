@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,7 +34,7 @@ import {
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/sub.ral.json";
 
-export namespace Sub {
+export namespace SubTypes {
   export type Fields = {
     result: bigint;
   };
@@ -45,61 +42,58 @@ export namespace Sub {
   export type State = ContractState<Fields>;
 
   export type SubEvent = ContractEvent<{ x: bigint; y: bigint }>;
+}
 
-  export class Factory extends ContractFactory<SubInstance, Fields> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): SubInstance {
-      return new SubInstance(address);
-    }
+class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
+  at(address: string): SubInstance {
+    return new SubInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    initFields: Fields,
+  stateForTest(
+    initFields: SubTypes.Fields,
     asset?: Asset,
     address?: string
-  ): ContractState<Sub.Fields> {
+  ): ContractState<SubTypes.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Sub.contract.toState(initFields, newAsset, address);
+    return this.contract.toState(initFields, newAsset, address);
   }
 
-  export async function testSubMethod(
-    params: TestContractParams<Sub.Fields, { array: [bigint, bigint] }>
+  async testSubMethod(
+    params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = Sub.contract.toApiTestContractParams("sub", {
+    const apiParams = this.contract.toApiTestContractParams("sub", {
       ...params,
       txId: txId,
     });
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = Sub.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    Sub.contract.printDebugMessages("sub", testResult.debugMessages);
+    this.contract.printDebugMessages("sub", testResult.debugMessages);
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
       returns: testReturns[0],
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const Sub = new Factory(
+  Contract.fromJson(
     SubContractJson,
     "",
     "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class SubInstance {
   readonly address: Address;
@@ -112,7 +106,7 @@ export class SubInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Sub.State> {
+  async fetchState(): Promise<SubTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {
@@ -121,7 +115,7 @@ export class SubInstance {
     const state = Sub.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: state.fields as Sub.Fields,
+      fields: state.fields as SubTypes.Fields,
     };
   }
 
@@ -161,7 +155,7 @@ export class SubInstance {
     );
   }
 
-  private decodeSubEvent(event: node.ContractEvent): Sub.SubEvent {
+  private decodeSubEvent(event: node.ContractEvent): SubTypes.SubEvent {
     if (event.eventIndex !== 0) {
       throw new Error(
         "Invalid event index: " + event.eventIndex + ", expected: 0"
@@ -179,7 +173,7 @@ export class SubInstance {
   }
 
   subscribeSubEvent(
-    options: SubscribeOptions<Sub.SubEvent>,
+    options: SubscribeOptions<SubTypes.SubEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeEventsFromContract(
@@ -193,7 +187,7 @@ export class SubInstance {
 
   subscribeEvents(
     options: SubscribeOptions<
-      Sub.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
+      SubTypes.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
     >,
     fromCount?: number
   ): EventSubscription {
@@ -228,7 +222,7 @@ export class SubInstance {
       return options.errorCallback(
         err,
         subscription as unknown as Subscription<
-          Sub.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
+          SubTypes.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
         >
       );
     };

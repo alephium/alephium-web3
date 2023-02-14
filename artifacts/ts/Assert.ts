@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,36 +34,29 @@ import {
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/assert.ral.json";
 
-export namespace Assert {
+export namespace AssertTypes {
   export type State = Omit<ContractState<any>, "fields">;
+}
 
-  export class Factory extends ContractFactory<AssertInstance, {}> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): AssertInstance {
-      return new AssertInstance(address);
-    }
+class Factory extends ContractFactory<AssertInstance, {}> {
+  at(address: string): AssertInstance {
+    return new AssertInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    asset?: Asset,
-    address?: string
-  ): ContractState<{}> {
+  stateForTest(asset?: Asset, address?: string): ContractState<{}> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Assert.contract.toState({}, newAsset, address);
+    return this.contract.toState({}, newAsset, address);
   }
 
-  export async function testTestMethod(
+  async testTestMethod(
     params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
   ): Promise<Omit<TestContractResult, "returns">> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = Assert.contract.toApiTestContractParams("test", {
+    const apiParams = this.contract.toApiTestContractParams("test", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -75,25 +65,26 @@ export namespace Assert {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = Assert.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    Assert.contract.printDebugMessages("test", testResult.debugMessages);
+    this.contract.printDebugMessages("test", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const Assert = new Factory(
+  Contract.fromJson(
     AssertContractJson,
     "",
     "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class AssertInstance {
   readonly address: Address;
@@ -106,7 +97,7 @@ export class AssertInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Assert.State> {
+  async fetchState(): Promise<AssertTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {

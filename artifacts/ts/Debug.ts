@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,36 +34,29 @@ import {
 } from "@alephium/web3";
 import { default as DebugContractJson } from "../test/debug.ral.json";
 
-export namespace Debug {
+export namespace DebugTypes {
   export type State = Omit<ContractState<any>, "fields">;
+}
 
-  export class Factory extends ContractFactory<DebugInstance, {}> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): DebugInstance {
-      return new DebugInstance(address);
-    }
+class Factory extends ContractFactory<DebugInstance, {}> {
+  at(address: string): DebugInstance {
+    return new DebugInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    asset?: Asset,
-    address?: string
-  ): ContractState<{}> {
+  stateForTest(asset?: Asset, address?: string): ContractState<{}> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Debug.contract.toState({}, newAsset, address);
+    return this.contract.toState({}, newAsset, address);
   }
 
-  export async function testDebugMethod(
+  async testDebugMethod(
     params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
   ): Promise<Omit<TestContractResult, "returns">> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = Debug.contract.toApiTestContractParams("debug", {
+    const apiParams = this.contract.toApiTestContractParams("debug", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -75,25 +65,26 @@ export namespace Debug {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = Debug.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    Debug.contract.printDebugMessages("debug", testResult.debugMessages);
+    this.contract.printDebugMessages("debug", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const Debug = new Factory(
+  Contract.fromJson(
     DebugContractJson,
     "=4-2+13=11+2ca7e=1+20748656c6c6f2c200121",
     "0ffc72054e3668c8933e53c892947dea1963c0c24cc006a4fb0aa028c13a7e13"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class DebugInstance {
   readonly address: Address;
@@ -106,7 +97,7 @@ export class DebugInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Debug.State> {
+  async fetchState(): Promise<DebugTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {

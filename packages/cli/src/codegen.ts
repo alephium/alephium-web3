@@ -111,41 +111,6 @@ function getInstanceName(contract: Contract): string {
   return `${contract.name}Instance`
 }
 
-function genContractFactory(contract: Contract): string {
-  const instanceName = getInstanceName(contract)
-  const paramsType = contract.fieldsSig.names.length > 0 ? 'Fields' : '{}'
-  return `
-  export class Factory extends ContractFactory<${instanceName}, ${paramsType}> {
-    constructor(contract: Contract) {
-      super(contract)
-    }
-
-    ${genAttach(instanceName)}
-  }
-  `
-}
-
-function genDeploy(instanceName: string, paramsType: string): string {
-  const deployParams = `deployParams: DeployContractParams<${paramsType}>`
-  return `
-  async deploy(signer: SignerProvider, ${deployParams}): Promise<DeployContractResult<${instanceName}>> {
-    const signerParams = await contract.txParamsForDeployment(signer, deployParams)
-    const result = await signer.signAndSubmitDeployContractTx(signerParams)
-    return {
-      instance: this.at(result.contractAddress),
-      groupIndex: result.fromGroup,
-      contractId: result.contractId,
-      contractAddress: result.contractAddress,
-      unsignedTx: result.unsignedTx,
-      txId: result.txId,
-      signature: result.signature,
-      gasAmount: result.gasAmount,
-      gasPrice: result.gasPrice
-    }
-  }
-  `
-}
-
 function genAttach(instanceName: string): string {
   return `
   at(address: string): ${instanceName} {
@@ -154,14 +119,23 @@ function genAttach(instanceName: string): string {
   `
 }
 
+function contractTypes(contractName: string): string {
+  return `${contractName}Types`
+}
+
+function contractFieldType(contract: Contract): string {
+  const hasFields = contract.fieldsSig.names.length > 0
+  return hasFields ? `${contractTypes(contract.name)}.Fields` : '{}'
+}
+
 function genFetchState(contract: Contract): string {
   return `
-  async fetchState(): Promise<${contract.name}.State> {
+  async fetchState(): Promise<${contractTypes(contract.name)}.State> {
     const contractState = await web3.getCurrentNodeProvider().contracts.getContractsAddressState(this.address, { group: this.groupIndex })
     const state = ${contract.name}.contract.fromApiContractState(contractState)
     return {
       ...state,
-      ${contract.fieldsSig.names.length > 0 ? `fields: state.fields as ${contract.name}.Fields` : ''}
+      ${contract.fieldsSig.names.length > 0 ? `fields: state.fields as ${contractFieldType(contract)}` : ''}
     }
   }
   `
@@ -186,7 +160,7 @@ function genDecodeEvent(contractName: string, event: EventSig, eventIndex: numbe
     .join(', ')
   const eventType = getEventType(event)
   return `
-    private decode${eventType}(event: node.ContractEvent): ${contractName}.${eventType} {
+    private decode${eventType}(event: node.ContractEvent): ${contractTypes(contractName)}.${eventType} {
       if (event.eventIndex !== ${eventIndex}) {
         throw new Error('Invalid event index: ' + event.eventIndex + ', expected: ${eventIndex}')
       }
@@ -229,7 +203,7 @@ function genSubscribeSystemEvent(event: SystemEvent): string {
 
 function genSubscribeEvent(contractName: string, event: EventSig, eventIndex: number): string {
   const eventType = getEventType(event)
-  const scopedEventType = `${contractName}.${eventType}`
+  const scopedEventType = `${contractTypes(contractName)}.${eventType}`
   return `
     ${genDecodeEvent(contractName, event, eventIndex)}
 
@@ -246,7 +220,7 @@ function genSubscribeEvent(contractName: string, event: EventSig, eventIndex: nu
 }
 
 function genSubscribeAllEvents(contract: Contract, systemEvents: SystemEvent[]): string {
-  const contractEventTypes = contract.eventsSig.map((e) => `${contract.name}.${getEventType(e)}`)
+  const contractEventTypes = contract.eventsSig.map((e) => `${contractTypes(contract.name)}.${getEventType(e)}`)
   const systemEventTypes = systemEvents.map((e) => e.eventType)
   const eventTypes = contractEventTypes.concat(systemEventTypes).join(' | ')
   const contractEventCases = contract.eventsSig.map((event, index) => {
@@ -300,11 +274,11 @@ function genContractStateType(contract: Contract): string {
 }
 
 function genStateForTest(contract: Contract): string {
-  const fieldsParam = getParamsFromFieldsSig(contract.fieldsSig, 'Fields')
-  const fieldsType = contract.fieldsSig.names.length > 0 ? `${contract.name}.Fields` : '{}'
+  const fieldsParam = getParamsFromFieldsSig(contract.fieldsSig, contractFieldType(contract))
+  const fieldsType = contract.fieldsSig.names.length > 0 ? `${contractFieldType(contract)}` : '{}'
   return `
     // This is used for testing contract functions
-    export function stateForTest(
+    stateForTest(
       ${fieldsParam}
       asset?: Asset,
       address?: string
@@ -313,7 +287,7 @@ function genStateForTest(contract: Contract): string {
         alphAmount: asset?.alphAmount ?? ${oneAlph},
         tokens: asset?.tokens
       }
-      return ${contract.name}.contract.toState(${getInitialFieldsFromFieldsSig(contract.fieldsSig)}, newAsset, address)
+      return this.contract.toState(${getInitialFieldsFromFieldsSig(contract.fieldsSig)}, newAsset, address)
     }
   `
 }
@@ -333,7 +307,7 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
   const argsType = funcHasArgs
     ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
     : '{}'
-  const fieldsType = contractHasFields ? `${contract.name}.Fields` : '{}'
+  const fieldsType = contractHasFields ? `${contractFieldType(contract)}` : '{}'
   const params =
     funcHasArgs && contractHasFields
       ? `params: TestContractParams<${fieldsType}, ${argsType}>`
@@ -350,9 +324,9 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
       ? `Omit<TestContractResult, 'returns'> & { returns: ${tsReturnTypes[0]} }`
       : `Omit<TestContractResult, 'returns'> & { returns: [${tsReturnTypes.join(', ')}] }`
   return `
-    export async function test${funcName}Method(${params}): Promise<${retType}> {
+    async test${funcName}Method(${params}): Promise<${retType}> {
       const txId = params?.txId ?? randomTxId()
-      const apiParams = ${contract.name}.contract.toApiTestContractParams(
+      const apiParams = this.contract.toApiTestContractParams(
         '${functionSig.name}',
         {
           ...params, txId: txId,
@@ -361,8 +335,8 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
         }
       )
       const apiResult = await web3.getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
-      const testResult = ${contract.name}.contract.fromApiTestContractResult(${index}, apiResult, txId)
-      ${contract.name}.contract.printDebugMessages('${functionSig.name}', testResult.debugMessages)
+      const testResult = this.contract.fromApiTestContractResult(${index}, apiResult, txId)
+      this.contract.printDebugMessages('${functionSig.name}', testResult.debugMessages)
       ${tsReturnTypes.length === 0 ? '' : `const testReturns = testResult.returns as [${tsReturnTypes.join(', ')}]`}
       return {
         ...testResult,
@@ -409,31 +383,30 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     ${header}
 
     import {
-      web3, SignerProvider, Address, DeployContractParams, DeployContractResult, Contract,
-      ContractState, node, binToHex, TestContractResult, Asset, HexString, ContractFactory,
-      contractIdFromAddress, ONE_ALPH, groupOfAddress, fromApiVals, subscribeToEvents,
-      SubscribeOptions, Subscription, EventSubscription, randomTxId, CallContractParams,
-      CallContractResult, TestContractParams, ContractEvent, subscribeEventsFromContract,
-      decodeContractCreatedEvent, decodeContractDestroyedEvent, ContractCreatedEvent, ContractDestroyedEvent
+      web3, Address, Contract, ContractState, node, binToHex, TestContractResult, Asset, HexString,
+      ContractFactory, contractIdFromAddress, ONE_ALPH, groupOfAddress, fromApiVals, subscribeToEvents,
+      SubscribeOptions, Subscription, EventSubscription, randomTxId, CallContractParams, CallContractResult,
+      TestContractParams, ContractEvent, subscribeEventsFromContract, decodeContractCreatedEvent,
+      decodeContractDestroyedEvent, ContractCreatedEvent, ContractDestroyedEvent
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
-    export namespace ${contract.name} {
+    export namespace ${contract.name}Types {
       ${genContractStateType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
+    }
 
-      ${genContractFactory(contract)}
-
+    class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract)}> {
+      ${genAttach(getInstanceName(contract))}
       ${genStateForTest(contract)}
       ${contract.functions.map((f, index) => genTestMethod(contract, f, index)).join('\n')}
-
-      export const contract = Contract.fromJson(
-        ${contract.name}ContractJson,
-        '${contractInfo.bytecodeDebugPatch}',
-        '${contractInfo.codeHashDebug}',
-      )
-      export const factory = new Factory(contract)
     }
+
+    export const ${contract.name} = new Factory(Contract.fromJson(
+      ${contract.name}ContractJson,
+      '${contractInfo.bytecodeDebugPatch}',
+      '${contractInfo.codeHashDebug}',
+    ))
 
     export class ${contract.name}Instance {
       readonly address: Address
@@ -469,8 +442,7 @@ function genScript(script: Script): string {
     export namespace ${script.name} {
       export async function execute(signer: SignerProvider, params: ${paramsType}): Promise<ExecuteScriptResult> {
         const signerParams = await script.txParamsForExecution(signer, params)
-        const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
-        return result
+        return await signer.signAndSubmitExecuteScriptTx(signerParams)
       }
 
       export const script = Script.fromJson(${script.name}ScriptJson)
@@ -494,7 +466,6 @@ function genScripts(outDir: string, artifactDir: string, exports: string[]) {
     ${header}
 
     import {
-      Token,
       ExecuteScriptParams,
       ExecuteScriptResult,
       Script,

@@ -1251,7 +1251,7 @@ assertType<
 export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }
 
 export abstract class ContractFactory<T, P extends Fields = Fields> {
-  contract: Contract
+  readonly contract: Contract
   constructor(contract: Contract) {
     this.contract = contract
   }

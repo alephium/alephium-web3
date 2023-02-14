@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,7 +34,7 @@ import {
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token_test.ral.json";
 
-export namespace TokenTest {
+export namespace TokenTestTypes {
   export type Fields = {
     symbol: HexString;
     name: HexString;
@@ -46,35 +43,34 @@ export namespace TokenTest {
   };
 
   export type State = ContractState<Fields>;
+}
 
-  export class Factory extends ContractFactory<TokenTestInstance, Fields> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): TokenTestInstance {
-      return new TokenTestInstance(address);
-    }
+class Factory extends ContractFactory<
+  TokenTestInstance,
+  TokenTestTypes.Fields
+> {
+  at(address: string): TokenTestInstance {
+    return new TokenTestInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    initFields: Fields,
+  stateForTest(
+    initFields: TokenTestTypes.Fields,
     asset?: Asset,
     address?: string
-  ): ContractState<TokenTest.Fields> {
+  ): ContractState<TokenTestTypes.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return TokenTest.contract.toState(initFields, newAsset, address);
+    return this.contract.toState(initFields, newAsset, address);
   }
 
-  export async function testGetSymbolMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
+  async testGetSymbolMethod(
+    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = TokenTest.contract.toApiTestContractParams("getSymbol", {
+    const apiParams = this.contract.toApiTestContractParams("getSymbol", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -82,15 +78,12 @@ export namespace TokenTest {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = TokenTest.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    TokenTest.contract.printDebugMessages(
-      "getSymbol",
-      testResult.debugMessages
-    );
+    this.contract.printDebugMessages("getSymbol", testResult.debugMessages);
     const testReturns = testResult.returns as [HexString];
     return {
       ...testResult,
@@ -98,11 +91,11 @@ export namespace TokenTest {
     };
   }
 
-  export async function testGetNameMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
+  async testGetNameMethod(
+    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = TokenTest.contract.toApiTestContractParams("getName", {
+    const apiParams = this.contract.toApiTestContractParams("getName", {
       ...params,
       txId: txId,
       testArgs: {},
@@ -110,12 +103,12 @@ export namespace TokenTest {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = TokenTest.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       1,
       apiResult,
       txId
     );
-    TokenTest.contract.printDebugMessages("getName", testResult.debugMessages);
+    this.contract.printDebugMessages("getName", testResult.debugMessages);
     const testReturns = testResult.returns as [HexString];
     return {
       ...testResult,
@@ -123,30 +116,24 @@ export namespace TokenTest {
     };
   }
 
-  export async function testGetDecimalsMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
+  async testGetDecimalsMethod(
+    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = TokenTest.contract.toApiTestContractParams(
-      "getDecimals",
-      {
-        ...params,
-        txId: txId,
-        testArgs: {},
-      }
-    );
+    const apiParams = this.contract.toApiTestContractParams("getDecimals", {
+      ...params,
+      txId: txId,
+      testArgs: {},
+    });
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = TokenTest.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       2,
       apiResult,
       txId
     );
-    TokenTest.contract.printDebugMessages(
-      "getDecimals",
-      testResult.debugMessages
-    );
+    this.contract.printDebugMessages("getDecimals", testResult.debugMessages);
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -154,27 +141,24 @@ export namespace TokenTest {
     };
   }
 
-  export async function testGetTotalSupplyMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
+  async testGetTotalSupplyMethod(
+    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = TokenTest.contract.toApiTestContractParams(
-      "getTotalSupply",
-      {
-        ...params,
-        txId: txId,
-        testArgs: {},
-      }
-    );
+    const apiParams = this.contract.toApiTestContractParams("getTotalSupply", {
+      ...params,
+      txId: txId,
+      testArgs: {},
+    });
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = TokenTest.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       3,
       apiResult,
       txId
     );
-    TokenTest.contract.printDebugMessages(
+    this.contract.printDebugMessages(
       "getTotalSupply",
       testResult.debugMessages
     );
@@ -184,14 +168,15 @@ export namespace TokenTest {
       returns: testReturns[0],
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const TokenTest = new Factory(
+  Contract.fromJson(
     TokenTestContractJson,
     "",
     "d9c9fab84f779f2e90ca9e9b1fafd6d9c9dc0f8b84256169e20961f9c917bab8"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class TokenTestInstance {
   readonly address: Address;
@@ -204,7 +189,7 @@ export class TokenTestInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<TokenTest.State> {
+  async fetchState(): Promise<TokenTestTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {
@@ -213,7 +198,7 @@ export class TokenTestInstance {
     const state = TokenTest.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: state.fields as TokenTest.Fields,
+      fields: state.fields as TokenTestTypes.Fields,
     };
   }
 

@@ -4,10 +4,7 @@
 
 import {
   web3,
-  SignerProvider,
   Address,
-  DeployContractParams,
-  DeployContractResult,
   Contract,
   ContractState,
   node,
@@ -37,67 +34,64 @@ import {
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/warnings.ral.json";
 
-export namespace Warnings {
+export namespace WarningsTypes {
   export type Fields = {
     a: bigint;
     b: bigint;
   };
 
   export type State = ContractState<Fields>;
+}
 
-  export class Factory extends ContractFactory<WarningsInstance, Fields> {
-    constructor(contract: Contract) {
-      super(contract);
-    }
-
-    at(address: string): WarningsInstance {
-      return new WarningsInstance(address);
-    }
+class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
+  at(address: string): WarningsInstance {
+    return new WarningsInstance(address);
   }
 
   // This is used for testing contract functions
-  export function stateForTest(
-    initFields: Fields,
+  stateForTest(
+    initFields: WarningsTypes.Fields,
     asset?: Asset,
     address?: string
-  ): ContractState<Warnings.Fields> {
+  ): ContractState<WarningsTypes.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Warnings.contract.toState(initFields, newAsset, address);
+    return this.contract.toState(initFields, newAsset, address);
   }
 
-  export async function testFooMethod(
-    params: TestContractParams<Warnings.Fields, { x: bigint; y: bigint }>
+  async testFooMethod(
+    params: TestContractParams<WarningsTypes.Fields, { x: bigint; y: bigint }>
   ): Promise<Omit<TestContractResult, "returns">> {
     const txId = params?.txId ?? randomTxId();
-    const apiParams = Warnings.contract.toApiTestContractParams("foo", {
+    const apiParams = this.contract.toApiTestContractParams("foo", {
       ...params,
       txId: txId,
     });
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = Warnings.contract.fromApiTestContractResult(
+    const testResult = this.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
     );
-    Warnings.contract.printDebugMessages("foo", testResult.debugMessages);
+    this.contract.printDebugMessages("foo", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
+}
 
-  export const contract = Contract.fromJson(
+export const Warnings = new Factory(
+  Contract.fromJson(
     WarningsContractJson,
     "",
     "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2"
-  );
-  export const factory = new Factory(contract);
-}
+  )
+);
 
 export class WarningsInstance {
   readonly address: Address;
@@ -110,7 +104,7 @@ export class WarningsInstance {
     this.groupIndex = groupOfAddress(address);
   }
 
-  async fetchState(): Promise<Warnings.State> {
+  async fetchState(): Promise<WarningsTypes.State> {
     const contractState = await web3
       .getCurrentNodeProvider()
       .contracts.getContractsAddressState(this.address, {
@@ -119,7 +113,7 @@ export class WarningsInstance {
     const state = Warnings.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: state.fields as Warnings.Fields,
+      fields: state.fields as WarningsTypes.Fields,
     };
   }
 
