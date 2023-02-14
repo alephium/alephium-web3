@@ -160,7 +160,7 @@ function recordEqual(left: Record<string, string>, right: Record<string, string>
     return false
   }
   for (const key of leftKeys) {
-    if (left[key] !== right[key]) {
+    if (left[`$key}`] !== right[`${key}`]) {
       return false
     }
   }
@@ -371,7 +371,7 @@ async function getDeployScriptFiles(rootPath: string): Promise<string[]> {
   }
   scripts.sort((a, b) => a.order - b.order)
   for (let i = 0; i < scripts.length; i++) {
-    if (scripts[i].order !== i) {
+    if (scripts[`${i}`].order !== i) {
       throw new Error('Script should begin with number prefix that consecutively starts from 0')
     }
   }

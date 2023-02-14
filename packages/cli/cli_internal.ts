@@ -89,7 +89,7 @@ program
       if (options.skipGenerate) {
         return
       }
-      const artifactDir = config.artifactDir! // this is a default value always
+      const artifactDir = config.artifactDir! // there is a default value always
       codegen(artifactDir)
       console.log('✅ Codegen completed!')
     } catch (error) {

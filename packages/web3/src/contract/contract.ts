@@ -36,15 +36,9 @@ import {
   fromApiVals,
   typeLength
 } from '../api'
-import {
-  SignDeployContractTxParams,
-  SignExecuteScriptTxParams,
-  SignerProvider,
-  SignExecuteScriptTxResult,
-  SignDeployContractTxResult
-} from '../signer'
+import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerProvider } from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
+import { bs58, binToHex, contractIdFromAddress } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 
