@@ -32,6 +32,7 @@ import {
   subscribeContractEvent,
   subscribeAllEvents,
   testMethod,
+  callMethod,
   fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
@@ -106,25 +107,12 @@ export class GreeterInstance {
 
   async callGreetMethod(
     params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const callParams = Greeter.contract.toApiCallContract(
-      { ...params, txId: txId, args: {} },
-      this.groupIndex,
-      this.address,
-      0
+  ): Promise<CallContractResult<bigint>> {
+    return callMethod(
+      Greeter,
+      this,
+      "greet",
+      params === undefined ? {} : params
     );
-    const result = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsCallContract(callParams);
-    const callResult = Greeter.contract.fromApiCallContractResult(
-      result,
-      txId,
-      0
-    );
-    return {
-      ...callResult,
-      returns: callResult.returns[0] as bigint,
-    };
   }
 }

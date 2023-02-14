@@ -32,6 +32,7 @@ import {
   subscribeContractEvent,
   subscribeAllEvents,
   testMethod,
+  callMethod,
   fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
@@ -147,23 +148,7 @@ export class AddInstance {
 
   async callAddMethod(
     params: CallContractParams<{ array: [bigint, bigint] }>
-  ): Promise<
-    Omit<CallContractResult, "returns"> & { returns: [bigint, bigint] }
-  > {
-    const txId = params?.txId ?? randomTxId();
-    const callParams = Add.contract.toApiCallContract(
-      { ...params, txId: txId },
-      this.groupIndex,
-      this.address,
-      0
-    );
-    const result = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsCallContract(callParams);
-    const callResult = Add.contract.fromApiCallContractResult(result, txId, 0);
-    return {
-      ...callResult,
-      returns: callResult.returns[0] as [bigint, bigint],
-    };
+  ): Promise<CallContractResult<[bigint, bigint]>> {
+    return callMethod(Add, this, "add", params);
   }
 }

@@ -32,6 +32,7 @@ import {
   subscribeContractEvent,
   subscribeAllEvents,
   testMethod,
+  callMethod,
   fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
@@ -130,97 +131,45 @@ export class TokenTestInstance {
 
   async callGetSymbolMethod(
     params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<Omit<CallContractResult, "returns"> & { returns: HexString }> {
-    const txId = params?.txId ?? randomTxId();
-    const callParams = TokenTest.contract.toApiCallContract(
-      { ...params, txId: txId, args: {} },
-      this.groupIndex,
-      this.address,
-      0
+  ): Promise<CallContractResult<HexString>> {
+    return callMethod(
+      TokenTest,
+      this,
+      "getSymbol",
+      params === undefined ? {} : params
     );
-    const result = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsCallContract(callParams);
-    const callResult = TokenTest.contract.fromApiCallContractResult(
-      result,
-      txId,
-      0
-    );
-    return {
-      ...callResult,
-      returns: callResult.returns[0] as HexString,
-    };
   }
 
   async callGetNameMethod(
     params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<Omit<CallContractResult, "returns"> & { returns: HexString }> {
-    const txId = params?.txId ?? randomTxId();
-    const callParams = TokenTest.contract.toApiCallContract(
-      { ...params, txId: txId, args: {} },
-      this.groupIndex,
-      this.address,
-      1
+  ): Promise<CallContractResult<HexString>> {
+    return callMethod(
+      TokenTest,
+      this,
+      "getName",
+      params === undefined ? {} : params
     );
-    const result = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsCallContract(callParams);
-    const callResult = TokenTest.contract.fromApiCallContractResult(
-      result,
-      txId,
-      1
-    );
-    return {
-      ...callResult,
-      returns: callResult.returns[0] as HexString,
-    };
   }
 
   async callGetDecimalsMethod(
     params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const callParams = TokenTest.contract.toApiCallContract(
-      { ...params, txId: txId, args: {} },
-      this.groupIndex,
-      this.address,
-      2
+  ): Promise<CallContractResult<bigint>> {
+    return callMethod(
+      TokenTest,
+      this,
+      "getDecimals",
+      params === undefined ? {} : params
     );
-    const result = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsCallContract(callParams);
-    const callResult = TokenTest.contract.fromApiCallContractResult(
-      result,
-      txId,
-      2
-    );
-    return {
-      ...callResult,
-      returns: callResult.returns[0] as bigint,
-    };
   }
 
   async callGetTotalSupplyMethod(
     params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const callParams = TokenTest.contract.toApiCallContract(
-      { ...params, txId: txId, args: {} },
-      this.groupIndex,
-      this.address,
-      3
+  ): Promise<CallContractResult<bigint>> {
+    return callMethod(
+      TokenTest,
+      this,
+      "getTotalSupply",
+      params === undefined ? {} : params
     );
-    const result = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsCallContract(callParams);
-    const callResult = TokenTest.contract.fromApiCallContractResult(
-      result,
-      txId,
-      3
-    );
-    return {
-      ...callResult,
-      returns: callResult.returns[0] as bigint,
-    };
   }
 }

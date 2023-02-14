@@ -962,11 +962,17 @@ export class Contract extends Artifact {
     }
   }
 
-  fromApiCallContractResult(result: node.CallContractResult, txId: string, methodIndex: number): CallContractResult {
+  fromApiCallContractResult(
+    result: node.CallContractResult,
+    txId: string,
+    methodIndex: number
+  ): CallContractResult<unknown> {
+    const returnTypes = this.functions[`${methodIndex}`].returnTypes
+    const rawReturn = fromApiArray(result.returns, returnTypes)
+    const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
+
     const addressToCodeHash = new Map<string, string>()
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
-    const functionSig = this.functions[`${methodIndex}`]
-    const returns = fromApiArray(result.returns, functionSig.returnTypes)
     return {
       returns: returns,
       gasUsed: result.gasUsed,
@@ -1324,8 +1330,8 @@ export interface CallContractParams<T extends Arguments = Arguments> {
   inputAssets?: node.TestInputAsset[]
 }
 
-export interface CallContractResult {
-  returns: Val[]
+export interface CallContractResult<R> {
+  returns: R
   gasUsed: number
   contracts: ContractState[]
   txInputs: string[]
@@ -1554,4 +1560,23 @@ export function subscribeAllEvents(
     errorCallback: errorCallback
   }
   return subscribeToEvents(opt, instance.address, fromCount)
+}
+
+export async function callMethod<I, F extends Fields, A extends Arguments, R>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance,
+  methodName: string,
+  params: Optional<CallContractParams<A>, 'args'>
+): Promise<CallContractResult<R>> {
+  const methodIndex = contract.contract.getMethodIndex(methodName)
+  const txId = params?.txId ?? randomTxId()
+  const callParams = contract.contract.toApiCallContract(
+    { ...params, txId: txId, args: params.args === undefined ? {} : params.args },
+    instance.groupIndex,
+    instance.address,
+    methodIndex
+  )
+  const result = await getCurrentNodeProvider().contracts.postContractsCallContract(callParams)
+  const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex)
+  return callResult as CallContractResult<R>
 }

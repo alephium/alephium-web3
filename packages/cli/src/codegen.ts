@@ -82,27 +82,16 @@ function genCallMethod(contractName: string, functionSig: node.FunctionSig, func
       })}}>`
     : `params?: Omit<CallContractParams<{}>, 'args'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-  const retTypeTemp = tsReturnTypes.length === 1 ? `${tsReturnTypes[0]}` : `[${tsReturnTypes.join(', ')}]`
-  const retType = `Omit<CallContractResult, 'returns'> & { returns: ${retTypeTemp} }`
+  const retType =
+    tsReturnTypes.length === 0
+      ? `CallContractResult<null>`
+      : tsReturnTypes.length === 1
+      ? `CallContractResult<${tsReturnTypes[0]}>`
+      : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+  const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
   return `
     async call${funcName}Method(${params}): Promise<${retType}> {
-      const txId = params?.txId ?? randomTxId()
-      const callParams = ${contractName}.contract.toApiCallContract(
-        { ...params, txId: txId, ${funcHasArgs ? '' : 'args: {}'} },
-        this.groupIndex,
-        this.address,
-        ${funcIndex}
-      )
-      const result = await web3.getCurrentNodeProvider().contracts.postContractsCallContract(callParams)
-      const callResult = ${contractName}.contract.fromApiCallContractResult(result, txId, ${funcIndex})
-      return {
-        ...callResult,
-        ${
-          tsReturnTypes.length === 1
-            ? `returns: callResult.returns[0] as ${retTypeTemp}`
-            : `returns: callResult.returns as ${retTypeTemp}`
-        }
-      }
+      return callMethod(${contractName}, this, "${functionSig.name}", ${callParams})
     }
   `
 }
@@ -310,7 +299,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       web3, Address, Contract, ContractState, node, binToHex, TestContractResult, Asset, HexString,
       ContractFactory, contractIdFromAddress, ONE_ALPH, groupOfAddress, fromApiVals, subscribeToEvents,
       SubscribeOptions, Subscription, EventSubscription, randomTxId, CallContractParams, CallContractResult,
-      TestContractParams, ContractEvent, subscribeEventsFromContract, subscribeContractCreatedEvent, subscribeContractDestroyedEvent, subscribeContractEvent, subscribeAllEvents, testMethod, fetchContractState, decodeContractCreatedEvent,
+      TestContractParams, ContractEvent, subscribeEventsFromContract, subscribeContractCreatedEvent, subscribeContractDestroyedEvent, subscribeContractEvent, subscribeAllEvents, testMethod, callMethod, fetchContractState, decodeContractCreatedEvent,
       decodeContractDestroyedEvent, ContractCreatedEvent, ContractDestroyedEvent
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'

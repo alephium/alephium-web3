@@ -32,6 +32,7 @@ import {
   subscribeContractEvent,
   subscribeAllEvents,
   testMethod,
+  callMethod,
   fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
