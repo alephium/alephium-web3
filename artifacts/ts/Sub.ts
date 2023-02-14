@@ -49,19 +49,6 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
     return new SubInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(
-    initFields: SubTypes.Fields,
-    asset?: Asset,
-    address?: string
-  ): ContractState<SubTypes.Fields> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState(initFields, newAsset, address);
-  }
-
   async testSubMethod(
     params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {

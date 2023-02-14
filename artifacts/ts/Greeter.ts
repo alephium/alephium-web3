@@ -47,19 +47,6 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     return new GreeterInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(
-    initFields: GreeterTypes.Fields,
-    asset?: Asset,
-    address?: string
-  ): ContractState<GreeterTypes.Fields> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState(initFields, newAsset, address);
-  }
-
   async testGreetMethod(
     params: Omit<TestContractParams<GreeterTypes.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {

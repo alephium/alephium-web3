@@ -43,15 +43,6 @@ class Factory extends ContractFactory<DebugInstance, {}> {
     return new DebugInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(asset?: Asset, address?: string): ContractState<{}> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState({}, newAsset, address);
-  }
-
   async testDebugMethod(
     params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
   ): Promise<Omit<TestContractResult, "returns">> {

@@ -48,19 +48,6 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
     return new WarningsInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(
-    initFields: WarningsTypes.Fields,
-    asset?: Asset,
-    address?: string
-  ): ContractState<WarningsTypes.Fields> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState(initFields, newAsset, address);
-  }
-
   async testFooMethod(
     params: TestContractParams<WarningsTypes.Fields, { x: bigint; y: bigint }>
   ): Promise<Omit<TestContractResult, "returns">> {

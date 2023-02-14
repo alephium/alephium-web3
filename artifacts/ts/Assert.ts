@@ -43,15 +43,6 @@ class Factory extends ContractFactory<AssertInstance, {}> {
     return new AssertInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(asset?: Asset, address?: string): ContractState<{}> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState({}, newAsset, address);
-  }
-
   async testTestMethod(
     params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
   ): Promise<Omit<TestContractResult, "returns">> {

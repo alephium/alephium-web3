@@ -273,25 +273,6 @@ function genContractStateType(contract: Contract): string {
   `
 }
 
-function genStateForTest(contract: Contract): string {
-  const fieldsParam = getParamsFromFieldsSig(contract.fieldsSig, contractFieldType(contract))
-  const fieldsType = contract.fieldsSig.names.length > 0 ? `${contractFieldType(contract)}` : '{}'
-  return `
-    // This is used for testing contract functions
-    stateForTest(
-      ${fieldsParam}
-      asset?: Asset,
-      address?: string
-    ): ContractState<${fieldsType}> {
-      const newAsset = {
-        alphAmount: asset?.alphAmount ?? ${oneAlph},
-        tokens: asset?.tokens
-      }
-      return this.contract.toState(${getInitialFieldsFromFieldsSig(contract.fieldsSig)}, newAsset, address)
-    }
-  `
-}
-
 function getParamsFromFieldsSig(fieldsSig: node.FieldsSig, tpe: string): string {
   return fieldsSig.names.length > 0 ? `initFields: ${tpe}, ` : ''
 }
@@ -398,7 +379,6 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract)}> {
       ${genAttach(getInstanceName(contract))}
-      ${genStateForTest(contract)}
       ${contract.functions.map((f, index) => genTestMethod(contract, f, index)).join('\n')}
     }
 

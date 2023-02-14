@@ -47,6 +47,7 @@ import { bs58, binToHex, contractIdFromAddress, SubscribeOptions, Subscription, 
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
+import { ONE_ALPH } from '../constants'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -1252,9 +1253,12 @@ export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T
 
 export abstract class ContractFactory<T, P extends Fields = Fields> {
   readonly contract: Contract
+
   constructor(contract: Contract) {
     this.contract = contract
   }
+
+  abstract at(address: string): T
 
   async deploy(signer: SignerProvider, deployParams: DeployContractParams<P>): Promise<DeployContractResult<T>> {
     const signerParams = await this.contract.txParamsForDeployment(signer, deployParams)
@@ -1265,7 +1269,14 @@ export abstract class ContractFactory<T, P extends Fields = Fields> {
     }
   }
 
-  abstract at(address: string): T
+  // This is used for testing contract functions
+  stateForTest(initFields: P, asset?: Asset, address?: string): ContractState<P> {
+    const newAsset = {
+      alphAmount: asset?.alphAmount ?? ONE_ALPH,
+      tokens: asset?.tokens
+    }
+    return this.contract.toState(initFields, newAsset, address)
+  }
 }
 
 export interface ExecuteScriptParams<P extends Fields = Fields> {

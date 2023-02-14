@@ -51,19 +51,6 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     return new AddInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(
-    initFields: AddTypes.Fields,
-    asset?: Asset,
-    address?: string
-  ): ContractState<AddTypes.Fields> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState(initFields, newAsset, address);
-  }
-
   async testAddMethod(
     params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
   ): Promise<

@@ -53,19 +53,6 @@ class Factory extends ContractFactory<
     return new TokenTestInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(
-    initFields: TokenTestTypes.Fields,
-    asset?: Asset,
-    address?: string
-  ): ContractState<TokenTestTypes.Fields> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState(initFields, newAsset, address);
-  }
-
   async testGetSymbolMethod(
     params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
