@@ -91,7 +91,9 @@ export function groupOfAddress(address: string): number {
   } else if (addressType == AddressType.P2SH) {
     return groupOfP2shAddress(addressBody)
   } else {
-    throw new Error(`Invalid asset address type: ${addressType}`)
+    // Contract Address
+    const id = contractIdFromAddress(address)
+    return id[`${id.length - 1}`]
   }
 }
 

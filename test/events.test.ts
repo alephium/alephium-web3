@@ -16,13 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { subscribeToEvents } from '../packages/web3'
-import { Project } from '../packages/web3'
-import { node } from '../packages/web3'
+import { ContractCreatedEvent, ContractDestroyedEvent, Project } from '../packages/web3'
 import { NodeWallet } from '../packages/web3-wallet'
 import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
+import { Sub } from '../artifacts/ts/Sub'
+import { Add, AddTypes, AddInstance } from '../artifacts/ts/Add'
+import { Main } from '../artifacts/ts/scripts'
 
 describe('events', function () {
   let signer: NodeWallet
@@ -30,33 +31,22 @@ describe('events', function () {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     signer = await testNodeWallet()
+    // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })
   })
 
-  async function deployContract(signer: NodeWallet): Promise<[string, string]> {
-    const sub = Project.contract('Sub')
-    const subDeployTx = await sub.deploy(signer, {
-      initialFields: { result: 0n },
-      initialTokenAmounts: []
-    })
-    const subContractId = subDeployTx.contractId
-
-    // ignore unused private function warnings
-    const add = Project.contract('Add')
-    const addDeployTx = await add.deploy(signer, {
-      initialFields: { sub: subContractId, result: 0n },
-      initialTokenAmounts: []
-    })
-    return [addDeployTx.contractAddress, addDeployTx.contractId]
+  async function deployContract(signer: NodeWallet): Promise<AddInstance> {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    return (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } })).instance
   }
 
   it('should subscribe contract events', async () => {
-    const [contractAddress, contractId] = await deployContract(signer)
-    const events: Array<node.ContractEvent> = []
-    const subscriptOptions: SubscribeOptions<node.ContractEvent> = {
+    const add = await deployContract(signer)
+    const addEvents: Array<AddTypes.AddEvent> = []
+    const subscriptOptions: SubscribeOptions<AddTypes.AddEvent> = {
       pollingInterval: 500,
-      messageCallback: (event: node.ContractEvent): Promise<void> => {
-        events.push(event)
+      messageCallback: (event: AddTypes.AddEvent): Promise<void> => {
+        addEvents.push(event)
         return Promise.resolve()
       },
       errorCallback: (error: any, subscription): Promise<void> => {
@@ -65,37 +55,30 @@ describe('events', function () {
         return Promise.resolve()
       }
     }
-    const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = Project.script('Main')
+    const subscription = add.subscribeAddEvent(subscriptOptions)
     for (let i = 0; i < 3; i++) {
-      await script.execute(signer, {
-        initialFields: { addContractId: contractId }
-      })
+      await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
     await timeout(3000)
 
-    expect(events.length).toEqual(3)
-    events.forEach((event) => {
-      expect(event.fields).toEqual([
-        { type: 'U256', value: '2' },
-        { type: 'U256', value: '1' }
-      ])
+    expect(addEvents.length).toEqual(3)
+    addEvents.forEach((event) => {
+      expect(event.fields.x).toEqual(2n)
+      expect(event.fields.y).toEqual(1n)
     })
-    expect(subscription.currentEventCount()).toEqual(events.length)
+    expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
     subscription.unsubscribe()
   }, 15000)
 
-  it('should cancel event subscription', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-    await Project.build({ errorOnWarnings: false })
-
-    const [contractAddress, contractId] = await deployContract(signer)
-    const events: Array<node.ContractEvent> = []
-    const subscriptOptions = {
+  it('should subscribe all events', async () => {
+    const add = await deployContract(signer)
+    type EventTypes = AddTypes.AddEvent | AddTypes.Add1Event | ContractCreatedEvent | ContractDestroyedEvent
+    const addEvents: Array<EventTypes> = []
+    const subscriptOptions: SubscribeOptions<EventTypes> = {
       pollingInterval: 500,
-      messageCallback: (event: node.ContractEvent): Promise<void> => {
-        events.push(event)
+      messageCallback: (event: EventTypes): Promise<void> => {
+        addEvents.push(event)
         return Promise.resolve()
       },
       errorCallback: (error: any, subscription): Promise<void> => {
@@ -104,26 +87,65 @@ describe('events', function () {
         return Promise.resolve()
       }
     }
-    const subscription = subscribeToEvents(subscriptOptions, contractAddress)
-    const script = Project.script('Main')
-    const scriptTx0 = await script.execute(signer, {
-      initialFields: { addContractId: contractId }
+    const subscription = add.subscribeEvents(subscriptOptions)
+    for (let i = 0; i < 3; i++) {
+      await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+    }
+    await timeout(3000)
+
+    const isAdd = (event: EventTypes): event is AddTypes.AddEvent => {
+      return (<AddTypes.AddEvent>event).fields.x !== undefined
+    }
+
+    const isAdd1 = (event: EventTypes): event is AddTypes.Add1Event => {
+      return (<AddTypes.Add1Event>event).fields.a !== undefined
+    }
+
+    expect(addEvents.length).toEqual(6)
+    addEvents.forEach((event) => {
+      if (isAdd(event)) {
+        expect(event.fields.x).toEqual(2n)
+        expect(event.fields.y).toEqual(1n)
+      } else if (isAdd1(event)) {
+        expect(event.fields.a).toEqual(2n)
+        expect(event.fields.b).toEqual(1n)
+      } else {
+        expect(false).toEqual(true)
+      }
     })
+    expect(subscription.currentEventCount()).toEqual(3)
+
+    subscription.unsubscribe()
+  })
+
+  it('should cancel event subscription', async () => {
+    const add = await deployContract(signer)
+    const addEvents: Array<AddTypes.AddEvent> = []
+    const subscriptOptions: SubscribeOptions<AddTypes.AddEvent> = {
+      pollingInterval: 500,
+      messageCallback: (event: AddTypes.AddEvent): Promise<void> => {
+        addEvents.push(event)
+        return Promise.resolve()
+      },
+      errorCallback: (error: any, subscription): Promise<void> => {
+        console.log(error)
+        subscription.unsubscribe()
+        return Promise.resolve()
+      }
+    }
+    const subscription = add.subscribeAddEvent(subscriptOptions)
+    const scriptTx0 = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await timeout(1500)
     subscription.unsubscribe()
 
-    expect(events.length).toEqual(1)
-    expect(events[0].txId).toEqual(scriptTx0.txId)
-    expect(events[0].fields).toEqual([
-      { type: 'U256', value: '2' },
-      { type: 'U256', value: '1' }
-    ])
-    expect(subscription.currentEventCount()).toEqual(events.length)
+    expect(addEvents.length).toEqual(1)
+    expect(addEvents[0].txId).toEqual(scriptTx0.txId)
+    expect(addEvents[0].fields.x).toEqual(2n)
+    expect(addEvents[0].fields.y).toEqual(1n)
+    expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
-    await script.execute(signer, {
-      initialFields: { addContractId: contractId }
-    })
+    await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await timeout(1500)
-    expect(events.length).toEqual(1)
+    expect(addEvents.length).toEqual(1)
   })
 })

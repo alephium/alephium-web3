@@ -18,11 +18,18 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { Account, web3 } from '../packages/web3'
-import { Contract, Project, Script, TestContractParams } from '../packages/web3'
+import { Account, web3, ContractEvent, Fields } from '../packages/web3'
+import { Contract, Project, Script } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { expectAssertionError, randomContractAddress } from '../packages/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
+import { Greeter } from '../artifacts/ts/Greeter'
+import { GreeterMain, Main } from '../artifacts/ts/scripts'
+import { Sub, SubTypes } from '../artifacts/ts/Sub'
+import { Add, AddTypes } from '../artifacts/ts/Add'
+import { MetaData } from '../artifacts/ts/MetaData'
+import { Assert } from '../artifacts/ts/Assert'
+import { Debug } from '../artifacts/ts/Debug'
 
 describe('contract', function () {
   let signer: NodeWallet
@@ -37,118 +44,108 @@ describe('contract', function () {
   })
 
   async function testSuite1() {
+    // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })
 
-    // ignore unused private function warnings
-    const add = Project.contract('Add')
-    const sub = Project.contract('Sub')
-
-    const subState = sub.toState({ result: 0n }, { alphAmount: BigInt('1000000000000000000') })
-    const testParams: TestContractParams = {
+    const subState = Sub.stateForTest({ result: 0n })
+    const testResult = await Add.testAddMethod({
       initialFields: { sub: subState.contractId, result: 0n },
       testArgs: { array: [2n, 1n] },
       existingContracts: [subState]
+    })
+    expect(testResult.returns).toEqual([3n, 1n])
+    const contract0 = testResult.contracts[0] as SubTypes.State
+    expect(contract0.codeHash).toEqual(subState.codeHash)
+    expect(contract0.fields.result).toEqual(1n)
+
+    const contract1 = testResult.contracts[1] as AddTypes.State
+    expect(contract1.codeHash).toEqual(Add.contract.codeHash)
+    expect(contract1.fields.sub).toEqual(subState.contractId)
+    expect(contract1.fields.result).toEqual(3n)
+
+    const checkEvents = (eventList: ContractEvent<Fields>[]) => {
+      const events = eventList.sort((a, b) => a.name.localeCompare(b.name))
+      const event0 = events[0] as AddTypes.AddEvent
+      expect(event0.name).toEqual('Add')
+      expect(event0.eventIndex).toEqual(0)
+      expect(event0.fields.x).toEqual(2n)
+      expect(event0.fields.y).toEqual(1n)
+
+      const event1 = events[1] as AddTypes.Add1Event
+      expect(event1.name).toEqual('Add1')
+      expect(event1.eventIndex).toEqual(1)
+      expect(event1.fields.a).toEqual(2n)
+      expect(event1.fields.b).toEqual(1n)
+
+      const event2 = events[2] as SubTypes.SubEvent
+      expect(event2.name).toEqual('Sub')
+      expect(event2.eventIndex).toEqual(0)
+      expect(event2.fields.x).toEqual(2n)
+      expect(event2.fields.y).toEqual(1n)
     }
-    const testResult = await add.testPublicMethod('add', testParams)
-    expect(testResult.returns).toEqual([[3n, 1n]])
-    expect(testResult.contracts[0].codeHash).toEqual(sub.codeHash)
-    expect(testResult.contracts[0].fields.result).toEqual(1n)
-    expect(testResult.contracts[1].codeHash).toEqual(add.codeHash)
-    expect(testResult.contracts[1].fields.sub).toEqual(subState.contractId)
-    expect(testResult.contracts[1].fields.result).toEqual(3n)
-    const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
-    expect(events[0].name).toEqual('Add')
-    expect(events[0].fields.x).toEqual(2n)
-    expect(events[0].fields.y).toEqual(1n)
-    expect(events[1].name).toEqual('Sub')
-    expect(events[1].fields.x).toEqual(2n)
-    expect(events[1].fields.y).toEqual(1n)
 
-    const testResultPrivate = await add.testPrivateMethod('addPrivate', testParams)
-    expect(testResultPrivate.returns).toEqual([[3n, 1n]])
+    checkEvents(testResult.events)
 
-    const subDeployTx = await sub.deploy(signer, {
-      initialFields: { result: 0n },
-      initialTokenAmounts: []
+    const testResultPrivate = await Add.testAddPrivateMethod({
+      initialFields: { sub: subState.contractId, result: 0n },
+      testArgs: { array: [2n, 1n] },
+      existingContracts: [subState]
     })
-    const subContractId = subDeployTx.contractId
-    const subContractAddress = subDeployTx.contractAddress
-    expect(subDeployTx.fromGroup).toEqual(signerGroup)
-    expect(subDeployTx.toGroup).toEqual(signerGroup)
-    expect(subDeployTx.fromGroup).toEqual(signerGroup)
-    expect(subDeployTx.toGroup).toEqual(signerGroup)
-    expect(subDeployTx.txId).toEqual(subDeployTx.txId)
+    expect(testResultPrivate.returns).toEqual([3n, 1n])
 
-    const addDeployTx = await add.deploy(signer, {
-      initialFields: { sub: subContractId, result: 0n },
-      initialTokenAmounts: []
-    })
-    expect(addDeployTx.fromGroup).toEqual(signerGroup)
-    expect(addDeployTx.toGroup).toEqual(signerGroup)
-    expect(addDeployTx.fromGroup).toEqual(signerGroup)
-    expect(addDeployTx.toGroup).toEqual(signerGroup)
-    expect(addDeployTx.txId).toEqual(addDeployTx.txId)
-
-    const addContractId = addDeployTx.contractId
-    const addContractAddress = addDeployTx.contractAddress
+    const sub = (await Sub.deploy(signer, { initialFields: { result: 0n } })).instance
+    expect(sub.groupIndex).toEqual(signerGroup)
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } })).instance
+    expect(add.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub before main script is executed
-    let fetchedSubState = await sub.fetchState(subContractAddress, signerGroup)
-    expect(fetchedSubState.fields.result).toEqual(0n)
-    let fetchedAddState = await add.fetchState(addContractAddress, signerGroup)
-    expect(fetchedAddState.fields.sub).toEqual(subContractId)
-    expect(fetchedAddState.fields.result).toEqual(0n)
+    const subContractState0 = await sub.fetchState()
+    expect(subContractState0.fields.result).toEqual(0n)
+    expect(subContractState0.address).toEqual(sub.address)
+    expect(subContractState0.contractId).toEqual(sub.contractId)
 
-    const main = Project.script('Main')
-    const mainScriptTx = await main.execute(signer, {
-      initialFields: { addContractId: addContractId }
-    })
-    expect(mainScriptTx.fromGroup).toEqual(signerGroup)
-    expect(mainScriptTx.toGroup).toEqual(signerGroup)
-    expect(mainScriptTx.fromGroup).toEqual(signerGroup)
-    expect(mainScriptTx.toGroup).toEqual(signerGroup)
+    const addContractState0 = await add.fetchState()
+    expect(addContractState0.fields.sub).toEqual(sub.contractId)
+    expect(addContractState0.fields.result).toEqual(0n)
+    expect(addContractState0.address).toEqual(add.address)
+    expect(addContractState0.contractId).toEqual(add.contractId)
+
+    const mainScriptTx = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+    expect(mainScriptTx.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub after main script is executed
-    fetchedSubState = await sub.fetchState(subContractAddress, signerGroup)
-    expect(fetchedSubState.fields.result).toEqual(1n)
-    fetchedAddState = await add.fetchState(addContractAddress, signerGroup)
-    expect(fetchedAddState.fields.sub).toEqual(subContractId)
-    expect(fetchedAddState.fields.result).toEqual(3n)
+    const subContractState1 = await sub.fetchState()
+    expect(subContractState1.fields.result).toEqual(1n)
+
+    const addContractState1 = await add.fetchState()
+    expect(addContractState1.fields.sub).toEqual(sub.contractId)
+    expect(addContractState1.fields.result).toEqual(3n)
+
+    const callResult = await add.callAddMethod({
+      args: { array: [2n, 1n] },
+      existingContracts: [sub.address]
+    })
+    expect(callResult.returns).toEqual([6n, 2n])
+    checkEvents(callResult.events)
   }
 
   async function testSuite2() {
     await Project.build({ errorOnWarnings: false })
 
-    const greeter = Project.contract('Greeter')
-
-    const testParams: TestContractParams = {
-      initialFields: { btcPrice: 1n }
-    }
-    const testResult = await greeter.testPublicMethod('greet', testParams)
-    expect(testResult.returns).toEqual([1n])
-    expect(testResult.contracts[0].codeHash).toEqual(greeter.codeHash)
+    const testResult = await Greeter.testGreetMethod({ initialFields: { btcPrice: 1n } })
+    expect(testResult.returns).toEqual(1n)
+    expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
-    const deployTx = await greeter.deploy(signer, {
-      initialFields: { btcPrice: 1n },
-      initialTokenAmounts: []
-    })
-    expect(deployTx.fromGroup).toEqual(signerGroup)
-    expect(deployTx.toGroup).toEqual(signerGroup)
-    expect(deployTx.fromGroup).toEqual(signerGroup)
-    expect(deployTx.toGroup).toEqual(signerGroup)
-    expect(deployTx.txId).toEqual(deployTx.txId)
+    const greeter = (await Greeter.deploy(signer, { initialFields: { btcPrice: 1n } })).instance
+    expect(greeter.groupIndex).toEqual(signerGroup)
+    const contractState = await greeter.fetchState()
+    expect(contractState.fields.btcPrice).toEqual(1n)
+    expect(contractState.address).toEqual(greeter.address)
+    expect(contractState.contractId).toEqual(greeter.contractId)
 
-    const greeterContractId = deployTx.contractId
-    const main = Project.script('GreeterMain')
-
-    const mainScriptTx = await main.execute(signer, {
-      initialFields: { greeterContractId: greeterContractId }
-    })
-    expect(mainScriptTx.fromGroup).toEqual(signerGroup)
-    expect(mainScriptTx.toGroup).toEqual(signerGroup)
-    expect(mainScriptTx.fromGroup).toEqual(signerGroup)
-    expect(mainScriptTx.toGroup).toEqual(signerGroup)
+    const mainScriptTx = await GreeterMain.execute(signer, { initialFields: { greeterContractId: greeter.contractId } })
+    expect(mainScriptTx.groupIndex).toEqual(signerGroup)
   }
 
   it('should test contracts', async () => {
@@ -190,11 +187,10 @@ describe('contract', function () {
   it('should extract metadata of contracts', async () => {
     await Project.build({ errorOnWarnings: false })
 
-    const contract = Project.contract('MetaData')
-    expect(contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
-    expect(contract.publicFunctions()).toEqual(['foo'])
-    expect(contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
-    expect(contract.usingAssetsInContractFunctions()).toEqual(['bar'])
+    expect(MetaData.contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
+    expect(MetaData.contract.publicFunctions()).toEqual(['foo'])
+    expect(MetaData.contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
+    expect(MetaData.contract.usingAssetsInContractFunctions()).toEqual(['bar'])
   })
 
   it('should handle compiler warnings', async () => {
@@ -216,8 +212,7 @@ describe('contract', function () {
 
   it('should debug', async () => {
     await Project.build({ errorOnWarnings: false })
-    const contract = Project.contract('Debug')
-    const result = await contract.testPublicMethod('debug', {})
+    const result = await Debug.testDebugMethod()
     expect(result.debugMessages.length).toEqual(1)
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
     expect(result.debugMessages[0].message).toEqual(`Hello, ${result.contractAddress}!`)
@@ -225,8 +220,7 @@ describe('contract', function () {
 
   it('should test assert!', async () => {
     await Project.build({ errorOnWarnings: false })
-    const contract = Project.contract('Assert')
     const testAddress = randomContractAddress()
-    expectAssertionError(contract.testPublicMethod('test', { address: testAddress }), testAddress, 3)
+    expectAssertionError(Assert.testTestMethod({ address: testAddress }), testAddress, 3)
   })
 })

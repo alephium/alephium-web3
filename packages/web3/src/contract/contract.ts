@@ -38,22 +38,22 @@ import {
 } from '../api'
 import {
   SignDeployContractTxParams,
+  SignDeployContractTxResult,
   SignExecuteScriptTxParams,
-  SignerProvider,
-  SignExecuteScriptTxResult,
-  SignDeployContractTxResult
+  SignerProvider
 } from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
+import { bs58, binToHex, contractIdFromAddress, SubscribeOptions, Subscription, assertType, Eq } from '../utils'
 import { getCurrentNodeProvider } from '../global'
-import { web3 } from '..'
 import * as path from 'path'
+import { EventSubscription, subscribeToEvents } from './events'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
 export type FunctionSig = node.FunctionSig
 export type Fields = NamedVals
 export type Arguments = NamedVals
+export type HexString = string
 
 enum SourceKind {
   Contract = 0,
@@ -355,7 +355,7 @@ export class Project {
     return script.artifact
   }
 
-  private async saveArtifactsToFile(): Promise<void> {
+  private async saveArtifactsToFile(projectRootDir: string): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
       const artifactPath = compiled.sourceInfo.getArtifactPath(artifactsRootDir)
@@ -367,7 +367,7 @@ export class Project {
     }
     this.contracts.forEach((contract) => saveToFile(contract))
     this.scripts.forEach((script) => saveToFile(script))
-    await this.projectArtifact.saveToFile(this.artifactsRootDir)
+    await this.projectArtifact.saveToFile(projectRootDir)
   }
 
   contractByCodeHash(codeHash: string): Contract {
@@ -383,6 +383,7 @@ export class Project {
   private static async compile(
     provider: NodeProvider,
     sourceInfos: SourceInfo[],
+    projectRootDir: string,
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
@@ -415,7 +416,7 @@ export class Project {
       errorOnWarnings,
       projectArtifact
     )
-    await project.saveArtifactsToFile()
+    await project.saveArtifactsToFile(projectRootDir)
     return project
   }
 
@@ -423,6 +424,7 @@ export class Project {
     provider: NodeProvider,
     sourceInfos: SourceInfo[],
     projectArtifact: ProjectArtifact,
+    projectRootDir: string,
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
@@ -461,6 +463,7 @@ export class Project {
       return Project.compile(
         provider,
         sourceInfos,
+        projectRootDir,
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
@@ -591,12 +594,13 @@ export class Project {
     const provider = getCurrentNodeProvider()
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
-    const projectArtifact = await ProjectArtifact.from(artifactsRootDir)
+    const projectArtifact = await ProjectArtifact.from(projectRootDir)
     if (typeof projectArtifact === 'undefined' || projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles)) {
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
       Project.currentProject = await Project.compile(
         provider,
         sourceFiles,
+        projectRootDir,
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
@@ -608,6 +612,7 @@ export class Project {
         provider,
         sourceFiles,
         projectArtifact,
+        projectRootDir,
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
@@ -723,13 +728,6 @@ export class Contract extends Artifact {
     return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug)
   }
 
-  async fetchState(address: string, group: number): Promise<ContractState> {
-    const state = await web3.getCurrentNodeProvider().contracts.getContractsAddressState(address, {
-      group: group
-    })
-    return this.fromApiContractState(state)
-  }
-
   override toString(): string {
     const object = {
       version: this.version,
@@ -743,7 +741,7 @@ export class Contract extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  toState(fields: Fields, asset: Asset, address?: string): ContractState {
+  toState<T extends Fields>(fields: T, asset: Asset, address?: string): ContractState<T> {
     const addressDef = typeof address !== 'undefined' ? address : Contract.randomAddress()
     return {
       address: addressDef,
@@ -764,51 +762,11 @@ export class Contract extends Artifact {
     return bs58.encode(bytes)
   }
 
-  private _printDebugMessages(funcName: string, messages: DebugMessage[]) {
+  printDebugMessages(funcName: string, messages: DebugMessage[]) {
     if (messages.length != 0) {
       console.log(`Testing ${this.name}.${funcName}:`)
       messages.forEach((m) => console.log(`Debug - ${m.contractAddress} - ${m.message}`))
     }
-  }
-
-  private async _test(
-    funcName: string,
-    params: TestContractParams,
-    expectPublic: boolean,
-    accessType: string,
-    printDebugMessages: boolean
-  ): Promise<TestContractResult> {
-    const apiParams: node.TestContract = this.toTestContract(funcName, params)
-    const apiResult = await web3.getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
-
-    const methodIndex =
-      typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
-    const isPublic = this.functions[`${methodIndex}`].isPublic
-    if (printDebugMessages) {
-      this._printDebugMessages(funcName, apiResult.debugMessages)
-    }
-    if (isPublic === expectPublic) {
-      const result = await this.fromTestContractResult(methodIndex, apiResult)
-      return result
-    } else {
-      throw new Error(`The test method ${funcName} is not ${accessType}`)
-    }
-  }
-
-  async testPublicMethod(
-    funcName: string,
-    params: TestContractParams,
-    printDebugMessages = true
-  ): Promise<TestContractResult> {
-    return this._test(funcName, params, true, 'public', printDebugMessages)
-  }
-
-  async testPrivateMethod(
-    funcName: string,
-    params: TestContractParams,
-    printDebugMessages = true
-  ): Promise<TestContractResult> {
-    return this._test(funcName, params, false, 'private', printDebugMessages)
   }
 
   toApiFields(fields?: Fields): node.Val[] {
@@ -840,7 +798,7 @@ export class Contract extends Artifact {
     return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
   }
 
-  toTestContract(funcName: string, params: TestContractParams): node.TestContract {
+  toApiTestContractParams(funcName: string, params: TestContractParams): node.TestContract {
     const immFields =
       params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, false)
     const mutFields =
@@ -859,7 +817,7 @@ export class Contract extends Artifact {
     }
   }
 
-  fromApiContractState(state: node.ContractState): ContractState {
+  fromApiContractState(state: node.ContractState): ContractState<Fields> {
     return {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
@@ -877,24 +835,26 @@ export class Contract extends Artifact {
     return contract.fromApiContractState(state)
   }
 
+  static ContractCreatedEventIndex = -1
   static ContractCreatedEvent: EventSig = {
     name: 'ContractCreated',
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
 
+  static ContractDestroyedEventIndex = -2
   static ContractDestroyedEvent: EventSig = {
     name: 'ContractDestroyed',
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
 
-  static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined): ContractEventByTxId {
+  static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined, txId: string): ContractEvent {
     let eventSig: EventSig
 
-    if (event.eventIndex == -1) {
+    if (event.eventIndex == Contract.ContractCreatedEventIndex) {
       eventSig = this.ContractCreatedEvent
-    } else if (event.eventIndex == -2) {
+    } else if (event.eventIndex == Contract.ContractDestroyedEventIndex) {
       eventSig = this.ContractDestroyedEvent
     } else {
       const contract = Project.currentProject.contractByCodeHash(codeHash!)
@@ -902,14 +862,16 @@ export class Contract extends Artifact {
     }
 
     return {
+      txId: txId,
       blockHash: event.blockHash,
       contractAddress: event.contractAddress,
       name: eventSig.name,
+      eventIndex: event.eventIndex,
       fields: fromApiEventFields(event.fields, eventSig)
     }
   }
 
-  fromTestContractResult(methodIndex: number, result: node.TestContractResult): TestContractResult {
+  fromApiTestContractResult(methodIndex: number, result: node.TestContractResult, txId: string): TestContractResult {
     const addressToCodeHash = new Map<string, string>()
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
@@ -920,46 +882,78 @@ export class Contract extends Artifact {
       gasUsed: result.gasUsed,
       contracts: result.contracts.map((contract) => Contract.fromApiContractState(contract)),
       txOutputs: result.txOutputs.map(fromApiOutput),
-      events: result.events.map((event) => {
-        const contractAddress = event.contractAddress
-        const codeHash = addressToCodeHash.get(contractAddress)
-        if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
-          return Contract.fromApiEvent(event, codeHash)
-        } else {
-          throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
-        }
-      }),
+      events: Contract.fromApiEvents(result.events, addressToCodeHash, txId),
       debugMessages: result.debugMessages
     }
   }
 
-  async txParamsForDeployment(
+  async txParamsForDeployment<P extends Fields>(
     signer: SignerProvider,
-    params: Omit<BuildDeployContractTx, 'signerAddress'>
+    params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
-    const bytecode = this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {})
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
     const signerParams: SignDeployContractTxParams = {
       signerAddress: await signer.getSelectedAddress(),
       bytecode: bytecode,
-      initialAttoAlphAmount: params.initialAttoAlphAmount,
-      issueTokenAmount: params.issueTokenAmount,
-      initialTokenAmounts: params.initialTokenAmounts,
-      gasAmount: params.gasAmount,
-      gasPrice: params.gasPrice
+      initialAttoAlphAmount: params?.initialAttoAlphAmount,
+      issueTokenAmount: params?.issueTokenAmount,
+      initialTokenAmounts: params?.initialTokenAmounts,
+      gasAmount: params?.gasAmount,
+      gasPrice: params?.gasPrice
     }
     return signerParams
   }
 
-  async deploy(
-    signer: SignerProvider,
-    params: Omit<BuildDeployContractTx, 'signerAddress'>
-  ): Promise<SignDeployContractTxResult> {
-    const signerParams = await this.txParamsForDeployment(signer, params)
-    return signer.signAndSubmitDeployContractTx(signerParams)
-  }
-
   buildByteCodeToDeploy(initialFields: Fields): string {
     return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
+  }
+
+  static fromApiEvents(
+    events: node.ContractEventByTxId[],
+    addressToCodeHash: Map<string, string>,
+    txId: string
+  ): ContractEvent[] {
+    return events.map((event) => {
+      const contractAddress = event.contractAddress
+      const codeHash = addressToCodeHash.get(contractAddress)
+      if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
+        return Contract.fromApiEvent(event, codeHash, txId)
+      } else {
+        throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
+      }
+    })
+  }
+
+  toApiCallContract<T extends Arguments>(
+    params: CallContractParams<T>,
+    groupIndex: number,
+    contractAddress: string,
+    methodIndex: number
+  ): node.CallContract {
+    const functionSig = this.functions[`${methodIndex}`]
+    const args = toApiVals(params.args ?? {}, functionSig.paramNames, functionSig.paramTypes)
+    return {
+      ...params,
+      group: groupIndex,
+      address: contractAddress,
+      methodIndex: methodIndex,
+      args: args
+    }
+  }
+
+  fromApiCallContractResult(result: node.CallContractResult, txId: string, methodIndex: number): CallContractResult {
+    const addressToCodeHash = new Map<string, string>()
+    result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
+    const functionSig = this.functions[`${methodIndex}`]
+    const returns = fromApiArray(result.returns, functionSig.returnTypes)
+    return {
+      returns: returns,
+      gasUsed: result.gasUsed,
+      contracts: result.contracts.map((state) => Contract.fromApiContractState(state)),
+      txInputs: result.txInputs,
+      txOutputs: result.txOutputs.map((output) => fromApiOutput(output)),
+      events: Contract.fromApiEvents(result.events, addressToCodeHash, txId)
+    }
   }
 }
 
@@ -1031,27 +1025,19 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  async txParamsForExecution(
+  async txParamsForExecution<P extends Fields>(
     signer: SignerProvider,
-    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
+    params: ExecuteScriptParams<P>
   ): Promise<SignExecuteScriptTxParams> {
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: await signer.getSelectedAddress(),
-      bytecode: this.buildByteCodeToDeploy(params.initialFields ? params.initialFields : {}),
+      bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
       attoAlphAmount: params.attoAlphAmount,
       tokens: params.tokens,
       gasAmount: params.gasAmount,
       gasPrice: params.gasPrice
     }
     return signerParams
-  }
-
-  async execute(
-    signer: SignerProvider,
-    params: Omit<BuildExecuteScriptTx, 'signerAddress'>
-  ): Promise<SignExecuteScriptTxResult> {
-    const signerParams = await this.txParamsForExecution(signer, params)
-    return await signer.signAndSubmitExecuteScriptTx(signerParams)
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {
@@ -1106,13 +1092,13 @@ export interface InputAsset {
   asset: Asset
 }
 
-export interface ContractState {
+export interface ContractState<T extends Fields = Fields> {
   address: string
   contractId: string
   bytecode: string
   initialStateHash?: string
   codeHash: string
-  fields: Fields
+  fields: T
   fieldsSig: FieldsSig
   asset: Asset
 }
@@ -1135,13 +1121,14 @@ function extractFields(fields: NamedVals, fieldsSig: FieldsSig, mutable: boolean
 }
 
 function toApiContractState(state: ContractState): node.ContractState {
+  const stateFields = state.fields ?? {}
   return {
     address: state.address,
     bytecode: state.bytecode,
     codeHash: state.codeHash,
     initialStateHash: state.initialStateHash,
-    immFields: extractFields(state.fields, state.fieldsSig, false),
-    mutFields: extractFields(state.fields, state.fieldsSig, true),
+    immFields: extractFields(stateFields, state.fieldsSig, false),
+    mutFields: extractFields(stateFields, state.fieldsSig, true),
     asset: toApiAsset(state.asset)
   }
 }
@@ -1154,7 +1141,7 @@ function toApiArgs(args: Arguments, funcSig: FunctionSig): node.Val[] {
   return toApiVals(args, funcSig.paramNames, funcSig.paramTypes)
 }
 
-function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
+export function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
   return names.map((name, index) => {
     const val = getVal(fields, name)
     const tpe = types[`${index}`]
@@ -1170,29 +1157,25 @@ function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | u
   return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 
-export interface TestContractParams {
+export interface TestContractParams<F extends Fields = Fields, A extends Arguments = Arguments> {
   group?: number // default 0
   address?: string
-  initialFields?: Fields // default no fields
+  blockHash?: string
+  txId?: string
+  initialFields: F
   initialAsset?: Asset // default 1 ALPH
-  testMethodIndex?: number // default 0
-  testArgs?: Arguments // default no arguments
+  testArgs: A
   existingContracts?: ContractState[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
 }
 
-export interface ContractEvent {
-  blockHash: string
+export interface ContractEvent<T extends Fields = Fields> {
   txId: string
-  name: string
-  fields: Fields
-}
-
-export interface ContractEventByTxId {
   blockHash: string
   contractAddress: string
+  eventIndex: number
   name: string
-  fields: Fields
+  fields: T
 }
 
 export type DebugMessage = node.DebugMessage
@@ -1204,7 +1187,7 @@ export interface TestContractResult {
   gasUsed: number
   contracts: ContractState[]
   txOutputs: Output[]
-  events: ContractEventByTxId[]
+  events: ContractEvent[]
   debugMessages: DebugMessage[]
 }
 export declare type Output = AssetOutput | ContractOutput
@@ -1245,41 +1228,135 @@ function fromApiOutput(output: node.Output): Output {
   }
 }
 
-export interface DeployContractTransaction {
-  fromGroup: number
-  toGroup: number
-  unsignedTx: string
-  txId: string
-  contractAddress: string
-  contractId: string
+export function randomTxId(): string {
+  const bytes = new Uint8Array(32)
+  crypto.getRandomValues(bytes)
+  return binToHex(bytes)
 }
 
-type BuildTxParams<T> = Omit<T, 'bytecode'> & { initialFields?: Val[] }
-
-export interface BuildDeployContractTx {
-  signerAddress: string
-  initialFields?: Fields
+export interface DeployContractParams<P extends Fields = Fields> {
+  initialFields: P
   initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
   issueTokenAmount?: Number256
   gasAmount?: number
   gasPrice?: Number256
 }
-assertType<Eq<keyof BuildDeployContractTx, keyof BuildTxParams<SignDeployContractTxParams>>>()
+assertType<
+  Eq<
+    Omit<DeployContractParams<undefined>, 'initialFields'>,
+    Omit<SignDeployContractTxParams, 'signerAddress' | 'bytecode'>
+  >
+>
+export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }
 
-export interface BuildExecuteScriptTx {
-  signerAddress: string
-  initialFields?: Fields
+export abstract class ContractFactory<T, P extends Fields = Fields> {
+  readonly contract: Contract
+  constructor(contract: Contract) {
+    this.contract = contract
+  }
+
+  async deploy(signer: SignerProvider, deployParams: DeployContractParams<P>): Promise<DeployContractResult<T>> {
+    const signerParams = await this.contract.txParamsForDeployment(signer, deployParams)
+    const result = await signer.signAndSubmitDeployContractTx(signerParams)
+    return {
+      ...result,
+      instance: this.at(result.contractAddress)
+    }
+  }
+
+  abstract at(address: string): T
+}
+
+export interface ExecuteScriptParams<P extends Fields = Fields> {
+  initialFields: P
   attoAlphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
 }
-assertType<Eq<keyof BuildExecuteScriptTx, keyof BuildTxParams<SignExecuteScriptTxParams>>>()
 
-export interface BuildScriptTxResult {
-  fromGroup: number
-  toGroup: number
+export interface ExecuteScriptResult {
+  groupIndex: number
   unsignedTx: string
   txId: string
+  signature: string
+  gasAmount: number
+  gasPrice: Number256
+}
+
+export interface CallContractParams<T extends Arguments = Arguments> {
+  args: T
+  worldStateBlockHash?: string
+  txId?: string
+  existingContracts?: string[]
+  inputAssets?: node.TestInputAsset[]
+}
+
+export interface CallContractResult {
+  returns: Val[]
+  gasUsed: number
+  contracts: ContractState[]
+  txInputs: string[]
+  txOutputs: Output[]
+  events: ContractEvent[]
+}
+
+export type ContractCreatedEvent = ContractEvent<{ address: HexString }>
+export type ContractDestroyedEvent = ContractEvent<{ address: HexString }>
+
+function decodeFields(event: node.ContractEvent, eventSig: EventSig, eventIndex: number): Fields {
+  if (event.eventIndex !== eventIndex) {
+    throw new Error(`Invalid event index: ${event.eventIndex}, expected: ${eventIndex}`)
+  }
+  return fromApiVals(event.fields, eventSig.fieldNames, eventSig.fieldTypes)
+}
+
+export function decodeContractCreatedEvent(event: node.ContractEvent): Omit<ContractCreatedEvent, 'contractAddress'> {
+  const fields = decodeFields(event, Contract.ContractCreatedEvent, Contract.ContractCreatedEventIndex)
+  return {
+    blockHash: event.blockHash,
+    txId: event.txId,
+    eventIndex: event.eventIndex,
+    name: Contract.ContractCreatedEvent.name,
+    fields: { address: fields['address'] as HexString }
+  }
+}
+
+export function decodeContractDestroyedEvent(
+  event: node.ContractEvent
+): Omit<ContractDestroyedEvent, 'contractAddress'> {
+  const fields = decodeFields(event, Contract.ContractDestroyedEvent, Contract.ContractDestroyedEventIndex)
+  return {
+    blockHash: event.blockHash,
+    txId: event.txId,
+    eventIndex: event.eventIndex,
+    name: Contract.ContractDestroyedEvent.name,
+    fields: { address: fields['address'] as HexString }
+  }
+}
+
+export function subscribeEventsFromContract<T extends Fields>(
+  options: SubscribeOptions<ContractEvent<T>>,
+  address: string,
+  eventIndex: number,
+  decodeFunc: (event: node.ContractEvent) => ContractEvent<T>,
+  fromCount?: number
+): EventSubscription {
+  const messageCallback = (event: node.ContractEvent): Promise<void> => {
+    if (event.eventIndex !== eventIndex) {
+      return Promise.resolve()
+    }
+    return options.messageCallback(decodeFunc(event))
+  }
+
+  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
+    return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<T>>)
+  }
+  const opt: SubscribeOptions<node.ContractEvent> = {
+    pollingInterval: options.pollingInterval,
+    messageCallback: messageCallback,
+    errorCallback: errorCallback
+  }
+  return subscribeToEvents(opt, address, fromCount)
 }

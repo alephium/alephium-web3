@@ -19,3 +19,4 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 export * from './types'
 export * from './utils'
 export * from './deployment'
+export * from './codegen'

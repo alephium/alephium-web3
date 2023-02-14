@@ -10,9 +10,9 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "77c642410e257b6da0a1bc8385b9af562286e407f278a13789f10ac5279693c1",
+      "sourceCodeHash": "afa13fb64cb9e0136d5e646a08ae0bcd45a6e02cd72a1f35a1603c3d9b738b19",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "45e656eed4bb10a58632b9ee6b25f03cc729b33a32271040ddae258fa3759a63",
+      "codeHashDebug": "52d5893e97ce6b8d67d90fe1c51735e6e4f9946de732926fd160a0b50774f61b",
       "warnings": []
     },
     "Assert": {

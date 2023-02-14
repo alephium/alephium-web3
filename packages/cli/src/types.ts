@@ -18,16 +18,20 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import {
   NodeProvider,
-  Contract,
-  Script,
   Account,
-  BuildDeployContractTx,
-  BuildExecuteScriptTx,
+  DeployContractParams,
+  DeployContractResult,
+  Fields,
+  ContractFactory,
+  ExecuteScriptParams,
+  ExecuteScriptResult,
   CompilerOptions,
   web3,
   Project,
   DEFAULT_COMPILER_OPTIONS,
-  Number256
+  Number256,
+  SignerProvider,
+  Script
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 import path from 'path'
@@ -107,13 +111,17 @@ export async function getEnv<Settings = unknown>(configFileName?: string): Promi
 export interface ExecutionResult {
   groupIndex: number
   txId: string
+  unsignedTx: string
+  signature: string
+  gasAmount: number
+  gasPrice: bigint
   blockHash: string
   codeHash: string
   attoAlphAmount?: Number256
   tokens?: Record<string, string>
 }
 
-export interface DeployContractResult extends ExecutionResult {
+export interface DeployContractExecutionResult extends ExecutionResult {
   contractId: string
   contractAddress: string
   issueTokenAmount?: Number256
@@ -121,18 +129,24 @@ export interface DeployContractResult extends ExecutionResult {
 
 export type RunScriptResult = ExecutionResult
 
-export type DeployContractParams = Omit<BuildDeployContractTx, 'signerAddress'>
-
-export type RunScriptParams = Omit<BuildExecuteScriptTx, 'signerAddress'>
-
 export interface Deployer {
   provider: NodeProvider
   account: Account
 
-  deployContract(contract: Contract, params: DeployContractParams, taskTag?: string): Promise<DeployContractResult>
-  runScript(script: Script, params: RunScriptParams, taskTag?: string): Promise<RunScriptResult>
+  deployContract<T, P extends Fields>(
+    constractFactory: ContractFactory<T, P>,
+    params: DeployContractParams<P>,
+    taskTag?: string
+  ): Promise<DeployContractResult<T>>
 
-  getDeployContractResult(name: string): DeployContractResult
+  runScript<P extends Fields>(
+    executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
+    script: Script,
+    params: ExecuteScriptParams<P>,
+    taskTag?: string
+  ): Promise<ExecuteScriptResult>
+
+  getDeployContractResult(name: string): DeployContractExecutionResult
   getRunScriptResult(name: string): RunScriptResult
 }
 
