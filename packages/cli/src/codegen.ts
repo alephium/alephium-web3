@@ -287,8 +287,8 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
   const contractHasFields = contract.fieldsSig.names.length > 0
   const argsType = funcHasArgs
     ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
-    : '{}'
-  const fieldsType = contractHasFields ? `${contractFieldType(contract)}` : '{}'
+    : 'never'
+  const fieldsType = contractHasFields ? `${contractFieldType(contract)}` : 'never'
   const params =
     funcHasArgs && contractHasFields
       ? `params: TestContractParams<${fieldsType}, ${argsType}>`
@@ -300,35 +300,14 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const retType =
     tsReturnTypes.length === 0
-      ? `Omit<TestContractResult, 'returns'>`
+      ? `TestContractResult<null>`
       : tsReturnTypes.length === 1
-      ? `Omit<TestContractResult, 'returns'> & { returns: ${tsReturnTypes[0]} }`
-      : `Omit<TestContractResult, 'returns'> & { returns: [${tsReturnTypes.join(', ')}] }`
+      ? `TestContractResult<${tsReturnTypes[0]}>`
+      : `TestContractResult<[${tsReturnTypes.join(', ')}]>`
+  const callParams = funcHasArgs || contractHasFields ? 'params' : 'params === undefined ? {} : params'
   return `
     async test${funcName}Method(${params}): Promise<${retType}> {
-      const txId = params?.txId ?? randomTxId()
-      const apiParams = this.contract.toApiTestContractParams(
-        '${functionSig.name}',
-        {
-          ...params, txId: txId,
-          ${funcHasArgs ? '' : 'testArgs: {},'}
-          ${contractHasFields ? '' : 'initialFields: {}'}
-        }
-      )
-      const apiResult = await web3.getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
-      const testResult = this.contract.fromApiTestContractResult(${index}, apiResult, txId)
-      this.contract.printDebugMessages('${functionSig.name}', testResult.debugMessages)
-      ${tsReturnTypes.length === 0 ? '' : `const testReturns = testResult.returns as [${tsReturnTypes.join(', ')}]`}
-      return {
-        ...testResult,
-        ${
-          tsReturnTypes.length === 0
-            ? ''
-            : tsReturnTypes.length === 1
-            ? 'returns: testReturns[0]'
-            : 'returns: testReturns'
-        }
-      }
+      return testMethod(this, "${functionSig.name}", ${callParams})
     }
   `
 }
@@ -367,7 +346,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       web3, Address, Contract, ContractState, node, binToHex, TestContractResult, Asset, HexString,
       ContractFactory, contractIdFromAddress, ONE_ALPH, groupOfAddress, fromApiVals, subscribeToEvents,
       SubscribeOptions, Subscription, EventSubscription, randomTxId, CallContractParams, CallContractResult,
-      TestContractParams, ContractEvent, subscribeEventsFromContract, decodeContractCreatedEvent,
+      TestContractParams, ContractEvent, subscribeEventsFromContract, testMethod, decodeContractCreatedEvent,
       decodeContractDestroyedEvent, ContractCreatedEvent, ContractDestroyedEvent
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'

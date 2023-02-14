@@ -43,7 +43,16 @@ import {
   SignerProvider
 } from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress, SubscribeOptions, Subscription, assertType, Eq } from '../utils'
+import {
+  bs58,
+  binToHex,
+  contractIdFromAddress,
+  SubscribeOptions,
+  Subscription,
+  assertType,
+  Eq,
+  Optional
+} from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
@@ -872,14 +881,23 @@ export class Contract extends Artifact {
     }
   }
 
-  fromApiTestContractResult(methodIndex: number, result: node.TestContractResult, txId: string): TestContractResult {
+  fromApiTestContractResult(
+    methodName: string,
+    result: node.TestContractResult,
+    txId: string
+  ): TestContractResult<unknown> {
+    const methodIndex = this.functions.findIndex((sig) => sig.name === methodName)
+    const returnTypes = this.functions[`${methodIndex}`].returnTypes
+    const rawReturn = fromApiArray(result.returns, returnTypes)
+    const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
+
     const addressToCodeHash = new Map<string, string>()
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
     return {
       contractId: binToHex(contractIdFromAddress(result.address)),
       contractAddress: result.address,
-      returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
+      returns: returns,
       gasUsed: result.gasUsed,
       contracts: result.contracts.map((contract) => Contract.fromApiContractState(contract)),
       txOutputs: result.txOutputs.map(fromApiOutput),
@@ -1181,10 +1199,10 @@ export interface ContractEvent<T extends Fields = Fields> {
 
 export type DebugMessage = node.DebugMessage
 
-export interface TestContractResult {
+export interface TestContractResult<R> {
   contractId: string
   contractAddress: string
-  returns: Val[]
+  returns: R
   gasUsed: number
   contracts: ContractState[]
   txOutputs: Output[]
@@ -1370,4 +1388,22 @@ export function subscribeEventsFromContract<T extends Fields>(
     errorCallback: errorCallback
   }
   return subscribeToEvents(opt, address, fromCount)
+}
+
+export async function testMethod<I, F extends Fields, A extends Arguments, R>(
+  contract: ContractFactory<I, F>,
+  methodName: string,
+  params: Optional<TestContractParams<F, A>, 'testArgs' | 'initialFields'>
+): Promise<TestContractResult<R>> {
+  const txId = params?.txId ?? randomTxId()
+  const apiParams = contract.contract.toApiTestContractParams(methodName, {
+    ...params,
+    txId: txId,
+    initialFields: params.initialFields === undefined ? {} : params.initialFields,
+    testArgs: params.testArgs === undefined ? {} : params.testArgs
+  })
+  const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
+  const testResult = contract.contract.fromApiTestContractResult(methodName, apiResult, txId)
+  contract.contract.printDebugMessages(methodName, testResult.debugMessages)
+  return testResult as TestContractResult<R>
 }

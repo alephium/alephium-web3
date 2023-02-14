@@ -27,6 +27,7 @@ import {
   TestContractParams,
   ContractEvent,
   subscribeEventsFromContract,
+  testMethod,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -53,54 +54,14 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 
   async testAddMethod(
     params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-  ): Promise<
-    Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
-  > {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("add", {
-      ...params,
-      txId: txId,
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      0,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("add", testResult.debugMessages);
-    const testReturns = testResult.returns as [[bigint, bigint]];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+  ): Promise<TestContractResult<[bigint, bigint]>> {
+    return testMethod(this, "add", params);
   }
 
   async testAddPrivateMethod(
     params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-  ): Promise<
-    Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
-  > {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("addPrivate", {
-      ...params,
-      txId: txId,
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      1,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("addPrivate", testResult.debugMessages);
-    const testReturns = testResult.returns as [[bigint, bigint]];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+  ): Promise<TestContractResult<[bigint, bigint]>> {
+    return testMethod(this, "addPrivate", params);
   }
 }
 

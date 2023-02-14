@@ -27,6 +27,7 @@ import {
   TestContractParams,
   ContractEvent,
   subscribeEventsFromContract,
+  testMethod,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -48,28 +49,9 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
   }
 
   async testGreetMethod(
-    params: Omit<TestContractParams<GreeterTypes.Fields, {}>, "testArgs">
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("greet", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      0,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("greet", testResult.debugMessages);
-    const testReturns = testResult.returns as [bigint];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+    params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
+  ): Promise<TestContractResult<bigint>> {
+    return testMethod(this, "greet", params);
   }
 }
 

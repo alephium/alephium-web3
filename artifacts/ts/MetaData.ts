@@ -27,6 +27,7 @@ import {
   TestContractParams,
   ContractEvent,
   subscribeEventsFromContract,
+  testMethod,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -44,78 +45,30 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
   }
 
   async testFooMethod(
-    params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
-  ): Promise<Omit<TestContractResult, "returns">> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("foo", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-      initialFields: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      0,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("foo", testResult.debugMessages);
-
-    return {
-      ...testResult,
-    };
+    params?: Omit<
+      TestContractParams<never, never>,
+      "testArgs" | "initialFields"
+    >
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "foo", params === undefined ? {} : params);
   }
 
   async testBarMethod(
-    params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
-  ): Promise<Omit<TestContractResult, "returns">> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("bar", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-      initialFields: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      1,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("bar", testResult.debugMessages);
-
-    return {
-      ...testResult,
-    };
+    params?: Omit<
+      TestContractParams<never, never>,
+      "testArgs" | "initialFields"
+    >
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "bar", params === undefined ? {} : params);
   }
 
   async testBazMethod(
-    params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
-  ): Promise<Omit<TestContractResult, "returns">> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("baz", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-      initialFields: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      2,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("baz", testResult.debugMessages);
-
-    return {
-      ...testResult,
-    };
+    params?: Omit<
+      TestContractParams<never, never>,
+      "testArgs" | "initialFields"
+    >
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "baz", params === undefined ? {} : params);
   }
 }
 

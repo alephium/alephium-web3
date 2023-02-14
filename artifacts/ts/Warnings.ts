@@ -27,6 +27,7 @@ import {
   TestContractParams,
   ContractEvent,
   subscribeEventsFromContract,
+  testMethod,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -50,25 +51,8 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
 
   async testFooMethod(
     params: TestContractParams<WarningsTypes.Fields, { x: bigint; y: bigint }>
-  ): Promise<Omit<TestContractResult, "returns">> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("foo", {
-      ...params,
-      txId: txId,
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      0,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("foo", testResult.debugMessages);
-
-    return {
-      ...testResult,
-    };
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "foo", params);
   }
 }
 

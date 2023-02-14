@@ -27,6 +27,7 @@ import {
   TestContractParams,
   ContractEvent,
   subscribeEventsFromContract,
+  testMethod,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -54,106 +55,27 @@ class Factory extends ContractFactory<
   }
 
   async testGetSymbolMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("getSymbol", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      0,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("getSymbol", testResult.debugMessages);
-    const testReturns = testResult.returns as [HexString];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+  ): Promise<TestContractResult<HexString>> {
+    return testMethod(this, "getSymbol", params);
   }
 
   async testGetNameMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("getName", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      1,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("getName", testResult.debugMessages);
-    const testReturns = testResult.returns as [HexString];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+  ): Promise<TestContractResult<HexString>> {
+    return testMethod(this, "getName", params);
   }
 
   async testGetDecimalsMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("getDecimals", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      2,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("getDecimals", testResult.debugMessages);
-    const testReturns = testResult.returns as [bigint];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+  ): Promise<TestContractResult<bigint>> {
+    return testMethod(this, "getDecimals", params);
   }
 
   async testGetTotalSupplyMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, {}>, "testArgs">
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("getTotalSupply", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      3,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages(
-      "getTotalSupply",
-      testResult.debugMessages
-    );
-    const testReturns = testResult.returns as [bigint];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+  ): Promise<TestContractResult<bigint>> {
+    return testMethod(this, "getTotalSupply", params);
   }
 }
 
