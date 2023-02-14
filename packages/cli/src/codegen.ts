@@ -470,10 +470,7 @@ function genScript(script: Script): string {
       export async function execute(signer: SignerProvider, params: ${paramsType}): Promise<ExecuteScriptResult> {
         const signerParams = await script.txParamsForExecution(signer, params)
         const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
-        return {
-          ...result,
-          groupIndex: result.fromGroup
-        }
+        return result
       }
 
       export const script = Script.fromJson(${script.name}ScriptJson)

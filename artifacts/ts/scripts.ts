@@ -20,10 +20,7 @@ export namespace GreeterMain {
   ): Promise<ExecuteScriptResult> {
     const signerParams = await script.txParamsForExecution(signer, params);
     const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
-    return {
-      ...result,
-      groupIndex: result.groupIndex,
-    };
+    return result;
   }
 
   export const script = Script.fromJson(GreeterMainScriptJson);
@@ -36,10 +33,7 @@ export namespace Main {
   ): Promise<ExecuteScriptResult> {
     const signerParams = await script.txParamsForExecution(signer, params);
     const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
-    return {
-      ...result,
-      groupIndex: result.groupIndex,
-    };
+    return result;
   }
 
   export const script = Script.fromJson(MainScriptJson);
