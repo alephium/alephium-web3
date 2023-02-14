@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 
+// Custom types for the contract
 export namespace MetaDataTypes {
   export type State = Omit<ContractState<any>, "fields">;
 }
@@ -65,6 +66,7 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
   }
 }
 
+// Use this object to test and deploy the contract
 export const MetaData = new Factory(
   Contract.fromJson(
     MetaDataContractJson,
@@ -73,6 +75,7 @@ export const MetaData = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class MetaDataInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);

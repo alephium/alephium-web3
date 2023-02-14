@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
 
+// Custom types for the contract
 export namespace AddTypes {
   export type Fields = {
     sub: HexString;
@@ -58,6 +59,7 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
   }
 }
 
+// Use this object to test and deploy the contract
 export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
@@ -66,6 +68,7 @@ export const Add = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class AddInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);

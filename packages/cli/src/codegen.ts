@@ -240,6 +240,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
+    // Custom types for the contract
     export namespace ${contract.name}Types {
       ${genContractStateType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
@@ -250,12 +251,14 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.functions.map((f) => genTestMethod(contract, f)).join('\n')}
     }
 
+    // Use this object to test and deploy the contract
     export const ${contract.name} = new Factory(Contract.fromJson(
       ${contract.name}ContractJson,
       '${contractInfo.bytecodeDebugPatch}',
       '${contractInfo.codeHashDebug}',
     ))
 
+    // Use this class to interact with the blockchain
     export class ${contract.name}Instance extends ContractInstance {
       constructor(address: Address) {
         super(address)

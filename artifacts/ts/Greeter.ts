@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/greeter.ral.json";
 
+// Custom types for the contract
 export namespace GreeterTypes {
   export type Fields = {
     btcPrice: bigint;
@@ -48,6 +49,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
   }
 }
 
+// Use this object to test and deploy the contract
 export const Greeter = new Factory(
   Contract.fromJson(
     GreeterContractJson,
@@ -56,6 +58,7 @@ export const Greeter = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class GreeterInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);

@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/warnings.ral.json";
 
+// Custom types for the contract
 export namespace WarningsTypes {
   export type Fields = {
     a: bigint;
@@ -49,6 +50,7 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
   }
 }
 
+// Use this object to test and deploy the contract
 export const Warnings = new Factory(
   Contract.fromJson(
     WarningsContractJson,
@@ -57,6 +59,7 @@ export const Warnings = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class WarningsInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);

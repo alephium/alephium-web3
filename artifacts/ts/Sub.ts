@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/sub.ral.json";
 
+// Custom types for the contract
 export namespace SubTypes {
   export type Fields = {
     result: bigint;
@@ -50,6 +51,7 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
   }
 }
 
+// Use this object to test and deploy the contract
 export const Sub = new Factory(
   Contract.fromJson(
     SubContractJson,
@@ -58,6 +60,7 @@ export const Sub = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class SubInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);

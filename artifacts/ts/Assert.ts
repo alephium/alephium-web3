@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/assert.ral.json";
 
+// Custom types for the contract
 export namespace AssertTypes {
   export type State = Omit<ContractState<any>, "fields">;
 }
@@ -47,6 +48,7 @@ class Factory extends ContractFactory<AssertInstance, {}> {
   }
 }
 
+// Use this object to test and deploy the contract
 export const Assert = new Factory(
   Contract.fromJson(
     AssertContractJson,
@@ -55,6 +57,7 @@ export const Assert = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class AssertInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);

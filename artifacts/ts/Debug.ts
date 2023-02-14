@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as DebugContractJson } from "../test/debug.ral.json";
 
+// Custom types for the contract
 export namespace DebugTypes {
   export type State = Omit<ContractState<any>, "fields">;
 }
@@ -47,6 +48,7 @@ class Factory extends ContractFactory<DebugInstance, {}> {
   }
 }
 
+// Use this object to test and deploy the contract
 export const Debug = new Factory(
   Contract.fromJson(
     DebugContractJson,
@@ -55,6 +57,7 @@ export const Debug = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class DebugInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);

@@ -28,6 +28,7 @@ import {
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token_test.ral.json";
 
+// Custom types for the contract
 export namespace TokenTestTypes {
   export type Fields = {
     symbol: HexString;
@@ -72,6 +73,7 @@ class Factory extends ContractFactory<
   }
 }
 
+// Use this object to test and deploy the contract
 export const TokenTest = new Factory(
   Contract.fromJson(
     TokenTestContractJson,
@@ -80,6 +82,7 @@ export const TokenTest = new Factory(
   )
 );
 
+// Use this class to interact with the blockchain
 export class TokenTestInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
