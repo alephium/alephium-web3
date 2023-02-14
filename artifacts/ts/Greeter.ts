@@ -6,12 +6,9 @@ import {
   Address,
   Contract,
   ContractState,
-  binToHex,
   TestContractResult,
   HexString,
   ContractFactory,
-  contractIdFromAddress,
-  groupOfAddress,
   SubscribeOptions,
   EventSubscription,
   CallContractParams,
@@ -27,6 +24,7 @@ import {
   fetchContractState,
   ContractCreatedEvent,
   ContractDestroyedEvent,
+  ContractInstance,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/greeter.ral.json";
 
@@ -58,15 +56,9 @@ export const Greeter = new Factory(
   )
 );
 
-export class GreeterInstance {
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-
+export class GreeterInstance extends ContractInstance {
   constructor(address: Address) {
-    this.address = address;
-    this.contractId = binToHex(contractIdFromAddress(address));
-    this.groupIndex = groupOfAddress(address);
+    super(address);
   }
 
   async fetchState(): Promise<GreeterTypes.State> {

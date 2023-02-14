@@ -6,12 +6,9 @@ import {
   Address,
   Contract,
   ContractState,
-  binToHex,
   TestContractResult,
   HexString,
   ContractFactory,
-  contractIdFromAddress,
-  groupOfAddress,
   SubscribeOptions,
   EventSubscription,
   CallContractParams,
@@ -27,6 +24,7 @@ import {
   fetchContractState,
   ContractCreatedEvent,
   ContractDestroyedEvent,
+  ContractInstance,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/sub.ral.json";
 
@@ -60,15 +58,9 @@ export const Sub = new Factory(
   )
 );
 
-export class SubInstance {
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-
+export class SubInstance extends ContractInstance {
   constructor(address: Address) {
-    this.address = address;
-    this.contractId = binToHex(contractIdFromAddress(address));
-    this.groupIndex = groupOfAddress(address);
+    super(address);
   }
 
   async fetchState(): Promise<SubTypes.State> {

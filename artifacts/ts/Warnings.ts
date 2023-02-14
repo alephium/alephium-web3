@@ -6,12 +6,9 @@ import {
   Address,
   Contract,
   ContractState,
-  binToHex,
   TestContractResult,
   HexString,
   ContractFactory,
-  contractIdFromAddress,
-  groupOfAddress,
   SubscribeOptions,
   EventSubscription,
   CallContractParams,
@@ -27,6 +24,7 @@ import {
   fetchContractState,
   ContractCreatedEvent,
   ContractDestroyedEvent,
+  ContractInstance,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/warnings.ral.json";
 
@@ -59,15 +57,9 @@ export const Warnings = new Factory(
   )
 );
 
-export class WarningsInstance {
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-
+export class WarningsInstance extends ContractInstance {
   constructor(address: Address) {
-    this.address = address;
-    this.contractId = binToHex(contractIdFromAddress(address));
-    this.groupIndex = groupOfAddress(address);
+    super(address);
   }
 
   async fetchState(): Promise<WarningsTypes.State> {

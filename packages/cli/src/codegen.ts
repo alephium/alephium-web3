@@ -233,11 +233,10 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     ${header}
 
     import {
-      Address, Contract, ContractState, binToHex, TestContractResult, HexString,
-      ContractFactory, contractIdFromAddress, groupOfAddress,
+      Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
       SubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractCreatedEvent, subscribeContractDestroyedEvent, subscribeContractEvent, subscribeAllEvents, testMethod, callMethod, fetchContractState,
-      ContractCreatedEvent, ContractDestroyedEvent
+      ContractCreatedEvent, ContractDestroyedEvent, ContractInstance
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
@@ -257,17 +256,9 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       '${contractInfo.codeHashDebug}',
     ))
 
-    export class ${contract.name}Instance {
-      readonly address: Address
-      readonly contractId: string
-      readonly groupIndex: number
-
-      constructor(
-        address: Address,
-      ) {
-        this.address = address
-        this.contractId = binToHex(contractIdFromAddress(address));
-        this.groupIndex = groupOfAddress(address);
+    export class ${contract.name}Instance extends ContractInstance {
+      constructor(address: Address) {
+        super(address)
       }
 
       ${genFetchState(contract)}

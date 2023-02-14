@@ -6,12 +6,9 @@ import {
   Address,
   Contract,
   ContractState,
-  binToHex,
   TestContractResult,
   HexString,
   ContractFactory,
-  contractIdFromAddress,
-  groupOfAddress,
   SubscribeOptions,
   EventSubscription,
   CallContractParams,
@@ -27,6 +24,7 @@ import {
   fetchContractState,
   ContractCreatedEvent,
   ContractDestroyedEvent,
+  ContractInstance,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 
@@ -75,15 +73,9 @@ export const MetaData = new Factory(
   )
 );
 
-export class MetaDataInstance {
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-
+export class MetaDataInstance extends ContractInstance {
   constructor(address: Address) {
-    this.address = address;
-    this.contractId = binToHex(contractIdFromAddress(address));
-    this.groupIndex = groupOfAddress(address);
+    super(address);
   }
 
   async fetchState(): Promise<MetaDataTypes.State> {

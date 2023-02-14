@@ -6,12 +6,9 @@ import {
   Address,
   Contract,
   ContractState,
-  binToHex,
   TestContractResult,
   HexString,
   ContractFactory,
-  contractIdFromAddress,
-  groupOfAddress,
   SubscribeOptions,
   EventSubscription,
   CallContractParams,
@@ -27,6 +24,7 @@ import {
   fetchContractState,
   ContractCreatedEvent,
   ContractDestroyedEvent,
+  ContractInstance,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
 
@@ -68,15 +66,9 @@ export const Add = new Factory(
   )
 );
 
-export class AddInstance {
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-
+export class AddInstance extends ContractInstance {
   constructor(address: Address) {
-    this.address = address;
-    this.contractId = binToHex(contractIdFromAddress(address));
-    this.groupIndex = groupOfAddress(address);
+    super(address);
   }
 
   async fetchState(): Promise<AddTypes.State> {
