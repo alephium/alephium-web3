@@ -36,15 +36,15 @@ export namespace TokenTest {
   export type State = Fields & Omit<ContractState, "fields">;
 
   export class Factory extends ContractFactory<TokenTestInstance, Fields> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<Fields>
     ): Promise<DeployContractResult<TokenTestInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -77,7 +77,7 @@ export namespace TokenTest {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return TokenTest.artifact.toState(initFields, newAsset, address);
+    return TokenTest.contract.toState(initFields, newAsset, address);
   }
 
   export async function testGetSymbolMethod(
@@ -101,7 +101,7 @@ export namespace TokenTest {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod(
+    const testResult = await contract.testPublicMethod(
       "getSymbol",
       _testParams
     );
@@ -133,7 +133,7 @@ export namespace TokenTest {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("getName", _testParams);
+    const testResult = await contract.testPublicMethod("getName", _testParams);
     const testReturns = testResult.returns as [HexString];
     return {
       ...testResult,
@@ -162,7 +162,7 @@ export namespace TokenTest {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod(
+    const testResult = await contract.testPublicMethod(
       "getDecimals",
       _testParams
     );
@@ -194,7 +194,7 @@ export namespace TokenTest {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod(
+    const testResult = await contract.testPublicMethod(
       "getTotalSupply",
       _testParams
     );
@@ -205,8 +205,8 @@ export namespace TokenTest {
     };
   }
 
-  export const artifact = Contract.fromJson(TokenTestContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(TokenTestContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class TokenTestInstance {
@@ -221,7 +221,7 @@ export class TokenTestInstance {
   }
 
   async fetchState(): Promise<TokenTest.State> {
-    const state = await TokenTest.artifact.fetchState(
+    const state = await TokenTest.contract.fetchState(
       this.address,
       this.groupIndex
     );

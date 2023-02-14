@@ -55,7 +55,7 @@ describe('contract', function () {
     expect(testResult.returns).toEqual([3n, 1n])
     expect(testResult.contracts[0].codeHash).toEqual(subState.codeHash)
     expect(testResult.contracts[0].fields.result).toEqual(1n)
-    expect(testResult.contracts[1].codeHash).toEqual(Add.artifact.codeHash)
+    expect(testResult.contracts[1].codeHash).toEqual(Add.contract.codeHash)
     expect(testResult.contracts[1].fields.sub).toEqual(subState.contractId)
     expect(testResult.contracts[1].fields.result).toEqual(3n)
     const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
@@ -113,7 +113,7 @@ describe('contract', function () {
 
     const testResult = await Greeter.testGreetMethod({ btcPrice: 1n })
     expect(testResult.returns).toEqual(1n)
-    expect(testResult.contracts[0].codeHash).toEqual(Greeter.artifact.codeHash)
+    expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
     const greeter = (await Greeter.factory.deploy(signer, { initialFields: { btcPrice: 1n } })).instance
@@ -166,10 +166,10 @@ describe('contract', function () {
   it('should extract metadata of contracts', async () => {
     await Project.build({ errorOnWarnings: false })
 
-    expect(MetaData.artifact.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
-    expect(MetaData.artifact.publicFunctions()).toEqual(['foo'])
-    expect(MetaData.artifact.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
-    expect(MetaData.artifact.usingAssetsInContractFunctions()).toEqual(['bar'])
+    expect(MetaData.contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
+    expect(MetaData.contract.publicFunctions()).toEqual(['foo'])
+    expect(MetaData.contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
+    expect(MetaData.contract.usingAssetsInContractFunctions()).toEqual(['bar'])
   })
 
   it('should handle compiler warnings', async () => {

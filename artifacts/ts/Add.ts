@@ -55,15 +55,15 @@ export namespace Add {
   };
 
   export class Factory extends ContractFactory<AddInstance, Fields> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<Fields>
     ): Promise<DeployContractResult<AddInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -96,7 +96,7 @@ export namespace Add {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Add.artifact.toState(initFields, newAsset, address);
+    return Add.contract.toState(initFields, newAsset, address);
   }
 
   export async function testAddMethod(
@@ -123,7 +123,7 @@ export namespace Add {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("add", _testParams);
+    const testResult = await contract.testPublicMethod("add", _testParams);
     const testReturns = testResult.returns as [[bigint, bigint]];
     return {
       ...testResult,
@@ -155,7 +155,7 @@ export namespace Add {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPrivateMethod(
+    const testResult = await contract.testPrivateMethod(
       "addPrivate",
       _testParams
     );
@@ -166,8 +166,8 @@ export namespace Add {
     };
   }
 
-  export const artifact = Contract.fromJson(AddContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(AddContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class AddInstance {
@@ -182,7 +182,7 @@ export class AddInstance {
   }
 
   async fetchState(): Promise<Add.State> {
-    const state = await Add.artifact.fetchState(this.address, this.groupIndex);
+    const state = await Add.contract.fetchState(this.address, this.groupIndex);
     return {
       ...state,
       sub: state.fields["sub"] as HexString,

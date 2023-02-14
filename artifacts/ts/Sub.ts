@@ -46,15 +46,15 @@ export namespace Sub {
   };
 
   export class Factory extends ContractFactory<SubInstance, Fields> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<Fields>
     ): Promise<DeployContractResult<SubInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -87,7 +87,7 @@ export namespace Sub {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Sub.artifact.toState(initFields, newAsset, address);
+    return Sub.contract.toState(initFields, newAsset, address);
   }
 
   export async function testSubMethod(
@@ -112,7 +112,7 @@ export namespace Sub {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("sub", _testParams);
+    const testResult = await contract.testPublicMethod("sub", _testParams);
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -120,8 +120,8 @@ export namespace Sub {
     };
   }
 
-  export const artifact = Contract.fromJson(SubContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(SubContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class SubInstance {
@@ -136,7 +136,7 @@ export class SubInstance {
   }
 
   async fetchState(): Promise<Sub.State> {
-    const state = await Sub.artifact.fetchState(this.address, this.groupIndex);
+    const state = await Sub.contract.fetchState(this.address, this.groupIndex);
     return {
       ...state,
       result: state.fields["result"] as bigint,

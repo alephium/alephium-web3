@@ -29,15 +29,15 @@ export namespace MetaData {
   export type State = Omit<ContractState, "fields">;
 
   export class Factory extends ContractFactory<MetaDataInstance, undefined> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<undefined>
     ): Promise<DeployContractResult<MetaDataInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -66,7 +66,7 @@ export namespace MetaData {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return MetaData.artifact.toState({}, newAsset, address);
+    return MetaData.contract.toState({}, newAsset, address);
   }
 
   export async function testFooMethod(testParams?: {
@@ -87,7 +87,7 @@ export namespace MetaData {
       initialFields: {},
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("foo", _testParams);
+    const testResult = await contract.testPublicMethod("foo", _testParams);
     const testReturns = testResult.returns as [];
     return {
       ...testResult,
@@ -112,7 +112,7 @@ export namespace MetaData {
       initialFields: {},
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPrivateMethod("bar", _testParams);
+    const testResult = await contract.testPrivateMethod("bar", _testParams);
     const testReturns = testResult.returns as [];
     return {
       ...testResult,
@@ -137,15 +137,15 @@ export namespace MetaData {
       initialFields: {},
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPrivateMethod("baz", _testParams);
+    const testResult = await contract.testPrivateMethod("baz", _testParams);
     const testReturns = testResult.returns as [];
     return {
       ...testResult,
     };
   }
 
-  export const artifact = Contract.fromJson(MetaDataContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(MetaDataContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class MetaDataInstance {
@@ -160,7 +160,7 @@ export class MetaDataInstance {
   }
 
   async fetchState(): Promise<MetaData.State> {
-    const state = await MetaData.artifact.fetchState(
+    const state = await MetaData.contract.fetchState(
       this.address,
       this.groupIndex
     );

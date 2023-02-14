@@ -29,15 +29,15 @@ export namespace Debug {
   export type State = Omit<ContractState, "fields">;
 
   export class Factory extends ContractFactory<DebugInstance, undefined> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<undefined>
     ): Promise<DeployContractResult<DebugInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -66,7 +66,7 @@ export namespace Debug {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Debug.artifact.toState({}, newAsset, address);
+    return Debug.contract.toState({}, newAsset, address);
   }
 
   export async function testDebugMethod(testParams?: {
@@ -87,15 +87,15 @@ export namespace Debug {
       initialFields: {},
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("debug", _testParams);
+    const testResult = await contract.testPublicMethod("debug", _testParams);
     const testReturns = testResult.returns as [];
     return {
       ...testResult,
     };
   }
 
-  export const artifact = Contract.fromJson(DebugContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(DebugContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class DebugInstance {
@@ -110,7 +110,7 @@ export class DebugInstance {
   }
 
   async fetchState(): Promise<Debug.State> {
-    const state = await Debug.artifact.fetchState(
+    const state = await Debug.contract.fetchState(
       this.address,
       this.groupIndex
     );

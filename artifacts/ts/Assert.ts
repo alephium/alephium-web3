@@ -29,15 +29,15 @@ export namespace Assert {
   export type State = Omit<ContractState, "fields">;
 
   export class Factory extends ContractFactory<AssertInstance, undefined> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<undefined>
     ): Promise<DeployContractResult<AssertInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -66,7 +66,7 @@ export namespace Assert {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Assert.artifact.toState({}, newAsset, address);
+    return Assert.contract.toState({}, newAsset, address);
   }
 
   export async function testTestMethod(testParams?: {
@@ -87,15 +87,15 @@ export namespace Assert {
       initialFields: {},
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("test", _testParams);
+    const testResult = await contract.testPublicMethod("test", _testParams);
     const testReturns = testResult.returns as [];
     return {
       ...testResult,
     };
   }
 
-  export const artifact = Contract.fromJson(AssertContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(AssertContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class AssertInstance {
@@ -110,7 +110,7 @@ export class AssertInstance {
   }
 
   async fetchState(): Promise<Assert.State> {
-    const state = await Assert.artifact.fetchState(
+    const state = await Assert.contract.fetchState(
       this.address,
       this.groupIndex
     );

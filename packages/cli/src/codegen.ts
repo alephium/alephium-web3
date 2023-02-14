@@ -139,8 +139,8 @@ function genContractFactory(contract: Contract): string {
   const paramsType = contract.fieldsSig.names.length > 0 ? 'Fields' : 'undefined'
   return `
   export class Factory extends ContractFactory<${instanceName}, ${paramsType}> {
-    constructor(artifact: Contract) {
-      super(artifact)
+    constructor(contract: Contract) {
+      super(contract)
     }
 
     ${genDeploy(instanceName, paramsType)}
@@ -153,7 +153,7 @@ function genDeploy(instanceName: string, paramsType: string): string {
   const deployParams = `deployParams: DeployContractParams<${paramsType}>`
   return `
   async deploy(signer: SignerProvider, ${deployParams}): Promise<DeployContractResult<${instanceName}>> {
-    const signerParams = await artifact.txParamsForDeployment(signer, deployParams)
+    const signerParams = await contract.txParamsForDeployment(signer, deployParams)
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
       instance: this.at(result.contractAddress),
@@ -184,7 +184,7 @@ function genFetchState(contract: Contract): string {
     .join(', ')
   return `
   async fetchState(): Promise<${contract.name}.State> {
-    const state = await ${contract.name}.artifact.fetchState(this.address, this.groupIndex)
+    const state = await ${contract.name}.contract.fetchState(this.address, this.groupIndex)
     return {
       ...state,
       ${assigns}
@@ -325,7 +325,7 @@ function genStateForTest(contract: Contract): string {
         alphAmount: asset?.alphAmount ?? ${oneAlph},
         tokens: asset?.tokens
       }
-      return ${contract.name}.artifact.toState(${getInitialFieldsFromFieldsSig(contract.fieldsSig)}, newAsset, address)
+      return ${contract.name}.contract.toState(${getInitialFieldsFromFieldsSig(contract.fieldsSig)}, newAsset, address)
     }
   `
 }
@@ -367,7 +367,7 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
         initialFields: ${getInitialFieldsFromFieldsSig(contract.fieldsSig)},
         initialAsset: initialAsset,
       }
-      const testResult = await artifact.${testFuncName}('${functionSig.name}', _testParams)
+      const testResult = await contract.${testFuncName}('${functionSig.name}', _testParams)
       const testReturns = testResult.returns as [${tsReturnTypes.join(', ')}]
       return {
         ...testResult,
@@ -407,8 +407,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genStateForTest(contract)}
       ${contract.functions.map((f, index) => genTestMethod(contract, f, index)).join('\n')}
 
-      export const artifact = Contract.fromJson(${contract.name}ContractJson)
-      export const factory = new Factory(artifact)
+      export const contract = Contract.fromJson(${contract.name}ContractJson)
+      export const factory = new Factory(contract)
     }
 
     export class ${contract.name}Instance {

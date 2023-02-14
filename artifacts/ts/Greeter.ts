@@ -33,15 +33,15 @@ export namespace Greeter {
   export type State = Fields & Omit<ContractState, "fields">;
 
   export class Factory extends ContractFactory<GreeterInstance, Fields> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<Fields>
     ): Promise<DeployContractResult<GreeterInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -74,7 +74,7 @@ export namespace Greeter {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Greeter.artifact.toState(initFields, newAsset, address);
+    return Greeter.contract.toState(initFields, newAsset, address);
   }
 
   export async function testGreetMethod(
@@ -98,7 +98,7 @@ export namespace Greeter {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("greet", _testParams);
+    const testResult = await contract.testPublicMethod("greet", _testParams);
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -106,8 +106,8 @@ export namespace Greeter {
     };
   }
 
-  export const artifact = Contract.fromJson(GreeterContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(GreeterContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class GreeterInstance {
@@ -122,7 +122,7 @@ export class GreeterInstance {
   }
 
   async fetchState(): Promise<Greeter.State> {
-    const state = await Greeter.artifact.fetchState(
+    const state = await Greeter.contract.fetchState(
       this.address,
       this.groupIndex
     );

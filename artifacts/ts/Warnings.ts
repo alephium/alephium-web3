@@ -34,15 +34,15 @@ export namespace Warnings {
   export type State = Fields & Omit<ContractState, "fields">;
 
   export class Factory extends ContractFactory<WarningsInstance, Fields> {
-    constructor(artifact: Contract) {
-      super(artifact);
+    constructor(contract: Contract) {
+      super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
       deployParams: DeployContractParams<Fields>
     ): Promise<DeployContractResult<WarningsInstance>> {
-      const signerParams = await artifact.txParamsForDeployment(
+      const signerParams = await contract.txParamsForDeployment(
         signer,
         deployParams
       );
@@ -75,7 +75,7 @@ export namespace Warnings {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
     };
-    return Warnings.artifact.toState(initFields, newAsset, address);
+    return Warnings.contract.toState(initFields, newAsset, address);
   }
 
   export async function testFooMethod(
@@ -100,15 +100,15 @@ export namespace Warnings {
       initialFields: initFields,
       initialAsset: initialAsset,
     };
-    const testResult = await artifact.testPublicMethod("foo", _testParams);
+    const testResult = await contract.testPublicMethod("foo", _testParams);
     const testReturns = testResult.returns as [];
     return {
       ...testResult,
     };
   }
 
-  export const artifact = Contract.fromJson(WarningsContractJson);
-  export const factory = new Factory(artifact);
+  export const contract = Contract.fromJson(WarningsContractJson);
+  export const factory = new Factory(contract);
 }
 
 export class WarningsInstance {
@@ -123,7 +123,7 @@ export class WarningsInstance {
   }
 
   async fetchState(): Promise<Warnings.State> {
-    const state = await Warnings.artifact.fetchState(
+    const state = await Warnings.contract.fetchState(
       this.address,
       this.groupIndex
     );
