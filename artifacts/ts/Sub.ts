@@ -27,6 +27,10 @@ import {
   TestContractParams,
   ContractEvent,
   subscribeEventsFromContract,
+  subscribeContractCreatedEvent,
+  subscribeContractDestroyedEvent,
+  subscribeContractEvent,
+  subscribeAllEvents,
   testMethod,
   fetchContractState,
   decodeContractCreatedEvent,
@@ -85,115 +89,36 @@ export class SubInstance {
     options: SubscribeOptions<ContractCreatedEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
-      options,
-      this.address,
-      -1,
-      (event) => {
-        return {
-          ...decodeContractCreatedEvent(event),
-          contractAddress: this.address,
-        };
-      },
-      fromCount
-    );
+    return subscribeContractCreatedEvent(this, options, fromCount);
   }
 
   subscribeContractDestroyedEvent(
     options: SubscribeOptions<ContractDestroyedEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
-      options,
-      this.address,
-      -2,
-      (event) => {
-        return {
-          ...decodeContractDestroyedEvent(event),
-          contractAddress: this.address,
-        };
-      },
-      fromCount
-    );
-  }
-
-  private decodeSubEvent(event: node.ContractEvent): SubTypes.SubEvent {
-    if (event.eventIndex !== 0) {
-      throw new Error(
-        "Invalid event index: " + event.eventIndex + ", expected: 0"
-      );
-    }
-    const fields = fromApiVals(event.fields, ["x", "y"], ["U256", "U256"]);
-    return {
-      contractAddress: this.address,
-      blockHash: event.blockHash,
-      txId: event.txId,
-      eventIndex: event.eventIndex,
-      name: "Sub",
-      fields: { x: fields["x"] as bigint, y: fields["y"] as bigint },
-    };
+    return subscribeContractDestroyedEvent(this, options, fromCount);
   }
 
   subscribeSubEvent(
     options: SubscribeOptions<SubTypes.SubEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
+    return subscribeContractEvent(
+      Sub.contract,
+      this,
       options,
-      this.address,
-      0,
-      (event) => this.decodeSubEvent(event),
+      "Sub",
       fromCount
     );
   }
 
-  subscribeEvents(
+  subscribeAllEvents(
     options: SubscribeOptions<
       SubTypes.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
     >,
     fromCount?: number
   ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      switch (event.eventIndex) {
-        case 0: {
-          return options.messageCallback(this.decodeSubEvent(event));
-        }
-
-        case -1: {
-          return options.messageCallback({
-            ...decodeContractCreatedEvent(event),
-            contractAddress: this.address,
-          });
-        }
-
-        case -2: {
-          return options.messageCallback({
-            ...decodeContractDestroyedEvent(event),
-            contractAddress: this.address,
-          });
-        }
-
-        default:
-          throw new Error("Invalid event index: " + event.eventIndex);
-      }
-    };
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<
-          SubTypes.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
-        >
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
+    return subscribeAllEvents(Sub.contract, this, options, fromCount);
   }
 
   async callSubMethod(

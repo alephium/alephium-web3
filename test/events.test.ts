@@ -87,7 +87,7 @@ describe('events', function () {
         return Promise.resolve()
       }
     }
-    const subscription = add.subscribeEvents(subscriptOptions)
+    const subscription = add.subscribeAllEvents(subscriptOptions)
     for (let i = 0; i < 3; i++) {
       await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }

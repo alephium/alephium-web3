@@ -183,15 +183,7 @@ function genDecodeEvent(contractName: string, event: EventSig, eventIndex: numbe
 function genSubscribeSystemEvent(event: SystemEvent): string {
   return `
     subscribe${event.eventSig.name}Event(options: SubscribeOptions<${event.eventType}>, fromCount?: number): EventSubscription {
-      return subscribeEventsFromContract(
-        options,
-        this.address,
-        ${event.eventIndex},
-        (event) => {
-          return { ...${event.decodeFunc}(event), contractAddress: this.address }
-        },
-        fromCount
-      )
+      return subscribe${event.eventSig.name}Event(this, options, fromCount)
     }
   `
 }
@@ -200,16 +192,8 @@ function genSubscribeEvent(contractName: string, event: EventSig, eventIndex: nu
   const eventType = getEventType(event)
   const scopedEventType = `${contractTypes(contractName)}.${eventType}`
   return `
-    ${genDecodeEvent(contractName, event, eventIndex)}
-
     subscribe${eventType}(options: SubscribeOptions<${scopedEventType}>, fromCount?: number): EventSubscription {
-      return subscribeEventsFromContract(
-        options,
-        this.address,
-        ${eventIndex},
-        (event) => this.decode${eventType}(event),
-        fromCount
-      )
+      return subscribeContractEvent(${contractName}.contract, this, options, "${event.name}", fromCount)
     }
   `
 }
@@ -234,23 +218,8 @@ function genSubscribeAllEvents(contract: Contract, systemEvents: SystemEvent[]):
   })
   const cases = contractEventCases.concat(systemEventCases).join('\n')
   return `
-    subscribeEvents(options: SubscribeOptions<${eventTypes}>, fromCount?: number): EventSubscription {
-      const messageCallback = (event: node.ContractEvent): Promise<void> => {
-        switch (event.eventIndex) {
-          ${cases}
-          default:
-            throw new Error('Invalid event index: ' + event.eventIndex)
-        }
-      }
-      const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
-        return options.errorCallback(err, subscription as unknown as Subscription<${eventTypes}>)
-      }
-      const opt: SubscribeOptions<node.ContractEvent> = {
-        pollingInterval: options.pollingInterval,
-        messageCallback: messageCallback,
-        errorCallback: errorCallback
-      }
-      return subscribeToEvents(opt, this.address, fromCount)
+    subscribeAllEvents(options: SubscribeOptions<${eventTypes}>, fromCount?: number): EventSubscription {
+      return subscribeAllEvents(${contract.name}.contract, this, options, fromCount)
     }
   `
 }
@@ -341,7 +310,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       web3, Address, Contract, ContractState, node, binToHex, TestContractResult, Asset, HexString,
       ContractFactory, contractIdFromAddress, ONE_ALPH, groupOfAddress, fromApiVals, subscribeToEvents,
       SubscribeOptions, Subscription, EventSubscription, randomTxId, CallContractParams, CallContractResult,
-      TestContractParams, ContractEvent, subscribeEventsFromContract, testMethod, fetchContractState, decodeContractCreatedEvent,
+      TestContractParams, ContractEvent, subscribeEventsFromContract, subscribeContractCreatedEvent, subscribeContractDestroyedEvent, subscribeContractEvent, subscribeAllEvents, testMethod, fetchContractState, decodeContractCreatedEvent,
       decodeContractDestroyedEvent, ContractCreatedEvent, ContractDestroyedEvent
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'

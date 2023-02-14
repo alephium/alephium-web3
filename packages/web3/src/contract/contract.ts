@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { webcrypto as crypto } from 'crypto'
+import { sign, webcrypto as crypto } from 'crypto'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import {
@@ -1367,11 +1367,11 @@ export function decodeContractDestroyedEvent(
   }
 }
 
-export function subscribeEventsFromContract<T extends Fields>(
-  options: SubscribeOptions<ContractEvent<T>>,
+export function subscribeEventsFromContract<T extends Fields, M extends ContractEvent<T>>(
+  options: SubscribeOptions<M>,
   address: string,
   eventIndex: number,
-  decodeFunc: (event: node.ContractEvent) => ContractEvent<T>,
+  decodeFunc: (event: node.ContractEvent) => M,
   fromCount?: number
 ): EventSubscription {
   const messageCallback = (event: node.ContractEvent): Promise<void> => {
@@ -1382,7 +1382,7 @@ export function subscribeEventsFromContract<T extends Fields>(
   }
 
   const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
-    return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<T>>)
+    return options.errorCallback(err, subscription as unknown as Subscription<M>)
   }
   const opt: SubscribeOptions<node.ContractEvent> = {
     pollingInterval: options.pollingInterval,
@@ -1434,4 +1434,124 @@ export async function fetchContractState<F extends Fields, I extends ContractIns
     ...state,
     fields: state.fields as F
   }
+}
+
+export function subscribeContractCreatedEvent(
+  instance: ContractInstance,
+  options: SubscribeOptions<ContractCreatedEvent>,
+  fromCount?: number
+): EventSubscription {
+  return subscribeEventsFromContract(
+    options,
+    instance.address,
+    -1,
+    (event) => {
+      return {
+        ...decodeContractCreatedEvent(event),
+        contractAddress: instance.address
+      }
+    },
+    fromCount
+  )
+}
+
+export function subscribeContractDestroyedEvent(
+  instance: ContractInstance,
+  options: SubscribeOptions<ContractDestroyedEvent>,
+  fromCount?: number
+): EventSubscription {
+  return subscribeEventsFromContract(
+    options,
+    instance.address,
+    -2,
+    (event) => {
+      return {
+        ...decodeContractDestroyedEvent(event),
+        contractAddress: instance.address
+      }
+    },
+    fromCount
+  )
+}
+
+export function decodeEvent<F extends Fields, M extends ContractEvent<F>>(
+  contract: Contract,
+  instance: ContractInstance,
+  event: node.ContractEvent,
+  targetEventIndex: number
+): M {
+  if (
+    event.eventIndex !== targetEventIndex &&
+    !(targetEventIndex >= 0 && targetEventIndex < contract.eventsSig.length)
+  ) {
+    throw new Error('Invalid event index: ' + event.eventIndex + ', expected: 0')
+  }
+  const fieldNames = contract.eventsSig[`${targetEventIndex}`].fieldNames
+  const fieldTypes = contract.eventsSig[`${targetEventIndex}`].fieldTypes
+  const fields = fromApiVals(event.fields, fieldNames, fieldTypes)
+  return {
+    contractAddress: instance.address,
+    blockHash: event.blockHash,
+    txId: event.txId,
+    eventIndex: event.eventIndex,
+    name: 'Add',
+    fields: fields
+  } as M
+}
+
+export function subscribeContractEvent<F extends Fields, M extends ContractEvent<F>>(
+  contract: Contract,
+  instance: ContractInstance,
+  options: SubscribeOptions<M>,
+  eventName: string,
+  fromCount?: number
+): EventSubscription {
+  const eventIndex = contract.eventsSig.findIndex((sig) => sig.name === eventName)
+  return subscribeEventsFromContract<F, M>(
+    options,
+    instance.address,
+    eventIndex,
+    (event) => decodeEvent(contract, instance, event, eventIndex),
+    fromCount
+  )
+}
+
+export function subscribeAllEvents(
+  contract: Contract,
+  instance: ContractInstance,
+  options: SubscribeOptions<ContractEvent<any>>,
+  fromCount?: number
+): EventSubscription {
+  const messageCallback = (event: node.ContractEvent): Promise<void> => {
+    switch (event.eventIndex) {
+      case -1: {
+        return options.messageCallback({
+          ...decodeContractCreatedEvent(event),
+          contractAddress: instance.address
+        })
+      }
+
+      case -2: {
+        return options.messageCallback({
+          ...decodeContractDestroyedEvent(event),
+          contractAddress: instance.address
+        })
+      }
+
+      default:
+        return options.messageCallback({
+          ...decodeEvent(contract, instance, event, event.eventIndex),
+          contractAddress: instance.address
+        })
+    }
+  }
+  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
+    return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<any>>)
+  }
+  const opt: SubscribeOptions<node.ContractEvent> = {
+    pollingInterval: options.pollingInterval,
+    messageCallback: messageCallback,
+    errorCallback: errorCallback
+  }
+  return subscribeToEvents(opt, instance.address, fromCount)
 }
