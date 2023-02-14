@@ -883,12 +883,14 @@ export class Contract extends Artifact {
     return contract.fromApiContractState(state)
   }
 
+  static ContractCreatedEventIndex = -1
   static ContractCreatedEvent: EventSig = {
     name: 'ContractCreated',
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
 
+  static ContractDestroyedEventIndex = -2
   static ContractDestroyedEvent: EventSig = {
     name: 'ContractDestroyed',
     fieldNames: ['address'],
@@ -898,9 +900,9 @@ export class Contract extends Artifact {
   static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined): ContractEventByTxId {
     let eventSig: EventSig
 
-    if (event.eventIndex == -1) {
+    if (event.eventIndex == Contract.ContractCreatedEventIndex) {
       eventSig = this.ContractCreatedEvent
-    } else if (event.eventIndex == -2) {
+    } else if (event.eventIndex == Contract.ContractDestroyedEventIndex) {
       eventSig = this.ContractDestroyedEvent
     } else {
       const contract = Project.currentProject.contractByCodeHash(codeHash!)

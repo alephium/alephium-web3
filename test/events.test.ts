@@ -73,10 +73,11 @@ describe('events', function () {
 
   it('should subscribe all events', async () => {
     const add = await deployContract(signer)
-    const addEvents: Array<Add.AddEvent | Add.Add1Event> = []
-    const subscriptOptions: SubscribeOptions<Add.AddEvent | Add.Add1Event> = {
+    type EventTypes = Add.AddEvent | Add.Add1Event | Add.ContractCreatedEvent | Add.ContractDestroyedEvent
+    const addEvents: Array<EventTypes> = []
+    const subscriptOptions: SubscribeOptions<EventTypes> = {
       pollingInterval: 500,
-      messageCallback: (event: Add.AddEvent | Add.Add1Event): Promise<void> => {
+      messageCallback: (event: EventTypes): Promise<void> => {
         addEvents.push(event)
         return Promise.resolve()
       },
@@ -92,8 +93,12 @@ describe('events', function () {
     }
     await timeout(3000)
 
-    const isAdd = (event: Add.AddEvent | Add.Add1Event): event is Add.AddEvent => {
+    const isAdd = (event: EventTypes): event is Add.AddEvent => {
       return (<Add.AddEvent>event).fields.x !== undefined
+    }
+
+    const isAdd1 = (event: EventTypes): event is Add.Add1Event => {
+      return (<Add.Add1Event>event).fields.a !== undefined
     }
 
     expect(addEvents.length).toEqual(6)
@@ -101,9 +106,11 @@ describe('events', function () {
       if (isAdd(event)) {
         expect(event.fields.x).toEqual(2n)
         expect(event.fields.y).toEqual(1n)
-      } else {
+      } else if (isAdd1(event)) {
         expect(event.fields.a).toEqual(2n)
         expect(event.fields.b).toEqual(1n)
+      } else {
+        expect(false).toEqual(true)
       }
     })
     expect(subscription.currentEventCount()).toEqual(3)

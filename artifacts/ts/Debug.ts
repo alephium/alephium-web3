@@ -22,11 +22,30 @@ import {
   fromApiArray,
   ONE_ALPH,
   groupOfAddress,
+  fromApiVals,
+  subscribeToEvents,
+  SubscribeOptions,
+  Subscription,
+  EventSubscription,
 } from "@alephium/web3";
 import { default as DebugContractJson } from "../test/debug.ral.json";
 
 export namespace Debug {
   export type State = Omit<ContractState, "fields">;
+
+  export type ContractCreatedEvent = {
+    blockHash: string;
+    txId: string;
+    eventIndex: number;
+    fields: { address: HexString };
+  };
+
+  export type ContractDestroyedEvent = {
+    blockHash: string;
+    txId: string;
+    eventIndex: number;
+    fields: { address: HexString };
+  };
 
   export class Factory extends ContractFactory<DebugInstance, undefined> {
     constructor(contract: Contract) {
@@ -117,5 +136,139 @@ export class DebugInstance {
     return {
       ...state,
     };
+  }
+
+  private decodeContractCreatedEvent(
+    event: node.ContractEvent
+  ): Debug.ContractCreatedEvent {
+    if (event.eventIndex !== -1) {
+      throw new Error(
+        "Invalid event index: " + event.eventIndex + ", expected: -1"
+      );
+    }
+    const fields = fromApiVals(event.fields, ["address"], ["Address"]);
+    return {
+      blockHash: event.blockHash,
+      txId: event.txId,
+      eventIndex: event.eventIndex,
+      fields: { address: fields["address"] as HexString },
+    };
+  }
+
+  subscribeContractCreatedEvent(
+    options: SubscribeOptions<Debug.ContractCreatedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    const messageCallback = (event: node.ContractEvent): Promise<void> => {
+      if (event.eventIndex !== -1) {
+        return Promise.resolve();
+      }
+      return options.messageCallback(this.decodeContractCreatedEvent(event));
+    };
+
+    const errorCallback = (
+      err: any,
+      subscription: Subscription<node.ContractEvent>
+    ): Promise<void> => {
+      return options.errorCallback(
+        err,
+        subscription as unknown as Subscription<Debug.ContractCreatedEvent>
+      );
+    };
+    const opt: SubscribeOptions<node.ContractEvent> = {
+      pollingInterval: options.pollingInterval,
+      messageCallback: messageCallback,
+      errorCallback: errorCallback,
+    };
+    return subscribeToEvents(opt, this.address, fromCount);
+  }
+
+  private decodeContractDestroyedEvent(
+    event: node.ContractEvent
+  ): Debug.ContractDestroyedEvent {
+    if (event.eventIndex !== -2) {
+      throw new Error(
+        "Invalid event index: " + event.eventIndex + ", expected: -2"
+      );
+    }
+    const fields = fromApiVals(event.fields, ["address"], ["Address"]);
+    return {
+      blockHash: event.blockHash,
+      txId: event.txId,
+      eventIndex: event.eventIndex,
+      fields: { address: fields["address"] as HexString },
+    };
+  }
+
+  subscribeContractDestroyedEvent(
+    options: SubscribeOptions<Debug.ContractDestroyedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    const messageCallback = (event: node.ContractEvent): Promise<void> => {
+      if (event.eventIndex !== -2) {
+        return Promise.resolve();
+      }
+      return options.messageCallback(this.decodeContractDestroyedEvent(event));
+    };
+
+    const errorCallback = (
+      err: any,
+      subscription: Subscription<node.ContractEvent>
+    ): Promise<void> => {
+      return options.errorCallback(
+        err,
+        subscription as unknown as Subscription<Debug.ContractDestroyedEvent>
+      );
+    };
+    const opt: SubscribeOptions<node.ContractEvent> = {
+      pollingInterval: options.pollingInterval,
+      messageCallback: messageCallback,
+      errorCallback: errorCallback,
+    };
+    return subscribeToEvents(opt, this.address, fromCount);
+  }
+
+  subscribeEvents(
+    options: SubscribeOptions<
+      Debug.ContractCreatedEvent | Debug.ContractDestroyedEvent
+    >,
+    fromCount?: number
+  ): EventSubscription {
+    const messageCallback = (event: node.ContractEvent): Promise<void> => {
+      switch (event.eventIndex) {
+        case -1: {
+          return options.messageCallback(
+            this.decodeContractCreatedEvent(event)
+          );
+        }
+
+        case -2: {
+          return options.messageCallback(
+            this.decodeContractDestroyedEvent(event)
+          );
+        }
+
+        default:
+          throw new Error("Invalid event index: " + event.eventIndex);
+      }
+    };
+
+    const errorCallback = (
+      err: any,
+      subscription: Subscription<node.ContractEvent>
+    ): Promise<void> => {
+      return options.errorCallback(
+        err,
+        subscription as unknown as Subscription<
+          Debug.ContractCreatedEvent | Debug.ContractDestroyedEvent
+        >
+      );
+    };
+    const opt: SubscribeOptions<node.ContractEvent> = {
+      pollingInterval: options.pollingInterval,
+      messageCallback: messageCallback,
+      errorCallback: errorCallback,
+    };
+    return subscribeToEvents(opt, this.address, fromCount);
   }
 }

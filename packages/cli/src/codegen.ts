@@ -179,6 +179,15 @@ function genFetchState(contract: Contract): string {
   `
 }
 
+function getContractEvents(contract: Contract): [EventSig, number][] {
+  const systemEvents: [EventSig, number][] = [
+    [Contract.ContractCreatedEvent, Contract.ContractCreatedEventIndex],
+    [Contract.ContractDestroyedEvent, Contract.ContractDestroyedEventIndex]
+  ]
+  const contractEvents: [EventSig, number][] = contract.eventsSig.map((e, index) => [e, index])
+  return contractEvents.concat(systemEvents)
+}
+
 function getEventType(event: EventSig): string {
   return event.name + 'Event'
 }
@@ -260,13 +269,10 @@ function genSubscribeEvent(contractName: string, event: EventSig, eventIndex: nu
   `
 }
 
-function genSubscribeAllEvents(contract: Contract): string {
-  if (contract.eventsSig.length <= 1) {
-    return ''
-  }
-  const eventTypes = contract.eventsSig.map((e) => `${contract.name}.${getEventType(e)}`).join(' | ')
-  const cases = contract.eventsSig
-    .map((event, index) => {
+function genSubscribeAllEvents(contract: Contract, eventsSig: [EventSig, number][]): string {
+  const eventTypes = eventsSig.map(([e]) => `${contract.name}.${getEventType(e)}`).join(' | ')
+  const cases = eventsSig
+    .map(([event, index]) => {
       return `
         case ${index}: {
           return options.messageCallback(this.decode${getEventType(event)}(event))
@@ -369,23 +375,21 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
 }
 
 function genContract(contract: Contract, artifactRelativePath: string): string {
-  const optionalImports =
-    contract.eventsSig.length === 0
-      ? ''
-      : 'fromApiVals, subscribeToEvents, SubscribeOptions, Subscription, EventSubscription'
+  const eventsSig = getContractEvents(contract)
   const source = `
     ${header}
 
     import {
       web3, SignerProvider, Address, toApiVals, DeployContractParams, DeployContractResult,
       Contract, ContractState, node, binToHex, TestContractResult, InputAsset, Asset, HexString,
-      ContractFactory, contractIdFromAddress, fromApiArray, ONE_ALPH, groupOfAddress, ${optionalImports}
+      ContractFactory, contractIdFromAddress, fromApiArray, ONE_ALPH, groupOfAddress, fromApiVals,
+      subscribeToEvents, SubscribeOptions, Subscription, EventSubscription
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
     export namespace ${contract.name} {
       ${genContractStateType(contract)}
-      ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
+      ${eventsSig.map(([e]) => genEventType(e)).join('\n')}
 
       ${genContractFactory(contract)}
 
@@ -410,8 +414,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       }
 
       ${genFetchState(contract)}
-      ${contract.eventsSig.map((e, index) => genSubscribeEvent(contract.name, e, index)).join('\n')}
-      ${genSubscribeAllEvents(contract)}
+      ${eventsSig.map(([e, index]) => genSubscribeEvent(contract.name, e, index)).join('\n')}
+      ${genSubscribeAllEvents(contract, eventsSig)}
       ${contract.functions.map((f, index) => genCallMethod(f, index)).join('\n')}
     }
 `
