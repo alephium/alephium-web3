@@ -363,6 +363,7 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
       )
       const apiResult = await web3.getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
       const testResult = await ${contract.name}.contract.fromApiTestContractResult(${index}, apiResult, txId)
+      ${contract.name}.contract.printDebugMessages('${functionSig.name}', testResult.debugMessages)
       ${tsReturnTypes.length === 0 ? '' : `const testReturns = testResult.returns as [${tsReturnTypes.join(', ')}]`}
       return {
         ...testResult,
@@ -379,6 +380,11 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
 }
 
 function genContract(contract: Contract, artifactRelativePath: string): string {
+  const projectArtifact = Project.currentProject.projectArtifact
+  const contractInfo = projectArtifact.infos.get(contract.name)
+  if (contractInfo === undefined) {
+    throw new Error(`Contract info does not exist: ${contract.name}`)
+  }
   const eventsSig = getContractEvents(contract)
   const source = `
     ${header}
@@ -401,7 +407,11 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genStateForTest(contract)}
       ${contract.functions.map((f, index) => genTestMethod(contract, f, index)).join('\n')}
 
-      export const contract = Contract.fromJson(${contract.name}ContractJson)
+      export const contract = Contract.fromJson(
+        ${contract.name}ContractJson,
+        '${contractInfo.bytecodeDebugPatch}',
+        '${contractInfo.codeHashDebug}',
+      )
       export const factory = new Factory(contract)
     }
 

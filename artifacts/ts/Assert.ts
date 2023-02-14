@@ -114,13 +114,18 @@ export namespace Assert {
       apiResult,
       txId
     );
+    Assert.contract.printDebugMessages("test", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
 
-  export const contract = Contract.fromJson(AssertContractJson);
+  export const contract = Contract.fromJson(
+    AssertContractJson,
+    "",
+    "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca"
+  );
   export const factory = new Factory(contract);
 }
 

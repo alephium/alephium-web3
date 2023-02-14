@@ -138,6 +138,7 @@ export namespace Add {
       apiResult,
       txId
     );
+    Add.contract.printDebugMessages("add", testResult.debugMessages);
     const testReturns = testResult.returns as [[bigint, bigint]];
     return {
       ...testResult,
@@ -163,6 +164,7 @@ export namespace Add {
       apiResult,
       txId
     );
+    Add.contract.printDebugMessages("addPrivate", testResult.debugMessages);
     const testReturns = testResult.returns as [[bigint, bigint]];
     return {
       ...testResult,
@@ -170,7 +172,11 @@ export namespace Add {
     };
   }
 
-  export const contract = Contract.fromJson(AddContractJson);
+  export const contract = Contract.fromJson(
+    AddContractJson,
+    "",
+    "52d5893e97ce6b8d67d90fe1c51735e6e4f9946de732926fd160a0b50774f61b"
+  );
   export const factory = new Factory(contract);
 }
 

@@ -126,6 +126,7 @@ export namespace Sub {
       apiResult,
       txId
     );
+    Sub.contract.printDebugMessages("sub", testResult.debugMessages);
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -133,7 +134,11 @@ export namespace Sub {
     };
   }
 
-  export const contract = Contract.fromJson(SubContractJson);
+  export const contract = Contract.fromJson(
+    SubContractJson,
+    "",
+    "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1"
+  );
   export const factory = new Factory(contract);
 }
 

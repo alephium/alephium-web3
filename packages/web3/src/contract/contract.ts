@@ -762,7 +762,7 @@ export class Contract extends Artifact {
     return bs58.encode(bytes)
   }
 
-  private _printDebugMessages(funcName: string, messages: DebugMessage[]) {
+  printDebugMessages(funcName: string, messages: DebugMessage[]) {
     if (messages.length != 0) {
       console.log(`Testing ${this.name}.${funcName}:`)
       messages.forEach((m) => console.log(`Debug - ${m.contractAddress} - ${m.message}`))

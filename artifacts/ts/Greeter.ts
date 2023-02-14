@@ -118,6 +118,7 @@ export namespace Greeter {
       apiResult,
       txId
     );
+    Greeter.contract.printDebugMessages("greet", testResult.debugMessages);
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -125,7 +126,11 @@ export namespace Greeter {
     };
   }
 
-  export const contract = Contract.fromJson(GreeterContractJson);
+  export const contract = Contract.fromJson(
+    GreeterContractJson,
+    "",
+    "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a"
+  );
   export const factory = new Factory(contract);
 }
 

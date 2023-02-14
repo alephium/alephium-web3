@@ -121,6 +121,10 @@ export namespace TokenTest {
       apiResult,
       txId
     );
+    TokenTest.contract.printDebugMessages(
+      "getSymbol",
+      testResult.debugMessages
+    );
     const testReturns = testResult.returns as [HexString];
     return {
       ...testResult,
@@ -145,6 +149,7 @@ export namespace TokenTest {
       apiResult,
       txId
     );
+    TokenTest.contract.printDebugMessages("getName", testResult.debugMessages);
     const testReturns = testResult.returns as [HexString];
     return {
       ...testResult,
@@ -171,6 +176,10 @@ export namespace TokenTest {
       2,
       apiResult,
       txId
+    );
+    TokenTest.contract.printDebugMessages(
+      "getDecimals",
+      testResult.debugMessages
     );
     const testReturns = testResult.returns as [bigint];
     return {
@@ -199,6 +208,10 @@ export namespace TokenTest {
       apiResult,
       txId
     );
+    TokenTest.contract.printDebugMessages(
+      "getTotalSupply",
+      testResult.debugMessages
+    );
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -206,7 +219,11 @@ export namespace TokenTest {
     };
   }
 
-  export const contract = Contract.fromJson(TokenTestContractJson);
+  export const contract = Contract.fromJson(
+    TokenTestContractJson,
+    "",
+    "d9c9fab84f779f2e90ca9e9b1fafd6d9c9dc0f8b84256169e20961f9c917bab8"
+  );
   export const factory = new Factory(contract);
 }
 

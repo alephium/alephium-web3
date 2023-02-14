@@ -118,13 +118,18 @@ export namespace Warnings {
       apiResult,
       txId
     );
+    Warnings.contract.printDebugMessages("foo", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
 
-  export const contract = Contract.fromJson(WarningsContractJson);
+  export const contract = Contract.fromJson(
+    WarningsContractJson,
+    "",
+    "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2"
+  );
   export const factory = new Factory(contract);
 }
 

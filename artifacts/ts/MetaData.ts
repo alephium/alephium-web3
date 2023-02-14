@@ -114,6 +114,7 @@ export namespace MetaData {
       apiResult,
       txId
     );
+    MetaData.contract.printDebugMessages("foo", testResult.debugMessages);
 
     return {
       ...testResult,
@@ -138,6 +139,7 @@ export namespace MetaData {
       apiResult,
       txId
     );
+    MetaData.contract.printDebugMessages("bar", testResult.debugMessages);
 
     return {
       ...testResult,
@@ -162,13 +164,18 @@ export namespace MetaData {
       apiResult,
       txId
     );
+    MetaData.contract.printDebugMessages("baz", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
 
-  export const contract = Contract.fromJson(MetaDataContractJson);
+  export const contract = Contract.fromJson(
+    MetaDataContractJson,
+    "",
+    "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f"
+  );
   export const factory = new Factory(contract);
 }
 

@@ -114,13 +114,18 @@ export namespace Debug {
       apiResult,
       txId
     );
+    Debug.contract.printDebugMessages("debug", testResult.debugMessages);
 
     return {
       ...testResult,
     };
   }
 
-  export const contract = Contract.fromJson(DebugContractJson);
+  export const contract = Contract.fromJson(
+    DebugContractJson,
+    "=4-2+13=11+2ca7e=1+20748656c6c6f2c200121",
+    "0ffc72054e3668c8933e53c892947dea1963c0c24cc006a4fb0aa028c13a7e13"
+  );
   export const factory = new Factory(contract);
 }
 
