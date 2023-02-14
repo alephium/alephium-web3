@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { sign, webcrypto as crypto } from 'crypto'
+import { webcrypto as crypto } from 'crypto'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import {
