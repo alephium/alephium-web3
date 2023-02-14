@@ -36,9 +36,14 @@ import {
   fromApiVals,
   typeLength
 } from '../api'
-import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerProvider } from '../signer'
+import {
+  SignDeployContractTxParams,
+  SignDeployContractTxResult,
+  SignExecuteScriptTxParams,
+  SignerProvider
+} from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress, SubscribeOptions, Subscription } from '../utils'
+import { bs58, binToHex, contractIdFromAddress, SubscribeOptions, Subscription, assertType, Eq } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
@@ -1237,18 +1242,13 @@ export interface DeployContractParams<P extends Fields = Fields> {
   gasAmount?: number
   gasPrice?: Number256
 }
-
-export interface DeployContractResult<T> {
-  instance: T
-  groupIndex: number
-  contractId: string
-  contractAddress: string
-  unsignedTx: string
-  txId: string
-  signature: string
-  gasAmount: number
-  gasPrice: Number256
-}
+assertType<
+  Eq<
+    Omit<DeployContractParams<undefined>, 'initialFields'>,
+    Omit<SignDeployContractTxParams, 'signerAddress' | 'bytecode'>
+  >
+>
+export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }
 
 export abstract class ContractFactory<T, P extends Fields = Fields> {
   contract: Contract
@@ -1256,7 +1256,15 @@ export abstract class ContractFactory<T, P extends Fields = Fields> {
     this.contract = contract
   }
 
-  abstract deploy(signer: SignerProvider, params: DeployContractParams<P>): Promise<DeployContractResult<T>>
+  async deploy(signer: SignerProvider, deployParams: DeployContractParams<P>): Promise<DeployContractResult<T>> {
+    const signerParams = await this.contract.txParamsForDeployment(signer, deployParams)
+    const result = await signer.signAndSubmitDeployContractTx(signerParams)
+    return {
+      ...result,
+      instance: this.at(result.contractAddress)
+    }
+  }
+
   abstract at(address: string): T
 }
 

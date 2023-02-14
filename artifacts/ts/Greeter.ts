@@ -49,28 +49,6 @@ export namespace Greeter {
       super(contract);
     }
 
-    async deploy(
-      signer: SignerProvider,
-      deployParams: DeployContractParams<Fields>
-    ): Promise<DeployContractResult<GreeterInstance>> {
-      const signerParams = await contract.txParamsForDeployment(
-        signer,
-        deployParams
-      );
-      const result = await signer.signAndSubmitDeployContractTx(signerParams);
-      return {
-        instance: this.at(result.contractAddress),
-        groupIndex: result.fromGroup,
-        contractId: result.contractId,
-        contractAddress: result.contractAddress,
-        unsignedTx: result.unsignedTx,
-        txId: result.txId,
-        signature: result.signature,
-        gasAmount: result.gasAmount,
-        gasPrice: result.gasPrice,
-      };
-    }
-
     at(address: string): GreeterInstance {
       return new GreeterInstance(address);
     }

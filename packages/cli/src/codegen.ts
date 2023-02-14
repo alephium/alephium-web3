@@ -120,7 +120,6 @@ function genContractFactory(contract: Contract): string {
       super(contract)
     }
 
-    ${genDeploy(instanceName, paramsType)}
     ${genAttach(instanceName)}
   }
   `
