@@ -28,6 +28,12 @@ import {
   CallContractParams,
   CallContractResult,
   TestContractParams,
+  ContractEvent,
+  subscribeEventsFromContract,
+  decodeContractCreatedEvent,
+  decodeContractDestroyedEvent,
+  ContractCreatedEvent,
+  ContractDestroyedEvent,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
 
@@ -39,41 +45,8 @@ export namespace Add {
 
   export type State = ContractState<Fields>;
 
-  export type AddEvent = {
-    contractAddress: string;
-    blockHash: string;
-    txId: string;
-    eventIndex: number;
-    name: string;
-    fields: { x: bigint; y: bigint };
-  };
-
-  export type Add1Event = {
-    contractAddress: string;
-    blockHash: string;
-    txId: string;
-    eventIndex: number;
-    name: string;
-    fields: { a: bigint; b: bigint };
-  };
-
-  export type ContractCreatedEvent = {
-    contractAddress: string;
-    blockHash: string;
-    txId: string;
-    eventIndex: number;
-    name: string;
-    fields: { address: HexString };
-  };
-
-  export type ContractDestroyedEvent = {
-    contractAddress: string;
-    blockHash: string;
-    txId: string;
-    eventIndex: number;
-    name: string;
-    fields: { address: HexString };
-  };
+  export type AddEvent = ContractEvent<{ x: bigint; y: bigint }>;
+  export type Add1Event = ContractEvent<{ a: bigint; b: bigint }>;
 
   export class Factory extends ContractFactory<AddInstance, Fields> {
     constructor(contract: Contract) {
@@ -133,7 +106,7 @@ export namespace Add {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = await Add.contract.fromApiTestContractResult(
+    const testResult = Add.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
@@ -159,7 +132,7 @@ export namespace Add {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = await Add.contract.fromApiTestContractResult(
+    const testResult = Add.contract.fromApiTestContractResult(
       1,
       apiResult,
       txId
@@ -204,6 +177,42 @@ export class AddInstance {
     };
   }
 
+  subscribeContractCreatedEvent(
+    options: SubscribeOptions<ContractCreatedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeEventsFromContract(
+      options,
+      this.address,
+      -1,
+      (event) => {
+        return {
+          ...decodeContractCreatedEvent(event),
+          contractAddress: this.address,
+        };
+      },
+      fromCount
+    );
+  }
+
+  subscribeContractDestroyedEvent(
+    options: SubscribeOptions<ContractDestroyedEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeEventsFromContract(
+      options,
+      this.address,
+      -2,
+      (event) => {
+        return {
+          ...decodeContractDestroyedEvent(event),
+          contractAddress: this.address,
+        };
+      },
+      fromCount
+    );
+  }
+
   private decodeAddEvent(event: node.ContractEvent): Add.AddEvent {
     if (event.eventIndex !== 0) {
       throw new Error(
@@ -225,28 +234,13 @@ export class AddInstance {
     options: SubscribeOptions<Add.AddEvent>,
     fromCount?: number
   ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      if (event.eventIndex !== 0) {
-        return Promise.resolve();
-      }
-      return options.messageCallback(this.decodeAddEvent(event));
-    };
-
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<Add.AddEvent>
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
+    return subscribeEventsFromContract(
+      options,
+      this.address,
+      0,
+      (event) => this.decodeAddEvent(event),
+      fromCount
+    );
   }
 
   private decodeAdd1Event(event: node.ContractEvent): Add.Add1Event {
@@ -270,130 +264,21 @@ export class AddInstance {
     options: SubscribeOptions<Add.Add1Event>,
     fromCount?: number
   ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      if (event.eventIndex !== 1) {
-        return Promise.resolve();
-      }
-      return options.messageCallback(this.decodeAdd1Event(event));
-    };
-
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<Add.Add1Event>
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
-  }
-
-  private decodeContractCreatedEvent(
-    event: node.ContractEvent
-  ): Add.ContractCreatedEvent {
-    if (event.eventIndex !== -1) {
-      throw new Error(
-        "Invalid event index: " + event.eventIndex + ", expected: -1"
-      );
-    }
-    const fields = fromApiVals(event.fields, ["address"], ["Address"]);
-    return {
-      contractAddress: this.address,
-      blockHash: event.blockHash,
-      txId: event.txId,
-      eventIndex: event.eventIndex,
-      name: "ContractCreated",
-      fields: { address: fields["address"] as HexString },
-    };
-  }
-
-  subscribeContractCreatedEvent(
-    options: SubscribeOptions<Add.ContractCreatedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      if (event.eventIndex !== -1) {
-        return Promise.resolve();
-      }
-      return options.messageCallback(this.decodeContractCreatedEvent(event));
-    };
-
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<Add.ContractCreatedEvent>
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
-  }
-
-  private decodeContractDestroyedEvent(
-    event: node.ContractEvent
-  ): Add.ContractDestroyedEvent {
-    if (event.eventIndex !== -2) {
-      throw new Error(
-        "Invalid event index: " + event.eventIndex + ", expected: -2"
-      );
-    }
-    const fields = fromApiVals(event.fields, ["address"], ["Address"]);
-    return {
-      contractAddress: this.address,
-      blockHash: event.blockHash,
-      txId: event.txId,
-      eventIndex: event.eventIndex,
-      name: "ContractDestroyed",
-      fields: { address: fields["address"] as HexString },
-    };
-  }
-
-  subscribeContractDestroyedEvent(
-    options: SubscribeOptions<Add.ContractDestroyedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      if (event.eventIndex !== -2) {
-        return Promise.resolve();
-      }
-      return options.messageCallback(this.decodeContractDestroyedEvent(event));
-    };
-
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<Add.ContractDestroyedEvent>
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
+    return subscribeEventsFromContract(
+      options,
+      this.address,
+      1,
+      (event) => this.decodeAdd1Event(event),
+      fromCount
+    );
   }
 
   subscribeEvents(
     options: SubscribeOptions<
       | Add.AddEvent
       | Add.Add1Event
-      | Add.ContractCreatedEvent
-      | Add.ContractDestroyedEvent
+      | ContractCreatedEvent
+      | ContractDestroyedEvent
     >,
     fromCount?: number
   ): EventSubscription {
@@ -408,22 +293,23 @@ export class AddInstance {
         }
 
         case -1: {
-          return options.messageCallback(
-            this.decodeContractCreatedEvent(event)
-          );
+          return options.messageCallback({
+            ...decodeContractCreatedEvent(event),
+            contractAddress: this.address,
+          });
         }
 
         case -2: {
-          return options.messageCallback(
-            this.decodeContractDestroyedEvent(event)
-          );
+          return options.messageCallback({
+            ...decodeContractDestroyedEvent(event),
+            contractAddress: this.address,
+          });
         }
 
         default:
           throw new Error("Invalid event index: " + event.eventIndex);
       }
     };
-
     const errorCallback = (
       err: any,
       subscription: Subscription<node.ContractEvent>
@@ -433,8 +319,8 @@ export class AddInstance {
         subscription as unknown as Subscription<
           | Add.AddEvent
           | Add.Add1Event
-          | Add.ContractCreatedEvent
-          | Add.ContractDestroyedEvent
+          | ContractCreatedEvent
+          | ContractDestroyedEvent
         >
       );
     };

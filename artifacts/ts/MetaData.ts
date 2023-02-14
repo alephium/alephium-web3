@@ -28,29 +28,17 @@ import {
   CallContractParams,
   CallContractResult,
   TestContractParams,
+  ContractEvent,
+  subscribeEventsFromContract,
+  decodeContractCreatedEvent,
+  decodeContractDestroyedEvent,
+  ContractCreatedEvent,
+  ContractDestroyedEvent,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 
 export namespace MetaData {
   export type State = Omit<ContractState<any>, "fields">;
-
-  export type ContractCreatedEvent = {
-    contractAddress: string;
-    blockHash: string;
-    txId: string;
-    eventIndex: number;
-    name: string;
-    fields: { address: HexString };
-  };
-
-  export type ContractDestroyedEvent = {
-    contractAddress: string;
-    blockHash: string;
-    txId: string;
-    eventIndex: number;
-    name: string;
-    fields: { address: HexString };
-  };
 
   export class Factory extends ContractFactory<MetaDataInstance, {}> {
     constructor(contract: Contract) {
@@ -109,7 +97,7 @@ export namespace MetaData {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = await MetaData.contract.fromApiTestContractResult(
+    const testResult = MetaData.contract.fromApiTestContractResult(
       0,
       apiResult,
       txId
@@ -134,7 +122,7 @@ export namespace MetaData {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = await MetaData.contract.fromApiTestContractResult(
+    const testResult = MetaData.contract.fromApiTestContractResult(
       1,
       apiResult,
       txId
@@ -159,7 +147,7 @@ export namespace MetaData {
     const apiResult = await web3
       .getCurrentNodeProvider()
       .contracts.postContractsTestContract(apiParams);
-    const testResult = await MetaData.contract.fromApiTestContractResult(
+    const testResult = MetaData.contract.fromApiTestContractResult(
       2,
       apiResult,
       txId
@@ -202,125 +190,66 @@ export class MetaDataInstance {
     };
   }
 
-  private decodeContractCreatedEvent(
-    event: node.ContractEvent
-  ): MetaData.ContractCreatedEvent {
-    if (event.eventIndex !== -1) {
-      throw new Error(
-        "Invalid event index: " + event.eventIndex + ", expected: -1"
-      );
-    }
-    const fields = fromApiVals(event.fields, ["address"], ["Address"]);
-    return {
-      contractAddress: this.address,
-      blockHash: event.blockHash,
-      txId: event.txId,
-      eventIndex: event.eventIndex,
-      name: "ContractCreated",
-      fields: { address: fields["address"] as HexString },
-    };
-  }
-
   subscribeContractCreatedEvent(
-    options: SubscribeOptions<MetaData.ContractCreatedEvent>,
+    options: SubscribeOptions<ContractCreatedEvent>,
     fromCount?: number
   ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      if (event.eventIndex !== -1) {
-        return Promise.resolve();
-      }
-      return options.messageCallback(this.decodeContractCreatedEvent(event));
-    };
-
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<MetaData.ContractCreatedEvent>
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
-  }
-
-  private decodeContractDestroyedEvent(
-    event: node.ContractEvent
-  ): MetaData.ContractDestroyedEvent {
-    if (event.eventIndex !== -2) {
-      throw new Error(
-        "Invalid event index: " + event.eventIndex + ", expected: -2"
-      );
-    }
-    const fields = fromApiVals(event.fields, ["address"], ["Address"]);
-    return {
-      contractAddress: this.address,
-      blockHash: event.blockHash,
-      txId: event.txId,
-      eventIndex: event.eventIndex,
-      name: "ContractDestroyed",
-      fields: { address: fields["address"] as HexString },
-    };
+    return subscribeEventsFromContract(
+      options,
+      this.address,
+      -1,
+      (event) => {
+        return {
+          ...decodeContractCreatedEvent(event),
+          contractAddress: this.address,
+        };
+      },
+      fromCount
+    );
   }
 
   subscribeContractDestroyedEvent(
-    options: SubscribeOptions<MetaData.ContractDestroyedEvent>,
+    options: SubscribeOptions<ContractDestroyedEvent>,
     fromCount?: number
   ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      if (event.eventIndex !== -2) {
-        return Promise.resolve();
-      }
-      return options.messageCallback(this.decodeContractDestroyedEvent(event));
-    };
-
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<MetaData.ContractDestroyedEvent>
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
+    return subscribeEventsFromContract(
+      options,
+      this.address,
+      -2,
+      (event) => {
+        return {
+          ...decodeContractDestroyedEvent(event),
+          contractAddress: this.address,
+        };
+      },
+      fromCount
+    );
   }
 
   subscribeEvents(
-    options: SubscribeOptions<
-      MetaData.ContractCreatedEvent | MetaData.ContractDestroyedEvent
-    >,
+    options: SubscribeOptions<ContractCreatedEvent | ContractDestroyedEvent>,
     fromCount?: number
   ): EventSubscription {
     const messageCallback = (event: node.ContractEvent): Promise<void> => {
       switch (event.eventIndex) {
         case -1: {
-          return options.messageCallback(
-            this.decodeContractCreatedEvent(event)
-          );
+          return options.messageCallback({
+            ...decodeContractCreatedEvent(event),
+            contractAddress: this.address,
+          });
         }
 
         case -2: {
-          return options.messageCallback(
-            this.decodeContractDestroyedEvent(event)
-          );
+          return options.messageCallback({
+            ...decodeContractDestroyedEvent(event),
+            contractAddress: this.address,
+          });
         }
 
         default:
           throw new Error("Invalid event index: " + event.eventIndex);
       }
     };
-
     const errorCallback = (
       err: any,
       subscription: Subscription<node.ContractEvent>
@@ -328,7 +257,7 @@ export class MetaDataInstance {
       return options.errorCallback(
         err,
         subscription as unknown as Subscription<
-          MetaData.ContractCreatedEvent | MetaData.ContractDestroyedEvent
+          ContractCreatedEvent | ContractDestroyedEvent
         >
       );
     };

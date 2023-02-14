@@ -38,9 +38,10 @@ import {
 } from '../api'
 import { SignDeployContractTxParams, SignExecuteScriptTxParams, SignerProvider } from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress } from '../utils'
+import { bs58, binToHex, contractIdFromAddress, SubscribeOptions, Subscription } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
+import { EventSubscription, subscribeToEvents } from './events'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -1291,4 +1292,63 @@ export interface CallContractResult {
   txInputs: string[]
   txOutputs: Output[]
   events: ContractEvent[]
+}
+
+export type ContractCreatedEvent = ContractEvent<{ address: HexString }>
+export type ContractDestroyedEvent = ContractEvent<{ address: HexString }>
+
+function decodeFields(event: node.ContractEvent, eventSig: EventSig, eventIndex: number): Fields {
+  if (event.eventIndex !== eventIndex) {
+    throw new Error(`Invalid event index: ${event.eventIndex}, expected: ${eventIndex}`)
+  }
+  return fromApiVals(event.fields, eventSig.fieldNames, eventSig.fieldTypes)
+}
+
+export function decodeContractCreatedEvent(event: node.ContractEvent): Omit<ContractCreatedEvent, 'contractAddress'> {
+  const fields = decodeFields(event, Contract.ContractCreatedEvent, Contract.ContractCreatedEventIndex)
+  return {
+    blockHash: event.blockHash,
+    txId: event.txId,
+    eventIndex: event.eventIndex,
+    name: Contract.ContractCreatedEvent.name,
+    fields: { address: fields['address'] as HexString }
+  }
+}
+
+export function decodeContractDestroyedEvent(
+  event: node.ContractEvent
+): Omit<ContractDestroyedEvent, 'contractAddress'> {
+  const fields = decodeFields(event, Contract.ContractDestroyedEvent, Contract.ContractDestroyedEventIndex)
+  return {
+    blockHash: event.blockHash,
+    txId: event.txId,
+    eventIndex: event.eventIndex,
+    name: Contract.ContractDestroyedEvent.name,
+    fields: { address: fields['address'] as HexString }
+  }
+}
+
+export function subscribeEventsFromContract<T extends Fields>(
+  options: SubscribeOptions<ContractEvent<T>>,
+  address: string,
+  eventIndex: number,
+  decodeFunc: (event: node.ContractEvent) => ContractEvent<T>,
+  fromCount?: number
+): EventSubscription {
+  const messageCallback = (event: node.ContractEvent): Promise<void> => {
+    if (event.eventIndex !== eventIndex) {
+      return Promise.resolve()
+    }
+    return options.messageCallback(decodeFunc(event))
+  }
+
+  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
+    return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<T>>)
+  }
+  const opt: SubscribeOptions<node.ContractEvent> = {
+    pollingInterval: options.pollingInterval,
+    messageCallback: messageCallback,
+    errorCallback: errorCallback
+  }
+  return subscribeToEvents(opt, address, fromCount)
 }
