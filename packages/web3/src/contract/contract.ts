@@ -46,7 +46,6 @@ import {
 import * as ralph from './ralph'
 import { bs58, binToHex, contractIdFromAddress, assertType, Eq } from '../utils'
 import { getCurrentNodeProvider } from '../global'
-import { web3 } from '..'
 import * as path from 'path'
 
 export type FieldsSig = node.FieldsSig
@@ -729,13 +728,6 @@ export class Contract extends Artifact {
     return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug)
   }
 
-  async fetchState(address: string, group: number): Promise<ContractState> {
-    const state = await web3.getCurrentNodeProvider().contracts.getContractsAddressState(address, {
-      group: group
-    })
-    return this.fromApiContractState(state)
-  }
-
   override toString(): string {
     const object = {
       version: this.version,
@@ -749,7 +741,7 @@ export class Contract extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  toState(fields: Fields, asset: Asset, address?: string): ContractState {
+  toState<T extends Fields>(fields: T, asset: Asset, address?: string): ContractState<T> {
     const addressDef = typeof address !== 'undefined' ? address : Contract.randomAddress()
     return {
       address: addressDef,
@@ -777,46 +769,6 @@ export class Contract extends Artifact {
     }
   }
 
-  private async _test(
-    funcName: string,
-    params: TestContractParams,
-    expectPublic: boolean,
-    accessType: string,
-    printDebugMessages: boolean
-  ): Promise<TestContractResult> {
-    const apiParams: node.TestContract = this.toTestContract(funcName, params)
-    const apiResult = await web3.getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
-
-    const methodIndex =
-      typeof params.testMethodIndex !== 'undefined' ? params.testMethodIndex : this.getMethodIndex(funcName)
-    const isPublic = this.functions[`${methodIndex}`].isPublic
-    if (printDebugMessages) {
-      this._printDebugMessages(funcName, apiResult.debugMessages)
-    }
-    if (isPublic === expectPublic) {
-      const result = await this.fromTestContractResult(methodIndex, apiResult)
-      return result
-    } else {
-      throw new Error(`The test method ${funcName} is not ${accessType}`)
-    }
-  }
-
-  async testPublicMethod(
-    funcName: string,
-    params: TestContractParams,
-    printDebugMessages = true
-  ): Promise<TestContractResult> {
-    return this._test(funcName, params, true, 'public', printDebugMessages)
-  }
-
-  async testPrivateMethod(
-    funcName: string,
-    params: TestContractParams,
-    printDebugMessages = true
-  ): Promise<TestContractResult> {
-    return this._test(funcName, params, false, 'private', printDebugMessages)
-  }
-
   toApiFields(fields?: Fields): node.Val[] {
     if (typeof fields === 'undefined') {
       return []
@@ -842,11 +794,11 @@ export class Contract extends Artifact {
     return this.functions.findIndex((func) => func.name === funcName)
   }
 
-  toApiContractStates(states?: ContractState[]): node.ContractState[] | undefined {
+  toApiContractStates(states?: ContractState<Fields>[]): node.ContractState[] | undefined {
     return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
   }
 
-  toTestContract(funcName: string, params: TestContractParams): node.TestContract {
+  toApiTestContractParams(funcName: string, params: TestContractParams<Fields, Arguments>): node.TestContract {
     const immFields =
       params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, false)
     const mutFields =
@@ -865,7 +817,7 @@ export class Contract extends Artifact {
     }
   }
 
-  fromApiContractState(state: node.ContractState): ContractState {
+  fromApiContractState(state: node.ContractState): ContractState<Fields> {
     return {
       address: state.address,
       contractId: binToHex(contractIdFromAddress(state.address)),
@@ -878,7 +830,7 @@ export class Contract extends Artifact {
     }
   }
 
-  static fromApiContractState(state: node.ContractState): ContractState {
+  static fromApiContractState(state: node.ContractState): ContractState<Fields> {
     const contract = Project.currentProject.contractByCodeHash(state.codeHash)
     return contract.fromApiContractState(state)
   }
@@ -897,7 +849,11 @@ export class Contract extends Artifact {
     fieldTypes: ['Address']
   }
 
-  static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined): ContractEventByTxId {
+  static fromApiEvent(
+    event: node.ContractEventByTxId,
+    codeHash: string | undefined,
+    txId: string
+  ): ContractEvent<Fields> {
     let eventSig: EventSig
 
     if (event.eventIndex == Contract.ContractCreatedEventIndex) {
@@ -910,14 +866,16 @@ export class Contract extends Artifact {
     }
 
     return {
+      txId: txId,
       blockHash: event.blockHash,
       contractAddress: event.contractAddress,
       name: eventSig.name,
+      eventIndex: event.eventIndex,
       fields: fromApiEventFields(event.fields, eventSig)
     }
   }
 
-  fromTestContractResult(methodIndex: number, result: node.TestContractResult): TestContractResult {
+  fromApiTestContractResult(methodIndex: number, result: node.TestContractResult, txId: string): TestContractResult {
     const addressToCodeHash = new Map<string, string>()
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
@@ -928,15 +886,7 @@ export class Contract extends Artifact {
       gasUsed: result.gasUsed,
       contracts: result.contracts.map((contract) => Contract.fromApiContractState(contract)),
       txOutputs: result.txOutputs.map(fromApiOutput),
-      events: result.events.map((event) => {
-        const contractAddress = event.contractAddress
-        const codeHash = addressToCodeHash.get(contractAddress)
-        if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
-          return Contract.fromApiEvent(event, codeHash)
-        } else {
-          throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
-        }
-      }),
+      events: Contract.fromApiEvents(result.events, addressToCodeHash, txId),
       debugMessages: result.debugMessages
     }
   }
@@ -960,6 +910,54 @@ export class Contract extends Artifact {
 
   buildByteCodeToDeploy(initialFields: Fields): string {
     return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
+  }
+
+  static fromApiEvents(
+    events: node.ContractEventByTxId[],
+    addressToCodeHash: Map<string, string>,
+    txId: string
+  ): ContractEvent<Fields>[] {
+    return events.map((event) => {
+      const contractAddress = event.contractAddress
+      const codeHash = addressToCodeHash.get(contractAddress)
+      if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
+        return Contract.fromApiEvent(event, codeHash, txId)
+      } else {
+        throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
+      }
+    })
+  }
+
+  toApiCallContract<T extends Arguments>(
+    params: CallContractParams<T>,
+    groupIndex: number,
+    contractAddress: string,
+    methodIndex: number
+  ): node.CallContract {
+    const functionSig = this.functions[`${methodIndex}`]
+    const args = toApiVals(params.args ?? {}, functionSig.paramNames, functionSig.paramTypes)
+    return {
+      ...params,
+      group: groupIndex,
+      address: contractAddress,
+      methodIndex: methodIndex,
+      args: args
+    }
+  }
+
+  fromApiCallContractResult(result: node.CallContractResult, txId: string, methodIndex: number): CallContractResult {
+    const addressToCodeHash = new Map<string, string>()
+    result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
+    const functionSig = this.functions[`${methodIndex}`]
+    const returns = fromApiArray(result.returns, functionSig.returnTypes)
+    return {
+      returns: returns,
+      gasUsed: result.gasUsed,
+      contracts: result.contracts.map((state) => Contract.fromApiContractState(state)),
+      txInputs: result.txInputs,
+      txOutputs: result.txOutputs.map((output) => fromApiOutput(output)),
+      events: Contract.fromApiEvents(result.events, addressToCodeHash, txId)
+    }
   }
 }
 
@@ -1098,13 +1096,13 @@ export interface InputAsset {
   asset: Asset
 }
 
-export interface ContractState {
+export interface ContractState<T extends Fields> {
   address: string
   contractId: string
   bytecode: string
   initialStateHash?: string
   codeHash: string
-  fields: Fields
+  fields: T
   fieldsSig: FieldsSig
   asset: Asset
 }
@@ -1126,14 +1124,15 @@ function extractFields(fields: NamedVals, fieldsSig: FieldsSig, mutable: boolean
   return toApiVals(fields, fieldNames, fieldTypes)
 }
 
-function toApiContractState(state: ContractState): node.ContractState {
+function toApiContractState(state: ContractState<Fields>): node.ContractState {
+  const stateFields = state.fields ?? {}
   return {
     address: state.address,
     bytecode: state.bytecode,
     codeHash: state.codeHash,
     initialStateHash: state.initialStateHash,
-    immFields: extractFields(state.fields, state.fieldsSig, false),
-    mutFields: extractFields(state.fields, state.fieldsSig, true),
+    immFields: extractFields(stateFields, state.fieldsSig, false),
+    mutFields: extractFields(stateFields, state.fieldsSig, true),
     asset: toApiAsset(state.asset)
   }
 }
@@ -1162,29 +1161,25 @@ function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | u
   return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 
-export interface TestContractParams {
+export interface TestContractParams<F extends Fields, A extends Arguments> {
   group?: number // default 0
   address?: string
-  initialFields?: Fields // default no fields
+  blockHash?: string
+  txId?: string
+  initialFields: F
   initialAsset?: Asset // default 1 ALPH
-  testMethodIndex?: number // default 0
-  testArgs?: Arguments // default no arguments
-  existingContracts?: ContractState[] // default no existing contracts
+  testArgs: A
+  existingContracts?: ContractState<Fields>[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
 }
 
-export interface ContractEvent {
-  blockHash: string
+export interface ContractEvent<T extends Fields> {
   txId: string
-  name: string
-  fields: Fields
-}
-
-export interface ContractEventByTxId {
   blockHash: string
   contractAddress: string
+  eventIndex: number
   name: string
-  fields: Fields
+  fields: T
 }
 
 export type DebugMessage = node.DebugMessage
@@ -1194,9 +1189,9 @@ export interface TestContractResult {
   contractAddress: string
   returns: Val[]
   gasUsed: number
-  contracts: ContractState[]
+  contracts: ContractState<Fields>[]
   txOutputs: Output[]
-  events: ContractEventByTxId[]
+  events: ContractEvent<Fields>[]
   debugMessages: DebugMessage[]
 }
 export declare type Output = AssetOutput | ContractOutput
@@ -1235,6 +1230,12 @@ function fromApiOutput(output: node.Output): Output {
   } else {
     throw new Error(`Unknown output type: ${output}`)
   }
+}
+
+export function randomTxId(): string {
+  const bytes = new Uint8Array(32)
+  crypto.getRandomValues(bytes)
+  return binToHex(bytes)
 }
 
 export interface DeployContractParams<P extends Fields | undefined> {
@@ -1283,4 +1284,21 @@ export interface ExecuteScriptResult {
   signature: string
   gasAmount: number
   gasPrice: Number256
+}
+
+export interface CallContractParams<T extends Arguments> {
+  args: T
+  worldStateBlockHash?: string
+  txId?: string
+  existingContracts?: string[]
+  inputAssets?: node.TestInputAsset[]
+}
+
+export interface CallContractResult {
+  returns: Val[]
+  gasUsed: number
+  contracts: ContractState<Fields>[]
+  txInputs: string[]
+  txOutputs: Output[]
+  events: ContractEvent<Fields>[]
 }

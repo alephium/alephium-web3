@@ -6,7 +6,6 @@ import {
   web3,
   SignerProvider,
   Address,
-  toApiVals,
   DeployContractParams,
   DeployContractResult,
   Contract,
@@ -14,12 +13,10 @@ import {
   node,
   binToHex,
   TestContractResult,
-  InputAsset,
   Asset,
   HexString,
   ContractFactory,
   contractIdFromAddress,
-  fromApiArray,
   ONE_ALPH,
   groupOfAddress,
   fromApiVals,
@@ -27,6 +24,10 @@ import {
   SubscribeOptions,
   Subscription,
   EventSubscription,
+  randomTxId,
+  CallContractParams,
+  CallContractResult,
+  TestContractParams,
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token_test.ral.json";
 
@@ -38,19 +39,23 @@ export namespace TokenTest {
     totalSupply: bigint;
   };
 
-  export type State = Omit<ContractState, "fields"> & { fields: Fields };
+  export type State = ContractState<Fields>;
 
   export type ContractCreatedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
   export type ContractDestroyedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
@@ -91,7 +96,7 @@ export namespace TokenTest {
     initFields: Fields,
     asset?: Asset,
     address?: string
-  ): ContractState {
+  ): ContractState<TokenTest.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
@@ -100,29 +105,21 @@ export namespace TokenTest {
   }
 
   export async function testGetSymbolMethod(
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 0,
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = TokenTest.contract.toApiTestContractParams("getSymbol", {
+      ...params,
+      txId: txId,
       testArgs: {},
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod(
-      "getSymbol",
-      _testParams
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await TokenTest.contract.fromApiTestContractResult(
+      0,
+      apiResult,
+      txId
     );
     const testReturns = testResult.returns as [HexString];
     return {
@@ -132,27 +129,22 @@ export namespace TokenTest {
   }
 
   export async function testGetNameMethod(
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: HexString }> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 1,
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = TokenTest.contract.toApiTestContractParams("getName", {
+      ...params,
+      txId: txId,
       testArgs: {},
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod("getName", _testParams);
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await TokenTest.contract.fromApiTestContractResult(
+      1,
+      apiResult,
+      txId
+    );
     const testReturns = testResult.returns as [HexString];
     return {
       ...testResult,
@@ -161,29 +153,24 @@ export namespace TokenTest {
   }
 
   export async function testGetDecimalsMethod(
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 2,
-      testArgs: {},
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod(
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = TokenTest.contract.toApiTestContractParams(
       "getDecimals",
-      _testParams
+      {
+        ...params,
+        txId: txId,
+        testArgs: {},
+      }
+    );
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await TokenTest.contract.fromApiTestContractResult(
+      2,
+      apiResult,
+      txId
     );
     const testReturns = testResult.returns as [bigint];
     return {
@@ -193,29 +180,24 @@ export namespace TokenTest {
   }
 
   export async function testGetTotalSupplyMethod(
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: Omit<TestContractParams<TokenTest.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 3,
-      testArgs: {},
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod(
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = TokenTest.contract.toApiTestContractParams(
       "getTotalSupply",
-      _testParams
+      {
+        ...params,
+        txId: txId,
+        testArgs: {},
+      }
+    );
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await TokenTest.contract.fromApiTestContractResult(
+      3,
+      apiResult,
+      txId
     );
     const testReturns = testResult.returns as [bigint];
     return {
@@ -240,18 +222,15 @@ export class TokenTestInstance {
   }
 
   async fetchState(): Promise<TokenTest.State> {
-    const state = await TokenTest.contract.fetchState(
-      this.address,
-      this.groupIndex
-    );
+    const contractState = await web3
+      .getCurrentNodeProvider()
+      .contracts.getContractsAddressState(this.address, {
+        group: this.groupIndex,
+      });
+    const state = TokenTest.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: {
-        symbol: state.fields["symbol"] as HexString,
-        name: state.fields["name"] as HexString,
-        decimals: state.fields["decimals"] as bigint,
-        totalSupply: state.fields["totalSupply"] as bigint,
-      },
+      fields: state.fields as TokenTest.Fields,
     };
   }
 
@@ -265,9 +244,11 @@ export class TokenTestInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractCreated",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -310,9 +291,11 @@ export class TokenTestInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractDestroyed",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -389,87 +372,99 @@ export class TokenTestInstance {
     return subscribeToEvents(opt, this.address, fromCount);
   }
 
-  async callGetSymbolMethod(callParams?: {
-    worldStateBlockHash?: string;
-    txId?: string;
-    existingContracts?: string[];
-    inputAssets?: node.TestInputAsset[];
-  }): Promise<HexString> {
-    const callResult = await web3
+  async callGetSymbolMethod(
+    params?: Omit<CallContractParams<{}>, "args">
+  ): Promise<Omit<CallContractResult, "returns"> & { returns: HexString }> {
+    const txId = params?.txId ?? randomTxId();
+    const callParams = TokenTest.contract.toApiCallContract(
+      { ...params, txId: txId, args: {} },
+      this.groupIndex,
+      this.address,
+      0
+    );
+    const result = await web3
       .getCurrentNodeProvider()
-      .contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: 0,
-        args: [],
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets,
-      });
-    return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
+      .contracts.postContractsCallContract(callParams);
+    const callResult = TokenTest.contract.fromApiCallContractResult(
+      result,
+      txId,
+      0
+    );
+    return {
+      ...callResult,
+      returns: callResult.returns[0] as HexString,
+    };
   }
 
-  async callGetNameMethod(callParams?: {
-    worldStateBlockHash?: string;
-    txId?: string;
-    existingContracts?: string[];
-    inputAssets?: node.TestInputAsset[];
-  }): Promise<HexString> {
-    const callResult = await web3
+  async callGetNameMethod(
+    params?: Omit<CallContractParams<{}>, "args">
+  ): Promise<Omit<CallContractResult, "returns"> & { returns: HexString }> {
+    const txId = params?.txId ?? randomTxId();
+    const callParams = TokenTest.contract.toApiCallContract(
+      { ...params, txId: txId, args: {} },
+      this.groupIndex,
+      this.address,
+      1
+    );
+    const result = await web3
       .getCurrentNodeProvider()
-      .contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: 1,
-        args: [],
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets,
-      });
-    return fromApiArray(callResult.returns, ["ByteVec"])[0] as HexString;
+      .contracts.postContractsCallContract(callParams);
+    const callResult = TokenTest.contract.fromApiCallContractResult(
+      result,
+      txId,
+      1
+    );
+    return {
+      ...callResult,
+      returns: callResult.returns[0] as HexString,
+    };
   }
 
-  async callGetDecimalsMethod(callParams?: {
-    worldStateBlockHash?: string;
-    txId?: string;
-    existingContracts?: string[];
-    inputAssets?: node.TestInputAsset[];
-  }): Promise<bigint> {
-    const callResult = await web3
+  async callGetDecimalsMethod(
+    params?: Omit<CallContractParams<{}>, "args">
+  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
+    const txId = params?.txId ?? randomTxId();
+    const callParams = TokenTest.contract.toApiCallContract(
+      { ...params, txId: txId, args: {} },
+      this.groupIndex,
+      this.address,
+      2
+    );
+    const result = await web3
       .getCurrentNodeProvider()
-      .contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: 2,
-        args: [],
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets,
-      });
-    return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
+      .contracts.postContractsCallContract(callParams);
+    const callResult = TokenTest.contract.fromApiCallContractResult(
+      result,
+      txId,
+      2
+    );
+    return {
+      ...callResult,
+      returns: callResult.returns[0] as bigint,
+    };
   }
 
-  async callGetTotalSupplyMethod(callParams?: {
-    worldStateBlockHash?: string;
-    txId?: string;
-    existingContracts?: string[];
-    inputAssets?: node.TestInputAsset[];
-  }): Promise<bigint> {
-    const callResult = await web3
+  async callGetTotalSupplyMethod(
+    params?: Omit<CallContractParams<{}>, "args">
+  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
+    const txId = params?.txId ?? randomTxId();
+    const callParams = TokenTest.contract.toApiCallContract(
+      { ...params, txId: txId, args: {} },
+      this.groupIndex,
+      this.address,
+      3
+    );
+    const result = await web3
       .getCurrentNodeProvider()
-      .contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: 3,
-        args: [],
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets,
-      });
-    return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
+      .contracts.postContractsCallContract(callParams);
+    const callResult = TokenTest.contract.fromApiCallContractResult(
+      result,
+      txId,
+      3
+    );
+    return {
+      ...callResult,
+      returns: callResult.returns[0] as bigint,
+    };
   }
 }

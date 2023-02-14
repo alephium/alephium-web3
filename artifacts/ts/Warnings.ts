@@ -6,7 +6,6 @@ import {
   web3,
   SignerProvider,
   Address,
-  toApiVals,
   DeployContractParams,
   DeployContractResult,
   Contract,
@@ -14,12 +13,10 @@ import {
   node,
   binToHex,
   TestContractResult,
-  InputAsset,
   Asset,
   HexString,
   ContractFactory,
   contractIdFromAddress,
-  fromApiArray,
   ONE_ALPH,
   groupOfAddress,
   fromApiVals,
@@ -27,6 +24,10 @@ import {
   SubscribeOptions,
   Subscription,
   EventSubscription,
+  randomTxId,
+  CallContractParams,
+  CallContractResult,
+  TestContractParams,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/warnings.ral.json";
 
@@ -36,19 +37,23 @@ export namespace Warnings {
     b: bigint;
   };
 
-  export type State = Omit<ContractState, "fields"> & { fields: Fields };
+  export type State = ContractState<Fields>;
 
   export type ContractCreatedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
   export type ContractDestroyedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
@@ -89,7 +94,7 @@ export namespace Warnings {
     initFields: Fields,
     asset?: Asset,
     address?: string
-  ): ContractState {
+  ): ContractState<Warnings.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
@@ -98,29 +103,22 @@ export namespace Warnings {
   }
 
   export async function testFooMethod(
-    args: { x: bigint; y: bigint },
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: TestContractParams<Warnings.Fields, { x: bigint; y: bigint }>
   ): Promise<Omit<TestContractResult, "returns">> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 0,
-      testArgs: args,
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod("foo", _testParams);
-    const testReturns = testResult.returns as [];
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = Warnings.contract.toApiTestContractParams("foo", {
+      ...params,
+      txId: txId,
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await Warnings.contract.fromApiTestContractResult(
+      0,
+      apiResult,
+      txId
+    );
+
     return {
       ...testResult,
     };
@@ -142,16 +140,15 @@ export class WarningsInstance {
   }
 
   async fetchState(): Promise<Warnings.State> {
-    const state = await Warnings.contract.fetchState(
-      this.address,
-      this.groupIndex
-    );
+    const contractState = await web3
+      .getCurrentNodeProvider()
+      .contracts.getContractsAddressState(this.address, {
+        group: this.groupIndex,
+      });
+    const state = Warnings.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: {
-        a: state.fields["a"] as bigint,
-        b: state.fields["b"] as bigint,
-      },
+      fields: state.fields as Warnings.Fields,
     };
   }
 
@@ -165,9 +162,11 @@ export class WarningsInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractCreated",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -210,9 +209,11 @@ export class WarningsInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractDestroyed",
       fields: { address: fields["address"] as HexString },
     };
   }

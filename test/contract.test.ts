@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { Account, web3 } from '../packages/web3'
+import { Account, web3, ContractEvent, Fields } from '../packages/web3'
 import { Contract, Project, Script } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { expectAssertionError, randomContractAddress } from '../packages/web3-test'
@@ -29,6 +29,7 @@ import { Sub } from '../artifacts/ts/Sub'
 import { Add } from '../artifacts/ts/Add'
 import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
+import { Debug } from '../artifacts/ts/Debug'
 
 describe('contract', function () {
   let signer: NodeWallet
@@ -47,33 +48,49 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
 
     const subState = Sub.stateForTest({ result: 0n })
-    const testResult = await Add.testAddMethod(
-      { array: [2n, 1n] },
-      { sub: subState.contractId, result: 0n },
-      { existingContracts: [subState] }
-    )
+    const testResult = await Add.testAddMethod({
+      initialFields: { sub: subState.contractId, result: 0n },
+      testArgs: { array: [2n, 1n] },
+      existingContracts: [subState]
+    })
     expect(testResult.returns).toEqual([3n, 1n])
-    expect(testResult.contracts[0].codeHash).toEqual(subState.codeHash)
-    expect(testResult.contracts[0].fields.result).toEqual(1n)
-    expect(testResult.contracts[1].codeHash).toEqual(Add.contract.codeHash)
-    expect(testResult.contracts[1].fields.sub).toEqual(subState.contractId)
-    expect(testResult.contracts[1].fields.result).toEqual(3n)
-    const events = testResult.events.sort((a, b) => a.name.localeCompare(b.name))
-    expect(events[0].name).toEqual('Add')
-    expect(events[0].fields.x).toEqual(2n)
-    expect(events[0].fields.y).toEqual(1n)
-    expect(events[1].name).toEqual('Add1')
-    expect(events[1].fields.a).toEqual(2n)
-    expect(events[1].fields.b).toEqual(1n)
-    expect(events[2].name).toEqual('Sub')
-    expect(events[2].fields.x).toEqual(2n)
-    expect(events[2].fields.y).toEqual(1n)
+    const contract0 = testResult.contracts[0] as Sub.State
+    expect(contract0.codeHash).toEqual(subState.codeHash)
+    expect(contract0.fields.result).toEqual(1n)
 
-    const testResultPrivate = await Add.testAddPrivateMethod(
-      { array: [2n, 1n] },
-      { sub: subState.contractId, result: 0n },
-      { existingContracts: [subState] }
-    )
+    const contract1 = testResult.contracts[1] as Add.State
+    expect(contract1.codeHash).toEqual(Add.contract.codeHash)
+    expect(contract1.fields.sub).toEqual(subState.contractId)
+    expect(contract1.fields.result).toEqual(3n)
+
+    const checkEvents = (eventList: ContractEvent<Fields>[]) => {
+      const events = eventList.sort((a, b) => a.name.localeCompare(b.name))
+      const event0 = events[0] as Add.AddEvent
+      expect(event0.name).toEqual('Add')
+      expect(event0.eventIndex).toEqual(0)
+      expect(event0.fields.x).toEqual(2n)
+      expect(event0.fields.y).toEqual(1n)
+
+      const event1 = events[1] as Add.Add1Event
+      expect(event1.name).toEqual('Add1')
+      expect(event1.eventIndex).toEqual(1)
+      expect(event1.fields.a).toEqual(2n)
+      expect(event1.fields.b).toEqual(1n)
+
+      const event2 = events[2] as Sub.SubEvent
+      expect(event2.name).toEqual('Sub')
+      expect(event2.eventIndex).toEqual(0)
+      expect(event2.fields.x).toEqual(2n)
+      expect(event2.fields.y).toEqual(1n)
+    }
+
+    checkEvents(testResult.events)
+
+    const testResultPrivate = await Add.testAddPrivateMethod({
+      initialFields: { sub: subState.contractId, result: 0n },
+      testArgs: { array: [2n, 1n] },
+      existingContracts: [subState]
+    })
     expect(testResultPrivate.returns).toEqual([3n, 1n])
 
     const sub = (await Sub.factory.deploy(signer, { initialFields: { result: 0n } })).instance
@@ -104,14 +121,18 @@ describe('contract', function () {
     expect(addContractState1.fields.sub).toEqual(sub.contractId)
     expect(addContractState1.fields.result).toEqual(3n)
 
-    const callResult = await add.callAddMethod({ array: [2n, 1n] })
-    expect(callResult).toEqual([6n, 2n])
+    const callResult = await add.callAddMethod({
+      args: { array: [2n, 1n] },
+      existingContracts: [sub.address]
+    })
+    expect(callResult.returns).toEqual([6n, 2n])
+    checkEvents(callResult.events)
   }
 
   async function testSuite2() {
     await Project.build({ errorOnWarnings: false })
 
-    const testResult = await Greeter.testGreetMethod({ btcPrice: 1n })
+    const testResult = await Greeter.testGreetMethod({ initialFields: { btcPrice: 1n } })
     expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
@@ -191,9 +212,7 @@ describe('contract', function () {
 
   it('should debug', async () => {
     await Project.build({ errorOnWarnings: false })
-    // We still use contract to test because there is no `bytecodeDebug` in the contract artifact
-    const contract = Project.contract('Debug')
-    const result = await contract.testPublicMethod('debug', {})
+    const result = await Debug.testDebugMethod()
     expect(result.debugMessages.length).toEqual(1)
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
     expect(result.debugMessages[0].message).toEqual(`Hello, ${result.contractAddress}!`)

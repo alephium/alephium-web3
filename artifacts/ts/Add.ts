@@ -6,7 +6,6 @@ import {
   web3,
   SignerProvider,
   Address,
-  toApiVals,
   DeployContractParams,
   DeployContractResult,
   Contract,
@@ -14,12 +13,10 @@ import {
   node,
   binToHex,
   TestContractResult,
-  InputAsset,
   Asset,
   HexString,
   ContractFactory,
   contractIdFromAddress,
-  fromApiArray,
   ONE_ALPH,
   groupOfAddress,
   fromApiVals,
@@ -27,6 +24,10 @@ import {
   SubscribeOptions,
   Subscription,
   EventSubscription,
+  randomTxId,
+  CallContractParams,
+  CallContractResult,
+  TestContractParams,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
 
@@ -36,33 +37,41 @@ export namespace Add {
     result: bigint;
   };
 
-  export type State = Omit<ContractState, "fields"> & { fields: Fields };
+  export type State = ContractState<Fields>;
 
   export type AddEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { x: bigint; y: bigint };
   };
 
   export type Add1Event = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { a: bigint; b: bigint };
   };
 
   export type ContractCreatedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
   export type ContractDestroyedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
@@ -103,7 +112,7 @@ export namespace Add {
     initFields: Fields,
     asset?: Asset,
     address?: string
-  ): ContractState {
+  ): ContractState<Add.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
@@ -112,30 +121,23 @@ export namespace Add {
   }
 
   export async function testAddMethod(
-    args: { array: [bigint, bigint] },
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: TestContractParams<Add.Fields, { array: [bigint, bigint] }>
   ): Promise<
     Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
   > {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 0,
-      testArgs: args,
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod("add", _testParams);
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = Add.contract.toApiTestContractParams("add", {
+      ...params,
+      txId: txId,
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await Add.contract.fromApiTestContractResult(
+      0,
+      apiResult,
+      txId
+    );
     const testReturns = testResult.returns as [[bigint, bigint]];
     return {
       ...testResult,
@@ -144,32 +146,22 @@ export namespace Add {
   }
 
   export async function testAddPrivateMethod(
-    args: { array: [bigint, bigint] },
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: TestContractParams<Add.Fields, { array: [bigint, bigint] }>
   ): Promise<
     Omit<TestContractResult, "returns"> & { returns: [bigint, bigint] }
   > {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 1,
-      testArgs: args,
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPrivateMethod(
-      "addPrivate",
-      _testParams
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = Add.contract.toApiTestContractParams("addPrivate", {
+      ...params,
+      txId: txId,
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await Add.contract.fromApiTestContractResult(
+      1,
+      apiResult,
+      txId
     );
     const testReturns = testResult.returns as [[bigint, bigint]];
     return {
@@ -194,13 +186,15 @@ export class AddInstance {
   }
 
   async fetchState(): Promise<Add.State> {
-    const state = await Add.contract.fetchState(this.address, this.groupIndex);
+    const contractState = await web3
+      .getCurrentNodeProvider()
+      .contracts.getContractsAddressState(this.address, {
+        group: this.groupIndex,
+      });
+    const state = Add.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: {
-        sub: state.fields["sub"] as HexString,
-        result: state.fields["result"] as bigint,
-      },
+      fields: state.fields as Add.Fields,
     };
   }
 
@@ -212,9 +206,11 @@ export class AddInstance {
     }
     const fields = fromApiVals(event.fields, ["x", "y"], ["U256", "U256"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "Add",
       fields: { x: fields["x"] as bigint, y: fields["y"] as bigint },
     };
   }
@@ -255,9 +251,11 @@ export class AddInstance {
     }
     const fields = fromApiVals(event.fields, ["a", "b"], ["U256", "U256"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "Add1",
       fields: { a: fields["a"] as bigint, b: fields["b"] as bigint },
     };
   }
@@ -300,9 +298,11 @@ export class AddInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractCreated",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -345,9 +345,11 @@ export class AddInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractDestroyed",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -439,29 +441,24 @@ export class AddInstance {
   }
 
   async callAddMethod(
-    args: { array: [bigint, bigint] },
-    callParams?: {
-      worldStateBlockHash?: string;
-      txId?: string;
-      existingContracts?: string[];
-      inputAssets?: node.TestInputAsset[];
-    }
-  ): Promise<[bigint, bigint]> {
-    const callResult = await web3
+    params: CallContractParams<{ array: [bigint, bigint] }>
+  ): Promise<
+    Omit<CallContractResult, "returns"> & { returns: [bigint, bigint] }
+  > {
+    const txId = params?.txId ?? randomTxId();
+    const callParams = Add.contract.toApiCallContract(
+      { ...params, txId: txId },
+      this.groupIndex,
+      this.address,
+      0
+    );
+    const result = await web3
       .getCurrentNodeProvider()
-      .contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: 0,
-        args: toApiVals({ array: args.array }, ["array"], ["[U256;2]"]),
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets,
-      });
-    return fromApiArray(callResult.returns, ["[U256;2]"])[0] as [
-      bigint,
-      bigint
-    ];
+      .contracts.postContractsCallContract(callParams);
+    const callResult = Add.contract.fromApiCallContractResult(result, txId, 0);
+    return {
+      ...callResult,
+      returns: callResult.returns[0] as [bigint, bigint],
+    };
   }
 }

@@ -6,7 +6,6 @@ import {
   web3,
   SignerProvider,
   Address,
-  toApiVals,
   DeployContractParams,
   DeployContractResult,
   Contract,
@@ -14,12 +13,10 @@ import {
   node,
   binToHex,
   TestContractResult,
-  InputAsset,
   Asset,
   HexString,
   ContractFactory,
   contractIdFromAddress,
-  fromApiArray,
   ONE_ALPH,
   groupOfAddress,
   fromApiVals,
@@ -27,23 +24,31 @@ import {
   SubscribeOptions,
   Subscription,
   EventSubscription,
+  randomTxId,
+  CallContractParams,
+  CallContractResult,
+  TestContractParams,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 
 export namespace MetaData {
-  export type State = Omit<ContractState, "fields">;
+  export type State = Omit<ContractState<any>, "fields">;
 
   export type ContractCreatedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
   export type ContractDestroyedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
@@ -80,7 +85,10 @@ export namespace MetaData {
   }
 
   // This is used for testing contract functions
-  export function stateForTest(asset?: Asset, address?: string): ContractState {
+  export function stateForTest(
+    asset?: Asset,
+    address?: string
+  ): ContractState<{}> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
@@ -88,76 +96,73 @@ export namespace MetaData {
     return MetaData.contract.toState({}, newAsset, address);
   }
 
-  export async function testFooMethod(testParams?: {
-    group?: number;
-    address?: string;
-    initialAsset?: Asset;
-    existingContracts?: ContractState[];
-    inputAssets?: InputAsset[];
-  }): Promise<Omit<TestContractResult, "returns">> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 0,
+  export async function testFooMethod(
+    params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
+  ): Promise<Omit<TestContractResult, "returns">> {
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = MetaData.contract.toApiTestContractParams("foo", {
+      ...params,
+      txId: txId,
       testArgs: {},
       initialFields: {},
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod("foo", _testParams);
-    const testReturns = testResult.returns as [];
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await MetaData.contract.fromApiTestContractResult(
+      0,
+      apiResult,
+      txId
+    );
+
     return {
       ...testResult,
     };
   }
 
-  export async function testBarMethod(testParams?: {
-    group?: number;
-    address?: string;
-    initialAsset?: Asset;
-    existingContracts?: ContractState[];
-    inputAssets?: InputAsset[];
-  }): Promise<Omit<TestContractResult, "returns">> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 1,
+  export async function testBarMethod(
+    params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
+  ): Promise<Omit<TestContractResult, "returns">> {
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = MetaData.contract.toApiTestContractParams("bar", {
+      ...params,
+      txId: txId,
       testArgs: {},
       initialFields: {},
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPrivateMethod("bar", _testParams);
-    const testReturns = testResult.returns as [];
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await MetaData.contract.fromApiTestContractResult(
+      1,
+      apiResult,
+      txId
+    );
+
     return {
       ...testResult,
     };
   }
 
-  export async function testBazMethod(testParams?: {
-    group?: number;
-    address?: string;
-    initialAsset?: Asset;
-    existingContracts?: ContractState[];
-    inputAssets?: InputAsset[];
-  }): Promise<Omit<TestContractResult, "returns">> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 2,
+  export async function testBazMethod(
+    params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
+  ): Promise<Omit<TestContractResult, "returns">> {
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = MetaData.contract.toApiTestContractParams("baz", {
+      ...params,
+      txId: txId,
       testArgs: {},
       initialFields: {},
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPrivateMethod("baz", _testParams);
-    const testReturns = testResult.returns as [];
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await MetaData.contract.fromApiTestContractResult(
+      2,
+      apiResult,
+      txId
+    );
+
     return {
       ...testResult,
     };
@@ -179,10 +184,12 @@ export class MetaDataInstance {
   }
 
   async fetchState(): Promise<MetaData.State> {
-    const state = await MetaData.contract.fetchState(
-      this.address,
-      this.groupIndex
-    );
+    const contractState = await web3
+      .getCurrentNodeProvider()
+      .contracts.getContractsAddressState(this.address, {
+        group: this.groupIndex,
+      });
+    const state = MetaData.contract.fromApiContractState(contractState);
     return {
       ...state,
     };
@@ -198,9 +205,11 @@ export class MetaDataInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractCreated",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -243,9 +252,11 @@ export class MetaDataInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractDestroyed",
       fields: { address: fields["address"] as HexString },
     };
   }

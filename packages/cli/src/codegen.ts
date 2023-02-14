@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, Project, Script, Contract, EventSig, FieldsSig } from '@alephium/web3'
+import { node, Project, Script, Contract, EventSig } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
 import fs from 'fs'
@@ -69,48 +69,39 @@ function formatToStringArray(strs: string[]): string {
   return `[${strs.map((str) => `'${str}'`).join(', ')}]`
 }
 
-function functionParamsSig(functionSig: node.FunctionSig): FieldsSig {
-  return {
-    names: functionSig.paramNames,
-    types: functionSig.paramTypes,
-    isMutable: functionSig.paramIsMutable
-  }
-}
-
-function genCallMethod(functionSig: node.FunctionSig, funcIndex: number): string {
+function genCallMethod(contractName: string, functionSig: node.FunctionSig, funcIndex: number): string {
   if (!functionSig.isPublic || functionSig.returnTypes.length === 0) {
     return ''
   }
   const funcName = functionSig.name.charAt(0).toUpperCase() + functionSig.name.slice(1)
-  const paramsSig = functionParamsSig(functionSig)
-  const callParams =
-    'callParams?: {worldStateBlockHash?: string, txId?: string, existingContracts?: string[], inputAssets?: node.TestInputAsset[]}'
-  const argNames = formatToStringArray(paramsSig.names)
-  const argTypes = formatToStringArray(paramsSig.types)
   const funcHasArgs = functionSig.paramNames.length > 0
-  const funcArgs = funcHasArgs ? `args: {${formatParameters(paramsSig)}}, ` : ''
-  const ralphRetTypes = formatToStringArray(functionSig.returnTypes)
+  const params = funcHasArgs
+    ? `params: CallContractParams<{${formatParameters({
+        names: functionSig.paramNames,
+        types: functionSig.paramTypes
+      })}}>`
+    : `params?: Omit<CallContractParams<{}>, 'args'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-  const retType = tsReturnTypes.length === 1 ? `${tsReturnTypes[0]}` : `[${tsReturnTypes.join(', ')}]`
-  const args = funcHasArgs
-    ? `toApiVals({${paramsSig.names.map((str) => `${str}: args.${str}`)}}, ${argNames}, ${argTypes})`
-    : '[]'
+  const retTypeTemp = tsReturnTypes.length === 1 ? `${tsReturnTypes[0]}` : `[${tsReturnTypes.join(', ')}]`
+  const retType = `Omit<CallContractResult, 'returns'> & { returns: ${retTypeTemp} }`
   return `
-    async call${funcName}Method(${funcArgs}${callParams}): Promise<${retType}> {
-      const callResult = await web3.getCurrentNodeProvider().contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: ${funcIndex},
-        args: ${args},
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets
-      })
-      ${
-        tsReturnTypes.length === 1
-          ? `return fromApiArray(callResult.returns, ${ralphRetTypes})[0] as ${retType}`
-          : `return fromApiArray(callResult.returns, ${ralphRetTypes}) as ${retType}`
+    async call${funcName}Method(${params}): Promise<${retType}> {
+      const txId = params?.txId ?? randomTxId()
+      const callParams = ${contractName}.contract.toApiCallContract(
+        { ...params, txId: txId, ${funcHasArgs ? '' : 'args: {}'} },
+        this.groupIndex,
+        this.address,
+        ${funcIndex}
+      )
+      const result = await web3.getCurrentNodeProvider().contracts.postContractsCallContract(callParams)
+      const callResult = ${contractName}.contract.fromApiCallContractResult(result, txId, ${funcIndex})
+      return {
+        ...callResult,
+        ${
+          tsReturnTypes.length === 1
+            ? `returns: callResult.returns[0] as ${retTypeTemp}`
+            : `returns: callResult.returns as ${retTypeTemp}`
+        }
       }
     }
   `
@@ -165,15 +156,13 @@ function genAttach(instanceName: string): string {
 }
 
 function genFetchState(contract: Contract): string {
-  const assigns = contract.fieldsSig.names
-    .map((name, index) => `${name}: state.fields['${name}'] as ${toTsType(contract.fieldsSig.types[`${index}`])}`)
-    .join(', ')
   return `
   async fetchState(): Promise<${contract.name}.State> {
-    const state = await ${contract.name}.contract.fetchState(this.address, this.groupIndex)
+    const contractState = await web3.getCurrentNodeProvider().contracts.getContractsAddressState(this.address, { group: this.groupIndex })
+    const state = ${contract.name}.contract.fromApiContractState(contractState)
     return {
       ...state,
-      ${contract.fieldsSig.names.length > 0 ? `fields: {${assigns}}` : ''}
+      ${contract.fieldsSig.names.length > 0 ? `fields: state.fields as ${contract.name}.Fields` : ''}
     }
   }
   `
@@ -199,9 +188,11 @@ function genEventType(event: EventSig): string {
       : `fields: {${formatParameters({ names: event.fieldNames, types: event.fieldTypes })}}`
   return `
   export type ${getEventType(event)} = {
+    contractAddress: string,
     blockHash: string,
     txId: string,
     eventIndex: number,
+    name: string,
     ${fieldsDef}
   }
   `
@@ -228,9 +219,11 @@ function genDecodeEvent(contractName: string, event: EventSig, eventIndex: numbe
           : ''
       }
       return {
+        contractAddress: this.address,
         blockHash: event.blockHash,
         txId: event.txId,
         eventIndex: event.eventIndex,
+        name: '${event.name}',
         ${hasFields ? `fields: {${assigns}}` : ''}
       }
     }
@@ -296,22 +289,27 @@ function genSubscribeAllEvents(contract: Contract, eventsSig: [EventSig, number]
 
 function genContractStateType(contract: Contract): string {
   if (contract.fieldsSig.names.length === 0) {
-    return `export type State = Omit<ContractState, 'fields'>`
+    return `export type State = Omit<ContractState<any>, 'fields'>`
   }
   return `
     export type Fields = {
       ${formatParameters(contract.fieldsSig)}
     }
 
-    export type State = Omit<ContractState, 'fields'> & { fields: Fields }
+    export type State = ContractState<Fields>
   `
 }
 
 function genStateForTest(contract: Contract): string {
   const fieldsParam = getParamsFromFieldsSig(contract.fieldsSig, 'Fields')
+  const fieldsType = contract.fieldsSig.names.length > 0 ? `${contract.name}.Fields` : '{}'
   return `
     // This is used for testing contract functions
-    export function stateForTest(${fieldsParam}asset?: Asset, address?: string): ContractState {
+    export function stateForTest(
+      ${fieldsParam}
+      asset?: Asset,
+      address?: string
+    ): ContractState<${fieldsType}> {
       const newAsset = {
         alphAmount: asset?.alphAmount ?? ${oneAlph},
         tokens: asset?.tokens
@@ -331,12 +329,20 @@ function getInitialFieldsFromFieldsSig(fieldsSig: node.FieldsSig): string {
 
 function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index: number): string {
   const funcName = functionSig.name.charAt(0).toUpperCase() + functionSig.name.slice(1)
-  const paramsSig = functionParamsSig(functionSig)
-  const funcHasArgs = paramsSig.names.length > 0
-  const funcArgs = funcHasArgs ? `args: {${formatParameters(paramsSig)}}, ` : ''
-  const testParams =
-    'testParams?: {group?: number, address?: string, initialAsset?: Asset, existingContracts?: ContractState[], inputAssets?: InputAsset[]}'
-  const fieldParam = getParamsFromFieldsSig(contract.fieldsSig, `Fields`)
+  const funcHasArgs = functionSig.paramNames.length > 0
+  const contractHasFields = contract.fieldsSig.names.length > 0
+  const argsType = funcHasArgs
+    ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
+    : '{}'
+  const fieldsType = contractHasFields ? `${contract.name}.Fields` : '{}'
+  const params =
+    funcHasArgs && contractHasFields
+      ? `params: TestContractParams<${fieldsType}, ${argsType}>`
+      : funcHasArgs
+      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'initialFields'>`
+      : contractHasFields
+      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'testArgs'>`
+      : `params?: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const retType =
     tsReturnTypes.length === 0
@@ -344,22 +350,20 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig, index:
       : tsReturnTypes.length === 1
       ? `Omit<TestContractResult, 'returns'> & { returns: ${tsReturnTypes[0]} }`
       : `Omit<TestContractResult, 'returns'> & { returns: [${tsReturnTypes.join(', ')}] }`
-  const testFuncName = functionSig.isPublic ? 'testPublicMethod' : 'testPrivateMethod'
   return `
-    export async function test${funcName}Method(${funcArgs}${fieldParam}${testParams}): Promise<${retType}> {
-      const initialAsset = {
-        alphAmount: testParams?.initialAsset?.alphAmount ?? ${oneAlph},
-        tokens: testParams?.initialAsset?.tokens
-      }
-      const _testParams = {
-        ...testParams,
-        testMethodIndex: ${index},
-        testArgs: ${funcHasArgs ? 'args' : '{}'},
-        initialFields: ${getInitialFieldsFromFieldsSig(contract.fieldsSig)},
-        initialAsset: initialAsset,
-      }
-      const testResult = await contract.${testFuncName}('${functionSig.name}', _testParams)
-      const testReturns = testResult.returns as [${tsReturnTypes.join(', ')}]
+    export async function test${funcName}Method(${params}): Promise<${retType}> {
+      const txId = params?.txId ?? randomTxId()
+      const apiParams = ${contract.name}.contract.toApiTestContractParams(
+        '${functionSig.name}',
+        {
+          ...params, txId: txId,
+          ${funcHasArgs ? '' : 'testArgs: {},'}
+          ${contractHasFields ? '' : 'initialFields: {}'}
+        }
+      )
+      const apiResult = await web3.getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
+      const testResult = await ${contract.name}.contract.fromApiTestContractResult(${index}, apiResult, txId)
+      ${tsReturnTypes.length === 0 ? '' : `const testReturns = testResult.returns as [${tsReturnTypes.join(', ')}]`}
       return {
         ...testResult,
         ${
@@ -380,10 +384,11 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     ${header}
 
     import {
-      web3, SignerProvider, Address, toApiVals, DeployContractParams, DeployContractResult,
-      Contract, ContractState, node, binToHex, TestContractResult, InputAsset, Asset, HexString,
-      ContractFactory, contractIdFromAddress, fromApiArray, ONE_ALPH, groupOfAddress, fromApiVals,
-      subscribeToEvents, SubscribeOptions, Subscription, EventSubscription
+      web3, SignerProvider, Address, DeployContractParams, DeployContractResult,
+      Contract, ContractState, node, binToHex, TestContractResult, Asset, HexString,
+      ContractFactory, contractIdFromAddress, ONE_ALPH, groupOfAddress, fromApiVals,
+      subscribeToEvents, SubscribeOptions, Subscription, EventSubscription, randomTxId,
+      CallContractParams, CallContractResult, TestContractParams
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
@@ -416,7 +421,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genFetchState(contract)}
       ${eventsSig.map(([e, index]) => genSubscribeEvent(contract.name, e, index)).join('\n')}
       ${genSubscribeAllEvents(contract, eventsSig)}
-      ${contract.functions.map((f, index) => genCallMethod(f, index)).join('\n')}
+      ${contract.functions.map((f, index) => genCallMethod(contract.name, f, index)).join('\n')}
     }
 `
   return prettier.format(source, { parser: 'typescript' })

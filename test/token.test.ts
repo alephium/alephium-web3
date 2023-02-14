@@ -38,9 +38,9 @@ describe('contract', function () {
     const initialFields = { symbol, name, decimals, totalSupply }
     const tokenTest = (await TokenTest.factory.deploy(signer, { initialFields })).instance
 
-    expect(await tokenTest.callGetSymbolMethod()).toEqual(symbol)
-    expect(await tokenTest.callGetNameMethod()).toEqual(name)
-    expect(await tokenTest.callGetDecimalsMethod()).toEqual(decimals)
-    expect(await tokenTest.callGetTotalSupplyMethod()).toEqual(totalSupply)
+    expect((await tokenTest.callGetSymbolMethod()).returns).toEqual(symbol)
+    expect((await tokenTest.callGetNameMethod()).returns).toEqual(name)
+    expect((await tokenTest.callGetDecimalsMethod()).returns).toEqual(decimals)
+    expect((await tokenTest.callGetTotalSupplyMethod()).returns).toEqual(totalSupply)
   })
 })

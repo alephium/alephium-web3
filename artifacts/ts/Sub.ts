@@ -6,7 +6,6 @@ import {
   web3,
   SignerProvider,
   Address,
-  toApiVals,
   DeployContractParams,
   DeployContractResult,
   Contract,
@@ -14,12 +13,10 @@ import {
   node,
   binToHex,
   TestContractResult,
-  InputAsset,
   Asset,
   HexString,
   ContractFactory,
   contractIdFromAddress,
-  fromApiArray,
   ONE_ALPH,
   groupOfAddress,
   fromApiVals,
@@ -27,6 +24,10 @@ import {
   SubscribeOptions,
   Subscription,
   EventSubscription,
+  randomTxId,
+  CallContractParams,
+  CallContractResult,
+  TestContractParams,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/sub.ral.json";
 
@@ -35,26 +36,32 @@ export namespace Sub {
     result: bigint;
   };
 
-  export type State = Omit<ContractState, "fields"> & { fields: Fields };
+  export type State = ContractState<Fields>;
 
   export type SubEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { x: bigint; y: bigint };
   };
 
   export type ContractCreatedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
   export type ContractDestroyedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
@@ -95,7 +102,7 @@ export namespace Sub {
     initFields: Fields,
     asset?: Asset,
     address?: string
-  ): ContractState {
+  ): ContractState<Sub.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
@@ -104,28 +111,21 @@ export namespace Sub {
   }
 
   export async function testSubMethod(
-    args: { array: [bigint, bigint] },
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: TestContractParams<Sub.Fields, { array: [bigint, bigint] }>
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 0,
-      testArgs: args,
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod("sub", _testParams);
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = Sub.contract.toApiTestContractParams("sub", {
+      ...params,
+      txId: txId,
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await Sub.contract.fromApiTestContractResult(
+      0,
+      apiResult,
+      txId
+    );
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -149,10 +149,15 @@ export class SubInstance {
   }
 
   async fetchState(): Promise<Sub.State> {
-    const state = await Sub.contract.fetchState(this.address, this.groupIndex);
+    const contractState = await web3
+      .getCurrentNodeProvider()
+      .contracts.getContractsAddressState(this.address, {
+        group: this.groupIndex,
+      });
+    const state = Sub.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: { result: state.fields["result"] as bigint },
+      fields: state.fields as Sub.Fields,
     };
   }
 
@@ -164,9 +169,11 @@ export class SubInstance {
     }
     const fields = fromApiVals(event.fields, ["x", "y"], ["U256", "U256"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "Sub",
       fields: { x: fields["x"] as bigint, y: fields["y"] as bigint },
     };
   }
@@ -209,9 +216,11 @@ export class SubInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractCreated",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -254,9 +263,11 @@ export class SubInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractDestroyed",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -338,26 +349,22 @@ export class SubInstance {
   }
 
   async callSubMethod(
-    args: { array: [bigint, bigint] },
-    callParams?: {
-      worldStateBlockHash?: string;
-      txId?: string;
-      existingContracts?: string[];
-      inputAssets?: node.TestInputAsset[];
-    }
-  ): Promise<bigint> {
-    const callResult = await web3
+    params: CallContractParams<{ array: [bigint, bigint] }>
+  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
+    const txId = params?.txId ?? randomTxId();
+    const callParams = Sub.contract.toApiCallContract(
+      { ...params, txId: txId },
+      this.groupIndex,
+      this.address,
+      0
+    );
+    const result = await web3
       .getCurrentNodeProvider()
-      .contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: 0,
-        args: toApiVals({ array: args.array }, ["array"], ["[U256;2]"]),
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets,
-      });
-    return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
+      .contracts.postContractsCallContract(callParams);
+    const callResult = Sub.contract.fromApiCallContractResult(result, txId, 0);
+    return {
+      ...callResult,
+      returns: callResult.returns[0] as bigint,
+    };
   }
 }

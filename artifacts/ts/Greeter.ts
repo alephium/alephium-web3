@@ -6,7 +6,6 @@ import {
   web3,
   SignerProvider,
   Address,
-  toApiVals,
   DeployContractParams,
   DeployContractResult,
   Contract,
@@ -14,12 +13,10 @@ import {
   node,
   binToHex,
   TestContractResult,
-  InputAsset,
   Asset,
   HexString,
   ContractFactory,
   contractIdFromAddress,
-  fromApiArray,
   ONE_ALPH,
   groupOfAddress,
   fromApiVals,
@@ -27,6 +24,10 @@ import {
   SubscribeOptions,
   Subscription,
   EventSubscription,
+  randomTxId,
+  CallContractParams,
+  CallContractResult,
+  TestContractParams,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/greeter.ral.json";
 
@@ -35,19 +36,23 @@ export namespace Greeter {
     btcPrice: bigint;
   };
 
-  export type State = Omit<ContractState, "fields"> & { fields: Fields };
+  export type State = ContractState<Fields>;
 
   export type ContractCreatedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
   export type ContractDestroyedEvent = {
+    contractAddress: string;
     blockHash: string;
     txId: string;
     eventIndex: number;
+    name: string;
     fields: { address: HexString };
   };
 
@@ -88,7 +93,7 @@ export namespace Greeter {
     initFields: Fields,
     asset?: Asset,
     address?: string
-  ): ContractState {
+  ): ContractState<Greeter.Fields> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens,
@@ -97,27 +102,22 @@ export namespace Greeter {
   }
 
   export async function testGreetMethod(
-    initFields: Fields,
-    testParams?: {
-      group?: number;
-      address?: string;
-      initialAsset?: Asset;
-      existingContracts?: ContractState[];
-      inputAssets?: InputAsset[];
-    }
+    params: Omit<TestContractParams<Greeter.Fields, {}>, "testArgs">
   ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const initialAsset = {
-      alphAmount: testParams?.initialAsset?.alphAmount ?? ONE_ALPH,
-      tokens: testParams?.initialAsset?.tokens,
-    };
-    const _testParams = {
-      ...testParams,
-      testMethodIndex: 0,
+    const txId = params?.txId ?? randomTxId();
+    const apiParams = Greeter.contract.toApiTestContractParams("greet", {
+      ...params,
+      txId: txId,
       testArgs: {},
-      initialFields: initFields,
-      initialAsset: initialAsset,
-    };
-    const testResult = await contract.testPublicMethod("greet", _testParams);
+    });
+    const apiResult = await web3
+      .getCurrentNodeProvider()
+      .contracts.postContractsTestContract(apiParams);
+    const testResult = await Greeter.contract.fromApiTestContractResult(
+      0,
+      apiResult,
+      txId
+    );
     const testReturns = testResult.returns as [bigint];
     return {
       ...testResult,
@@ -141,13 +141,15 @@ export class GreeterInstance {
   }
 
   async fetchState(): Promise<Greeter.State> {
-    const state = await Greeter.contract.fetchState(
-      this.address,
-      this.groupIndex
-    );
+    const contractState = await web3
+      .getCurrentNodeProvider()
+      .contracts.getContractsAddressState(this.address, {
+        group: this.groupIndex,
+      });
+    const state = Greeter.contract.fromApiContractState(contractState);
     return {
       ...state,
-      fields: { btcPrice: state.fields["btcPrice"] as bigint },
+      fields: state.fields as Greeter.Fields,
     };
   }
 
@@ -161,9 +163,11 @@ export class GreeterInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractCreated",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -206,9 +210,11 @@ export class GreeterInstance {
     }
     const fields = fromApiVals(event.fields, ["address"], ["Address"]);
     return {
+      contractAddress: this.address,
       blockHash: event.blockHash,
       txId: event.txId,
       eventIndex: event.eventIndex,
+      name: "ContractDestroyed",
       fields: { address: fields["address"] as HexString },
     };
   }
@@ -285,24 +291,27 @@ export class GreeterInstance {
     return subscribeToEvents(opt, this.address, fromCount);
   }
 
-  async callGreetMethod(callParams?: {
-    worldStateBlockHash?: string;
-    txId?: string;
-    existingContracts?: string[];
-    inputAssets?: node.TestInputAsset[];
-  }): Promise<bigint> {
-    const callResult = await web3
+  async callGreetMethod(
+    params?: Omit<CallContractParams<{}>, "args">
+  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
+    const txId = params?.txId ?? randomTxId();
+    const callParams = Greeter.contract.toApiCallContract(
+      { ...params, txId: txId, args: {} },
+      this.groupIndex,
+      this.address,
+      0
+    );
+    const result = await web3
       .getCurrentNodeProvider()
-      .contracts.postContractsCallContract({
-        group: this.groupIndex,
-        worldStateBlockHash: callParams?.worldStateBlockHash,
-        txId: callParams?.txId,
-        address: this.address,
-        methodIndex: 0,
-        args: [],
-        existingContracts: callParams?.existingContracts,
-        inputAssets: callParams?.inputAssets,
-      });
-    return fromApiArray(callResult.returns, ["U256"])[0] as bigint;
+      .contracts.postContractsCallContract(callParams);
+    const callResult = Greeter.contract.fromApiCallContractResult(
+      result,
+      txId,
+      0
+    );
+    return {
+      ...callResult,
+      returns: callResult.returns[0] as bigint,
+    };
   }
 }
