@@ -28,6 +28,7 @@ import {
   ContractEvent,
   subscribeEventsFromContract,
   testMethod,
+  fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -92,15 +93,7 @@ export class MetaDataInstance {
   }
 
   async fetchState(): Promise<MetaDataTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = MetaData.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-    };
+    return fetchContractState(MetaData, this);
   }
 
   subscribeContractCreatedEvent(

@@ -28,6 +28,7 @@ import {
   ContractEvent,
   subscribeEventsFromContract,
   testMethod,
+  fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -77,16 +78,7 @@ export class SubInstance {
   }
 
   async fetchState(): Promise<SubTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = Sub.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-      fields: state.fields as SubTypes.Fields,
-    };
+    return fetchContractState(Sub, this);
   }
 
   subscribeContractCreatedEvent(

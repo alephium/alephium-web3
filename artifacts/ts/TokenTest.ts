@@ -28,6 +28,7 @@ import {
   ContractEvent,
   subscribeEventsFromContract,
   testMethod,
+  fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -99,16 +100,7 @@ export class TokenTestInstance {
   }
 
   async fetchState(): Promise<TokenTestTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = TokenTest.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-      fields: state.fields as TokenTestTypes.Fields,
-    };
+    return fetchContractState(TokenTest, this);
   }
 
   subscribeContractCreatedEvent(

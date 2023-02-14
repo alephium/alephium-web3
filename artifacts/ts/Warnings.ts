@@ -28,6 +28,7 @@ import {
   ContractEvent,
   subscribeEventsFromContract,
   testMethod,
+  fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -76,16 +77,7 @@ export class WarningsInstance {
   }
 
   async fetchState(): Promise<WarningsTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = Warnings.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-      fields: state.fields as WarningsTypes.Fields,
-    };
+    return fetchContractState(Warnings, this);
   }
 
   subscribeContractCreatedEvent(

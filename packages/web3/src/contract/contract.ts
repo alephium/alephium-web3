@@ -40,7 +40,8 @@ import {
   SignDeployContractTxParams,
   SignDeployContractTxResult,
   SignExecuteScriptTxParams,
-  SignerProvider
+  SignerProvider,
+  Address
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -51,7 +52,8 @@ import {
   Subscription,
   assertType,
   Eq,
-  Optional
+  Optional,
+  groupOfAddress
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
@@ -1269,16 +1271,16 @@ assertType<
 >
 export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }
 
-export abstract class ContractFactory<T, P extends Fields = Fields> {
+export abstract class ContractFactory<I, F extends Fields = Fields> {
   readonly contract: Contract
 
   constructor(contract: Contract) {
     this.contract = contract
   }
 
-  abstract at(address: string): T
+  abstract at(address: string): I
 
-  async deploy(signer: SignerProvider, deployParams: DeployContractParams<P>): Promise<DeployContractResult<T>> {
+  async deploy(signer: SignerProvider, deployParams: DeployContractParams<F>): Promise<DeployContractResult<I>> {
     const signerParams = await this.contract.txParamsForDeployment(signer, deployParams)
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
@@ -1288,7 +1290,7 @@ export abstract class ContractFactory<T, P extends Fields = Fields> {
   }
 
   // This is used for testing contract functions
-  stateForTest(initFields: P, asset?: Asset, address?: string): ContractState<P> {
+  stateForTest(initFields: F, asset?: Asset, address?: string): ContractState<F> {
     const newAsset = {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens
@@ -1406,4 +1408,30 @@ export async function testMethod<I, F extends Fields, A extends Arguments, R>(
   const testResult = contract.contract.fromApiTestContractResult(methodName, apiResult, txId)
   contract.contract.printDebugMessages(methodName, testResult.debugMessages)
   return testResult as TestContractResult<R>
+}
+
+export abstract class ContractInstance {
+  readonly address: Address
+  readonly contractId: string
+  readonly groupIndex: number
+
+  constructor(address: Address) {
+    this.address = address
+    this.contractId = binToHex(contractIdFromAddress(address))
+    this.groupIndex = groupOfAddress(address)
+  }
+}
+
+export async function fetchContractState<F extends Fields, I extends ContractInstance>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance
+): Promise<ContractState<F>> {
+  const contractState = await getCurrentNodeProvider().contracts.getContractsAddressState(instance.address, {
+    group: instance.groupIndex
+  })
+  const state = contract.contract.fromApiContractState(contractState)
+  return {
+    ...state,
+    fields: state.fields as F
+  }
 }

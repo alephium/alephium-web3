@@ -131,12 +131,7 @@ function contractFieldType(contract: Contract): string {
 function genFetchState(contract: Contract): string {
   return `
   async fetchState(): Promise<${contractTypes(contract.name)}.State> {
-    const contractState = await web3.getCurrentNodeProvider().contracts.getContractsAddressState(this.address, { group: this.groupIndex })
-    const state = ${contract.name}.contract.fromApiContractState(contractState)
-    return {
-      ...state,
-      ${contract.fieldsSig.names.length > 0 ? `fields: state.fields as ${contractFieldType(contract)}` : ''}
-    }
+    return fetchContractState(${contract.name}, this)
   }
   `
 }
@@ -346,7 +341,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       web3, Address, Contract, ContractState, node, binToHex, TestContractResult, Asset, HexString,
       ContractFactory, contractIdFromAddress, ONE_ALPH, groupOfAddress, fromApiVals, subscribeToEvents,
       SubscribeOptions, Subscription, EventSubscription, randomTxId, CallContractParams, CallContractResult,
-      TestContractParams, ContractEvent, subscribeEventsFromContract, testMethod, decodeContractCreatedEvent,
+      TestContractParams, ContractEvent, subscribeEventsFromContract, testMethod, fetchContractState, decodeContractCreatedEvent,
       decodeContractDestroyedEvent, ContractCreatedEvent, ContractDestroyedEvent
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'

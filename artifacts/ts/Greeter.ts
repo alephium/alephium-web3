@@ -28,6 +28,7 @@ import {
   ContractEvent,
   subscribeEventsFromContract,
   testMethod,
+  fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -75,16 +76,7 @@ export class GreeterInstance {
   }
 
   async fetchState(): Promise<GreeterTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = Greeter.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-      fields: state.fields as GreeterTypes.Fields,
-    };
+    return fetchContractState(Greeter, this);
   }
 
   subscribeContractCreatedEvent(

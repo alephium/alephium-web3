@@ -28,6 +28,7 @@ import {
   ContractEvent,
   subscribeEventsFromContract,
   testMethod,
+  fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -74,15 +75,7 @@ export class DebugInstance {
   }
 
   async fetchState(): Promise<DebugTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = Debug.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-    };
+    return fetchContractState(Debug, this);
   }
 
   subscribeContractCreatedEvent(

@@ -28,6 +28,7 @@ import {
   ContractEvent,
   subscribeEventsFromContract,
   testMethod,
+  fetchContractState,
   decodeContractCreatedEvent,
   decodeContractDestroyedEvent,
   ContractCreatedEvent,
@@ -74,15 +75,7 @@ export class AssertInstance {
   }
 
   async fetchState(): Promise<AssertTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = Assert.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-    };
+    return fetchContractState(Assert, this);
   }
 
   subscribeContractCreatedEvent(
