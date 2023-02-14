@@ -22,7 +22,7 @@ export namespace GreeterMain {
     const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
     return {
       ...result,
-      groupIndex: result.fromGroup,
+      groupIndex: result.groupIndex,
     };
   }
 
@@ -38,7 +38,7 @@ export namespace Main {
     const result = await signer.signAndSubmitExecuteScriptTx(signerParams);
     return {
       ...result,
-      groupIndex: result.fromGroup,
+      groupIndex: result.groupIndex,
     };
   }
 

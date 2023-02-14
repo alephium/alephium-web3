@@ -73,8 +73,7 @@ export interface SignDeployContractTxParams {
 }
 assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignDeployContractTxResult {
-  fromGroup: number
-  toGroup: number
+  groupIndex: number
   unsignedTx: string
   txId: string
   signature: string
@@ -83,7 +82,12 @@ export interface SignDeployContractTxResult {
   gasAmount: number
   gasPrice: Number256
 }
-assertType<Eq<SignDeployContractTxResult, SignResult<node.BuildDeployContractTxResult> & { contractId: string }>>()
+assertType<
+  Eq<
+    Omit<SignDeployContractTxResult, 'groupIndex'>,
+    Omit<SignResult<node.BuildDeployContractTxResult> & { contractId: string }, 'fromGroup' | 'toGroup'>
+  >
+>()
 
 export interface SignExecuteScriptTxParams {
   signerAddress: string
@@ -95,15 +99,19 @@ export interface SignExecuteScriptTxParams {
 }
 assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {
-  fromGroup: number
-  toGroup: number
+  groupIndex: number
   unsignedTx: string
   txId: string
   signature: string
   gasAmount: number
   gasPrice: Number256
 }
-assertType<Eq<SignExecuteScriptTxResult, SignResult<node.BuildExecuteScriptTxResult>>>()
+assertType<
+  Eq<
+    Omit<SignExecuteScriptTxResult, 'groupIndex'>,
+    Omit<SignResult<node.BuildExecuteScriptTxResult>, 'fromGroup' | 'toGroup'>
+  >
+>()
 
 export interface SignUnsignedTxParams {
   signerAddress: string

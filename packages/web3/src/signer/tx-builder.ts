@@ -85,7 +85,7 @@ export abstract class TransactionBuilder {
     }
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
     const contractId = utils.binToHex(utils.contractIdFromAddress(response.contractAddress))
-    return { ...response, contractId, gasPrice: fromApiNumber256(response.gasPrice) }
+    return { ...response, groupIndex: response.fromGroup, contractId, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
   async buildExecuteScriptTx(
@@ -103,7 +103,7 @@ export abstract class TransactionBuilder {
       ...rest
     }
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
-    return { ...response, gasPrice: fromApiNumber256(response.gasPrice) }
+    return { ...response, groupIndex: response.fromGroup, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
   async buildUnsignedTx(params: SignUnsignedTxParams): Promise<Omit<SignUnsignedTxResult, 'signature'>> {
