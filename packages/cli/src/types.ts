@@ -133,13 +133,13 @@ export interface Deployer {
   provider: NodeProvider
   account: Account
 
-  deployContract<T, P extends Fields | undefined>(
+  deployContract<T, P extends Fields>(
     constractFactory: ContractFactory<T, P>,
     params: DeployContractParams<P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>>
 
-  runScript<P extends Fields | undefined>(
+  runScript<P extends Fields>(
     executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
     script: Script,
     params: ExecuteScriptParams<P>,

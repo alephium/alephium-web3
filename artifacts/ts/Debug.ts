@@ -52,14 +52,14 @@ export namespace Debug {
     fields: { address: HexString };
   };
 
-  export class Factory extends ContractFactory<DebugInstance, undefined> {
+  export class Factory extends ContractFactory<DebugInstance, {}> {
     constructor(contract: Contract) {
       super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
-      deployParams: DeployContractParams<undefined>
+      deployParams: DeployContractParams<{}>
     ): Promise<DeployContractResult<DebugInstance>> {
       const signerParams = await contract.txParamsForDeployment(
         signer,

@@ -52,14 +52,14 @@ export namespace MetaData {
     fields: { address: HexString };
   };
 
-  export class Factory extends ContractFactory<MetaDataInstance, undefined> {
+  export class Factory extends ContractFactory<MetaDataInstance, {}> {
     constructor(contract: Contract) {
       super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
-      deployParams: DeployContractParams<undefined>
+      deployParams: DeployContractParams<{}>
     ): Promise<DeployContractResult<MetaDataInstance>> {
       const signerParams = await contract.txParamsForDeployment(
         signer,

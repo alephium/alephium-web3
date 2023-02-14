@@ -52,14 +52,14 @@ export namespace Assert {
     fields: { address: HexString };
   };
 
-  export class Factory extends ContractFactory<AssertInstance, undefined> {
+  export class Factory extends ContractFactory<AssertInstance, {}> {
     constructor(contract: Contract) {
       super(contract);
     }
 
     async deploy(
       signer: SignerProvider,
-      deployParams: DeployContractParams<undefined>
+      deployParams: DeployContractParams<{}>
     ): Promise<DeployContractResult<AssertInstance>> {
       const signerParams = await contract.txParamsForDeployment(
         signer,

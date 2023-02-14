@@ -113,7 +113,7 @@ function getInstanceName(contract: Contract): string {
 
 function genContractFactory(contract: Contract): string {
   const instanceName = getInstanceName(contract)
-  const paramsType = contract.fieldsSig.names.length > 0 ? 'Fields' : 'undefined'
+  const paramsType = contract.fieldsSig.names.length > 0 ? 'Fields' : '{}'
   return `
   export class Factory extends ContractFactory<${instanceName}, ${paramsType}> {
     constructor(contract: Contract) {
@@ -440,7 +440,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 function genScript(script: Script): string {
   console.log(`Generating code for script ${script.name}`)
   const usePreapprovedAssets = script.functions[0].usePreapprovedAssets
-  const fieldsType = script.fieldsSig.names.length > 0 ? `{${formatParameters(script.fieldsSig)}}` : 'undefined'
+  const fieldsType = script.fieldsSig.names.length > 0 ? `{${formatParameters(script.fieldsSig)}}` : '{}'
   const paramsType = usePreapprovedAssets
     ? `ExecuteScriptParams<${fieldsType}>`
     : `Omit<ExecuteScriptParams<${fieldsType}>, 'attoAlphAmount' | 'tokens'>`

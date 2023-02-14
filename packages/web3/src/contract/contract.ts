@@ -794,11 +794,11 @@ export class Contract extends Artifact {
     return this.functions.findIndex((func) => func.name === funcName)
   }
 
-  toApiContractStates(states?: ContractState<Fields>[]): node.ContractState[] | undefined {
+  toApiContractStates(states?: ContractState[]): node.ContractState[] | undefined {
     return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
   }
 
-  toApiTestContractParams(funcName: string, params: TestContractParams<Fields, Arguments>): node.TestContract {
+  toApiTestContractParams(funcName: string, params: TestContractParams): node.TestContract {
     const immFields =
       params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, false)
     const mutFields =
@@ -830,7 +830,7 @@ export class Contract extends Artifact {
     }
   }
 
-  static fromApiContractState(state: node.ContractState): ContractState<Fields> {
+  static fromApiContractState(state: node.ContractState): ContractState {
     const contract = Project.currentProject.contractByCodeHash(state.codeHash)
     return contract.fromApiContractState(state)
   }
@@ -849,11 +849,7 @@ export class Contract extends Artifact {
     fieldTypes: ['Address']
   }
 
-  static fromApiEvent(
-    event: node.ContractEventByTxId,
-    codeHash: string | undefined,
-    txId: string
-  ): ContractEvent<Fields> {
+  static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined, txId: string): ContractEvent {
     let eventSig: EventSig
 
     if (event.eventIndex == Contract.ContractCreatedEventIndex) {
@@ -891,7 +887,7 @@ export class Contract extends Artifact {
     }
   }
 
-  async txParamsForDeployment<P extends Fields | undefined>(
+  async txParamsForDeployment<P extends Fields>(
     signer: SignerProvider,
     params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
@@ -916,7 +912,7 @@ export class Contract extends Artifact {
     events: node.ContractEventByTxId[],
     addressToCodeHash: Map<string, string>,
     txId: string
-  ): ContractEvent<Fields>[] {
+  ): ContractEvent[] {
     return events.map((event) => {
       const contractAddress = event.contractAddress
       const codeHash = addressToCodeHash.get(contractAddress)
@@ -1029,7 +1025,7 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  async txParamsForExecution<P extends Fields | undefined>(
+  async txParamsForExecution<P extends Fields>(
     signer: SignerProvider,
     params: ExecuteScriptParams<P>
   ): Promise<SignExecuteScriptTxParams> {
@@ -1096,7 +1092,7 @@ export interface InputAsset {
   asset: Asset
 }
 
-export interface ContractState<T extends Fields> {
+export interface ContractState<T extends Fields = Fields> {
   address: string
   contractId: string
   bytecode: string
@@ -1124,7 +1120,7 @@ function extractFields(fields: NamedVals, fieldsSig: FieldsSig, mutable: boolean
   return toApiVals(fields, fieldNames, fieldTypes)
 }
 
-function toApiContractState(state: ContractState<Fields>): node.ContractState {
+function toApiContractState(state: ContractState): node.ContractState {
   const stateFields = state.fields ?? {}
   return {
     address: state.address,
@@ -1161,7 +1157,7 @@ function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | u
   return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 
-export interface TestContractParams<F extends Fields, A extends Arguments> {
+export interface TestContractParams<F extends Fields = Fields, A extends Arguments = Arguments> {
   group?: number // default 0
   address?: string
   blockHash?: string
@@ -1169,11 +1165,11 @@ export interface TestContractParams<F extends Fields, A extends Arguments> {
   initialFields: F
   initialAsset?: Asset // default 1 ALPH
   testArgs: A
-  existingContracts?: ContractState<Fields>[] // default no existing contracts
+  existingContracts?: ContractState[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
 }
 
-export interface ContractEvent<T extends Fields> {
+export interface ContractEvent<T extends Fields = Fields> {
   txId: string
   blockHash: string
   contractAddress: string
@@ -1189,9 +1185,9 @@ export interface TestContractResult {
   contractAddress: string
   returns: Val[]
   gasUsed: number
-  contracts: ContractState<Fields>[]
+  contracts: ContractState[]
   txOutputs: Output[]
-  events: ContractEvent<Fields>[]
+  events: ContractEvent[]
   debugMessages: DebugMessage[]
 }
 export declare type Output = AssetOutput | ContractOutput
@@ -1238,7 +1234,7 @@ export function randomTxId(): string {
   return binToHex(bytes)
 }
 
-export interface DeployContractParams<P extends Fields | undefined> {
+export interface DeployContractParams<P extends Fields = Fields> {
   initialFields: P
   initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
@@ -1259,7 +1255,7 @@ export interface DeployContractResult<T> {
   gasPrice: Number256
 }
 
-export abstract class ContractFactory<T, P extends Fields | undefined> {
+export abstract class ContractFactory<T, P extends Fields = Fields> {
   contract: Contract
   constructor(contract: Contract) {
     this.contract = contract
@@ -1269,7 +1265,7 @@ export abstract class ContractFactory<T, P extends Fields | undefined> {
   abstract at(address: string): T
 }
 
-export interface ExecuteScriptParams<P extends Fields | undefined> {
+export interface ExecuteScriptParams<P extends Fields = Fields> {
   initialFields: P
   attoAlphAmount?: Number256
   tokens?: Token[]
@@ -1286,7 +1282,7 @@ export interface ExecuteScriptResult {
   gasPrice: Number256
 }
 
-export interface CallContractParams<T extends Arguments> {
+export interface CallContractParams<T extends Arguments = Arguments> {
   args: T
   worldStateBlockHash?: string
   txId?: string
@@ -1297,8 +1293,8 @@ export interface CallContractParams<T extends Arguments> {
 export interface CallContractResult {
   returns: Val[]
   gasUsed: number
-  contracts: ContractState<Fields>[]
+  contracts: ContractState[]
   txInputs: string[]
   txOutputs: Output[]
-  events: ContractEvent<Fields>[]
+  events: ContractEvent[]
 }

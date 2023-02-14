@@ -251,7 +251,7 @@ function createDeployer<Settings = unknown>(
   }
   const confirmations = network.confirmations ? network.confirmations : 1
 
-  const deployContract = async <T, P extends Fields | undefined>(
+  const deployContract = async <T, P extends Fields>(
     contractFactory: ContractFactory<T, P>,
     params: DeployContractParams<P>,
     taskTag?: string
@@ -294,7 +294,7 @@ function createDeployer<Settings = unknown>(
     return deployResult
   }
 
-  const runScript = async <P extends Fields | undefined>(
+  const runScript = async <P extends Fields>(
     executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
     script: Script,
     params: ExecuteScriptParams<P>,
