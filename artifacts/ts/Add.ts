@@ -36,22 +36,20 @@ export namespace Add {
     result: bigint;
   };
 
-  export type State = Fields & Omit<ContractState, "fields">;
+  export type State = Omit<ContractState, "fields"> & { fields: Fields };
 
   export type AddEvent = {
     blockHash: string;
     txId: string;
-    x: bigint;
-    y: bigint;
     eventIndex: number;
+    fields: { x: bigint; y: bigint };
   };
 
   export type Add1Event = {
     blockHash: string;
     txId: string;
-    a: bigint;
-    b: bigint;
     eventIndex: number;
+    fields: { a: bigint; b: bigint };
   };
 
   export class Factory extends ContractFactory<AddInstance, Fields> {
@@ -185,8 +183,10 @@ export class AddInstance {
     const state = await Add.contract.fetchState(this.address, this.groupIndex);
     return {
       ...state,
-      sub: state.fields["sub"] as HexString,
-      result: state.fields["result"] as bigint,
+      fields: {
+        sub: state.fields["sub"] as HexString,
+        result: state.fields["result"] as bigint,
+      },
     };
   }
 
@@ -200,9 +200,8 @@ export class AddInstance {
     return {
       blockHash: event.blockHash,
       txId: event.txId,
-      x: fields["x"] as bigint,
-      y: fields["y"] as bigint,
       eventIndex: event.eventIndex,
+      fields: { x: fields["x"] as bigint, y: fields["y"] as bigint },
     };
   }
 
@@ -244,9 +243,8 @@ export class AddInstance {
     return {
       blockHash: event.blockHash,
       txId: event.txId,
-      a: fields["a"] as bigint,
-      b: fields["b"] as bigint,
       eventIndex: event.eventIndex,
+      fields: { a: fields["a"] as bigint, b: fields["b"] as bigint },
     };
   }
 

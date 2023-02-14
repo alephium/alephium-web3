@@ -83,13 +83,13 @@ describe('contract', function () {
 
     // Check state for add/sub before main script is executed
     const subContractState0 = await sub.fetchState()
-    expect(subContractState0.result).toEqual(0n)
+    expect(subContractState0.fields.result).toEqual(0n)
     expect(subContractState0.address).toEqual(sub.address)
     expect(subContractState0.contractId).toEqual(sub.contractId)
 
     const addContractState0 = await add.fetchState()
-    expect(addContractState0.sub).toEqual(sub.contractId)
-    expect(addContractState0.result).toEqual(0n)
+    expect(addContractState0.fields.sub).toEqual(sub.contractId)
+    expect(addContractState0.fields.result).toEqual(0n)
     expect(addContractState0.address).toEqual(add.address)
     expect(addContractState0.contractId).toEqual(add.contractId)
 
@@ -98,11 +98,11 @@ describe('contract', function () {
 
     // Check state for add/sub after main script is executed
     const subContractState1 = await sub.fetchState()
-    expect(subContractState1.result).toEqual(1n)
+    expect(subContractState1.fields.result).toEqual(1n)
 
     const addContractState1 = await add.fetchState()
-    expect(addContractState1.sub).toEqual(sub.contractId)
-    expect(addContractState1.result).toEqual(3n)
+    expect(addContractState1.fields.sub).toEqual(sub.contractId)
+    expect(addContractState1.fields.result).toEqual(3n)
 
     const callResult = await add.callAddMethod({ array: [2n, 1n] })
     expect(callResult).toEqual([6n, 2n])
@@ -119,7 +119,7 @@ describe('contract', function () {
     const greeter = (await Greeter.factory.deploy(signer, { initialFields: { btcPrice: 1n } })).instance
     expect(greeter.groupIndex).toEqual(signerGroup)
     const contractState = await greeter.fetchState()
-    expect(contractState.btcPrice).toEqual(1n)
+    expect(contractState.fields.btcPrice).toEqual(1n)
     expect(contractState.address).toEqual(greeter.address)
     expect(contractState.contractId).toEqual(greeter.contractId)
 

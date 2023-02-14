@@ -31,7 +31,7 @@ export namespace Warnings {
     b: bigint;
   };
 
-  export type State = Fields & Omit<ContractState, "fields">;
+  export type State = Omit<ContractState, "fields"> & { fields: Fields };
 
   export class Factory extends ContractFactory<WarningsInstance, Fields> {
     constructor(contract: Contract) {
@@ -129,8 +129,10 @@ export class WarningsInstance {
     );
     return {
       ...state,
-      a: state.fields["a"] as bigint,
-      b: state.fields["b"] as bigint,
+      fields: {
+        a: state.fields["a"] as bigint,
+        b: state.fields["b"] as bigint,
+      },
     };
   }
 }

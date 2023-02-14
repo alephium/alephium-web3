@@ -63,8 +63,8 @@ describe('events', function () {
 
     expect(addEvents.length).toEqual(3)
     addEvents.forEach((event) => {
-      expect(event.x).toEqual(2n)
-      expect(event.y).toEqual(1n)
+      expect(event.fields.x).toEqual(2n)
+      expect(event.fields.y).toEqual(1n)
     })
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
@@ -93,17 +93,17 @@ describe('events', function () {
     await timeout(3000)
 
     const isAdd = (event: Add.AddEvent | Add.Add1Event): event is Add.AddEvent => {
-      return (<Add.AddEvent>event).x !== undefined
+      return (<Add.AddEvent>event).fields.x !== undefined
     }
 
     expect(addEvents.length).toEqual(6)
     addEvents.forEach((event) => {
       if (isAdd(event)) {
-        expect(event.x).toEqual(2n)
-        expect(event.y).toEqual(1n)
+        expect(event.fields.x).toEqual(2n)
+        expect(event.fields.y).toEqual(1n)
       } else {
-        expect(event.a).toEqual(2n)
-        expect(event.b).toEqual(1n)
+        expect(event.fields.a).toEqual(2n)
+        expect(event.fields.b).toEqual(1n)
       }
     })
     expect(subscription.currentEventCount()).toEqual(3)
@@ -133,8 +133,8 @@ describe('events', function () {
 
     expect(addEvents.length).toEqual(1)
     expect(addEvents[0].txId).toEqual(scriptTx0.txId)
-    expect(addEvents[0].x).toEqual(2n)
-    expect(addEvents[0].y).toEqual(1n)
+    expect(addEvents[0].fields.x).toEqual(2n)
+    expect(addEvents[0].fields.y).toEqual(1n)
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
     await Main.execute(signer, { initialFields: { addContractId: add.contractId } })

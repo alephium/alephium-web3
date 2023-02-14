@@ -33,7 +33,7 @@ export namespace TokenTest {
     totalSupply: bigint;
   };
 
-  export type State = Fields & Omit<ContractState, "fields">;
+  export type State = Omit<ContractState, "fields"> & { fields: Fields };
 
   export class Factory extends ContractFactory<TokenTestInstance, Fields> {
     constructor(contract: Contract) {
@@ -227,10 +227,12 @@ export class TokenTestInstance {
     );
     return {
       ...state,
-      symbol: state.fields["symbol"] as HexString,
-      name: state.fields["name"] as HexString,
-      decimals: state.fields["decimals"] as bigint,
-      totalSupply: state.fields["totalSupply"] as bigint,
+      fields: {
+        symbol: state.fields["symbol"] as HexString,
+        name: state.fields["name"] as HexString,
+        decimals: state.fields["decimals"] as bigint,
+        totalSupply: state.fields["totalSupply"] as bigint,
+      },
     };
   }
 

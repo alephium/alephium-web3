@@ -30,7 +30,7 @@ export namespace Greeter {
     btcPrice: bigint;
   };
 
-  export type State = Fields & Omit<ContractState, "fields">;
+  export type State = Omit<ContractState, "fields"> & { fields: Fields };
 
   export class Factory extends ContractFactory<GreeterInstance, Fields> {
     constructor(contract: Contract) {
@@ -128,7 +128,7 @@ export class GreeterInstance {
     );
     return {
       ...state,
-      btcPrice: state.fields["btcPrice"] as bigint,
+      fields: { btcPrice: state.fields["btcPrice"] as bigint },
     };
   }
 

@@ -35,14 +35,13 @@ export namespace Sub {
     result: bigint;
   };
 
-  export type State = Fields & Omit<ContractState, "fields">;
+  export type State = Omit<ContractState, "fields"> & { fields: Fields };
 
   export type SubEvent = {
     blockHash: string;
     txId: string;
-    x: bigint;
-    y: bigint;
     eventIndex: number;
+    fields: { x: bigint; y: bigint };
   };
 
   export class Factory extends ContractFactory<SubInstance, Fields> {
@@ -139,7 +138,7 @@ export class SubInstance {
     const state = await Sub.contract.fetchState(this.address, this.groupIndex);
     return {
       ...state,
-      result: state.fields["result"] as bigint,
+      fields: { result: state.fields["result"] as bigint },
     };
   }
 
@@ -153,9 +152,8 @@ export class SubInstance {
     return {
       blockHash: event.blockHash,
       txId: event.txId,
-      x: fields["x"] as bigint,
-      y: fields["y"] as bigint,
       eventIndex: event.eventIndex,
+      fields: { x: fields["x"] as bigint, y: fields["y"] as bigint },
     };
   }
 
