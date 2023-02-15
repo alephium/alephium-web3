@@ -1,19 +1,14 @@
 import { Deployments } from '@alephium/cli'
-import { web3, Script, Project, Contract } from '@alephium/web3'
+import { web3, Project } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import configuration from '../alephium.config'
-import tokenContractJson from '../artifacts/token.ral.json'
-import withdrawJson from '../artifacts/withdraw.ral.json'
+import { TokenFaucet, Withdraw } from '../artifacts/ts'
 
 async function withdraw() {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   // Compile the contracts of the project if they are not compiled
   Project.build()
 
-  // Load the transaction script from compiled artifacts
-  const script = Script.fromJson(withdrawJson)
-  // Load the token contract from compiled artifacts
-  const token = Contract.fromJson(tokenContractJson)
   // Attention: test wallet is used for demonstration purpose
   const signer = await testNodeWallet()
 
@@ -32,12 +27,13 @@ async function withdraw() {
     const tokenAddress = deployed.contractAddress
 
     // Submit a transaction to use the transaction script
-    await script.execute(signer, {
+    await Withdraw.execute(signer, {
       initialFields: { token: tokenId, amount: 1n }
     })
 
+    const faucet = TokenFaucet.at(tokenAddress)
     // Fetch the latest state of the token contract
-    const state = await token.fetchState(tokenAddress, accountGroup)
+    const state = await faucet.fetchState()
     console.log(JSON.stringify(state.fields, null, '  '))
   }
 }
