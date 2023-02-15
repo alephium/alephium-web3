@@ -1,21 +1,18 @@
-import { web3, Project, TestContractParams, addressFromContractId, AssetOutput, Contract, Script } from '@alephium/web3'
+import { web3, Project, TestContractParams, addressFromContractId, AssetOutput } from '@alephium/web3'
 import { expectAssertionError, randomContractId, testAddress, testNodeWallet } from '@alephium/web3-test'
 import { deployToDevnet } from '@alephium/cli'
-import tokenContractJson from '../artifacts/token.ral.json'
-import withdrawJson from '../artifacts/withdraw.ral.json'
+import { TokenFaucet, TokenFaucetTypes, Withdraw } from '../artifacts/ts'
 
 describe('unit tests', () => {
-  let token: Contract
   let testContractId: string
   let testTokenId: string
   let testContractAddress: string
-  let testParamsFixture: TestContractParams
+  let testParamsFixture: TestContractParams<TokenFaucetTypes.Fields, { amount: bigint }>
 
   // We initialize the fixture variables before all tests
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     await Project.build()
-    token = Project.contract('TokenFaucet')
     testContractId = randomContractId()
     testTokenId = testContractId
     testContractAddress = addressFromContractId(testContractId)
@@ -41,10 +38,10 @@ describe('unit tests', () => {
 
   it('test withdraw', async () => {
     const testParams = testParamsFixture
-    const testResult = await token.testPublicMethod('withdraw', testParams)
+    const testResult = await TokenFaucet.testWithdrawMethod(testParams)
 
     // only one contract involved in the test
-    const contractState = testResult.contracts[0]
+    const contractState = testResult.contracts[0] as TokenFaucetTypes.State
     expect(contractState.address).toEqual(testContractAddress)
     expect(contractState.fields.supply).toEqual(10n ** 18n)
     // the balance of the test token is: 10 - 1 = 9
@@ -52,19 +49,26 @@ describe('unit tests', () => {
     // double check the balance of the contract assets
     expect(contractState.asset).toEqual({ alphAmount: 10n ** 18n, tokens: [{ id: testTokenId, amount: 9n }] })
 
-    // two transaction outputs in total
-    expect(testResult.txOutputs.length).toEqual(2)
+    // three transaction outputs in total
+    expect(testResult.txOutputs.length).toEqual(3)
 
-    // the first transaction output is for the caller
-    const callerOutput = testResult.txOutputs[0] as AssetOutput
-    expect(callerOutput.type).toEqual('AssetOutput')
-    expect(callerOutput.address).toEqual(testAddress)
-    expect(callerOutput.alphAmount).toBeLessThan(10n ** 18n) // the caller paid gas
+    // the first transaction output is for the token
+    const tokenOutput = testResult.txOutputs[0] as AssetOutput
+    expect(tokenOutput.type).toEqual('AssetOutput')
+    expect(tokenOutput.address).toEqual(testAddress)
+    expect(tokenOutput.alphAmount).toEqual(10n ** 15n) // dust amount
     // the caller withdrawn 1 token from the contract
-    expect(callerOutput.tokens).toEqual([{ id: testTokenId, amount: 1n }])
+    expect(tokenOutput.tokens).toEqual([{ id: testTokenId, amount: 1n }])
 
-    // the second transaction output is for the contract
-    const contractOutput = testResult.txOutputs[1]
+    // the second transaction output is for the ALPH
+    const alphOutput = testResult.txOutputs[1] as AssetOutput
+    expect(alphOutput.type).toEqual('AssetOutput')
+    expect(alphOutput.address).toEqual(testAddress)
+    expect(alphOutput.alphAmount).toBeLessThan(10n ** 18n) // the caller paid gas
+    expect(alphOutput.tokens).toEqual([])
+
+    // the third transaction output is for the contract
+    const contractOutput = testResult.txOutputs[2]
     expect(contractOutput.type).toEqual('ContractOutput')
     expect(contractOutput.address).toEqual(testContractAddress)
     expect(contractOutput.alphAmount).toEqual(10n ** 18n)
@@ -73,7 +77,7 @@ describe('unit tests', () => {
 
     // a `Withdraw` event is emitted when the test passes
     expect(testResult.events.length).toEqual(1)
-    const event = testResult.events[0]
+    const event = testResult.events[0] as TokenFaucetTypes.WithdrawEvent
     // the event is emitted by the test contract
     expect(event.contractAddress).toEqual(testContractAddress)
     // the name of the event is `Withdraw`
@@ -91,9 +95,9 @@ describe('unit tests', () => {
   })
 
   it('test withdraw', async () => {
-    const testParams: TestContractParams = { ...testParamsFixture, testArgs: { amount: 3n } }
+    const testParams = { ...testParamsFixture, testArgs: { amount: 3n } }
     // test that assertion failed in the withdraw function
-    await expectAssertionError(token.testPublicMethod('withdraw', testParams), testContractAddress, 0)
+    await expectAssertionError(TokenFaucet.testWithdrawMethod(testParams), testContractAddress, 0)
   })
 })
 
@@ -104,7 +108,6 @@ describe('integration tests', () => {
   })
 
   it('should withdraw on devnet', async () => {
-    const script = Script.fromJson(withdrawJson)
     const signer = await testNodeWallet()
     const deployments = await deployToDevnet()
 
@@ -120,18 +123,18 @@ describe('integration tests', () => {
       const tokenAddress = deployed.contractAddress
       expect(deployed.groupIndex).toEqual(testGroup)
 
-      const token = Contract.fromJson(tokenContractJson)
-      const initialState = await token.fetchState(tokenAddress, testGroup)
-      const initialBalance = initialState.fields.balance as bigint
+      const token = TokenFaucet.at(tokenAddress)
+      const initialState = await token.fetchState()
+      const initialBalance = initialState.fields.balance
 
       // Call `withdraw` function 10 times
       for (let i = 0; i < 10; i++) {
-        await script.execute(signer, {
+        await Withdraw.execute(signer, {
           initialFields: { token: tokenId, amount: 1n }
         })
 
-        const newState = await token.fetchState(tokenAddress, testGroup)
-        const newBalance = newState.fields.balance as bigint
+        const newState = await token.fetchState()
+        const newBalance = newState.fields.balance
         expect(newBalance).toEqual(initialBalance - BigInt(i) - 1n)
       }
     }
