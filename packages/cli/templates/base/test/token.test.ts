@@ -1,4 +1,4 @@
-import { web3, Project, TestContractParams, addressFromContractId, AssetOutput } from '@alephium/web3'
+import { web3, Project, TestContractParams, addressFromContractId, AssetOutput, DUST_AMOUNT } from '@alephium/web3'
 import { expectAssertionError, randomContractId, testAddress, testNodeWallet } from '@alephium/web3-test'
 import { deployToDevnet } from '@alephium/cli'
 import { TokenFaucet, TokenFaucetTypes, Withdraw } from '../artifacts/ts'
@@ -56,7 +56,7 @@ describe('unit tests', () => {
     const tokenOutput = testResult.txOutputs[0] as AssetOutput
     expect(tokenOutput.type).toEqual('AssetOutput')
     expect(tokenOutput.address).toEqual(testAddress)
-    expect(tokenOutput.alphAmount).toEqual(10n ** 15n) // dust amount
+    expect(tokenOutput.alphAmount).toEqual(DUST_AMOUNT) // dust amount
     // the caller withdrawn 1 token from the contract
     expect(tokenOutput.tokens).toEqual([{ id: testTokenId, amount: 1n }])
 
@@ -123,8 +123,8 @@ describe('integration tests', () => {
       const tokenAddress = deployed.contractAddress
       expect(deployed.groupIndex).toEqual(testGroup)
 
-      const token = TokenFaucet.at(tokenAddress)
-      const initialState = await token.fetchState()
+      const faucet = TokenFaucet.at(tokenAddress)
+      const initialState = await faucet.fetchState()
       const initialBalance = initialState.fields.balance
 
       // Call `withdraw` function 10 times
@@ -133,7 +133,7 @@ describe('integration tests', () => {
           initialFields: { token: tokenId, amount: 1n }
         })
 
-        const newState = await token.fetchState()
+        const newState = await faucet.fetchState()
         const newBalance = newState.fields.balance
         expect(newBalance).toEqual(initialBalance - BigInt(i) - 1n)
       }
