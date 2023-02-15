@@ -39,7 +39,7 @@ import path from 'path'
 export interface Network<Settings = unknown> {
   networkId?: number
   nodeUrl: string
-  mnemonic: string
+  privateKeys: string[]
   deploymentStatusFile?: string
   confirmations?: number
   settings: Settings
@@ -50,7 +50,6 @@ export type NetworkType = 'mainnet' | 'testnet' | 'devnet'
 export interface Configuration<Settings = unknown> {
   nodeVersion?: string
   nodeConfigFile?: string
-  toDeployGroups?: number[]
 
   sourceDir?: string
   artifactDir?: string
@@ -65,7 +64,6 @@ export interface Configuration<Settings = unknown> {
 export const DEFAULT_CONFIGURATION_VALUES = {
   nodeVersion: '1.7.0',
   nodeConfigFile: 'devnet-user.conf',
-  toDeployGroups: [0],
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
   compilerOptions: DEFAULT_COMPILER_OPTIONS,
@@ -74,8 +72,7 @@ export const DEFAULT_CONFIGURATION_VALUES = {
     devnet: {
       networkId: 4,
       confirmations: 1,
-      mnemonic:
-        'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
+      privateKeys: ['a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5']
     },
     testnet: {
       networkId: 1,

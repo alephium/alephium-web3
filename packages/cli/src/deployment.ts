@@ -239,14 +239,13 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
 
 function createDeployer<Settings = unknown>(
   network: Network<Settings>,
-  groupIndex: number,
+  signer: PrivateKeyWallet,
   deployContractResults: Map<string, DeployContractExecutionResult>,
   runScriptResults: Map<string, RunScriptResult>
 ): Deployer {
-  const signer = PrivateKeyWallet.FromMnemonicWithGroup(network.mnemonic, groupIndex)
   const account: Account = {
     address: signer.address,
-    group: groupIndex,
+    group: signer.group,
     publicKey: signer.publicKey
   }
   const confirmations = network.confirmations ? network.confirmations : 1
@@ -394,6 +393,19 @@ async function validateChainParams(networkId: number, groups: number[]): Promise
   }
 }
 
+function getSigners(privateKeys: string[]): PrivateKeyWallet[] {
+  if (privateKeys.length === 0) {
+    throw new Error('No private key specified')
+  }
+  const signers = privateKeys.map((key) => new PrivateKeyWallet(key))
+  const groups = signers.map((signer) => signer.group)
+  const sameGroups = groups.filter((group, index) => groups.indexOf(group) !== index)
+  if (sameGroups.length > 0) {
+    throw new Error(`Duplicated private keys on group ${sameGroups}`)
+  }
+  return signers
+}
+
 export async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkType: NetworkType,
@@ -428,8 +440,11 @@ export async function deploy<Settings = unknown>(
   }
 
   web3.setCurrentNodeProvider(network.nodeUrl)
-  const toDeployGroups = configuration.toDeployGroups ?? DEFAULT_CONFIGURATION_VALUES.toDeployGroups
-  await validateChainParams(network.networkId, toDeployGroups)
+  const signers = getSigners(network.privateKeys)
+  await validateChainParams(
+    network.networkId,
+    signers.map((signer) => signer.group)
+  )
 
   await Project.build(
     configuration.compilerOptions,
@@ -439,10 +454,10 @@ export async function deploy<Settings = unknown>(
   )
   configuration.defaultNetwork = networkType
 
-  for (const groupIndex of toDeployGroups) {
-    const deploymentsPerGroup = deployments.groups.get(groupIndex) ?? DeploymentsPerGroup.empty()
-    deployments.groups.set(groupIndex, deploymentsPerGroup)
-    await deployToGroup(configuration, deploymentsPerGroup, groupIndex, network, scripts)
+  for (const signer of signers) {
+    const deploymentsPerGroup = deployments.groups.get(signer.group) ?? DeploymentsPerGroup.empty()
+    deployments.groups.set(signer.group, deploymentsPerGroup)
+    await deployToGroup(configuration, deploymentsPerGroup, signer, network, scripts)
   }
 }
 
@@ -456,16 +471,11 @@ export async function deployToDevnet(): Promise<Deployments> {
 async function deployToGroup<Settings = unknown>(
   configuration: Configuration<Settings>,
   deployments: DeploymentsPerGroup,
-  groupIndex: number,
+  signer: PrivateKeyWallet,
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
 ) {
-  const deployer = await createDeployer(
-    network,
-    groupIndex,
-    deployments.deployContractResults,
-    deployments.runScriptResults
-  )
+  const deployer = createDeployer(network, signer, deployments.deployContractResults, deployments.runScriptResults)
 
   for (const script of scripts) {
     try {
