@@ -25,7 +25,7 @@ import { Configuration, NetworkType } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
-import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
+import { getConfigFile, isNetworkLive, loadConfig } from './src'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -71,7 +71,6 @@ program
   .description('compile the project')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'network type')
-  .option('--skipGenerate', 'skip generate typescript code by contract artifacts')
   .action(async (options) => {
     try {
       const config = getConfig(options)
@@ -86,12 +85,6 @@ program
       const cwd = path.resolve(process.cwd())
       await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir)
       console.log('✅ Compilation completed!')
-      if (options.skipGenerate) {
-        return
-      }
-      const artifactDir = config.artifactDir! // there is a default value always
-      codegen(artifactDir)
-      console.log('✅ Codegen completed!')
     } catch (error) {
       program.error(`Failed to compile, error: ${(error as Error).stack}`)
     }

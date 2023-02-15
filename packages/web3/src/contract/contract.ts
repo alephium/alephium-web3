@@ -59,6 +59,7 @@ import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
+import { codegen } from './codegen'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -429,6 +430,7 @@ export class Project {
       projectArtifact
     )
     await project.saveArtifactsToFile(projectRootDir)
+    codegen(project)
     return project
   }
 
