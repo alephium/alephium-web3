@@ -3,37 +3,32 @@
 /* eslint-disable */
 
 import {
-  web3,
   Address,
   Contract,
   ContractState,
-  node,
-  binToHex,
   TestContractResult,
-  Asset,
   HexString,
   ContractFactory,
-  contractIdFromAddress,
-  ONE_ALPH,
-  groupOfAddress,
-  fromApiVals,
-  subscribeToEvents,
   SubscribeOptions,
-  Subscription,
   EventSubscription,
-  randomTxId,
   CallContractParams,
   CallContractResult,
   TestContractParams,
   ContractEvent,
-  subscribeEventsFromContract,
-  decodeContractCreatedEvent,
-  decodeContractDestroyedEvent,
+  subscribeContractCreatedEvent,
+  subscribeContractDestroyedEvent,
+  subscribeContractEvent,
+  subscribeAllEvents,
+  testMethod,
+  callMethod,
+  fetchContractState,
   ContractCreatedEvent,
   ContractDestroyedEvent,
+  ContractInstance,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/sub.ral.json";
 
+// Custom types for the contract
 export namespace SubTypes {
   export type Fields = {
     result: bigint;
@@ -49,44 +44,14 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
     return new SubInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(
-    initFields: SubTypes.Fields,
-    asset?: Asset,
-    address?: string
-  ): ContractState<SubTypes.Fields> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState(initFields, newAsset, address);
-  }
-
   async testSubMethod(
     params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
-  ): Promise<Omit<TestContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("sub", {
-      ...params,
-      txId: txId,
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      0,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("sub", testResult.debugMessages);
-    const testReturns = testResult.returns as [bigint];
-    return {
-      ...testResult,
-      returns: testReturns[0],
-    };
+  ): Promise<TestContractResult<bigint>> {
+    return testMethod(this, "sub", params);
   }
 }
 
+// Use this object to test and deploy the contract
 export const Sub = new Factory(
   Contract.fromJson(
     SubContractJson,
@@ -95,162 +60,55 @@ export const Sub = new Factory(
   )
 );
 
-export class SubInstance {
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-
+// Use this class to interact with the blockchain
+export class SubInstance extends ContractInstance {
   constructor(address: Address) {
-    this.address = address;
-    this.contractId = binToHex(contractIdFromAddress(address));
-    this.groupIndex = groupOfAddress(address);
+    super(address);
   }
 
   async fetchState(): Promise<SubTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = Sub.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-      fields: state.fields as SubTypes.Fields,
-    };
+    return fetchContractState(Sub, this);
   }
 
   subscribeContractCreatedEvent(
     options: SubscribeOptions<ContractCreatedEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
-      options,
-      this.address,
-      -1,
-      (event) => {
-        return {
-          ...decodeContractCreatedEvent(event),
-          contractAddress: this.address,
-        };
-      },
-      fromCount
-    );
+    return subscribeContractCreatedEvent(this, options, fromCount);
   }
 
   subscribeContractDestroyedEvent(
     options: SubscribeOptions<ContractDestroyedEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
-      options,
-      this.address,
-      -2,
-      (event) => {
-        return {
-          ...decodeContractDestroyedEvent(event),
-          contractAddress: this.address,
-        };
-      },
-      fromCount
-    );
-  }
-
-  private decodeSubEvent(event: node.ContractEvent): SubTypes.SubEvent {
-    if (event.eventIndex !== 0) {
-      throw new Error(
-        "Invalid event index: " + event.eventIndex + ", expected: 0"
-      );
-    }
-    const fields = fromApiVals(event.fields, ["x", "y"], ["U256", "U256"]);
-    return {
-      contractAddress: this.address,
-      blockHash: event.blockHash,
-      txId: event.txId,
-      eventIndex: event.eventIndex,
-      name: "Sub",
-      fields: { x: fields["x"] as bigint, y: fields["y"] as bigint },
-    };
+    return subscribeContractDestroyedEvent(this, options, fromCount);
   }
 
   subscribeSubEvent(
     options: SubscribeOptions<SubTypes.SubEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
+    return subscribeContractEvent(
+      Sub.contract,
+      this,
       options,
-      this.address,
-      0,
-      (event) => this.decodeSubEvent(event),
+      "Sub",
       fromCount
     );
   }
 
-  subscribeEvents(
+  subscribeAllEvents(
     options: SubscribeOptions<
       SubTypes.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
     >,
     fromCount?: number
   ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      switch (event.eventIndex) {
-        case 0: {
-          return options.messageCallback(this.decodeSubEvent(event));
-        }
-
-        case -1: {
-          return options.messageCallback({
-            ...decodeContractCreatedEvent(event),
-            contractAddress: this.address,
-          });
-        }
-
-        case -2: {
-          return options.messageCallback({
-            ...decodeContractDestroyedEvent(event),
-            contractAddress: this.address,
-          });
-        }
-
-        default:
-          throw new Error("Invalid event index: " + event.eventIndex);
-      }
-    };
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<
-          SubTypes.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
-        >
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
+    return subscribeAllEvents(Sub.contract, this, options, fromCount);
   }
 
   async callSubMethod(
     params: CallContractParams<{ array: [bigint, bigint] }>
-  ): Promise<Omit<CallContractResult, "returns"> & { returns: bigint }> {
-    const txId = params?.txId ?? randomTxId();
-    const callParams = Sub.contract.toApiCallContract(
-      { ...params, txId: txId },
-      this.groupIndex,
-      this.address,
-      0
-    );
-    const result = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsCallContract(callParams);
-    const callResult = Sub.contract.fromApiCallContractResult(result, txId, 0);
-    return {
-      ...callResult,
-      returns: callResult.returns[0] as bigint,
-    };
+  ): Promise<CallContractResult<bigint>> {
+    return callMethod(Sub, this, "sub", params);
   }
 }

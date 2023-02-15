@@ -87,7 +87,7 @@ describe('events', function () {
         return Promise.resolve()
       }
     }
-    const subscription = add.subscribeEvents(subscriptOptions)
+    const subscription = add.subscribeAllEvents(subscriptOptions)
     for (let i = 0; i < 3; i++) {
       await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
@@ -106,9 +106,13 @@ describe('events', function () {
       if (isAdd(event)) {
         expect(event.fields.x).toEqual(2n)
         expect(event.fields.y).toEqual(1n)
+        expect(event.name).toEqual('Add')
+        expect(event.eventIndex).toEqual(0)
       } else if (isAdd1(event)) {
         expect(event.fields.a).toEqual(2n)
         expect(event.fields.b).toEqual(1n)
+        expect(event.name).toEqual('Add1')
+        expect(event.eventIndex).toEqual(1)
       } else {
         expect(false).toEqual(true)
       }

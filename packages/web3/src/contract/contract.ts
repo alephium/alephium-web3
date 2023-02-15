@@ -40,13 +40,25 @@ import {
   SignDeployContractTxParams,
   SignDeployContractTxResult,
   SignExecuteScriptTxParams,
-  SignerProvider
+  SignerProvider,
+  Address
 } from '../signer'
 import * as ralph from './ralph'
-import { bs58, binToHex, contractIdFromAddress, SubscribeOptions, Subscription, assertType, Eq } from '../utils'
+import {
+  bs58,
+  binToHex,
+  contractIdFromAddress,
+  SubscribeOptions,
+  Subscription,
+  assertType,
+  Eq,
+  Optional,
+  groupOfAddress
+} from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
+import { ONE_ALPH } from '../constants'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -871,14 +883,23 @@ export class Contract extends Artifact {
     }
   }
 
-  fromApiTestContractResult(methodIndex: number, result: node.TestContractResult, txId: string): TestContractResult {
+  fromApiTestContractResult(
+    methodName: string,
+    result: node.TestContractResult,
+    txId: string
+  ): TestContractResult<unknown> {
+    const methodIndex = this.functions.findIndex((sig) => sig.name === methodName)
+    const returnTypes = this.functions[`${methodIndex}`].returnTypes
+    const rawReturn = fromApiArray(result.returns, returnTypes)
+    const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
+
     const addressToCodeHash = new Map<string, string>()
     addressToCodeHash.set(result.address, result.codeHash)
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
     return {
       contractId: binToHex(contractIdFromAddress(result.address)),
       contractAddress: result.address,
-      returns: fromApiArray(result.returns, this.functions[`${methodIndex}`].returnTypes),
+      returns: returns,
       gasUsed: result.gasUsed,
       contracts: result.contracts.map((contract) => Contract.fromApiContractState(contract)),
       txOutputs: result.txOutputs.map(fromApiOutput),
@@ -941,11 +962,17 @@ export class Contract extends Artifact {
     }
   }
 
-  fromApiCallContractResult(result: node.CallContractResult, txId: string, methodIndex: number): CallContractResult {
+  fromApiCallContractResult(
+    result: node.CallContractResult,
+    txId: string,
+    methodIndex: number
+  ): CallContractResult<unknown> {
+    const returnTypes = this.functions[`${methodIndex}`].returnTypes
+    const rawReturn = fromApiArray(result.returns, returnTypes)
+    const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
+
     const addressToCodeHash = new Map<string, string>()
     result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
-    const functionSig = this.functions[`${methodIndex}`]
-    const returns = fromApiArray(result.returns, functionSig.returnTypes)
     return {
       returns: returns,
       gasUsed: result.gasUsed,
@@ -1180,10 +1207,10 @@ export interface ContractEvent<T extends Fields = Fields> {
 
 export type DebugMessage = node.DebugMessage
 
-export interface TestContractResult {
+export interface TestContractResult<R> {
   contractId: string
   contractAddress: string
-  returns: Val[]
+  returns: R
   gasUsed: number
   contracts: ContractState[]
   txOutputs: Output[]
@@ -1250,13 +1277,16 @@ assertType<
 >
 export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }
 
-export abstract class ContractFactory<T, P extends Fields = Fields> {
+export abstract class ContractFactory<I, F extends Fields = Fields> {
   readonly contract: Contract
+
   constructor(contract: Contract) {
     this.contract = contract
   }
 
-  async deploy(signer: SignerProvider, deployParams: DeployContractParams<P>): Promise<DeployContractResult<T>> {
+  abstract at(address: string): I
+
+  async deploy(signer: SignerProvider, deployParams: DeployContractParams<F>): Promise<DeployContractResult<I>> {
     const signerParams = await this.contract.txParamsForDeployment(signer, deployParams)
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
@@ -1265,7 +1295,14 @@ export abstract class ContractFactory<T, P extends Fields = Fields> {
     }
   }
 
-  abstract at(address: string): T
+  // This is used for testing contract functions
+  stateForTest(initFields: F, asset?: Asset, address?: string): ContractState<F> {
+    const newAsset = {
+      alphAmount: asset?.alphAmount ?? ONE_ALPH,
+      tokens: asset?.tokens
+    }
+    return this.contract.toState(initFields, newAsset, address)
+  }
 }
 
 export interface ExecuteScriptParams<P extends Fields = Fields> {
@@ -1293,8 +1330,8 @@ export interface CallContractParams<T extends Arguments = Arguments> {
   inputAssets?: node.TestInputAsset[]
 }
 
-export interface CallContractResult {
-  returns: Val[]
+export interface CallContractResult<R> {
+  returns: R
   gasUsed: number
   contracts: ContractState[]
   txInputs: string[]
@@ -1336,11 +1373,11 @@ export function decodeContractDestroyedEvent(
   }
 }
 
-export function subscribeEventsFromContract<T extends Fields>(
-  options: SubscribeOptions<ContractEvent<T>>,
+export function subscribeEventsFromContract<T extends Fields, M extends ContractEvent<T>>(
+  options: SubscribeOptions<M>,
   address: string,
   eventIndex: number,
-  decodeFunc: (event: node.ContractEvent) => ContractEvent<T>,
+  decodeFunc: (event: node.ContractEvent) => M,
   fromCount?: number
 ): EventSubscription {
   const messageCallback = (event: node.ContractEvent): Promise<void> => {
@@ -1351,7 +1388,7 @@ export function subscribeEventsFromContract<T extends Fields>(
   }
 
   const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
-    return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<T>>)
+    return options.errorCallback(err, subscription as unknown as Subscription<M>)
   }
   const opt: SubscribeOptions<node.ContractEvent> = {
     pollingInterval: options.pollingInterval,
@@ -1359,4 +1396,188 @@ export function subscribeEventsFromContract<T extends Fields>(
     errorCallback: errorCallback
   }
   return subscribeToEvents(opt, address, fromCount)
+}
+
+export async function testMethod<I, F extends Fields, A extends Arguments, R>(
+  contract: ContractFactory<I, F>,
+  methodName: string,
+  params: Optional<TestContractParams<F, A>, 'testArgs' | 'initialFields'>
+): Promise<TestContractResult<R>> {
+  const txId = params?.txId ?? randomTxId()
+  const apiParams = contract.contract.toApiTestContractParams(methodName, {
+    ...params,
+    txId: txId,
+    initialFields: params.initialFields === undefined ? {} : params.initialFields,
+    testArgs: params.testArgs === undefined ? {} : params.testArgs
+  })
+  const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
+  const testResult = contract.contract.fromApiTestContractResult(methodName, apiResult, txId)
+  contract.contract.printDebugMessages(methodName, testResult.debugMessages)
+  return testResult as TestContractResult<R>
+}
+
+export abstract class ContractInstance {
+  readonly address: Address
+  readonly contractId: string
+  readonly groupIndex: number
+
+  constructor(address: Address) {
+    this.address = address
+    this.contractId = binToHex(contractIdFromAddress(address))
+    this.groupIndex = groupOfAddress(address)
+  }
+}
+
+export async function fetchContractState<F extends Fields, I extends ContractInstance>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance
+): Promise<ContractState<F>> {
+  const contractState = await getCurrentNodeProvider().contracts.getContractsAddressState(instance.address, {
+    group: instance.groupIndex
+  })
+  const state = contract.contract.fromApiContractState(contractState)
+  return {
+    ...state,
+    fields: state.fields as F
+  }
+}
+
+export function subscribeContractCreatedEvent(
+  instance: ContractInstance,
+  options: SubscribeOptions<ContractCreatedEvent>,
+  fromCount?: number
+): EventSubscription {
+  return subscribeEventsFromContract(
+    options,
+    instance.address,
+    Contract.ContractCreatedEventIndex,
+    (event) => {
+      return {
+        ...decodeContractCreatedEvent(event),
+        contractAddress: instance.address
+      }
+    },
+    fromCount
+  )
+}
+
+export function subscribeContractDestroyedEvent(
+  instance: ContractInstance,
+  options: SubscribeOptions<ContractDestroyedEvent>,
+  fromCount?: number
+): EventSubscription {
+  return subscribeEventsFromContract(
+    options,
+    instance.address,
+    Contract.ContractDestroyedEventIndex,
+    (event) => {
+      return {
+        ...decodeContractDestroyedEvent(event),
+        contractAddress: instance.address
+      }
+    },
+    fromCount
+  )
+}
+
+export function decodeEvent<F extends Fields, M extends ContractEvent<F>>(
+  contract: Contract,
+  instance: ContractInstance,
+  event: node.ContractEvent,
+  targetEventIndex: number
+): M {
+  if (
+    event.eventIndex !== targetEventIndex &&
+    !(targetEventIndex >= 0 && targetEventIndex < contract.eventsSig.length)
+  ) {
+    throw new Error('Invalid event index: ' + event.eventIndex + ', expected: ' + targetEventIndex)
+  }
+  const eventSig = contract.eventsSig[`${targetEventIndex}`]
+  const fieldNames = eventSig.fieldNames
+  const fieldTypes = eventSig.fieldTypes
+  const fields = fromApiVals(event.fields, fieldNames, fieldTypes)
+  return {
+    contractAddress: instance.address,
+    blockHash: event.blockHash,
+    txId: event.txId,
+    eventIndex: event.eventIndex,
+    name: eventSig.name,
+    fields: fields
+  } as M
+}
+
+export function subscribeContractEvent<F extends Fields, M extends ContractEvent<F>>(
+  contract: Contract,
+  instance: ContractInstance,
+  options: SubscribeOptions<M>,
+  eventName: string,
+  fromCount?: number
+): EventSubscription {
+  const eventIndex = contract.eventsSig.findIndex((sig) => sig.name === eventName)
+  return subscribeEventsFromContract<F, M>(
+    options,
+    instance.address,
+    eventIndex,
+    (event) => decodeEvent(contract, instance, event, eventIndex),
+    fromCount
+  )
+}
+
+export function subscribeAllEvents(
+  contract: Contract,
+  instance: ContractInstance,
+  options: SubscribeOptions<ContractEvent<any>>,
+  fromCount?: number
+): EventSubscription {
+  const messageCallback = (event: node.ContractEvent): Promise<void> => {
+    switch (event.eventIndex) {
+      case Contract.ContractCreatedEventIndex: {
+        return options.messageCallback({
+          ...decodeContractCreatedEvent(event),
+          contractAddress: instance.address
+        })
+      }
+
+      case Contract.ContractDestroyedEventIndex: {
+        return options.messageCallback({
+          ...decodeContractDestroyedEvent(event),
+          contractAddress: instance.address
+        })
+      }
+
+      default:
+        return options.messageCallback({
+          ...decodeEvent(contract, instance, event, event.eventIndex),
+          contractAddress: instance.address
+        })
+    }
+  }
+  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
+    return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<any>>)
+  }
+  const opt: SubscribeOptions<node.ContractEvent> = {
+    pollingInterval: options.pollingInterval,
+    messageCallback: messageCallback,
+    errorCallback: errorCallback
+  }
+  return subscribeToEvents(opt, instance.address, fromCount)
+}
+
+export async function callMethod<I, F extends Fields, A extends Arguments, R>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance,
+  methodName: string,
+  params: Optional<CallContractParams<A>, 'args'>
+): Promise<CallContractResult<R>> {
+  const methodIndex = contract.contract.getMethodIndex(methodName)
+  const txId = params?.txId ?? randomTxId()
+  const callParams = contract.contract.toApiCallContract(
+    { ...params, txId: txId, args: params.args === undefined ? {} : params.args },
+    instance.groupIndex,
+    instance.address,
+    methodIndex
+  )
+  const result = await getCurrentNodeProvider().contracts.postContractsCallContract(callParams)
+  const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex)
+  return callResult as CallContractResult<R>
 }

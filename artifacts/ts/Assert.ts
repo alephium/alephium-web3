@@ -3,37 +3,32 @@
 /* eslint-disable */
 
 import {
-  web3,
   Address,
   Contract,
   ContractState,
-  node,
-  binToHex,
   TestContractResult,
-  Asset,
   HexString,
   ContractFactory,
-  contractIdFromAddress,
-  ONE_ALPH,
-  groupOfAddress,
-  fromApiVals,
-  subscribeToEvents,
   SubscribeOptions,
-  Subscription,
   EventSubscription,
-  randomTxId,
   CallContractParams,
   CallContractResult,
   TestContractParams,
   ContractEvent,
-  subscribeEventsFromContract,
-  decodeContractCreatedEvent,
-  decodeContractDestroyedEvent,
+  subscribeContractCreatedEvent,
+  subscribeContractDestroyedEvent,
+  subscribeContractEvent,
+  subscribeAllEvents,
+  testMethod,
+  callMethod,
+  fetchContractState,
   ContractCreatedEvent,
   ContractDestroyedEvent,
+  ContractInstance,
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/assert.ral.json";
 
+// Custom types for the contract
 export namespace AssertTypes {
   export type State = Omit<ContractState<any>, "fields">;
 }
@@ -43,41 +38,17 @@ class Factory extends ContractFactory<AssertInstance, {}> {
     return new AssertInstance(address);
   }
 
-  // This is used for testing contract functions
-  stateForTest(asset?: Asset, address?: string): ContractState<{}> {
-    const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
-      tokens: asset?.tokens,
-    };
-    return this.contract.toState({}, newAsset, address);
-  }
-
   async testTestMethod(
-    params?: Omit<TestContractParams<{}, {}>, "testArgs" | "initialFields">
-  ): Promise<Omit<TestContractResult, "returns">> {
-    const txId = params?.txId ?? randomTxId();
-    const apiParams = this.contract.toApiTestContractParams("test", {
-      ...params,
-      txId: txId,
-      testArgs: {},
-      initialFields: {},
-    });
-    const apiResult = await web3
-      .getCurrentNodeProvider()
-      .contracts.postContractsTestContract(apiParams);
-    const testResult = this.contract.fromApiTestContractResult(
-      0,
-      apiResult,
-      txId
-    );
-    this.contract.printDebugMessages("test", testResult.debugMessages);
-
-    return {
-      ...testResult,
-    };
+    params?: Omit<
+      TestContractParams<never, never>,
+      "testArgs" | "initialFields"
+    >
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "test", params === undefined ? {} : params);
   }
 }
 
+// Use this object to test and deploy the contract
 export const Assert = new Factory(
   Contract.fromJson(
     AssertContractJson,
@@ -86,105 +57,34 @@ export const Assert = new Factory(
   )
 );
 
-export class AssertInstance {
-  readonly address: Address;
-  readonly contractId: string;
-  readonly groupIndex: number;
-
+// Use this class to interact with the blockchain
+export class AssertInstance extends ContractInstance {
   constructor(address: Address) {
-    this.address = address;
-    this.contractId = binToHex(contractIdFromAddress(address));
-    this.groupIndex = groupOfAddress(address);
+    super(address);
   }
 
   async fetchState(): Promise<AssertTypes.State> {
-    const contractState = await web3
-      .getCurrentNodeProvider()
-      .contracts.getContractsAddressState(this.address, {
-        group: this.groupIndex,
-      });
-    const state = Assert.contract.fromApiContractState(contractState);
-    return {
-      ...state,
-    };
+    return fetchContractState(Assert, this);
   }
 
   subscribeContractCreatedEvent(
     options: SubscribeOptions<ContractCreatedEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
-      options,
-      this.address,
-      -1,
-      (event) => {
-        return {
-          ...decodeContractCreatedEvent(event),
-          contractAddress: this.address,
-        };
-      },
-      fromCount
-    );
+    return subscribeContractCreatedEvent(this, options, fromCount);
   }
 
   subscribeContractDestroyedEvent(
     options: SubscribeOptions<ContractDestroyedEvent>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeEventsFromContract(
-      options,
-      this.address,
-      -2,
-      (event) => {
-        return {
-          ...decodeContractDestroyedEvent(event),
-          contractAddress: this.address,
-        };
-      },
-      fromCount
-    );
+    return subscribeContractDestroyedEvent(this, options, fromCount);
   }
 
-  subscribeEvents(
+  subscribeAllEvents(
     options: SubscribeOptions<ContractCreatedEvent | ContractDestroyedEvent>,
     fromCount?: number
   ): EventSubscription {
-    const messageCallback = (event: node.ContractEvent): Promise<void> => {
-      switch (event.eventIndex) {
-        case -1: {
-          return options.messageCallback({
-            ...decodeContractCreatedEvent(event),
-            contractAddress: this.address,
-          });
-        }
-
-        case -2: {
-          return options.messageCallback({
-            ...decodeContractDestroyedEvent(event),
-            contractAddress: this.address,
-          });
-        }
-
-        default:
-          throw new Error("Invalid event index: " + event.eventIndex);
-      }
-    };
-    const errorCallback = (
-      err: any,
-      subscription: Subscription<node.ContractEvent>
-    ): Promise<void> => {
-      return options.errorCallback(
-        err,
-        subscription as unknown as Subscription<
-          ContractCreatedEvent | ContractDestroyedEvent
-        >
-      );
-    };
-    const opt: SubscribeOptions<node.ContractEvent> = {
-      pollingInterval: options.pollingInterval,
-      messageCallback: messageCallback,
-      errorCallback: errorCallback,
-    };
-    return subscribeToEvents(opt, this.address, fromCount);
+    return subscribeAllEvents(Assert.contract, this, options, fromCount);
   }
 }
