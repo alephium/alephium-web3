@@ -16,7 +16,6 @@
     "clean": "lerna clean",
     "postinstall": "npm run bootstrap",
     "build": "lerna run build",
-    "codegen": "npx ts-node gen.ts",
     "bootstrap": "lerna bootstrap --hoist",
     "test": "jest -i --config ./jest-config.json",
     "lint": "eslint . --ext ts",
