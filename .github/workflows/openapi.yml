@@ -19,3 +19,4 @@ jobs:
       # Wait for this issue to be resolved: https://github.com/acacode/swagger-typescript-api/issues/370
       - run: npm run update-schemas && test -z "$(git status --porcelain)"
       - run: npm run build
+      - run: npm run codegen && test -z "$(git status --porcelain)"
