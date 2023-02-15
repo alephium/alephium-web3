@@ -1450,7 +1450,7 @@ export function subscribeContractCreatedEvent(
   return subscribeEventsFromContract(
     options,
     instance.address,
-    -1,
+    Contract.ContractCreatedEventIndex,
     (event) => {
       return {
         ...decodeContractCreatedEvent(event),
@@ -1469,7 +1469,7 @@ export function subscribeContractDestroyedEvent(
   return subscribeEventsFromContract(
     options,
     instance.address,
-    -2,
+    Contract.ContractDestroyedEventIndex,
     (event) => {
       return {
         ...decodeContractDestroyedEvent(event),
@@ -1490,17 +1490,18 @@ export function decodeEvent<F extends Fields, M extends ContractEvent<F>>(
     event.eventIndex !== targetEventIndex &&
     !(targetEventIndex >= 0 && targetEventIndex < contract.eventsSig.length)
   ) {
-    throw new Error('Invalid event index: ' + event.eventIndex + ', expected: 0')
+    throw new Error('Invalid event index: ' + event.eventIndex + ', expected: ' + targetEventIndex)
   }
-  const fieldNames = contract.eventsSig[`${targetEventIndex}`].fieldNames
-  const fieldTypes = contract.eventsSig[`${targetEventIndex}`].fieldTypes
+  const eventSig = contract.eventsSig[`${targetEventIndex}`]
+  const fieldNames = eventSig.fieldNames
+  const fieldTypes = eventSig.fieldTypes
   const fields = fromApiVals(event.fields, fieldNames, fieldTypes)
   return {
     contractAddress: instance.address,
     blockHash: event.blockHash,
     txId: event.txId,
     eventIndex: event.eventIndex,
-    name: 'Add',
+    name: eventSig.name,
     fields: fields
   } as M
 }
@@ -1530,14 +1531,14 @@ export function subscribeAllEvents(
 ): EventSubscription {
   const messageCallback = (event: node.ContractEvent): Promise<void> => {
     switch (event.eventIndex) {
-      case -1: {
+      case Contract.ContractCreatedEventIndex: {
         return options.messageCallback({
           ...decodeContractCreatedEvent(event),
           contractAddress: instance.address
         })
       }
 
-      case -2: {
+      case Contract.ContractDestroyedEventIndex: {
         return options.messageCallback({
           ...decodeContractDestroyedEvent(event),
           contractAddress: instance.address
