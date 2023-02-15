@@ -96,7 +96,12 @@ export class Deployments {
       return new Deployments(new Map())
     }
     const content = await fsPromises.readFile(filepath)
-    const json = JSON.parse(content.toString())
+    const json = JSON.parse(content.toString(), (key, value) => {
+      if ((key === 'gasPrice' || key === 'attoAlphAmount' || key === 'issueTokenAmount') && value !== undefined) {
+        return BigInt(value)
+      }
+      return value
+    })
     const groups = new Map<number, DeploymentsPerGroup>()
     Object.entries<any>(json).forEach(([key, value]) => {
       const groupIndex = parseInt(key)
@@ -183,8 +188,7 @@ async function needToRetry(
   }
   const currentTokens = tokens ? tokens : {}
   const previousTokens = previous.tokens ? previous.tokens : {}
-  const sameWithPrevious =
-    attoAlphAmount?.toString() === previous.attoAlphAmount?.toString() && recordEqual(currentTokens, previousTokens)
+  const sameWithPrevious = attoAlphAmount === previous.attoAlphAmount && recordEqual(currentTokens, previousTokens)
   return !sameWithPrevious
 }
 
@@ -201,7 +205,7 @@ async function needToDeployContract(
     return true
   }
   // previous !== undefined if retry is false
-  return previous!.issueTokenAmount?.toString() !== issueTokenAmount?.toString()
+  return previous!.issueTokenAmount !== issueTokenAmount
 }
 
 async function needToRunScript(
