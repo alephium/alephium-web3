@@ -183,7 +183,8 @@ async function needToRetry(
   }
   const currentTokens = tokens ? tokens : {}
   const previousTokens = previous.tokens ? previous.tokens : {}
-  const sameWithPrevious = attoAlphAmount === previous.attoAlphAmount && recordEqual(currentTokens, previousTokens)
+  const sameWithPrevious =
+    attoAlphAmount?.toString() === previous.attoAlphAmount?.toString() && recordEqual(currentTokens, previousTokens)
   return !sameWithPrevious
 }
 
@@ -200,7 +201,7 @@ async function needToDeployContract(
     return true
   }
   // previous !== undefined if retry is false
-  return previous!.issueTokenAmount !== issueTokenAmount
+  return previous!.issueTokenAmount?.toString() !== issueTokenAmount?.toString()
 }
 
 async function needToRunScript(
