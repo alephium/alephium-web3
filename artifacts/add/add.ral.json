@@ -1,8 +1,8 @@
 {
   "version": "v1.7.0",
   "name": "Add",
-  "bytecode": "02020d40360100020402041600160100010200000202021605160016015f06160016015fa00016002a16012aa100a000160016010e0dce00010002",
-  "codeHash": "52d5893e97ce6b8d67d90fe1c51735e6e4f9946de732926fd160a0b50774f61b",
+  "bytecode": "02030d403640570100020402041600160100010200000202021605160016015f06160016015fa00016002a16012aa100a000160016010e0dce0001000201030404000b160313c40de0b6b3a7640000a2160116021401001600130164c118",
+  "codeHash": "8e495ae544b65cc598a162e7839540a9ba4c9bc33b03522afbd36c174489b629",
   "fieldsSig": {
     "names": [
       "sub",
@@ -77,6 +77,31 @@
       "returnTypes": [
         "[U256;2]"
       ]
+    },
+    {
+      "name": "createSubContract",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "a",
+        "path",
+        "subContractId",
+        "payer"
+      ],
+      "paramTypes": [
+        "U256",
+        "ByteVec",
+        "ByteVec",
+        "Address"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "returnTypes": []
     }
   ]
 }
