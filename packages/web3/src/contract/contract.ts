@@ -848,38 +848,45 @@ export class Contract extends Artifact {
   }
 
   static ContractCreatedEventIndex = -1
-  static ContractCreatedEvent: EventSig = {
+  static ContractCreatedEvent: SystemEventSig = {
     name: 'ContractCreated',
     fieldNames: ['address'],
-    fieldTypes: ['Address']
+    fieldTypes: ['Address'],
+    optionalFieldNames: ['parentAddress'],
+    optionalFieldTypes: ['Address']
   }
 
   static ContractDestroyedEventIndex = -2
-  static ContractDestroyedEvent: EventSig = {
+  static ContractDestroyedEvent: SystemEventSig = {
     name: 'ContractDestroyed',
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
 
   static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined, txId: string): ContractEvent {
-    let eventSig: EventSig
+    let fields: Fields
+    let name: string
 
     if (event.eventIndex == Contract.ContractCreatedEventIndex) {
-      eventSig = this.ContractCreatedEvent
+      fields = fromApiSystemEventFields(event.fields, Contract.ContractCreatedEvent)
+      name = Contract.ContractCreatedEvent.name
     } else if (event.eventIndex == Contract.ContractDestroyedEventIndex) {
-      eventSig = this.ContractDestroyedEvent
+      fields = fromApiSystemEventFields(event.fields, Contract.ContractDestroyedEvent)
+      name = Contract.ContractDestroyedEvent.name
     } else {
       const contract = Project.currentProject.contractByCodeHash(codeHash!)
-      eventSig = contract.eventsSig[event.eventIndex]
+      const eventSig = contract.eventsSig[event.eventIndex]
+      fields = fromApiEventFields(event.fields, eventSig)
+      name = eventSig.name
     }
 
     return {
       txId: txId,
       blockHash: event.blockHash,
       contractAddress: event.contractAddress,
-      name: eventSig.name,
+      name: name,
       eventIndex: event.eventIndex,
-      fields: fromApiEventFields(event.fields, eventSig)
+      fields: fields
     }
   }
 
@@ -1093,6 +1100,16 @@ function fromApiFields(immFields: node.Val[], mutFields: node.Val[], fieldsSig: 
 
 function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig): Fields {
   return fromApiVals(vals, eventSig.fieldNames, eventSig.fieldTypes)
+}
+
+function fromApiSystemEventFields(vals: node.Val[], systemEventSig: SystemEventSig): Fields {
+  return fromApiVals(
+    vals,
+    systemEventSig.fieldNames,
+    systemEventSig.fieldTypes,
+    systemEventSig.optionalFieldNames ?? [],
+    systemEventSig.optionalFieldTypes ?? []
+  )
 }
 
 export interface Asset {
@@ -1339,37 +1356,45 @@ export interface CallContractResult<R> {
   events: ContractEvent[]
 }
 
-export type ContractCreatedEvent = ContractEvent<{ address: HexString }>
-export type ContractDestroyedEvent = ContractEvent<{ address: HexString }>
+export interface SystemEventSig extends EventSig {
+  optionalFieldNames?: string[]
+  optionalFieldTypes?: string[]
+}
 
-function decodeFields(event: node.ContractEvent, eventSig: EventSig, eventIndex: number): Fields {
+export type ContractCreatedEvent = ContractEvent<{ address: Address; parentAddress?: Address }>
+export type ContractDestroyedEvent = ContractEvent<{ address: Address }>
+
+function decodeSystemEvent(event: node.ContractEvent, systemEventSig: SystemEventSig, eventIndex: number): Fields {
   if (event.eventIndex !== eventIndex) {
     throw new Error(`Invalid event index: ${event.eventIndex}, expected: ${eventIndex}`)
   }
-  return fromApiVals(event.fields, eventSig.fieldNames, eventSig.fieldTypes)
+  return fromApiSystemEventFields(event.fields, systemEventSig)
 }
 
 export function decodeContractCreatedEvent(event: node.ContractEvent): Omit<ContractCreatedEvent, 'contractAddress'> {
-  const fields = decodeFields(event, Contract.ContractCreatedEvent, Contract.ContractCreatedEventIndex)
+  const fields = decodeSystemEvent(event, Contract.ContractCreatedEvent, Contract.ContractCreatedEventIndex)
   return {
     blockHash: event.blockHash,
     txId: event.txId,
     eventIndex: event.eventIndex,
     name: Contract.ContractCreatedEvent.name,
-    fields: { address: fields['address'] as HexString }
+    fields: {
+      address: fields['address'] as Address,
+      parentAddress: fields['parentAddress'] === undefined ? undefined : (fields['parentAddress'] as Address)
+    }
   }
 }
 
 export function decodeContractDestroyedEvent(
   event: node.ContractEvent
 ): Omit<ContractDestroyedEvent, 'contractAddress'> {
-  const fields = decodeFields(event, Contract.ContractDestroyedEvent, Contract.ContractDestroyedEventIndex)
+  const fields = decodeSystemEvent(event, Contract.ContractDestroyedEvent, Contract.ContractDestroyedEventIndex)
   return {
     blockHash: event.blockHash,
     txId: event.txId,
     eventIndex: event.eventIndex,
     name: Contract.ContractDestroyedEvent.name,
-    fields: { address: fields['address'] as HexString }
+    fields: { address: fields['address'] as Address }
   }
 }
 

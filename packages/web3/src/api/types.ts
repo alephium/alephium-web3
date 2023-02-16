@@ -162,7 +162,13 @@ function _fromApiVal(vals: node.Val[], valIndex: number, tpe: string): [result: 
   }
 }
 
-export function fromApiVals(vals: node.Val[], names: string[], types: string[]): NamedVals {
+export function fromApiVals(
+  vals: node.Val[],
+  names: string[],
+  types: string[],
+  optionalNames: string[] = [],
+  optionalTypes: string[] = []
+): NamedVals {
   let valIndex = 0
   const result: NamedVals = {}
   types.forEach((currentType, index) => {
@@ -171,7 +177,11 @@ export function fromApiVals(vals: node.Val[], names: string[], types: string[]):
     valIndex = nextIndex
     result[`${currentName}`] = val
   })
-  return result
+  if (valIndex === vals.length) {
+    return result
+  }
+  const optionalFields = fromApiVals(vals.slice(valIndex), optionalNames, optionalTypes)
+  return { ...result, ...optionalFields }
 }
 
 export function fromApiArray(vals: node.Val[], types: string[]): Val[] {

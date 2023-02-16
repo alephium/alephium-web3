@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, Project, Script, Contract, EventSig } from '@alephium/web3'
+import { node, Project, Script, Contract, EventSig, SystemEventSig } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
 import fs from 'fs'
@@ -206,7 +206,7 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
 }
 
 type SystemEvent = {
-  eventSig: EventSig
+  eventSig: SystemEventSig
   eventIndex: number
   eventType: string
 }

@@ -57,6 +57,15 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
   ): Promise<TestContractResult<[bigint, bigint]>> {
     return testMethod(this, "addPrivate", params);
   }
+
+  async testCreateSubContractMethod(
+    params: TestContractParams<
+      AddTypes.Fields,
+      { a: bigint; path: HexString; subContractId: HexString; payer: HexString }
+    >
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "createSubContract", params);
+  }
 }
 
 // Use this object to test and deploy the contract
@@ -64,7 +73,7 @@ export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
     "",
-    "52d5893e97ce6b8d67d90fe1c51735e6e4f9946de732926fd160a0b50774f61b"
+    "8e495ae544b65cc598a162e7839540a9ba4c9bc33b03522afbd36c174489b629"
   )
 );
 

@@ -18,10 +18,21 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as fs from 'fs'
 import * as path from 'path'
-import { Account, web3, ContractEvent, Fields } from '../packages/web3'
+import {
+  Account,
+  web3,
+  ContractEvent,
+  Fields,
+  ContractCreatedEvent,
+  ONE_ALPH,
+  subContractId,
+  contractIdFromAddress,
+  binToHex,
+  addressFromContractId
+} from '../packages/web3'
 import { Contract, Project, Script } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
-import { expectAssertionError, randomContractAddress } from '../packages/web3-test'
+import { expectAssertionError, testAddress, randomContractAddress } from '../packages/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
 import { GreeterMain, Main } from '../artifacts/ts/scripts'
@@ -148,9 +159,37 @@ describe('contract', function () {
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
   }
 
+  async function testSuite3() {
+    await Project.build({ errorOnWarnings: false })
+
+    const subState = Sub.stateForTest({ result: 0n })
+    const groupIndex = 0
+    const addAddress = randomContractAddress()
+    const subContractPath = '0011'
+    const expectedSubContractId = subContractId(
+      binToHex(contractIdFromAddress(addAddress)),
+      subContractPath,
+      groupIndex
+    )
+    const payer = testAddress
+    const testResult = await Add.testCreateSubContractMethod({
+      address: addAddress,
+      group: groupIndex,
+      initialFields: { sub: subState.contractId, result: 0n },
+      testArgs: { a: 0n, path: subContractPath, subContractId: subState.contractId, payer },
+      existingContracts: [subState],
+      inputAssets: [{ address: payer, asset: { alphAmount: ONE_ALPH * 2n } }]
+    })
+    expect(testResult.events.length).toEqual(1)
+    const event = testResult.events[0] as ContractCreatedEvent
+    expect(event.fields.address).toEqual(addressFromContractId(expectedSubContractId))
+    expect(event.fields.parentAddress).toEqual(addAddress)
+  }
+
   it('should test contracts', async () => {
     await testSuite1()
     await testSuite2()
+    await testSuite3()
   })
 
   function loadJson(fileName: string) {
