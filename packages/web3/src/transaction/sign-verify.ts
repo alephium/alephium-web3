@@ -17,22 +17,17 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import * as utils from '../utils'
-import { ec as EC } from 'elliptic'
+import { KeyType } from '../signer'
 
-const ec = new EC('secp256k1')
-
-export function transactionSign(txHash: string, privateKey: string): string {
-  const keyPair = ec.keyFromPrivate(privateKey)
-  const signature = keyPair.sign(txHash)
-
-  return utils.encodeSignature(signature)
+export function transactionSign(txId: string, privateKey: string, keyType?: KeyType): string {
+  return utils.sign(txId, privateKey, keyType)
 }
 
-export function transactionVerifySignature(txHash: string, publicKey: string, signature: string): boolean {
-  try {
-    const key = ec.keyFromPublic(publicKey, 'hex')
-    return key.verify(txHash, utils.signatureDecode(ec, signature))
-  } catch (error) {
-    return false
-  }
+export function transactionVerifySignature(
+  txId: string,
+  publicKey: string,
+  signature: string,
+  keyType?: KeyType
+): boolean {
+  return utils.verifySignature(txId, publicKey, signature, keyType)
 }

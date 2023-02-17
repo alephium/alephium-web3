@@ -238,24 +238,6 @@ export abstract class SignerProviderWithCachedAccounts<T extends Account> extend
   }
 }
 
-export function verifyHexString(hexString: string, publicKey: string, signature: string, _keyType?: KeyType): boolean {
-  const keyType = _keyType ?? 'secp256k1'
-  try {
-    if (keyType === 'secp256k1') {
-      const key = ec.keyFromPublic(publicKey, 'hex')
-      return key.verify(hexString, utils.signatureDecode(ec, signature))
-    } else {
-      return secp.verifySchnorr(
-        utils.hexToBinUnsafe(hexString),
-        utils.hexToBinUnsafe(publicKey),
-        utils.hexToBinUnsafe(signature)
-      )
-    }
-  } catch (error) {
-    return false
-  }
-}
-
 function extendMessage(message: string): string {
   return 'Alephium Signed Message: ' + message
 }
@@ -263,7 +245,7 @@ function extendMessage(message: string): string {
 export function verifySignedMessage(message: string, publicKey: string, signature: string, keyType?: KeyType): boolean {
   const extendedMessage = extendMessage(message)
   const messageHash = blake.blake2b(extendedMessage, undefined, 32)
-  return verifyHexString(utils.binToHex(messageHash), publicKey, signature, keyType)
+  return utils.verifySignature(utils.binToHex(messageHash), publicKey, signature, keyType)
 }
 
 export function toApiDestination(data: Destination): node.Destination {

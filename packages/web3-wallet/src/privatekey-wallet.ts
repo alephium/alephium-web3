@@ -108,15 +108,6 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   }
 
   static sign(privateKey: string, hexString: string, _keyType?: KeyType): string {
-    const keyType = _keyType ?? 'secp256k1'
-
-    if (keyType === 'secp256k1') {
-      const key = ec.keyFromPrivate(privateKey)
-      const signature = key.sign(hexString)
-      return utils.encodeSignature(signature)
-    } else {
-      const signature = secp.signSchnorr(utils.hexToBinUnsafe(hexString), utils.hexToBinUnsafe(privateKey))
-      return utils.binToHex(signature)
-    }
+    return utils.sign(hexString, privateKey, _keyType)
   }
 }
