@@ -36,8 +36,8 @@ import { expectAssertionError, testAddress, randomContractAddress } from '../pac
 import { NodeWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
 import { GreeterMain, Main } from '../artifacts/ts/scripts'
-import { Sub } from '../artifacts/ts/Sub'
-import { Add } from '../artifacts/ts/Add'
+import { Sub, SubTypes } from '../artifacts/ts/Sub'
+import { Add, AddTypes } from '../artifacts/ts/Add'
 import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
@@ -65,30 +65,30 @@ describe('contract', function () {
       existingContracts: [subState]
     })
     expect(testResult.returns).toEqual([3n, 1n])
-    const contract0 = testResult.contracts[0] as Sub.State
+    const contract0 = testResult.contracts[0] as SubTypes.State
     expect(contract0.codeHash).toEqual(subState.codeHash)
     expect(contract0.fields.result).toEqual(1n)
 
-    const contract1 = testResult.contracts[1] as Add.State
+    const contract1 = testResult.contracts[1] as AddTypes.State
     expect(contract1.codeHash).toEqual(Add.contract.codeHash)
     expect(contract1.fields.sub).toEqual(subState.contractId)
     expect(contract1.fields.result).toEqual(3n)
 
     const checkEvents = (eventList: ContractEvent<Fields>[]) => {
       const events = eventList.sort((a, b) => a.name.localeCompare(b.name))
-      const event0 = events[0] as Add.AddEvent
+      const event0 = events[0] as AddTypes.AddEvent
       expect(event0.name).toEqual('Add')
       expect(event0.eventIndex).toEqual(0)
       expect(event0.fields.x).toEqual(2n)
       expect(event0.fields.y).toEqual(1n)
 
-      const event1 = events[1] as Add.Add1Event
+      const event1 = events[1] as AddTypes.Add1Event
       expect(event1.name).toEqual('Add1')
       expect(event1.eventIndex).toEqual(1)
       expect(event1.fields.a).toEqual(2n)
       expect(event1.fields.b).toEqual(1n)
 
-      const event2 = events[2] as Sub.SubEvent
+      const event2 = events[2] as SubTypes.SubEvent
       expect(event2.name).toEqual('Sub')
       expect(event2.eventIndex).toEqual(0)
       expect(event2.fields.x).toEqual(2n)
