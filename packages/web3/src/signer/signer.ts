@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC } from 'elliptic'
 import { ExplorerProvider, fromApiNumber256, fromApiTokens, NodeProvider, toApiNumber256, toApiTokens } from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
@@ -47,45 +46,66 @@ import {
   KeyType
 } from './types'
 import { TransactionBuilder } from './tx-builder'
+import { addressFromPublicKey, groupOfAddress } from '../utils'
 
-const ec = new EC('secp256k1')
+export abstract class SignerProvider {
+  abstract get nodeProvider(): NodeProvider | undefined
+  abstract get explorerProvider(): ExplorerProvider | undefined
 
-export interface SignerProvider {
-  get nodeProvider(): NodeProvider | undefined
-  get explorerProvider(): ExplorerProvider | undefined
+  protected abstract unsafeGetSelectedAccount(): Promise<Account>
+  async getSelectedAccount(): Promise<Account> {
+    const account = await this.unsafeGetSelectedAccount()
+    SignerProvider.validateAccount(account)
+    return account
+  }
 
-  getSelectedAccount(): Promise<Account>
+  static validateAccount(account: Account): void {
+    const derivedAddress = addressFromPublicKey(account.publicKey)
+    const derivedGroup = groupOfAddress(derivedAddress)
+    if (derivedAddress !== account.address || derivedGroup !== account.group) {
+      throw Error(`Invalid accounot data: ${JSON.stringify(account)}`)
+    }
+  }
 
-  signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
-  signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
-  signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
-  signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  abstract signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
+  abstract signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
+  abstract signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
+  abstract signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
 
-  signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  abstract signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
   // The message will be prefixed with 'Alephium Signed Message: ' before signing
   // so that the resulted signature cannot be reused for building transactions.
-  signMessage(params: SignMessageParams): Promise<SignMessageResult>
+  abstract signMessage(params: SignMessageParams): Promise<SignMessageResult>
 }
 
 // Abstraction for interactive signer (e.g. WalletConnect instance, Extension wallet object)
-export interface InteractiveSignerProvider<EnableOptions extends EnableOptionsBase = EnableOptionsBase>
-  extends SignerProvider {
-  enable(opt?: EnableOptions): Promise<Address>
-  disconnect(): Promise<void>
+export abstract class InteractiveSignerProvider<
+  EnableOptions extends EnableOptionsBase = EnableOptionsBase
+> extends SignerProvider {
+  protected abstract unsafeEnable(opt?: EnableOptions): Promise<Account>
+  async enable(opt?: EnableOptions): Promise<Account> {
+    const account = await this.unsafeEnable(opt)
+    SignerProvider.validateAccount(account)
+    return account
+  }
+
+  abstract disconnect(): Promise<void>
 
   // Methods inherited from SignerProvider, but require networkId in the params
-  signAndSubmitTransferTx(params: ExtSignTransferTxParams): Promise<SignTransferTxResult>
-  signAndSubmitDeployContractTx(params: ExtSignDeployContractTxParams): Promise<SignDeployContractTxResult>
-  signAndSubmitExecuteScriptTx(params: ExtSignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
-  signAndSubmitUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
-  signUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
-  signMessage(params: ExtSignMessageParams): Promise<SignMessageResult>
+  abstract override signAndSubmitTransferTx(params: ExtSignTransferTxParams): Promise<SignTransferTxResult>
+  abstract override signAndSubmitDeployContractTx(
+    params: ExtSignDeployContractTxParams
+  ): Promise<SignDeployContractTxResult>
+  abstract override signAndSubmitExecuteScriptTx(
+    params: ExtSignExecuteScriptTxParams
+  ): Promise<SignExecuteScriptTxResult>
+  abstract override signAndSubmitUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  abstract override signUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  abstract override signMessage(params: ExtSignMessageParams): Promise<SignMessageResult>
 }
 
-export abstract class SignerProviderSimple extends TransactionBuilder implements SignerProvider {
-  abstract get explorerProvider(): ExplorerProvider | undefined
-
-  abstract getSelectedAccount(): Promise<Account>
+export abstract class SignerProviderSimple extends SignerProvider {
+  abstract override get nodeProvider(): NodeProvider
 
   async submitTransaction(params: SubmitTransactionParams): Promise<SubmissionResult> {
     const data: node.SubmitTransaction = { unsignedTx: params.unsignedTx, signature: params.signature }
@@ -129,8 +149,11 @@ export abstract class SignerProviderSimple extends TransactionBuilder implements
     return { signature, ...response }
   }
 
-  override async buildTransferTx(params: SignTransferTxParams): Promise<Omit<SignTransferTxResult, 'signature'>> {
-    return super.buildTransferTx(params, await this.getPublicKey(params.signerAddress))
+  async buildTransferTx(params: SignTransferTxParams): Promise<Omit<SignTransferTxResult, 'signature'>> {
+    return TransactionBuilder.from(this.nodeProvider).buildTransferTx(
+      params,
+      await this.getPublicKey(params.signerAddress)
+    )
   }
 
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
@@ -139,10 +162,13 @@ export abstract class SignerProviderSimple extends TransactionBuilder implements
     return { signature, ...response }
   }
 
-  override async buildDeployContractTx(
+  async buildDeployContractTx(
     params: SignDeployContractTxParams
   ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
-    return super.buildDeployContractTx(params, await this.getPublicKey(params.signerAddress))
+    return TransactionBuilder.from(this.nodeProvider).buildDeployContractTx(
+      params,
+      await this.getPublicKey(params.signerAddress)
+    )
   }
 
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
@@ -151,16 +177,17 @@ export abstract class SignerProviderSimple extends TransactionBuilder implements
     return { signature, ...response }
   }
 
-  override async buildExecuteScriptTx(
-    params: SignExecuteScriptTxParams
-  ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
-    return super.buildExecuteScriptTx(params, await this.getPublicKey(params.signerAddress))
+  async buildExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
+    return TransactionBuilder.from(this.nodeProvider).buildExecuteScriptTx(
+      params,
+      await this.getPublicKey(params.signerAddress)
+    )
   }
 
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
-    const response = await this.buildUnsignedTx(params)
+    const response = await TransactionBuilder.from(this.nodeProvider).buildUnsignedTx(params)
     const signature = await this.signRaw(params.signerAddress, response.txId)
     return { signature, ...response }
   }
@@ -176,7 +203,7 @@ export abstract class SignerProviderSimple extends TransactionBuilder implements
 }
 
 export abstract class SignerProviderWithMultipleAccounts extends SignerProviderSimple {
-  abstract setSelectedAddress(address: string): Promise<void>
+  abstract setSelectedAccount(address: string): Promise<void>
 
   abstract getAccounts(): Promise<Account[]>
 
@@ -200,7 +227,7 @@ export abstract class SignerProviderWithCachedAccounts<T extends Account> extend
   private _selectedAccount: T | undefined = undefined
   protected readonly _accounts = new Map<Address, T>()
 
-  getSelectedAccount(): Promise<T> {
+  protected unsafeGetSelectedAccount(): Promise<T> {
     if (this._selectedAccount === undefined) {
       throw Error('No account is selected yet')
     } else {
@@ -208,7 +235,7 @@ export abstract class SignerProviderWithCachedAccounts<T extends Account> extend
     }
   }
 
-  setSelectedAddress(address: string): Promise<void> {
+  setSelectedAccount(address: string): Promise<void> {
     const accountOpt = this._accounts.get(address)
     if (accountOpt === undefined) {
       throw Error('The address is not in the accounts')

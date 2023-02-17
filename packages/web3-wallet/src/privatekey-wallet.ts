@@ -32,7 +32,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   readonly nodeProvider: NodeProvider
   readonly explorerProvider: ExplorerProvider | undefined
 
-  getSelectedAccount(): Promise<Account> {
+  protected unsafeGetSelectedAccount(): Promise<Account> {
     return Promise.resolve(this.account)
   }
 

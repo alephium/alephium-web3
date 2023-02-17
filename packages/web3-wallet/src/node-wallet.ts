@@ -38,7 +38,7 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
   }
 
-  async setSelectedAddress(address: Address): Promise<void> {
+  async setSelectedAccount(address: Address): Promise<void> {
     await this.nodeProvider.wallets.postWalletsWalletNameChangeActiveAddress(this.walletName, { address: address })
   }
 
@@ -53,7 +53,7 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
     return accounts
   }
 
-  async getSelectedAccount(): Promise<Account> {
+  protected async unsafeGetSelectedAccount(): Promise<Account> {
     const response = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const selectedAddressInfo = response.addresses.find((info) => info.address === response.activeAddress)!
     return {
