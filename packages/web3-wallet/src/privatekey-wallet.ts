@@ -52,8 +52,8 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     super()
     this.keyType = keyType ?? 'secp256k1'
     this.privateKey = privateKey
-    this.publicKey = utils.publicKeyFromPrivateKey(privateKey)
-    this.address = utils.addressFromPublicKey(this.publicKey)
+    this.publicKey = utils.publicKeyFromPrivateKey(privateKey, this.keyType)
+    this.address = utils.addressFromPublicKey(this.publicKey, this.keyType)
     this.group = utils.groupOfAddress(this.address)
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()

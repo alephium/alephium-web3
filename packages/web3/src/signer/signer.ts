@@ -60,7 +60,7 @@ export abstract class SignerProvider {
   }
 
   static validateAccount(account: Account): void {
-    const derivedAddress = addressFromPublicKey(account.publicKey)
+    const derivedAddress = addressFromPublicKey(account.publicKey, account.keyType)
     const derivedGroup = groupOfAddress(derivedAddress)
     if (derivedAddress !== account.address || derivedGroup !== account.group) {
       throw Error(`Invalid accounot data: ${JSON.stringify(account)}`)
