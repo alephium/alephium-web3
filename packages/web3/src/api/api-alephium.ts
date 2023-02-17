@@ -202,8 +202,11 @@ export interface BrokerInfo {
 }
 
 export interface BuildDeployContractTx {
-  /** @format public-key */
+  /** @format hex-string */
   fromPublicKey: string
+
+  /** @format hex-string */
+  fromPublicKeyType?: string
 
   /** @format hex-string */
   bytecode: string
@@ -247,8 +250,11 @@ export interface BuildDeployContractTxResult {
 }
 
 export interface BuildExecuteScriptTx {
-  /** @format public-key */
+  /** @format hex-string */
   fromPublicKey: string
+
+  /** @format hex-string */
+  fromPublicKeyType?: string
 
   /** @format hex-string */
   bytecode: string
@@ -346,8 +352,11 @@ export interface BuildSweepAddressTransactionsResult {
 }
 
 export interface BuildTransaction {
-  /** @format public-key */
+  /** @format hex-string */
   fromPublicKey: string
+
+  /** @format hex-string */
+  fromPublicKeyType?: string
   destinations: Destination[]
   utxos?: OutputRef[]
 
@@ -695,6 +704,15 @@ export interface MemPooled {
   type: string
 }
 
+export interface MempoolTransactions {
+  /** @format int32 */
+  fromGroup: number
+
+  /** @format int32 */
+  toGroup: number
+  transactions: TransactionTemplate[]
+}
+
 export interface MinerAddresses {
   addresses: string[]
 }
@@ -1002,15 +1020,6 @@ export interface Unauthorized {
 export interface Unban {
   peers: string[]
   type: string
-}
-
-export interface UnconfirmedTransactions {
-  /** @format int32 */
-  fromGroup: number
-
-  /** @format int32 */
-  toGroup: number
-  unconfirmedTransactions: TransactionTemplate[]
 }
 
 export interface Unreachable {
@@ -1334,7 +1343,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 1.7.0
+ * @version 1.7.1
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2074,25 +2083,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Transactions
-     * @name GetTransactionsUnconfirmed
-     * @summary List unconfirmed transactions
-     * @request GET:/transactions/unconfirmed
-     */
-    getTransactionsUnconfirmed: (params: RequestParams = {}) =>
-      this.request<
-        UnconfirmedTransactions[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
-      >({
-        path: `/transactions/unconfirmed`,
-        method: 'GET',
-        format: 'json',
-        ...params
-      }).then(convertHttpResponse),
-
-    /**
-     * No description
-     *
-     * @tags Transactions
      * @name PostTransactionsBuild
      * @summary Build an unsigned transaction to a number of recipients
      * @request POST:/transactions/build
@@ -2208,6 +2198,72 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         query: query,
         format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  mempool = {
+    /**
+     * No description
+     *
+     * @tags Mempool
+     * @name GetMempoolTransactions
+     * @summary List mempool transactions
+     * @request GET:/mempool/transactions
+     */
+    getMempoolTransactions: (params: RequestParams = {}) =>
+      this.request<
+        MempoolTransactions[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/mempool/transactions`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Mempool
+     * @name DeleteMempoolTransactions
+     * @summary Remove all transactions from mempool
+     * @request DELETE:/mempool/transactions
+     */
+    deleteMempoolTransactions: (params: RequestParams = {}) =>
+      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/mempool/transactions`,
+        method: 'DELETE',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Mempool
+     * @name PutMempoolTransactionsRebroadcast
+     * @summary Rebroadcase a mempool transaction to the network
+     * @request PUT:/mempool/transactions/rebroadcast
+     */
+    putMempoolTransactionsRebroadcast: (query: { txId: string }, params: RequestParams = {}) =>
+      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/mempool/transactions/rebroadcast`,
+        method: 'PUT',
+        query: query,
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Mempool
+     * @name PutMempoolTransactionsValidate
+     * @summary Validate all mempool transactions and remove invalid ones
+     * @request PUT:/mempool/transactions/validate
+     */
+    putMempoolTransactionsValidate: (params: RequestParams = {}) =>
+      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/mempool/transactions/validate`,
+        method: 'PUT',
         ...params
       }).then(convertHttpResponse)
   }
