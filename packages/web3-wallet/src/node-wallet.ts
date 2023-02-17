@@ -45,7 +45,7 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
   async getAccounts(): Promise<Account[]> {
     const walletAddresses = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const accounts: Account[] = walletAddresses.addresses.map<Account>((acc) => ({
-      keyType: 'secp256k1',
+      keyType: 'default',
       publicKey: acc.publicKey,
       address: acc.address,
       group: acc.group
@@ -57,7 +57,7 @@ export class NodeWallet extends SignerProviderWithMultipleAccounts {
     const response = await this.nodeProvider.wallets.getWalletsWalletNameAddresses(this.walletName)
     const selectedAddressInfo = response.addresses.find((info) => info.address === response.activeAddress)!
     return {
-      keyType: 'secp256k1',
+      keyType: 'default',
       address: selectedAddressInfo.address,
       group: groupOfAddress(selectedAddressInfo.address),
       publicKey: selectedAddressInfo.publicKey

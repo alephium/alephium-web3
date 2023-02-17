@@ -50,7 +50,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
 
   constructor(privateKey: string, keyType?: KeyType, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
     super()
-    this.keyType = keyType ?? 'secp256k1'
+    this.keyType = keyType ?? 'default'
     this.privateKey = privateKey
     this.publicKey = utils.publicKeyFromPrivateKey(privateKey, this.keyType)
     this.address = utils.addressFromPublicKey(this.publicKey, this.keyType)
@@ -76,7 +76,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     passphrase?: string,
     nodeProvider?: NodeProvider
   ): PrivateKeyWallet {
-    const privateKey = deriveHDWalletPrivateKey(mnemonic, keyType ?? 'secp256k1', addressIndex ?? 0, passphrase)
+    const privateKey = deriveHDWalletPrivateKey(mnemonic, keyType ?? 'default', addressIndex ?? 0, passphrase)
     return new PrivateKeyWallet(privateKey, keyType, nodeProvider)
   }
 
@@ -91,7 +91,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     const [privateKey] = deriveHDWalletPrivateKeyForGroup(
       mnemonic,
       targetGroup,
-      keyType ?? 'secp256k1',
+      keyType ?? 'default',
       fromAddressIndex,
       passphrase
     )

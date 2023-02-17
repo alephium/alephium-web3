@@ -125,12 +125,12 @@ describe('HD wallet', () => {
   it('should sign with secp256k1', async () => {
     const wallet = new HDWallet(testMnemonic)
     const account = wallet.deriveAndAddNewAccount()
-    expect(account.keyType).toBe('secp256k1')
+    expect(account.keyType).toBe('default')
 
     const message = 'Hello Alephium'
     const result = await wallet.signMessage({ signerAddress: account.address, message: message })
     const signature = result.signature
-    expect(verifySignedMessage(message, account.publicKey, signature, 'secp256k1')).toBe(true)
+    expect(verifySignedMessage(message, account.publicKey, signature, 'default')).toBe(true)
   })
 
   it('should sign with schnorr', async () => {

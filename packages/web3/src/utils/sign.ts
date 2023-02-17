@@ -25,9 +25,9 @@ const ec = new EC('secp256k1')
 
 // hash has to be 32 bytes
 export function sign(hash: string, privateKey: string, _keyType?: KeyType): string {
-  const keyType = _keyType ?? 'secp256k1'
+  const keyType = _keyType ?? 'default'
 
-  if (keyType === 'secp256k1') {
+  if (keyType === 'default') {
     const key = ec.keyFromPrivate(privateKey)
     const signature = key.sign(hash)
     return encodeSignature(signature)
@@ -38,10 +38,10 @@ export function sign(hash: string, privateKey: string, _keyType?: KeyType): stri
 }
 
 export function verifySignature(hash: string, publicKey: string, signature: string, _keyType?: KeyType): boolean {
-  const keyType = _keyType ?? 'secp256k1'
+  const keyType = _keyType ?? 'default'
 
   try {
-    if (keyType === 'secp256k1') {
+    if (keyType === 'default') {
       const key = ec.keyFromPublic(publicKey, 'hex')
       return key.verify(hash, signatureDecode(ec, signature))
     } else {

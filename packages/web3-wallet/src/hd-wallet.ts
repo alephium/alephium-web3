@@ -45,7 +45,7 @@ export function deriveHDWalletPrivateKey(
 }
 
 export function deriveSecp256K1PrivateKey(mnemonic: string, fromAddressIndex?: number, passphrase?: string): string {
-  return deriveHDWalletPrivateKey(mnemonic, 'secp256k1', fromAddressIndex, passphrase)
+  return deriveHDWalletPrivateKey(mnemonic, 'default', fromAddressIndex, passphrase)
 }
 
 export function deriveSchnorrPrivateKey(mnemonic: string, fromAddressIndex?: number, passphrase?: string): string {
@@ -78,7 +78,7 @@ export function deriveSecp256K1PrivateKeyForGroup(
   _fromAddressIndex?: number,
   passphrase?: string
 ): [string, number] {
-  return deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, 'secp256k1', _fromAddressIndex, passphrase)
+  return deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, 'default', _fromAddressIndex, passphrase)
 }
 
 export function deriveSchnorrPrivateKeyForGroup(
@@ -96,13 +96,13 @@ export function getHDWalletPath(keyType: KeyType, addressIndex: number): string 
   }
   // Being explicit: we always use coinType 1234 no matter the network.
   const coinType = "1234'"
-  const keyTypeNum = keyType === 'secp256k1' ? 0 : 1
+  const keyTypeNum = keyType === 'default' ? 0 : 1
 
   return `m/44'/${coinType}/${keyTypeNum}'/0/${addressIndex}`
 }
 
 export function getSecp259K1Path(addressIndex: number): string {
-  return getHDWalletPath('secp256k1', addressIndex)
+  return getHDWalletPath('default', addressIndex)
 }
 
 export function getSchnorrPath(addressIndex: number): string {
@@ -128,7 +128,7 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
   ) {
     super()
     this.mnemonic = mnemonic
-    this.keyType = _keyType ?? 'secp256k1'
+    this.keyType = _keyType ?? 'default'
     this.passphrase = passphrase
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()

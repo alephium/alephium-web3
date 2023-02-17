@@ -29,8 +29,8 @@ describe('Signing', function () {
     const publicKey = key.getPublic().encode('hex', true)
 
     const hash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
-    const signature = sign(hash, privateKey, 'secp256k1')
-    expect(verifySignature(hash, publicKey, signature, 'secp256k1')).toEqual(true)
+    const signature = sign(hash, privateKey, 'default')
+    expect(verifySignature(hash, publicKey, signature, 'default')).toEqual(true)
   })
 
   it('should sign and verify schnorr signature', () => {
@@ -46,7 +46,7 @@ describe('Signing', function () {
 
   it('should derive the right public keys', () => {
     const privateKey = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
-    expect(publicKeyFromPrivateKey(privateKey, 'secp256k1')).toBe(
+    expect(publicKeyFromPrivateKey(privateKey, 'default')).toBe(
       '039d5f34d2cb49a37db26b1f1568af51cc0d79f95e14057763187cfbe58782eab9'
     )
     expect(publicKeyFromPrivateKey(privateKey, 'bip340-schnorr')).toBe(

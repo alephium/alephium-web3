@@ -163,9 +163,9 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
 }
 
 export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
-  const keyType = _keyType ?? 'secp256k1'
+  const keyType = _keyType ?? 'default'
 
-  if (keyType === 'secp256k1') {
+  if (keyType === 'default') {
     const key = ec.keyFromPrivate(privateKey)
     return key.getPublic(true, 'hex')
   } else {
@@ -174,9 +174,9 @@ export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType):
 }
 
 export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): string {
-  const keyType = _keyType ?? 'secp256k1'
+  const keyType = _keyType ?? 'default'
 
-  if (keyType === 'secp256k1') {
+  if (keyType === 'default') {
     const addressType = Buffer.from([AddressType.P2PKH])
     const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
     const bytes = Buffer.concat([addressType, hash])

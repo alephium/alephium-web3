@@ -249,7 +249,7 @@ function createDeployer<Settings = unknown>(
   runScriptResults: Map<string, RunScriptResult>
 ): Deployer {
   const account: Account = {
-    keyType: 'secp256k1',
+    keyType: 'default',
     address: signer.address,
     group: signer.group,
     publicKey: signer.publicKey
