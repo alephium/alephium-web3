@@ -24,6 +24,7 @@ import { Buffer } from 'buffer/'
 
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import djb2 from './djb2'
+import { KeyType } from '../signer'
 
 const ec = new EC('secp256k1')
 
@@ -157,20 +158,35 @@ export function binToHex(bin: Uint8Array): string {
   return Buffer.from(bin).toString('hex')
 }
 
-export function groupOfPrivateKey(privateKey: string): number {
-  return groupOfAddress(addressFromPublicKey(publicKeyFromPrivateKey(privateKey)))
+export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number {
+  return groupOfAddress(addressFromPublicKey(publicKeyFromPrivateKey(privateKey, keyType), keyType))
 }
 
-export function publicKeyFromPrivateKey(privateKey: string): string {
-  const key = ec.keyFromPrivate(privateKey)
-  return key.getPublic(true, 'hex')
+export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
+  const keyType = _keyType ?? 'secp256k1'
+
+  if (keyType === 'secp256k1') {
+    const key = ec.keyFromPrivate(privateKey)
+    return key.getPublic(true, 'hex')
+  } else {
+    return ec.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
+  }
 }
 
-export function addressFromPublicKey(publicKey: string): string {
-  const addressType = Buffer.from([AddressType.P2PKH])
-  const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
-  const bytes = Buffer.concat([addressType, hash])
-  return bs58.encode(bytes)
+export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): string {
+  const keyType = _keyType ?? 'secp256k1'
+
+  if (keyType === 'secp256k1') {
+    const addressType = Buffer.from([AddressType.P2PKH])
+    const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
+    const bytes = Buffer.concat([addressType, hash])
+    return bs58.encode(bytes)
+  } else {
+    const lockupScript = Buffer.from(`0101000000000458144020${publicKey}8685`, 'hex')
+    const lockupScriptHash = blake.blake2b(lockupScript, undefined, 32)
+    const addressType = Buffer.from([AddressType.P2SH])
+    return bs58.encode(Buffer.concat([addressType, lockupScriptHash]))
+  }
 }
 
 export function addressFromContractId(contractId: string): string {

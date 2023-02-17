@@ -43,9 +43,11 @@ import {
   ExtSignDeployContractTxParams,
   ExtSignExecuteScriptTxParams,
   ExtSignUnsignedTxParams,
-  ExtSignMessageParams
+  ExtSignMessageParams,
+  KeyType
 } from './types'
 import { TransactionBuilder } from './tx-builder'
+import * as secp from 'tiny-secp256k1'
 
 const ec = new EC('secp256k1')
 
@@ -236,10 +238,19 @@ export abstract class SignerProviderWithCachedAccounts<T extends Account> extend
   }
 }
 
-export function verifyHexString(hexString: string, publicKey: string, signature: string): boolean {
+export function verifyHexString(hexString: string, publicKey: string, signature: string, _keyType?: KeyType): boolean {
+  const keyType = _keyType ?? 'secp256k1'
   try {
-    const key = ec.keyFromPublic(publicKey, 'hex')
-    return key.verify(hexString, utils.signatureDecode(ec, signature))
+    if (keyType === 'secp256k1') {
+      const key = ec.keyFromPublic(publicKey, 'hex')
+      return key.verify(hexString, utils.signatureDecode(ec, signature))
+    } else {
+      return secp.verifySchnorr(
+        utils.hexToBinUnsafe(hexString),
+        utils.hexToBinUnsafe(publicKey),
+        utils.hexToBinUnsafe(signature)
+      )
+    }
   } catch (error) {
     return false
   }
@@ -249,10 +260,10 @@ function extendMessage(message: string): string {
   return 'Alephium Signed Message: ' + message
 }
 
-export function verifySignedMessage(message: string, publicKey: string, signature: string): boolean {
+export function verifySignedMessage(message: string, publicKey: string, signature: string, keyType?: KeyType): boolean {
   const extendedMessage = extendMessage(message)
   const messageHash = blake.blake2b(extendedMessage, undefined, 32)
-  return verifyHexString(utils.binToHex(messageHash), publicKey, signature)
+  return verifyHexString(utils.binToHex(messageHash), publicKey, signature, keyType)
 }
 
 export function toApiDestination(data: Destination): node.Destination {

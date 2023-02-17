@@ -33,7 +33,10 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
+export type KeyType = 'secp256k1' | 'bip340-schnorr'
+
 export interface Account {
+  keyType: KeyType
   address: string
   group: number
   publicKey: string
