@@ -29,7 +29,7 @@ import {
 import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 
 // Custom types for the contract
-export namespace MetaDataTypes {
+export namespace MetaData {
   export type State = Omit<ContractState<any>, "fields">;
 }
 
@@ -81,7 +81,7 @@ export class MetaDataInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<MetaDataTypes.State> {
+  async fetchState(): Promise<MetaData.State> {
     return fetchContractState(MetaData, this);
   }
 
