@@ -47,7 +47,6 @@ import {
   KeyType
 } from './types'
 import { TransactionBuilder } from './tx-builder'
-import * as secp from 'tiny-secp256k1'
 
 const ec = new EC('secp256k1')
 
@@ -55,7 +54,7 @@ export interface SignerProvider {
   get nodeProvider(): NodeProvider | undefined
   get explorerProvider(): ExplorerProvider | undefined
 
-  getSelectedAddress(): Promise<Address>
+  getSelectedAccount(): Promise<Account>
 
   signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
   signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
@@ -87,11 +86,6 @@ export abstract class SignerProviderSimple extends TransactionBuilder implements
   abstract get explorerProvider(): ExplorerProvider | undefined
 
   abstract getSelectedAccount(): Promise<Account>
-
-  async getSelectedAddress(): Promise<Address> {
-    const account = await this.getSelectedAccount()
-    return account.address
-  }
 
   async submitTransaction(params: SubmitTransactionParams): Promise<SubmissionResult> {
     const data: node.SubmitTransaction = { unsignedTx: params.unsignedTx, signature: params.signature }

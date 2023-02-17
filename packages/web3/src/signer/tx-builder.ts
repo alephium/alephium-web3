@@ -60,6 +60,7 @@ export abstract class TransactionBuilder {
     const { destinations, gasPrice, ...rest } = params
     const data: node.BuildTransaction = {
       fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
       destinations: toApiDestinations(destinations),
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
@@ -77,6 +78,7 @@ export abstract class TransactionBuilder {
     const { initialAttoAlphAmount, initialTokenAmounts, issueTokenAmount, gasPrice, ...rest } = params
     const data: node.BuildDeployContractTx = {
       fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
       initialAttoAlphAmount: toApiNumber256Optional(initialAttoAlphAmount),
       initialTokenAmounts: toApiTokens(initialTokenAmounts),
       issueTokenAmount: toApiNumber256Optional(issueTokenAmount),
@@ -97,6 +99,7 @@ export abstract class TransactionBuilder {
     const { attoAlphAmount, tokens, gasPrice, ...rest } = params
     const data: node.BuildExecuteScriptTx = {
       fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
       attoAlphAmount: toApiNumber256Optional(attoAlphAmount),
       tokens: toApiTokens(tokens),
       gasPrice: toApiNumber256Optional(gasPrice),

@@ -64,12 +64,12 @@ describe('node wallet', () => {
 
     for (const account of accounts) {
       await nodeWallet.setSelectedAddress(account.address)
-      expect(await nodeWallet.getSelectedAddress()).toEqual(account.address)
+      expect(await (await nodeWallet.getSelectedAccount()).address).toEqual(account.address)
     }
     for (let i = 0; i < 4; i++) {
       const account = accounts[`${i}`]
       await nodeWallet.setSelectedAddress(account.address)
-      expect(await nodeWallet.getSelectedAddress()).toEqual(account.address)
+      expect(await (await nodeWallet.getSelectedAccount()).address).toEqual(account.address)
     }
   })
 })

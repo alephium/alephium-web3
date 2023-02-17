@@ -42,12 +42,13 @@ export interface Account {
   publicKey: string
 }
 
-export type SignerAddress = { signerAddress: string }
-type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'targetBlockHash'> & SignerAddress
+export type SignerAddress = { signerAddress: string; signerKeyType?: KeyType }
+type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'fromPublicKeyType' | 'targetBlockHash'> & SignerAddress
 type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string; gasPrice: Number256 }
 
 export interface SignTransferTxParams {
   signerAddress: string
+  signerKeyType?: KeyType
   destinations: Destination[]
   utxos?: OutputRef[]
   gasAmount?: number
@@ -67,6 +68,7 @@ assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransactionResult>>>()
 
 export interface SignDeployContractTxParams {
   signerAddress: string
+  signerKeyType?: KeyType
   bytecode: string
   initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
@@ -94,6 +96,7 @@ assertType<
 
 export interface SignExecuteScriptTxParams {
   signerAddress: string
+  signerKeyType?: KeyType
   bytecode: string
   attoAlphAmount?: Number256
   tokens?: Token[]
@@ -118,6 +121,7 @@ assertType<
 
 export interface SignUnsignedTxParams {
   signerAddress: string
+  signerKeyType?: KeyType
   unsignedTx: string
 }
 assertType<Eq<SignUnsignedTxParams, { unsignedTx: string } & SignerAddress>>()
@@ -134,6 +138,7 @@ assertType<Eq<SignUnsignedTxResult, SignTransferTxResult>>
 
 export interface SignMessageParams {
   signerAddress: string
+  signerKeyType?: KeyType
   message: string
 }
 assertType<Eq<SignMessageParams, { message: string } & SignerAddress>>()
