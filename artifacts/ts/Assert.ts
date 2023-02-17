@@ -29,7 +29,7 @@ import {
 import { default as AssertContractJson } from "../test/assert.ral.json";
 
 // Custom types for the contract
-export namespace Assert {
+export namespace AssertTypes {
   export type State = Omit<ContractState<any>, "fields">;
 }
 
@@ -63,7 +63,7 @@ export class AssertInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<Assert.State> {
+  async fetchState(): Promise<AssertTypes.State> {
     return fetchContractState(Assert, this);
   }
 

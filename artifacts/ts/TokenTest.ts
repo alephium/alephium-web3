@@ -29,7 +29,7 @@ import {
 import { default as TokenTestContractJson } from "../token_test.ral.json";
 
 // Custom types for the contract
-export namespace TokenTest {
+export namespace TokenTestTypes {
   export type Fields = {
     symbol: HexString;
     name: HexString;
@@ -40,31 +40,34 @@ export namespace TokenTest {
   export type State = ContractState<Fields>;
 }
 
-class Factory extends ContractFactory<TokenTestInstance, TokenTest.Fields> {
+class Factory extends ContractFactory<
+  TokenTestInstance,
+  TokenTestTypes.Fields
+> {
   at(address: string): TokenTestInstance {
     return new TokenTestInstance(address);
   }
 
   async testGetSymbolMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, never>, "testArgs">
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
   ): Promise<TestContractResult<HexString>> {
     return testMethod(this, "getSymbol", params);
   }
 
   async testGetNameMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, never>, "testArgs">
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
   ): Promise<TestContractResult<HexString>> {
     return testMethod(this, "getName", params);
   }
 
   async testGetDecimalsMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, never>, "testArgs">
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
   ): Promise<TestContractResult<bigint>> {
     return testMethod(this, "getDecimals", params);
   }
 
   async testGetTotalSupplyMethod(
-    params: Omit<TestContractParams<TokenTest.Fields, never>, "testArgs">
+    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
   ): Promise<TestContractResult<bigint>> {
     return testMethod(this, "getTotalSupply", params);
   }
@@ -85,7 +88,7 @@ export class TokenTestInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<TokenTest.State> {
+  async fetchState(): Promise<TokenTestTypes.State> {
     return fetchContractState(TokenTest, this);
   }
 

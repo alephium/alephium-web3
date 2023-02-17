@@ -29,7 +29,7 @@ import {
 import { default as GreeterContractJson } from "../greeter/greeter.ral.json";
 
 // Custom types for the contract
-export namespace Greeter {
+export namespace GreeterTypes {
   export type Fields = {
     btcPrice: bigint;
   };
@@ -37,13 +37,13 @@ export namespace Greeter {
   export type State = ContractState<Fields>;
 }
 
-class Factory extends ContractFactory<GreeterInstance, Greeter.Fields> {
+class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
   at(address: string): GreeterInstance {
     return new GreeterInstance(address);
   }
 
   async testGreetMethod(
-    params: Omit<TestContractParams<Greeter.Fields, never>, "testArgs">
+    params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
   ): Promise<TestContractResult<bigint>> {
     return testMethod(this, "greet", params);
   }
@@ -64,7 +64,7 @@ export class GreeterInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<Greeter.State> {
+  async fetchState(): Promise<GreeterTypes.State> {
     return fetchContractState(Greeter, this);
   }
 

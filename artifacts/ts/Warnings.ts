@@ -29,7 +29,7 @@ import {
 import { default as WarningsContractJson } from "../test/warnings.ral.json";
 
 // Custom types for the contract
-export namespace Warnings {
+export namespace WarningsTypes {
   export type Fields = {
     a: bigint;
     b: bigint;
@@ -38,13 +38,13 @@ export namespace Warnings {
   export type State = ContractState<Fields>;
 }
 
-class Factory extends ContractFactory<WarningsInstance, Warnings.Fields> {
+class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
   at(address: string): WarningsInstance {
     return new WarningsInstance(address);
   }
 
   async testFooMethod(
-    params: TestContractParams<Warnings.Fields, { x: bigint; y: bigint }>
+    params: TestContractParams<WarningsTypes.Fields, { x: bigint; y: bigint }>
   ): Promise<TestContractResult<null>> {
     return testMethod(this, "foo", params);
   }
@@ -65,7 +65,7 @@ export class WarningsInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<Warnings.State> {
+  async fetchState(): Promise<WarningsTypes.State> {
     return fetchContractState(Warnings, this);
   }
 

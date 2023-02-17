@@ -29,7 +29,7 @@ import {
 import { default as SubContractJson } from "../sub/sub.ral.json";
 
 // Custom types for the contract
-export namespace Sub {
+export namespace SubTypes {
   export type Fields = {
     result: bigint;
   };
@@ -39,13 +39,13 @@ export namespace Sub {
   export type SubEvent = ContractEvent<{ x: bigint; y: bigint }>;
 }
 
-class Factory extends ContractFactory<SubInstance, Sub.Fields> {
+class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
   at(address: string): SubInstance {
     return new SubInstance(address);
   }
 
   async testSubMethod(
-    params: TestContractParams<Sub.Fields, { array: [bigint, bigint] }>
+    params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
   ): Promise<TestContractResult<bigint>> {
     return testMethod(this, "sub", params);
   }
@@ -66,7 +66,7 @@ export class SubInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<Sub.State> {
+  async fetchState(): Promise<SubTypes.State> {
     return fetchContractState(Sub, this);
   }
 
@@ -85,7 +85,7 @@ export class SubInstance extends ContractInstance {
   }
 
   subscribeSubEvent(
-    options: SubscribeOptions<Sub.SubEvent>,
+    options: SubscribeOptions<SubTypes.SubEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
@@ -99,7 +99,7 @@ export class SubInstance extends ContractInstance {
 
   subscribeAllEvents(
     options: SubscribeOptions<
-      Sub.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
+      SubTypes.SubEvent | ContractCreatedEvent | ContractDestroyedEvent
     >,
     fromCount?: number
   ): EventSubscription {
