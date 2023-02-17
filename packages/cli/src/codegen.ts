@@ -104,7 +104,7 @@ function genAttach(instanceName: string): string {
 }
 
 function contractTypes(contractName: string): string {
-  return `${contractName}Types`
+  return `${contractName}`
 }
 
 function contractFieldType(contract: Contract): string {
@@ -241,7 +241,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
     // Custom types for the contract
-    export namespace ${contract.name}Types {
+    export namespace ${contractTypes(contract.name)} {
       ${genContractStateType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
     }

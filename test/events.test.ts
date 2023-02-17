@@ -22,7 +22,7 @@ import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { Sub } from '../artifacts/ts/Sub'
-import { Add, AddTypes, AddInstance } from '../artifacts/ts/Add'
+import { Add, AddInstance } from '../artifacts/ts/Add'
 import { Main } from '../artifacts/ts/scripts'
 
 describe('events', function () {
@@ -42,10 +42,10 @@ describe('events', function () {
 
   it('should subscribe contract events', async () => {
     const add = await deployContract(signer)
-    const addEvents: Array<AddTypes.AddEvent> = []
-    const subscriptOptions: SubscribeOptions<AddTypes.AddEvent> = {
+    const addEvents: Array<Add.AddEvent> = []
+    const subscriptOptions: SubscribeOptions<Add.AddEvent> = {
       pollingInterval: 500,
-      messageCallback: (event: AddTypes.AddEvent): Promise<void> => {
+      messageCallback: (event: Add.AddEvent): Promise<void> => {
         addEvents.push(event)
         return Promise.resolve()
       },
@@ -73,7 +73,7 @@ describe('events', function () {
 
   it('should subscribe all events', async () => {
     const add = await deployContract(signer)
-    type EventTypes = AddTypes.AddEvent | AddTypes.Add1Event | ContractCreatedEvent | ContractDestroyedEvent
+    type EventTypes = Add.AddEvent | Add.Add1Event | ContractCreatedEvent | ContractDestroyedEvent
     const addEvents: Array<EventTypes> = []
     const subscriptOptions: SubscribeOptions<EventTypes> = {
       pollingInterval: 500,
@@ -93,12 +93,12 @@ describe('events', function () {
     }
     await timeout(3000)
 
-    const isAdd = (event: EventTypes): event is AddTypes.AddEvent => {
-      return (<AddTypes.AddEvent>event).fields.x !== undefined
+    const isAdd = (event: EventTypes): event is Add.AddEvent => {
+      return (<Add.AddEvent>event).fields.x !== undefined
     }
 
-    const isAdd1 = (event: EventTypes): event is AddTypes.Add1Event => {
-      return (<AddTypes.Add1Event>event).fields.a !== undefined
+    const isAdd1 = (event: EventTypes): event is Add.Add1Event => {
+      return (<Add.Add1Event>event).fields.a !== undefined
     }
 
     expect(addEvents.length).toEqual(6)
@@ -124,10 +124,10 @@ describe('events', function () {
 
   it('should cancel event subscription', async () => {
     const add = await deployContract(signer)
-    const addEvents: Array<AddTypes.AddEvent> = []
-    const subscriptOptions: SubscribeOptions<AddTypes.AddEvent> = {
+    const addEvents: Array<Add.AddEvent> = []
+    const subscriptOptions: SubscribeOptions<Add.AddEvent> = {
       pollingInterval: 500,
-      messageCallback: (event: AddTypes.AddEvent): Promise<void> => {
+      messageCallback: (event: Add.AddEvent): Promise<void> => {
         addEvents.push(event)
         return Promise.resolve()
       },

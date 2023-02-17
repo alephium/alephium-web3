@@ -29,7 +29,7 @@ import {
 import { default as AddContractJson } from "../add/add.ral.json";
 
 // Custom types for the contract
-export namespace AddTypes {
+export namespace Add {
   export type Fields = {
     sub: HexString;
     result: bigint;
@@ -41,26 +41,26 @@ export namespace AddTypes {
   export type Add1Event = ContractEvent<{ a: bigint; b: bigint }>;
 }
 
-class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
+class Factory extends ContractFactory<AddInstance, Add.Fields> {
   at(address: string): AddInstance {
     return new AddInstance(address);
   }
 
   async testAddMethod(
-    params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
+    params: TestContractParams<Add.Fields, { array: [bigint, bigint] }>
   ): Promise<TestContractResult<[bigint, bigint]>> {
     return testMethod(this, "add", params);
   }
 
   async testAddPrivateMethod(
-    params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
+    params: TestContractParams<Add.Fields, { array: [bigint, bigint] }>
   ): Promise<TestContractResult<[bigint, bigint]>> {
     return testMethod(this, "addPrivate", params);
   }
 
   async testCreateSubContractMethod(
     params: TestContractParams<
-      AddTypes.Fields,
+      Add.Fields,
       { a: bigint; path: HexString; subContractId: HexString; payer: HexString }
     >
   ): Promise<TestContractResult<null>> {
@@ -83,7 +83,7 @@ export class AddInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<AddTypes.State> {
+  async fetchState(): Promise<Add.State> {
     return fetchContractState(Add, this);
   }
 
@@ -102,7 +102,7 @@ export class AddInstance extends ContractInstance {
   }
 
   subscribeAddEvent(
-    options: SubscribeOptions<AddTypes.AddEvent>,
+    options: SubscribeOptions<Add.AddEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
@@ -115,7 +115,7 @@ export class AddInstance extends ContractInstance {
   }
 
   subscribeAdd1Event(
-    options: SubscribeOptions<AddTypes.Add1Event>,
+    options: SubscribeOptions<Add.Add1Event>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(
@@ -129,8 +129,8 @@ export class AddInstance extends ContractInstance {
 
   subscribeAllEvents(
     options: SubscribeOptions<
-      | AddTypes.AddEvent
-      | AddTypes.Add1Event
+      | Add.AddEvent
+      | Add.Add1Event
       | ContractCreatedEvent
       | ContractDestroyedEvent
     >,

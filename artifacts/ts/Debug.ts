@@ -29,7 +29,7 @@ import {
 import { default as DebugContractJson } from "../test/debug.ral.json";
 
 // Custom types for the contract
-export namespace DebugTypes {
+export namespace Debug {
   export type State = Omit<ContractState<any>, "fields">;
 }
 
@@ -63,7 +63,7 @@ export class DebugInstance extends ContractInstance {
     super(address);
   }
 
-  async fetchState(): Promise<DebugTypes.State> {
+  async fetchState(): Promise<Debug.State> {
     return fetchContractState(Debug, this);
   }
 
