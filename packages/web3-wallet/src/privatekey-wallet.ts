@@ -65,7 +65,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     if (targetGroup === undefined || wallet.group === targetGroup) {
       return wallet
     } else {
-      return PrivateKeyWallet.Random(targetGroup, nodeProvider)
+      return PrivateKeyWallet.Random(targetGroup, nodeProvider, keyType)
     }
   }
 
