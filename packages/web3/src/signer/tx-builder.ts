@@ -47,7 +47,7 @@ export abstract class TransactionBuilder {
     })()
   }
 
-  private static validatePublicKey(params: SignerAddress, publicKey: string, keyType?: KeyType) {
+  private static validatePublicKey(params: SignerAddress, publicKey: string, keyType: KeyType) {
     const address = addressFromPublicKey(publicKey, keyType)
     if (address !== params.signerAddress) {
       throw new Error('Unmatched public key')
@@ -58,7 +58,7 @@ export abstract class TransactionBuilder {
     params: SignTransferTxParams,
     publicKey: string
   ): Promise<Omit<SignTransferTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType ?? 'default')
 
     const { destinations, gasPrice, ...rest } = params
     const data: node.BuildTransaction = {
@@ -76,7 +76,7 @@ export abstract class TransactionBuilder {
     params: SignDeployContractTxParams,
     publicKey: string
   ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType ?? 'default')
 
     const { initialAttoAlphAmount, initialTokenAmounts, issueTokenAmount, gasPrice, ...rest } = params
     const data: node.BuildDeployContractTx = {
@@ -97,7 +97,7 @@ export abstract class TransactionBuilder {
     params: SignExecuteScriptTxParams,
     publicKey: string
   ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType ?? 'default')
 
     const { attoAlphAmount, tokens, gasPrice, ...rest } = params
     const data: node.BuildExecuteScriptTx = {

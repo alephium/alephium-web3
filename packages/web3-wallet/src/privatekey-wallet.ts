@@ -48,7 +48,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     return { keyType: this.keyType, address: this.address, publicKey: this.publicKey, group: this.group }
   }
 
-  constructor(privateKey: string, keyType?: KeyType, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
+  constructor(privateKey: string, keyType: KeyType, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
     super()
     this.keyType = keyType ?? 'default'
     this.privateKey = privateKey
@@ -61,17 +61,17 @@ export class PrivateKeyWallet extends SignerProviderSimple {
 
   static Random(targetGroup?: number, nodeProvider?: NodeProvider, keyType?: KeyType): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), keyType, nodeProvider)
+    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), keyType ?? 'default', nodeProvider)
     if (targetGroup === undefined || wallet.group === targetGroup) {
       return wallet
     } else {
-      return PrivateKeyWallet.Random(targetGroup, nodeProvider)
+      return PrivateKeyWallet.Random(targetGroup, nodeProvider, keyType)
     }
   }
 
   static FromMnemonic(
     mnemonic: string,
-    keyType?: KeyType,
+    keyType: KeyType,
     addressIndex?: number,
     passphrase?: string,
     nodeProvider?: NodeProvider
@@ -83,7 +83,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   static FromMnemonicWithGroup(
     mnemonic: string,
     targetGroup: number,
-    keyType?: KeyType,
+    keyType: KeyType,
     fromAddressIndex?: number,
     passphrase?: string,
     nodeProvider?: NodeProvider
@@ -107,7 +107,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     return PrivateKeyWallet.sign(this.privateKey, hexString, this.keyType)
   }
 
-  static sign(privateKey: string, hexString: string, _keyType?: KeyType): string {
+  static sign(privateKey: string, hexString: string, _keyType: KeyType): string {
     return utils.sign(hexString, privateKey, _keyType)
   }
 }

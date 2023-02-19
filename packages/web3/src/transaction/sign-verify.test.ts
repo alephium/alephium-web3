@@ -31,9 +31,9 @@ describe('transaction', function () {
     const wrongSig =
       '88471e7c97e558c98ac307ef699ed535ece319102fc69ea416dbb44fbb3cbf9c42dbfbf4ce73eb68c5e0d66122eb25d2ebe1cf9e37ef4c4f4e7a2ed35de141bc'
 
-    expect(transactionVerifySignature(txHash, pubKey, txSig)).toEqual(true)
-    expect(transactionVerifySignature(txHash, pubKey, unnormalizedSig)).toEqual(false)
-    expect(transactionVerifySignature(txHash, pubKey, wrongSig)).toEqual(false)
+    expect(transactionVerifySignature(txHash, pubKey, txSig, 'default')).toEqual(true)
+    expect(transactionVerifySignature(txHash, pubKey, unnormalizedSig, 'default')).toEqual(false)
+    expect(transactionVerifySignature(txHash, pubKey, wrongSig, 'default')).toEqual(false)
   })
 
   it('should sign and verify signature', () => {
@@ -43,7 +43,7 @@ describe('transaction', function () {
     const publicKey = key.getPublic().encode('hex', true)
 
     const txHash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
-    const signature = transactionSign(txHash, privateKey)
-    expect(transactionVerifySignature(txHash, publicKey, signature)).toEqual(true)
+    const signature = transactionSign(txHash, privateKey, 'default')
+    expect(transactionVerifySignature(txHash, publicKey, signature, 'default')).toEqual(true)
   })
 })

@@ -63,7 +63,7 @@ export function deriveHDWalletPrivateKeyForGroup(
 
   const fromAddressIndex = _fromAddressIndex ?? 0
   const privateKey = deriveHDWalletPrivateKey(mnemonic, keyType, fromAddressIndex, passphrase)
-  if (groupOfPrivateKey(privateKey) === targetGroup) {
+  if (groupOfPrivateKey(privateKey, keyType) === targetGroup) {
     return [privateKey, fromAddressIndex]
   } else {
     return deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, keyType, fromAddressIndex + 1, passphrase)
@@ -119,7 +119,7 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
 
   constructor(
     mnemonic: string,
-    _keyType?: KeyType,
+    _keyType: KeyType,
     nodeProvider?: NodeProvider,
     explorerProvider?: ExplorerProvider,
     passphrase?: string

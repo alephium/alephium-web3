@@ -158,11 +158,11 @@ export function binToHex(bin: Uint8Array): string {
   return Buffer.from(bin).toString('hex')
 }
 
-export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number {
+export function groupOfPrivateKey(privateKey: string, keyType: KeyType): number {
   return groupOfAddress(addressFromPublicKey(publicKeyFromPrivateKey(privateKey, keyType), keyType))
 }
 
-export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
+export function publicKeyFromPrivateKey(privateKey: string, _keyType: KeyType): string {
   const keyType = _keyType ?? 'default'
 
   if (keyType === 'default') {
@@ -173,7 +173,7 @@ export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType):
   }
 }
 
-export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): string {
+export function addressFromPublicKey(publicKey: string, _keyType: KeyType): string {
   const keyType = _keyType ?? 'default'
 
   if (keyType === 'default') {

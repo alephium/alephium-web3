@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import * as utils from '../utils'
 import { KeyType } from '../signer'
 
-export function transactionSign(txId: string, privateKey: string, keyType?: KeyType): string {
+export function transactionSign(txId: string, privateKey: string, keyType: KeyType): string {
   return utils.sign(txId, privateKey, keyType)
 }
 
@@ -27,7 +27,7 @@ export function transactionVerifySignature(
   txId: string,
   publicKey: string,
   signature: string,
-  keyType?: KeyType
+  keyType: KeyType
 ): boolean {
   return utils.verifySignature(txId, publicKey, signature, keyType)
 }
