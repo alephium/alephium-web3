@@ -38,11 +38,6 @@ import {
   SignUnsignedTxResult,
   SubmissionResult,
   SubmitTransactionParams,
-  ExtSignTransferTxParams,
-  ExtSignDeployContractTxParams,
-  ExtSignExecuteScriptTxParams,
-  ExtSignUnsignedTxParams,
-  ExtSignMessageParams,
   KeyType
 } from './types'
 import { TransactionBuilder } from './tx-builder'
@@ -90,18 +85,6 @@ export abstract class InteractiveSignerProvider<
   }
 
   abstract disconnect(): Promise<void>
-
-  // Methods inherited from SignerProvider, but require networkId in the params
-  abstract override signAndSubmitTransferTx(params: ExtSignTransferTxParams): Promise<SignTransferTxResult>
-  abstract override signAndSubmitDeployContractTx(
-    params: ExtSignDeployContractTxParams
-  ): Promise<SignDeployContractTxResult>
-  abstract override signAndSubmitExecuteScriptTx(
-    params: ExtSignExecuteScriptTxParams
-  ): Promise<SignExecuteScriptTxResult>
-  abstract override signAndSubmitUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
-  abstract override signUnsignedTx(params: ExtSignUnsignedTxParams): Promise<SignUnsignedTxResult>
-  abstract override signMessage(params: ExtSignMessageParams): Promise<SignMessageResult>
 }
 
 export abstract class SignerProviderSimple extends SignerProvider {

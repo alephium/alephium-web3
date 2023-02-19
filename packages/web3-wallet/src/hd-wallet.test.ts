@@ -16,8 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, verifySignedMessage, publicKeyFromPrivateKey, TOTAL_NUMBER_OF_GROUPS, addressFromPublicKey, groupOfAddress } from '@alephium/web3'
-import { deriveSchnorrPrivateKey, deriveSchnorrPrivateKeyForGroup, deriveSecp256K1PrivateKey, deriveSecp256K1PrivateKeyForGroup, HDWallet } from './hd-wallet'
+import {
+  web3,
+  verifySignedMessage,
+  publicKeyFromPrivateKey,
+  TOTAL_NUMBER_OF_GROUPS,
+  addressFromPublicKey,
+  groupOfAddress
+} from '@alephium/web3'
+import {
+  deriveSchnorrPrivateKey,
+  deriveSchnorrPrivateKeyForGroup,
+  deriveSecp256K1PrivateKey,
+  deriveSecp256K1PrivateKeyForGroup,
+  HDWallet
+} from './hd-wallet'
 
 describe('HD wallet', () => {
   beforeAll(() => {

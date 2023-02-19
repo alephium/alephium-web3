@@ -162,10 +162,3 @@ export interface EnableOptionsBase {
   networkId: string
   onDisconnected: () => Promise<void>
 }
-
-// Transaction Params for InteractiveSignerProvider
-export type ExtSignTransferTxParams = SignTransferTxParams & { networkId: string }
-export type ExtSignDeployContractTxParams = SignDeployContractTxParams & { networkId: string }
-export type ExtSignExecuteScriptTxParams = SignExecuteScriptTxParams & { networkId: string }
-export type ExtSignUnsignedTxParams = SignUnsignedTxParams & { networkId: string }
-export type ExtSignMessageParams = SignMessageParams & { networkId: string }
