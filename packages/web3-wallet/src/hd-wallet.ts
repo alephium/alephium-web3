@@ -22,9 +22,8 @@ import { addressFromPublicKey } from '@alephium/web3'
 import { Address } from '@alephium/web3'
 import { groupOfAddress } from '@alephium/web3'
 import { groupOfPrivateKey, SignerProviderWithCachedAccounts, TOTAL_NUMBER_OF_GROUPS, web3 } from '@alephium/web3'
-import { BIP32Factory } from 'bip32'
 import * as bip39 from 'bip39'
-import * as ecc from 'tiny-secp256k1'
+import { bip32 } from './noble-wrapper'
 import { PrivateKeyWallet } from './privatekey-wallet'
 
 export function deriveHDWalletPrivateKey(
@@ -34,7 +33,6 @@ export function deriveHDWalletPrivateKey(
   passphrase?: string
 ): string {
   const seed = bip39.mnemonicToSeedSync(mnemonic, passphrase)
-  const bip32 = BIP32Factory(ecc)
   const masterKey = bip32.fromSeed(seed)
   const fromAddressIndex = _fromAddressIndex ?? 0
   const keyPair = masterKey.derivePath(getHDWalletPath(keyType, fromAddressIndex))

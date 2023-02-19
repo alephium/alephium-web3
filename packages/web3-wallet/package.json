@@ -29,12 +29,12 @@
   "type": "commonjs",
   "dependencies": {
     "@alephium/web3": "0.5.0-rc.8",
+    "@noble/secp256k1": "1.7.1",
     "@types/node": "16.7.8",
     "bip32": "3.1.0",
     "bip39": "3.0.4",
     "buffer": "^6.0.3",
-    "fs-extra": "10.0.1",
-    "tiny-secp256k1": "2.2.1"
+    "fs-extra": "10.0.1"
   },
   "devDependencies": {
     "@types/find-up": "^2.1.0",

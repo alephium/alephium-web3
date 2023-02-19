@@ -19,9 +19,22 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { ec as EC } from 'elliptic'
 import { binToHex, encodeSignature, hexToBinUnsafe, signatureDecode } from '..'
 import { KeyType } from '../signer'
-import * as secp from 'tiny-secp256k1'
+import * as necc from '@noble/secp256k1'
+import { createHash, createHmac } from 'crypto'
 
 const ec = new EC('secp256k1')
+
+necc.utils.sha256Sync = (...messages: Uint8Array[]): Uint8Array => {
+  const sha256 = createHash('sha256')
+  for (const message of messages) sha256.update(message)
+  return sha256.digest()
+}
+
+necc.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8Array => {
+  const hash = createHmac('sha256', Buffer.from(key))
+  messages.forEach((m) => hash.update(m))
+  return Uint8Array.from(hash.digest())
+}
 
 // hash has to be 32 bytes
 export function sign(hash: string, privateKey: string, _keyType?: KeyType): string {
@@ -32,7 +45,7 @@ export function sign(hash: string, privateKey: string, _keyType?: KeyType): stri
     const signature = key.sign(hash)
     return encodeSignature(signature)
   } else {
-    const signature = secp.signSchnorr(hexToBinUnsafe(hash), hexToBinUnsafe(privateKey))
+    const signature = necc.schnorr.signSync(hexToBinUnsafe(hash), hexToBinUnsafe(privateKey))
     return binToHex(signature)
   }
 }
@@ -45,7 +58,7 @@ export function verifySignature(hash: string, publicKey: string, signature: stri
       const key = ec.keyFromPublic(publicKey, 'hex')
       return key.verify(hash, signatureDecode(ec, signature))
     } else {
-      return secp.verifySchnorr(hexToBinUnsafe(hash), hexToBinUnsafe(publicKey), hexToBinUnsafe(signature))
+      return necc.schnorr.verifySync(hexToBinUnsafe(signature), hexToBinUnsafe(hash), hexToBinUnsafe(publicKey))
     }
   } catch (error) {
     return false
