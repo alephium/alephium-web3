@@ -260,6 +260,8 @@ function hashMessage(message: string, hasher: MessageHasher): string {
       return utils.binToHex(blake.blake2b(message, undefined, 32))
     case 'identity':
       return message
+    default:
+      throw Error(`Invalid message hasher: ${hasher}`)
   }
 }
 
