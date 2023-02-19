@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, verifySignedMessage, publicKeyFromPrivateKey } from '@alephium/web3'
-import { deriveSecp256K1PrivateKey, deriveSecp256K1PrivateKeyForGroup, HDWallet } from './hd-wallet'
+import { web3, verifySignedMessage, publicKeyFromPrivateKey, TOTAL_NUMBER_OF_GROUPS, addressFromPublicKey, groupOfAddress } from '@alephium/web3'
+import { deriveSchnorrPrivateKey, deriveSchnorrPrivateKeyForGroup, deriveSecp256K1PrivateKey, deriveSecp256K1PrivateKeyForGroup, HDWallet } from './hd-wallet'
 
 describe('HD wallet', () => {
   beforeAll(() => {
@@ -79,6 +79,21 @@ describe('HD wallet', () => {
     expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 3, 100, 'Alephium')[0]).toEqual(
       '04528b7736eab20cbde90f0d2f0cb3a99481dfe92664757646077ae7851e4314'
     )
+  })
+
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max)
+  }
+
+  it('should derive private key for groups and schnorr', () => {
+    const startIndex = getRandomInt(1024)
+    Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).forEach((group) => {
+      const [privateKey, index] = deriveSchnorrPrivateKeyForGroup(testMnemonic, group, startIndex)
+      console.log(`=== ${group} ${startIndex} ${index}`)
+      expect(deriveSchnorrPrivateKey(testMnemonic, index)).toBe(privateKey)
+      const address = addressFromPublicKey(publicKeyFromPrivateKey(privateKey, 'bip340-schnorr'), 'bip340-schnorr')
+      expect(groupOfAddress(address)).toBe(group)
+    })
   })
 
   it('should derive account', async () => {
