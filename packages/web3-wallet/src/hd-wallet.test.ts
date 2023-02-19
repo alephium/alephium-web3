@@ -102,7 +102,6 @@ describe('HD wallet', () => {
     const startIndex = getRandomInt(1024)
     Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).forEach((group) => {
       const [privateKey, index] = deriveSchnorrPrivateKeyForGroup(testMnemonic, group, startIndex)
-      console.log(`=== ${group} ${startIndex} ${index}`)
       expect(deriveSchnorrPrivateKey(testMnemonic, index)).toBe(privateKey)
       const address = addressFromPublicKey(publicKeyFromPrivateKey(privateKey, 'bip340-schnorr'), 'bip340-schnorr')
       expect(groupOfAddress(address)).toBe(group)

@@ -27,8 +27,8 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "1.7.0",
-    "explorer_backend_version": "1.12.0"
+    "alephium_version": "1.7.1-rc2",
+    "explorer_backend_version": "1.13.0-rc0"
   },
   "scripts": {
     "build": "rm -rf dist/* && npx tsc --build . && webpack",
@@ -78,7 +78,7 @@
     "rewire": "^6.0.0",
     "shelljs": "^0.8.5",
     "stream-browserify": "^3.0.0",
-    "swagger-typescript-api": "^9.2.0",
+    "swagger-typescript-api": "12.0.3",
     "terser-webpack-plugin": "^5.3.1",
     "ts-jest": "^28.0.2",
     "ts-node": "^10.7.0",

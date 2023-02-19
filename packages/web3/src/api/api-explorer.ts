@@ -12,7 +12,6 @@
 export interface AddressBalance {
   /** @format uint256 */
   balance: string
-
   /** @format uint256 */
   lockedBalance: string
 }
@@ -20,10 +19,8 @@ export interface AddressBalance {
 export interface AddressInfo {
   /** @format uint256 */
   balance: string
-
   /** @format uint256 */
   lockedBalance: string
-
   /** @format int32 */
   txNumber: number
 }
@@ -31,21 +28,16 @@ export interface AddressInfo {
 export interface AssetOutput {
   /** @format int32 */
   hint: number
-
   /** @format 32-byte-hash */
   key: string
-
   /** @format uint256 */
   attoAlphAmount: string
   address: string
   tokens?: Token[]
-
   /** @format int64 */
   lockTime?: number
-
   /** @format hex-string */
   message?: string
-
   /** @format 32-byte-hash */
   spent?: string
   type: string
@@ -58,23 +50,17 @@ export interface BadRequest {
 export interface BlockEntryLite {
   /** @format block-hash */
   hash: string
-
   /** @format int64 */
   timestamp: number
-
   /** @format int32 */
   chainFrom: number
-
   /** @format int32 */
   chainTo: number
-
   /** @format int32 */
   height: number
-
   /** @format int32 */
   txNumber: number
   mainChain: boolean
-
   /** @format bigint */
   hashRate: string
 }
@@ -82,18 +68,14 @@ export interface BlockEntryLite {
 export interface ConfirmedTransaction {
   /** @format 32-byte-hash */
   hash: string
-
   /** @format block-hash */
   blockHash: string
-
   /** @format int64 */
   timestamp: number
   inputs?: Input[]
   outputs?: Output[]
-
   /** @format int32 */
   gasAmount: number
-
   /** @format uint256 */
   gasPrice: string
   coinbase: boolean
@@ -103,15 +85,12 @@ export interface ConfirmedTransaction {
 export interface ContractOutput {
   /** @format int32 */
   hint: number
-
   /** @format 32-byte-hash */
   key: string
-
   /** @format uint256 */
   attoAlphAmount: string
   address: string
   tokens?: Token[]
-
   /** @format 32-byte-hash */
   spent?: string
   type: string
@@ -120,12 +99,10 @@ export interface ContractOutput {
 export interface Event {
   /** @format block-hash */
   blockHash: string
-
   /** @format 32-byte-hash */
   txHash: string
   contractAddress: string
   inputAddress?: string
-
   /** @format int32 */
   eventIndex: number
   fields?: Val[]
@@ -145,14 +122,11 @@ export interface Hashrate {
 
 export interface Input {
   outputRef: OutputRef
-
   /** @format hex-string */
   unlockScript?: string
-
   /** @format 32-byte-hash */
   txHashRef?: string
   address?: string
-
   /** @format uint256 */
   attoAlphAmount?: string
   tokens?: Token[]
@@ -188,7 +162,6 @@ export type Output = AssetOutput | ContractOutput
 export interface OutputRef {
   /** @format int32 */
   hint: number
-
   /** @format 32-byte-hash */
   key: string
 }
@@ -196,10 +169,8 @@ export interface OutputRef {
 export interface PerChainCount {
   /** @format int32 */
   chainFrom: number
-
   /** @format int32 */
   chainTo: number
-
   /** @format int64 */
   count: number
 }
@@ -207,13 +178,10 @@ export interface PerChainCount {
 export interface PerChainDuration {
   /** @format int32 */
   chainFrom: number
-
   /** @format int32 */
   chainTo: number
-
   /** @format int64 */
   duration: number
-
   /** @format int64 */
   value: number
 }
@@ -221,13 +189,10 @@ export interface PerChainDuration {
 export interface PerChainHeight {
   /** @format int32 */
   chainFrom: number
-
   /** @format int32 */
   chainTo: number
-
   /** @format int64 */
   height: number
-
   /** @format int64 */
   value: number
 }
@@ -245,7 +210,6 @@ export interface ServiceUnavailable {
 export interface TimedCount {
   /** @format int64 */
   timestamp: number
-
   /** @format int64 */
   totalCountAllChains: number
 }
@@ -253,7 +217,6 @@ export interface TimedCount {
 export interface Token {
   /** @format 32-byte-hash */
   id: string
-
   /** @format uint256 */
   amount: string
 }
@@ -261,19 +224,14 @@ export interface Token {
 export interface TokenSupply {
   /** @format int64 */
   timestamp: number
-
   /** @format uint256 */
   total: string
-
   /** @format uint256 */
   circulating: string
-
   /** @format uint256 */
   reserved: string
-
   /** @format uint256 */
   locked: string
-
   /** @format uint256 */
   maximum: string
 }
@@ -281,18 +239,14 @@ export interface TokenSupply {
 export interface Transaction {
   /** @format 32-byte-hash */
   hash: string
-
   /** @format block-hash */
   blockHash: string
-
   /** @format int64 */
   timestamp: number
   inputs?: Input[]
   outputs?: Output[]
-
   /** @format int32 */
   gasAmount: number
-
   /** @format uint256 */
   gasPrice: string
   coinbase: boolean
@@ -307,21 +261,16 @@ export interface Unauthorized {
 export interface UnconfirmedTransaction {
   /** @format 32-byte-hash */
   hash: string
-
   /** @format int32 */
   chainFrom: number
-
   /** @format int32 */
   chainTo: number
   inputs?: Input[]
   outputs?: Output[]
-
   /** @format int32 */
   gasAmount: number
-
   /** @format uint256 */
   gasPrice: string
-
   /** @format int64 */
   lastSeen: number
   type: string
@@ -407,7 +356,8 @@ type CancelToken = Symbol | string | number
 export enum ContentType {
   Json = 'application/json',
   FormData = 'multipart/form-data',
-  UrlEncoded = 'application/x-www-form-urlencoded'
+  UrlEncoded = 'application/x-www-form-urlencoded',
+  Text = 'text/plain'
 }
 
 export class HttpClient<SecurityDataType = unknown> {
@@ -432,16 +382,16 @@ export class HttpClient<SecurityDataType = unknown> {
     this.securityData = data
   }
 
-  private encodeQueryParam(key: string, value: any) {
+  protected encodeQueryParam(key: string, value: any) {
     const encodedKey = encodeURIComponent(key)
     return `${encodedKey}=${encodeURIComponent(typeof value === 'number' ? value : `${value}`)}`
   }
 
-  private addQueryParam(query: QueryParamsType, key: string) {
+  protected addQueryParam(query: QueryParamsType, key: string) {
     return this.encodeQueryParam(key, query[key])
   }
 
-  private addArrayQueryParam(query: QueryParamsType, key: string) {
+  protected addArrayQueryParam(query: QueryParamsType, key: string) {
     const value = query[key]
     return value.map((v: any) => this.encodeQueryParam(key, v)).join('&')
   }
@@ -462,6 +412,7 @@ export class HttpClient<SecurityDataType = unknown> {
   private contentFormatters: Record<ContentType, (input: any) => any> = {
     [ContentType.Json]: (input: any) =>
       input !== null && (typeof input === 'object' || typeof input === 'string') ? JSON.stringify(input) : input,
+    [ContentType.Text]: (input: any) => (input !== null && typeof input !== 'string' ? JSON.stringify(input) : input),
     [ContentType.FormData]: (input: any) =>
       Object.keys(input || {}).reduce((formData, key) => {
         const property = input[key]
@@ -478,7 +429,7 @@ export class HttpClient<SecurityDataType = unknown> {
     [ContentType.UrlEncoded]: (input: any) => this.toQueryString(input)
   }
 
-  private mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
+  protected mergeRequestParams(params1: RequestParams, params2?: RequestParams): RequestParams {
     return {
       ...this.baseApiParams,
       ...params1,
@@ -491,7 +442,7 @@ export class HttpClient<SecurityDataType = unknown> {
     }
   }
 
-  private createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
+  protected createAbortSignal = (cancelToken: CancelToken): AbortSignal | undefined => {
     if (this.abortControllers.has(cancelToken)) {
       const abortController = this.abortControllers.get(cancelToken)
       if (abortController) {
@@ -538,10 +489,10 @@ export class HttpClient<SecurityDataType = unknown> {
     return this.customFetch(`${baseUrl || this.baseUrl || ''}${path}${queryString ? `?${queryString}` : ''}`, {
       ...requestParams,
       headers: {
-        ...(type && type !== ContentType.FormData ? { 'Content-Type': type } : {}),
-        ...(requestParams.headers || {})
+        ...(requestParams.headers || {}),
+        ...(type && type !== ContentType.FormData ? { 'Content-Type': type } : {})
       },
-      signal: cancelToken ? this.createAbortSignal(cancelToken) : void 0,
+      signal: cancelToken ? this.createAbortSignal(cancelToken) : requestParams.signal,
       body: typeof body === 'undefined' || body === null ? null : payloadFormatter(body)
     }).then(async (response) => {
       const r = response as HttpResponse<T, E>
@@ -586,7 +537,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name GetBlocks
      * @request GET:/blocks
      */
-    getBlocks: (query?: { page?: number; limit?: number; reverse?: boolean }, params: RequestParams = {}) =>
+    getBlocks: (
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<ListBlocks, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/blocks`,
         method: 'GET',
@@ -619,7 +586,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getBlocksBlockHashTransactions: (
       blockHash: string,
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -671,7 +651,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getAddressesAddressTransactions: (
       address: string,
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -690,7 +683,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/addresses/transactions
      */
     postAddressesTransactions: (
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       data?: string[],
       params: RequestParams = {}
     ) =>
@@ -713,7 +719,30 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getAddressesAddressTimerangedTransactions: (
       address: string,
-      query: { fromTs: number; toTs: number; page?: number; limit?: number; reverse?: boolean },
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -794,7 +823,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getAddressesAddressTokensTokenIdTransactions: (
       address: string,
       tokenId: string,
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -846,7 +888,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getAddressesAddressExportTransactionsCsv: (
       address: string,
-      query: { fromTs: number; toTs: number },
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+      },
       params: RequestParams = {}
     ) =>
       this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -894,7 +947,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name GetInfosSupply
      * @request GET:/infos/supply
      */
-    getInfosSupply: (query?: { page?: number; limit?: number; reverse?: boolean }, params: RequestParams = {}) =>
+    getInfosSupply: (
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<TokenSupply[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/supply`,
         method: 'GET',
@@ -999,7 +1068,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/unconfirmed-transactions
      */
     getUnconfirmedTransactions: (
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<TransactionLike[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -1018,7 +1100,23 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name GetTokens
      * @request GET:/tokens
      */
-    getTokens: (query?: { page?: number; limit?: number; reverse?: boolean }, params: RequestParams = {}) =>
+    getTokens: (
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/tokens`,
         method: 'GET',
@@ -1036,7 +1134,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getTokensTokenIdTransactions: (
       tokenId: string,
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -1057,7 +1168,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/charts/hashrates
      */
     getChartsHashrates: (
-      query: { fromTs: number; toTs: number; 'interval-type': IntervalType },
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+        'interval-type': IntervalType
+      },
       params: RequestParams = {}
     ) =>
       this.request<Hashrate[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -1077,7 +1200,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/charts/transactions-count
      */
     getChartsTransactionsCount: (
-      query: { fromTs: number; toTs: number; 'interval-type': IntervalType },
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+        'interval-type': IntervalType
+      },
       params: RequestParams = {}
     ) =>
       this.request<TimedCount[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -1097,7 +1232,19 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/charts/transactions-count-per-chain
      */
     getChartsTransactionsCountPerChain: (
-      query: { fromTs: number; toTs: number; 'interval-type': IntervalType },
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+        'interval-type': IntervalType
+      },
       params: RequestParams = {}
     ) =>
       this.request<
@@ -1136,7 +1283,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getContractEventsContractAddressContractAddress: (
       contractAddress: string,
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<Event[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
@@ -1157,7 +1317,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getContractEventsContractAddressContractAddressInputAddressInputAddress: (
       contractAddress: string,
       inputAddress: string,
-      query?: { page?: number; limit?: number; reverse?: boolean },
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
       params: RequestParams = {}
     ) =>
       this.request<Event[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
