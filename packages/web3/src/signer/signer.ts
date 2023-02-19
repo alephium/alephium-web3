@@ -244,11 +244,11 @@ export abstract class SignerProviderWithCachedAccounts<T extends Account> extend
   }
 }
 
-function extendMessage(message: string): string {
+export function extendMessage(message: string): string {
   return 'Alephium Signed Message: ' + message
 }
 
-function hashMessage(message: string, hasher: MessageHasher): string {
+export function hashMessage(message: string, hasher: MessageHasher): string {
   switch (hasher) {
     case 'alephium':
       return utils.binToHex(blake.blake2b(extendMessage(message), undefined, 32))
