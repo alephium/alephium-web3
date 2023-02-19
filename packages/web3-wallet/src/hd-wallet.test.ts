@@ -22,7 +22,8 @@ import {
   publicKeyFromPrivateKey,
   TOTAL_NUMBER_OF_GROUPS,
   addressFromPublicKey,
-  groupOfAddress
+  groupOfAddress,
+  MessageHasher
 } from '@alephium/web3'
 import {
   deriveSchnorrPrivateKey,
@@ -149,15 +150,27 @@ describe('HD wallet', () => {
     expect(newAccount3.addressIndex).toBeGreaterThan(account3.addressIndex)
   })
 
+  const message = '09282cae7d2a81d8e6a5d436dc64bd2eaefeaaef1d086739bf6be4d37be0ad3a'
+  const test = async (wallet: HDWallet, messageHasher: MessageHasher) => {
+    const account = wallet.deriveAndAddNewAccount()
+    const result = await wallet.signMessage({
+      signerAddress: account.address,
+      message: message,
+      messageHasher
+    })
+    const signature = result.signature
+    expect(verifySignedMessage(message, messageHasher, account.publicKey, signature, wallet.keyType)).toBe(true)
+  }
+
   it('should sign with secp256k1', async () => {
     const wallet = new HDWallet(testMnemonic)
     const account = wallet.deriveAndAddNewAccount()
     expect(account.keyType).toBe('default')
 
-    const message = 'Hello Alephium'
-    const result = await wallet.signMessage({ signerAddress: account.address, message: message })
-    const signature = result.signature
-    expect(verifySignedMessage(message, account.publicKey, signature, 'default')).toBe(true)
+    await test(wallet, 'alephium')
+    await test(wallet, 'blake2b')
+    await test(wallet, 'sha256')
+    await test(wallet, 'identity')
   })
 
   it('should sign with schnorr', async () => {
@@ -165,9 +178,9 @@ describe('HD wallet', () => {
     const account = wallet.deriveAndAddNewAccount()
     expect(account.keyType).toBe('bip340-schnorr')
 
-    const message = 'Hello Alephium'
-    const result = await wallet.signMessage({ signerAddress: account.address, message: message })
-    const signature = result.signature
-    expect(verifySignedMessage(message, account.publicKey, signature, 'bip340-schnorr')).toBe(true)
+    await test(wallet, 'alephium')
+    await test(wallet, 'blake2b')
+    await test(wallet, 'sha256')
+    await test(wallet, 'identity')
   })
 })

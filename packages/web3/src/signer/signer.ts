@@ -16,6 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { Buffer } from 'buffer/'
+import { createHash } from 'crypto'
 import { ExplorerProvider, fromApiNumber256, fromApiTokens, NodeProvider, toApiNumber256, toApiTokens } from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
@@ -38,7 +40,8 @@ import {
   SignUnsignedTxResult,
   SubmissionResult,
   SubmitTransactionParams,
-  KeyType
+  KeyType,
+  MessageHasher
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../utils'
@@ -176,9 +179,8 @@ export abstract class SignerProviderSimple extends SignerProvider {
   }
 
   async signMessage(params: SignMessageParams): Promise<SignMessageResult> {
-    const extendedMessage = extendMessage(params.message)
-    const messageHash = blake.blake2b(extendedMessage, undefined, 32)
-    const signature = await this.signRaw(params.signerAddress, utils.binToHex(messageHash))
+    const messageHash = hashMessage(params.message, params.messageHasher)
+    const signature = await this.signRaw(params.signerAddress, messageHash)
     return { signature: signature }
   }
 
@@ -246,10 +248,32 @@ function extendMessage(message: string): string {
   return 'Alephium Signed Message: ' + message
 }
 
-export function verifySignedMessage(message: string, publicKey: string, signature: string, keyType?: KeyType): boolean {
-  const extendedMessage = extendMessage(message)
-  const messageHash = blake.blake2b(extendedMessage, undefined, 32)
-  return utils.verifySignature(utils.binToHex(messageHash), publicKey, signature, keyType)
+function hashMessage(message: string, hasher: MessageHasher): string {
+  switch (hasher) {
+    case 'alephium':
+      return utils.binToHex(blake.blake2b(extendMessage(message), undefined, 32))
+    case 'sha256':
+      const sha256 = createHash('sha256')
+      sha256.update(Buffer.from(message))
+      return utils.binToHex(sha256.digest())
+    case 'blake2b':
+      return utils.binToHex(blake.blake2b(message, undefined, 32))
+    case 'identity':
+      return message
+    default:
+      throw Error(`Invalid message hasher: ${hasher}`)
+  }
+}
+
+export function verifySignedMessage(
+  message: string,
+  messageHasher: MessageHasher,
+  publicKey: string,
+  signature: string,
+  keyType?: KeyType
+): boolean {
+  const messageHash = hashMessage(message, messageHasher)
+  return utils.verifySignature(messageHash, publicKey, signature, keyType)
 }
 
 export function toApiDestination(data: Destination): node.Destination {
