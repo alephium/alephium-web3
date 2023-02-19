@@ -136,12 +136,19 @@ export interface SignUnsignedTxResult {
 }
 assertType<Eq<SignUnsignedTxResult, SignTransferTxResult>>
 
+export type MessageHasher =
+  | 'alephium' // Message is prefixed with 'Alephium signed message: ' before hashed with blake2b
+  | 'sha256'
+  | 'blake2b'
+  | 'identity' // No hash is used, the message to be 32 bytes
+
 export interface SignMessageParams {
   signerAddress: string
   signerKeyType?: KeyType
   message: string
+  messageHasher: MessageHasher
 }
-assertType<Eq<SignMessageParams, { message: string } & SignerAddress>>()
+assertType<Eq<SignMessageParams, { message: string; messageHasher: MessageHasher } & SignerAddress>>()
 export interface SignMessageResult {
   signature: string
 }
