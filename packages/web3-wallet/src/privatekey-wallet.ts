@@ -17,13 +17,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { Account, ExplorerProvider, NodeProvider, SignerProviderSimple, utils, web3 } from '@alephium/web3'
+import { Account, KeyType, ExplorerProvider, NodeProvider, SignerProviderSimple, utils, web3 } from '@alephium/web3'
 import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd-wallet'
 
 const ec = new EC('secp256k1')
 
 // In-memory HDWallet for simple use cases.
 export class PrivateKeyWallet extends SignerProviderSimple {
+  readonly keyType: KeyType
   readonly privateKey: string
   readonly publicKey: string
   readonly address: string
@@ -31,7 +32,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   readonly nodeProvider: NodeProvider
   readonly explorerProvider: ExplorerProvider | undefined
 
-  getSelectedAccount(): Promise<Account> {
+  protected unsafeGetSelectedAccount(): Promise<Account> {
     return Promise.resolve(this.account)
   }
 
@@ -44,48 +45,57 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   }
 
   get account(): Account {
-    return { address: this.address, publicKey: this.publicKey, group: this.group }
+    return { keyType: this.keyType, address: this.address, publicKey: this.publicKey, group: this.group }
   }
 
-  constructor(privateKey: string, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
+  constructor(privateKey: string, keyType?: KeyType, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
     super()
+    this.keyType = keyType ?? 'default'
     this.privateKey = privateKey
-    this.publicKey = utils.publicKeyFromPrivateKey(privateKey)
-    this.address = utils.addressFromPublicKey(this.publicKey)
+    this.publicKey = utils.publicKeyFromPrivateKey(privateKey, this.keyType)
+    this.address = utils.addressFromPublicKey(this.publicKey, this.keyType)
     this.group = utils.groupOfAddress(this.address)
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
   }
 
-  static Random(targetGroup?: number, nodeProvider?: NodeProvider): PrivateKeyWallet {
+  static Random(targetGroup?: number, nodeProvider?: NodeProvider, keyType?: KeyType): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), nodeProvider)
+    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex'), keyType, nodeProvider)
     if (targetGroup === undefined || wallet.group === targetGroup) {
       return wallet
     } else {
-      return PrivateKeyWallet.Random(targetGroup, nodeProvider)
+      return PrivateKeyWallet.Random(targetGroup, nodeProvider, keyType)
     }
   }
 
   static FromMnemonic(
     mnemonic: string,
+    keyType?: KeyType,
     addressIndex?: number,
     passphrase?: string,
     nodeProvider?: NodeProvider
   ): PrivateKeyWallet {
-    const privateKey = deriveHDWalletPrivateKey(mnemonic, addressIndex ?? 0, passphrase)
-    return new PrivateKeyWallet(privateKey, nodeProvider)
+    const privateKey = deriveHDWalletPrivateKey(mnemonic, keyType ?? 'default', addressIndex ?? 0, passphrase)
+    return new PrivateKeyWallet(privateKey, keyType, nodeProvider)
   }
 
   static FromMnemonicWithGroup(
     mnemonic: string,
     targetGroup: number,
+    keyType?: KeyType,
     fromAddressIndex?: number,
     passphrase?: string,
     nodeProvider?: NodeProvider
   ): PrivateKeyWallet {
-    const [privateKey] = deriveHDWalletPrivateKeyForGroup(mnemonic, targetGroup, fromAddressIndex, passphrase)
-    return new PrivateKeyWallet(privateKey, nodeProvider)
+    const [privateKey] = deriveHDWalletPrivateKeyForGroup(
+      mnemonic,
+      targetGroup,
+      keyType ?? 'default',
+      fromAddressIndex,
+      passphrase
+    )
+    return new PrivateKeyWallet(privateKey, keyType, nodeProvider)
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -94,12 +104,10 @@ export class PrivateKeyWallet extends SignerProviderSimple {
       throw Error('Unmatched signer address')
     }
 
-    return PrivateKeyWallet.sign(this.privateKey, hexString)
+    return PrivateKeyWallet.sign(this.privateKey, hexString, this.keyType)
   }
 
-  static sign(privateKey: string, hexString: string): string {
-    const key = ec.keyFromPrivate(privateKey)
-    const signature = key.sign(hexString)
-    return utils.encodeSignature(signature)
+  static sign(privateKey: string, hexString: string, _keyType?: KeyType): string {
+    return utils.sign(hexString, privateKey, _keyType)
   }
 }

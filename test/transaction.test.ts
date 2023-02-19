@@ -23,6 +23,9 @@ import { testNodeWallet } from '../packages/web3-test'
 import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { TxStatus } from '../packages/web3'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { ONE_ALPH } from '../packages/web3/src'
+import { Add, Sub, Main } from '../artifacts/ts'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
@@ -60,7 +63,7 @@ describe('transactions', function () {
 
     await signer.signAndSubmitUnsignedTx({
       unsignedTx: subDeployTx.unsignedTx,
-      signerAddress: await signer.getSelectedAddress()
+      signerAddress: (await signer.getSelectedAccount()).address
     })
     await timeout(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
@@ -75,4 +78,31 @@ describe('transactions', function () {
     // There maybe a pending request when we unsubscribe
     expect([counter, counter - 1]).toContain(counterAfterUnsubscribe)
   }, 10000)
+
+  it('should use Schnorr address', async () => {
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    const nodeProvider = web3.getCurrentNodeProvider()
+
+    await Project.build({ errorOnWarnings: false })
+    const genesisSigner = await testNodeWallet()
+    const signer = PrivateKeyWallet.Random(undefined, nodeProvider, 'bip340-schnorr')
+
+    const genesisAccount = await genesisSigner.getSelectedAccount()
+    await genesisSigner.signAndSubmitTransferTx({
+      signerAddress: genesisAccount.address,
+      signerKeyType: genesisAccount.keyType,
+      destinations: [{ address: signer.address, attoAlphAmount: 10n * ONE_ALPH }]
+    })
+
+    const subInstance = (await Sub.deploy(signer, { initialFields: { result: 0n } })).instance
+    const subState = await subInstance.fetchState()
+    expect(subState.fields.result).toBe(0n)
+
+    const addInstance = (await Add.deploy(signer, { initialFields: { sub: subInstance.contractId, result: 0n } }))
+      .instance
+    expect((await addInstance.fetchState()).fields.result).toBe(0n)
+
+    await Main.execute(signer, { initialFields: { addContractId: addInstance.contractId } })
+    expect((await addInstance.fetchState()).fields.result).toBe(3n)
+  })
 })

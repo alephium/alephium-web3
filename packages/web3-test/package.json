@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-test",
-  "version": "0.5.0-rc.7",
+  "version": "0.5.0-rc.11",
   "description": "Utility functions for Alephium test",
   "keywords": [
     "alephium",
@@ -28,13 +28,8 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "@alephium/web3": "0.5.0-rc.7",
-    "@alephium/web3-wallet": "0.5.0-rc.7",
-    "@types/node": "16.7.8",
-    "bip32": "2.0.6",
-    "bip39": "3.0.4",
-    "buffer": "^6.0.3",
-    "fs-extra": "10.0.1"
+    "@alephium/web3": "0.5.0-rc.11",
+    "@alephium/web3-wallet": "0.5.0-rc.11"
   },
   "devDependencies": {
     "@types/find-up": "^2.1.0",

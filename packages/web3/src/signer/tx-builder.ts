@@ -21,6 +21,7 @@ import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiToke
 import { addressFromPublicKey } from '../utils'
 import { toApiDestinations } from './signer'
 import {
+  KeyType,
   SignDeployContractTxParams,
   SignDeployContractTxResult,
   SignerAddress,
@@ -35,8 +36,10 @@ import {
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
 
-  static create(baseUrl: string, apiKey?: string) {
-    const nodeProvider = new NodeProvider(baseUrl, apiKey)
+  static from(nodeProvider: NodeProvider): TransactionBuilder
+  static from(baseUrl: string, apiKey?: string): TransactionBuilder
+  static from(param0: string | NodeProvider, param1?: string): TransactionBuilder {
+    const nodeProvider = typeof param0 === 'string' ? new NodeProvider(param0, param1) : (param0 as NodeProvider)
     return new (class extends TransactionBuilder {
       get nodeProvider(): NodeProvider {
         return nodeProvider
@@ -44,8 +47,8 @@ export abstract class TransactionBuilder {
     })()
   }
 
-  private static validatePublicKey(params: SignerAddress, publicKey: string) {
-    const address = addressFromPublicKey(publicKey)
+  private static validatePublicKey(params: SignerAddress, publicKey: string, keyType?: KeyType) {
+    const address = addressFromPublicKey(publicKey, keyType)
     if (address !== params.signerAddress) {
       throw new Error('Unmatched public key')
     }
@@ -55,11 +58,12 @@ export abstract class TransactionBuilder {
     params: SignTransferTxParams,
     publicKey: string
   ): Promise<Omit<SignTransferTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey)
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
 
     const { destinations, gasPrice, ...rest } = params
     const data: node.BuildTransaction = {
       fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
       destinations: toApiDestinations(destinations),
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
@@ -72,11 +76,12 @@ export abstract class TransactionBuilder {
     params: SignDeployContractTxParams,
     publicKey: string
   ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey)
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
 
     const { initialAttoAlphAmount, initialTokenAmounts, issueTokenAmount, gasPrice, ...rest } = params
     const data: node.BuildDeployContractTx = {
       fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
       initialAttoAlphAmount: toApiNumber256Optional(initialAttoAlphAmount),
       initialTokenAmounts: toApiTokens(initialTokenAmounts),
       issueTokenAmount: toApiNumber256Optional(issueTokenAmount),
@@ -92,11 +97,12 @@ export abstract class TransactionBuilder {
     params: SignExecuteScriptTxParams,
     publicKey: string
   ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey)
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
 
     const { attoAlphAmount, tokens, gasPrice, ...rest } = params
     const data: node.BuildExecuteScriptTx = {
       fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
       attoAlphAmount: toApiNumber256Optional(attoAlphAmount),
       tokens: toApiTokens(tokens),
       gasPrice: toApiNumber256Optional(gasPrice),

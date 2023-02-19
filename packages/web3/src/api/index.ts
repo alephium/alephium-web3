@@ -58,6 +58,7 @@ export class NodeProvider {
   readonly blockflow: NodeApi<string>['blockflow']
   readonly addresses: NodeApi<string>['addresses']
   readonly transactions: NodeApi<string>['transactions']
+  readonly mempool: NodeApi<string>['mempool']
   readonly contracts: NodeApi<string>['contracts']
   readonly multisig: NodeApi<string>['multisig']
   readonly utils: NodeApi<string>['utils']
@@ -83,6 +84,7 @@ export class NodeProvider {
     this.blockflow = { ...nodeApi.blockflow }
     this.addresses = { ...nodeApi.addresses }
     this.transactions = { ...nodeApi.transactions }
+    this.mempool = { ...nodeApi.mempool }
     this.contracts = { ...nodeApi.contracts }
     this.multisig = { ...nodeApi.multisig }
     this.utils = { ...nodeApi.utils }

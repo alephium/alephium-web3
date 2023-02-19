@@ -920,8 +920,10 @@ export class Contract extends Artifact {
     params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
     const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
+    const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractTxParams = {
-      signerAddress: await signer.getSelectedAddress(),
+      signerAddress: selectedAccount.address,
+      signerKeyType: selectedAccount.keyType,
       bytecode: bytecode,
       initialAttoAlphAmount: params?.initialAttoAlphAmount,
       issueTokenAmount: params?.issueTokenAmount,
@@ -1063,8 +1065,10 @@ export class Script extends Artifact {
     signer: SignerProvider,
     params: ExecuteScriptParams<P>
   ): Promise<SignExecuteScriptTxParams> {
+    const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignExecuteScriptTxParams = {
-      signerAddress: await signer.getSelectedAddress(),
+      signerAddress: selectedAccount.address,
+      signerKeyType: selectedAccount.keyType,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
       attoAlphAmount: params.attoAlphAmount,
       tokens: params.tokens,
@@ -1289,7 +1293,7 @@ export interface DeployContractParams<P extends Fields = Fields> {
 assertType<
   Eq<
     Omit<DeployContractParams<undefined>, 'initialFields'>,
-    Omit<SignDeployContractTxParams, 'signerAddress' | 'bytecode'>
+    Omit<SignDeployContractTxParams, 'signerAddress' | 'signerKeyType' | 'bytecode'>
   >
 >
 export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }

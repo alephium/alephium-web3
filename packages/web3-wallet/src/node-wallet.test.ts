@@ -30,7 +30,7 @@ describe('node wallet', () => {
     const accounts = await wallet.getAccounts()
     const toAccount = accounts[0]
     for (const fromAccount of accounts) {
-      await wallet.setSelectedAddress(fromAccount.address)
+      await wallet.setSelectedAccount(fromAccount.address)
       await wallet.signTransferTx({
         signerAddress: fromAccount.address,
         destinations: [{ address: toAccount.address, attoAlphAmount: BigInt(1e18) }]
@@ -43,7 +43,7 @@ describe('node wallet', () => {
     const accounts = await wallet.getAccounts()
     const toAccount = accounts[0]
     for (const fromAccount of accounts) {
-      await wallet.setSelectedAddress(fromAccount.address)
+      await wallet.setSelectedAccount(fromAccount.address)
       const tx = await wallet.buildTransferTx({
         signerAddress: fromAccount.address,
         destinations: [{ address: toAccount.address, attoAlphAmount: BigInt(1e18) }]
@@ -63,13 +63,13 @@ describe('node wallet', () => {
     expect(accounts.length).toEqual(4)
 
     for (const account of accounts) {
-      await nodeWallet.setSelectedAddress(account.address)
-      expect(await nodeWallet.getSelectedAddress()).toEqual(account.address)
+      await nodeWallet.setSelectedAccount(account.address)
+      expect(await (await nodeWallet.getSelectedAccount()).address).toEqual(account.address)
     }
     for (let i = 0; i < 4; i++) {
       const account = accounts[`${i}`]
-      await nodeWallet.setSelectedAddress(account.address)
-      expect(await nodeWallet.getSelectedAddress()).toEqual(account.address)
+      await nodeWallet.setSelectedAccount(account.address)
+      expect(await (await nodeWallet.getSelectedAccount()).address).toEqual(account.address)
     }
   })
 })

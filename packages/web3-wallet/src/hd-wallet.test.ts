@@ -16,8 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, verifySignedMessage, publicKeyFromPrivateKey } from '@alephium/web3'
-import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup, HDWallet } from './hd-wallet'
+import {
+  web3,
+  verifySignedMessage,
+  publicKeyFromPrivateKey,
+  TOTAL_NUMBER_OF_GROUPS,
+  addressFromPublicKey,
+  groupOfAddress
+} from '@alephium/web3'
+import {
+  deriveSchnorrPrivateKey,
+  deriveSchnorrPrivateKeyForGroup,
+  deriveSecp256K1PrivateKey,
+  deriveSecp256K1PrivateKeyForGroup,
+  HDWallet
+} from './hd-wallet'
 
 describe('HD wallet', () => {
   beforeAll(() => {
@@ -27,62 +40,76 @@ describe('HD wallet', () => {
   const testMnemonic =
     'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
 
-  it('should derive private key based on index', () => {
-    expect(deriveHDWalletPrivateKey(testMnemonic, 0)).toEqual(
+  it('should derive private key based on index for secp256k1', () => {
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 0)).toEqual(
       'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5'
     )
-    expect(deriveHDWalletPrivateKey(testMnemonic, 1)).toEqual(
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 1)).toEqual(
       'bd7dd0c4abd3cf8ba2d169c8320a2cc8bc8ab583b0db9a32d4352d6f5b15d037'
     )
-    expect(deriveHDWalletPrivateKey(testMnemonic, 2)).toEqual(
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 2)).toEqual(
       '93ae1392f36a592aca154ea14e51b791c248beaea1b63117c57cc46d56e5f482'
     )
-    expect(deriveHDWalletPrivateKey(testMnemonic, 3)).toEqual(
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 3)).toEqual(
       'ec8c4e863e4027d5217c382bfc67bd2638f21d6f956653505229f1d242123a9a'
     )
-    expect(deriveHDWalletPrivateKey(testMnemonic, 0, 'Alephium')).toEqual(
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 0, 'Alephium')).toEqual(
       '62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce'
     )
-    expect(deriveHDWalletPrivateKey(testMnemonic, 1, 'Alephium')).toEqual(
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 1, 'Alephium')).toEqual(
       'ff8efb234d82f49ece8b34fa9a7250e16879a7a8a222463390159e2e51a1a117'
     )
-    expect(deriveHDWalletPrivateKey(testMnemonic, 2, 'Alephium')).toEqual(
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 2, 'Alephium')).toEqual(
       '9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e'
     )
-    expect(deriveHDWalletPrivateKey(testMnemonic, 3, 'Alephium')).toEqual(
+    expect(deriveSecp256K1PrivateKey(testMnemonic, 3, 'Alephium')).toEqual(
       'd8da830fe81dc6be8b2d0cc60dff79412f7b58445ab5463c63d1791b08ec1110'
     )
   })
 
-  it('should derive private key for groups', () => {
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 0, 0, 'Alephium')[0]).toEqual(
+  it('should derive private key for groups and secp256k1', () => {
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 0, 0, 'Alephium')[0]).toEqual(
       '62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 1, 0, 'Alephium')[0]).toEqual(
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 1, 0, 'Alephium')[0]).toEqual(
       'f62df0157aec61806d51480425e1f7a4950e13fa9a2de87988ae1d861e09d2ae'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 2, 0, 'Alephium')[0]).toEqual(
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 2, 0, 'Alephium')[0]).toEqual(
       'cae87098274ff447f785bc408a71b3416d6140bd824e623375959cbf43d2a2d5'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 3, 0, 'Alephium')[0]).toEqual(
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 3, 0, 'Alephium')[0]).toEqual(
       '9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 0, 100, 'Alephium')[0]).toEqual(
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 0, 100, 'Alephium')[0]).toEqual(
       'c047f716a03c4961d98427d3cf494fe3d5f3fd0b48fe3107699d90a453f2dce6'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 1, 100, 'Alephium')[0]).toEqual(
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 1, 100, 'Alephium')[0]).toEqual(
       '800fc78e24c87c04a76f23b8ab54179ef190f640d9346d3e89cbc3036ee69c9b'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 2, 100, 'Alephium')[0]).toEqual(
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 2, 100, 'Alephium')[0]).toEqual(
       '51df72c50e1b392805c3f530d2dece7e0c1842f827a579f7cd24907a6c4ff533'
     )
-    expect(deriveHDWalletPrivateKeyForGroup(testMnemonic, 3, 100, 'Alephium')[0]).toEqual(
+    expect(deriveSecp256K1PrivateKeyForGroup(testMnemonic, 3, 100, 'Alephium')[0]).toEqual(
       '04528b7736eab20cbde90f0d2f0cb3a99481dfe92664757646077ae7851e4314'
     )
   })
 
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max)
+  }
+
+  it('should derive private key for groups and schnorr', () => {
+    const startIndex = getRandomInt(1024)
+    Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).forEach((group) => {
+      const [privateKey, index] = deriveSchnorrPrivateKeyForGroup(testMnemonic, group, startIndex)
+      expect(deriveSchnorrPrivateKey(testMnemonic, index)).toBe(privateKey)
+      const address = addressFromPublicKey(publicKeyFromPrivateKey(privateKey, 'bip340-schnorr'), 'bip340-schnorr')
+      expect(groupOfAddress(address)).toBe(group)
+    })
+  })
+
   it('should derive account', async () => {
-    const wallet = new HDWallet(testMnemonic, undefined, undefined, 'Alephium')
+    const wallet = new HDWallet(testMnemonic, undefined, undefined, undefined, 'Alephium')
     const account0 = wallet.deriveAndAddNewAccount(0)
     const account1 = wallet.deriveAndAddNewAccount(1)
     const account2 = wallet.deriveAndAddNewAccount(2)
@@ -122,12 +149,25 @@ describe('HD wallet', () => {
     expect(newAccount3.addressIndex).toBeGreaterThan(account3.addressIndex)
   })
 
-  it('should sign', async () => {
+  it('should sign with secp256k1', async () => {
     const wallet = new HDWallet(testMnemonic)
     const account = wallet.deriveAndAddNewAccount()
+    expect(account.keyType).toBe('default')
+
     const message = 'Hello Alephium'
     const result = await wallet.signMessage({ signerAddress: account.address, message: message })
     const signature = result.signature
-    expect(verifySignedMessage(message, account.publicKey, signature)).toBe(true)
+    expect(verifySignedMessage(message, account.publicKey, signature, 'default')).toBe(true)
+  })
+
+  it('should sign with schnorr', async () => {
+    const wallet = new HDWallet(testMnemonic, 'bip340-schnorr')
+    const account = wallet.deriveAndAddNewAccount()
+    expect(account.keyType).toBe('bip340-schnorr')
+
+    const message = 'Hello Alephium'
+    const result = await wallet.signMessage({ signerAddress: account.address, message: message })
+    const signature = result.signature
+    expect(verifySignedMessage(message, account.publicKey, signature, 'bip340-schnorr')).toBe(true)
   })
 })
