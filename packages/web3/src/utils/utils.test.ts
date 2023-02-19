@@ -130,33 +130,25 @@ describe('utils', function () {
   })
 
   it('should calculate the group of private key', () => {
-    expect(
-      utils.groupOfPrivateKey('a5c91afebe25e1644e9023e0d341ca713b59beca36e6635de37ef0c9c8689654', 'default')
-    ).toEqual(3)
-    expect(
-      utils.groupOfPrivateKey('82e1f50a8e372933ab8afc6362934b693e5aaa4ca308b0aac27fbe8755e0a3fa', 'default')
-    ).toEqual(2)
-    expect(
-      utils.groupOfPrivateKey('860ef6d3468e93aee997617e3595859fbab634111b88a79099a7e359f447cc2f', 'default')
-    ).toEqual(2)
-    expect(
-      utils.groupOfPrivateKey('b3bda653c36f99ad5a88401ea99cbc2a3c25e74d3df652f1545439ec929bcf31', 'default')
-    ).toEqual(0)
+    expect(utils.groupOfPrivateKey('a5c91afebe25e1644e9023e0d341ca713b59beca36e6635de37ef0c9c8689654')).toEqual(3)
+    expect(utils.groupOfPrivateKey('82e1f50a8e372933ab8afc6362934b693e5aaa4ca308b0aac27fbe8755e0a3fa')).toEqual(2)
+    expect(utils.groupOfPrivateKey('860ef6d3468e93aee997617e3595859fbab634111b88a79099a7e359f447cc2f')).toEqual(2)
+    expect(utils.groupOfPrivateKey('b3bda653c36f99ad5a88401ea99cbc2a3c25e74d3df652f1545439ec929bcf31')).toEqual(0)
   })
 
   it('should compute public key from private key', () => {
-    expect(
-      utils.publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45', 'default')
-    ).toBe('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')
+    expect(utils.publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
+      '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
+    )
   })
 
   it('should compute address from public key', () => {
-    expect(
-      utils.publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45', 'default')
-    ).toBe('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')
-    expect(
-      utils.addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc', 'default')
-    ).toBe('1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc')
+    expect(utils.publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
+      '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
+    )
+    expect(utils.addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
+      '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
+    )
   })
 
   it('should convert between contract id and address', () => {

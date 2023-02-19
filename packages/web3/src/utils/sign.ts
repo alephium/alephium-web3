@@ -37,7 +37,7 @@ necc.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8A
 }
 
 // hash has to be 32 bytes
-export function sign(hash: string, privateKey: string, _keyType: KeyType): string {
+export function sign(hash: string, privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
   if (keyType === 'default') {
@@ -50,7 +50,7 @@ export function sign(hash: string, privateKey: string, _keyType: KeyType): strin
   }
 }
 
-export function verifySignature(hash: string, publicKey: string, signature: string, _keyType: KeyType): boolean {
+export function verifySignature(hash: string, publicKey: string, signature: string, _keyType?: KeyType): boolean {
   const keyType = _keyType ?? 'default'
 
   try {

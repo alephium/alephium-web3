@@ -97,7 +97,7 @@ describe('HD wallet', () => {
   })
 
   it('should derive account', async () => {
-    const wallet = new HDWallet(testMnemonic, 'default', undefined, undefined, 'Alephium')
+    const wallet = new HDWallet(testMnemonic, undefined, undefined, undefined, 'Alephium')
     const account0 = wallet.deriveAndAddNewAccount(0)
     const account1 = wallet.deriveAndAddNewAccount(1)
     const account2 = wallet.deriveAndAddNewAccount(2)
@@ -107,16 +107,16 @@ describe('HD wallet', () => {
     expect(account2.group).toBe(2)
     expect(account3.group).toBe(3)
     expect(account0.publicKey).toEqual(
-      publicKeyFromPrivateKey('62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce', 'default')
+      publicKeyFromPrivateKey('62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce')
     )
     expect(account1.publicKey).toEqual(
-      publicKeyFromPrivateKey('f62df0157aec61806d51480425e1f7a4950e13fa9a2de87988ae1d861e09d2ae', 'default')
+      publicKeyFromPrivateKey('f62df0157aec61806d51480425e1f7a4950e13fa9a2de87988ae1d861e09d2ae')
     )
     expect(account2.publicKey).toEqual(
-      publicKeyFromPrivateKey('cae87098274ff447f785bc408a71b3416d6140bd824e623375959cbf43d2a2d5', 'default')
+      publicKeyFromPrivateKey('cae87098274ff447f785bc408a71b3416d6140bd824e623375959cbf43d2a2d5')
     )
     expect(account3.publicKey).toEqual(
-      publicKeyFromPrivateKey('9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e', 'default')
+      publicKeyFromPrivateKey('9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e')
     )
     expect(await wallet.getAccount(account0.address)).toStrictEqual(account0)
     expect(await wallet.getAccount(account1.address)).toStrictEqual(account1)
@@ -138,7 +138,7 @@ describe('HD wallet', () => {
   })
 
   it('should sign with secp256k1', async () => {
-    const wallet = new HDWallet(testMnemonic, 'default')
+    const wallet = new HDWallet(testMnemonic)
     const account = wallet.deriveAndAddNewAccount()
     expect(account.keyType).toBe('default')
 

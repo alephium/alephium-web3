@@ -263,7 +263,7 @@ function extendMessage(message: string): string {
   return 'Alephium Signed Message: ' + message
 }
 
-export function verifySignedMessage(message: string, publicKey: string, signature: string, keyType: KeyType): boolean {
+export function verifySignedMessage(message: string, publicKey: string, signature: string, keyType?: KeyType): boolean {
   const extendedMessage = extendMessage(message)
   const messageHash = blake.blake2b(extendedMessage, undefined, 32)
   return utils.verifySignature(utils.binToHex(messageHash), publicKey, signature, keyType)
