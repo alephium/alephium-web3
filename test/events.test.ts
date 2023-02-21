@@ -16,14 +16,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project } from '../packages/web3'
+import { Project, Contract } from '../packages/web3'
 import { NodeWallet } from '../packages/web3-wallet'
 import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { Sub } from '../artifacts/ts/Sub'
 import { Add, AddTypes, AddInstance } from '../artifacts/ts/Add'
-import { Main } from '../artifacts/ts/scripts'
+import { Main, DestroyAdd } from '../artifacts/ts/scripts'
+import { CreateContractEventAddress, DestroyContractEventAddress } from '../packages/web3'
+import { ContractCreatedEvent, subscribeContractCreatedEvent } from '../packages/web3'
+import { ContractDestroyedEvent, subscribeContractDestroyedEvent } from '../packages/web3'
 
 describe('events', function () {
   let signer: NodeWallet
@@ -40,13 +43,11 @@ describe('events', function () {
     return (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } })).instance
   }
 
-  it('should subscribe contract events', async () => {
-    const add = await deployContract(signer)
-    const addEvents: Array<AddTypes.AddEvent> = []
-    const subscriptOptions: SubscribeOptions<AddTypes.AddEvent> = {
+  function createSubscribeOptions<T>(events: Array<T>): SubscribeOptions<T> {
+    return {
       pollingInterval: 500,
-      messageCallback: (event: AddTypes.AddEvent): Promise<void> => {
-        addEvents.push(event)
+      messageCallback: (event: T): Promise<void> => {
+        events.push(event)
         return Promise.resolve()
       },
       errorCallback: (error: any, subscription): Promise<void> => {
@@ -55,7 +56,13 @@ describe('events', function () {
         return Promise.resolve()
       }
     }
-    const subscription = add.subscribeAddEvent(subscriptOptions)
+  }
+
+  it('should subscribe contract events', async () => {
+    const add = await deployContract(signer)
+    const addEvents: Array<AddTypes.AddEvent> = []
+    const subscribeOptions = createSubscribeOptions(addEvents)
+    const subscription = add.subscribeAddEvent(subscribeOptions)
     for (let i = 0; i < 3; i++) {
       await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
@@ -75,19 +82,8 @@ describe('events', function () {
     const add = await deployContract(signer)
     type EventTypes = AddTypes.AddEvent | AddTypes.Add1Event
     const addEvents: Array<EventTypes> = []
-    const subscriptOptions: SubscribeOptions<EventTypes> = {
-      pollingInterval: 500,
-      messageCallback: (event: EventTypes): Promise<void> => {
-        addEvents.push(event)
-        return Promise.resolve()
-      },
-      errorCallback: (error: any, subscription): Promise<void> => {
-        console.log(error)
-        subscription.unsubscribe()
-        return Promise.resolve()
-      }
-    }
-    const subscription = add.subscribeAllEvents(subscriptOptions)
+    const subscribeOptions = createSubscribeOptions(addEvents)
+    const subscription = add.subscribeAllEvents(subscribeOptions)
     for (let i = 0; i < 3; i++) {
       await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
@@ -125,19 +121,8 @@ describe('events', function () {
   it('should cancel event subscription', async () => {
     const add = await deployContract(signer)
     const addEvents: Array<AddTypes.AddEvent> = []
-    const subscriptOptions: SubscribeOptions<AddTypes.AddEvent> = {
-      pollingInterval: 500,
-      messageCallback: (event: AddTypes.AddEvent): Promise<void> => {
-        addEvents.push(event)
-        return Promise.resolve()
-      },
-      errorCallback: (error: any, subscription): Promise<void> => {
-        console.log(error)
-        subscription.unsubscribe()
-        return Promise.resolve()
-      }
-    }
-    const subscription = add.subscribeAddEvent(subscriptOptions)
+    const subscribeOptions = createSubscribeOptions(addEvents)
+    const subscription = add.subscribeAddEvent(subscribeOptions)
     const scriptTx0 = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await timeout(1500)
     subscription.unsubscribe()
@@ -151,5 +136,46 @@ describe('events', function () {
     await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await timeout(1500)
     expect(addEvents.length).toEqual(1)
+  })
+
+  it('should test special contract address', () => {
+    expect(CreateContractEventAddress).toEqual('tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrpE')
+    expect(DestroyContractEventAddress).toEqual('tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrpD')
+  })
+
+  it('should subscribe contract created events', async () => {
+    const events: Array<ContractCreatedEvent> = []
+    const subscribeOptions = createSubscribeOptions(events)
+    const currentEventCount = await web3
+      .getCurrentNodeProvider()
+      .events.getEventsContractContractaddressCurrentCount(CreateContractEventAddress)
+    const subscription = subscribeContractCreatedEvent(subscribeOptions, currentEventCount)
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    await timeout(1500)
+    subscription.unsubscribe()
+
+    expect(events.length).toEqual(1)
+    expect(events[0].eventIndex).toEqual(Contract.ContractCreatedEventIndex)
+    expect(events[0].name).toEqual(Contract.ContractCreatedEvent.name)
+    expect(events[0].fields.address).toEqual(sub.instance.address)
+    expect(events[0].fields.parentAddress).toEqual(undefined)
+  })
+
+  it('should subscribe contract destroyed events', async () => {
+    const add = await deployContract(signer)
+    const events: Array<ContractDestroyedEvent> = []
+    const subscribeOptions = createSubscribeOptions(events)
+    const subscription = subscribeContractDestroyedEvent(subscribeOptions, 0)
+
+    const caller = (await signer.getSelectedAccount()).address
+    await DestroyAdd.execute(signer, { initialFields: { add: add.contractId, caller } })
+
+    await timeout(1500)
+    subscription.unsubscribe()
+
+    expect(events.length).toEqual(1)
+    expect(events[0].eventIndex).toEqual(Contract.ContractDestroyedEventIndex)
+    expect(events[0].name).toEqual(Contract.ContractDestroyedEvent.name)
+    expect(events[0].fields.address).toEqual(add.address)
   })
 })

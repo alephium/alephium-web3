@@ -62,6 +62,12 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
   ): Promise<TestContractResult<null>> {
     return testMethod(this, "createSubContract", params);
   }
+
+  async testDestroyMethod(
+    params: TestContractParams<AddTypes.Fields, { caller: HexString }>
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "destroy", params);
+  }
 }
 
 // Use this object to test and deploy the contract
@@ -69,7 +75,7 @@ export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
     "",
-    "8e495ae544b65cc598a162e7839540a9ba4c9bc33b03522afbd36c174489b629"
+    "2b9e382c20b4facf21eb745a46a72447dae221c274518e19c60b5ddfe478cc9c"
   )
 );
 

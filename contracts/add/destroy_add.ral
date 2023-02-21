@@ -1,0 +1,3 @@
+TxScript DestroyAdd(add: Add, caller: Address) {
+  add.destroy(caller)
+}
