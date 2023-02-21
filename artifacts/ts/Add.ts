@@ -15,15 +15,11 @@ import {
   CallContractResult,
   TestContractParams,
   ContractEvent,
-  subscribeContractCreatedEvent,
-  subscribeContractDestroyedEvent,
   subscribeContractEvent,
-  subscribeAllEvents,
+  subscribeContractEvents,
   testMethod,
   callMethod,
   fetchContractState,
-  ContractCreatedEvent,
-  ContractDestroyedEvent,
   ContractInstance,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
@@ -87,20 +83,6 @@ export class AddInstance extends ContractInstance {
     return fetchContractState(Add, this);
   }
 
-  subscribeContractCreatedEvent(
-    options: SubscribeOptions<ContractCreatedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractCreatedEvent(this, options, fromCount);
-  }
-
-  subscribeContractDestroyedEvent(
-    options: SubscribeOptions<ContractDestroyedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractDestroyedEvent(this, options, fromCount);
-  }
-
   subscribeAddEvent(
     options: SubscribeOptions<AddTypes.AddEvent>,
     fromCount?: number
@@ -128,15 +110,10 @@ export class AddInstance extends ContractInstance {
   }
 
   subscribeAllEvents(
-    options: SubscribeOptions<
-      | AddTypes.AddEvent
-      | AddTypes.Add1Event
-      | ContractCreatedEvent
-      | ContractDestroyedEvent
-    >,
+    options: SubscribeOptions<AddTypes.AddEvent | AddTypes.Add1Event>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeAllEvents(Add.contract, this, options, fromCount);
+    return subscribeContractEvents(Add.contract, this, options, fromCount);
   }
 
   async callAddMethod(

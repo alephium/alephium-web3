@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, Project, Script, Contract, EventSig, SystemEventSig } from '@alephium/web3'
+import { node, Project, Script, Contract, EventSig } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
 import fs from 'fs'
@@ -132,14 +132,6 @@ function genEventType(event: EventSig): string {
   return `export type ${getEventType(event)} = ContractEvent<${fieldsType}>`
 }
 
-function genSubscribeSystemEvent(event: SystemEvent): string {
-  return `
-    subscribe${event.eventSig.name}Event(options: SubscribeOptions<${event.eventType}>, fromCount?: number): EventSubscription {
-      return subscribe${event.eventSig.name}Event(this, options, fromCount)
-    }
-  `
-}
-
 function genSubscribeEvent(contractName: string, event: EventSig): string {
   const eventType = getEventType(event)
   const scopedEventType = `${contractTypes(contractName)}.${eventType}`
@@ -150,13 +142,14 @@ function genSubscribeEvent(contractName: string, event: EventSig): string {
   `
 }
 
-function genSubscribeAllEvents(contract: Contract, systemEvents: SystemEvent[]): string {
-  const contractEventTypes = contract.eventsSig.map((e) => `${contractTypes(contract.name)}.${getEventType(e)}`)
-  const systemEventTypes = systemEvents.map((e) => e.eventType)
-  const eventTypes = contractEventTypes.concat(systemEventTypes).join(' | ')
+function genSubscribeAllEvents(contract: Contract): string {
+  if (contract.eventsSig.length <= 1) {
+    return ''
+  }
+  const eventTypes = contract.eventsSig.map((e) => `${contractTypes(contract.name)}.${getEventType(e)}`).join(' | ')
   return `
     subscribeAllEvents(options: SubscribeOptions<${eventTypes}>, fromCount?: number): EventSubscription {
-      return subscribeAllEvents(${contract.name}.contract, this, options, fromCount)
+      return subscribeContractEvents(${contract.name}.contract, this, options, fromCount)
     }
   `
 }
@@ -205,38 +198,20 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
   `
 }
 
-type SystemEvent = {
-  eventSig: SystemEventSig
-  eventIndex: number
-  eventType: string
-}
-
 function genContract(contract: Contract, artifactRelativePath: string): string {
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
   if (contractInfo === undefined) {
     throw new Error(`Contract info does not exist: ${contract.name}`)
   }
-  const systemEvents: SystemEvent[] = [
-    {
-      eventSig: Contract.ContractCreatedEvent,
-      eventIndex: Contract.ContractCreatedEventIndex,
-      eventType: 'ContractCreatedEvent'
-    },
-    {
-      eventSig: Contract.ContractDestroyedEvent,
-      eventIndex: Contract.ContractDestroyedEventIndex,
-      eventType: 'ContractDestroyedEvent'
-    }
-  ]
   const source = `
     ${header}
 
     import {
       Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
       SubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
-      TestContractParams, ContractEvent, subscribeContractCreatedEvent, subscribeContractDestroyedEvent, subscribeContractEvent, subscribeAllEvents, testMethod, callMethod, fetchContractState,
-      ContractCreatedEvent, ContractDestroyedEvent, ContractInstance
+      TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
+      testMethod, callMethod, fetchContractState, ContractInstance
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
@@ -265,9 +240,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       }
 
       ${genFetchState(contract)}
-      ${systemEvents.map((e) => genSubscribeSystemEvent(e)).join('\n')}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
-      ${genSubscribeAllEvents(contract, systemEvents)}
+      ${genSubscribeAllEvents(contract)}
       ${contract.functions.map((f) => genCallMethod(contract.name, f)).join('\n')}
     }
 `

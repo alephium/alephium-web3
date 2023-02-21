@@ -53,7 +53,8 @@ import {
   assertType,
   Eq,
   Optional,
-  groupOfAddress
+  groupOfAddress,
+  addressFromContractId
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
@@ -1360,6 +1361,15 @@ export interface CallContractResult<R> {
   events: ContractEvent[]
 }
 
+function specialContractAddress(n: number): string {
+  const bytes = new Uint8Array(32).fill(0)
+  bytes[31] = n
+  return addressFromContractId(binToHex(bytes))
+}
+
+export const CreateContractEventAddress = specialContractAddress(-1)
+export const DestroyContractEventAddress = specialContractAddress(-2)
+
 export interface SystemEventSig extends EventSig {
   optionalFieldNames?: string[]
   optionalFieldTypes?: string[]
@@ -1472,18 +1482,17 @@ export async function fetchContractState<F extends Fields, I extends ContractIns
 }
 
 export function subscribeContractCreatedEvent(
-  instance: ContractInstance,
   options: SubscribeOptions<ContractCreatedEvent>,
   fromCount?: number
 ): EventSubscription {
   return subscribeEventsFromContract(
     options,
-    instance.address,
+    CreateContractEventAddress,
     Contract.ContractCreatedEventIndex,
     (event) => {
       return {
         ...decodeContractCreatedEvent(event),
-        contractAddress: instance.address
+        contractAddress: CreateContractEventAddress
       }
     },
     fromCount
@@ -1491,18 +1500,17 @@ export function subscribeContractCreatedEvent(
 }
 
 export function subscribeContractDestroyedEvent(
-  instance: ContractInstance,
   options: SubscribeOptions<ContractDestroyedEvent>,
   fromCount?: number
 ): EventSubscription {
   return subscribeEventsFromContract(
     options,
-    instance.address,
+    DestroyContractEventAddress,
     Contract.ContractDestroyedEventIndex,
     (event) => {
       return {
         ...decodeContractDestroyedEvent(event),
-        contractAddress: instance.address
+        contractAddress: DestroyContractEventAddress
       }
     },
     fromCount
@@ -1552,34 +1560,17 @@ export function subscribeContractEvent<F extends Fields, M extends ContractEvent
   )
 }
 
-export function subscribeAllEvents(
+export function subscribeContractEvents(
   contract: Contract,
   instance: ContractInstance,
   options: SubscribeOptions<ContractEvent<any>>,
   fromCount?: number
 ): EventSubscription {
   const messageCallback = (event: node.ContractEvent): Promise<void> => {
-    switch (event.eventIndex) {
-      case Contract.ContractCreatedEventIndex: {
-        return options.messageCallback({
-          ...decodeContractCreatedEvent(event),
-          contractAddress: instance.address
-        })
-      }
-
-      case Contract.ContractDestroyedEventIndex: {
-        return options.messageCallback({
-          ...decodeContractDestroyedEvent(event),
-          contractAddress: instance.address
-        })
-      }
-
-      default:
-        return options.messageCallback({
-          ...decodeEvent(contract, instance, event, event.eventIndex),
-          contractAddress: instance.address
-        })
-    }
+    return options.messageCallback({
+      ...decodeEvent(contract, instance, event, event.eventIndex),
+      contractAddress: instance.address
+    })
   }
   const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
     return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<any>>)

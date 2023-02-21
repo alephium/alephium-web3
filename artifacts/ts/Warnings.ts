@@ -15,15 +15,11 @@ import {
   CallContractResult,
   TestContractParams,
   ContractEvent,
-  subscribeContractCreatedEvent,
-  subscribeContractDestroyedEvent,
   subscribeContractEvent,
-  subscribeAllEvents,
+  subscribeContractEvents,
   testMethod,
   callMethod,
   fetchContractState,
-  ContractCreatedEvent,
-  ContractDestroyedEvent,
   ContractInstance,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/warnings.ral.json";
@@ -67,26 +63,5 @@ export class WarningsInstance extends ContractInstance {
 
   async fetchState(): Promise<WarningsTypes.State> {
     return fetchContractState(Warnings, this);
-  }
-
-  subscribeContractCreatedEvent(
-    options: SubscribeOptions<ContractCreatedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractCreatedEvent(this, options, fromCount);
-  }
-
-  subscribeContractDestroyedEvent(
-    options: SubscribeOptions<ContractDestroyedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractDestroyedEvent(this, options, fromCount);
-  }
-
-  subscribeAllEvents(
-    options: SubscribeOptions<ContractCreatedEvent | ContractDestroyedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeAllEvents(Warnings.contract, this, options, fromCount);
   }
 }

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ContractCreatedEvent, ContractDestroyedEvent, Project } from '../packages/web3'
+import { Project } from '../packages/web3'
 import { NodeWallet } from '../packages/web3-wallet'
 import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
@@ -73,7 +73,7 @@ describe('events', function () {
 
   it('should subscribe all events', async () => {
     const add = await deployContract(signer)
-    type EventTypes = AddTypes.AddEvent | AddTypes.Add1Event | ContractCreatedEvent | ContractDestroyedEvent
+    type EventTypes = AddTypes.AddEvent | AddTypes.Add1Event
     const addEvents: Array<EventTypes> = []
     const subscriptOptions: SubscribeOptions<EventTypes> = {
       pollingInterval: 500,
