@@ -1601,3 +1601,7 @@ export async function callMethod<I, F extends Fields, A extends Arguments, R>(
   const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex)
   return callResult as CallContractResult<R>
 }
+
+export async function getContractEventsCurrentCount(contractAddress: Address): Promise<number> {
+  return getCurrentNodeProvider().events.getEventsContractContractaddressCurrentCount(contractAddress)
+}

@@ -132,6 +132,17 @@ function genEventType(event: EventSig): string {
   return `export type ${getEventType(event)} = ContractEvent<${fieldsType}>`
 }
 
+function genGetContractEventsCurrentCount(contract: Contract): string {
+  if (contract.eventsSig.length === 0) {
+    return ''
+  }
+  return `
+    async getContractEventsCurrentCount(): Promise<number> {
+      return getContractEventsCurrentCount(this.address)
+    }
+  `
+}
+
 function genSubscribeEvent(contractName: string, event: EventSig): string {
   const eventType = getEventType(event)
   const scopedEventType = `${contractTypes(contractName)}.${eventType}`
@@ -211,7 +222,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
       SubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
-      testMethod, callMethod, fetchContractState, ContractInstance
+      testMethod, callMethod, fetchContractState, ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
 
@@ -240,6 +251,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       }
 
       ${genFetchState(contract)}
+      ${genGetContractEventsCurrentCount(contract)}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}
       ${contract.functions.map((f) => genCallMethod(contract.name, f)).join('\n')}

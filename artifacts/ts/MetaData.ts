@@ -21,6 +21,7 @@ import {
   callMethod,
   fetchContractState,
   ContractInstance,
+  getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/metadata.ral.json";
 

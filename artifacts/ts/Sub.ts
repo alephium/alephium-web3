@@ -21,6 +21,7 @@ import {
   callMethod,
   fetchContractState,
   ContractInstance,
+  getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/sub.ral.json";
 
@@ -64,6 +65,10 @@ export class SubInstance extends ContractInstance {
 
   async fetchState(): Promise<SubTypes.State> {
     return fetchContractState(Sub, this);
+  }
+
+  async getContractEventsCurrentCount(): Promise<number> {
+    return getContractEventsCurrentCount(this.address);
   }
 
   subscribeSubEvent(

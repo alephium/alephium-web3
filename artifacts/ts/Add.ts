@@ -21,6 +21,7 @@ import {
   callMethod,
   fetchContractState,
   ContractInstance,
+  getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
 
@@ -87,6 +88,10 @@ export class AddInstance extends ContractInstance {
 
   async fetchState(): Promise<AddTypes.State> {
     return fetchContractState(Add, this);
+  }
+
+  async getContractEventsCurrentCount(): Promise<number> {
+    return getContractEventsCurrentCount(this.address);
   }
 
   subscribeAddEvent(
