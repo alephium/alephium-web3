@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, Contract } from '../packages/web3'
+import { Project, Contract, getContractEventsCurrentCount } from '../packages/web3'
 import { NodeWallet } from '../packages/web3-wallet'
 import { SubscribeOptions, timeout } from '../packages/web3'
 import { web3 } from '../packages/web3'
@@ -74,6 +74,8 @@ describe('events', function () {
       expect(event.fields.y).toEqual(1n)
     })
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
+    const currentContractEventsCount = await add.getContractEventsCurrentCount()
+    expect(currentContractEventsCount).toEqual(addEvents.length)
 
     subscription.unsubscribe()
   }, 15000)
@@ -146,9 +148,7 @@ describe('events', function () {
   it('should subscribe contract created events', async () => {
     const events: Array<ContractCreatedEvent> = []
     const subscribeOptions = createSubscribeOptions(events)
-    const currentEventCount = await web3
-      .getCurrentNodeProvider()
-      .events.getEventsContractContractaddressCurrentCount(CreateContractEventAddress)
+    const currentEventCount = await getContractEventsCurrentCount(CreateContractEventAddress)
     const subscription = subscribeContractCreatedEvent(subscribeOptions, currentEventCount)
     const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
     await timeout(1500)
@@ -165,7 +165,8 @@ describe('events', function () {
     const add = await deployContract(signer)
     const events: Array<ContractDestroyedEvent> = []
     const subscribeOptions = createSubscribeOptions(events)
-    const subscription = subscribeContractDestroyedEvent(subscribeOptions, 0)
+    const currentContractEventsCount = await getContractEventsCurrentCount(DestroyContractEventAddress)
+    const subscription = subscribeContractDestroyedEvent(subscribeOptions, currentContractEventsCount)
 
     const caller = (await signer.getSelectedAccount()).address
     await DestroyAdd.execute(signer, { initialFields: { add: add.contractId, caller } })

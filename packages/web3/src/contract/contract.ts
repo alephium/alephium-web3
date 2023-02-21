@@ -1601,3 +1601,14 @@ export async function callMethod<I, F extends Fields, A extends Arguments, R>(
   const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex)
   return callResult as CallContractResult<R>
 }
+
+export async function getContractEventsCurrentCount(contractAddress: Address): Promise<number> {
+  return getCurrentNodeProvider()
+    .events.getEventsContractContractaddressCurrentCount(contractAddress)
+    .catch((error) => {
+      if (error instanceof Error && error.message.includes(`${contractAddress} not found`)) {
+        return 0
+      }
+      throw error
+    })
+}
