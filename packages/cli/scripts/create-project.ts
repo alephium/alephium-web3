@@ -70,6 +70,13 @@ function prepareReact(packageRoot: string, projectRoot: string) {
   console.log()
 }
 
+function prepareNext(_packageRoot: string, projectRoot: string) {
+  console.log('Creating the Nextjs app')
+  execSync(`npx create-next-app ${projectRoot} --example https://github.com/alephium/nextjs-template --typescript`)
+  execSync('npm install && npm run prettier', { cwd: projectRoot })
+  console.log()
+}
+
 export function createProject(templateType: string, packageRoot: string, projectRoot: string): void {
   if (!fsExtra.existsSync(projectRoot)) {
     fsExtra.mkdirSync(projectRoot, { recursive: true })
@@ -84,6 +91,9 @@ export function createProject(templateType: string, packageRoot: string, project
       break
     case 'react':
       prepareReact(packageRoot, projectRoot)
+      break
+    case 'next':
+      prepareNext(packageRoot, projectRoot)
       break
   }
 
