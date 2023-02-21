@@ -15,15 +15,11 @@ import {
   CallContractResult,
   TestContractParams,
   ContractEvent,
-  subscribeContractCreatedEvent,
-  subscribeContractDestroyedEvent,
   subscribeContractEvent,
-  subscribeAllEvents,
+  subscribeContractEvents,
   testMethod,
   callMethod,
   fetchContractState,
-  ContractCreatedEvent,
-  ContractDestroyedEvent,
   ContractInstance,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/add.ral.json";
@@ -66,6 +62,12 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
   ): Promise<TestContractResult<null>> {
     return testMethod(this, "createSubContract", params);
   }
+
+  async testDestroyMethod(
+    params: TestContractParams<AddTypes.Fields, { caller: HexString }>
+  ): Promise<TestContractResult<null>> {
+    return testMethod(this, "destroy", params);
+  }
 }
 
 // Use this object to test and deploy the contract
@@ -73,7 +75,7 @@ export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
     "",
-    "8e495ae544b65cc598a162e7839540a9ba4c9bc33b03522afbd36c174489b629"
+    "2b9e382c20b4facf21eb745a46a72447dae221c274518e19c60b5ddfe478cc9c"
   )
 );
 
@@ -85,20 +87,6 @@ export class AddInstance extends ContractInstance {
 
   async fetchState(): Promise<AddTypes.State> {
     return fetchContractState(Add, this);
-  }
-
-  subscribeContractCreatedEvent(
-    options: SubscribeOptions<ContractCreatedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractCreatedEvent(this, options, fromCount);
-  }
-
-  subscribeContractDestroyedEvent(
-    options: SubscribeOptions<ContractDestroyedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractDestroyedEvent(this, options, fromCount);
   }
 
   subscribeAddEvent(
@@ -128,15 +116,10 @@ export class AddInstance extends ContractInstance {
   }
 
   subscribeAllEvents(
-    options: SubscribeOptions<
-      | AddTypes.AddEvent
-      | AddTypes.Add1Event
-      | ContractCreatedEvent
-      | ContractDestroyedEvent
-    >,
+    options: SubscribeOptions<AddTypes.AddEvent | AddTypes.Add1Event>,
     fromCount?: number
   ): EventSubscription {
-    return subscribeAllEvents(Add.contract, this, options, fromCount);
+    return subscribeContractEvents(Add.contract, this, options, fromCount);
   }
 
   async callAddMethod(

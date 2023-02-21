@@ -18,4 +18,9 @@ Contract Add(sub: Sub, mut result : U256) {
     pub fn createSubContract(a: U256, path: ByteVec, subContractId: ByteVec, payer: Address) -> () {
         copyCreateSubContract!{payer -> ALPH: 1 alph}(path, subContractId, #00, encodeToByteVec!(a))
     }
+
+    @using(checkExternalCaller = false, assetsInContract = true)
+    pub fn destroy(caller: Address) -> () {
+        destroySelf!(caller)
+    }
 }
