@@ -166,6 +166,9 @@ export interface SubmissionResult {
 export interface EnableOptionsBase {
   // chainGroup - specify whether to use addresses from a specific group
   chainGroup?: number
+  // keyType - specify which type of signing algorithm to use
+  keyType?: KeyType
+
   networkId: string
-  onDisconnected: () => Promise<void>
+  onDisconnected: () => Promise<void> | void
 }
