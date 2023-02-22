@@ -4,7 +4,9 @@
 [![NPM][npm-badge]][npm-link]
 [![code style: prettier][prettier-badge]][prettier-link]
 
-A JS/TS library for building decentralized applications on Alephium.
+A Typescript library for building decentralized applications on Alephium.
+
+## Getting started
 
 You could run the following command to scaffold a skeleton project for smart contract development:
 
