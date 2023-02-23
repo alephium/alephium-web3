@@ -18,6 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import BigNumber from 'bignumber.js'
 
 import {
+  convertAlphAmount,
+  convertAmountWithDecimals,
   isNumeric,
   prettifyAttoAlphAmount,
   prettifyExactAmount,
@@ -63,6 +65,29 @@ describe('isNumeric()', () => {
       expect(isNumeric(true)).toBeFalsy()
       expect(isNumeric(false)).toBeFalsy()
       expect(isNumeric(NaN)).toBeFalsy()
+    })
+  })
+})
+
+describe('convertAmountWithDecimals()', () => {
+  describe('when valid', () => {
+    test('should convert token unit amount', () => {
+      expect(convertAmountWithDecimals('0', 18)).toEqual(0n)
+      expect(convertAmountWithDecimals('1.23', 2)).toEqual(123n)
+      expect(convertAmountWithDecimals('1.23456', 2)).toEqual(123n)
+      expect(convertAmountWithDecimals('1', 5)).toEqual(100000n)
+      expect(convertAmountWithDecimals('1', 18)).toEqual(1000000000000000000n)
+      expect(convertAmountWithDecimals('1.23456789', 18)).toEqual(1234567890000000000n)
+    })
+    test('should convert token unit amount', () => {
+      expect(convertAlphAmount('0')).toEqual(0n)
+      expect(convertAlphAmount('1')).toEqual(1000000000000000000n)
+      expect(convertAlphAmount('1.23456789')).toEqual(1234567890000000000n)
+    })
+  })
+  describe('when invalid', () => {
+    test('should return undefined', () => {
+      expect(convertAmountWithDecimals('foo', 18)).toBeUndefined()
     })
   })
 })

@@ -54,23 +54,23 @@ export const prettifyNumberConfig: Record<string, IPrettifyNumberConfig> = {
   }
 }
 
-export function prettifyAttoAlphAmount(amount: bigint): string | null {
+export function prettifyAttoAlphAmount(amount: bigint): string | undefined {
   return prettifyNumber(amount, 18, prettifyNumberConfig.ALPH)
 }
 
-export function prettifyTokenAmount(amount: bigint, decimals: number): string | null {
+export function prettifyTokenAmount(amount: bigint, decimals: number): string | undefined {
   return prettifyNumber(amount, decimals, prettifyNumberConfig.TOKEN)
 }
 
-export function prettifyExactAmount(amount: bigint, decimals: number): string | null {
+export function prettifyExactAmount(amount: bigint, decimals: number): string | undefined {
   return prettifyNumber(amount, decimals, prettifyNumberConfig.Exact)
 }
 
-export function prettifyNumber(amount: bigint, decimals: number, config: IPrettifyNumberConfig): string | null {
+export function prettifyNumber(amount: bigint, decimals: number, config: IPrettifyNumberConfig): string | undefined {
   const number = toFixedNumber(amount, decimals)
 
   if (!isNumeric(number)) {
-    return null
+    return undefined
   }
 
   const numberBN = new BigNumber(number)
@@ -141,4 +141,17 @@ function toFixedNumber(val: bigint, decimals: number): string {
     str = str.substring(0, str.length - 1)
   }
   return negative + str
+}
+
+export function convertAmountWithDecimals(amount: string, decimals: number): bigint | undefined {
+  try {
+    const result = new BigNumber(amount).multipliedBy(Math.pow(10, decimals))
+    return BigInt(result.toFormat(0, { groupSeparator: '' }))
+  } catch (e) {
+    return undefined
+  }
+}
+
+export function convertAlphAmount(amount: string): bigint | undefined {
+  return convertAmountWithDecimals(amount, 18)
 }
