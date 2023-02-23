@@ -1,5 +1,5 @@
 /*
-Copyright 2018 - 2023 The Alephium Authors
+Copyright 2018 - 2022 The Alephium Authors
 This file is part of the alephium project.
 
 The library is free software: you can redistribute it and/or modify
@@ -17,7 +17,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import BigNumber from 'bignumber.js'
 
-import { IPrettifyNumberConfig, isNumeric, prettifyAlphAmount, prettifyNumber, toFixedNumber } from './number'
+import {
+  convertSetToAlph,
+  IPrettifyNumberConfig,
+  isNumeric,
+  prettifyAlphAmount,
+  prettifyNumber,
+  prettifyTokenWithZeroDecimal,
+  toFixedNumber
+} from './number'
 
 import { tests } from './number.fixture'
 
@@ -38,18 +46,27 @@ describe('prettify number', () => {
       for (const test of tests) {
         const fixedNumber = toFixedNumber(test.raw, test.decimal)
         expect(fixedNumber).toEqual(test.fixed)
-        expect(prettifyAlphAmount(fixedNumber)).toEqual(test.currencyFormat)
+        expect(prettifyAlphAmount(fixedNumber)).toEqual(test.alphFormat)
         expect(prettifyTokenAmount(fixedNumber)).toEqual(test.tokenFormat)
+
+        if (test.decimal === 0) {
+          expect(prettifyTokenWithZeroDecimal(test.raw)).toEqual(test.tokenFormat)
+        }
+
+        if (test.decimal === 18) {
+          expect(convertSetToAlph(test.raw)).toEqual(test.alphFormat)
+        }
       }
     })
   })
+
   describe('when invalid', () => {
     test('should return null', () => {
       /** allow us to pass invalid arguments for testing purposes */
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       expect(prettifyNumber()).toBeNull()
-      expect(prettifyNumber('foo')).toBeNull()
+      expect(prettifyAlphAmount('foo')).toBeNull()
     })
   })
 })

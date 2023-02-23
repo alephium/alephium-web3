@@ -1,5 +1,5 @@
 /*
-Copyright 2018 - 2023 The Alephium Authors
+Copyright 2018 - 2022 The Alephium Authors
 This file is part of the alephium project.
 
 The library is free software: you can redistribute it and/or modify
@@ -15,7 +15,88 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
+// Credits:
+// 1. https://github.com/argentlabs/argent-x/blob/e63affa7f28b27333dca4081a3dcd375bb2da40b/packages/extension/src/shared/utils/number.ts
+// 2. https://github.com/ethers-io/ethers.js/blob/724881f34d428406488a1c9f9dbebe54b6edecda/src.ts/utils/fixednumber.ts
+
 import BigNumber from 'bignumber.js'
+
+export const isNumeric = (numToCheck: any): boolean => !isNaN(parseFloat(numToCheck)) && isFinite(numToCheck)
+
+export interface IPrettifyNumberConfig {
+  minDecimalPlaces: number
+  maxDecimalPlaces: number
+  /** significants digits to show in decimals while respecting decimal places */
+  minDecimalSignificanDigits: number
+  /** special case for zero, e.g. we may want to display $0.00 or 0.0 ALPH */
+  decimalPlacesWhenZero: number
+}
+
+export const prettifyNumberConfig: Record<string, IPrettifyNumberConfig> = {
+  ALPH: {
+    minDecimalPlaces: 2,
+    maxDecimalPlaces: 10,
+    minDecimalSignificanDigits: 2,
+    decimalPlacesWhenZero: 2
+  },
+  TOKEN_WITH_DECIMAL_0: {
+    minDecimalPlaces: 1,
+    maxDecimalPlaces: 0,
+    minDecimalSignificanDigits: 0,
+    decimalPlacesWhenZero: 0
+  }
+}
+
+export const convertSetToAlph = (setsAmount: bigint): string => {
+  const fixedNumber = toFixedNumber(setsAmount, 18)
+  return prettifyAlphAmount(fixedNumber)
+}
+
+export const prettifyAlphAmount = (alphAmount: BigNumber.Value) => {
+  return prettifyNumber(alphAmount, prettifyNumberConfig.ALPH)
+}
+
+export const prettifyTokenWithZeroDecimal = (tokenAmount: bigint): string => {
+  return prettifyNumber(tokenAmount.toString(), prettifyNumberConfig.TOKEN_WITH_DECIMAL_0)
+}
+
+export const prettifyNumber = (number: BigNumber.Value, config: IPrettifyNumberConfig) => {
+  if (!isNumeric(number)) {
+    return null
+  }
+
+  const numberBN = new BigNumber(number)
+
+  let untrimmed
+  if (numberBN.gte(1)) {
+    /** simplest case, formatting to minDecimalPlaces will look good */
+    untrimmed = numberBN.toFormat(config.minDecimalPlaces)
+  } else {
+    /** now need to interrogate the appearance of decimal number < 1 */
+    /** longest case - max decimal places e.g. 0.0008923088123 -> 0.0008923088 */
+    const maxDecimalPlacesString = numberBN.toFormat(config.maxDecimalPlaces)
+    /** count the zeros, which will then allow us to know the final length with desired significant digits */
+    const decimalPart = maxDecimalPlacesString.split('.')[1]
+    const zeroMatches = decimalPart?.match(/^0+/)
+    const leadingZerosInDecimalPart = zeroMatches && zeroMatches.length ? zeroMatches[0].length : 0
+    /** now we can re-format with leadingZerosInDecimalPart + maxDecimalSignificanDigits to give us the pretty version */
+    /** e.g. 0.0008923088123 -> 0.00089 */
+    const prettyDecimalPlaces = Math.max(
+      leadingZerosInDecimalPart + config.minDecimalSignificanDigits,
+      config.minDecimalPlaces
+    )
+    untrimmed = numberBN.toFormat(prettyDecimalPlaces)
+  }
+  /** the untrimmed string may have trailing zeros, e.g. 0.0890 */
+  /** trim to a minimum specified by the config, e.g. we may want to display $0.00 or 0.0 ETH */
+  let trimmed = untrimmed.replace(/0+$/, '')
+  const minLength = 1 + untrimmed.indexOf('.') + config.decimalPlacesWhenZero
+  if (trimmed.length < minLength) {
+    trimmed = untrimmed.substring(0, minLength)
+  }
+  return trimmed
+}
 
 const BN_N1 = BigInt(-1)
 const BN_0 = BigInt(0)
@@ -53,69 +134,4 @@ export function toFixedNumber(val: bigint, decimals: number): string {
     str = str.substring(0, str.length - 1)
   }
   return negative + str
-}
-
-export const isNumeric = (numToCheck: any): boolean => !isNaN(parseFloat(numToCheck)) && isFinite(numToCheck)
-
-export interface IPrettifyNumberConfig {
-  minDecimalPlaces: number
-  maxDecimalPlaces: number
-  /** significants digits to show in decimals while respecting decimal places */
-  minDecimalSignificanDigits: number
-  /** special case for zero, e.g. we may want to display $0.00 or 0.0 ALPH */
-  decimalPlacesWhenZero: number
-}
-
-export const prettifyNumberConfig: Record<string, IPrettifyNumberConfig> = {
-  ALPH: {
-    minDecimalPlaces: 2,
-    maxDecimalPlaces: 10,
-    minDecimalSignificanDigits: 2,
-    decimalPlacesWhenZero: 2
-  }
-}
-
-export const prettifyAlphAmount = (number: BigNumber.Value) => {
-  return prettifyNumber(number)
-}
-
-export const prettifyNumber = (
-  number: BigNumber.Value,
-  {
-    minDecimalPlaces,
-    maxDecimalPlaces,
-    minDecimalSignificanDigits,
-    decimalPlacesWhenZero
-  }: IPrettifyNumberConfig = prettifyNumberConfig.ALPH
-) => {
-  if (!isNumeric(number)) {
-    return null
-  }
-  const numberBN = new BigNumber(number)
-
-  let untrimmed
-  if (numberBN.gte(1)) {
-    /** simplest case, formatting to minDecimalPlaces will look good */
-    untrimmed = numberBN.toFormat(minDecimalPlaces)
-  } else {
-    /** now need to interrogate the appearance of decimal number < 1 */
-    /** longest case - max decimal places e.g. 0.0008923088123 -> 0.0008923088 */
-    const maxDecimalPlacesString = numberBN.toFormat(maxDecimalPlaces)
-    /** count the zeros, which will then allow us to know the final length with desired significant digits */
-    const decimalPart = maxDecimalPlacesString.split('.')[1]
-    const zeroMatches = decimalPart.match(/^0+/)
-    const leadingZerosInDecimalPart = zeroMatches && zeroMatches.length ? zeroMatches[0].length : 0
-    /** now we can re-format with leadingZerosInDecimalPart + maxDecimalSignificanDigits to give us the pretty version */
-    /** e.g. 0.0008923088123 -> 0.00089 */
-    const prettyDecimalPlaces = Math.max(leadingZerosInDecimalPart + minDecimalSignificanDigits, minDecimalPlaces)
-    untrimmed = numberBN.toFormat(prettyDecimalPlaces)
-  }
-  /** the untrimmed string may have trailing zeros, e.g. 0.0890 */
-  /** trim to a minimum specified by the config, e.g. we may want to display $0.00 or 0.0 ETH */
-  let trimmed = untrimmed.replace(/0+$/, '')
-  const minLength = 1 + untrimmed.indexOf('.') + decimalPlacesWhenZero
-  if (trimmed.length < minLength) {
-    trimmed = untrimmed.substring(0, minLength)
-  }
-  return trimmed
 }
