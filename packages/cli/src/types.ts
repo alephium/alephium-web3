@@ -62,7 +62,7 @@ export interface Configuration<Settings = unknown> {
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {
-  nodeVersion: '1.7.1-rc2',
+  nodeVersion: '1.7.1',
   nodeConfigFile: 'devnet-user.conf',
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,

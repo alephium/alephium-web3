@@ -121,7 +121,7 @@ export class ExplorerProvider {
   readonly transactions = ExplorerApi['transactions']
   readonly addresses = ExplorerApi['addresses']
   readonly infos = ExplorerApi['infos']
-  readonly unconfirmedTransactions = ExplorerApi['unconfirmedTransactions']
+  readonly mempool = ExplorerApi['mempool']
   readonly tokens = ExplorerApi['tokens']
   readonly charts = ExplorerApi['charts']
   readonly utils = ExplorerApi['utils']
@@ -144,7 +144,7 @@ export class ExplorerProvider {
     this.transactions = { ...explorerApi.transactions }
     this.addresses = { ...explorerApi.addresses }
     this.infos = { ...explorerApi.infos }
-    this.unconfirmedTransactions = { ...explorerApi.unconfirmedTransactions }
+    this.mempool = { ...explorerApi.mempool }
     this.tokens = { ...explorerApi.tokens }
     this.charts = { ...explorerApi.charts }
     this.utils = { ...explorerApi.utils }
