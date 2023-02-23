@@ -110,7 +110,7 @@ describe('HD wallet', () => {
   })
 
   it('should derive account', async () => {
-    const wallet = new HDWallet(testMnemonic, undefined, undefined, undefined, 'Alephium')
+    const wallet = new HDWallet({ mnemonic: testMnemonic, passphrase: 'Alephium' })
     const account0 = wallet.deriveAndAddNewAccount(0)
     const account1 = wallet.deriveAndAddNewAccount(1)
     const account2 = wallet.deriveAndAddNewAccount(2)
@@ -163,7 +163,7 @@ describe('HD wallet', () => {
   }
 
   it('should sign with secp256k1', async () => {
-    const wallet = new HDWallet(testMnemonic)
+    const wallet = new HDWallet({ mnemonic: testMnemonic })
     const account = wallet.deriveAndAddNewAccount()
     expect(account.keyType).toBe('default')
 
@@ -174,7 +174,7 @@ describe('HD wallet', () => {
   })
 
   it('should sign with schnorr', async () => {
-    const wallet = new HDWallet(testMnemonic, 'bip340-schnorr')
+    const wallet = new HDWallet({ mnemonic: testMnemonic, keyType: 'bip340-schnorr' })
     const account = wallet.deriveAndAddNewAccount()
     expect(account.keyType).toBe('bip340-schnorr')
 

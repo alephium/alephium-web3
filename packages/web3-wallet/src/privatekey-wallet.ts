@@ -48,7 +48,17 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     return { keyType: this.keyType, address: this.address, publicKey: this.publicKey, group: this.group }
   }
 
-  constructor(privateKey: string, keyType?: KeyType, nodeProvider?: NodeProvider, explorerProvider?: ExplorerProvider) {
+  constructor({
+    privateKey,
+    keyType,
+    nodeProvider,
+    explorerProvider
+  }: {
+    privateKey: string
+    keyType?: KeyType
+    nodeProvider?: NodeProvider
+    explorerProvider?: ExplorerProvider
+  }) {
     super()
     this.keyType = keyType ?? 'default'
     this.privateKey = privateKey
@@ -61,7 +71,11 @@ export class PrivateKeyWallet extends SignerProviderSimple {
 
   static Random(targetGroup?: number, nodeProvider?: NodeProvider, keyType?: KeyType): PrivateKeyWallet {
     const keyPair = ec.genKeyPair()
-    const wallet = new PrivateKeyWallet(keyPair.getPrivate().toString('hex', 64), keyType, nodeProvider)
+    const wallet = new PrivateKeyWallet({
+      privateKey: keyPair.getPrivate().toString('hex', 64),
+      keyType,
+      nodeProvider
+    })
     if (targetGroup === undefined || wallet.group === targetGroup) {
       return wallet
     } else {
@@ -69,15 +83,21 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     }
   }
 
-  static FromMnemonic(
-    mnemonic: string,
-    keyType?: KeyType,
-    addressIndex?: number,
-    passphrase?: string,
+  static FromMnemonic({
+    mnemonic,
+    keyType,
+    addressIndex,
+    passphrase,
+    nodeProvider
+  }: {
+    mnemonic: string
+    keyType?: KeyType
+    addressIndex?: number
+    passphrase?: string
     nodeProvider?: NodeProvider
-  ): PrivateKeyWallet {
+  }): PrivateKeyWallet {
     const privateKey = deriveHDWalletPrivateKey(mnemonic, keyType ?? 'default', addressIndex ?? 0, passphrase)
-    return new PrivateKeyWallet(privateKey, keyType, nodeProvider)
+    return new PrivateKeyWallet({ privateKey, keyType, nodeProvider })
   }
 
   static FromMnemonicWithGroup(
@@ -95,7 +115,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
       fromAddressIndex,
       passphrase
     )
-    return new PrivateKeyWallet(privateKey, keyType, nodeProvider)
+    return new PrivateKeyWallet({ privateKey, keyType, nodeProvider })
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
