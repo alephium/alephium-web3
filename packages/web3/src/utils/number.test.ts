@@ -1,85 +1,73 @@
-import CurrencyConversionNumber from "bignumber.js"
+/*
+Copyright 2018 - 2023 The Alephium Authors
+This file is part of the alephium project.
 
-import {
-  isNumeric,
-  prettifyCurrencyNumber,
-  prettifyNumber,
-  prettifyTokenNumber,
-} from "./number"
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-describe("prettifyNumber()", () => {
-  describe("when valid", () => {
-    describe("when using default currency config", () => {
-      test("should return pretty currency value", () => {
-        expect(prettifyCurrencyNumber(0)).toEqual("0.00")
-        expect(prettifyCurrencyNumber("0")).toEqual("0.00")
-        expect(prettifyCurrencyNumber("1.23456")).toEqual("1.23")
-        expect(prettifyCurrencyNumber("123456.12")).toEqual("123,456.12")
-        expect(prettifyCurrencyNumber("123456.123456")).toEqual("123,456.12")
-        expect(prettifyCurrencyNumber("0.12")).toEqual("0.12")
-        expect(prettifyCurrencyNumber("0.123456")).toEqual("0.12")
-        expect(prettifyCurrencyNumber("0.0123456")).toEqual("0.012")
-        expect(prettifyCurrencyNumber("0.00123456")).toEqual("0.0012")
-        expect(prettifyCurrencyNumber("0.000123456")).toEqual("0.00012")
-        expect(prettifyCurrencyNumber("0.00000123")).toEqual("0.0000012")
-        expect(prettifyCurrencyNumber("0.0008923088")).toEqual("0.00089")
-        expect(prettifyCurrencyNumber("0.000885")).toEqual("0.00089")
-        expect(prettifyCurrencyNumber("0.0000001")).toEqual("0.0000001")
-        expect(prettifyCurrencyNumber("1.504")).toEqual("1.50")
-        expect(prettifyCurrencyNumber("1.505")).toEqual("1.51")
-        expect(prettifyCurrencyNumber("1199.05823328686698812")).toEqual(
-          "1,199.06",
-        )
-      })
-    })
-    describe("when using default token config", () => {
-      test("should return pretty token value", () => {
-        expect(prettifyTokenNumber(0)).toEqual("0.0")
-        expect(prettifyTokenNumber("0")).toEqual("0.0")
-        expect(prettifyTokenNumber("1.23456")).toEqual("1.2346")
-        expect(prettifyTokenNumber("123456.12")).toEqual("123,456.12")
-        expect(prettifyTokenNumber("123456.12015")).toEqual("123,456.1202")
-        expect(prettifyTokenNumber("123456.123456")).toEqual("123,456.1235")
-        expect(prettifyTokenNumber("0.12")).toEqual("0.12")
-        expect(prettifyTokenNumber("0.123456")).toEqual("0.1235")
-        expect(prettifyTokenNumber("0.0123456")).toEqual("0.0123")
-        expect(prettifyTokenNumber("0.00123456")).toEqual("0.0012")
-        expect(prettifyTokenNumber("0.000123456")).toEqual("0.00012")
-        expect(prettifyTokenNumber("0.00000123")).toEqual("0.0000012")
-        expect(prettifyTokenNumber("0.0008923088")).toEqual("0.00089")
-        expect(prettifyTokenNumber("0.000885")).toEqual("0.00089")
-        expect(prettifyTokenNumber("0.0000001")).toEqual("0.0000001")
-        expect(prettifyTokenNumber("1.50004")).toEqual("1.5")
-        expect(prettifyTokenNumber("1.50005")).toEqual("1.5001")
-        expect(prettifyTokenNumber("123456789")).toEqual("123,456,789.0")
-      })
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import BigNumber from 'bignumber.js'
+
+import { IPrettifyNumberConfig, isNumeric, prettifyAlphAmount, prettifyNumber, toFixedNumber } from './number'
+
+import { tests } from './number.fixture'
+
+const TEST_TOKEN_CONIFG: IPrettifyNumberConfig = {
+  minDecimalPlaces: 4,
+  maxDecimalPlaces: 16,
+  minDecimalSignificanDigits: 2,
+  decimalPlacesWhenZero: 0
+}
+
+export const prettifyTokenAmount = (number: BigNumber.Value) => {
+  return prettifyNumber(number, TEST_TOKEN_CONIFG)
+}
+
+describe('prettify number', () => {
+  describe('when valid', () => {
+    test('should prettify number', () => {
+      for (const test of tests) {
+        const fixedNumber = toFixedNumber(test.raw, test.decimal)
+        expect(fixedNumber).toEqual(test.fixed)
+        expect(prettifyAlphAmount(fixedNumber)).toEqual(test.currencyFormat)
+        expect(prettifyTokenAmount(fixedNumber)).toEqual(test.tokenFormat)
+      }
     })
   })
-  describe("when invalid", () => {
-    test("should return null", () => {
+  describe('when invalid', () => {
+    test('should return null', () => {
       /** allow us to pass invalid arguments for testing purposes */
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       expect(prettifyNumber()).toBeNull()
-      expect(prettifyNumber("foo")).toBeNull()
+      expect(prettifyNumber('foo')).toBeNull()
     })
   })
 })
 
-describe("isNumeric()", () => {
-  describe("when valid", () => {
-    test("should return true", () => {
+describe('isNumeric()', () => {
+  describe('when valid', () => {
+    test('should return true', () => {
       expect(isNumeric(0)).toBeTruthy()
-      expect(isNumeric("123")).toBeTruthy()
-      expect(isNumeric(new CurrencyConversionNumber("1.23"))).toBeTruthy()
+      expect(isNumeric('123')).toBeTruthy()
+      expect(isNumeric(new BigNumber('1.23'))).toBeTruthy()
     })
   })
-  describe("when invalid", () => {
-    test("should return false", () => {
+  describe('when invalid', () => {
+    test('should return false', () => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       expect(isNumeric()).toBeFalsy()
-      expect(isNumeric("")).toBeFalsy()
+      expect(isNumeric('')).toBeFalsy()
       expect(isNumeric({})).toBeFalsy()
       expect(isNumeric(null)).toBeFalsy()
       expect(isNumeric(true)).toBeFalsy()
