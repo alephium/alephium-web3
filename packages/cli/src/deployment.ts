@@ -403,7 +403,7 @@ function getSigners(privateKeys: string[]): PrivateKeyWallet[] {
   if (privateKeys.length === 0) {
     throw new Error('No private key specified')
   }
-  const signers = privateKeys.map((key) => new PrivateKeyWallet(key))
+  const signers = privateKeys.map((privateKey) => new PrivateKeyWallet({ privateKey }))
   const groups = signers.map((signer) => signer.group)
   const sameGroups = groups.filter((group, index) => groups.indexOf(group) !== index)
   if (sameGroups.length > 0) {

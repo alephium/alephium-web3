@@ -117,16 +117,22 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
   readonly nodeProvider: NodeProvider
   readonly explorerProvider: ExplorerProvider | undefined
 
-  constructor(
-    mnemonic: string,
-    _keyType?: KeyType,
-    nodeProvider?: NodeProvider,
-    explorerProvider?: ExplorerProvider,
+  constructor({
+    mnemonic,
+    keyType,
+    nodeProvider,
+    explorerProvider,
+    passphrase
+  }: {
+    mnemonic: string
+    keyType?: KeyType
+    nodeProvider?: NodeProvider
+    explorerProvider?: ExplorerProvider
     passphrase?: string
-  ) {
+  }) {
     super()
     this.mnemonic = mnemonic
-    this.keyType = _keyType ?? 'default'
+    this.keyType = keyType ?? 'default'
     this.passphrase = passphrase
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
