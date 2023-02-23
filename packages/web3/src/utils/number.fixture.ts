@@ -157,3 +157,31 @@ export const tests = [
     tokenFormat: '0.0'
   }
 ]
+
+export const tests1 = [
+  {
+    raw: '0',
+    decimals: 18,
+    amount: 0n
+  },
+  {
+    raw: '1.23',
+    decimals: 2,
+    amount: 123n
+  },
+  {
+    raw: '1',
+    decimals: 5,
+    amount: 100000n
+  },
+  {
+    raw: '1',
+    decimals: 18,
+    amount: 1000000000000000000n
+  },
+  {
+    raw: '1.23456789',
+    decimals: 18,
+    amount: 1234567890000000000n
+  }
+]

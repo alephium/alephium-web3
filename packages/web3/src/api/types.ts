@@ -245,3 +245,26 @@ export function typeLength(tpe: string): number {
   const [, dims] = decodeArrayType(tpe)
   return dims.reduce((a, b) => a * b)
 }
+
+export interface ApiRequestArguments {
+  path: string
+  method: string
+  params: any[]
+}
+export type ApiRequestHandler = (args: ApiRequestArguments) => Promise<any>
+
+export function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): void {
+  // Update class properties to forward requests
+  for (const [path, pathObject] of Object.entries(api)) {
+    for (const method of Object.keys(pathObject)) {
+      pathObject[`${method}`] = async (...params: any): Promise<any> => {
+        return handler({ path, method, params })
+      }
+    }
+  }
+}
+
+export async function request(provider: Record<string, any>, args: ApiRequestArguments): Promise<any> {
+  const call = provider[`${args.path}`][`${args.method}`] as (...any) => Promise<any>
+  return call(...args.params)
+}

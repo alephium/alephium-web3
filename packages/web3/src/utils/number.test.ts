@@ -18,6 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import BigNumber from 'bignumber.js'
 
 import {
+  convertAlphAmount,
+  convertAmountWithDecimals,
   isNumeric,
   prettifyAttoAlphAmount,
   prettifyExactAmount,
@@ -26,7 +28,7 @@ import {
   prettifyTokenAmount
 } from './number'
 
-import { tests } from './number.fixture'
+import { tests, tests1 } from './number.fixture'
 
 describe('prettify number', () => {
   describe('when valid', () => {
@@ -63,6 +65,27 @@ describe('isNumeric()', () => {
       expect(isNumeric(true)).toBeFalsy()
       expect(isNumeric(false)).toBeFalsy()
       expect(isNumeric(NaN)).toBeFalsy()
+    })
+  })
+})
+
+describe('convertAmountWithDecimals()', () => {
+  describe('when valid', () => {
+    test('should convert amounts', () => {
+      for (const test of tests1) {
+        expect(convertAmountWithDecimals(test.raw, test.decimals)).toEqual(test.amount)
+        expect(convertAmountWithDecimals(parseFloat(test.raw), test.decimals)).toEqual(test.amount)
+
+        if (test.decimals === 18) {
+          expect(convertAlphAmount(test.raw)).toEqual(test.amount)
+          expect(convertAlphAmount(parseFloat(test.raw))).toEqual(test.amount)
+        }
+      }
+    })
+  })
+  describe('when invalid', () => {
+    test('should return undefined', () => {
+      expect(convertAmountWithDecimals('foo', 18)).toBeUndefined()
     })
   })
 })
