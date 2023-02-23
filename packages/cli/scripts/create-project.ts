@@ -70,7 +70,7 @@ function prepareReact(packageRoot: string, projectRoot: string) {
   console.log()
 }
 
-function prepareNext(_packageRoot: string, projectRoot: string) {
+function prepareNextJs(_packageRoot: string, projectRoot: string) {
   console.log('Creating the Nextjs app')
   execSync(`npx create-next-app ${projectRoot} --example https://github.com/alephium/nextjs-template --typescript`)
   execSync('npm install && npm run prettier', { cwd: projectRoot })
@@ -92,8 +92,8 @@ export function createProject(templateType: string, packageRoot: string, project
     case 'react':
       prepareReact(packageRoot, projectRoot)
       break
-    case 'next':
-      prepareNext(packageRoot, projectRoot)
+    case 'nextjs':
+      prepareNextJs(packageRoot, projectRoot)
       break
   }
 

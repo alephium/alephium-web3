@@ -43,8 +43,8 @@ program
       program.error('Please specify the project directory')
     }
     const templateType = options.template as string
-    if (!['base', 'react', 'next'].includes(templateType)) {
-      program.error(`Invalid template type ${templateType}, expected base, react or next`)
+    if (!['base', 'react', 'nextjs'].includes(templateType)) {
+      program.error(`Invalid template type ${templateType}, expected base, react or nextjs`)
     }
     const projectRoot = path.resolve(dir as string)
     createProject(templateType, __dirname, projectRoot)
