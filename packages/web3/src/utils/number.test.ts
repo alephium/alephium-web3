@@ -28,7 +28,7 @@ import {
   prettifyTokenAmount
 } from './number'
 
-import { tests } from './number.fixture'
+import { tests, tests1 } from './number.fixture'
 
 describe('prettify number', () => {
   describe('when valid', () => {
@@ -71,18 +71,16 @@ describe('isNumeric()', () => {
 
 describe('convertAmountWithDecimals()', () => {
   describe('when valid', () => {
-    test('should convert token unit amount', () => {
-      expect(convertAmountWithDecimals('0', 18)).toEqual(0n)
-      expect(convertAmountWithDecimals('1.23', 2)).toEqual(123n)
-      expect(convertAmountWithDecimals('1.23456', 2)).toEqual(123n)
-      expect(convertAmountWithDecimals('1', 5)).toEqual(100000n)
-      expect(convertAmountWithDecimals('1', 18)).toEqual(1000000000000000000n)
-      expect(convertAmountWithDecimals('1.23456789', 18)).toEqual(1234567890000000000n)
-    })
-    test('should convert token unit amount', () => {
-      expect(convertAlphAmount('0')).toEqual(0n)
-      expect(convertAlphAmount('1')).toEqual(1000000000000000000n)
-      expect(convertAlphAmount('1.23456789')).toEqual(1234567890000000000n)
+    test('should convert amounts', () => {
+      for (const test of tests1) {
+        expect(convertAmountWithDecimals(test.raw, test.decimals)).toEqual(test.amount)
+        expect(convertAmountWithDecimals(parseFloat(test.raw), test.decimals)).toEqual(test.amount)
+
+        if (test.decimals === 18) {
+          expect(convertAlphAmount(test.raw)).toEqual(test.amount)
+          expect(convertAlphAmount(parseFloat(test.raw))).toEqual(test.amount)
+        }
+      }
     })
   })
   describe('when invalid', () => {

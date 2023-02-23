@@ -143,7 +143,7 @@ function toFixedNumber(val: bigint, decimals: number): string {
   return negative + str
 }
 
-export function convertAmountWithDecimals(amount: string, decimals: number): bigint | undefined {
+export function convertAmountWithDecimals(amount: string | number, decimals: number): bigint | undefined {
   try {
     const result = new BigNumber(amount).multipliedBy(Math.pow(10, decimals))
     return BigInt(result.toFormat(0, { groupSeparator: '' }))
@@ -152,6 +152,6 @@ export function convertAmountWithDecimals(amount: string, decimals: number): big
   }
 }
 
-export function convertAlphAmount(amount: string): bigint | undefined {
+export function convertAlphAmount(amount: string | number): bigint | undefined {
   return convertAmountWithDecimals(amount, 18)
 }
