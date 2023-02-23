@@ -27,8 +27,8 @@ export const isNumeric = (numToCheck: any): boolean => !isNaN(parseFloat(numToCh
 export interface IPrettifyNumberConfig {
   minDecimalPlaces: number
   maxDecimalPlaces: number
-  /** significants digits to show in decimals while respecting decimal places */
-  minDecimalSignificanDigits: number
+  /** significant digits to show in decimals while respecting decimal places */
+  minDecimalSignificantDigits: number
   /** special case for zero, e.g. we may want to display $0.00 or 0.0 ALPH */
   decimalPlacesWhenZero: number
 }
@@ -37,38 +37,45 @@ export const prettifyNumberConfig: Record<string, IPrettifyNumberConfig> = {
   ALPH: {
     minDecimalPlaces: 2,
     maxDecimalPlaces: 10,
-    minDecimalSignificanDigits: 2,
+    minDecimalSignificantDigits: 2,
     decimalPlacesWhenZero: 2
   },
-  TOKEN_WITH_DECIMAL_0: {
-    minDecimalPlaces: 1,
-    maxDecimalPlaces: 0,
-    minDecimalSignificanDigits: 0,
+  TOKEN: {
+    minDecimalPlaces: 4,
+    maxDecimalPlaces: 16,
+    minDecimalSignificantDigits: 2,
+    decimalPlacesWhenZero: 1
+  },
+  Exact: {
+    minDecimalPlaces: 18,
+    maxDecimalPlaces: 18,
+    minDecimalSignificantDigits: 0,
     decimalPlacesWhenZero: 0
   }
 }
 
-export const convertSetToAlph = (setsAmount: bigint): string => {
-  const fixedNumber = toFixedNumber(setsAmount, 18)
-  return prettifyAlphAmount(fixedNumber)
+export function prettifyAttoAlphAmount(amount: bigint): string | null {
+  return prettifyNumber(amount, 18, prettifyNumberConfig.ALPH)
 }
 
-export const prettifyAlphAmount = (alphAmount: BigNumber.Value) => {
-  return prettifyNumber(alphAmount, prettifyNumberConfig.ALPH)
+export function prettifyTokenAmount(amount: bigint, decimals: number): string | null {
+  return prettifyNumber(amount, decimals, prettifyNumberConfig.TOKEN)
 }
 
-export const prettifyTokenWithZeroDecimal = (tokenAmount: bigint): string => {
-  return prettifyNumber(tokenAmount.toString(), prettifyNumberConfig.TOKEN_WITH_DECIMAL_0)
+export function prettifyExactAmount(amount: bigint, decimals: number): string | null {
+  return prettifyNumber(amount, decimals, prettifyNumberConfig.Exact)
 }
 
-export const prettifyNumber = (number: BigNumber.Value, config: IPrettifyNumberConfig) => {
+export function prettifyNumber(amount: bigint, decimals: number, config: IPrettifyNumberConfig): string | null {
+  const number = toFixedNumber(amount, decimals)
+
   if (!isNumeric(number)) {
     return null
   }
 
   const numberBN = new BigNumber(number)
 
-  let untrimmed
+  let untrimmed: string
   if (numberBN.gte(1)) {
     /** simplest case, formatting to minDecimalPlaces will look good */
     untrimmed = numberBN.toFormat(config.minDecimalPlaces)
@@ -83,7 +90,7 @@ export const prettifyNumber = (number: BigNumber.Value, config: IPrettifyNumberC
     /** now we can re-format with leadingZerosInDecimalPart + maxDecimalSignificanDigits to give us the pretty version */
     /** e.g. 0.0008923088123 -> 0.00089 */
     const prettyDecimalPlaces = Math.max(
-      leadingZerosInDecimalPart + config.minDecimalSignificanDigits,
+      leadingZerosInDecimalPart + config.minDecimalSignificantDigits,
       config.minDecimalPlaces
     )
     untrimmed = numberBN.toFormat(prettyDecimalPlaces)
@@ -95,6 +102,9 @@ export const prettifyNumber = (number: BigNumber.Value, config: IPrettifyNumberC
   if (trimmed.length < minLength) {
     trimmed = untrimmed.substring(0, minLength)
   }
+  if (trimmed[trimmed.length - 1] === '.') {
+    trimmed = trimmed.slice(0, -1)
+  }
   return trimmed
 }
 
@@ -102,12 +112,9 @@ const BN_N1 = BigInt(-1)
 const BN_0 = BigInt(0)
 
 // Constant to pull zeros from for multipliers
-let Zeros = '0000'
-while (Zeros.length < 80) {
-  Zeros += Zeros
-}
+const Zeros = '0000'
 
-export function toFixedNumber(val: bigint, decimals: number): string {
+function toFixedNumber(val: bigint, decimals: number): string {
   let negative = ''
   if (val < BN_0) {
     negative = '-'
