@@ -18,55 +18,28 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import BigNumber from 'bignumber.js'
 
 import {
-  convertSetToAlph,
-  IPrettifyNumberConfig,
   isNumeric,
-  prettifyAlphAmount,
+  prettifyAttoAlphAmount,
+  prettifyExactAmount,
   prettifyNumber,
-  prettifyTokenWithZeroDecimal,
-  toFixedNumber
+  prettifyNumberConfig,
+  prettifyTokenAmount
 } from './number'
 
 import { tests } from './number.fixture'
-
-const TEST_TOKEN_CONIFG: IPrettifyNumberConfig = {
-  minDecimalPlaces: 4,
-  maxDecimalPlaces: 16,
-  minDecimalSignificanDigits: 2,
-  decimalPlacesWhenZero: 0
-}
-
-export const prettifyTokenAmount = (number: BigNumber.Value) => {
-  return prettifyNumber(number, TEST_TOKEN_CONIFG)
-}
 
 describe('prettify number', () => {
   describe('when valid', () => {
     test('should prettify number', () => {
       for (const test of tests) {
-        const fixedNumber = toFixedNumber(test.raw, test.decimal)
-        expect(fixedNumber).toEqual(test.fixed)
-        expect(prettifyAlphAmount(fixedNumber)).toEqual(test.alphFormat)
-        expect(prettifyTokenAmount(fixedNumber)).toEqual(test.tokenFormat)
-
-        if (test.decimal === 0) {
-          expect(prettifyTokenWithZeroDecimal(test.raw)).toEqual(test.tokenFormat)
-        }
+        expect(prettifyExactAmount(test.raw, test.decimal)).toEqual(test.exact)
+        expect(prettifyNumber(test.raw, test.decimal, prettifyNumberConfig.ALPH)).toEqual(test.alphFormat)
+        expect(prettifyTokenAmount(test.raw, test.decimal)).toEqual(test.tokenFormat)
 
         if (test.decimal === 18) {
-          expect(convertSetToAlph(test.raw)).toEqual(test.alphFormat)
+          expect(prettifyAttoAlphAmount(test.raw)).toEqual(test.alphFormat)
         }
       }
-    })
-  })
-
-  describe('when invalid', () => {
-    test('should return null', () => {
-      /** allow us to pass invalid arguments for testing purposes */
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      expect(prettifyNumber()).toBeNull()
-      expect(prettifyAlphAmount('foo')).toBeNull()
     })
   })
 })
