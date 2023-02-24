@@ -24,10 +24,10 @@
     "useTabs": false
   },
   "dependencies": {
-    "@alephium/cli": "0.5.0-rc.20",
-    "@alephium/web3": "0.5.0-rc.20",
-    "@alephium/web3-test": "0.5.0-rc.20",
-    "@alephium/web3-wallet": "0.5.0-rc.20"
+    "@alephium/cli": "0.5.0-rc.21",
+    "@alephium/web3": "0.5.0-rc.21",
+    "@alephium/web3-test": "0.5.0-rc.21",
+    "@alephium/web3-wallet": "0.5.0-rc.21"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
