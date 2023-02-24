@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-test",
-  "version": "0.5.0-rc.22",
+  "version": "0.5.0",
   "description": "Utility functions for Alephium test",
   "keywords": [
     "alephium",
@@ -28,8 +28,8 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "@alephium/web3": "0.5.0-rc.22",
-    "@alephium/web3-wallet": "0.5.0-rc.22"
+    "@alephium/web3": "0.5.0",
+    "@alephium/web3-wallet": "0.5.0"
   },
   "devDependencies": {
     "@types/find-up": "^2.1.0",
