@@ -38,7 +38,7 @@ async function withdraw() {
     const faucet = TokenFaucet.at(tokenAddress)
     // Fetch the latest state of the token contract
     const state = await faucet.fetchState()
-    console.log(stringifyJsonWithBigint(state.fields, '  '))
+    console.log(JSON.stringify(state.fields, null, '  '))
   }
 }
 

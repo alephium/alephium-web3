@@ -28,8 +28,7 @@ import {
   subContractId,
   contractIdFromAddress,
   binToHex,
-  addressFromContractId,
-  parseJsonWithBigint
+  addressFromContractId
 } from '../packages/web3'
 import { Contract, Project, Script } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
@@ -196,7 +195,7 @@ describe('contract', function () {
   function loadJson(fileName: string) {
     const filePath = path.resolve(process.cwd() + path.sep + fileName)
     const rawData = fs.readFileSync(filePath).toString()
-    return parseJsonWithBigint(rawData)
+    return JSON.parse(rawData)
   }
 
   function loadContract(fileName: string) {

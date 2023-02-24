@@ -111,7 +111,7 @@ export interface ExecutionResult {
   unsignedTx: string
   signature: string
   gasAmount: number
-  gasPrice: bigint
+  gasPrice: Number256
   blockHash: string
   codeHash: string
   attoAlphAmount?: Number256

@@ -61,7 +61,7 @@ export abstract class SignerProvider {
     const derivedAddress = addressFromPublicKey(account.publicKey, account.keyType)
     const derivedGroup = groupOfAddress(derivedAddress)
     if (derivedAddress !== account.address || derivedGroup !== account.group) {
-      throw Error(`Invalid account data: ${JSON.stringify(account)}`)
+      throw Error(`Invalid accounot data: ${JSON.stringify(account)}`)
     }
   }
 
