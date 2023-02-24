@@ -36,11 +36,15 @@ describe('prettify number', () => {
     test('should prettify number', () => {
       for (const test of tests) {
         expect(prettifyExactAmount(test.raw, test.decimal)).toEqual(test.exact)
+        expect(prettifyExactAmount(test.raw.toString(), test.decimal)).toEqual(test.exact)
         expect(prettifyNumber(test.raw, test.decimal, prettifyNumberConfig.ALPH)).toEqual(test.alphFormat)
+        expect(prettifyNumber(test.raw.toString(), test.decimal, prettifyNumberConfig.ALPH)).toEqual(test.alphFormat)
         expect(prettifyTokenAmount(test.raw, test.decimal)).toEqual(test.tokenFormat)
+        expect(prettifyTokenAmount(test.raw.toString(), test.decimal)).toEqual(test.tokenFormat)
 
         if (test.decimal === 18) {
           expect(prettifyAttoAlphAmount(test.raw)).toEqual(test.alphFormat)
+          expect(prettifyAttoAlphAmount(test.raw.toString())).toEqual(test.alphFormat)
         }
       }
     })

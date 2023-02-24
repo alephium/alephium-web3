@@ -68,7 +68,7 @@ export function prettifyExactAmount(amount: Number256, decimals: number): string
 }
 
 export function prettifyNumber(amount: Number256, decimals: number, config: IPrettifyNumberConfig): string | undefined {
-  const number = typeof amount === 'string' ? amount : toFixedNumber(amount, decimals)
+  const number = toFixedNumber(number256ToBigint(amount), decimals)
 
   if (!isNumeric(number)) {
     return undefined
