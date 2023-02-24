@@ -155,37 +155,3 @@ export function convertAmountWithDecimals(amount: string | number, decimals: num
 export function convertAlphAmount(amount: string | number): bigint | undefined {
   return convertAmountWithDecimals(amount, 18)
 }
-
-function replacer(key: string, value: any): any {
-  if (typeof value === 'bigint') {
-    return { __bigintval__: value.toString() }
-  }
-  return value
-}
-
-function reviver(key: string, value: any): any {
-  if (value != null && typeof value === 'object' && '__bigintval__' in value) {
-    return BigInt(value['__bigintval__'])
-  }
-  return value
-}
-
-export function stringifyJsonWithBigint(obj: any, space?: string | number): string {
-  const bigintToString = BigInt.prototype['toJSON']
-  BigInt.prototype['toJSON'] = undefined
-
-  const result = JSON.stringify(obj, replacer, space)
-
-  BigInt.prototype['toJSON'] = bigintToString
-  return result
-}
-
-export function parseJsonWithBigint(text: string): any {
-  const bigintToString = BigInt.prototype['toJSON']
-  BigInt.prototype['toJSON'] = undefined
-
-  const result = JSON.parse(text, reviver)
-
-  BigInt.prototype['toJSON'] = bigintToString
-  return result
-}
