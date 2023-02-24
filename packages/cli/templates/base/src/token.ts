@@ -1,5 +1,5 @@
 import { Deployments } from '@alephium/cli'
-import { web3, Project } from '@alephium/web3'
+import { web3, Project, stringifyJsonWithBigint } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import configuration from '../alephium.config'
 import { TokenFaucet, Withdraw } from '../artifacts/ts'
@@ -23,6 +23,10 @@ async function withdraw() {
 
     // Load the metadata of the deployed contract in the right group
     const deployed = deployments.getDeployedContractResult(accountGroup, 'TokenFaucet')
+    if (deployed === undefined) {
+      console.log(`The contract is not deployed on group ${account.group}`)
+      continue
+    }
     const tokenId = deployed.contractId
     const tokenAddress = deployed.contractAddress
 
@@ -34,7 +38,7 @@ async function withdraw() {
     const faucet = TokenFaucet.at(tokenAddress)
     // Fetch the latest state of the token contract
     const state = await faucet.fetchState()
-    console.log(JSON.stringify(state.fields, null, '  '))
+    console.log(stringifyJsonWithBigint(state.fields, '  '))
   }
 }
 

@@ -32,7 +32,9 @@ import {
   ExecuteScriptResult,
   SignerProvider,
   Fields,
-  ContractFactory
+  ContractFactory,
+  stringifyJsonWithBigint,
+  parseJsonWithBigint
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -50,11 +52,12 @@ import {
   DEFAULT_CONFIGURATION_VALUES
 } from './types'
 import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './utils'
+import { groupOfAddress } from '@alephium/web3'
 
 export class Deployments {
-  groups: Map<number, DeploymentsPerGroup>
+  groups: Map<string, DeploymentsPerGroup>
 
-  constructor(groups: Map<number, DeploymentsPerGroup>) {
+  constructor(groups: Map<string, DeploymentsPerGroup>) {
     this.groups = groups
   }
 
@@ -62,20 +65,21 @@ export class Deployments {
     return new Deployments(new Map())
   }
 
-  getDeployedContractResult(group: number, name: string): DeployContractExecutionResult {
-    const result = this.groups.get(group)?.deployContractResults.get(name)
-    if (result === undefined) {
-      throw Error(`Cannot find deployed contract for group ${group} and name ${name}`)
+  deploymentsByGroup(group: number): DeploymentsPerGroup | undefined {
+    for (const entry of this.groups.entries()) {
+      if (groupOfAddress(entry[0]) === group) {
+        return entry[1]
+      }
     }
-    return result
+    return undefined
   }
 
-  getExecutedScriptResult(group: number, name: string): RunScriptResult {
-    const result = this.groups.get(group)?.runScriptResults.get(name)
-    if (result === undefined) {
-      throw Error(`Cannot find executed script for group ${group} and name ${name}`)
-    }
-    return result
+  getDeployedContractResult(group: number, name: string): DeployContractExecutionResult | undefined {
+    return this.deploymentsByGroup(group)?.deployContractResults.get(name)
+  }
+
+  getExecutedScriptResult(group: number, name: string): RunScriptResult | undefined {
+    return this.deploymentsByGroup(group)?.runScriptResults.get(name)
   }
 
   async saveToFile(filepath: string): Promise<void> {
@@ -87,26 +91,20 @@ export class Deployments {
     this.groups.forEach((value, groupIndex) => {
       object[`${groupIndex}`] = value.marshal()
     })
-    const content = JSON.stringify(object, null, 2)
+    const content = stringifyJsonWithBigint(object, 2)
     return fsPromises.writeFile(filepath, content)
   }
 
   static async from(filepath: string): Promise<Deployments> {
     if (!fs.existsSync(filepath)) {
-      return new Deployments(new Map())
+      return Deployments.empty()
     }
     const content = await fsPromises.readFile(filepath)
-    const json = JSON.parse(content.toString(), (key, value) => {
-      if ((key === 'gasPrice' || key === 'attoAlphAmount' || key === 'issueTokenAmount') && value !== undefined) {
-        return BigInt(value)
-      }
-      return value
-    })
-    const groups = new Map<number, DeploymentsPerGroup>()
+    const json = parseJsonWithBigint(content.toString())
+    const groups = new Map<string, DeploymentsPerGroup>()
     Object.entries<any>(json).forEach(([key, value]) => {
-      const groupIndex = parseInt(key)
       const deploymentsPerGroup = DeploymentsPerGroup.unmarshal(value)
-      groups.set(groupIndex, deploymentsPerGroup)
+      groups.set(key, deploymentsPerGroup)
     })
     return new Deployments(groups)
   }
@@ -461,8 +459,8 @@ export async function deploy<Settings = unknown>(
   configuration.defaultNetwork = networkType
 
   for (const signer of signers) {
-    const deploymentsPerGroup = deployments.groups.get(signer.group) ?? DeploymentsPerGroup.empty()
-    deployments.groups.set(signer.group, deploymentsPerGroup)
+    const deploymentsPerGroup = deployments.groups.get(signer.address) ?? DeploymentsPerGroup.empty()
+    deployments.groups.set(signer.address, deploymentsPerGroup)
     await deployToGroup(configuration, deploymentsPerGroup, signer, network, scripts)
   }
 }

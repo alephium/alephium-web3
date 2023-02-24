@@ -21,11 +21,13 @@ import {
   convertAlphAmount,
   convertAmountWithDecimals,
   isNumeric,
+  parseJsonWithBigint,
   prettifyAttoAlphAmount,
   prettifyExactAmount,
   prettifyNumber,
   prettifyNumberConfig,
-  prettifyTokenAmount
+  prettifyTokenAmount,
+  stringifyJsonWithBigint
 } from './number'
 
 import { tests, tests1 } from './number.fixture'
@@ -87,5 +89,21 @@ describe('convertAmountWithDecimals()', () => {
     test('should return undefined', () => {
       expect(convertAmountWithDecimals('foo', 18)).toBeUndefined()
     })
+  })
+})
+
+describe('JSON with bigint', () => {
+  it('should serialize/deserialize bigint', () => {
+    const obj = { value: 0n }
+
+    expect(() => JSON.parse(JSON.stringify(obj))).toThrow('Do not know how to serialize a BigInt')
+
+    BigInt.prototype['toJSON'] = function () {
+      return this.toString()
+    }
+    expect(JSON.parse(JSON.stringify(obj)).value).toEqual('0')
+    BigInt.prototype['toJSON'] = undefined
+
+    expect(parseJsonWithBigint(stringifyJsonWithBigint(obj))).toEqual({ value: 0n })
   })
 })
