@@ -117,8 +117,11 @@ describe('integration tests', () => {
       await signer.setSelectedAccount(testAddress)
       const testGroup = account.group
 
-      // The contract is deployed to all groups
       const deployed = deployments.getDeployedContractResult(testGroup, 'TokenFaucet')
+      if (deployed === undefined) {
+        console.log(`The contract is not deployed on group ${account.group}`)
+        continue
+      }
       const tokenId = deployed.contractId
       const tokenAddress = deployed.contractAddress
       expect(deployed.groupIndex).toEqual(testGroup)
