@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { assertType, bs58, Eq } from '../utils'
 import * as node from './api-alephium'
 
-export type Number256 = bigint
+export type Number256 = bigint | string
 export type Val = Number256 | boolean | string | Val[]
 export type NamedVals = Record<string, Val>
 
