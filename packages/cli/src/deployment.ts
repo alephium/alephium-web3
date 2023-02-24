@@ -32,7 +32,9 @@ import {
   ExecuteScriptResult,
   SignerProvider,
   Fields,
-  ContractFactory
+  ContractFactory,
+  stringifyJsonWithBigint,
+  parseJsonWithBigint
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -87,7 +89,7 @@ export class Deployments {
     this.groups.forEach((value, groupIndex) => {
       object[`${groupIndex}`] = value.marshal()
     })
-    const content = JSON.stringify(object, null, 2)
+    const content = stringifyJsonWithBigint(object, 2)
     return fsPromises.writeFile(filepath, content)
   }
 
@@ -96,12 +98,7 @@ export class Deployments {
       return new Deployments(new Map())
     }
     const content = await fsPromises.readFile(filepath)
-    const json = JSON.parse(content.toString(), (key, value) => {
-      if ((key === 'gasPrice' || key === 'attoAlphAmount' || key === 'issueTokenAmount') && value !== undefined) {
-        return BigInt(value)
-      }
-      return value
-    })
+    const json = parseJsonWithBigint(content.toString())
     const groups = new Map<number, DeploymentsPerGroup>()
     Object.entries<any>(json).forEach(([key, value]) => {
       const groupIndex = parseInt(key)

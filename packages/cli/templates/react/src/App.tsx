@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import './App.css'
 
-import { ExplorerProvider, Contract, Script } from '@alephium/web3'
+import { ExplorerProvider, Contract, Script, stringifyJsonWithBigint } from '@alephium/web3'
 import contractJson from './artifacts/greeter.ral.json'
 import scriptJson from './artifacts/greeter_main.ral.json'
 
@@ -14,7 +14,7 @@ function Dashboard() {
   useEffect(() => {
     async function fetchBlocks() {
       const blocks = (await api.blocks.getBlocks({ page: 1 })).total
-      setBlocks(JSON.stringify(blocks))
+      setBlocks(stringifyJsonWithBigint(blocks))
     }
 
     fetchBlocks()

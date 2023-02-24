@@ -54,7 +54,9 @@ import {
   Eq,
   Optional,
   groupOfAddress,
-  addressFromContractId
+  addressFromContractId,
+  stringifyJsonWithBigint,
+  parseJsonWithBigint
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
@@ -207,7 +209,7 @@ class ProjectArtifact {
       compilerOptionsUsed: this.compilerOptionsUsed,
       infos: Object.fromEntries(new Map([...this.infos].sort()))
     }
-    const content = JSON.stringify(artifact, null, 2)
+    const content = stringifyJsonWithBigint(artifact, 2)
     return fsPromises.writeFile(filepath, content)
   }
 
@@ -241,7 +243,7 @@ class ProjectArtifact {
       return undefined
     }
     const content = await fsPromises.readFile(filepath)
-    const json = JSON.parse(content.toString())
+    const json = parseJsonWithBigint(content.toString())
     const compilerOptionsUsed = json.compilerOptionsUsed as node.CompilerOptions
     const files = new Map(Object.entries<CodeInfo>(json.infos))
     return new ProjectArtifact(compilerOptionsUsed, files)
@@ -737,7 +739,7 @@ export class Contract extends Artifact {
   // support both 'code.ral' and 'code.ral.json'
   static async fromArtifactFile(path: string, bytecodeDebugPatch: string, codeHashDebug: string): Promise<Contract> {
     const content = await fsPromises.readFile(path)
-    const artifact = JSON.parse(content.toString())
+    const artifact = parseJsonWithBigint(content.toString())
     return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug)
   }
 
@@ -751,7 +753,7 @@ export class Contract extends Artifact {
       eventsSig: this.eventsSig,
       functions: this.functions
     }
-    return JSON.stringify(object, null, 2)
+    return stringifyJsonWithBigint(object, 2)
   }
 
   toState<T extends Fields>(fields: T, asset: Asset, address?: string): ContractState<T> {
@@ -1047,7 +1049,7 @@ export class Script extends Artifact {
 
   static async fromArtifactFile(path: string, bytecodeDebugPatch: string): Promise<Script> {
     const content = await fsPromises.readFile(path)
-    const artifact = JSON.parse(content.toString())
+    const artifact = parseJsonWithBigint(content.toString())
     return this.fromJson(artifact, bytecodeDebugPatch)
   }
 
@@ -1059,7 +1061,7 @@ export class Script extends Artifact {
       fieldsSig: this.fieldsSig,
       functions: this.functions
     }
-    return JSON.stringify(object, null, 2)
+    return stringifyJsonWithBigint(object, 2)
   }
 
   async txParamsForExecution<P extends Fields>(
