@@ -21,6 +21,7 @@ import {
   convertAlphAmount,
   convertAmountWithDecimals,
   isNumeric,
+  number256ToBigint,
   prettifyAttoAlphAmount,
   prettifyExactAmount,
   prettifyNumber,
@@ -87,5 +88,12 @@ describe('convertAmountWithDecimals()', () => {
     test('should return undefined', () => {
       expect(convertAmountWithDecimals('foo', 18)).toBeUndefined()
     })
+  })
+})
+
+describe('Number256', () => {
+  it('should convert to bigint', () => {
+    expect(number256ToBigint(1n)).toEqual(1n)
+    expect(number256ToBigint('1')).toEqual(1n)
   })
 })

@@ -156,3 +156,7 @@ export function convertAmountWithDecimals(amount: string | number, decimals: num
 export function convertAlphAmount(amount: string | number): bigint | undefined {
   return convertAmountWithDecimals(amount, 18)
 }
+
+export function number256ToBigint(number: Number256): bigint {
+  return typeof number === 'string' ? BigInt(number) : number
+}
