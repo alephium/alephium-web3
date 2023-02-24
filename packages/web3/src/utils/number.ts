@@ -21,6 +21,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 // 2. https://github.com/ethers-io/ethers.js/blob/724881f34d428406488a1c9f9dbebe54b6edecda/src.ts/utils/fixednumber.ts
 
 import BigNumber from 'bignumber.js'
+import { Number256 } from '..'
 
 export const isNumeric = (numToCheck: any): boolean => !isNaN(parseFloat(numToCheck)) && isFinite(numToCheck)
 
@@ -54,20 +55,20 @@ export const prettifyNumberConfig: Record<string, IPrettifyNumberConfig> = {
   }
 }
 
-export function prettifyAttoAlphAmount(amount: bigint): string | undefined {
+export function prettifyAttoAlphAmount(amount: Number256): string | undefined {
   return prettifyNumber(amount, 18, prettifyNumberConfig.ALPH)
 }
 
-export function prettifyTokenAmount(amount: bigint, decimals: number): string | undefined {
+export function prettifyTokenAmount(amount: Number256, decimals: number): string | undefined {
   return prettifyNumber(amount, decimals, prettifyNumberConfig.TOKEN)
 }
 
-export function prettifyExactAmount(amount: bigint, decimals: number): string | undefined {
+export function prettifyExactAmount(amount: Number256, decimals: number): string | undefined {
   return prettifyNumber(amount, decimals, prettifyNumberConfig.Exact)
 }
 
-export function prettifyNumber(amount: bigint, decimals: number, config: IPrettifyNumberConfig): string | undefined {
-  const number = toFixedNumber(amount, decimals)
+export function prettifyNumber(amount: Number256, decimals: number, config: IPrettifyNumberConfig): string | undefined {
+  const number = typeof amount === 'string' ? amount : toFixedNumber(amount, decimals)
 
   if (!isNumeric(number)) {
     return undefined
