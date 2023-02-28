@@ -18,12 +18,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request } from './types'
 import { Api as NodeApi } from './api-alephium'
+import { retryFetch } from './utils'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
     baseUrl: baseUrl,
     baseApiParams: { secure: true },
-    securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {})
+    securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {}),
+    customFetch: retryFetch
   })
   nodeApi.setSecurityData(apiKey ?? null)
   return nodeApi

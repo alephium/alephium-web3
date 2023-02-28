@@ -22,7 +22,7 @@ describe('utils', function () {
   it('should throw API error', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
     await expect(provider.addresses.getAddressesAddressGroup('000')).rejects.toThrowError(
-      new Error('[Node API Error] - Invalid value for: path parameter address (Unable to decode address from 000: 000)')
+      new Error('[API Error] - Invalid value for: path parameter address (Unable to decode address from 000: 000)')
     )
   })
 })

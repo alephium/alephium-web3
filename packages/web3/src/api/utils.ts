@@ -16,10 +16,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import 'cross-fetch/polyfill'
+
 export function convertHttpResponse<T>(response: { data: T; error?: { detail: string } }): T {
   if (response.error) {
-    throw new Error(`[Node API Error] - ${response.error.detail}`)
+    throw new Error(`[API Error] - ${response.error.detail}`)
   } else {
     return response.data
   }
+}
+
+export async function retryFetch(...fetchParams: Parameters<typeof fetch>): ReturnType<typeof fetch> {
+  const retry = async (retryNum: number): ReturnType<typeof fetch> => {
+    const response = await fetch(...fetchParams)
+    if (response.status === 429 && retryNum < 5) {
+      return await retry(retryNum + 1)
+    } else {
+      return response
+    }
+  }
+  return retry(0)
 }
