@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import BigNumber from 'bignumber.js'
 
 import {
-  convertAlphAmount,
+  convertAlphAmountWithDecimals,
   convertAmountWithDecimals,
   isNumeric,
   number256ToBigint,
@@ -82,8 +82,8 @@ describe('convertAmountWithDecimals()', () => {
         expect(convertAmountWithDecimals(parseFloat(test.raw), test.decimals)).toEqual(test.amount)
 
         if (test.decimals === 18) {
-          expect(convertAlphAmount(test.raw)).toEqual(test.amount)
-          expect(convertAlphAmount(parseFloat(test.raw))).toEqual(test.amount)
+          expect(convertAlphAmountWithDecimals(test.raw)).toEqual(test.amount)
+          expect(convertAlphAmountWithDecimals(parseFloat(test.raw))).toEqual(test.amount)
         }
       }
     })
