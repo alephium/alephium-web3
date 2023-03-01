@@ -21,10 +21,14 @@ import { ExplorerProvider, NodeProvider } from './api'
 let _currentNodeProvider: NodeProvider | undefined = undefined
 
 export function setCurrentNodeProvider(provider: NodeProvider): void
-export function setCurrentNodeProvider(baseUrl: string, apiKey?: string): void
-export function setCurrentNodeProvider(provider: NodeProvider | string, apiKey?: string): void {
+export function setCurrentNodeProvider(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): void
+export function setCurrentNodeProvider(
+  provider: NodeProvider | string,
+  apiKey?: string,
+  customFetch?: typeof fetch
+): void {
   if (typeof provider == 'string') {
-    _currentNodeProvider = new NodeProvider(provider, apiKey)
+    _currentNodeProvider = new NodeProvider(provider, apiKey, customFetch)
   } else {
     _currentNodeProvider = provider
   }
@@ -40,10 +44,14 @@ export function getCurrentNodeProvider(): NodeProvider {
 let _currentExplorerProvider: ExplorerProvider | undefined = undefined
 
 export function setCurrentExplorerProvider(provider: ExplorerProvider): void
-export function setCurrentExplorerProvider(baseUrl: string, apiKey?: string): void
-export function setCurrentExplorerProvider(provider: ExplorerProvider | string, apiKey?: string): void {
+export function setCurrentExplorerProvider(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): void
+export function setCurrentExplorerProvider(
+  provider: ExplorerProvider | string,
+  apiKey?: string,
+  customFetch?: typeof fetch
+): void {
   if (typeof provider == 'string') {
-    _currentExplorerProvider = new ExplorerProvider(provider, apiKey)
+    _currentExplorerProvider = new ExplorerProvider(provider, apiKey, customFetch)
   } else {
     _currentExplorerProvider = provider
   }

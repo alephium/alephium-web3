@@ -18,14 +18,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request } from './types'
 import { Api as ExplorerApi } from './api-explorer'
-import { retryFetch } from './utils'
+import { DEFAULT_THROTTLE_FETCH } from './utils'
 
-function initializeExplorerApi(baseUrl: string, apiKey?: string): ExplorerApi<string> {
+function initializeExplorerApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): ExplorerApi<string> {
   const explorerApi = new ExplorerApi<string>({
     baseUrl: baseUrl,
     baseApiParams: { secure: true },
     securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {}),
-    customFetch: retryFetch
+    customFetch: customFetch ?? DEFAULT_THROTTLE_FETCH
   })
   explorerApi.setSecurityData(apiKey ?? null)
   return explorerApi
@@ -41,13 +41,13 @@ export class ExplorerProvider {
   readonly charts: ExplorerApi<string>['charts']
   readonly utils: ExplorerApi<string>['utils']
 
-  constructor(baseUrl: string, apiKey?: string)
+  constructor(baseUrl: string, apiKey?: string, customFetch?: typeof fetch)
   constructor(provider: ExplorerProvider)
   constructor(handler: ApiRequestHandler)
-  constructor(param0: string | ExplorerProvider | ApiRequestHandler, apiKey?: string) {
+  constructor(param0: string | ExplorerProvider | ApiRequestHandler, apiKey?: string, customFetch?: typeof fetch) {
     let explorerApi: ExplorerProvider
     if (typeof param0 === 'string') {
-      explorerApi = initializeExplorerApi(param0, apiKey)
+      explorerApi = initializeExplorerApi(param0, apiKey, customFetch)
     } else if (typeof param0 === 'function') {
       explorerApi = new ExplorerProvider('https://1.2.3.4:0')
       forwardRequests(explorerApi, param0 as ApiRequestHandler)

@@ -32,7 +32,7 @@ describe('events', function () {
   let signer: NodeWallet
 
   beforeAll(async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await testNodeWallet()
     // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })

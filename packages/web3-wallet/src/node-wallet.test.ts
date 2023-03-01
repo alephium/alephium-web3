@@ -22,7 +22,7 @@ import { NodeWallet } from './node-wallet'
 
 describe('node wallet', () => {
   beforeAll(() => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
   })
 
   it('should transfer (1)', async () => {

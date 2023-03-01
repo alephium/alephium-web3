@@ -18,14 +18,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request } from './types'
 import { Api as NodeApi } from './api-alephium'
-import { retryFetch } from './utils'
+import { DEFAULT_THROTTLE_FETCH } from './utils'
 
-function initializeNodeApi(baseUrl: string, apiKey?: string): NodeApi<string> {
+function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
     baseUrl: baseUrl,
     baseApiParams: { secure: true },
     securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {}),
-    customFetch: retryFetch
+    customFetch: customFetch ?? DEFAULT_THROTTLE_FETCH
   })
   nodeApi.setSecurityData(apiKey ?? null)
   return nodeApi
@@ -44,13 +44,13 @@ export class NodeProvider {
   readonly miners: NodeApi<string>['miners']
   readonly events: NodeApi<string>['events']
 
-  constructor(baseUrl: string, apiKey?: string)
+  constructor(baseUrl: string, apiKey?: string, customFetch?: typeof fetch)
   constructor(provider: NodeProvider)
   constructor(handler: ApiRequestHandler)
-  constructor(param0: string | NodeProvider | ApiRequestHandler, apiKey?: string) {
+  constructor(param0: string | NodeProvider | ApiRequestHandler, apiKey?: string, customFetch?: typeof fetch) {
     let nodeApi: NodeProvider
     if (typeof param0 === 'string') {
-      nodeApi = initializeNodeApi(param0, apiKey)
+      nodeApi = initializeNodeApi(param0, apiKey, customFetch)
     } else if (typeof param0 === 'function') {
       nodeApi = new NodeProvider('https://1.2.3.4:0')
       forwardRequests(nodeApi, param0 as ApiRequestHandler)

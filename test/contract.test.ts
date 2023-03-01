@@ -48,7 +48,7 @@ describe('contract', function () {
   let signerGroup: number
 
   beforeAll(async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await testNodeWallet()
     signerAccount = await signer.getSelectedAccount()
     signerGroup = signerAccount.group

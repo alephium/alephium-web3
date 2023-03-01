@@ -29,7 +29,7 @@ import { Add, Sub, Main } from '../artifacts/ts'
 
 describe('transactions', function () {
   it('should subscribe transaction status', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     await Project.build({ errorOnWarnings: false })
     const sub = Project.contract('Sub')
     const signer = await testNodeWallet()
@@ -80,7 +80,7 @@ describe('transactions', function () {
   }, 10000)
 
   it('should use Schnorr address', async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     const nodeProvider = web3.getCurrentNodeProvider()
 
     await Project.build({ errorOnWarnings: false })
