@@ -37,9 +37,9 @@ export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
 
   static from(nodeProvider: NodeProvider): TransactionBuilder
-  static from(baseUrl: string, apiKey?: string): TransactionBuilder
-  static from(param0: string | NodeProvider, param1?: string): TransactionBuilder {
-    const nodeProvider = typeof param0 === 'string' ? new NodeProvider(param0, param1) : (param0 as NodeProvider)
+  static from(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): TransactionBuilder
+  static from(param0: string | NodeProvider, param1?: string, customFetch?: typeof fetch): TransactionBuilder {
+    const nodeProvider = typeof param0 === 'string' ? new NodeProvider(param0, param1, customFetch) : (param0 as NodeProvider)
     return new (class extends TransactionBuilder {
       get nodeProvider(): NodeProvider {
         return nodeProvider
