@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Project, Contract, getContractEventsCurrentCount } from '../packages/web3'
 import { NodeWallet } from '../packages/web3-wallet'
-import { SubscribeOptions, timeout } from '../packages/web3'
+import { SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { Sub } from '../artifacts/ts/Sub'
@@ -66,7 +66,7 @@ describe('events', function () {
     for (let i = 0; i < 3; i++) {
       await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
-    await timeout(3000)
+    await sleep(3000)
 
     expect(addEvents.length).toEqual(3)
     addEvents.forEach((event) => {
@@ -89,7 +89,7 @@ describe('events', function () {
     for (let i = 0; i < 3; i++) {
       await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     }
-    await timeout(3000)
+    await sleep(3000)
 
     const isAdd = (event: EventTypes): event is AddTypes.AddEvent => {
       return (<AddTypes.AddEvent>event).fields.x !== undefined
@@ -126,7 +126,7 @@ describe('events', function () {
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAddEvent(subscribeOptions)
     const scriptTx0 = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
-    await timeout(1500)
+    await sleep(1500)
     subscription.unsubscribe()
 
     expect(addEvents.length).toEqual(1)
@@ -136,7 +136,7 @@ describe('events', function () {
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
     await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
-    await timeout(1500)
+    await sleep(1500)
     expect(addEvents.length).toEqual(1)
   })
 
@@ -151,7 +151,7 @@ describe('events', function () {
     const currentEventCount = await getContractEventsCurrentCount(CreateContractEventAddress)
     const subscription = subscribeContractCreatedEvent(subscribeOptions, currentEventCount)
     const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
-    await timeout(1500)
+    await sleep(1500)
     subscription.unsubscribe()
 
     expect(events.length).toEqual(1)
@@ -171,7 +171,7 @@ describe('events', function () {
     const caller = (await signer.getSelectedAccount()).address
     await DestroyAdd.execute(signer, { initialFields: { add: add.contractId, caller } })
 
-    await timeout(1500)
+    await sleep(1500)
     subscription.unsubscribe()
 
     expect(events.length).toEqual(1)

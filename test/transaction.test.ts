@@ -20,7 +20,7 @@ import { subscribeToTxStatus } from '../packages/web3'
 import { Project } from '../packages/web3'
 import { node } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
-import { SubscribeOptions, timeout } from '../packages/web3'
+import { SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { TxStatus } from '../packages/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
@@ -58,14 +58,14 @@ describe('transactions', function () {
     const counterBeforeSubscribe = counter
 
     const subscription = subscribeToTxStatus(subscriptOptions, subDeployTx.txId)
-    await timeout(1500)
+    await sleep(1500)
     expect(txStatus).toMatchObject({ type: 'TxNotFound' })
 
     await signer.signAndSubmitUnsignedTx({
       unsignedTx: subDeployTx.unsignedTx,
       signerAddress: (await signer.getSelectedAccount()).address
     })
-    await timeout(1500)
+    await sleep(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
 
     expect(counterBeforeSubscribe).toBeLessThan(counter)
@@ -73,7 +73,7 @@ describe('transactions', function () {
     subscription.unsubscribe()
 
     const counterAfterUnsubscribe = counter
-    await timeout(1500)
+    await sleep(1500)
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
     // There maybe a pending request when we unsubscribe
     expect([counter, counter - 1]).toContain(counterAfterUnsubscribe)

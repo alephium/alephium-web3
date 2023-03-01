@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import 'cross-fetch/polyfill'
+import { sleep } from '../utils'
 
 export function convertHttpResponse<T>(response: { data: T; error?: { detail: string } }): T {
   if (response.error) {
@@ -27,10 +28,12 @@ export function convertHttpResponse<T>(response: { data: T; error?: { detail: st
 }
 
 export async function retryFetch(...fetchParams: Parameters<typeof fetch>): ReturnType<typeof fetch> {
-  const retry = async (retryNum: number): ReturnType<typeof fetch> => {
+  const retry = async (retryCount: number): ReturnType<typeof fetch> => {
     const response = await fetch(...fetchParams)
-    if (response.status === 429 && retryNum < 5) {
-      return await retry(retryNum + 1)
+    if (response.status === 429 && retryCount < 5) {
+      const nextCount = retryCount + 1
+      await sleep(nextCount * 500)
+      return await retry(nextCount)
     } else {
       return response
     }
