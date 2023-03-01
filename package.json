@@ -1,6 +1,4 @@
 {
-  "name": "@alephium/ts-root",
-  "private": true,
   "license": "GPL",
   "workspaces": [
     "packages/*"
@@ -10,7 +8,7 @@
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^27.1.2",
     "jest": "^28.1.0",
-    "lerna": "^5.5.0"
+    "lerna": "6.5.1"
   },
   "scripts": {
     "clean": "lerna clean",
@@ -23,7 +21,7 @@
     "lint:fix": "eslint . --fix --ext ts",
     "audit": "lerna exec -- npm audit --production",
     "update-schemas": "lerna run update-schemas",
-    "version": "lerna version --no-push --no-private",
+    "lerna-version": "lerna version --no-push --no-private --no-git-tag-version",
     "publish": "npm run build && lerna exec -- npm publish --access public",
     "start-devnet": "lerna run start-devnet",
     "stop-devnet": "lerna run stop-devnet",
