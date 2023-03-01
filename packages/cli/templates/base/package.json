@@ -14,20 +14,11 @@
     "lint:fix": "eslint . --fix --ext ts",
     "test": "jest -i --config ./jest-config.json"
   },
-  "prettier": {
-    "bracketSameLine": false,
-    "printWidth": 120,
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "none",
-    "useTabs": false
-  },
   "dependencies": {
-    "@alephium/cli": "0.5.2",
-    "@alephium/web3": "0.5.2",
-    "@alephium/web3-test": "0.5.2",
-    "@alephium/web3-wallet": "0.5.2"
+    "@alephium/cli": "0.5.3",
+    "@alephium/web3": "0.5.3",
+    "@alephium/web3-test": "0.5.3",
+    "@alephium/web3-wallet": "0.5.3"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",

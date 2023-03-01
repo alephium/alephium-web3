@@ -22,6 +22,7 @@
     "audit": "lerna exec -- npm audit --production",
     "update-schemas": "lerna run update-schemas",
     "lerna-version": "lerna version --no-push --no-private --no-git-tag-version",
+    "lerna-update-deps": "lerna exec -- npm i --package-lock-only",
     "publish": "npm run build && lerna exec -- npm publish --access public",
     "start-devnet": "lerna run start-devnet",
     "stop-devnet": "lerna run stop-devnet",

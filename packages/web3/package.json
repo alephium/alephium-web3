@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "main": "dist/src/index.js",
@@ -43,12 +43,12 @@
     "@noble/secp256k1": "1.7.1",
     "async-sema": "^3.1.1",
     "base-x": "4.0.0",
+    "bignumber.js": "^9.0.2",
     "blakejs": "1.2.1",
     "buffer": "^6.0.3",
     "cross-fetch": "^3.1.5",
     "elliptic": "6.5.4",
-    "eventemitter3": "^4.0.7",
-    "bignumber.js": "^9.0.2"
+    "eventemitter3": "^4.0.7"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.9",
