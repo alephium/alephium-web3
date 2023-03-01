@@ -21,7 +21,7 @@
     "lint:fix": "eslint . --fix --ext ts",
     "audit": "lerna exec -- npm audit --production",
     "update-schemas": "lerna run update-schemas",
-    "version": "lerna version --no-push --no-private",
+    "release": "lerna version --no-push --no-private",
     "publish": "npm run build && lerna exec -- npm publish --access public",
     "start-devnet": "lerna run start-devnet",
     "stop-devnet": "lerna run stop-devnet",
