@@ -53,4 +53,4 @@ export function throttledFetch(ratePerSec: number): typeof fetch {
 
 export const RETRY_LIMIT_WHEN_429 = 3
 export const DEFAULT_RATE_LIMIT = 3
-export const DEFAULT_THROTTLE_FETCH = throttledFetch(3)
+export const DEFAULT_THROTTLE_FETCH = throttledFetch(DEFAULT_RATE_LIMIT)
