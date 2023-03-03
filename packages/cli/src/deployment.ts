@@ -53,23 +53,18 @@ import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './
 import { groupOfAddress } from '@alephium/web3'
 
 export class Deployments {
-  groups: Map<string, DeploymentsPerGroup>
+  deployments: DeploymentsPerAddress[]
 
-  constructor(groups: Map<string, DeploymentsPerGroup>) {
-    this.groups = groups
+  constructor(deployments: DeploymentsPerAddress[]) {
+    this.deployments = deployments
   }
 
   static empty(): Deployments {
-    return new Deployments(new Map())
+    return new Deployments([])
   }
 
-  deploymentsByGroup(group: number): DeploymentsPerGroup | undefined {
-    for (const entry of this.groups.entries()) {
-      if (groupOfAddress(entry[0]) === group) {
-        return entry[1]
-      }
-    }
-    return undefined
+  deploymentsByGroup(group: number): DeploymentsPerAddress | undefined {
+    return this.deployments.find((deployment) => groupOfAddress(deployment.deployerAddress) === group)
   }
 
   getDeployedContractResult(group: number, name: string): DeployContractExecutionResult | undefined {
@@ -80,8 +75,19 @@ export class Deployments {
     return this.deploymentsByGroup(group)?.scripts.get(name)
   }
 
-  add(deploymentsPerGroup: DeploymentsPerGroup): void {
-    this.groups.set(deploymentsPerGroup.deployerAddress, deploymentsPerGroup)
+  add(deploymentsPerAddress: DeploymentsPerAddress): void {
+    const index = this.deployments.findIndex(
+      (deployment) => deployment.deployerAddress === deploymentsPerAddress.deployerAddress
+    )
+    if (index === -1) {
+      this.deployments.push(deploymentsPerAddress)
+    } else {
+      this.deployments[`${index}`] = deploymentsPerAddress
+    }
+  }
+
+  getByDeployer(deployerAddress: string): DeploymentsPerAddress | undefined {
+    return this.deployments.find((deployment) => deployment.deployerAddress === deployerAddress)
   }
 
   async saveToFile(filepath: string): Promise<void> {
@@ -89,8 +95,8 @@ export class Deployments {
     if (!fs.existsSync(dirpath)) {
       fs.mkdirSync(dirpath, { recursive: true })
     }
-    const groups = Array.from(this.groups.values()).map((v) => v.marshal())
-    const content = JSON.stringify(groups.length === 1 ? groups[0] : groups, null, 2)
+    const deployments = this.deployments.map((v) => v.marshal())
+    const content = JSON.stringify(deployments.length === 1 ? deployments[0] : deployments, null, 2)
     return fsPromises.writeFile(filepath, content)
   }
 
@@ -100,13 +106,8 @@ export class Deployments {
     }
     const content = await fsPromises.readFile(filepath)
     const json = JSON.parse(content.toString())
-    const groups = Array.isArray(json) ? json : [json]
-    const deployments = Deployments.empty()
-    groups.forEach((object) => {
-      const deploymentsPerGroup = DeploymentsPerGroup.unmarshal(object)
-      deployments.add(deploymentsPerGroup)
-    })
-    return deployments
+    const objects = Array.isArray(json) ? json : [json]
+    return new Deployments(objects.map((object) => DeploymentsPerAddress.unmarshal(object)))
   }
 
   static async load(configuration: Configuration, networkType: NetworkType): Promise<Deployments> {
@@ -116,20 +117,20 @@ export class Deployments {
   }
 }
 
-export async function getDeploymentResult(filepath: string): Promise<DeploymentsPerGroup> {
+export async function getDeploymentResult(filepath: string): Promise<DeploymentsPerAddress> {
   const deployments = await Deployments.from(filepath)
-  if (deployments.groups.size > 1) {
+  if (deployments.deployments.length > 1) {
     throw new Error('The contracts has been deployed to multiple groups')
   }
-  return Array.from(deployments.groups.values())[0]
+  return deployments.deployments[0]
 }
 
-export async function getDeploymentResults(filepath: string): Promise<DeploymentsPerGroup[]> {
+export async function getDeploymentResults(filepath: string): Promise<DeploymentsPerAddress[]> {
   const deployments = await Deployments.from(filepath)
-  return Array.from(deployments.groups.values())
+  return deployments.deployments
 }
 
-export class DeploymentsPerGroup {
+export class DeploymentsPerAddress {
   deployerAddress: string
   contracts: Map<string, DeployContractExecutionResult>
   scripts: Map<string, RunScriptResult>
@@ -147,8 +148,8 @@ export class DeploymentsPerGroup {
     this.migrations = migrations
   }
 
-  static empty(deployerAddress: string): DeploymentsPerGroup {
-    return new DeploymentsPerGroup(deployerAddress, new Map(), new Map(), new Map())
+  static empty(deployerAddress: string): DeploymentsPerAddress {
+    return new DeploymentsPerAddress(deployerAddress, new Map(), new Map(), new Map())
   }
 
   marshal(): any {
@@ -160,12 +161,12 @@ export class DeploymentsPerGroup {
     }
   }
 
-  static unmarshal(json: any): DeploymentsPerGroup {
+  static unmarshal(json: any): DeploymentsPerAddress {
     const deployerAddress = json.deployerAddress as string
     const contracts = new Map(Object.entries<DeployContractExecutionResult>(json.contracts))
     const scripts = new Map(Object.entries<RunScriptResult>(json.scripts))
     const migrations = new Map(Object.entries<number>(json.migrations))
-    return new DeploymentsPerGroup(deployerAddress, contracts, scripts, migrations)
+    return new DeploymentsPerAddress(deployerAddress, contracts, scripts, migrations)
   }
 }
 
@@ -479,9 +480,10 @@ export async function deploy<Settings = unknown>(
   configuration.defaultNetwork = networkType
 
   for (const signer of signers) {
-    const deploymentsPerGroup = deployments.groups.get(signer.address) ?? DeploymentsPerGroup.empty(signer.address)
-    deployments.add(deploymentsPerGroup)
-    await deployToGroup(configuration, deploymentsPerGroup, signer, network, scripts)
+    const deploymentsPerAddress =
+      deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
+    deployments.add(deploymentsPerAddress)
+    await deployToGroup(configuration, deploymentsPerAddress, signer, network, scripts)
   }
 }
 
@@ -494,7 +496,7 @@ export async function deployToDevnet(): Promise<Deployments> {
 
 async function deployToGroup<Settings = unknown>(
   configuration: Configuration<Settings>,
-  deployments: DeploymentsPerGroup,
+  deployments: DeploymentsPerAddress,
   signer: PrivateKeyWallet,
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
