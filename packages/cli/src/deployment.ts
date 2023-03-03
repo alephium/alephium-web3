@@ -53,31 +53,41 @@ import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './
 import { groupOfAddress } from '@alephium/web3'
 
 export class Deployments {
-  groups: Map<string, DeploymentsPerGroup>
+  deployments: DeploymentsPerAddress[]
 
-  constructor(groups: Map<string, DeploymentsPerGroup>) {
-    this.groups = groups
+  constructor(deployments: DeploymentsPerAddress[]) {
+    this.deployments = deployments
   }
 
   static empty(): Deployments {
-    return new Deployments(new Map())
+    return new Deployments([])
   }
 
-  deploymentsByGroup(group: number): DeploymentsPerGroup | undefined {
-    for (const entry of this.groups.entries()) {
-      if (groupOfAddress(entry[0]) === group) {
-        return entry[1]
-      }
-    }
-    return undefined
+  deploymentsByGroup(group: number): DeploymentsPerAddress | undefined {
+    return this.deployments.find((deployment) => groupOfAddress(deployment.deployerAddress) === group)
   }
 
   getDeployedContractResult(group: number, name: string): DeployContractExecutionResult | undefined {
-    return this.deploymentsByGroup(group)?.deployContractResults.get(name)
+    return this.deploymentsByGroup(group)?.contracts.get(name)
   }
 
   getExecutedScriptResult(group: number, name: string): RunScriptResult | undefined {
-    return this.deploymentsByGroup(group)?.runScriptResults.get(name)
+    return this.deploymentsByGroup(group)?.scripts.get(name)
+  }
+
+  add(deploymentsPerAddress: DeploymentsPerAddress): void {
+    const index = this.deployments.findIndex(
+      (deployment) => deployment.deployerAddress === deploymentsPerAddress.deployerAddress
+    )
+    if (index === -1) {
+      this.deployments.push(deploymentsPerAddress)
+    } else {
+      this.deployments[`${index}`] = deploymentsPerAddress
+    }
+  }
+
+  getByDeployer(deployerAddress: string): DeploymentsPerAddress | undefined {
+    return this.deployments.find((deployment) => deployment.deployerAddress === deployerAddress)
   }
 
   async saveToFile(filepath: string): Promise<void> {
@@ -85,11 +95,8 @@ export class Deployments {
     if (!fs.existsSync(dirpath)) {
       fs.mkdirSync(dirpath, { recursive: true })
     }
-    const object: any = {}
-    this.groups.forEach((value, groupIndex) => {
-      object[`${groupIndex}`] = value.marshal()
-    })
-    const content = JSON.stringify(object, null, 2)
+    const deployments = this.deployments.map((v) => v.marshal())
+    const content = JSON.stringify(deployments.length === 1 ? deployments[0] : deployments, null, 2)
     return fsPromises.writeFile(filepath, content)
   }
 
@@ -99,12 +106,8 @@ export class Deployments {
     }
     const content = await fsPromises.readFile(filepath)
     const json = JSON.parse(content.toString())
-    const groups = new Map<string, DeploymentsPerGroup>()
-    Object.entries<any>(json).forEach(([key, value]) => {
-      const deploymentsPerGroup = DeploymentsPerGroup.unmarshal(value)
-      groups.set(key, deploymentsPerGroup)
-    })
-    return new Deployments(groups)
+    const objects = Array.isArray(json) ? json : [json]
+    return new Deployments(objects.map((object) => DeploymentsPerAddress.unmarshal(object)))
   }
 
   static async load(configuration: Configuration, networkType: NetworkType): Promise<Deployments> {
@@ -114,38 +117,56 @@ export class Deployments {
   }
 }
 
-export class DeploymentsPerGroup {
-  deployContractResults: Map<string, DeployContractExecutionResult>
-  runScriptResults: Map<string, RunScriptResult>
+export async function getDeploymentResult(filepath: string): Promise<DeploymentsPerAddress> {
+  const deployments = await Deployments.from(filepath)
+  if (deployments.deployments.length > 1) {
+    throw new Error('The contracts has been deployed to multiple groups')
+  }
+  return deployments.deployments[0]
+}
+
+export async function getDeploymentResults(filepath: string): Promise<DeploymentsPerAddress[]> {
+  const deployments = await Deployments.from(filepath)
+  return deployments.deployments
+}
+
+export class DeploymentsPerAddress {
+  deployerAddress: string
+  contracts: Map<string, DeployContractExecutionResult>
+  scripts: Map<string, RunScriptResult>
   migrations: Map<string, number>
 
   constructor(
-    deployContractResults: Map<string, DeployContractExecutionResult>,
-    runScriptResults: Map<string, RunScriptResult>,
+    deployerAddress: string,
+    contracts: Map<string, DeployContractExecutionResult>,
+    scripts: Map<string, RunScriptResult>,
     migrations: Map<string, number>
   ) {
-    this.deployContractResults = deployContractResults
-    this.runScriptResults = runScriptResults
+    this.deployerAddress = deployerAddress
+    this.contracts = contracts
+    this.scripts = scripts
     this.migrations = migrations
   }
 
-  static empty(): DeploymentsPerGroup {
-    return new DeploymentsPerGroup(new Map(), new Map(), new Map())
+  static empty(deployerAddress: string): DeploymentsPerAddress {
+    return new DeploymentsPerAddress(deployerAddress, new Map(), new Map(), new Map())
   }
 
   marshal(): any {
     return {
-      deployContractResults: Object.fromEntries(this.deployContractResults),
-      runScriptResults: Object.fromEntries(this.runScriptResults),
+      deployerAddress: this.deployerAddress,
+      contracts: Object.fromEntries(this.contracts),
+      scripts: Object.fromEntries(this.scripts),
       migrations: Object.fromEntries(this.migrations)
     }
   }
 
-  static unmarshal(json: any): DeploymentsPerGroup {
-    const deployContractResults = new Map(Object.entries<DeployContractExecutionResult>(json.deployContractResults))
-    const runScriptResults = new Map(Object.entries<RunScriptResult>(json.runScriptResults))
+  static unmarshal(json: any): DeploymentsPerAddress {
+    const deployerAddress = json.deployerAddress as string
+    const contracts = new Map(Object.entries<DeployContractExecutionResult>(json.contracts))
+    const scripts = new Map(Object.entries<RunScriptResult>(json.scripts))
     const migrations = new Map(Object.entries<number>(json.migrations))
-    return new DeploymentsPerGroup(deployContractResults, runScriptResults, migrations)
+    return new DeploymentsPerAddress(deployerAddress, contracts, scripts, migrations)
   }
 }
 
@@ -171,7 +192,7 @@ function recordEqual(left: Record<string, string>, right: Record<string, string>
 async function needToRetry(
   provider: NodeProvider,
   previous: ExecutionResult | undefined,
-  attoAlphAmount: Number256 | undefined,
+  attoAlphAmount: string | undefined,
   tokens: Record<string, string> | undefined,
   codeHash: string
 ): Promise<boolean> {
@@ -191,9 +212,9 @@ async function needToRetry(
 async function needToDeployContract(
   provider: NodeProvider,
   previous: DeployContractExecutionResult | undefined,
-  attoAlphAmount: Number256 | undefined,
+  attoAlphAmount: string | undefined,
   tokens: Record<string, string> | undefined,
-  issueTokenAmount: Number256 | undefined,
+  issueTokenAmount: string | undefined,
   codeHash: string
 ): Promise<boolean> {
   const retry = await needToRetry(provider, previous, attoAlphAmount, tokens, codeHash)
@@ -207,7 +228,7 @@ async function needToDeployContract(
 async function needToRunScript(
   provider: NodeProvider,
   previous: RunScriptResult | undefined,
-  attoAlphAmount: Number256 | undefined,
+  attoAlphAmount: string | undefined,
   tokens: Record<string, string> | undefined,
   codeHash: string
 ): Promise<boolean> {
@@ -265,9 +286,9 @@ function createDeployer<Settings = unknown>(
     const needToDeploy = await needToDeployContract(
       web3.getCurrentNodeProvider(),
       previous,
-      params.initialAttoAlphAmount,
+      tryBigIntToString(params.initialAttoAlphAmount),
       tokens,
-      params.issueTokenAmount,
+      tryBigIntToString(params.issueTokenAmount),
       codeHash
     )
     if (!needToDeploy) {
@@ -285,18 +306,19 @@ function createDeployer<Settings = unknown>(
     const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), deployResult.txId, confirmations)
     const result: DeployContractExecutionResult = {
       ...deployResult,
+      gasPrice: deployResult.gasPrice.toString(),
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
-      attoAlphAmount: params.initialAttoAlphAmount,
+      attoAlphAmount: tryBigIntToString(params.initialAttoAlphAmount),
       tokens: tokens,
-      issueTokenAmount: params.issueTokenAmount
+      issueTokenAmount: tryBigIntToString(params.issueTokenAmount)
     }
     deployContractResults.set(taskId, result)
     return deployResult
   }
 
   const runScript = async <P extends Fields>(
-    executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
+    executeFunc: (signer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
     script: Script,
     params: ExecuteScriptParams<P>,
     taskTag?: string
@@ -309,7 +331,7 @@ function createDeployer<Settings = unknown>(
     const needToRun = await needToRunScript(
       web3.getCurrentNodeProvider(),
       previous,
-      params.attoAlphAmount,
+      tryBigIntToString(params.attoAlphAmount),
       tokens,
       codeHash
     )
@@ -324,9 +346,10 @@ function createDeployer<Settings = unknown>(
     const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), executeResult.txId, confirmations)
     const runScriptResult: RunScriptResult = {
       ...executeResult,
+      gasPrice: executeResult.gasPrice.toString(),
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
-      attoAlphAmount: params.attoAlphAmount,
+      attoAlphAmount: tryBigIntToString(params.attoAlphAmount),
       tokens: tokens
     }
     runScriptResults.set(taskId, runScriptResult)
@@ -457,9 +480,10 @@ export async function deploy<Settings = unknown>(
   configuration.defaultNetwork = networkType
 
   for (const signer of signers) {
-    const deploymentsPerGroup = deployments.groups.get(signer.address) ?? DeploymentsPerGroup.empty()
-    deployments.groups.set(signer.address, deploymentsPerGroup)
-    await deployToGroup(configuration, deploymentsPerGroup, signer, network, scripts)
+    const deploymentsPerAddress =
+      deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
+    deployments.add(deploymentsPerAddress)
+    await deployToGroup(configuration, deploymentsPerAddress, signer, network, scripts)
   }
 }
 
@@ -472,12 +496,12 @@ export async function deployToDevnet(): Promise<Deployments> {
 
 async function deployToGroup<Settings = unknown>(
   configuration: Configuration<Settings>,
-  deployments: DeploymentsPerGroup,
+  deployments: DeploymentsPerAddress,
   signer: PrivateKeyWallet,
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
 ) {
-  const deployer = createDeployer(network, signer, deployments.deployContractResults, deployments.runScriptResults)
+  const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts)
 
   for (const script of scripts) {
     try {
@@ -506,4 +530,8 @@ async function deployToGroup<Settings = unknown>(
       throw new Error(`failed to execute deploy script, filepath: ${script.scriptFilePath}, error: ${error}`)
     }
   }
+}
+
+function tryBigIntToString(num: Number256 | undefined): string | undefined {
+  return num === undefined ? undefined : num.toString()
 }

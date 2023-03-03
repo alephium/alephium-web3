@@ -1,5 +1,5 @@
 import { Deployments } from '@alephium/cli'
-import { web3, Project, stringifyJsonWithBigint } from '@alephium/web3'
+import { web3, Project } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import configuration from '../alephium.config'
 import { TokenFaucet, Withdraw } from '../artifacts/ts'

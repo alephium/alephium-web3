@@ -11,7 +11,7 @@ describe('unit tests', () => {
 
   // We initialize the fixture variables before all tests
   beforeAll(async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     await Project.build()
     testContractId = randomContractId()
     testTokenId = testContractId
@@ -103,7 +103,7 @@ describe('unit tests', () => {
 
 describe('integration tests', () => {
   beforeAll(async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     await Project.build()
   })
 
