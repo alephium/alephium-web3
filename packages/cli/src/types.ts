@@ -29,7 +29,6 @@ import {
   web3,
   Project,
   DEFAULT_COMPILER_OPTIONS,
-  Number256,
   SignerProvider,
   Script
 } from '@alephium/web3'
@@ -111,17 +110,17 @@ export interface ExecutionResult {
   unsignedTx: string
   signature: string
   gasAmount: number
-  gasPrice: Number256
+  gasPrice: string
   blockHash: string
   codeHash: string
-  attoAlphAmount?: Number256
+  attoAlphAmount?: string
   tokens?: Record<string, string>
 }
 
 export interface DeployContractExecutionResult extends ExecutionResult {
   contractId: string
   contractAddress: string
-  issueTokenAmount?: Number256
+  issueTokenAmount?: string
 }
 
 export type RunScriptResult = ExecutionResult

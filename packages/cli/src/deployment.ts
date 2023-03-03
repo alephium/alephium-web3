@@ -191,7 +191,7 @@ function recordEqual(left: Record<string, string>, right: Record<string, string>
 async function needToRetry(
   provider: NodeProvider,
   previous: ExecutionResult | undefined,
-  attoAlphAmount: Number256 | undefined,
+  attoAlphAmount: string | undefined,
   tokens: Record<string, string> | undefined,
   codeHash: string
 ): Promise<boolean> {
@@ -211,9 +211,9 @@ async function needToRetry(
 async function needToDeployContract(
   provider: NodeProvider,
   previous: DeployContractExecutionResult | undefined,
-  attoAlphAmount: Number256 | undefined,
+  attoAlphAmount: string | undefined,
   tokens: Record<string, string> | undefined,
-  issueTokenAmount: Number256 | undefined,
+  issueTokenAmount: string | undefined,
   codeHash: string
 ): Promise<boolean> {
   const retry = await needToRetry(provider, previous, attoAlphAmount, tokens, codeHash)
@@ -227,7 +227,7 @@ async function needToDeployContract(
 async function needToRunScript(
   provider: NodeProvider,
   previous: RunScriptResult | undefined,
-  attoAlphAmount: Number256 | undefined,
+  attoAlphAmount: string | undefined,
   tokens: Record<string, string> | undefined,
   codeHash: string
 ): Promise<boolean> {
@@ -285,9 +285,9 @@ function createDeployer<Settings = unknown>(
     const needToDeploy = await needToDeployContract(
       web3.getCurrentNodeProvider(),
       previous,
-      params.initialAttoAlphAmount,
+      tryBigIntToString(params.initialAttoAlphAmount),
       tokens,
-      params.issueTokenAmount,
+      tryBigIntToString(params.issueTokenAmount),
       codeHash
     )
     if (!needToDeploy) {
@@ -305,11 +305,12 @@ function createDeployer<Settings = unknown>(
     const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), deployResult.txId, confirmations)
     const result: DeployContractExecutionResult = {
       ...deployResult,
+      gasPrice: deployResult.gasPrice.toString(),
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
-      attoAlphAmount: params.initialAttoAlphAmount,
+      attoAlphAmount: tryBigIntToString(params.initialAttoAlphAmount),
       tokens: tokens,
-      issueTokenAmount: params.issueTokenAmount
+      issueTokenAmount: tryBigIntToString(params.issueTokenAmount)
     }
     deployContractResults.set(taskId, result)
     return deployResult
@@ -329,7 +330,7 @@ function createDeployer<Settings = unknown>(
     const needToRun = await needToRunScript(
       web3.getCurrentNodeProvider(),
       previous,
-      params.attoAlphAmount,
+      tryBigIntToString(params.attoAlphAmount),
       tokens,
       codeHash
     )
@@ -344,9 +345,10 @@ function createDeployer<Settings = unknown>(
     const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), executeResult.txId, confirmations)
     const runScriptResult: RunScriptResult = {
       ...executeResult,
+      gasPrice: executeResult.gasPrice.toString(),
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
-      attoAlphAmount: params.attoAlphAmount,
+      attoAlphAmount: tryBigIntToString(params.attoAlphAmount),
       tokens: tokens
     }
     runScriptResults.set(taskId, runScriptResult)
@@ -526,4 +528,8 @@ async function deployToGroup<Settings = unknown>(
       throw new Error(`failed to execute deploy script, filepath: ${script.scriptFilePath}, error: ${error}`)
     }
   }
+}
+
+function tryBigIntToString(num: Number256 | undefined): string | undefined {
+  return num === undefined ? undefined : num.toString()
 }
