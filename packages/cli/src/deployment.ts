@@ -116,6 +116,19 @@ export class Deployments {
   }
 }
 
+export async function getDeploymentResult(filepath: string): Promise<DeploymentsPerGroup> {
+  const deployments = await Deployments.from(filepath)
+  if (deployments.groups.size > 1) {
+    throw new Error('The contracts has been deployed to multiple groups')
+  }
+  return Array.from(deployments.groups.values())[0]
+}
+
+export async function getDeploymentResults(filepath: string): Promise<DeploymentsPerGroup[]> {
+  const deployments = await Deployments.from(filepath)
+  return Array.from(deployments.groups.values())
+}
+
 export class DeploymentsPerGroup {
   deployerAddress: string
   contracts: Map<string, DeployContractExecutionResult>
