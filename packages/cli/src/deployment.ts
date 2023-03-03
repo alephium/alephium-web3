@@ -73,11 +73,11 @@ export class Deployments {
   }
 
   getDeployedContractResult(group: number, name: string): DeployContractExecutionResult | undefined {
-    return this.deploymentsByGroup(group)?.deployContractResults.get(name)
+    return this.deploymentsByGroup(group)?.contracts.get(name)
   }
 
   getExecutedScriptResult(group: number, name: string): RunScriptResult | undefined {
-    return this.deploymentsByGroup(group)?.runScriptResults.get(name)
+    return this.deploymentsByGroup(group)?.scripts.get(name)
   }
 
   async saveToFile(filepath: string): Promise<void> {
@@ -115,17 +115,17 @@ export class Deployments {
 }
 
 export class DeploymentsPerGroup {
-  deployContractResults: Map<string, DeployContractExecutionResult>
-  runScriptResults: Map<string, RunScriptResult>
+  contracts: Map<string, DeployContractExecutionResult>
+  scripts: Map<string, RunScriptResult>
   migrations: Map<string, number>
 
   constructor(
-    deployContractResults: Map<string, DeployContractExecutionResult>,
-    runScriptResults: Map<string, RunScriptResult>,
+    contracts: Map<string, DeployContractExecutionResult>,
+    scripts: Map<string, RunScriptResult>,
     migrations: Map<string, number>
   ) {
-    this.deployContractResults = deployContractResults
-    this.runScriptResults = runScriptResults
+    this.contracts = contracts
+    this.scripts = scripts
     this.migrations = migrations
   }
 
@@ -135,17 +135,17 @@ export class DeploymentsPerGroup {
 
   marshal(): any {
     return {
-      deployContractResults: Object.fromEntries(this.deployContractResults),
-      runScriptResults: Object.fromEntries(this.runScriptResults),
+      contracts: Object.fromEntries(this.contracts),
+      scripts: Object.fromEntries(this.scripts),
       migrations: Object.fromEntries(this.migrations)
     }
   }
 
   static unmarshal(json: any): DeploymentsPerGroup {
-    const deployContractResults = new Map(Object.entries<DeployContractExecutionResult>(json.deployContractResults))
-    const runScriptResults = new Map(Object.entries<RunScriptResult>(json.runScriptResults))
+    const contracts = new Map(Object.entries<DeployContractExecutionResult>(json.contracts))
+    const scripts = new Map(Object.entries<RunScriptResult>(json.scripts))
     const migrations = new Map(Object.entries<number>(json.migrations))
-    return new DeploymentsPerGroup(deployContractResults, runScriptResults, migrations)
+    return new DeploymentsPerGroup(contracts, scripts, migrations)
   }
 }
 
@@ -477,7 +477,7 @@ async function deployToGroup<Settings = unknown>(
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
 ) {
-  const deployer = createDeployer(network, signer, deployments.deployContractResults, deployments.runScriptResults)
+  const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts)
 
   for (const script of scripts) {
     try {
