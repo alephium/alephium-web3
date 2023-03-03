@@ -80,16 +80,17 @@ export class Deployments {
     return this.deploymentsByGroup(group)?.scripts.get(name)
   }
 
+  add(deploymentsPerGroup: DeploymentsPerGroup): void {
+    this.groups.set(deploymentsPerGroup.deployerAddress, deploymentsPerGroup)
+  }
+
   async saveToFile(filepath: string): Promise<void> {
     const dirpath = path.dirname(filepath)
     if (!fs.existsSync(dirpath)) {
       fs.mkdirSync(dirpath, { recursive: true })
     }
-    const object: any = {}
-    this.groups.forEach((value, groupIndex) => {
-      object[`${groupIndex}`] = value.marshal()
-    })
-    const content = JSON.stringify(object, null, 2)
+    const groups = Array.from(this.groups.values()).map((v) => v.marshal())
+    const content = JSON.stringify(groups.length === 1 ? groups[0] : groups, null, 2)
     return fsPromises.writeFile(filepath, content)
   }
 
@@ -99,12 +100,13 @@ export class Deployments {
     }
     const content = await fsPromises.readFile(filepath)
     const json = JSON.parse(content.toString())
-    const groups = new Map<string, DeploymentsPerGroup>()
-    Object.entries<any>(json).forEach(([key, value]) => {
-      const deploymentsPerGroup = DeploymentsPerGroup.unmarshal(value)
-      groups.set(key, deploymentsPerGroup)
+    const groups = Array.isArray(json) ? json : [json]
+    const deployments = Deployments.empty()
+    groups.forEach((object) => {
+      const deploymentsPerGroup = DeploymentsPerGroup.unmarshal(object)
+      deployments.add(deploymentsPerGroup)
     })
-    return new Deployments(groups)
+    return deployments
   }
 
   static async load(configuration: Configuration, networkType: NetworkType): Promise<Deployments> {
@@ -115,26 +117,30 @@ export class Deployments {
 }
 
 export class DeploymentsPerGroup {
+  deployerAddress: string
   contracts: Map<string, DeployContractExecutionResult>
   scripts: Map<string, RunScriptResult>
   migrations: Map<string, number>
 
   constructor(
+    deployerAddress: string,
     contracts: Map<string, DeployContractExecutionResult>,
     scripts: Map<string, RunScriptResult>,
     migrations: Map<string, number>
   ) {
+    this.deployerAddress = deployerAddress
     this.contracts = contracts
     this.scripts = scripts
     this.migrations = migrations
   }
 
-  static empty(): DeploymentsPerGroup {
-    return new DeploymentsPerGroup(new Map(), new Map(), new Map())
+  static empty(deployerAddress: string): DeploymentsPerGroup {
+    return new DeploymentsPerGroup(deployerAddress, new Map(), new Map(), new Map())
   }
 
   marshal(): any {
     return {
+      deployerAddress: this.deployerAddress,
       contracts: Object.fromEntries(this.contracts),
       scripts: Object.fromEntries(this.scripts),
       migrations: Object.fromEntries(this.migrations)
@@ -142,10 +148,11 @@ export class DeploymentsPerGroup {
   }
 
   static unmarshal(json: any): DeploymentsPerGroup {
+    const deployerAddress = json.deployerAddress as string
     const contracts = new Map(Object.entries<DeployContractExecutionResult>(json.contracts))
     const scripts = new Map(Object.entries<RunScriptResult>(json.scripts))
     const migrations = new Map(Object.entries<number>(json.migrations))
-    return new DeploymentsPerGroup(contracts, scripts, migrations)
+    return new DeploymentsPerGroup(deployerAddress, contracts, scripts, migrations)
   }
 }
 
@@ -296,7 +303,7 @@ function createDeployer<Settings = unknown>(
   }
 
   const runScript = async <P extends Fields>(
-    executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
+    executeFunc: (signer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
     script: Script,
     params: ExecuteScriptParams<P>,
     taskTag?: string
@@ -457,8 +464,8 @@ export async function deploy<Settings = unknown>(
   configuration.defaultNetwork = networkType
 
   for (const signer of signers) {
-    const deploymentsPerGroup = deployments.groups.get(signer.address) ?? DeploymentsPerGroup.empty()
-    deployments.groups.set(signer.address, deploymentsPerGroup)
+    const deploymentsPerGroup = deployments.groups.get(signer.address) ?? DeploymentsPerGroup.empty(signer.address)
+    deployments.add(deploymentsPerGroup)
     await deployToGroup(configuration, deploymentsPerGroup, signer, network, scripts)
   }
 }
