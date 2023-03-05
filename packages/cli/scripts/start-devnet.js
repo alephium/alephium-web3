@@ -54,7 +54,7 @@ async function downloadFullNode(tag, devDir, jarFile) {
 }
 
 function launchDevnet(devDir, jarFile) {
-  const pidFile = devDir + path.sep + 'alephium.pid'
+  const pidFile = path.join(devDir, 'alephium.pid')
   try {
     const pid = parseInt(fs.readFileSync(pidFile).toString())
     if (pid) {
@@ -62,9 +62,9 @@ function launchDevnet(devDir, jarFile) {
       process.kill(pid)
     }
   } catch (e) {}
-  fs.rmSync(devDir + path.sep + 'logs', { recursive: true, force: true })
-  fs.rmSync(devDir + path.sep + 'network-4', { recursive: true, force: true })
-  fs.rmSync(devDir + path.sep + '.alephium-wallets', { recursive: true, force: true })
+  fs.rmSync(path.join(devDir, 'logs'), { recursive: true, force: true })
+  fs.rmSync(path.join(devDir, 'network-4'), { recursive: true, force: true })
+  fs.rmSync(path.join(devDir, '.alephium-wallets'), { recursive: true, force: true })
 
   const p = spawn('java', ['-jar', jarFile], {
     detached: true,
@@ -73,7 +73,7 @@ function launchDevnet(devDir, jarFile) {
   })
   p.unref()
   console.log(`Launching Devnet (PID: ${p.pid})`)
-  fs.writeFileSync(devDir + path.sep + 'alephium.pid', p.pid.toString(), { falg: 'w' })
+  fs.writeFileSync(path.join(devDir, 'alephium.pid'), p.pid.toString(), { falg: 'w' })
 }
 
 const testWallet = 'alephium-web3-test-only-wallet'
