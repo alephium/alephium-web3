@@ -60,7 +60,7 @@ export async function isNetworkLive(url: string): Promise<boolean> {
 }
 
 export async function isDevnetLive(): Promise<boolean> {
-  return await isNetworkLive('http://127.0.0.01:22973')
+  return await isNetworkLive('http://localhost:22973')
 }
 
 export function getDeploymentFilePath(networkType: NetworkType, network: Network): string {

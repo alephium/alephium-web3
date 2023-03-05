@@ -82,7 +82,7 @@ const mnemonic =
   'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
 
 async function prepareWallet() {
-  const wallets = await fetch('http://127.0.0.1:22973/wallets', { method: 'Get' }).then((res) => res.json())
+  const wallets = await fetch('http://localhost:22973/wallets', { method: 'Get' }).then((res) => res.json())
   if (wallets.find((wallet) => wallet.walletName === testWallet)) {
     unlockWallet()
   } else {
