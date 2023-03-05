@@ -127,6 +127,7 @@ async function wait() {
       })
     }
   } catch (err) {
+    console.error(`====== wait error ${JSON.stringify(err)}`)
     await timeout(1000)
     await wait()
   }
@@ -145,6 +146,7 @@ export async function startDevnet(tag, configPath) {
   }
 
   launchDevnet(devDir, jarFile)
+  console.log(`==== let's wait`)
   await wait()
   await prepareWallet()
   console.log('✅ Devnet is ready!')
