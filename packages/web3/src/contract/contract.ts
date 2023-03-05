@@ -486,7 +486,7 @@ export class Project {
   }
 
   private static getImportSourcePath(projectRootDir: string, importPath: string): string {
-    const parts = importPath.split(path.sep)
+    const parts = importPath.split('/')
     if (parts.length > 1 && parts[0] === 'std') {
       const currentDir = path.dirname(__filename)
       return path.join(...[currentDir, '..', '..', '..', importPath])
