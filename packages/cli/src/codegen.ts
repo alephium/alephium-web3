@@ -209,6 +209,10 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
   `
 }
 
+function toUnixPath(p: string): string {
+  return p.split(path.sep).join(path.posix.sep)
+}
+
 function genContract(contract: Contract, artifactRelativePath: string): string {
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
@@ -224,7 +228,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, fetchContractState, ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
-    import { default as ${contract.name}ContractJson } from '../${artifactRelativePath}'
+    import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
 
     // Custom types for the contract
     export namespace ${contract.name}Types {
@@ -287,7 +291,7 @@ function genScripts(outDir: string, artifactDir: string, exports: string[]) {
     .map((s) => {
       const artifactPath = s.sourceInfo.getArtifactPath(artifactDir)
       const artifactRelativePath = path.relative(artifactDir, artifactPath)
-      return `import { default as ${s.artifact.name}ScriptJson } from '../${artifactRelativePath}'`
+      return `import { default as ${s.artifact.name}ScriptJson } from '../${toUnixPath(artifactRelativePath)}'`
     })
     .join('\n')
   const scriptsSource = scripts.map((s) => genScript(s.artifact)).join('\n')
