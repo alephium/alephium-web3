@@ -22,9 +22,10 @@ import blake from 'blakejs'
 import bs58 from './bs58'
 import { Buffer } from 'buffer/'
 
-import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
+import { TOTAL_NUMBER_OF_GROUPS, TOTAL_NUMBER_OF_CHAINS } from '../constants'
 import djb2 from './djb2'
 import { KeyType } from '../signer'
+import { HexString } from '../contract'
 
 const ec = new EC('secp256k1')
 
@@ -213,6 +214,15 @@ export function subContractId(parentContractId: string, pathInHex: string, group
     Buffer.from([group])
   ])
   return binToHex(bytes)
+}
+
+export function blockChainIndex(blockHash: HexString): { fromGroup: number; toGroup: number } {
+  if (blockHash.length != 64) {
+    throw Error(`Invalid block hash: ${blockHash}`)
+  }
+
+  const rawIndex = Number('0x' + blockHash.slice(-4)) % TOTAL_NUMBER_OF_CHAINS
+  return { fromGroup: Math.floor(rawIndex / TOTAL_NUMBER_OF_GROUPS), toGroup: rawIndex % TOTAL_NUMBER_OF_GROUPS }
 }
 
 export function stringToHex(str: string): string {

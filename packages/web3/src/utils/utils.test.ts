@@ -193,4 +193,14 @@ describe('utils', function () {
     expect(utils.isHexString('0x1111')).toBe(false)
     expect(utils.isHexString('1111xxzz')).toBe(false)
   })
+
+  it('should get chain index for blocks', () => {
+    const check = (input: string, fromGroup: number, toGroup: number) => {
+      expect(utils.blockChainIndex(input)).toEqual({ fromGroup, toGroup })
+    }
+    check('00000000000276fa4d4831363b890d6b608a0480be590fad464545f6ee94d8ad', 3, 1)
+    check('0000000000078d1de32359ffd4239e010c886d7659a10bb8c440b7befbc87d6f', 3, 3)
+    check('00000000000a11fc7e30525ff1c2d783de3344b85a9c76abdd207ad8e1401566', 1, 2)
+    check('00000000000d09d9f9cf3c3619ca18b84c44437d61cdf0b423831e23e1847e20', 0, 0)
+  })
 })
