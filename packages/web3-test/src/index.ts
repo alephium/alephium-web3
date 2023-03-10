@@ -16,7 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { addressFromContractId, isBase58, NodeProvider, web3 } from '@alephium/web3'
+import 'cross-fetch/polyfill'
+
+import { addressFromContractId, isBase58, NodeProvider } from '@alephium/web3'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
 
@@ -58,7 +60,7 @@ async function unlockWallet(testNodeProvider: NodeProvider) {
 }
 
 export async function testNodeWallet(baseUrl = 'http://127.0.0.1:22973'): Promise<NodeWallet> {
-  const nodeProvider = new NodeProvider(baseUrl, undefined, fetch)
+  const nodeProvider = new NodeProvider(baseUrl, undefined, (...params: Parameters<typeof fetch>) => fetch(...params))
   await prepareWallet(nodeProvider)
   const wallet = new NodeWallet(testWalletName, nodeProvider)
   await wallet.unlock(testPassword)
