@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { addressFromContractId, isBase58 } from '@alephium/web3'
+import { addressFromContractId, isBase58, NodeProvider, web3 } from '@alephium/web3'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
 
@@ -27,7 +27,38 @@ export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
 export const testPrivateKey = 'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5'
 export const testPassword = 'alph'
 
-export async function testNodeWallet(): Promise<NodeWallet> {
+async function prepareWallet(testNodeProvider: NodeProvider) {
+  const wallets = await testNodeProvider.wallets.getWallets()
+  if (wallets.find((wallet) => wallet.walletName === testWalletName)) {
+    unlockWallet(testNodeProvider)
+  } else {
+    createWallet(testNodeProvider)
+  }
+}
+
+async function changeActiveAddress(testNodeProvider: NodeProvider) {
+  await testNodeProvider.wallets.postWalletsWalletNameChangeActiveAddress(testWalletName, {
+    address: testAddress
+  })
+}
+
+async function createWallet(testNodeProvider: NodeProvider) {
+  await testNodeProvider.wallets.putWallets({
+    password: testPassword,
+    mnemonic: testMnemonic,
+    walletName: testWalletName,
+    isMiner: true
+  })
+  await changeActiveAddress(testNodeProvider)
+}
+
+async function unlockWallet(testNodeProvider: NodeProvider) {
+  await testNodeProvider.wallets.postWalletsWalletNameUnlock(testWalletName, { password: testPassword })
+  await changeActiveAddress(testNodeProvider)
+}
+
+export async function testNodeWallet(baseUrl = 'http://127.0.0.1:22973'): Promise<NodeWallet> {
+  await prepareWallet(new NodeProvider(baseUrl))
   const wallet = new NodeWallet(testWalletName)
   await wallet.unlock(testPassword)
   return wallet
