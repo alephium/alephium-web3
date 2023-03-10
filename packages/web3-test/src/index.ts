@@ -53,7 +53,7 @@ async function createWallet(testNodeProvider: NodeProvider) {
 }
 
 async function unlockWallet(testNodeProvider: NodeProvider) {
-  await testNodeProvider.wallets.postWalletsWalletNameUnlock(testWalletName, { password: 'alph' })
+  await testNodeProvider.wallets.postWalletsWalletNameUnlock(testWalletName, { password: testPassword })
   await changeActiveAddress(testNodeProvider)
 }
 
