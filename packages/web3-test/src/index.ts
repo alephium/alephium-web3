@@ -58,8 +58,9 @@ async function unlockWallet(testNodeProvider: NodeProvider) {
 }
 
 export async function testNodeWallet(baseUrl = 'http://127.0.0.1:22973'): Promise<NodeWallet> {
-  await prepareWallet(new NodeProvider(baseUrl))
-  const wallet = new NodeWallet(testWalletName)
+  const nodeProvider = new NodeProvider(baseUrl, undefined, fetch)
+  await prepareWallet(nodeProvider)
+  const wallet = new NodeWallet(testWalletName, nodeProvider)
   await wallet.unlock(testPassword)
   return wallet
 }
