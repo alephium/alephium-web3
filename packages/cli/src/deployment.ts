@@ -104,10 +104,15 @@ export class Deployments {
     if (!fs.existsSync(filepath)) {
       return Deployments.empty()
     }
-    const content = await fsPromises.readFile(filepath)
-    const json = JSON.parse(content.toString())
-    const objects = Array.isArray(json) ? json : [json]
-    return new Deployments(objects.map((object) => DeploymentsPerAddress.unmarshal(object)))
+    try {
+      const content = await fsPromises.readFile(filepath)
+      const json = JSON.parse(content.toString())
+      const objects = Array.isArray(json) ? json : [json]
+      return new Deployments(objects.map((object) => DeploymentsPerAddress.unmarshal(object)))
+    } catch (error) {
+      console.log(`Failed to parse deployments, error: ${error}, will re-deploy the contract`)
+      return Deployments.empty()
+    }
   }
 
   static async load(configuration: Configuration, networkType: NetworkType): Promise<Deployments> {
