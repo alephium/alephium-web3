@@ -19,6 +19,7 @@ import {
   subscribeContractEvents,
   testMethod,
   callMethod,
+  multicallMethods,
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
@@ -34,6 +35,25 @@ export namespace SubTypes {
   export type State = ContractState<Fields>;
 
   export type SubEvent = ContractEvent<{ x: bigint; y: bigint }>;
+
+  export interface CallMethodTable {
+    sub: {
+      params: CallContractParams<{ array: [bigint, bigint] }>;
+      result: CallContractResult<bigint>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
 }
 
 class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
@@ -85,8 +105,18 @@ export class SubInstance extends ContractInstance {
   }
 
   async callSubMethod(
-    params: CallContractParams<{ array: [bigint, bigint] }>
-  ): Promise<CallContractResult<bigint>> {
+    params: SubTypes.CallMethodParams<"sub">
+  ): Promise<SubTypes.CallMethodResult<"sub">> {
     return callMethod(Sub, this, "sub", params);
+  }
+
+  async multicall<Calls extends SubTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<SubTypes.MultiCallResults<Calls>> {
+    return (await multicallMethods(
+      Sub,
+      this,
+      calls
+    )) as SubTypes.MultiCallResults<Calls>;
   }
 }

@@ -70,19 +70,8 @@ function genCallMethod(contractName: string, functionSig: node.FunctionSig): str
   }
   const funcName = functionSig.name.charAt(0).toUpperCase() + functionSig.name.slice(1)
   const funcHasArgs = functionSig.paramNames.length > 0
-  const params = funcHasArgs
-    ? `params: CallContractParams<{${formatParameters({
-        names: functionSig.paramNames,
-        types: functionSig.paramTypes
-      })}}>`
-    : `params?: Omit<CallContractParams<{}>, 'args'>`
-  const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-  const retType =
-    tsReturnTypes.length === 0
-      ? `CallContractResult<null>`
-      : tsReturnTypes.length === 1
-      ? `CallContractResult<${tsReturnTypes[0]}>`
-      : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+  const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
+  const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
   const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
   return `
     async call${funcName}Method(${params}): Promise<${retType}> {
@@ -209,6 +198,59 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
   `
 }
 
+function genCallMethodTypes(contract: Contract): string {
+  const entities = contract.functions
+    .filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length > 0)
+    .map((functionSig) => {
+      const funcHasArgs = functionSig.paramNames.length > 0
+      const params = funcHasArgs
+        ? `CallContractParams<{${formatParameters({
+            names: functionSig.paramNames,
+            types: functionSig.paramTypes
+          })}}>`
+        : `Omit<CallContractParams<{}>, 'args'>`
+      const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
+      const retType =
+        tsReturnTypes.length === 0
+          ? `CallContractResult<null>`
+          : tsReturnTypes.length === 1
+          ? `CallContractResult<${tsReturnTypes[0]}>`
+          : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+      return `
+      ${functionSig.name}: {
+        params: ${params}
+        result: ${retType}
+      }
+    `
+    })
+  return entities.length > 0
+    ? `
+      export interface CallMethodTable{
+        ${entities.join(',')}
+      }
+      export type CallMethodParams<T extends keyof CallMethodTable> = CallMethodTable[T]['params']
+      export type CallMethodResult<T extends keyof CallMethodTable> = CallMethodTable[T]['result']
+      export type MultiCallParams = Partial<{ [Name in keyof CallMethodTable]: CallMethodTable[Name]['params'] }>
+      export type MultiCallResults<T extends MultiCallParams> = { [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable ? CallMethodTable[MaybeName]['result'] : undefined }
+    `
+    : ''
+}
+
+function genMulticall(contract: Contract): string {
+  const types = contractTypes(contract.name)
+  const supportMulticall =
+    contract.functions.filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length > 0).length > 0
+  return supportMulticall
+    ? `
+      async multicall<Calls extends ${types}.MultiCallParams>(
+        calls: Calls
+      ): Promise<${types}.MultiCallResults<Calls>> {
+        return (await multicallMethods(${contract.name}, this, calls)) as ${types}.MultiCallResults<Calls>
+      }
+    `
+    : ''
+}
+
 function toUnixPath(p: string): string {
   return p.split(path.sep).join(path.posix.sep)
 }
@@ -216,6 +258,7 @@ function toUnixPath(p: string): string {
 function genContract(contract: Contract, artifactRelativePath: string): string {
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
+  const types = contractTypes(contract.name)
   if (contractInfo === undefined) {
     throw new Error(`Contract info does not exist: ${contract.name}`)
   }
@@ -226,7 +269,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
       SubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
-      testMethod, callMethod, fetchContractState, ContractInstance, getContractEventsCurrentCount
+      testMethod, callMethod, multicallMethods, fetchContractState, ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
 
@@ -234,6 +277,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     export namespace ${contract.name}Types {
       ${genContractStateType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
+      ${genCallMethodTypes(contract)}
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract)}> {
@@ -259,6 +303,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}
       ${contract.functions.map((f) => genCallMethod(contract.name, f)).join('\n')}
+      ${genMulticall(contract)}
     }
 `
   return prettier.format(source, { parser: 'typescript' })

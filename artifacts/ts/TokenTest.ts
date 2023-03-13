@@ -19,6 +19,7 @@ import {
   subscribeContractEvents,
   testMethod,
   callMethod,
+  multicallMethods,
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
@@ -35,6 +36,37 @@ export namespace TokenTestTypes {
   };
 
   export type State = ContractState<Fields>;
+
+  export interface CallMethodTable {
+    getSymbol: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
+    };
+    getName: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<HexString>;
+    };
+    getDecimals: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+    getTotalSupply: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
 }
 
 class Factory extends ContractFactory<
@@ -90,8 +122,8 @@ export class TokenTestInstance extends ContractInstance {
   }
 
   async callGetSymbolMethod(
-    params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<CallContractResult<HexString>> {
+    params?: TokenTestTypes.CallMethodParams<"getSymbol">
+  ): Promise<TokenTestTypes.CallMethodResult<"getSymbol">> {
     return callMethod(
       TokenTest,
       this,
@@ -101,8 +133,8 @@ export class TokenTestInstance extends ContractInstance {
   }
 
   async callGetNameMethod(
-    params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<CallContractResult<HexString>> {
+    params?: TokenTestTypes.CallMethodParams<"getName">
+  ): Promise<TokenTestTypes.CallMethodResult<"getName">> {
     return callMethod(
       TokenTest,
       this,
@@ -112,8 +144,8 @@ export class TokenTestInstance extends ContractInstance {
   }
 
   async callGetDecimalsMethod(
-    params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<CallContractResult<bigint>> {
+    params?: TokenTestTypes.CallMethodParams<"getDecimals">
+  ): Promise<TokenTestTypes.CallMethodResult<"getDecimals">> {
     return callMethod(
       TokenTest,
       this,
@@ -123,13 +155,23 @@ export class TokenTestInstance extends ContractInstance {
   }
 
   async callGetTotalSupplyMethod(
-    params?: Omit<CallContractParams<{}>, "args">
-  ): Promise<CallContractResult<bigint>> {
+    params?: TokenTestTypes.CallMethodParams<"getTotalSupply">
+  ): Promise<TokenTestTypes.CallMethodResult<"getTotalSupply">> {
     return callMethod(
       TokenTest,
       this,
       "getTotalSupply",
       params === undefined ? {} : params
     );
+  }
+
+  async multicall<Calls extends TokenTestTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<TokenTestTypes.MultiCallResults<Calls>> {
+    return (await multicallMethods(
+      TokenTest,
+      this,
+      calls
+    )) as TokenTestTypes.MultiCallResults<Calls>;
   }
 }
