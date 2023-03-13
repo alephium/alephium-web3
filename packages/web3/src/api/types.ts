@@ -268,3 +268,10 @@ export async function request(provider: Record<string, any>, args: ApiRequestArg
   const call = provider[`${args.path}`][`${args.method}`] as (...any) => Promise<any>
   return call(...args.params)
 }
+
+export interface TokenMetaData {
+  name: string
+  symbol: string
+  decimals: number
+  totalSupply: Number256
+}

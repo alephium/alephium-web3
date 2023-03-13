@@ -30,17 +30,38 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
   })
 
+  const symbol = Buffer.from('TT', 'utf8').toString('hex')
+  const name = Buffer.from('TestToken', 'utf8').toString('hex')
+  const decimals = 18n
+  const totalSupply = 1n << 128n
+  const initialFields = { symbol, name, decimals, totalSupply }
+
   it('should get token infos', async () => {
-    const symbol = Buffer.from('TT', 'utf8').toString('hex')
-    const name = Buffer.from('TestToken', 'utf8').toString('hex')
-    const decimals = 18n
-    const totalSupply = 1n << 128n
-    const initialFields = { symbol, name, decimals, totalSupply }
     const tokenTest = (await TokenTest.deploy(signer, { initialFields })).instance
 
     expect((await tokenTest.callGetSymbolMethod()).returns).toEqual(symbol)
     expect((await tokenTest.callGetNameMethod()).returns).toEqual(name)
     expect((await tokenTest.callGetDecimalsMethod()).returns).toEqual(decimals)
     expect((await tokenTest.callGetTotalSupplyMethod()).returns).toEqual(totalSupply)
+  })
+
+  it('should multicall', async () => {
+    const tokenTest = (await TokenTest.deploy(signer, { initialFields })).instance
+    const result = await tokenTest.multicall({
+      getSymbol: {},
+      getName: {},
+      getDecimals: {},
+      getTotalSupply: {}
+    })
+    expect(result.getSymbol.returns).toEqual(symbol)
+    expect(result.getName.returns).toEqual(name)
+    expect(result.getDecimals.returns).toEqual(decimals)
+    expect(result.getTotalSupply.returns).toEqual(totalSupply)
+
+    const metadata = await web3.getCurrentNodeProvider().fetchStdTokenMetaData(tokenTest.contractId)
+    expect(metadata.symbol).toEqual(symbol)
+    expect(metadata.name).toEqual(name)
+    expect(metadata.decimals).toEqual(Number(decimals))
+    expect(metadata.totalSupply).toEqual(totalSupply)
   })
 })

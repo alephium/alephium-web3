@@ -1602,6 +1602,38 @@ export async function callMethod<I, F extends Fields, A extends Arguments, R>(
   return callResult as CallContractResult<R>
 }
 
+export async function multicallMethods<I, F extends Fields>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance,
+  calls: Record<string, Optional<CallContractParams<any>, 'args'>>
+): Promise<Record<string, CallContractResult<any>>> {
+  const callEntries = Object.entries(calls)
+  const callsParams = callEntries.map((entry) => {
+    const [methodName, params] = entry
+    const methodIndex = contract.contract.getMethodIndex(methodName)
+    const txId = params?.txId ?? randomTxId()
+    return contract.contract.toApiCallContract(
+      { ...params, txId: txId, args: params.args === undefined ? {} : params.args },
+      instance.groupIndex,
+      instance.address,
+      methodIndex
+    )
+  })
+  const result = await getCurrentNodeProvider().contracts.postContractsMulticallContract({ calls: callsParams })
+  const callsResult: Record<string, CallContractResult<any>> = {}
+  callsParams.forEach((call, index) => {
+    const methodIndex = call.methodIndex
+    const callResult = result.results[`${methodIndex}`]
+    const methodName = callEntries[`${index}`][`0`]
+    callsResult[`${methodName}`] = contract.contract.fromApiCallContractResult(
+      callResult,
+      call.txId!,
+      methodIndex
+    ) as CallContractResult<any>
+  })
+  return callsResult
+}
+
 export async function getContractEventsCurrentCount(contractAddress: Address): Promise<number> {
   return getCurrentNodeProvider()
     .events.getEventsContractContractaddressCurrentCount(contractAddress)

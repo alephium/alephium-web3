@@ -197,6 +197,11 @@ export function addressFromContractId(contractId: string): string {
   return bs58.encode(bytes)
 }
 
+export function addressFromTokenId(tokenId: string): string {
+  const contractId = tokenId // contract ID is the same as token ID
+  return addressFromContractId(contractId)
+}
+
 export function contractIdFromTx(txId: string, outputIndex: number): string {
   const txIdBin = hexToBinUnsafe(txId)
   const data = Buffer.concat([txIdBin, Buffer.from([outputIndex])])
