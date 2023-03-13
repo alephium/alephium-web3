@@ -16,9 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request } from './types'
+import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request, TokenMetaData } from './types'
 import { Api as NodeApi } from './api-alephium'
 import { DEFAULT_THROTTLE_FETCH } from './utils'
+import { HexString } from '../contract'
+import { addressFromTokenId } from '../utils'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
@@ -50,7 +52,11 @@ export class NodeProvider {
   constructor(param0: string | NodeProvider | ApiRequestHandler, apiKey?: string, customFetch?: typeof fetch) {
     let nodeApi: NodeProvider
     if (typeof param0 === 'string') {
-      nodeApi = initializeNodeApi(param0, apiKey, customFetch)
+      const api = initializeNodeApi(param0, apiKey, customFetch)
+      nodeApi = {
+        ...api,
+        fetchStdTokenMetaData: async (tokenId: string) => fetchStdTokenMetaData(api.contracts, tokenId)
+      }
     } else if (typeof param0 === 'function') {
       nodeApi = new NodeProvider('https://1.2.3.4:0')
       forwardRequests(nodeApi, param0 as ApiRequestHandler)
@@ -82,5 +88,28 @@ export class NodeProvider {
 
   static Remote(handler: ApiRequestHandler): NodeProvider {
     return new NodeProvider(handler)
+  }
+
+  // Only use this when the token is following the standard token interface
+  fetchStdTokenMetaData = async (tokenId: HexString): Promise<TokenMetaData> => {
+    return fetchStdTokenMetaData(this.contracts, tokenId)
+  }
+}
+
+async function fetchStdTokenMetaData(
+  contractAPI: NodeApi<string>['contracts'],
+  tokenId: HexString
+): Promise<TokenMetaData> {
+  const group = 0
+  const address = addressFromTokenId(tokenId)
+  const calls = Array.from([0, 1, 2, 3], (index) => ({ methodIndex: index, group: group, address: address }))
+  const result = await contractAPI.postContractsMulticallContract({
+    calls: calls
+  })
+  return {
+    symbol: result.results[0].returns[0].value as any as string,
+    name: result.results[1].returns[0].value as any as string,
+    decimals: Number(result.results[2].returns[0].value as any as string),
+    totalSupply: BigInt(result.results[3].returns[0].value as any as string)
   }
 }
