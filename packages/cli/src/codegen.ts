@@ -258,7 +258,6 @@ function toUnixPath(p: string): string {
 function genContract(contract: Contract, artifactRelativePath: string): string {
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
-  const types = contractTypes(contract.name)
   if (contractInfo === undefined) {
     throw new Error(`Contract info does not exist: ${contract.name}`)
   }
