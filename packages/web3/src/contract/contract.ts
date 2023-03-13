@@ -818,6 +818,9 @@ export class Contract extends Artifact {
       params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, true)
     return {
       group: params.group,
+      blockHash: params.blockHash,
+      blockTimeStamp: params.blockTimeStamp,
+      txId: params.txId,
       address: params.address,
       bytecode: this.bytecodeDebug,
       initialImmFields: immFields,
@@ -1210,6 +1213,7 @@ export interface TestContractParams<F extends Fields = Fields, A extends Argumen
   group?: number // default 0
   address?: string
   blockHash?: string
+  blockTimeStamp?: number
   txId?: string
   initialFields: F
   initialAsset?: Asset // default 1 ALPH
