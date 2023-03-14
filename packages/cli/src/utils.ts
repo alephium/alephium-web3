@@ -61,8 +61,14 @@ export async function isDevnetLive(): Promise<boolean> {
   return await isNetworkLive('http://127.0.0.1:22973')
 }
 
-export function getDeploymentFilePath(networkType: NetworkType, network: Network): string {
-  return network.deploymentStatusFile ? network.deploymentStatusFile : `.deployments.${networkType}.json`
+export function getDeploymentFilePath(
+  artifactDir: string | undefined,
+  networkType: NetworkType,
+  network: Network
+): string {
+  return network.deploymentStatusFile
+    ? network.deploymentStatusFile
+    : path.join(artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, `.deployments.${networkType}.json`)
 }
 
 export function getNetwork<Settings = unknown>(

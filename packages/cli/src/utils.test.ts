@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Configuration, Network } from './types'
 import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './utils'
+import path from 'path'
 
 describe('utils', () => {
   let config: Configuration
@@ -36,6 +37,11 @@ describe('utils', () => {
   })
 
   it('should get the deployment file path', () => {
-    expect(getDeploymentFilePath('devnet', devnet)).toEqual('.deployments.devnet.json')
+    expect(getDeploymentFilePath(undefined, 'devnet', devnet)).toEqual(
+      path.join('artifacts', '.deployments.devnet.json')
+    )
+    expect(getDeploymentFilePath('contracts', 'devnet', devnet)).toEqual(
+      path.join('contracts', '.deployments.devnet.json')
+    )
   })
 })

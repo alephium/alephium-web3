@@ -117,7 +117,7 @@ export class Deployments {
 
   static async load(configuration: Configuration, networkType: NetworkType): Promise<Deployments> {
     const network = getNetwork(configuration, networkType)
-    const deploymentsFile = getDeploymentFilePath(networkType, network)
+    const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkType, network)
     return Deployments.from(deploymentsFile)
   }
 }
