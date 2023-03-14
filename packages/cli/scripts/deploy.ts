@@ -25,7 +25,7 @@ export async function deployAndSaveProgress<Settings = unknown>(
   networkType: NetworkType
 ): Promise<void> {
   const network = getNetwork(configuration, networkType)
-  const deploymentsFile = getDeploymentFilePath(networkType, network)
+  const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkType, network)
   const deployments = await Deployments.from(deploymentsFile)
   try {
     await deploy(configuration, networkType, deployments)
