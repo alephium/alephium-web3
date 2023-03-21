@@ -57,6 +57,20 @@
       "codeHashDebug": "",
       "warnings": []
     },
+    "INFT": {
+      "sourceFile": "../packages/web3/std/nft_interface.ral",
+      "sourceCodeHash": "0cd0b38f897510894cf3428f6d1ef73f975bef4df7371cf02795aa5af44f40d1",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "INFTCollection": {
+      "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
+      "sourceCodeHash": "95be47fce8d93b492ed49f3995c81d1e25181e90d251b41f6d3b0b0385ce6f32",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "IToken": {
       "sourceFile": "../packages/web3/std/token_interface.ral",
       "sourceCodeHash": "ec86200b80f31f7f0f68508cdce42042738326cdd4e8f109c402ba03e00033ba",
@@ -80,6 +94,27 @@
         "Private function MetaData.bar is not used",
         "Private function MetaData.baz is not used"
       ]
+    },
+    "MintNFTTest": {
+      "sourceFile": "mint_nft_test.ral",
+      "sourceCodeHash": "8fb15a40044814f9033d565288542d52048bd0d687267b31293d465662c42191",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "NFTCollectionTest": {
+      "sourceFile": "nft_collection_test.ral",
+      "sourceCodeHash": "63243abaf6946458d155499367d67b85f3f56ab977921f068389f913ed585042",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "015c02443271d5c3bcd4446d5c1435ded1faa4c7d68eabe60b3fb32fec13c080",
+      "warnings": []
+    },
+    "NFTTest": {
+      "sourceFile": "nft_test.ral",
+      "sourceCodeHash": "f1918b2d68dd1c03ed42738c0a7b91d93cfa9c50b4e44b5bd80b333ee4635bde",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3",
+      "warnings": []
     },
     "Sub": {
       "sourceFile": "sub/sub.ral",

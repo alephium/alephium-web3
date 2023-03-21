@@ -12,6 +12,7 @@ import {
 import { default as DestroyAddScriptJson } from "../add/destroy_add.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter_main.ral.json";
 import { default as MainScriptJson } from "../main.ral.json";
+import { default as MintNFTTestScriptJson } from "../mint_nft_test.ral.json";
 
 export namespace DestroyAdd {
   export async function execute(
@@ -47,4 +48,19 @@ export namespace Main {
   }
 
   export const script = Script.fromJson(MainScriptJson);
+}
+
+export namespace MintNFTTest {
+  export async function execute(
+    signer: SignerProvider,
+    params: ExecuteScriptParams<{
+      nftCollectionContractId: HexString;
+      uri: HexString;
+    }>
+  ): Promise<ExecuteScriptResult> {
+    const signerParams = await script.txParamsForExecution(signer, params);
+    return await signer.signAndSubmitExecuteScriptTx(signerParams);
+  }
+
+  export const script = Script.fromJson(MintNFTTestScriptJson);
 }

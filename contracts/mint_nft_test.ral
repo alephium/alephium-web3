@@ -1,0 +1,7 @@
+TxScript MintNFTTest(
+    nftCollectionContractId: ByteVec,
+    uri: ByteVec
+) {
+    let nftCollection = NFTCollectionTest(nftCollectionContractId)
+    nftCollection.mint{callerAddress!() -> ALPH: 1 alph}(uri)
+}

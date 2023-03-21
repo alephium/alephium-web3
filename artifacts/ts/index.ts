@@ -4,6 +4,8 @@
 
 export * from "./Add";
 export * from "./Greeter";
+export * from "./NFTCollectionTest";
+export * from "./NFTTest";
 export * from "./Sub";
 export * from "./Assert";
 export * from "./Debug";
