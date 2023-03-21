@@ -23,7 +23,7 @@ import { NFTTest } from '../artifacts/ts/NFTTest'
 import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NFTCollectionTest'
 import { MintNFTTest } from '../artifacts/ts/scripts'
 
-describe('nft collection', function() {
+describe('nft collection', function () {
   let signer: NodeWallet
 
   beforeAll(async () => {
@@ -33,23 +33,25 @@ describe('nft collection', function() {
   })
 
   it('should mint nft', async () => {
-    const nftUri = stringToHex("https://cryptopunks.app/cryptopunks/details/1")
+    const nftUri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
     const nftTest = (await NFTTest.deploy(signer, { initialFields: { uri: nftUri } })).instance
     expect((await nftTest.callGetTokenUriMethod()).returns).toEqual(nftUri)
 
-    const name = stringToHex("Alelphium Punk")
-    const symbol = stringToHex("AP")
+    const name = stringToHex('Alelphium Punk')
+    const symbol = stringToHex('AP')
     const totalSupply = 2n
     const currentTokenIndex = 0n
-    const nftCollectionTest = (await NFTCollectionTest.deploy(signer, {
-      initialFields: {
-        nftTemplateId: nftTest.contractId,
-        name,
-        symbol,
-        totalSupply,
-        currentTokenIndex
-      }
-    })).instance
+    const nftCollectionTest = (
+      await NFTCollectionTest.deploy(signer, {
+        initialFields: {
+          nftTemplateId: nftTest.contractId,
+          name,
+          symbol,
+          totalSupply,
+          currentTokenIndex
+        }
+      })
+    ).instance
 
     expect((await nftCollectionTest.callGetNameMethod()).returns).toEqual(name)
     expect((await nftCollectionTest.callGetSymbolMethod()).returns).toEqual(symbol)
@@ -60,12 +62,14 @@ describe('nft collection', function() {
     await mintAndVerify(nftCollectionTest, nftUri, 1n)
 
     // Fail when totalSupply is exceeded
-    await expect(MintNFTTest.execute(signer, {
-      initialFields: {
-        nftCollectionContractId: nftCollectionTest.contractId,
-        uri: nftUri
-      }
-    })).rejects.toThrow(Error)
+    await expect(
+      MintNFTTest.execute(signer, {
+        initialFields: {
+          nftCollectionContractId: nftCollectionTest.contractId,
+          uri: nftUri
+        }
+      })
+    ).rejects.toThrow(Error)
   })
 
   async function mintAndVerify(nftCollectionTest: NFTCollectionTestInstance, nftUri: string, tokenIndex: bigint) {
@@ -77,7 +81,9 @@ describe('nft collection', function() {
       }
     })
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
-    expect((await nftCollectionTest.callNftByIndexMethod({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
+    expect((await nftCollectionTest.callNftByIndexMethod({ args: { index: tokenIndex } })).returns).toEqual(
+      nftContractId
+    )
     expect((await nftCollectionTest.fetchState()).fields.currentTokenIndex).toEqual(tokenIndex + 1n)
   }
 })

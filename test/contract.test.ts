@@ -42,7 +42,7 @@ import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 
-describe('contract', function() {
+describe('contract', function () {
   let signer: NodeWallet
   let signerAccount: Account
   let signerGroup: number
