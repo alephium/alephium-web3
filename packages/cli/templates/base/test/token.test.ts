@@ -133,7 +133,8 @@ describe('integration tests', () => {
       // Call `withdraw` function 10 times
       for (let i = 0; i < 10; i++) {
         await Withdraw.execute(signer, {
-          initialFields: { token: tokenId, amount: 1n }
+          initialFields: { token: tokenId, amount: 1n },
+          attoAlphAmount: DUST_AMOUNT * 2n
         })
 
         const newState = await faucet.fetchState()
