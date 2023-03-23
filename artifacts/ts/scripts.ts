@@ -12,7 +12,7 @@ import {
 import { default as DestroyAddScriptJson } from "../add/destroy_add.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter_main.ral.json";
 import { default as MainScriptJson } from "../main.ral.json";
-import { default as MintNFTTestScriptJson } from "../mint_nft_test.ral.json";
+import { default as MintNFTTestScriptJson } from "../nft/mint_nft_test.ral.json";
 
 export namespace DestroyAdd {
   export async function execute(
