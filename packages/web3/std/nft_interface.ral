@@ -1,0 +1,3 @@
+Interface INFT {
+   pub fn getTokenUri() -> ByteVec
+}

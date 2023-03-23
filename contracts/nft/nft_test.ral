@@ -1,0 +1,9 @@
+import "std/nft_interface"
+
+Contract NFTTest(
+  uri: ByteVec
+) implements INFT {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+}
