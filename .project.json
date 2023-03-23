@@ -57,6 +57,13 @@
       "codeHashDebug": "",
       "warnings": []
     },
+    "IFungibleToken": {
+      "sourceFile": "../packages/web3/std/fungible_token_interface.ral",
+      "sourceCodeHash": "d12aa3e777ef32c2785155c723c13ccee560a5984758e0dabf4c284a35d10a8a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
       "sourceCodeHash": "0cd0b38f897510894cf3428f6d1ef73f975bef4df7371cf02795aa5af44f40d1",
@@ -67,13 +74,6 @@
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
       "sourceCodeHash": "95be47fce8d93b492ed49f3995c81d1e25181e90d251b41f6d3b0b0385ce6f32",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
-    },
-    "IToken": {
-      "sourceFile": "../packages/web3/std/token_interface.ral",
-      "sourceCodeHash": "ec86200b80f31f7f0f68508cdce42042738326cdd4e8f109c402ba03e00033ba",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -125,7 +125,7 @@
     },
     "TokenTest": {
       "sourceFile": "token_test.ral",
-      "sourceCodeHash": "21d0593b269089ee64e2d3fe82d8f32e9386352a66cc5343f32f2663cd548bfc",
+      "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "d9c9fab84f779f2e90ca9e9b1fafd6d9c9dc0f8b84256169e20961f9c917bab8",
       "warnings": []

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Project, stringToHex, subContractId, binToHex, encodeU256 } from '@alephium/web3'
+import { web3, Project, stringToHex, subContractId, binToHex, encodeU256, ONE_ALPH } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { NFTTest } from '../artifacts/ts/NFTTest'
@@ -67,7 +67,8 @@ describe('nft collection', function () {
         initialFields: {
           nftCollectionContractId: nftCollectionTest.contractId,
           uri: nftUri
-        }
+        },
+        attoAlphAmount: 2n * ONE_ALPH
       })
     ).rejects.toThrow(Error)
   })
@@ -78,7 +79,8 @@ describe('nft collection', function () {
       initialFields: {
         nftCollectionContractId: nftCollectionTest.contractId,
         uri: nftUri
-      }
+      },
+      attoAlphAmount: 2n * ONE_ALPH
     })
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
     expect((await nftCollectionTest.callNftByIndexMethod({ args: { index: tokenIndex } })).returns).toEqual(

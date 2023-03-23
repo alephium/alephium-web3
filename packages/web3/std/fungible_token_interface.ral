@@ -1,4 +1,4 @@
-Interface IToken {
+Interface IFungibleToken {
   pub fn getSymbol() -> ByteVec
 
   pub fn getName() -> ByteVec
