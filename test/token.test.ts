@@ -39,10 +39,10 @@ describe('contract', function () {
   it('should get token infos', async () => {
     const tokenTest = (await TokenTest.deploy(signer, { initialFields })).instance
 
-    expect((await tokenTest.callGetSymbolMethod()).returns).toEqual(symbol)
-    expect((await tokenTest.callGetNameMethod()).returns).toEqual(name)
-    expect((await tokenTest.callGetDecimalsMethod()).returns).toEqual(decimals)
-    expect((await tokenTest.callGetTotalSupplyMethod()).returns).toEqual(totalSupply)
+    expect((await tokenTest.methods.getSymbol()).returns).toEqual(symbol)
+    expect((await tokenTest.methods.getName()).returns).toEqual(name)
+    expect((await tokenTest.methods.getDecimals()).returns).toEqual(decimals)
+    expect((await tokenTest.methods.getTotalSupply()).returns).toEqual(totalSupply)
   })
 
   it('should multicall', async () => {

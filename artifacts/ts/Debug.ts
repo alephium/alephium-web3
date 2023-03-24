@@ -36,14 +36,16 @@ class Factory extends ContractFactory<DebugInstance, {}> {
     return new DebugInstance(address);
   }
 
-  async testDebugMethod(
-    params?: Omit<
-      TestContractParams<never, never>,
-      "testArgs" | "initialFields"
-    >
-  ): Promise<TestContractResult<null>> {
-    return testMethod(this, "debug", params === undefined ? {} : params);
-  }
+  tests = {
+    debug: async (
+      params?: Omit<
+        TestContractParams<never, never>,
+        "testArgs" | "initialFields"
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "debug", params === undefined ? {} : params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract

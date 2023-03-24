@@ -59,11 +59,13 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     return new GreeterInstance(address);
   }
 
-  async testGreetMethod(
-    params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
-  ): Promise<TestContractResult<bigint>> {
-    return testMethod(this, "greet", params);
-  }
+  tests = {
+    greet: async (
+      params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
+    ): Promise<TestContractResult<bigint>> => {
+      return testMethod(this, "greet", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract
@@ -85,16 +87,18 @@ export class GreeterInstance extends ContractInstance {
     return fetchContractState(Greeter, this);
   }
 
-  async callGreetMethod(
-    params?: GreeterTypes.CallMethodParams<"greet">
-  ): Promise<GreeterTypes.CallMethodResult<"greet">> {
-    return callMethod(
-      Greeter,
-      this,
-      "greet",
-      params === undefined ? {} : params
-    );
-  }
+  methods = {
+    greet: async (
+      params?: GreeterTypes.CallMethodParams<"greet">
+    ): Promise<GreeterTypes.CallMethodResult<"greet">> => {
+      return callMethod(
+        Greeter,
+        this,
+        "greet",
+        params === undefined ? {} : params
+      );
+    },
+  };
 
   async multicall<Calls extends GreeterTypes.MultiCallParams>(
     calls: Calls

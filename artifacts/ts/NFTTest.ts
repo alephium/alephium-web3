@@ -59,11 +59,13 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
     return new NFTTestInstance(address);
   }
 
-  async testGetTokenUriMethod(
-    params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
-  ): Promise<TestContractResult<HexString>> {
-    return testMethod(this, "getTokenUri", params);
-  }
+  tests = {
+    getTokenUri: async (
+      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "getTokenUri", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract
@@ -85,16 +87,18 @@ export class NFTTestInstance extends ContractInstance {
     return fetchContractState(NFTTest, this);
   }
 
-  async callGetTokenUriMethod(
-    params?: NFTTestTypes.CallMethodParams<"getTokenUri">
-  ): Promise<NFTTestTypes.CallMethodResult<"getTokenUri">> {
-    return callMethod(
-      NFTTest,
-      this,
-      "getTokenUri",
-      params === undefined ? {} : params
-    );
-  }
+  methods = {
+    getTokenUri: async (
+      params?: NFTTestTypes.CallMethodParams<"getTokenUri">
+    ): Promise<NFTTestTypes.CallMethodResult<"getTokenUri">> => {
+      return callMethod(
+        NFTTest,
+        this,
+        "getTokenUri",
+        params === undefined ? {} : params
+      );
+    },
+  };
 
   async multicall<Calls extends NFTTestTypes.MultiCallParams>(
     calls: Calls

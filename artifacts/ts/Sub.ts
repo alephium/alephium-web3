@@ -61,11 +61,13 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
     return new SubInstance(address);
   }
 
-  async testSubMethod(
-    params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
-  ): Promise<TestContractResult<bigint>> {
-    return testMethod(this, "sub", params);
-  }
+  tests = {
+    sub: async (
+      params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
+    ): Promise<TestContractResult<bigint>> => {
+      return testMethod(this, "sub", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract
@@ -104,11 +106,13 @@ export class SubInstance extends ContractInstance {
     );
   }
 
-  async callSubMethod(
-    params: SubTypes.CallMethodParams<"sub">
-  ): Promise<SubTypes.CallMethodResult<"sub">> {
-    return callMethod(Sub, this, "sub", params);
-  }
+  methods = {
+    sub: async (
+      params: SubTypes.CallMethodParams<"sub">
+    ): Promise<SubTypes.CallMethodResult<"sub">> => {
+      return callMethod(Sub, this, "sub", params);
+    },
+  };
 
   async multicall<Calls extends SubTypes.MultiCallParams>(
     calls: Calls

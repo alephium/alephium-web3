@@ -59,7 +59,7 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
 
     const subState = Sub.stateForTest({ result: 0n })
-    const testResult = await Add.testAddMethod({
+    const testResult = await Add.tests.add({
       initialFields: { sub: subState.contractId, result: 0n },
       testArgs: { array: [2n, 1n] },
       existingContracts: [subState]
@@ -97,7 +97,7 @@ describe('contract', function () {
 
     checkEvents(testResult.events)
 
-    const testResultPrivate = await Add.testAddPrivateMethod({
+    const testResultPrivate = await Add.tests.addPrivate({
       initialFields: { sub: subState.contractId, result: 0n },
       testArgs: { array: [2n, 1n] },
       existingContracts: [subState]
@@ -132,7 +132,7 @@ describe('contract', function () {
     expect(addContractState1.fields.sub).toEqual(sub.contractId)
     expect(addContractState1.fields.result).toEqual(3n)
 
-    const callResult = await add.callAddMethod({
+    const callResult = await add.methods.add({
       args: { array: [2n, 1n] },
       existingContracts: [sub.address]
     })
@@ -143,7 +143,7 @@ describe('contract', function () {
   async function testSuite2() {
     await Project.build({ errorOnWarnings: false })
 
-    const testResult = await Greeter.testGreetMethod({ initialFields: { btcPrice: 1n } })
+    const testResult = await Greeter.tests.greet({ initialFields: { btcPrice: 1n } })
     expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
@@ -172,7 +172,7 @@ describe('contract', function () {
       groupIndex
     )
     const payer = testAddress
-    const testResult = await Add.testCreateSubContractMethod({
+    const testResult = await Add.tests.createSubContract({
       address: addAddress,
       group: groupIndex,
       initialFields: { sub: subState.contractId, result: 0n },
@@ -251,7 +251,7 @@ describe('contract', function () {
 
   it('should debug', async () => {
     await Project.build({ errorOnWarnings: false })
-    const result = await Debug.testDebugMethod()
+    const result = await Debug.tests.debug()
     expect(result.debugMessages.length).toEqual(1)
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
     expect(result.debugMessages[0].message).toEqual(`Hello, ${result.contractAddress}!`)
@@ -260,6 +260,6 @@ describe('contract', function () {
   it('should test assert!', async () => {
     await Project.build({ errorOnWarnings: false })
     const testAddress = randomContractAddress()
-    expectAssertionError(Assert.testTestMethod({ address: testAddress }), testAddress, 3)
+    expectAssertionError(Assert.tests.test({ address: testAddress }), testAddress, 3)
   })
 })
