@@ -38,7 +38,7 @@ describe('unit tests', () => {
 
   it('test withdraw', async () => {
     const testParams = testParamsFixture
-    const testResult = await TokenFaucet.testWithdrawMethod(testParams)
+    const testResult = await TokenFaucet.tests.withdraw(testParams)
 
     // only one contract involved in the test
     const contractState = testResult.contracts[0] as TokenFaucetTypes.State
@@ -97,7 +97,7 @@ describe('unit tests', () => {
   it('test withdraw', async () => {
     const testParams = { ...testParamsFixture, testArgs: { amount: 3n } }
     // test that assertion failed in the withdraw function
-    await expectAssertionError(TokenFaucet.testWithdrawMethod(testParams), testContractAddress, 0)
+    await expectAssertionError(TokenFaucet.tests.withdraw(testParams), testContractAddress, 0)
   })
 })
 
