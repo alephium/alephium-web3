@@ -176,7 +176,6 @@ function genContractStateType(contract: Contract): string {
 }
 
 function genTestMethod(contract: Contract, functionSig: node.FunctionSig): string {
-  const funcName = functionSig.name.charAt(0).toUpperCase() + functionSig.name.slice(1)
   const funcHasArgs = functionSig.paramNames.length > 0
   const contractHasFields = contract.fieldsSig.names.length > 0
   const argsType = funcHasArgs
@@ -200,8 +199,16 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
       : `TestContractResult<[${tsReturnTypes.join(', ')}]>`
   const callParams = funcHasArgs || contractHasFields ? 'params' : 'params === undefined ? {} : params'
   return `
-    async test${funcName}Method(${params}): Promise<${retType}> {
+    ${functionSig.name}: async (${params}): Promise<${retType}> => {
       return testMethod(this, "${functionSig.name}", ${callParams})
+    }
+  `
+}
+
+function genTestMethods(contract: Contract): string {
+  return `
+    tests = {
+      ${contract.functions.map((f) => genTestMethod(contract, f)).join(',')}
     }
   `
 }
@@ -289,7 +296,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract)}> {
       ${genAttach(getInstanceName(contract))}
-      ${contract.functions.map((f) => genTestMethod(contract, f)).join('\n')}
+      ${genTestMethods(contract)}
     }
 
     // Use this object to test and deploy the contract

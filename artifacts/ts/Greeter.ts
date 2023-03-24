@@ -59,11 +59,13 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     return new GreeterInstance(address);
   }
 
-  async testGreetMethod(
-    params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
-  ): Promise<TestContractResult<bigint>> {
-    return testMethod(this, "greet", params);
-  }
+  tests = {
+    greet: async (
+      params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
+    ): Promise<TestContractResult<bigint>> => {
+      return testMethod(this, "greet", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract

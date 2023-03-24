@@ -88,47 +88,48 @@ class Factory extends ContractFactory<
     return new NFTCollectionTestInstance(address);
   }
 
-  async testGetNameMethod(
-    params: Omit<
-      TestContractParams<NFTCollectionTestTypes.Fields, never>,
-      "testArgs"
-    >
-  ): Promise<TestContractResult<HexString>> {
-    return testMethod(this, "getName", params);
-  }
-
-  async testGetSymbolMethod(
-    params: Omit<
-      TestContractParams<NFTCollectionTestTypes.Fields, never>,
-      "testArgs"
-    >
-  ): Promise<TestContractResult<HexString>> {
-    return testMethod(this, "getSymbol", params);
-  }
-
-  async testTotalSupplyMethod(
-    params: Omit<
-      TestContractParams<NFTCollectionTestTypes.Fields, never>,
-      "testArgs"
-    >
-  ): Promise<TestContractResult<bigint>> {
-    return testMethod(this, "totalSupply", params);
-  }
-
-  async testNftByIndexMethod(
-    params: TestContractParams<NFTCollectionTestTypes.Fields, { index: bigint }>
-  ): Promise<TestContractResult<HexString>> {
-    return testMethod(this, "nftByIndex", params);
-  }
-
-  async testMintMethod(
-    params: TestContractParams<
-      NFTCollectionTestTypes.Fields,
-      { nftUri: HexString }
-    >
-  ): Promise<TestContractResult<HexString>> {
-    return testMethod(this, "mint", params);
-  }
+  tests = {
+    getName: async (
+      params: Omit<
+        TestContractParams<NFTCollectionTestTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "getName", params);
+    },
+    getSymbol: async (
+      params: Omit<
+        TestContractParams<NFTCollectionTestTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "getSymbol", params);
+    },
+    totalSupply: async (
+      params: Omit<
+        TestContractParams<NFTCollectionTestTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResult<bigint>> => {
+      return testMethod(this, "totalSupply", params);
+    },
+    nftByIndex: async (
+      params: TestContractParams<
+        NFTCollectionTestTypes.Fields,
+        { index: bigint }
+      >
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "nftByIndex", params);
+    },
+    mint: async (
+      params: TestContractParams<
+        NFTCollectionTestTypes.Fields,
+        { nftUri: HexString }
+      >
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "mint", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract

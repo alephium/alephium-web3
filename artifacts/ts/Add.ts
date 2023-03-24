@@ -63,32 +63,36 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     return new AddInstance(address);
   }
 
-  async testAddMethod(
-    params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-  ): Promise<TestContractResult<[bigint, bigint]>> {
-    return testMethod(this, "add", params);
-  }
-
-  async testAddPrivateMethod(
-    params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-  ): Promise<TestContractResult<[bigint, bigint]>> {
-    return testMethod(this, "addPrivate", params);
-  }
-
-  async testCreateSubContractMethod(
-    params: TestContractParams<
-      AddTypes.Fields,
-      { a: bigint; path: HexString; subContractId: HexString; payer: HexString }
-    >
-  ): Promise<TestContractResult<null>> {
-    return testMethod(this, "createSubContract", params);
-  }
-
-  async testDestroyMethod(
-    params: TestContractParams<AddTypes.Fields, { caller: HexString }>
-  ): Promise<TestContractResult<null>> {
-    return testMethod(this, "destroy", params);
-  }
+  tests = {
+    add: async (
+      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
+    ): Promise<TestContractResult<[bigint, bigint]>> => {
+      return testMethod(this, "add", params);
+    },
+    addPrivate: async (
+      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
+    ): Promise<TestContractResult<[bigint, bigint]>> => {
+      return testMethod(this, "addPrivate", params);
+    },
+    createSubContract: async (
+      params: TestContractParams<
+        AddTypes.Fields,
+        {
+          a: bigint;
+          path: HexString;
+          subContractId: HexString;
+          payer: HexString;
+        }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "createSubContract", params);
+    },
+    destroy: async (
+      params: TestContractParams<AddTypes.Fields, { caller: HexString }>
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "destroy", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract

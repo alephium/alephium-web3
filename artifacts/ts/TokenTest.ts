@@ -77,29 +77,28 @@ class Factory extends ContractFactory<
     return new TokenTestInstance(address);
   }
 
-  async testGetSymbolMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-  ): Promise<TestContractResult<HexString>> {
-    return testMethod(this, "getSymbol", params);
-  }
-
-  async testGetNameMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-  ): Promise<TestContractResult<HexString>> {
-    return testMethod(this, "getName", params);
-  }
-
-  async testGetDecimalsMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-  ): Promise<TestContractResult<bigint>> {
-    return testMethod(this, "getDecimals", params);
-  }
-
-  async testGetTotalSupplyMethod(
-    params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-  ): Promise<TestContractResult<bigint>> {
-    return testMethod(this, "getTotalSupply", params);
-  }
+  tests = {
+    getSymbol: async (
+      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "getSymbol", params);
+    },
+    getName: async (
+      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+    ): Promise<TestContractResult<HexString>> => {
+      return testMethod(this, "getName", params);
+    },
+    getDecimals: async (
+      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+    ): Promise<TestContractResult<bigint>> => {
+      return testMethod(this, "getDecimals", params);
+    },
+    getTotalSupply: async (
+      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+    ): Promise<TestContractResult<bigint>> => {
+      return testMethod(this, "getTotalSupply", params);
+    },
+  };
 }
 
 // Use this object to test and deploy the contract
