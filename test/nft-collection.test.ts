@@ -35,7 +35,7 @@ describe('nft collection', function () {
   it('should mint nft', async () => {
     const nftUri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
     const nftTest = (await NFTTest.deploy(signer, { initialFields: { uri: nftUri } })).instance
-    expect((await nftTest.callGetTokenUriMethod()).returns).toEqual(nftUri)
+    expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
 
     const name = stringToHex('Alelphium Punk')
     const symbol = stringToHex('AP')
@@ -53,9 +53,9 @@ describe('nft collection', function () {
       })
     ).instance
 
-    expect((await nftCollectionTest.callGetNameMethod()).returns).toEqual(name)
-    expect((await nftCollectionTest.callGetSymbolMethod()).returns).toEqual(symbol)
-    expect((await nftCollectionTest.callTotalSupplyMethod()).returns).toEqual(totalSupply)
+    expect((await nftCollectionTest.methods.getName()).returns).toEqual(name)
+    expect((await nftCollectionTest.methods.getSymbol()).returns).toEqual(symbol)
+    expect((await nftCollectionTest.methods.totalSupply()).returns).toEqual(totalSupply)
     expect((await nftCollectionTest.fetchState()).fields.currentTokenIndex).toEqual(0n)
 
     await mintAndVerify(nftCollectionTest, nftUri, 0n)
@@ -74,7 +74,7 @@ describe('nft collection', function () {
   })
 
   async function mintAndVerify(nftCollectionTest: NFTCollectionTestInstance, nftUri: string, tokenIndex: bigint) {
-    await expect(nftCollectionTest.callNftByIndexMethod({ args: { index: tokenIndex } })).rejects.toThrow(Error)
+    await expect(nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).rejects.toThrow(Error)
     await MintNFTTest.execute(signer, {
       initialFields: {
         nftCollectionContractId: nftCollectionTest.contractId,
@@ -83,9 +83,7 @@ describe('nft collection', function () {
       attoAlphAmount: 2n * ONE_ALPH
     })
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
-    expect((await nftCollectionTest.callNftByIndexMethod({ args: { index: tokenIndex } })).returns).toEqual(
-      nftContractId
-    )
+    expect((await nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
     expect((await nftCollectionTest.fetchState()).fields.currentTokenIndex).toEqual(tokenIndex + 1n)
   }
 })

@@ -104,11 +104,13 @@ export class SubInstance extends ContractInstance {
     );
   }
 
-  async callSubMethod(
-    params: SubTypes.CallMethodParams<"sub">
-  ): Promise<SubTypes.CallMethodResult<"sub">> {
-    return callMethod(Sub, this, "sub", params);
-  }
+  methods = {
+    sub: async (
+      params: SubTypes.CallMethodParams<"sub">
+    ): Promise<SubTypes.CallMethodResult<"sub">> => {
+      return callMethod(Sub, this, "sub", params);
+    },
+  };
 
   async multicall<Calls extends SubTypes.MultiCallParams>(
     calls: Calls

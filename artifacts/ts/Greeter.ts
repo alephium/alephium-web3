@@ -85,16 +85,18 @@ export class GreeterInstance extends ContractInstance {
     return fetchContractState(Greeter, this);
   }
 
-  async callGreetMethod(
-    params?: GreeterTypes.CallMethodParams<"greet">
-  ): Promise<GreeterTypes.CallMethodResult<"greet">> {
-    return callMethod(
-      Greeter,
-      this,
-      "greet",
-      params === undefined ? {} : params
-    );
-  }
+  methods = {
+    greet: async (
+      params?: GreeterTypes.CallMethodParams<"greet">
+    ): Promise<GreeterTypes.CallMethodResult<"greet">> => {
+      return callMethod(
+        Greeter,
+        this,
+        "greet",
+        params === undefined ? {} : params
+      );
+    },
+  };
 
   async multicall<Calls extends GreeterTypes.MultiCallParams>(
     calls: Calls

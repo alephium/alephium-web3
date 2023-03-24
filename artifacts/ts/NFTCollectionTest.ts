@@ -167,50 +167,48 @@ export class NFTCollectionTestInstance extends ContractInstance {
     );
   }
 
-  async callGetNameMethod(
-    params?: NFTCollectionTestTypes.CallMethodParams<"getName">
-  ): Promise<NFTCollectionTestTypes.CallMethodResult<"getName">> {
-    return callMethod(
-      NFTCollectionTest,
-      this,
-      "getName",
-      params === undefined ? {} : params
-    );
-  }
-
-  async callGetSymbolMethod(
-    params?: NFTCollectionTestTypes.CallMethodParams<"getSymbol">
-  ): Promise<NFTCollectionTestTypes.CallMethodResult<"getSymbol">> {
-    return callMethod(
-      NFTCollectionTest,
-      this,
-      "getSymbol",
-      params === undefined ? {} : params
-    );
-  }
-
-  async callTotalSupplyMethod(
-    params?: NFTCollectionTestTypes.CallMethodParams<"totalSupply">
-  ): Promise<NFTCollectionTestTypes.CallMethodResult<"totalSupply">> {
-    return callMethod(
-      NFTCollectionTest,
-      this,
-      "totalSupply",
-      params === undefined ? {} : params
-    );
-  }
-
-  async callNftByIndexMethod(
-    params: NFTCollectionTestTypes.CallMethodParams<"nftByIndex">
-  ): Promise<NFTCollectionTestTypes.CallMethodResult<"nftByIndex">> {
-    return callMethod(NFTCollectionTest, this, "nftByIndex", params);
-  }
-
-  async callMintMethod(
-    params: NFTCollectionTestTypes.CallMethodParams<"mint">
-  ): Promise<NFTCollectionTestTypes.CallMethodResult<"mint">> {
-    return callMethod(NFTCollectionTest, this, "mint", params);
-  }
+  methods = {
+    getName: async (
+      params?: NFTCollectionTestTypes.CallMethodParams<"getName">
+    ): Promise<NFTCollectionTestTypes.CallMethodResult<"getName">> => {
+      return callMethod(
+        NFTCollectionTest,
+        this,
+        "getName",
+        params === undefined ? {} : params
+      );
+    },
+    getSymbol: async (
+      params?: NFTCollectionTestTypes.CallMethodParams<"getSymbol">
+    ): Promise<NFTCollectionTestTypes.CallMethodResult<"getSymbol">> => {
+      return callMethod(
+        NFTCollectionTest,
+        this,
+        "getSymbol",
+        params === undefined ? {} : params
+      );
+    },
+    totalSupply: async (
+      params?: NFTCollectionTestTypes.CallMethodParams<"totalSupply">
+    ): Promise<NFTCollectionTestTypes.CallMethodResult<"totalSupply">> => {
+      return callMethod(
+        NFTCollectionTest,
+        this,
+        "totalSupply",
+        params === undefined ? {} : params
+      );
+    },
+    nftByIndex: async (
+      params: NFTCollectionTestTypes.CallMethodParams<"nftByIndex">
+    ): Promise<NFTCollectionTestTypes.CallMethodResult<"nftByIndex">> => {
+      return callMethod(NFTCollectionTest, this, "nftByIndex", params);
+    },
+    mint: async (
+      params: NFTCollectionTestTypes.CallMethodParams<"mint">
+    ): Promise<NFTCollectionTestTypes.CallMethodResult<"mint">> => {
+      return callMethod(NFTCollectionTest, this, "mint", params);
+    },
+  };
 
   async multicall<Calls extends NFTCollectionTestTypes.MultiCallParams>(
     calls: Calls

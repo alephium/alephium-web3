@@ -65,17 +65,25 @@ function formatParameters(fieldsSig: { names: string[]; types: string[] }): stri
 }
 
 function genCallMethod(contractName: string, functionSig: node.FunctionSig): string {
-  if (!functionSig.isPublic || functionSig.returnTypes.length === 0) {
-    return ''
-  }
-  const funcName = functionSig.name.charAt(0).toUpperCase() + functionSig.name.slice(1)
   const funcHasArgs = functionSig.paramNames.length > 0
   const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
   const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
   const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
   return `
-    async call${funcName}Method(${params}): Promise<${retType}> {
+    ${functionSig.name}: async (${params}): Promise<${retType}> => {
       return callMethod(${contractName}, this, "${functionSig.name}", ${callParams})
+    }
+  `
+}
+
+function genCallMethods(contract: Contract): string {
+  const functions = contract.functions.filter((f) => f.isPublic && f.returnTypes.length > 0)
+  if (functions.length === 0) {
+    return ''
+  }
+  return `
+    methods = {
+      ${functions.map((f) => genCallMethod(contract.name, f)).join(',')}
     }
   `
 }
@@ -301,7 +309,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genGetContractEventsCurrentCount(contract)}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}
-      ${contract.functions.map((f) => genCallMethod(contract.name, f)).join('\n')}
+      ${genCallMethods(contract)}
       ${genMulticall(contract)}
     }
 `

@@ -121,49 +121,48 @@ export class TokenTestInstance extends ContractInstance {
     return fetchContractState(TokenTest, this);
   }
 
-  async callGetSymbolMethod(
-    params?: TokenTestTypes.CallMethodParams<"getSymbol">
-  ): Promise<TokenTestTypes.CallMethodResult<"getSymbol">> {
-    return callMethod(
-      TokenTest,
-      this,
-      "getSymbol",
-      params === undefined ? {} : params
-    );
-  }
-
-  async callGetNameMethod(
-    params?: TokenTestTypes.CallMethodParams<"getName">
-  ): Promise<TokenTestTypes.CallMethodResult<"getName">> {
-    return callMethod(
-      TokenTest,
-      this,
-      "getName",
-      params === undefined ? {} : params
-    );
-  }
-
-  async callGetDecimalsMethod(
-    params?: TokenTestTypes.CallMethodParams<"getDecimals">
-  ): Promise<TokenTestTypes.CallMethodResult<"getDecimals">> {
-    return callMethod(
-      TokenTest,
-      this,
-      "getDecimals",
-      params === undefined ? {} : params
-    );
-  }
-
-  async callGetTotalSupplyMethod(
-    params?: TokenTestTypes.CallMethodParams<"getTotalSupply">
-  ): Promise<TokenTestTypes.CallMethodResult<"getTotalSupply">> {
-    return callMethod(
-      TokenTest,
-      this,
-      "getTotalSupply",
-      params === undefined ? {} : params
-    );
-  }
+  methods = {
+    getSymbol: async (
+      params?: TokenTestTypes.CallMethodParams<"getSymbol">
+    ): Promise<TokenTestTypes.CallMethodResult<"getSymbol">> => {
+      return callMethod(
+        TokenTest,
+        this,
+        "getSymbol",
+        params === undefined ? {} : params
+      );
+    },
+    getName: async (
+      params?: TokenTestTypes.CallMethodParams<"getName">
+    ): Promise<TokenTestTypes.CallMethodResult<"getName">> => {
+      return callMethod(
+        TokenTest,
+        this,
+        "getName",
+        params === undefined ? {} : params
+      );
+    },
+    getDecimals: async (
+      params?: TokenTestTypes.CallMethodParams<"getDecimals">
+    ): Promise<TokenTestTypes.CallMethodResult<"getDecimals">> => {
+      return callMethod(
+        TokenTest,
+        this,
+        "getDecimals",
+        params === undefined ? {} : params
+      );
+    },
+    getTotalSupply: async (
+      params?: TokenTestTypes.CallMethodParams<"getTotalSupply">
+    ): Promise<TokenTestTypes.CallMethodResult<"getTotalSupply">> => {
+      return callMethod(
+        TokenTest,
+        this,
+        "getTotalSupply",
+        params === undefined ? {} : params
+      );
+    },
+  };
 
   async multicall<Calls extends TokenTestTypes.MultiCallParams>(
     calls: Calls

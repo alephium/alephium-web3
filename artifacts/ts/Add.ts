@@ -147,11 +147,13 @@ export class AddInstance extends ContractInstance {
     return subscribeContractEvents(Add.contract, this, options, fromCount);
   }
 
-  async callAddMethod(
-    params: AddTypes.CallMethodParams<"add">
-  ): Promise<AddTypes.CallMethodResult<"add">> {
-    return callMethod(Add, this, "add", params);
-  }
+  methods = {
+    add: async (
+      params: AddTypes.CallMethodParams<"add">
+    ): Promise<AddTypes.CallMethodResult<"add">> => {
+      return callMethod(Add, this, "add", params);
+    },
+  };
 
   async multicall<Calls extends AddTypes.MultiCallParams>(
     calls: Calls

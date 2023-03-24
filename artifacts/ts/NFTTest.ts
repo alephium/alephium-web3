@@ -85,16 +85,18 @@ export class NFTTestInstance extends ContractInstance {
     return fetchContractState(NFTTest, this);
   }
 
-  async callGetTokenUriMethod(
-    params?: NFTTestTypes.CallMethodParams<"getTokenUri">
-  ): Promise<NFTTestTypes.CallMethodResult<"getTokenUri">> {
-    return callMethod(
-      NFTTest,
-      this,
-      "getTokenUri",
-      params === undefined ? {} : params
-    );
-  }
+  methods = {
+    getTokenUri: async (
+      params?: NFTTestTypes.CallMethodParams<"getTokenUri">
+    ): Promise<NFTTestTypes.CallMethodResult<"getTokenUri">> => {
+      return callMethod(
+        NFTTest,
+        this,
+        "getTokenUri",
+        params === undefined ? {} : params
+      );
+    },
+  };
 
   async multicall<Calls extends NFTTestTypes.MultiCallParams>(
     calls: Calls

@@ -132,7 +132,7 @@ describe('contract', function () {
     expect(addContractState1.fields.sub).toEqual(sub.contractId)
     expect(addContractState1.fields.result).toEqual(3n)
 
-    const callResult = await add.callAddMethod({
+    const callResult = await add.methods.add({
       args: { array: [2n, 1n] },
       existingContracts: [sub.address]
     })
