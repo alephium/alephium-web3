@@ -39,6 +39,8 @@ export class ExplorerProvider {
   readonly mempool: ExplorerApi<string>['mempool']
   readonly tokens: ExplorerApi<string>['tokens']
   readonly charts: ExplorerApi<string>['charts']
+  readonly contractEvents: ExplorerApi<string>['contractEvents']
+  readonly contracts: ExplorerApi<string>['contracts']
   readonly utils: ExplorerApi<string>['utils']
 
   constructor(baseUrl: string, apiKey?: string, customFetch?: typeof fetch)
@@ -63,6 +65,8 @@ export class ExplorerProvider {
     this.tokens = { ...explorerApi.tokens }
     this.charts = { ...explorerApi.charts }
     this.utils = { ...explorerApi.utils }
+    this.contracts = { ...explorerApi.contracts }
+    this.contractEvents = { ...explorerApi.contractEvents }
   }
 
   request = (args: ApiRequestArguments): Promise<any> => {
