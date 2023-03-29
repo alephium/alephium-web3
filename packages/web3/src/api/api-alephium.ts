@@ -379,6 +379,7 @@ export interface CompileContractResult {
   functions: FunctionSig[]
   events: EventSig[]
   warnings: string[]
+  stdId?: string
 }
 
 export interface CompileProjectResult {
@@ -1216,7 +1217,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.0.1
+ * @version 2.0.4
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
