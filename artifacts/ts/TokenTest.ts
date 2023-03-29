@@ -21,7 +21,6 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
-  fetchContractStateWithStdId,
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
@@ -37,9 +36,6 @@ export namespace TokenTestTypes {
   };
 
   export type State = ContractState<Fields>;
-
-  export type FieldsWithStdId = Fields & { __stdId: HexString };
-  export type StateWithStdId = ContractState<FieldsWithStdId>;
 
   export interface CallMethodTable {
     getSymbol: {
@@ -122,10 +118,6 @@ export class TokenTestInstance extends ContractInstance {
 
   async fetchState(): Promise<TokenTestTypes.State> {
     return fetchContractState(TokenTest, this);
-  }
-
-  async fetchStateWithStdId(): Promise<TokenTestTypes.StateWithStdId> {
-    return fetchContractStateWithStdId(TokenTest, this);
   }
 
   methods = {

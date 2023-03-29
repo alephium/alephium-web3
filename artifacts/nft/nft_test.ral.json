@@ -6,7 +6,7 @@
   "fieldsSig": {
     "names": [
       "uri",
-      "__stdId"
+      "__stdInterfaceId"
     ],
     "types": [
       "ByteVec",
@@ -32,5 +32,5 @@
       ]
     }
   ],
-  "stdId": "414c50480003"
+  "stdInterfaceId": "0003"
 }

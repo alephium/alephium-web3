@@ -9,7 +9,7 @@
       "name",
       "decimals",
       "totalSupply",
-      "__stdId"
+      "__stdInterfaceId"
     ],
     "types": [
       "ByteVec",
@@ -77,5 +77,5 @@
       ]
     }
   ],
-  "stdId": "414c50480001"
+  "stdInterfaceId": "0001"
 }

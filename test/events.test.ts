@@ -159,7 +159,7 @@ describe('events', function () {
     expect(events[0].name).toEqual(Contract.ContractCreatedEvent.name)
     expect(events[0].fields.address).toEqual(sub.instance.address)
     expect(events[0].fields.parentAddress).toEqual(undefined)
-    expect(events[0].fields.stdId).toEqual(undefined)
+    expect(events[0].fields.stdInterfaceIdGuessed).toEqual(undefined)
   })
 
   it('should subscribe contract destroyed events', async () => {

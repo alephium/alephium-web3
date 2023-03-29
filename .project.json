@@ -104,7 +104,7 @@
     },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
-      "sourceCodeHash": "2778bf9ea1d7d40a3b2918736519d946bb85981e439d6d04ee9452236e75060e",
+      "sourceCodeHash": "d6e41d2752285f53f8f88329dcc04a676cc10f81cd6a9e6e7f795473c4d77f2f",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "585e6f61f7f835fb2bccc93bf8320d846441093a96f77224f44e158cd97557b0",
       "warnings": []

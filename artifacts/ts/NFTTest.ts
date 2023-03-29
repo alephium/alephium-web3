@@ -21,7 +21,6 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
-  fetchContractStateWithStdId,
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
@@ -34,9 +33,6 @@ export namespace NFTTestTypes {
   };
 
   export type State = ContractState<Fields>;
-
-  export type FieldsWithStdId = Fields & { __stdId: HexString };
-  export type StateWithStdId = ContractState<FieldsWithStdId>;
 
   export interface CallMethodTable {
     getTokenUri: {
@@ -89,10 +85,6 @@ export class NFTTestInstance extends ContractInstance {
 
   async fetchState(): Promise<NFTTestTypes.State> {
     return fetchContractState(NFTTest, this);
-  }
-
-  async fetchStateWithStdId(): Promise<NFTTestTypes.StateWithStdId> {
-    return fetchContractStateWithStdId(NFTTest, this);
   }
 
   methods = {

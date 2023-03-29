@@ -8,7 +8,7 @@
       "nftTemplateId",
       "collectionUri",
       "totalSupply",
-      "__stdId"
+      "__stdInterfaceId"
     ],
     "types": [
       "ByteVec",
@@ -86,5 +86,5 @@
       ]
     }
   ],
-  "stdId": "414c50480002"
+  "stdInterfaceId": "0002"
 }

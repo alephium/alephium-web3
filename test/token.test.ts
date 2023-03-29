@@ -44,14 +44,17 @@ describe('contract', function () {
     expect((await tokenTest.methods.getDecimals()).returns).toEqual(decimals)
     expect((await tokenTest.methods.getTotalSupply()).returns).toEqual(totalSupply)
 
-    const stateWithStdId = await tokenTest.fetchStateWithStdId()
+    const stateWithStdId = await tokenTest.fetchState()
     expect(stateWithStdId.fields).toEqual({
       symbol: symbol,
       name: name,
       decimals: decimals,
       totalSupply: totalSupply,
-      __stdId: '414c50480001'
+      __stdInterfaceId: '414c50480001'
     })
+
+    const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(tokenTest.contractId)
+    expect(stdInterfaceId).toEqual('0001')
   })
 
   it('should multicall', async () => {

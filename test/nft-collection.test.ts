@@ -78,8 +78,10 @@ describe('nft collection', function () {
     expect((await nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
 
     const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
-    const nftFields = (await nftInstance.fetchStateWithStdId()).fields
+    const nftFields = (await nftInstance.fetchState()).fields
     expect(nftFields.uri).toEqual(nftUri)
-    expect(nftFields.__stdId).toEqual('414c50480003')
+
+    const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(nftInstance.contractId)
+    expect(stdInterfaceId).toEqual('0003')
   }
 })
