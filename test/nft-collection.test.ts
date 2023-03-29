@@ -16,7 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Project, stringToHex, subContractId, binToHex, encodeU256, ONE_ALPH } from '@alephium/web3'
+import {
+  web3,
+  Project,
+  stringToHex,
+  subContractId,
+  binToHex,
+  encodeU256,
+  ONE_ALPH,
+  addressFromContractId
+} from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { NFTTest } from '../artifacts/ts/NFTTest'
@@ -85,5 +94,10 @@ describe('nft collection', function () {
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
     expect((await nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
     expect((await nftCollectionTest.fetchState()).fields.currentTokenIndex).toEqual(tokenIndex + 1n)
+
+    const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
+    const nftFields = (await nftInstance.fetchStateWithStdId()).fields
+    expect(nftFields.uri).toEqual(nftUri)
+    expect(nftFields.__stdId).toEqual('414c50480003')
   }
 })

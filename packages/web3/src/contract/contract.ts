@@ -1501,6 +1501,20 @@ export async function fetchContractState<F extends Fields, I extends ContractIns
   }
 }
 
+export async function fetchContractStateWithStdId<F extends Fields, I extends ContractInstance>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance
+): Promise<ContractState<F & { __stdId: HexString }>> {
+  const contractState = await getCurrentNodeProvider().contracts.getContractsAddressState(instance.address, {
+    group: instance.groupIndex
+  })
+  const state = contract.contract.fromApiContractState(contractState)
+  return {
+    ...state,
+    fields: state.fields as F & { __stdId: HexString }
+  }
+}
+
 export function subscribeContractCreatedEvent(
   options: SubscribeOptions<ContractCreatedEvent>,
   fromCount?: number

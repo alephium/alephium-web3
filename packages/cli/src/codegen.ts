@@ -117,6 +117,17 @@ function genFetchState(contract: Contract): string {
   `
 }
 
+function genFetchStateWithStdId(contract: Contract): string {
+  if (contract.stdId === undefined) {
+    return ''
+  }
+  return `
+    async fetchStateWithStdId(): Promise<${contractTypes(contract.name)}.StateWithStdId> {
+      return fetchContractStateWithStdId(${contract.name}, this)
+    }
+  `
+}
+
 function getEventType(event: EventSig): string {
   return event.name + 'Event'
 }
@@ -172,6 +183,16 @@ function genContractStateType(fieldsSig: node.FieldsSig): string {
     }
 
     export type State = ContractState<Fields>
+  `
+}
+
+function genContractStateWithStdIdType(contract: Contract): string {
+  if (contract.stdId === undefined) {
+    return ''
+  }
+  return `
+    export type FieldsWithStdId = Fields & { ${StdIdFieldName}: HexString }
+    export type StateWithStdId = ContractState<FieldsWithStdId>
   `
 }
 
@@ -296,13 +317,15 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
       SubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
-      testMethod, callMethod, multicallMethods, fetchContractState, ContractInstance, getContractEventsCurrentCount
+      testMethod, callMethod, multicallMethods, fetchContractState, fetchContractStateWithStdId,
+      ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
 
     // Custom types for the contract
     export namespace ${contract.name}Types {
       ${genContractStateType(fieldsSig)}
+      ${genContractStateWithStdIdType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
       ${genCallMethodTypes(contract)}
     }
@@ -326,6 +349,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       }
 
       ${genFetchState(contract)}
+      ${genFetchStateWithStdId(contract)}
       ${genGetContractEventsCurrentCount(contract)}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}

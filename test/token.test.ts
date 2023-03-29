@@ -43,6 +43,15 @@ describe('contract', function () {
     expect((await tokenTest.methods.getName()).returns).toEqual(name)
     expect((await tokenTest.methods.getDecimals()).returns).toEqual(decimals)
     expect((await tokenTest.methods.getTotalSupply()).returns).toEqual(totalSupply)
+
+    const stateWithStdId = await tokenTest.fetchStateWithStdId()
+    expect(stateWithStdId.fields).toEqual({
+      symbol: symbol,
+      name: name,
+      decimals: decimals,
+      totalSupply: totalSupply,
+      __stdId: '414c50480001'
+    })
   })
 
   it('should multicall', async () => {

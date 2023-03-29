@@ -21,6 +21,7 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
+  fetchContractStateWithStdId,
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
@@ -37,6 +38,9 @@ export namespace NFTCollectionTestTypes {
   };
 
   export type State = ContractState<Fields>;
+
+  export type FieldsWithStdId = Fields & { __stdId: HexString };
+  export type StateWithStdId = ContractState<FieldsWithStdId>;
 
   export type MintedEvent = ContractEvent<{
     minter: HexString;
@@ -149,6 +153,10 @@ export class NFTCollectionTestInstance extends ContractInstance {
 
   async fetchState(): Promise<NFTCollectionTestTypes.State> {
     return fetchContractState(NFTCollectionTest, this);
+  }
+
+  async fetchStateWithStdId(): Promise<NFTCollectionTestTypes.StateWithStdId> {
+    return fetchContractStateWithStdId(NFTCollectionTest, this);
   }
 
   async getContractEventsCurrentCount(): Promise<number> {

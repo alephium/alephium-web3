@@ -21,6 +21,7 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
+  fetchContractStateWithStdId,
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
