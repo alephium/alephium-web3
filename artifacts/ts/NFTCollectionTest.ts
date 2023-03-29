@@ -31,10 +31,8 @@ import { default as NFTCollectionTestContractJson } from "../nft/nft_collection_
 export namespace NFTCollectionTestTypes {
   export type Fields = {
     nftTemplateId: HexString;
-    name: HexString;
-    symbol: HexString;
+    collectionUri: HexString;
     totalSupply: bigint;
-    currentTokenIndex: bigint;
   };
 
   export type State = ContractState<Fields>;
@@ -42,18 +40,8 @@ export namespace NFTCollectionTestTypes {
   export type FieldsWithStdId = Fields & { __stdId: HexString };
   export type StateWithStdId = ContractState<FieldsWithStdId>;
 
-  export type MintedEvent = ContractEvent<{
-    minter: HexString;
-    tokenIndex: bigint;
-    tokenId: HexString;
-  }>;
-
   export interface CallMethodTable {
-    getName: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<HexString>;
-    };
-    getSymbol: {
+    getCollectionUri: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<HexString>;
     };
@@ -93,21 +81,13 @@ class Factory extends ContractFactory<
   }
 
   tests = {
-    getName: async (
+    getCollectionUri: async (
       params: Omit<
         TestContractParams<NFTCollectionTestTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResult<HexString>> => {
-      return testMethod(this, "getName", params);
-    },
-    getSymbol: async (
-      params: Omit<
-        TestContractParams<NFTCollectionTestTypes.Fields, never>,
-        "testArgs"
-      >
-    ): Promise<TestContractResult<HexString>> => {
-      return testMethod(this, "getSymbol", params);
+      return testMethod(this, "getCollectionUri", params);
     },
     totalSupply: async (
       params: Omit<
@@ -141,7 +121,7 @@ export const NFTCollectionTest = new Factory(
   Contract.fromJson(
     NFTCollectionTestContractJson,
     "",
-    "65d7ccababd144f139c60ca8ec0ca54765d9f25e498891a20dcf58095a1cab4a"
+    "585e6f61f7f835fb2bccc93bf8320d846441093a96f77224f44e158cd97557b0"
   )
 );
 
@@ -159,41 +139,14 @@ export class NFTCollectionTestInstance extends ContractInstance {
     return fetchContractStateWithStdId(NFTCollectionTest, this);
   }
 
-  async getContractEventsCurrentCount(): Promise<number> {
-    return getContractEventsCurrentCount(this.address);
-  }
-
-  subscribeMintedEvent(
-    options: SubscribeOptions<NFTCollectionTestTypes.MintedEvent>,
-    fromCount?: number
-  ): EventSubscription {
-    return subscribeContractEvent(
-      NFTCollectionTest.contract,
-      this,
-      options,
-      "Minted",
-      fromCount
-    );
-  }
-
   methods = {
-    getName: async (
-      params?: NFTCollectionTestTypes.CallMethodParams<"getName">
-    ): Promise<NFTCollectionTestTypes.CallMethodResult<"getName">> => {
+    getCollectionUri: async (
+      params?: NFTCollectionTestTypes.CallMethodParams<"getCollectionUri">
+    ): Promise<NFTCollectionTestTypes.CallMethodResult<"getCollectionUri">> => {
       return callMethod(
         NFTCollectionTest,
         this,
-        "getName",
-        params === undefined ? {} : params
-      );
-    },
-    getSymbol: async (
-      params?: NFTCollectionTestTypes.CallMethodParams<"getSymbol">
-    ): Promise<NFTCollectionTestTypes.CallMethodResult<"getSymbol">> => {
-      return callMethod(
-        NFTCollectionTest,
-        this,
-        "getSymbol",
+        "getCollectionUri",
         params === undefined ? {} : params
       );
     },

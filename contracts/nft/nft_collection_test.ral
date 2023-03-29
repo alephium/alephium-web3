@@ -2,22 +2,16 @@ import "std/nft_collection_interface"
 
 Contract NFTCollectionTest(
   nftTemplateId: ByteVec,
-  name: ByteVec,
-  symbol: ByteVec,
-  totalSupply: U256,
-  mut currentTokenIndex: U256
+  collectionUri: ByteVec,
+  mut totalSupply: U256
 ) implements INFTCollection {
   enum ErrorCodes {
     IncorrectTokenIndex = 0
     NFTNotFound = 1
   }
 
-  pub fn getName() -> ByteVec {
-    return name
-  }
-
-  pub fn getSymbol() -> ByteVec {
-    return symbol
+  pub fn getCollectionUri() -> ByteVec {
+    return collectionUri
   }
 
   pub fn totalSupply() -> U256 {
@@ -35,13 +29,12 @@ Contract NFTCollectionTest(
 
   @using(preapprovedAssets = true, updateFields = true)
    pub fn mint(nftUri: ByteVec) -> (ByteVec) {
-     assert!(currentTokenIndex < totalSupply(), ErrorCodes.IncorrectTokenIndex)
      let minter = callerAddress!()
 
      let initialImmState = encodeToByteVec!(nftUri, #414c50480003)
 
      let contractId = copyCreateSubContractWithToken!{minter -> ALPH: 1 alph}(
-         toByteVec!(currentTokenIndex),
+         toByteVec!(totalSupply),
          nftTemplateId,
          initialImmState,
          #00,
@@ -49,8 +42,7 @@ Contract NFTCollectionTest(
          minter
      )
 
-     emit Minted(minter, currentTokenIndex, contractId)
-     currentTokenIndex = currentTokenIndex + 1
+     totalSupply = totalSupply + 1
      return contractId
    }
 }
