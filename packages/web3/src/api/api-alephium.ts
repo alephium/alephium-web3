@@ -379,7 +379,7 @@ export interface CompileContractResult {
   functions: FunctionSig[]
   events: EventSig[]
   warnings: string[]
-  stdId?: string
+  stdInterfaceId?: string
 }
 
 export interface CompileProjectResult {
