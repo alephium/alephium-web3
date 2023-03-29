@@ -30,6 +30,7 @@ import { default as NFTTestContractJson } from "../nft/nft_test.ral.json";
 export namespace NFTTestTypes {
   export type Fields = {
     uri: HexString;
+    __stdId: HexString;
   };
 
   export type State = ContractState<Fields>;
@@ -73,7 +74,7 @@ export const NFTTest = new Factory(
   Contract.fromJson(
     NFTTestContractJson,
     "",
-    "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3"
+    "c654f89a813259b6e270c8cf609200907f0824755bb394b00d8b151c3fddf95f"
   )
 );
 

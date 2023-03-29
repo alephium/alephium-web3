@@ -1,3 +1,4 @@
+@std(id = #0002)
 Interface INFTCollection {
    event Minted(minter: Address, tokenIndex: U256, tokenId: ByteVec)
 

@@ -33,6 +33,7 @@ export namespace TokenTestTypes {
     name: HexString;
     decimals: bigint;
     totalSupply: bigint;
+    __stdId: HexString;
   };
 
   export type State = ContractState<Fields>;
@@ -106,7 +107,7 @@ export const TokenTest = new Factory(
   Contract.fromJson(
     TokenTestContractJson,
     "",
-    "d9c9fab84f779f2e90ca9e9b1fafd6d9c9dc0f8b84256169e20961f9c917bab8"
+    "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd"
   )
 );
 
