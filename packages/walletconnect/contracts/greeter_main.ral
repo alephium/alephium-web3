@@ -1,0 +1,4 @@
+TxScript Main(greeterContractId: ByteVec) {
+    let greeter0 = Greeter(greeterContractId)
+    assert!(greeter0.greet() == 1, 0)
+}

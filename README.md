@@ -26,6 +26,7 @@ There are a few packages in this repository:
 4. `@alephium/web3-test` contains test related functions.
 5. `@alephium/web3-react` contains react components to help authenticate and interact with the Alephium blockchain
 6. `@alephium/get-extension-wallet` contains functions to get the extension wallet object
+6. `@alephium/walletconnect` contains Alephium's WalletConnect implementation
 
 ## Development
 
