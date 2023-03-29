@@ -30,7 +30,6 @@ import { default as NFTTestContractJson } from "../nft/nft_test.ral.json";
 export namespace NFTTestTypes {
   export type Fields = {
     uri: HexString;
-    __stdId: HexString;
   };
 
   export type State = ContractState<Fields>;

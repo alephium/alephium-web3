@@ -38,7 +38,7 @@ Contract NFTCollectionTest(
      assert!(currentTokenIndex < totalSupply(), ErrorCodes.IncorrectTokenIndex)
      let minter = callerAddress!()
 
-     let initialImmState = encodeToByteVec!(nftUri)
+     let initialImmState = encodeToByteVec!(nftUri, #414c50480003)
 
      let contractId = copyCreateSubContractWithToken!{minter -> ALPH: 1 alph}(
          toByteVec!(currentTokenIndex),

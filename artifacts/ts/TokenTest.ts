@@ -33,7 +33,6 @@ export namespace TokenTestTypes {
     name: HexString;
     decimals: bigint;
     totalSupply: bigint;
-    __stdId: HexString;
   };
 
   export type State = ContractState<Fields>;

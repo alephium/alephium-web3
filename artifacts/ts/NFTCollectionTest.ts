@@ -34,7 +34,6 @@ export namespace NFTCollectionTestTypes {
     symbol: HexString;
     totalSupply: bigint;
     currentTokenIndex: bigint;
-    __stdId: HexString;
   };
 
   export type State = ContractState<Fields>;
@@ -138,7 +137,7 @@ export const NFTCollectionTest = new Factory(
   Contract.fromJson(
     NFTCollectionTestContractJson,
     "",
-    "d0d43c8b4dfa692b2927d3340f33f8e642ee3699b1842b95b80cc772ec154f1c"
+    "65d7ccababd144f139c60ca8ec0ca54765d9f25e498891a20dcf58095a1cab4a"
   )
 );
 

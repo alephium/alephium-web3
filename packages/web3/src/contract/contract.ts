@@ -68,6 +68,8 @@ export type Fields = NamedVals
 export type Arguments = NamedVals
 export type HexString = string
 
+export const StdIdFieldName = '__stdId'
+
 enum SourceKind {
   Contract = 0,
   Script = 1,
@@ -667,6 +669,7 @@ export class Contract extends Artifact {
   readonly codeHash: string
   readonly fieldsSig: FieldsSig
   readonly eventsSig: EventSig[]
+  readonly stdId?: HexString
 
   readonly bytecodeDebug: string
   readonly codeHashDebug: string
@@ -680,7 +683,8 @@ export class Contract extends Artifact {
     codeHashDebug: string,
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
-    functions: FunctionSig[]
+    functions: FunctionSig[],
+    stdId?: HexString
   ) {
     super(version, name, functions)
     this.bytecode = bytecode
@@ -688,6 +692,7 @@ export class Contract extends Artifact {
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
     this.eventsSig = eventsSig
+    this.stdId = stdId
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
     this.codeHashDebug = codeHashDebug
@@ -715,7 +720,8 @@ export class Contract extends Artifact {
       codeHashDebug ? codeHashDebug : artifact.codeHash,
       artifact.fieldsSig,
       artifact.eventsSig,
-      artifact.functions
+      artifact.functions,
+      artifact.stdId === null ? undefined : artifact.stdId
     )
     return contract
   }
@@ -730,7 +736,8 @@ export class Contract extends Artifact {
       result.codeHashDebug,
       result.fields,
       result.events,
-      result.functions
+      result.functions,
+      result.stdId
     )
   }
 
@@ -742,7 +749,7 @@ export class Contract extends Artifact {
   }
 
   override toString(): string {
-    const object = {
+    const object: any = {
       version: this.version,
       name: this.name,
       bytecode: this.bytecode,
@@ -750,6 +757,9 @@ export class Contract extends Artifact {
       fieldsSig: this.fieldsSig,
       eventsSig: this.eventsSig,
       functions: this.functions
+    }
+    if (this.stdId !== undefined) {
+      object.stdId = this.stdId
     }
     return JSON.stringify(object, null, 2)
   }
@@ -923,7 +933,8 @@ export class Contract extends Artifact {
     signer: SignerProvider,
     params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
-    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
+    const initialFields: Fields = params.initialFields ?? {}
+    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields))
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractTxParams = {
       signerAddress: selectedAccount.address,
@@ -1327,7 +1338,7 @@ export abstract class ContractFactory<I, F extends Fields = Fields> {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens
     }
-    return this.contract.toState(initFields, newAsset, address)
+    return this.contract.toState(addStdIdToFields(this.contract, initFields), newAsset, address)
   }
 }
 
@@ -1441,16 +1452,21 @@ export function subscribeEventsFromContract<T extends Fields, M extends Contract
   return subscribeToEvents(opt, address, fromCount)
 }
 
+function addStdIdToFields<F extends Fields>(contract: Contract, fields: F): F | (F & { __stdId: HexString }) {
+  return contract.stdId === undefined ? fields : { ...fields, __stdId: contract.stdId }
+}
+
 export async function testMethod<I, F extends Fields, A extends Arguments, R>(
   contract: ContractFactory<I, F>,
   methodName: string,
   params: Optional<TestContractParams<F, A>, 'testArgs' | 'initialFields'>
 ): Promise<TestContractResult<R>> {
   const txId = params?.txId ?? randomTxId()
+  const initialFields = params.initialFields === undefined ? {} : params.initialFields
   const apiParams = contract.contract.toApiTestContractParams(methodName, {
     ...params,
     txId: txId,
-    initialFields: params.initialFields === undefined ? {} : params.initialFields,
+    initialFields: addStdIdToFields(contract.contract, initialFields),
     testArgs: params.testArgs === undefined ? {} : params.testArgs
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
