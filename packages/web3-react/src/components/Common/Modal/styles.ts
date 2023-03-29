@@ -1,7 +1,24 @@
-import styled from './../../../styles/styled';
-import { keyframes } from 'styled-components';
-import { motion } from 'framer-motion';
-import defaultTheme from '../../../constants/defaultTheme';
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import styled from './../../../styles/styled'
+import { keyframes } from 'styled-components'
+import { motion } from 'framer-motion'
+import defaultTheme from '../../../constants/defaultTheme'
 
 export const ErrorMessage = styled(motion.div)`
   z-index: -1;
@@ -33,43 +50,43 @@ export const ErrorMessage = styled(motion.div)`
     font-weight: bold;
     background: rgba(255, 255, 255, 0.1);
   }
-`;
+`
 
 const FadeIn = keyframes`
 from { opacity: 0; }
   to { opacity: 1; }
-`;
+`
 
 const FadeInScaleUp = keyframes`
 from { opacity: 0; transform: scale(0.85); }
   to { opacity: 1; transform: scale(1); }
-`;
+`
 
 const FadeInScaleDown = keyframes`
 from { opacity: 0; transform: scale(1.1); }
   to { opacity: 1; transform: scale(1); }
-`;
+`
 
 const FadeOut = keyframes`
 from { opacity: 1; }
   to { opacity: 0; }
-`;
+`
 
 const FadeOutScaleUp = keyframes`
 from { opacity: 1; transform: scale(1); }
   to { opacity: 0; transform: scale(1.1); }
-`;
+`
 
 const FadeOutScaleDown = keyframes`
 from { opacity: 1; transform: scale(1); }
   to { opacity: 0; transform: scale(0.85); }
-`;
+`
 
 export const PageContent = styled(motion.div)`
   max-width: 100%;
   width: 295px;
   padding-top: 48px;
-`;
+`
 
 export const TextWithHr = styled(motion.div)`
   user-select: none;
@@ -102,7 +119,7 @@ export const TextWithHr = styled(motion.div)`
     background: var(--ck-body-divider);
     box-shadow: var(--ck-body-divider-box-shadow);
   }
-`;
+`
 export const ModalHeading = styled(motion.div)`
   z-index: 3;
   pointer-events: none;
@@ -124,12 +141,12 @@ export const ModalHeading = styled(motion.div)`
   span {
     display: inline-block;
   }
-`;
+`
 
 export const ModalContentContainer = styled(motion.div)`
   position: relative;
   padding: 0;
-`;
+`
 export const ModalContent = styled(motion.div)`
   left: 0;
   right: 0;
@@ -142,11 +159,11 @@ export const ModalContent = styled(motion.div)`
   @media only screen and (max-width: ${defaultTheme.mobileWidth}px) {
     display: block;
   }
-`;
-export const ModalH1 = styled(motion.h1) <{
-  $error?: boolean;
-  $valid?: boolean;
-  $small?: boolean;
+`
+export const ModalH1 = styled(motion.h1)<{
+  $error?: boolean
+  $valid?: boolean
+  $small?: boolean
 }>`
   margin: 0;
   padding: 0;
@@ -154,9 +171,9 @@ export const ModalH1 = styled(motion.h1) <{
   font-size: ${(props) => (props.$small ? 17 : 19)}px;
   font-weight: var(--ck-modal-h1-font-weight, 600);
   color: ${(props) => {
-    if (props.$error) return 'var(--ck-body-color-danger)';
-    if (props.$valid) return 'var(--ck-body-color-valid)';
-    return 'var(--ck-body-color)';
+    if (props.$error) return 'var(--ck-body-color-danger)'
+    if (props.$valid) return 'var(--ck-body-color-valid)'
+    return 'var(--ck-body-color)'
   }};
   > svg {
     position: relative;
@@ -169,7 +186,7 @@ export const ModalH1 = styled(motion.h1) <{
     margin-bottom: 6px;
     font-size: 17px;
   }
-`;
+`
 
 export const ModalBody = styled.div`
   font-size: 16px;
@@ -180,9 +197,9 @@ export const ModalBody = styled.div`
     font-weight: 500;
     color: var(--ck-body-color);
   }
-`;
+`
 
-export const BackgroundOverlay = styled(motion.div) <{ $active: boolean }>`
+export const BackgroundOverlay = styled(motion.div)<{ $active: boolean }>`
   z-index: 1;
   position: absolute;
   top: 0;
@@ -192,28 +209,27 @@ export const BackgroundOverlay = styled(motion.div) <{ $active: boolean }>`
   background: var(--ck-overlay-background, rgba(71, 88, 107, 0.24));
   backdrop-filter: var(--ck-overlay-backdrop-filter, none);
   opacity: 0;
-  animation: ${(props) => (props.$active ? FadeIn : FadeOut)} 150ms ease-out
-    both;
-`;
+  animation: ${(props) => (props.$active ? FadeIn : FadeOut)} 150ms ease-out both;
+`
 
 const BoxIn = keyframes`
   from{ opacity: 0; transform: scale(0.97); }
   to{ opacity: 1; transform: scale(1); }
-`;
+`
 const BoxOut = keyframes`
   from{ opacity: 1; transform: scale(1); }
   to{ opacity: 0; transform: scale(0.97); }
-`;
+`
 
 const MobileBoxIn = keyframes`
   from { transform: translate3d(0, 100%, 0); }
   to { transform: translate3d(0, 0%, 0); }
-`;
+`
 
 const MobileBoxOut = keyframes`
   from { opacity: 1; }
   to { opacity: 0; }
-`;
+`
 
 export const BoxContainer = styled(motion.div)`
   z-index: 2;
@@ -260,7 +276,7 @@ export const BoxContainer = styled(motion.div)`
       will-change: height;
     }
   }
-`;
+`
 export const ControllerContainer = styled(motion.div)`
   z-index: 3;
   position: absolute;
@@ -273,7 +289,7 @@ export const ControllerContainer = styled(motion.div)`
   transition: 0.2s ease width;
   pointer-events: auto;
   //border-bottom: 1px solid var(--ck-body-divider);
-`;
+`
 
 export const InnerContainer = styled(motion.div)`
   position: relative;
@@ -284,7 +300,7 @@ export const InnerContainer = styled(motion.div)`
     transition: 0ms height cubic-bezier(0.15, 1.15, 0.6, 1);
     /* animation-delay: 34ms; */
   }
-`;
+`
 
 export const PageContainer = styled(motion.div)`
   z-index: 2;
@@ -347,19 +363,19 @@ export const PageContainer = styled(motion.div)`
       animation-delay: 0ms;
     }
   }
-`;
+`
 export const PageContents = styled(motion.div)`
   margin: 0 auto;
   width: fit-content;
   padding: 29px 24px 24px;
   backface-visibility: hidden;
-`;
+`
 
 export const ModalContainer = styled.div`
   z-index: 2147483646; // z-index set one below max (2147483647) for if we wish to layer things ontop of the modal in a seperate Portal
   position: fixed;
   inset: 0;
-`;
+`
 
 export const CloseButton = styled(motion.button)`
   z-index: 3;
@@ -389,7 +405,7 @@ export const CloseButton = styled(motion.button)`
   &:active {
     transform: scale(0.9);
   }
-`;
+`
 
 export const BackButton = styled(motion.button)`
   z-index: 3;
@@ -420,7 +436,7 @@ export const BackButton = styled(motion.button)`
       transform: scale(0.9);
     }
   }
-`;
+`
 
 export const InfoButton = styled(motion.button)`
   z-index: 3;
@@ -450,13 +466,12 @@ export const InfoButton = styled(motion.button)`
       transform: scale(0.9);
     }
   }
-`;
+`
 
 export const Container = styled(motion.div)`
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --duration: 200ms;
-  --transition: height var(--duration) var(--ease),
-    width var(--duration) var(--ease);
+  --transition: height var(--duration) var(--ease), width var(--duration) var(--ease);
   z-index: 3;
   display: block;
   pointer-events: none;
@@ -477,8 +492,7 @@ export const Container = styled(motion.div)`
       margin: 0 auto;
       &:before {
         width: 100%;
-        border-radius: var(--ck-border-radius, 30px)
-          var(--ck-border-radius, 30px) 0 0;
+        border-radius: var(--ck-border-radius, 30px) var(--ck-border-radius, 30px) 0 0;
       }
     }
     ${PageContainer} {
@@ -536,4 +550,4 @@ export const Container = styled(motion.div)`
       }
     }
   }
-`;
+`

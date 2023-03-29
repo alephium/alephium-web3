@@ -1,6 +1,23 @@
-import styled from './../../../../styles/styled';
-import { css } from 'styled-components';
-import { motion } from 'framer-motion';
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import styled from './../../../../styles/styled'
+import { css } from 'styled-components'
+import { motion } from 'framer-motion'
 
 export const LogoContainer = styled(motion.div)`
   z-index: 4;
@@ -12,7 +29,7 @@ export const LogoContainer = styled(motion.div)`
     position: relative;
     display: block;
   }
-`;
+`
 export const Logo = styled(motion.div)<{ $small?: boolean }>`
   z-index: 2;
   position: absolute;
@@ -37,12 +54,12 @@ export const Logo = styled(motion.div)<{ $small?: boolean }>`
         height: 60%;
       `}
   }
-`;
+`
 
 export const SpinnerContainer = styled(motion.div)`
   position: absolute;
   inset: -5px;
-`;
+`
 export const ExpiringSpinner = styled(motion.div)`
   pointer-events: none;
   user-select: none;
@@ -90,7 +107,7 @@ export const ExpiringSpinner = styled(motion.div)`
       transform: rotate(0deg);
     }
   }
-`;
+`
 export const Spinner = styled(motion.div)`
   pointer-events: none;
   user-select: none;
@@ -114,4 +131,4 @@ export const Spinner = styled(motion.div)`
       transform: rotate(360deg);
     }
   }
-`;
+`

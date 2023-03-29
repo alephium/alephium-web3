@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 export default {
   '--ck-font-family':
     '"PT Root UI",ui-rounded,"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol"',
@@ -71,8 +88,7 @@ export default {
   '--ck-spinner-color': 'var(--ck-focus-color)',
 
   '--ck-dropdown-button-color': '#999999',
-  '--ck-dropdown-button-box-shadow':
-    '0 0 0 1px rgba(0, 0, 0, 0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
+  '--ck-dropdown-button-box-shadow': '0 0 0 1px rgba(0, 0, 0, 0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
   '--ck-dropdown-button-background': '#fff',
 
   '--ck-dropdown-button-hover-color': '#8B8B8B',
@@ -80,8 +96,7 @@ export default {
   '--ck-dropdown-button-hover-box-shadow': '0px 0px 7px rgba(0, 0, 0, 0.05)',
 
   '--ck-dropdown-color': '#757A8E',
-  '--ck-dropdown-box-shadow':
-    '0 0 0 1px rgba(0, 0, 0, 0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
+  '--ck-dropdown-box-shadow': '0 0 0 1px rgba(0, 0, 0, 0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
 
   '--ck-alert-color': '#9196A1',
   '--ck-alert-background': '#F6F8FA',
@@ -96,7 +111,6 @@ export default {
 
   '--ck-graphic-primary-background': '#fff',
   '--ck-graphic-compass-background': '#fff',
-  '--ck-graphic-primary-box-shadow':
-    '0px 2.94737px 14.7368px rgba(0, 0, 0, 0.1)',
-  '--ck-graphic-compass-box-shadow': '0px 2px 9px rgba(0, 0, 0, 0.15)',
-};
+  '--ck-graphic-primary-box-shadow': '0px 2.94737px 14.7368px rgba(0, 0, 0, 0.1)',
+  '--ck-graphic-compass-box-shadow': '0px 2px 9px rgba(0, 0, 0, 0.15)'
+}

@@ -1,8 +1,25 @@
-import { motion } from 'framer-motion';
-import styled from './../../../styles/styled';
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
 
-export const Container = styled(motion.div) <{
-  $variant?: string;
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import { motion } from 'framer-motion'
+import styled from './../../../styles/styled'
+
+export const Container = styled(motion.div)<{
+  $variant?: string
 }>`
   display: flex;
   align-items: center;
@@ -30,74 +47,32 @@ export const Container = styled(motion.div) <{
     --border-radius: var(--ck-connectbutton-border-radius, 12px);
 
     --hover-color: var(--ck-connectbutton-hover-color, var(--color));
-    --hover-background: var(
-      --ck-connectbutton-hover-background,
-      var(--background)
-    );
-    --hover-box-shadow: var(
-      --ck-connectbutton-hover-box-shadow,
-      var(--box-shadow)
-    );
-    --hover-border-radius: var(
-      --ck-connectbutton-hover-border-radius,
-      var(--border-radius)
-    );
+    --hover-background: var(--ck-connectbutton-hover-background, var(--background));
+    --hover-box-shadow: var(--ck-connectbutton-hover-box-shadow, var(--box-shadow));
+    --hover-border-radius: var(--ck-connectbutton-hover-border-radius, var(--border-radius));
 
     --active-color: var(--ck-connectbutton-active-color, var(--hover-color));
-    --active-background: var(
-      --ck-connectbutton-active-background,
-      var(--hover-background)
-    );
-    --active-box-shadow: var(
-      --ck-connectbutton-active-box-shadow,
-      var(--hover-box-shadow)
-    );
-    --active-border-radius: var(
-      --ck-connectbutton-active-border-radius,
-      var(--hover-border-radius)
-    );
+    --active-background: var(--ck-connectbutton-active-background, var(--hover-background));
+    --active-box-shadow: var(--ck-connectbutton-active-box-shadow, var(--hover-box-shadow));
+    --active-border-radius: var(--ck-connectbutton-active-border-radius, var(--hover-border-radius));
   }
   &.secondary {
     --color: var(--ck-connectbutton-balance-color);
     --background: var(--ck-connectbutton-balance-background);
     --box-shadow: var(--ck-connectbutton-balance-box-shadow);
-    --border-radius: var(
-      --ck-connectbutton-balance-border-radius,
-      var(--ck-connectbutton-border-radius, 12px)
-    );
+    --border-radius: var(--ck-connectbutton-balance-border-radius, var(--ck-connectbutton-border-radius, 12px));
 
     --hover-color: var(--ck-connectbutton-balance-hover-color, var(--color));
-    --hover-background: var(
-      --ck-connectbutton-balance-hover-background,
-      var(--background)
-    );
-    --hover-box-shadow: var(
-      --ck-connectbutton-balance-hover-box-shadow,
-      var(--box-shadow)
-    );
-    --hover-border-radius: var(
-      --ck-connectbutton-balance-hover-border-radius,
-      var(--border-radius)
-    );
+    --hover-background: var(--ck-connectbutton-balance-hover-background, var(--background));
+    --hover-box-shadow: var(--ck-connectbutton-balance-hover-box-shadow, var(--box-shadow));
+    --hover-border-radius: var(--ck-connectbutton-balance-hover-border-radius, var(--border-radius));
 
-    --active-color: var(
-      --ck-connectbutton-balance-active-color,
-      var(--hover-color)
-    );
-    --active-background: var(
-      --ck-connectbutton-balance-active-background,
-      var(--hover-background)
-    );
-    --active-box-shadow: var(
-      --ck-connectbutton-balance-active-box-shadow,
-      var(--hover-box-shadow)
-    );
-    --active-border-radius: var(
-      --ck-connectbutton-balance-active-border-radius,
-      var(--hover-border-radius)
-    );
+    --active-color: var(--ck-connectbutton-balance-active-color, var(--hover-color));
+    --active-background: var(--ck-connectbutton-balance-active-background, var(--hover-background));
+    --active-box-shadow: var(--ck-connectbutton-balance-active-box-shadow, var(--hover-box-shadow));
+    --active-border-radius: var(--ck-connectbutton-balance-active-border-radius, var(--hover-border-radius));
   }
-`;
+`
 
 export const ThemeContainer = styled.button`
   all: initial;
@@ -132,21 +107,12 @@ export const ThemeContainer = styled.button`
   &:active {
     ${Container} {
       color: var(--active-color, var(--hover-color, var(--color)));
-      background: var(
-        --active-background,
-        var(--hover-background, var(--background))
-      );
-      box-shadow: var(
-        --active-box-shadow,
-        var(--hover-box-shadow, var(--box-shadow))
-      );
-      border-radius: var(
-        --active-border-radius,
-        var(--hover-border-radius, var(--border-radius))
-      );
+      background: var(--active-background, var(--hover-background, var(--background)));
+      box-shadow: var(--active-box-shadow, var(--hover-box-shadow, var(--box-shadow)));
+      border-radius: var(--active-border-radius, var(--hover-border-radius, var(--border-radius)));
     }
   }
   &:focus-visible {
     outline: 2px solid var(--ck-family-brand);
   }
-`;
+`

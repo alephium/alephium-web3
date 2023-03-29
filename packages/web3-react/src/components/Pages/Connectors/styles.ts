@@ -1,12 +1,29 @@
-import styled from './../../../styles/styled';
-import { motion } from 'framer-motion';
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import styled from './../../../styles/styled'
+import { motion } from 'framer-motion'
 
 export const ConnectorsContainer = styled(motion.div)`
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 0 0 16px;
-`;
+`
 
 export const ConnectorButton = styled(motion.button)`
   cursor: pointer;
@@ -33,38 +50,17 @@ export const ConnectorButton = styled(motion.button)`
   --color: var(--ck-primary-button-color, var(--fallback-color));
   --background: var(--ck-primary-button-background, var(--fallback-background));
   --box-shadow: var(--ck-primary-button-box-shadow, var(--fallback-box-shadow));
-  --border-radius: var(
-    --ck-primary-button-border-radius,
-    var(--fallback-border-radius)
-  );
+  --border-radius: var(--ck-primary-button-border-radius, var(--fallback-border-radius));
 
   --hover-color: var(--ck-primary-button-hover-color, var(--color));
-  --hover-background: var(
-    --ck-primary-button-hover-background,
-    var(--background)
-  );
-  --hover-box-shadow: var(
-    --ck-primary-button-hover-box-shadow,
-    var(--box-shadow)
-  );
-  --hover-border-radius: var(
-    --ck-primary-button-hover-border-radius,
-    var(--border-radius)
-  );
+  --hover-background: var(--ck-primary-button-hover-background, var(--background));
+  --hover-box-shadow: var(--ck-primary-button-hover-box-shadow, var(--box-shadow));
+  --hover-border-radius: var(--ck-primary-button-hover-border-radius, var(--border-radius));
 
   --active-color: var(--ck-primary-button-active-color, var(--hover-color));
-  --active-background: var(
-    --ck-primary-button-active-background,
-    var(--hover-background)
-  );
-  --active-box-shadow: var(
-    --ck-primary-button-active-box-shadow,
-    var(--hover-box-shadow)
-  );
-  --active-border-radius: var(
-    --ck-primary-button-active-border-radius,
-    var(--hover-border-radius)
-  );
+  --active-background: var(--ck-primary-button-active-background, var(--hover-background));
+  --active-box-shadow: var(--ck-primary-button-active-box-shadow, var(--hover-box-shadow));
+  --active-border-radius: var(--ck-primary-button-active-border-radius, var(--hover-border-radius));
 
   color: var(--color);
   background: var(--background);
@@ -96,7 +92,7 @@ export const ConnectorButton = styled(motion.button)`
       border-radius: var(--active-border-radius);
     }
   }
-`;
+`
 
 export const ConnectorLabel = styled(motion.span)`
   width: 100%;
@@ -104,7 +100,7 @@ export const ConnectorLabel = styled(motion.span)`
   white-space: nowrap;
   text-overflow: ellipsis;
   padding-right: 38px;
-`;
+`
 
 export const ConnectorIcon = styled(motion.div)`
   position: absolute;
@@ -117,7 +113,7 @@ export const ConnectorIcon = styled(motion.div)`
     width: 100%;
     height: 100%;
   }
-`;
+`
 export const MobileConnectorsContainer = styled(motion.div)`
   display: flex;
   flex-direction: row;
@@ -125,7 +121,7 @@ export const MobileConnectorsContainer = styled(motion.div)`
   justify-content: space-between;
   padding: 14px 0 28px;
   margin: 0 0;
-`;
+`
 
 export const MobileConnectorButton = styled(motion.button)`
   --background: var(--ck-body-background-secondary);
@@ -153,7 +149,7 @@ export const MobileConnectorButton = styled(motion.button)`
       transform: scale(0.97);
     }
   }
-`;
+`
 
 export const MobileConnectorLabel = styled(motion.span)`
   display: block;
@@ -163,7 +159,7 @@ export const MobileConnectorLabel = styled(motion.span)`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-`;
+`
 
 export const MobileConnectorIcon = styled(motion.div)`
   margin: 0 auto;
@@ -178,4 +174,4 @@ export const MobileConnectorIcon = styled(motion.div)`
     width: 100%;
     height: 100%;
   }
-`;
+`

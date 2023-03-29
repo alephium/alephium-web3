@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 export default {
   '--ck-font-family':
     '"SF Pro Rounded",ui-rounded,"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol"',
@@ -6,45 +23,37 @@ export default {
   '--ck-connectbutton-font-size': '17px',
   '--ck-connectbutton-color': '#000000',
   '--ck-connectbutton-background': '#ffffff',
-  '--ck-connectbutton-box-shadow':
-    '-4px 4px 0px #000000, inset 0 0 0 2px #000000',
+  '--ck-connectbutton-box-shadow': '-4px 4px 0px #000000, inset 0 0 0 2px #000000',
   '--ck-connectbutton-border-radius': '8px',
 
   '--ck-connectbutton-hover-background': '#F3EDE8',
 
-  '--ck-connectbutton-active-box-shadow':
-    '0 0 0 0 #000000, inset 0 0 0 2px #000000',
+  '--ck-connectbutton-active-box-shadow': '0 0 0 0 #000000, inset 0 0 0 2px #000000',
 
   '--ck-connectbutton-balance-color': '#000000',
   '--ck-connectbutton-balance-background': '#F3EDE8',
-  '--ck-connectbutton-balance-box-shadow':
-    '-4px 4px 0px #000000, inset 0 0 0 2px #000000',
+  '--ck-connectbutton-balance-box-shadow': '-4px 4px 0px #000000, inset 0 0 0 2px #000000',
   '--ck-connectbutton-balance-hover-background': '#eee5dd',
 
-  '--ck-connectbutton-balance-connectbutton-box-shadow':
-    '-4px 8px 0px -4px #000000, inset 0 0 0 2px #000000',
+  '--ck-connectbutton-balance-connectbutton-box-shadow': '-4px 8px 0px -4px #000000, inset 0 0 0 2px #000000',
 
   '--ck-connectbutton-balance-connectbutton-border-radius': '0px 8px 8px 0',
 
   '--ck-primary-button-color': '#373737',
   '--ck-primary-button-background': '#ffffff',
-  '--ck-primary-button-box-shadow':
-    'inset 0 0 0 2px #000000, -4px 4px 0 0 #000000',
+  '--ck-primary-button-box-shadow': 'inset 0 0 0 2px #000000, -4px 4px 0 0 #000000',
   '--ck-primary-button-border-radius': '8px',
 
   '--ck-primary-button-hover-background': '#F3EDE8',
-  '--ck-primary-button-hover-box-shadow':
-    'inset 0 0 0 2px #000000, -0px 0px 0 0 #000000',
+  '--ck-primary-button-hover-box-shadow': 'inset 0 0 0 2px #000000, -0px 0px 0 0 #000000',
 
   '--ck-secondary-button-border-radius': '8px',
   '--ck-secondary-button-color': '#373737',
   '--ck-secondary-button-background': '#ffffff',
-  '--ck-secondary-button-box-shadow':
-    '-4px 4px 0 0 #000000, inset 0 0 0 2px #000000',
+  '--ck-secondary-button-box-shadow': '-4px 4px 0 0 #000000, inset 0 0 0 2px #000000',
 
   '--ck-secondary-button-hover-background': '#F3EDE8',
-  '--ck-secondary-button-hover-box-shadow':
-    '0 0 0 0 #000000, inset 0 0 0 2px #000000',
+  '--ck-secondary-button-hover-box-shadow': '0 0 0 0 #000000, inset 0 0 0 2px #000000',
 
   '--ck-focus-color': '#3B99FC',
 
@@ -86,12 +95,10 @@ export default {
   '--ck-spinner-color': '#1A88F8',
 
   '--ck-dropdown-button-color': '#000',
-  '--ck-dropdown-button-box-shadow':
-    '-2px 2px 0 2px #000000,  0 0 0 2px #000000',
+  '--ck-dropdown-button-box-shadow': '-2px 2px 0 2px #000000,  0 0 0 2px #000000',
   '--ck-dropdown-button-background': '#ffffff',
   '--ck-dropdown-button-hover-background': '#F3EDE8',
-  '--ck-dropdown-button-hover-box-shadow':
-    '-2px 2px 0 0 #000000,  0 0 0 2px #000000',
+  '--ck-dropdown-button-hover-box-shadow': '-2px 2px 0 0 #000000,  0 0 0 2px #000000',
 
   '--ck-dropdown-pending-color': 'rgba(0, 0, 0, 0.5)',
   '--ck-dropdown-active-color': '#FFFFFF',
@@ -135,5 +142,5 @@ export default {
   '--ck-graphic-globe-box-shadow': '6px -6px 0 2px #000000, 0 0 0 2px #000000',
   */
 
-  '--ck-siwe-border': '#8E8985',
-};
+  '--ck-siwe-border': '#8E8985'
+}

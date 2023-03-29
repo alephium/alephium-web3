@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 import { SessionTypes, SignClientTypes } from '@walletconnect/types'
 import { formatJsonRpcError, formatJsonRpcResult } from '@walletconnect/jsonrpc-utils'
 import {
@@ -9,7 +26,7 @@ import {
   SignMessageParams,
   Account,
   addressToGroup,
-  ApiRequestArguments,
+  ApiRequestArguments
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
@@ -21,19 +38,19 @@ import {
   isCompatibleChainGroup,
   RelayMethod,
   WalletConnectProvider,
-  formatAccount,
+  formatAccount
 } from '../../src'
 import SignClient from '@walletconnect/sign-client'
 import { getSdkError } from '@walletconnect/utils'
 
 export interface WalletClientOpts {
-  activePrivateKey: string;
-  otherPrivateKeys: string[],
-  networkId: number;
-  rpcUrl: string;
+  activePrivateKey: string
+  otherPrivateKeys: string[]
+  networkId: number
+  rpcUrl: string
 }
 
-export type WalletClientAsyncOpts = WalletClientOpts & SignClientTypes.Options;
+export type WalletClientAsyncOpts = WalletClientOpts & SignClientTypes.Options
 
 export class WalletClient {
   public provider: WalletConnectProvider
@@ -50,10 +67,7 @@ export class WalletClient {
 
   public disconnected = false
 
-  static async init(
-    provider: WalletConnectProvider,
-    opts: Partial<WalletClientAsyncOpts>,
-  ): Promise<WalletClient> {
+  static async init(provider: WalletConnectProvider, opts: Partial<WalletClientAsyncOpts>): Promise<WalletClient> {
     const walletClient = new WalletClient(provider, opts)
     await walletClient.initialize(opts)
     return walletClient
@@ -68,7 +82,7 @@ export class WalletClient {
       address: this.signer.address,
       publicKey: this.signer.publicKey,
       keyType: this.signer.keyType,
-      group: this.signer.group,
+      group: this.signer.group
     }
   }
 
@@ -118,7 +132,7 @@ export class WalletClient {
 
     await this.client.disconnect({
       topic: this.topic,
-      reason: getSdkError('USER_DISCONNECTED'),
+      reason: getSdkError('USER_DISCONNECTED')
     })
     this.disconnected = true
   }
@@ -133,10 +147,7 @@ export class WalletClient {
   }
 
   private getWallet(privateKey?: string): PrivateKeyWallet {
-    const wallet =
-      typeof privateKey !== 'undefined'
-        ? new PrivateKeyWallet({ privateKey })
-        : PrivateKeyWallet.Random()
+    const wallet = typeof privateKey !== 'undefined' ? new PrivateKeyWallet({ privateKey }) : PrivateKeyWallet.Random()
     return wallet
   }
 
@@ -150,9 +161,9 @@ export class WalletClient {
       namespaces: {
         alephium: {
           ...this.namespace,
-          accounts: [formatAccount(chainId, this.account)],
-        },
-      },
+          accounts: [formatAccount(chainId, this.account)]
+        }
+      }
     })
   }
 
@@ -201,120 +212,106 @@ export class WalletClient {
     })
 
     // auto-approve
-    this.client.on(
-      'session_proposal',
-      async (proposal: SignClientTypes.EventArguments['session_proposal']) => {
-        if (typeof this.client === 'undefined') throw new Error('Sign Client not inititialized')
-        const { id, requiredNamespaces, relays } = proposal.params
+    this.client.on('session_proposal', async (proposal: SignClientTypes.EventArguments['session_proposal']) => {
+      if (typeof this.client === 'undefined') throw new Error('Sign Client not inititialized')
+      const { id, requiredNamespaces, relays } = proposal.params
 
-        const requiredAlephiumNamespace = requiredNamespaces[PROVIDER_NAMESPACE]
-        if (requiredAlephiumNamespace === undefined) {
-          throw new Error(`${PROVIDER_NAMESPACE} namespace is required for session proposal`)
-        }
+      const requiredAlephiumNamespace = requiredNamespaces[PROVIDER_NAMESPACE]
+      if (requiredAlephiumNamespace === undefined) {
+        throw new Error(`${PROVIDER_NAMESPACE} namespace is required for session proposal`)
+      }
 
-        const requiredChains = requiredNamespaces[PROVIDER_NAMESPACE].chains
-        if (requiredChains.length !== 1) {
-          throw new Error(`Only single chain is allowed in ${PROVIDER_NAMESPACE} namespace during session proposal, proposed chains: ${requiredChains}`)
-        }
+      const requiredChains = requiredNamespaces[PROVIDER_NAMESPACE].chains
+      if (requiredChains.length !== 1) {
+        throw new Error(
+          `Only single chain is allowed in ${PROVIDER_NAMESPACE} namespace during session proposal, proposed chains: ${requiredChains}`
+        )
+      }
 
-        const requiredChain = requiredChains[0]
-        const { networkId, chainGroup } = parseChain(requiredChain)
-        this.networkId = networkId
-        this.permittedChainGroup = chainGroup
+      const requiredChain = requiredChains[0]
+      const { networkId, chainGroup } = parseChain(requiredChain)
+      this.networkId = networkId
+      this.permittedChainGroup = chainGroup
 
-        this.namespace = {
-          methods: requiredAlephiumNamespace.methods,
-          events: requiredAlephiumNamespace.events,
-          accounts: [this.chainAccount(requiredAlephiumNamespace.chains)],
-        }
+      this.namespace = {
+        methods: requiredAlephiumNamespace.methods,
+        events: requiredAlephiumNamespace.events,
+        accounts: [this.chainAccount(requiredAlephiumNamespace.chains)]
+      }
 
-        const namespaces = { alephium: this.namespace }
-        const { acknowledged } = await this.client.approve({
-          id,
-          relayProtocol: relays[0].protocol,
-          namespaces,
-        })
+      const namespaces = { alephium: this.namespace }
+      const { acknowledged } = await this.client.approve({
+        id,
+        relayProtocol: relays[0].protocol,
+        namespaces
+      })
 
-        const session = await acknowledged()
-        this.topic = session.topic
-      },
-    )
+      const session = await acknowledged()
+      this.topic = session.topic
+    })
 
     // auto-respond
-    this.client.on(
-      'session_request',
-      async (requestEvent: SignClientTypes.EventArguments['session_request']) => {
-        if (typeof this.client === 'undefined') {
-          throw new Error('Client not initialized')
+    this.client.on('session_request', async (requestEvent: SignClientTypes.EventArguments['session_request']) => {
+      if (typeof this.client === 'undefined') {
+        throw new Error('Client not initialized')
+      }
+
+      const { topic, params, id } = requestEvent
+
+      // ignore if unmatched topic
+      if (topic !== this.topic) return
+
+      const { chainId, request } = params
+      const { networkId, chainGroup } = parseChain(chainId)
+
+      try {
+        if (!(networkId === this.networkId && chainGroup === this.permittedChainGroup)) {
+          throw new Error(`Target chain(${chainId}) is not permitted`)
         }
 
-        const { topic, params, id } = requestEvent
+        let result: any
 
-        // ignore if unmatched topic
-        if (topic !== this.topic) return
-
-        const { chainId, request } = params
-        const { networkId, chainGroup } = parseChain(chainId)
-
-        try {
-          if (!(networkId === this.networkId && chainGroup === this.permittedChainGroup)) {
-            throw new Error(
-              `Target chain(${chainId}) is not permitted`,
+        switch (request.method as RelayMethod) {
+          case 'alph_signAndSubmitTransferTx':
+            result = await this.signer.signAndSubmitTransferTx(request.params as any as SignTransferTxParams)
+            break
+          case 'alph_signAndSubmitDeployContractTx':
+            result = await this.signer.signAndSubmitDeployContractTx(
+              request.params as any as SignDeployContractTxParams
             )
-          }
-
-          let result: any
-
-          switch (request.method as RelayMethod) {
-            case 'alph_signAndSubmitTransferTx':
-              result = await this.signer.signAndSubmitTransferTx(
-                (request.params as any) as SignTransferTxParams,
-              )
-              break
-            case 'alph_signAndSubmitDeployContractTx':
-              result = await this.signer.signAndSubmitDeployContractTx(
-                (request.params as any) as SignDeployContractTxParams,
-              )
-              break
-            case 'alph_signAndSubmitExecuteScriptTx':
-              result = await this.signer.signAndSubmitExecuteScriptTx(
-                (request.params as any) as SignExecuteScriptTxParams,
-              )
-              break
-            case 'alph_signAndSubmitUnsignedTx':
-              result = await this.signer.signAndSubmitUnsignedTx(
-                (request.params as any) as SignUnsignedTxParams,
-              )
-              break
-            case 'alph_signUnsignedTx':
-              result = await this.signer.signUnsignedTx(
-                (request.params as any) as SignUnsignedTxParams,
-              )
-              break
-            case 'alph_signMessage':
-              result = await this.signer.signMessage((request.params as any) as SignMessageParams)
-              break
-            case 'alph_requestNodeApi':
-              result = await this.nodeProvider.request((request.params as ApiRequestArguments))
-              break
-            default:
-              throw new Error(`Method is not supported: ${request.method}`)
-          }
-
-          // reject if undefined result
-          if (typeof result === 'undefined') {
-            throw new Error('Result was undefined')
-          }
-
-          const response = formatJsonRpcResult(id, result)
-          await this.client.respond({ topic, response })
-        } catch (error) {
-          const e = error as Error
-          const message = e.message || e.toString()
-          const response = formatJsonRpcError(id, message)
-          await this.client.respond({ topic, response })
+            break
+          case 'alph_signAndSubmitExecuteScriptTx':
+            result = await this.signer.signAndSubmitExecuteScriptTx(request.params as any as SignExecuteScriptTxParams)
+            break
+          case 'alph_signAndSubmitUnsignedTx':
+            result = await this.signer.signAndSubmitUnsignedTx(request.params as any as SignUnsignedTxParams)
+            break
+          case 'alph_signUnsignedTx':
+            result = await this.signer.signUnsignedTx(request.params as any as SignUnsignedTxParams)
+            break
+          case 'alph_signMessage':
+            result = await this.signer.signMessage(request.params as any as SignMessageParams)
+            break
+          case 'alph_requestNodeApi':
+            result = await this.nodeProvider.request(request.params as ApiRequestArguments)
+            break
+          default:
+            throw new Error(`Method is not supported: ${request.method}`)
         }
-      },
-    )
+
+        // reject if undefined result
+        if (typeof result === 'undefined') {
+          throw new Error('Result was undefined')
+        }
+
+        const response = formatJsonRpcResult(id, result)
+        await this.client.respond({ topic, response })
+      } catch (error) {
+        const e = error as Error
+        const message = e.message || e.toString()
+        const response = formatJsonRpcError(id, message)
+        await this.client.respond({ topic, response })
+      }
+    })
   }
 }

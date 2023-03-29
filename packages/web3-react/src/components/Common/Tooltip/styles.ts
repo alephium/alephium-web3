@@ -1,13 +1,30 @@
-import { motion } from 'framer-motion';
-import styled from './../../../styles/styled';
-import { TooltipSizeProps } from './types';
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import { motion } from 'framer-motion'
+import styled from './../../../styles/styled'
+import { TooltipSizeProps } from './types'
 
 export const TooltipWindow = styled(motion.div)`
   z-index: 2147483647;
   position: fixed;
   inset: 0;
   pointer-events: none;
-`;
+`
 export const TooltipContainer = styled(motion.div)<{ $size: TooltipSizeProps }>`
   --shadow: var(--ck-tooltip-shadow);
   z-index: 2147483647;
@@ -19,10 +36,7 @@ export const TooltipContainer = styled(motion.div)<{ $size: TooltipSizeProps }>`
   width: fit-content;
   align-items: center;
   justify-content: center;
-  border-radius: var(
-    --ck-tooltip-border-radius,
-    ${(props) => (props.$size === 'small' ? 11 : 14)}px
-  );
+  border-radius: var(--ck-tooltip-border-radius, ${(props) => (props.$size === 'small' ? 11 : 14)}px);
   border-radius: ;
   padding: 10px 16px 10px 12px;
   font-size: 14px;
@@ -54,7 +68,7 @@ export const TooltipContainer = styled(motion.div)<{ $size: TooltipSizeProps }>`
       transform: translate(0.5px, -1px) scale(1.75);
     }
   }
-`;
+`
 
 export const TooltipTail = styled(motion.div)<{ $size: TooltipSizeProps }>`
   z-index: 2;
@@ -77,4 +91,4 @@ export const TooltipTail = styled(motion.div)<{ $size: TooltipSizeProps }>`
     background: var(--ck-tooltip-background);
     border-radius: ${(props) => (props.$size === 'small' ? 2 : 3)}px 0 0 0;
   }
-`;
+`

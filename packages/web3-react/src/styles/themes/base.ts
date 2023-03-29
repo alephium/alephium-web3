@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 export default {
   light: {
     /** Connect Wallet Button */
@@ -14,16 +31,13 @@ export default {
 
     '--ck-connectbutton-balance-color': '#373737',
     '--ck-connectbutton-balance-background': '#fff',
-    '--ck-connectbutton-balance-box-shadow':
-      'inset 0 0 0 1px var(--ck-connectbutton-background)',
+    '--ck-connectbutton-balance-box-shadow': 'inset 0 0 0 1px var(--ck-connectbutton-background)',
 
     '--ck-connectbutton-balance-hover-background': '#F6F7F9',
-    '--ck-connectbutton-balance-hover-box-shadow':
-      'inset 0 0 0 1px var(--ck-connectbutton-hover-background)',
+    '--ck-connectbutton-balance-hover-box-shadow': 'inset 0 0 0 1px var(--ck-connectbutton-hover-background)',
 
     '--ck-connectbutton-balance-active-background': '#F0F2F5',
-    '--ck-connectbutton-balance-active-box-shadow':
-      'inset 0 0 0 1px var(--ck-connectbutton-active-background)',
+    '--ck-connectbutton-balance-active-box-shadow': 'inset 0 0 0 1px var(--ck-connectbutton-active-background)',
 
     /** Primary Button */
     '--ck-primary-button-border-radius': '16px',
@@ -83,8 +97,7 @@ export default {
 
     /** Network dropdown */
     '--ck-dropdown-button-color': '#999999',
-    '--ck-dropdown-button-box-shadow':
-      '0 0 0 1px rgba(0,0,0,0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
+    '--ck-dropdown-button-box-shadow': '0 0 0 1px rgba(0,0,0,0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
     '--ck-dropdown-button-background': '#fff',
 
     '--ck-dropdown-button-hover-color': '#8B8B8B',
@@ -97,7 +110,7 @@ export default {
     /** Misc. */
     '--ck-focus-color': '#1A88F8',
     '--ck-spinner-color': 'var(--ck-focus-color)',
-    '--ck-copytoclipboard-stroke': '#CCCCCC',
+    '--ck-copytoclipboard-stroke': '#CCCCCC'
   },
   dark: {
     '--ck-connectbutton-font-size': '15px',
@@ -111,16 +124,13 @@ export default {
 
     '--ck-connectbutton-balance-color': '#fff',
     '--ck-connectbutton-balance-background': '#282828',
-    '--ck-connectbutton-balance-box-shadow':
-      'inset 0 0 0 1px var(--ck-connectbutton-background)',
+    '--ck-connectbutton-balance-box-shadow': 'inset 0 0 0 1px var(--ck-connectbutton-background)',
 
     '--ck-connectbutton-balance-hover-background': '#383838',
-    '--ck-connectbutton-balance-hover-box-shadow':
-      'inset 0 0 0 1px var(--ck-connectbutton-hover-background)',
+    '--ck-connectbutton-balance-hover-box-shadow': 'inset 0 0 0 1px var(--ck-connectbutton-hover-background)',
 
     '--ck-connectbutton-balance-active-background': '#404040',
-    '--ck-connectbutton-balance-active-box-shadow':
-      'inset 0 0 0 1px var(--ck-connectbutton-active-background)',
+    '--ck-connectbutton-balance-active-box-shadow': 'inset 0 0 0 1px var(--ck-connectbutton-active-background)',
 
     '--ck-primary-button-color': '#ffffff',
     '--ck-primary-button-background': '#383838',
@@ -178,6 +188,6 @@ export default {
     '--ck-spinner-color': 'var(--ck-focus-color)',
 
     '--ck-qr-dot-color': '#ffffff',
-    '--ck-qr-border-color': '#3d3d3d',
-  },
-};
+    '--ck-qr-border-color': '#3d3d3d'
+  }
+}

@@ -1,8 +1,25 @@
-import styled from './../../../styles/styled';
-import { css, keyframes } from 'styled-components';
-import { motion } from 'framer-motion';
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
 
-import { ModalContent } from '../../Common/Modal/styles';
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import styled from './../../../styles/styled'
+import { css, keyframes } from 'styled-components'
+import { motion } from 'framer-motion'
+
+import { ModalContent } from '../../Common/Modal/styles'
 
 export const Content = styled(motion.div)`
   display: flex;
@@ -15,27 +32,27 @@ export const Content = styled(motion.div)`
     padding: 0 8px 32px;
     gap: 12px;
   }
-`;
+`
 
-const dist = 2;
+const dist = 2
 const shakeKeyframes = keyframes`
   0%{ transform:none; }
   25%{ transform:translateX(${dist}px); }
   50%{ transform:translateX(-${dist}px); }
   75%{ transform:translateX(${dist}px); }
   100%{ transform:none; }
-`;
+`
 const outlineKeyframes = keyframes`
   0%{ opacity:1; }
   100%{ opacity:0; }
-`;
+`
 export const Container = styled(motion.div)`
   /*
   background: var(
     --ck-body-background
   ); // To stop the overlay issue during transition for the squircle spinner
   */
-`;
+`
 export const ConnectingContainer = styled(motion.div)`
   display: flex;
   align-items: center;
@@ -43,10 +60,10 @@ export const ConnectingContainer = styled(motion.div)`
   margin: 10px auto 16px;
   height: 120px;
   //transform: scale(1.001); // fixes shifting issue between states
-`;
+`
 export const ConnectingAnimation = styled(motion.div)<{
-  $shake: boolean;
-  $circle: boolean;
+  $shake: boolean
+  $circle: boolean
 }>`
   user-select: none;
   position: relative;
@@ -73,7 +90,7 @@ export const ConnectingAnimation = styled(motion.div)<{
         animation: ${outlineKeyframes} 220ms ease-out 750ms both;
       }
     `}
-`;
+`
 
 export const RetryButton = styled(motion.button)`
   z-index: 5;
@@ -109,7 +126,7 @@ export const RetryButton = styled(motion.button)`
   &:hover:before {
     opacity: 0.1;
   }
-`;
+`
 export const RetryIconContainer = styled(motion.div)`
   position: absolute;
   inset: 0;
@@ -120,11 +137,7 @@ export const RetryIconContainer = styled(motion.div)`
     position: absolute;
     inset: 3px;
     border-radius: 16px;
-    background: conic-gradient(
-      from 90deg,
-      currentColor 10%,
-      var(--ck-body-color) 80%
-    );
+    background: conic-gradient(from 90deg, currentColor 10%, var(--ck-body-color) 80%);
   }
 
   svg {
@@ -134,4 +147,4 @@ export const RetryIconContainer = styled(motion.div)`
     width: 100%;
     height: 100%;
   }
-`;
+`

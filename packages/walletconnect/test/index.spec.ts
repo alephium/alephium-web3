@@ -1,18 +1,23 @@
-import {
-  formatChain,
-  parseChain,
-  ProviderOptions,
-  WalletConnectProvider,
-} from '../src/index'
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import { formatChain, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
 import { WalletClient } from './shared'
-import {
-  web3,
-  node,
-  NodeProvider,
-  verifySignedMessage,
-  Project,
-  groupOfAddress,
-} from '@alephium/web3'
+import { web3, node, NodeProvider, verifySignedMessage, Project, groupOfAddress } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
@@ -24,9 +29,7 @@ const RPC_URL = `http://localhost:${PORT}`
 
 const nodeProvider = new NodeProvider(RPC_URL)
 web3.setCurrentNodeProvider(RPC_URL)
-const signerA = new PrivateKeyWallet(
-  { privateKey: 'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5' },
-)
+const signerA = new PrivateKeyWallet({ privateKey: 'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5' })
 const signerB = PrivateKeyWallet.Random(1)
 const signerC = PrivateKeyWallet.Random(2)
 const signerD = PrivateKeyWallet.Random(3)
@@ -34,43 +37,41 @@ const ACCOUNTS = {
   a: {
     address: signerA.address,
     privateKey: signerA.privateKey,
-    group: signerA.group,
+    group: signerA.group
   },
   b: {
     address: signerB.address,
     privateKey: signerB.privateKey,
-    group: signerB.group,
+    group: signerB.group
   },
   c: {
     address: signerC.address,
     privateKey: signerC.privateKey,
-    group: signerC.group,
+    group: signerC.group
   },
   d: {
     address: signerD.address,
     privateKey: signerD.privateKey,
-    group: signerD.group,
-  },
+    group: signerD.group
+  }
 }
 
 const ONE_ALPH = 10n ** 18n
 
-const TEST_RELAY_URL = process.env.TEST_RELAY_URL
-  ? process.env.TEST_RELAY_URL
-  : 'ws://localhost:5555'
+const TEST_RELAY_URL = process.env.TEST_RELAY_URL ? process.env.TEST_RELAY_URL : 'ws://localhost:5555'
 
 const TEST_APP_METADATA = {
   name: 'Test App',
   description: 'Test App for WalletConnect',
   url: 'https://walletconnect.com/',
-  icons: ['https://avatars.githubusercontent.com/u/37784886'],
+  icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
 const TEST_WALLET_METADATA = {
   name: 'Test Wallet',
   description: 'Test Wallet for WalletConnect',
   url: 'https://walletconnect.com/',
-  icons: ['https://avatars.githubusercontent.com/u/37784886'],
+  icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
 
 const TEST_PROVIDER_OPTS: ProviderOptions = {
@@ -79,7 +80,7 @@ const TEST_PROVIDER_OPTS: ProviderOptions = {
 
   metadata: TEST_APP_METADATA,
   logger: 'error',
-  relayUrl: TEST_RELAY_URL,
+  relayUrl: TEST_RELAY_URL
 }
 
 const TEST_WALLET_CLIENT_OPTS = {
@@ -87,26 +88,24 @@ const TEST_WALLET_CLIENT_OPTS = {
   rpcUrl: RPC_URL,
   activePrivateKey: ACCOUNTS.a.privateKey,
   relayUrl: TEST_RELAY_URL,
-  metadata: TEST_WALLET_METADATA,
+  metadata: TEST_WALLET_METADATA
 }
 
-export const TEST_PROJECT_ID = process.env.TEST_PROJECT_ID
-  ? process.env.TEST_PROJECT_ID
-  : undefined
+export const TEST_PROJECT_ID = process.env.TEST_PROJECT_ID ? process.env.TEST_PROJECT_ID : undefined
 
 export const TEST_SIGN_CLIENT_OPTIONS: SignClientTypes.Options = {
   logger: 'error',
   relayUrl: TEST_RELAY_URL,
   projectId: TEST_PROJECT_ID,
   storageOptions: {
-    database: ':memory:',
+    database: ':memory:'
   },
-  metadata: TEST_APP_METADATA,
+  metadata: TEST_APP_METADATA
 }
 
 jest.setTimeout(30_000)
 
-describe('Unit tests', function() {
+describe('Unit tests', function () {
   const expectedChainGroup0 = 2
   const expectedChainGroup1 = 1
 
@@ -131,14 +130,14 @@ describe('Unit tests', function() {
   })
 })
 
-describe('WalletConnectProvider with single chainGroup', function() {
+describe('WalletConnectProvider with single chainGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
 
   beforeAll(async () => {
     provider = await WalletConnectProvider.init({
-      ...TEST_PROVIDER_OPTS,
+      ...TEST_PROVIDER_OPTS
     })
     walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
     walletAddress = walletClient.signer.address
@@ -153,12 +152,12 @@ describe('WalletConnectProvider with single chainGroup', function() {
     if (!walletClient.disconnected) {
       // disconnect provider
       await Promise.all([
-        new Promise<void>(resolve => {
+        new Promise<void>((resolve) => {
           provider.on('session_delete', () => {
             resolve()
           })
         }),
-        walletClient.disconnect(),
+        walletClient.disconnect()
       ])
     }
     // expect provider to be disconnected
@@ -186,7 +185,7 @@ describe('WalletConnectProvider with single chainGroup', function() {
     // change to account b, which is not supported
     expectThrowsAsync(
       async () => await walletClient.changeAccount(ACCOUNTS.b.privateKey),
-      'Error changing account, chain alephium:4/1 not permitted',
+      'Error changing account, chain alephium:4/1 not permitted'
     )
   })
 
@@ -196,7 +195,7 @@ describe('WalletConnectProvider with single chainGroup', function() {
   })
 })
 
-describe('WalletConnectProvider with arbitrary chainGroup', function() {
+describe('WalletConnectProvider with arbitrary chainGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -205,7 +204,7 @@ describe('WalletConnectProvider with arbitrary chainGroup', function() {
     provider = await WalletConnectProvider.init({
       ...TEST_PROVIDER_OPTS,
       networkId: NETWORK_ID,
-      chainGroup: undefined,
+      chainGroup: undefined
     })
     walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
     walletAddress = walletClient.signer.address
@@ -220,12 +219,12 @@ describe('WalletConnectProvider with arbitrary chainGroup', function() {
     if (!walletClient.disconnected) {
       // disconnect provider
       await Promise.all([
-        new Promise<void>(resolve => {
+        new Promise<void>((resolve) => {
           provider.on('session_delete', () => {
             resolve()
           })
         }),
-        walletClient.disconnect(),
+        walletClient.disconnect()
       ])
     }
     // expect provider to be disconnected
@@ -252,7 +251,7 @@ async function verifyNetworkChange(
   networkId: number,
   rpcUrl: string,
   provider: WalletConnectProvider,
-  walletClient: WalletClient,
+  walletClient: WalletClient
 ) {
   await Promise.all([
     new Promise<void>((resolve, _reject) => {
@@ -260,7 +259,7 @@ async function verifyNetworkChange(
         resolve()
       })
     }),
-    await walletClient.changeChain(networkId, rpcUrl),
+    await walletClient.changeChain(networkId, rpcUrl)
   ])
 }
 
@@ -268,11 +267,11 @@ async function verifyAccountsChange(
   privateKey: string,
   address: string,
   provider: WalletConnectProvider,
-  walletClient: WalletClient,
+  walletClient: WalletClient
 ) {
   await Promise.all([
     new Promise<void>((resolve, reject) => {
-      provider.on('accountChanged', account => {
+      provider.on('accountChanged', (account) => {
         try {
           expect(account.address).toEqual(address)
           resolve()
@@ -281,14 +280,11 @@ async function verifyAccountsChange(
         }
       })
     }),
-    walletClient.changeAccount(privateKey),
+    walletClient.changeAccount(privateKey)
   ])
 }
 
-async function verifySign(
-  provider: WalletConnectProvider,
-  walletClient: WalletClient,
-) {
+async function verifySign(provider: WalletConnectProvider, walletClient: WalletClient) {
   let balance: node.Balance
   async function checkBalanceDecreasing() {
     delay(500)
@@ -309,18 +305,18 @@ async function verifySign(
 
   await provider.signAndSubmitTransferTx({
     signerAddress: signerA.address,
-    destinations: [{ address: ACCOUNTS.b.address, attoAlphAmount: ONE_ALPH }],
+    destinations: [{ address: ACCOUNTS.b.address, attoAlphAmount: ONE_ALPH }]
   })
 
   await checkBalanceDecreasing()
 
   const greeterResult = await Greeter.deploy(provider, {
-    initialFields: { btcPrice: 1n },
+    initialFields: { btcPrice: 1n }
   })
   await checkBalanceDecreasing()
 
   await Main.execute(provider, {
-    initialFields: { greeterContractId: greeterResult.contractId },
+    initialFields: { greeterContractId: greeterResult.contractId }
   })
   await checkBalanceDecreasing()
 
@@ -328,18 +324,15 @@ async function verifySign(
   const signedMessage = await provider.signMessage({
     message,
     messageHasher: 'alephium',
-    signerAddress: signerA.address,
+    signerAddress: signerA.address
   })
   expect(verifySignedMessage(message, 'alephium', signerA.publicKey, signedMessage.signature)).toEqual(true)
 }
 
 function delay(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function expectThrowsAsync(
-  method: () => Promise<any>,
-  errorMessage: string,
-) {
+function expectThrowsAsync(method: () => Promise<any>, errorMessage: string) {
   expect(method()).rejects.toThrow(errorMessage)
 }

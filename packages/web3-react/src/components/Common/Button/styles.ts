@@ -1,12 +1,29 @@
-import { motion } from 'framer-motion';
-import styled from './../../../styles/styled';
-import { css, keyframes } from 'styled-components';
-import defaultTheme from '../../../constants/defaultTheme';
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import { motion } from 'framer-motion'
+import styled from './../../../styles/styled'
+import { css, keyframes } from 'styled-components'
+import defaultTheme from '../../../constants/defaultTheme'
 
 const Spin = keyframes`
   0%{ transform: rotate(0deg); }
   100%{ transform: rotate(360deg); }
-`;
+`
 export const SpinnerContainer = styled(motion.div)`
   position: absolute;
   right: 16px;
@@ -21,7 +38,7 @@ export const SpinnerContainer = styled(motion.div)`
     position: relative;
     animation: ${Spin} 1s ease-in-out infinite;
   }
-`;
+`
 
 export const Arrow = styled.svg`
   --x: -3px;
@@ -37,27 +54,27 @@ export const Arrow = styled.svg`
   transform: translateX(var(--x, -3px));
   color: var(--ck-secondary-button-color, var(--ck-body-color));
   opacity: 0.4;
-`;
-export const ArrowChevron = styled.path``;
+`
+export const ArrowChevron = styled.path``
 export const ArrowLine = styled.line`
   transition: inherit;
   transition-property: transform;
   transform-origin: 90% 50%;
   transform: scaleX(0.1);
-`;
+`
 export const DownloadArrow = styled.div`
   display: inline-block;
   vertical-align: middle;
   position: relative;
   margin-right: 6px;
   color: var(--ck-secondary-button-color, var(--ck-body-color));
-`;
+`
 export const DownloadArrowInner = styled.div`
   transform: rotate(90deg);
   ${Arrow} {
     margin: 0 auto;
   }
-`;
+`
 
 export const ButtonContainerInner = styled(motion.div)`
   display: flex;
@@ -65,10 +82,10 @@ export const ButtonContainerInner = styled(motion.div)`
   justify-content: center;
   inset: 0;
   height: 100%;
-`;
+`
 export const ButtonContainer = styled.button<{
-  disabled?: boolean;
-  $variant?: 'primary' | 'secondary' | 'tertiary';
+  disabled?: boolean
+  $variant?: 'primary' | 'secondary' | 'tertiary'
 }>`
 
   ${({ disabled }) =>
@@ -82,105 +99,48 @@ export const ButtonContainer = styled.button<{
     if ($variant === 'primary') {
       return css`
         --color: var(--ck-primary-button-color, var(--ck-body-color));
-        --background: var(
-          --ck-primary-button-background,
-          var(--ck-body-background-primary)
-        );
+        --background: var(--ck-primary-button-background, var(--ck-body-background-primary));
         --box-shadow: var(--ck-primary-button-box-shadow);
         --border-radius: var(--ck-primary-button-border-radius);
         --font-weight: var(--ck-primary-button-font-weight, 500);
 
         --hover-color: var(--ck-button-primary-hover-color, var(--color));
-        --hover-background: var(
-          --ck-primary-button-hover-background,
-          var(--background)
-        );
-        --hover-box-shadow: var(
-          --ck-primary-button-hover-box-shadow,
-          var(--box-shadow)
-        );
-        --hover-border-radius: var(
-          --ck-primary-button-hover-border-radius,
-          var(--border-radius)
-        );
-        --hover-font-weight: var(
-          --ck-primary-button-font-weight,
-          var(--font-weight)
-        );
-      `;
+        --hover-background: var(--ck-primary-button-hover-background, var(--background));
+        --hover-box-shadow: var(--ck-primary-button-hover-box-shadow, var(--box-shadow));
+        --hover-border-radius: var(--ck-primary-button-hover-border-radius, var(--border-radius));
+        --hover-font-weight: var(--ck-primary-button-font-weight, var(--font-weight));
+      `
     } else if ($variant === 'secondary') {
       return css`
         --color: var(--ck-secondary-button-color, var(--ck-body-color));
-        --background: var(
-          --ck-secondary-button-background,
-          var(--ck-body-background-secondary)
-        );
+        --background: var(--ck-secondary-button-background, var(--ck-body-background-secondary));
         --box-shadow: var(--ck-secondary-button-box-shadow);
         --border-radius: var(--ck-secondary-button-border-radius);
         --font-weight: var(--ck-secondary-button-font-weight, 500);
 
         --hover-color: var(--ck-secondary-button-hover-color, var(--color));
-        --hover-background: var(
-          --ck-secondary-button-hover-background,
-          var(--background)
-        );
-        --hover-box-shadow: var(
-          --ck-secondary-button-hover-box-shadow,
-          var(--box-shadow)
-        );
-        --hover-border-radius: var(
-          --ck-secondary-button-hover-border-radius,
-          var(--border-radius)
-        );
-        --hover-font-weight: var(
-          --ck-secondary-button-font-weight,
-          var(--font-weight)
-        );
-      `;
+        --hover-background: var(--ck-secondary-button-hover-background, var(--background));
+        --hover-box-shadow: var(--ck-secondary-button-hover-box-shadow, var(--box-shadow));
+        --hover-border-radius: var(--ck-secondary-button-hover-border-radius, var(--border-radius));
+        --hover-font-weight: var(--ck-secondary-button-font-weight, var(--font-weight));
+      `
     } else if ($variant === 'tertiary') {
       return css`
-        --color: var(
-          --ck-tertiary-button-color,
-          var(--ck-secondary-button-color)
-        );
-        --background: var(
-          --ck-tertiary-button-background,
-          var(--ck-secondary-button-background)
-        );
-        --box-shadow: var(
-          --ck-tertiary-button-box-shadow,
-          var(--ck-secondary-button-box-shadow)
-        );
-        --border-radius: var(
-          --ck-tertiary-button-border-radius,
-          var(--ck-secondary-button-border-radius)
-        );
-        --font-weight: var(
-          --ck-tertiary-button-font-weight,
-          var(--ck-secondary-button-font-weight)
-        );
+        --color: var(--ck-tertiary-button-color, var(--ck-secondary-button-color));
+        --background: var(--ck-tertiary-button-background, var(--ck-secondary-button-background));
+        --box-shadow: var(--ck-tertiary-button-box-shadow, var(--ck-secondary-button-box-shadow));
+        --border-radius: var(--ck-tertiary-button-border-radius, var(--ck-secondary-button-border-radius));
+        --font-weight: var(--ck-tertiary-button-font-weight, var(--ck-secondary-button-font-weight));
 
-        --hover-color: var(
-          --button-tertiary-hover-color,
-          var(--ck-tertiary-button-color)
-        );
-        --hover-background: var(
-          --ck-tertiary-button-hover-background,
-          var(--ck-tertiary-button-background)
-        );
-        --hover-box-shadow: var(
-          --ck-tertiary-button-hover-box-shadow,
-          var(--ck-tertiary-button-box-shadow)
-        );
+        --hover-color: var(--button-tertiary-hover-color, var(--ck-tertiary-button-color));
+        --hover-background: var(--ck-tertiary-button-hover-background, var(--ck-tertiary-button-background));
+        --hover-box-shadow: var(--ck-tertiary-button-hover-box-shadow, var(--ck-tertiary-button-box-shadow));
         --hover-border-radius: var(
           --ck-tertiary-button-hover-border-radius,
           var(--ck-tertiary-button-border-radius, var(--border-radius))
         );
-        --hover-font-weight: var(
-          --ck-tertiary-button-font-weight,
-          var(--ck-secondary-button-font-weight)
-        );
-      `;
+        --hover-font-weight: var(--ck-tertiary-button-font-weight, var(--ck-secondary-button-font-weight));
+      `
     }
   }}
 
@@ -257,7 +217,7 @@ export const ButtonContainer = styled.button<{
     &:active {
     }
   }
-`;
+`
 
 export const InnerContainer = styled.div`
   transform: translateZ(0); // Shifting fix
@@ -269,9 +229,9 @@ export const InnerContainer = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
   */
-`;
+`
 
-export const IconContainer = styled(motion.div) <{ $rounded?: boolean }>`
+export const IconContainer = styled(motion.div)<{ $rounded?: boolean }>`
   position: relative;
   display: inline-block;
   vertical-align: middle;
@@ -291,7 +251,7 @@ export const IconContainer = styled(motion.div) <{ $rounded?: boolean }>`
         overflow: hidden;
         border-radius: 5px;
       `
-    );
+    )
   }}
   svg {
     display: block;
@@ -299,4 +259,4 @@ export const IconContainer = styled(motion.div) <{ $rounded?: boolean }>`
     max-width: 100%;
     height: auto;
   }
-`;
+`

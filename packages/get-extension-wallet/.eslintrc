@@ -16,14 +16,7 @@
         "sourceType": "module"
     },
     "plugins": [
-        "@typescript-eslint",
-        "svelte3"
-    ],
-    "overrides": [
-        {
-            "files": ["*.svelte"],
-            "processor": "svelte3/svelte3"
-        }
+        "@typescript-eslint"
     ],
     "rules": {
         "@typescript-eslint/no-empty-function": 0,

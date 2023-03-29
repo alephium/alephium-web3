@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 import EventEmitter from 'eventemitter3'
 import { SessionTypes } from '@walletconnect/types'
 import SignClient from '@walletconnect/sign-client'
@@ -20,24 +37,33 @@ import {
   NodeProvider,
   ExplorerProvider,
   ApiRequestArguments,
-  Address,
+  Address
 } from '@alephium/web3'
 
 import { LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
-import { ChainGroup, RelayMethodParams, RelayMethodResult, ProviderEvent, ProviderEventArgument, RelayMethod, ProjectMetaData, ChainInfo } from './types'
+import {
+  ChainGroup,
+  RelayMethodParams,
+  RelayMethodResult,
+  ProviderEvent,
+  ProviderEventArgument,
+  RelayMethod,
+  ProjectMetaData,
+  ChainInfo
+} from './types'
 
 export interface ProviderOptions {
   // Alephium options
-  networkId: number; // the id of the network, e.g. 0 for mainnet, 1 for testnet, 4 for devnet, etc.
-  chainGroup?: number; // either a specific group or undefined to support all groups
-  methods?: RelayMethod[]; // all of the methods to be used in relay; no need to configure in most cases
+  networkId: number // the id of the network, e.g. 0 for mainnet, 1 for testnet, 4 for devnet, etc.
+  chainGroup?: number // either a specific group or undefined to support all groups
+  methods?: RelayMethod[] // all of the methods to be used in relay; no need to configure in most cases
 
   // WalletConnect options
-  projectId?: string;
-  metadata?: ProjectMetaData; // metadata used to initialize a sign client
-  logger?: string; // default logger level is Error; no need to configure in most cases
-  client?: SignClient; // existing sign client; no need to configure in most cases
-  relayUrl?: string; // the url of the relay server; no need to configure in most cases
+  projectId?: string
+  metadata?: ProjectMetaData // metadata used to initialize a sign client
+  logger?: string // default logger level is Error; no need to configure in most cases
+  client?: SignClient // existing sign client; no need to configure in most cases
+  relayUrl?: string // the url of the relay server; no need to configure in most cases
 }
 
 export class WalletConnectProvider extends SignerProvider {
@@ -90,9 +116,9 @@ export class WalletConnectProvider extends SignerProvider {
         alephium: {
           chains: [this.permittedChain],
           methods: this.methods,
-          events: ['accountChanged'],
-        },
-      },
+          events: ['accountChanged']
+        }
+      }
     })
 
     if (uri) {
@@ -110,7 +136,7 @@ export class WalletConnectProvider extends SignerProvider {
 
     await this.client.disconnect({
       topic: this.session.topic,
-      reason: getSdkError('USER_DISCONNECTED'),
+      reason: getSdkError('USER_DISCONNECTED')
     })
   }
 
@@ -122,7 +148,10 @@ export class WalletConnectProvider extends SignerProvider {
     this.events.once(event, listener)
   }
 
-  public removeListener<E extends ProviderEvent>(event: ProviderEvent, listener: (args: ProviderEventArgument<E>) => any): void {
+  public removeListener<E extends ProviderEvent>(
+    event: ProviderEvent,
+    listener: (args: ProviderEventArgument<E>) => any
+  ): void {
     this.events.removeListener(event, listener)
   }
 
@@ -143,15 +172,11 @@ export class WalletConnectProvider extends SignerProvider {
     return this.typedRequest('alph_signAndSubmitTransferTx', params)
   }
 
-  public async signAndSubmitDeployContractTx(
-    params: SignDeployContractTxParams,
-  ): Promise<SignDeployContractTxResult> {
+  public async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     return this.typedRequest('alph_signAndSubmitDeployContractTx', params)
   }
 
-  public async signAndSubmitExecuteScriptTx(
-    params: SignExecuteScriptTxParams,
-  ): Promise<SignExecuteScriptTxResult> {
+  public async signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
     return this.typedRequest('alph_signAndSubmitExecuteScriptTx', params)
   }
 
@@ -182,7 +207,7 @@ export class WalletConnectProvider extends SignerProvider {
         logger: this.providerOpts.logger || LOGGER,
         relayUrl: this.providerOpts.relayUrl || RELAY_URL,
         projectId: this.providerOpts.projectId,
-        metadata: this.providerOpts.metadata, // fetch metadata automatically if not provided?
+        metadata: this.providerOpts.metadata // fetch metadata automatically if not provided?
       }))
   }
 
@@ -223,15 +248,12 @@ export class WalletConnectProvider extends SignerProvider {
     this.events.emit(event, data)
   }
 
-  private typedRequest<T extends RelayMethod>(
-    method: T,
-    params: RelayMethodParams<T>,
-  ): Promise<RelayMethodResult<T>> {
+  private typedRequest<T extends RelayMethod>(method: T, params: RelayMethodParams<T>): Promise<RelayMethodResult<T>> {
     return this.request({ method, params })
   }
 
   // The provider only supports signer methods. The other requests should use Alephium Rest API.
-  private async request<T = unknown>(args: { method: string, params: any }): Promise<T> {
+  private async request<T = unknown>(args: { method: string; params: any }): Promise<T> {
     if (!(this.methods as string[]).includes(args.method)) {
       return Promise.reject(new Error(`Invalid method was passed: ${args.method}`))
     }
@@ -250,10 +272,10 @@ export class WalletConnectProvider extends SignerProvider {
     return this.client.request({
       request: {
         method: args.method,
-        params: args.params,
+        params: args.params
       },
       chainId: this.permittedChain,
-      topic: this.session?.topic,
+      topic: this.session?.topic
     })
   }
 
@@ -290,7 +312,7 @@ export class WalletConnectProvider extends SignerProvider {
     if (typeof account1 === 'undefined') {
       return false
     } else {
-      return account0.map(a => a.address).join() === account1.map(a => a.address).join()
+      return account0.map((a) => a.address).join() === account1.map((a) => a.address).join()
     }
   }
 

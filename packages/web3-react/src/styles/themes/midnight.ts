@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 export default {
   '--ck-font-family':
     '"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol"',
@@ -28,8 +45,7 @@ export default {
   '--ck-secondary-button-border-radius': '8px',
   '--ck-secondary-button-color': '#ffffff',
   '--ck-secondary-button-background': '#363638',
-  '--ck-secondary-button-box-shadow':
-    'inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+  '--ck-secondary-button-box-shadow': 'inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
 
   '--ck-secondary-button-hover-background': '#3c3c3e',
 
@@ -65,14 +81,12 @@ export default {
   '--ck-tooltip-background': '#1F2023',
   '--ck-tooltip-background-secondary': '#1F2023',
   '--ck-tooltip-color': '#ffffff',
-  '--ck-tooltip-shadow':
-    ' 0 0 0 1px rgba(255, 255, 255, 0.1), 0px 2px 4px rgba(0, 0, 0, 0.02)',
+  '--ck-tooltip-shadow': ' 0 0 0 1px rgba(255, 255, 255, 0.1), 0px 2px 4px rgba(0, 0, 0, 0.02)',
 
   '--ck-spinner-color': 'var(--ck-focus-color)',
 
   '--ck-dropdown-button-color': '#6C7381',
-  '--ck-dropdown-button-box-shadow':
-    'inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
+  '--ck-dropdown-button-box-shadow': 'inset 0 0 0 1px rgba(255, 255, 255, 0.05)',
   '--ck-dropdown-button-background': '#313235',
 
   '--ck-dropdown-pending-color': '#8B8F97',
@@ -90,5 +104,5 @@ export default {
 
   '--ck-qr-border-radius': '12px',
   '--ck-qr-dot-color': '#ffffff',
-  '--ck-qr-border-color': 'rgba(255,255,255,0.1)',
-};
+  '--ck-qr-border-color': 'rgba(255,255,255,0.1)'
+}

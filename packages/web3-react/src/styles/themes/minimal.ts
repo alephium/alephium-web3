@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 export default {
   '--ck-font-family':
     '"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,"Apple Color Emoji",Arial,sans-serif,"Segoe UI Emoji","Segoe UI Symbol"',
@@ -34,8 +51,7 @@ export default {
   '--ck-secondary-button-hover-box-shadow': 'inset 0 0 0 1px #111111',
 
   '--ck-dropdown-button-color': '#999999',
-  '--ck-dropdown-button-box-shadow':
-    '0 0 0 1px rgba(0, 0, 0, 0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
+  '--ck-dropdown-button-box-shadow': '0 0 0 1px rgba(0, 0, 0, 0.01), 0px 0px 7px rgba(0, 0, 0, 0.05)',
   '--ck-dropdown-button-background': '#fff',
 
   '--ck-dropdown-button-hover-color': '#8B8B8B',
@@ -112,5 +128,5 @@ export default {
   '--ck-graphic-globe-box-shadow': 'inset 0 0 0 1px #EBEBEB',
   */
 
-  '--ck-siwe-border': '#EBEBEB',
-};
+  '--ck-siwe-border': '#EBEBEB'
+}
