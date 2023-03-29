@@ -16,18 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
+// JSON Schema for the NFT metadata, which is pointed to by the value
+// returned from the `getTokenUri` method of the NFT contract
+export interface NFTMetadata {
+  name: string
+  description: string
+  image: string
 }
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
-
-export * from './constants'
-export * as web3 from './global'
-
-export * as utils from './utils'
+// JSON Schema for the NFT Collection metadata, which is pointed to by
+// the value returned from the `getCollectionUri` method of the NFT Collection
+// Contract
+export interface NFTCollectionMetadata {
+  name: string
+  description: string
+  image: string
+}

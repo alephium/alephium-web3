@@ -1,61 +1,29 @@
 {
   "version": "v2.0.1",
   "name": "NFTCollectionTest",
-  "bytecode": "050509121b4036407c010000000102ce0102010000000102ce0202010000000102ce030201000102010f16000002310c7b160040cb17011601c50d7b16010201030104014022a0000002310c7bb4170116001301641702160113c40de0b6b3a7640000a2a00040ce0016021401000d1601c91703051601a000160360a0000d2aa100160302",
-  "codeHash": "015c02443271d5c3bcd4446d5c1435ded1faa4c7d68eabe60b3fb32fec13c080",
+  "bytecode": "03040912402d4063010000000102ce0102010000000102a0000201000102010f16000001310c7b160040cb17011601c50d7b160102010301040118b4170116001301641702160113c40de0b6b3a7640000a2a00040ce0016021401000d1601c91703a0000d2aa100160302",
+  "codeHash": "935e1ff93c3598140e0d2a2187b3c55d06e764d27a44fd0933fff1606574628f",
   "fieldsSig": {
     "names": [
       "nftTemplateId",
-      "name",
-      "symbol",
-      "totalSupply",
-      "currentTokenIndex"
+      "collectionUri",
+      "totalSupply"
     ],
     "types": [
       "ByteVec",
       "ByteVec",
-      "ByteVec",
-      "U256",
       "U256"
     ],
     "isMutable": [
       false,
       false,
-      false,
-      false,
       true
     ]
   },
-  "eventsSig": [
-    {
-      "name": "Minted",
-      "fieldNames": [
-        "minter",
-        "tokenIndex",
-        "tokenId"
-      ],
-      "fieldTypes": [
-        "Address",
-        "U256",
-        "ByteVec"
-      ]
-    }
-  ],
+  "eventsSig": [],
   "functions": [
     {
-      "name": "getName",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
-      "returnTypes": [
-        "ByteVec"
-      ]
-    },
-    {
-      "name": "getSymbol",
+      "name": "getCollectionUri",
       "usePreapprovedAssets": false,
       "useAssetsInContract": false,
       "isPublic": true,

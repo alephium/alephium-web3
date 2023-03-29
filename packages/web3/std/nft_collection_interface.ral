@@ -1,8 +1,28 @@
 Interface INFTCollection {
-   event Minted(minter: Address, tokenIndex: U256, tokenId: ByteVec)
+   // Collection Uri points to a json file containing metadata for the NFT collection.
+   //
+   // The schema of the json file is:
+   // {
+   //     "title": "NFT Collection Metadata",
+   //     "type": "object",
+   //     "properties": {
+   //         "name": {
+   //             "type": "string",
+   //             "description": "Name of the NFT collection"
+   //         },
+   //         "description": {
+   //             "type": "string",
+   //             "description": "General description of the NFT collection"
+   //         },
+   //         "image": {
+   //             "type": "string",
+   //             "description": "A URI to the image that represents the NFT collection"
+   //         }
+   //     }
+   // }
+   pub fn getCollectionUri() -> ByteVec
 
-   pub fn getName() -> ByteVec
-   pub fn getSymbol() -> ByteVec
    pub fn totalSupply() -> U256
+
    pub fn nftByIndex(index: U256) -> INFT
 }
