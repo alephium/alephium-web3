@@ -66,14 +66,14 @@
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
-      "sourceCodeHash": "0cd0b38f897510894cf3428f6d1ef73f975bef4df7371cf02795aa5af44f40d1",
+      "sourceCodeHash": "e68165632a9374cc583b3ebf56cea013e7bff0ffc4d0572e7ef0744db1a55c67",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
-      "sourceCodeHash": "774e11f556d29dbb8a798702a285d079a33800dc677373e1961b447c412127b7",
+      "sourceCodeHash": "52c511d1ea8d9cebb0d594e4ff41c36cab3e971ef486b285d4092a0c0946b77b",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
