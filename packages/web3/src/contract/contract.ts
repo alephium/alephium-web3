@@ -1450,7 +1450,7 @@ export function subscribeEventsFromContract<T extends Fields, M extends Contract
   return subscribeToEvents(opt, address, fromCount)
 }
 
-function addStdIdToFields<F extends Fields>(contract: Contract, fields: F): F | (F & { __stdId: HexString }) {
+export function addStdIdToFields<F extends Fields>(contract: Contract, fields: F): F | (F & { __stdId: HexString }) {
   return contract.stdId === undefined ? fields : { ...fields, __stdId: contract.stdId }
 }
 
