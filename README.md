@@ -24,6 +24,7 @@ There are a few packages in this repository:
 2. `@alephium/web3` is the core and base package for all dApp development.
 3. `@alephium/web3-wallet` contains wallet related functions.
 4. `@alephium/web3-test` contains test related functions.
+5. `@alephium/get-extension-wallet` contains functions to get the extension wallet object
 
 ## Development
 
