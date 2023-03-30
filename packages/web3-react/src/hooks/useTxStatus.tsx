@@ -25,25 +25,27 @@ export function useTxStatus(
   }
 
   useEffect(() => {
-    getDefaultAlephiumWallet().then(alephium => {
-      if (!alephium?.nodeProvider) {
-        throw Error('Alephium object is not initialized')
-      }
-      web3.setCurrentNodeProvider(alephium.nodeProvider)
-
-      var subscription: TxStatusSubscription | undefined = undefined
-      if (subscriptionOptions) {
-        subscription = subscribeToTxStatus(subscriptionOptions, txId)
-      }
-
-      return () => {
-        if (subscription) {
-          subscription.unsubscribe()
+    getDefaultAlephiumWallet()
+      .then((alephium) => {
+        if (!alephium?.nodeProvider) {
+          throw Error('Alephium object is not initialized')
         }
-      }
-    }).then((error: any) => {
-      console.error(error)
-    })
+        web3.setCurrentNodeProvider(alephium.nodeProvider)
+
+        var subscription: TxStatusSubscription | undefined = undefined
+        if (subscriptionOptions) {
+          subscription = subscribeToTxStatus(subscriptionOptions, txId)
+        }
+
+        return () => {
+          if (subscription) {
+            subscription.unsubscribe()
+          }
+        }
+      })
+      .then((error: any) => {
+        console.error(error)
+      })
   }, [])
 
   return { txStatus }

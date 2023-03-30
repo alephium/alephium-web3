@@ -1,6 +1,6 @@
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import { useEffect } from 'react'
-import { useContext } from '../components/AlephiumConnect';
+import { useContext } from '../components/AlephiumConnect'
 import { KeyType } from '@alephium/web3'
 
 export function useAccount(onDisconnected?: () => Promise<void>) {

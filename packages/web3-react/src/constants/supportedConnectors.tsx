@@ -1,29 +1,29 @@
-import { ReactNode } from 'react';
-import Logos from './../assets/logos';
+import { ReactNode } from 'react'
+import Logos from './../assets/logos'
 
 let supportedConnectors: {
-  id: string;
-  name?: string;
-  shortName?: string;
+  id: string
+  name?: string
+  shortName?: string
   logos: {
-    default: ReactNode;
-    transparent?: ReactNode;
-    connectorButton?: ReactNode;
-    qrCode?: ReactNode;
-    appIcon?: ReactNode;
-    mobile?: ReactNode;
-  };
-  logoBackground?: string;
-  scannable?: boolean;
-  extensions?: { [key: string]: string };
-  appUrls?: { [key: string]: string };
-  extensionIsInstalled?: () => any;
-  defaultConnect?: () => any;
-}[] = [];
+    default: ReactNode
+    transparent?: ReactNode
+    connectorButton?: ReactNode
+    qrCode?: ReactNode
+    appIcon?: ReactNode
+    mobile?: ReactNode
+  }
+  logoBackground?: string
+  scannable?: boolean
+  extensions?: { [key: string]: string }
+  appUrls?: { [key: string]: string }
+  extensionIsInstalled?: () => any
+  defaultConnect?: () => any
+}[] = []
 
 if (typeof window != 'undefined') {
   interface IDictionary {
-    [index: string]: string;
+    [index: string]: string
   }
 
   supportedConnectors = [
@@ -39,26 +39,26 @@ if (typeof window != 'undefined') {
               padding: 5,
               background: 'var(--ck-body-background-tertiary)',
               borderRadius: '27%',
-              boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.02)',
+              boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.02)'
             }}
           >
             <div
               style={{
                 transform: 'scale(0.75)',
                 position: 'relative',
-                width: '100%',
+                width: '100%'
               }}
             >
               <Logos.AlephiumIcon />
             </div>
           </div>
         ),
-        transparent: <Logos.AlephiumIcon />,
+        transparent: <Logos.AlephiumIcon />
       },
       scannable: false,
       extensionIsInstalled: () => {
         return Boolean(window['alephiumProviders'])
-      },
+      }
     },
     {
       id: 'walletConnect',
@@ -72,7 +72,7 @@ if (typeof window != 'undefined') {
               padding: 5,
               background: 'var(--ck-body-background-secondary)',
               borderRadius: '21%',
-              boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.02)',
+              boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.02)'
             }}
           >
             <Logos.WalletConnect />
@@ -80,13 +80,13 @@ if (typeof window != 'undefined') {
         ),
         transparent: <Logos.WalletConnect background={false} />,
         connectorButton: <Logos.WalletConnect />,
-        qrCode: <Logos.WalletConnect background={true} />,
+        qrCode: <Logos.WalletConnect background={true} />
       },
       logoBackground: 'var(--ck-brand-walletConnect)',
       scannable: true,
-      defaultConnect: () => { },
+      defaultConnect: () => {}
     }
-  ];
+  ]
 }
 
-export default supportedConnectors;
+export default supportedConnectors

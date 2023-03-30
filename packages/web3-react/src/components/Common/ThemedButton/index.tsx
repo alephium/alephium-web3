@@ -1,26 +1,26 @@
-import React from 'react';
+import React from 'react'
 
-import { ThemeContainer, Container } from './styles';
+import { ThemeContainer, Container } from './styles'
 
-import useMeasure from 'react-use-measure';
+import useMeasure from 'react-use-measure'
 
 type ThemedButtonProps = {
-  children?: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'tertiary';
-  autoSize?: boolean;
-  duration?: number;
-  style?: React.CSSProperties;
-  onClick?: () => void;
-};
+  children?: React.ReactNode
+  variant?: 'primary' | 'secondary' | 'tertiary'
+  autoSize?: boolean
+  duration?: number
+  style?: React.CSSProperties
+  onClick?: () => void
+}
 
 const ThemedButton: React.FC<ThemedButtonProps> = ({
   children,
   variant = 'primary',
   autoSize = true,
   duration = 0.3,
-  style,
+  style
 }) => {
-  const [contentRef, bounds] = useMeasure();
+  const [contentRef, bounds] = useMeasure()
   return (
     <Container
       className={variant}
@@ -28,14 +28,14 @@ const ThemedButton: React.FC<ThemedButtonProps> = ({
       animate={
         autoSize
           ? {
-            width: bounds.width > 10 ? bounds.width : 'auto',
-          }
+              width: bounds.width > 10 ? bounds.width : 'auto'
+            }
           : undefined
       }
       transition={{
         duration: duration,
         ease: [0.25, 1, 0.5, 1],
-        delay: 0.01,
+        delay: 0.01
       }}
       style={style}
     >
@@ -45,13 +45,13 @@ const ThemedButton: React.FC<ThemedButtonProps> = ({
           whiteSpace: 'nowrap',
           width: 'fit-content',
           position: 'relative',
-          padding: '0 12px',
+          padding: '0 12px'
         }}
       >
         {children}
       </div>
     </Container>
-  );
-};
-export default ThemedButton;
-export { ThemeContainer };
+  )
+}
+export default ThemedButton
+export { ThemeContainer }

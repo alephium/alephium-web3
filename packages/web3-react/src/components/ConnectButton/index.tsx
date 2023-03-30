@@ -1,30 +1,28 @@
-import React from 'react';
-import useIsMounted from '../../hooks/useIsMounted';
+import React from 'react'
+import useIsMounted from '../../hooks/useIsMounted'
 
-import {
-  TextContainer,
-} from './styles';
-import { routes, useContext } from '../AlephiumConnect';
-import { AnimatePresence, Variants } from 'framer-motion';
-import ThemedButton, { ThemeContainer } from '../Common/ThemedButton';
-import { ResetContainer } from '../../styles';
-import { useAccount } from '../../hooks/useAccount';
-import { truncatedAddress } from '../../utils';
-import { Account } from '@alephium/web3';
+import { TextContainer } from './styles'
+import { routes, useContext } from '../AlephiumConnect'
+import { AnimatePresence, Variants } from 'framer-motion'
+import ThemedButton, { ThemeContainer } from '../Common/ThemedButton'
+import { ResetContainer } from '../../styles'
+import { useAccount } from '../../hooks/useAccount'
+import { truncatedAddress } from '../../utils'
+import { Account } from '@alephium/web3'
 
 const contentVariants: Variants = {
   initial: {
     zIndex: 2,
     opacity: 0,
-    x: '-100%',
+    x: '-100%'
   },
   animate: {
     opacity: 1,
     x: 0.1,
     transition: {
       duration: 0.4,
-      ease: [0.25, 1, 0.5, 1],
-    },
+      ease: [0.25, 1, 0.5, 1]
+    }
   },
   exit: {
     zIndex: 1,
@@ -34,24 +32,24 @@ const contentVariants: Variants = {
     position: 'absolute',
     transition: {
       duration: 0.4,
-      ease: [0.25, 1, 0.5, 1],
-    },
-  },
-};
+      ease: [0.25, 1, 0.5, 1]
+    }
+  }
+}
 
 const addressVariants: Variants = {
   initial: {
     zIndex: 2,
     opacity: 0,
-    x: '100%',
+    x: '100%'
   },
   animate: {
     x: 0.2,
     opacity: 1,
     transition: {
       duration: 0.4,
-      ease: [0.25, 1, 0.5, 1],
-    },
+      ease: [0.25, 1, 0.5, 1]
+    }
   },
   exit: {
     zIndex: 1,
@@ -61,66 +59,63 @@ const addressVariants: Variants = {
     position: 'absolute',
     transition: {
       duration: 0.4,
-      ease: [0.25, 1, 0.5, 1],
-    },
-  },
-};
+      ease: [0.25, 1, 0.5, 1]
+    }
+  }
+}
 
 const textVariants: Variants = {
   initial: {
-    opacity: 0,
+    opacity: 0
   },
   animate: {
     opacity: 1,
     transition: {
       duration: 0.3,
-      ease: [0.25, 1, 0.5, 1],
-    },
+      ease: [0.25, 1, 0.5, 1]
+    }
   },
   exit: {
     position: 'absolute',
     opacity: 0,
     transition: {
       duration: 0.3,
-      ease: [0.25, 1, 0.5, 1],
-    },
-  },
-};
+      ease: [0.25, 1, 0.5, 1]
+    }
+  }
+}
 
 type ConnectButtonRendererProps = {
   displayAccount: (account: Account) => string
   children?: (renderProps: {
-    show?: () => void;
-    hide?: () => void;
-    isConnected: boolean;
-    isConnecting: boolean;
-    address?: string;
-    truncatedAddress?: string;
-  }) => React.ReactNode;
-};
+    show?: () => void
+    hide?: () => void
+    isConnected: boolean
+    isConnecting: boolean
+    address?: string
+    truncatedAddress?: string
+  }) => React.ReactNode
+}
 
-const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({
-  displayAccount,
-  children,
-}) => {
-  const isMounted = useIsMounted();
-  const context = useContext();
+const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAccount, children }) => {
+  const isMounted = useIsMounted()
+  const context = useContext()
 
   const { account } = useAccount()
   const isConnected = false
   const isConnecting = false
 
   function hide() {
-    context.setOpen(false);
+    context.setOpen(false)
   }
 
   function show() {
-    context.setOpen(true);
-    context.setRoute(isConnected ? routes.PROFILE : routes.CONNECTORS);
+    context.setOpen(true)
+    context.setRoute(isConnected ? routes.PROFILE : routes.CONNECTORS)
   }
 
-  if (!children) return null;
-  if (!isMounted) return null;
+  if (!children) return null
+  if (!isMounted) return null
 
   const displayAddress = account ? displayAccount(account) : undefined
 
@@ -132,24 +127,24 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({
         isConnected: !!account,
         isConnecting: isConnecting,
         address: displayAddress,
-        truncatedAddress: displayAddress ? truncatedAddress(displayAddress) : undefined,
+        truncatedAddress: displayAddress ? truncatedAddress(displayAddress) : undefined
       })}
     </>
-  );
-};
+  )
+}
 
-ConnectButtonRenderer.displayName = 'AlephiumConnectButton.Custom';
+ConnectButtonRenderer.displayName = 'AlephiumConnectButton.Custom'
 
 function AlephiumConnectButtonInner({
   label,
   displayAccount
 }: {
-  label?: string;
-  separator?: string;
+  label?: string
+  separator?: string
   displayAccount: (account: Account) => string
 }) {
   const context = useContext()
-  const { account } = useAccount();
+  const { account } = useAccount()
 
   return (
     <AnimatePresence initial={false}>
@@ -161,14 +156,13 @@ function AlephiumConnectButtonInner({
           exit={'exit'}
           variants={addressVariants}
           style={{
-            height: 40,
+            height: 40
           }}
         >
-
           <div
             style={{
               position: 'relative',
-              paddingRight: 0,
+              paddingRight: 0
             }}
           >
             <AnimatePresence initial={false}>
@@ -179,7 +173,7 @@ function AlephiumConnectButtonInner({
                 exit={'exit'}
                 variants={textVariants}
                 style={{
-                  position: 'relative',
+                  position: 'relative'
                 }}
               >
                 {truncatedAddress(displayAccount(account))}
@@ -195,65 +189,55 @@ function AlephiumConnectButtonInner({
           exit={'exit'}
           variants={contentVariants}
           style={{
-            height: 40,
+            height: 40
             //padding: '0 5px',
           }}
         >
-          {label ? label : "Connect Alephium"}
+          {label ? label : 'Connect Alephium'}
         </TextContainer>
       )}
     </AnimatePresence>
-  );
+  )
 }
 
 type AlephiumConnectButtonProps = {
   // Options
-  label?: string;
+  label?: string
 
   // Events
-  onClick?: (open: () => void) => void;
+  onClick?: (open: () => void) => void
 
   displayAccount?: (account: Account) => string
-};
+}
 
-export function AlephiumConnectButton({
-  label,
-  onClick,
-  displayAccount
-}: AlephiumConnectButtonProps) {
-  const isMounted = useIsMounted();
+export function AlephiumConnectButton({ label, onClick, displayAccount }: AlephiumConnectButtonProps) {
+  const isMounted = useIsMounted()
 
-  const context = useContext();
+  const context = useContext()
   const { isConnected } = useAccount()
 
   function show() {
-    context.setOpen(true);
-    context.setRoute(isConnected ? routes.PROFILE : routes.CONNECTORS);
+    context.setOpen(true)
+    context.setRoute(isConnected ? routes.PROFILE : routes.CONNECTORS)
   }
 
-  if (!isMounted) return null;
+  if (!isMounted) return null
 
   return (
-    <ResetContainer
-      $useTheme={context.theme}
-      $useMode={context.mode}
-      $customTheme={context.customTheme}
-    >
+    <ResetContainer $useTheme={context.theme} $useMode={context.mode} $customTheme={context.customTheme}>
       <ThemeContainer
         onClick={() => {
           if (onClick) {
-            onClick(show);
+            onClick(show)
           } else {
-            show();
+            show()
           }
         }}
       >
         <ThemedButton
-          style={
-            {
-              overflow: 'hidden',
-            }
-          }
+          style={{
+            overflow: 'hidden'
+          }}
         >
           <AlephiumConnectButtonInner
             label={label}
@@ -262,7 +246,7 @@ export function AlephiumConnectButton({
         </ThemedButton>
       </ThemeContainer>
     </ResetContainer>
-  );
+  )
 }
 
-AlephiumConnectButton.Custom = ConnectButtonRenderer;
+AlephiumConnectButton.Custom = ConnectButtonRenderer

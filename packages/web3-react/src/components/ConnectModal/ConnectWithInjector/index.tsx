@@ -1,16 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, Variants } from 'framer-motion';
-import {
-  Container,
-  ConnectingContainer,
-  ConnectingAnimation,
-  RetryButton,
-  RetryIconContainer,
-  Content,
-} from './styles';
+import React, { useEffect, useState } from 'react'
+import { AnimatePresence, Variants } from 'framer-motion'
+import { Container, ConnectingContainer, ConnectingAnimation, RetryButton, RetryIconContainer, Content } from './styles'
 
-import { useContext } from '../../AlephiumConnect';
-import supportedConnectors from '../../../constants/supportedConnectors';
+import { useContext } from '../../AlephiumConnect'
+import supportedConnectors from '../../../constants/supportedConnectors'
 
 import {
   PageContent,
@@ -18,20 +11,20 @@ import {
   ModalBody,
   ModalH1,
   ModalContentContainer,
-  ModalContent,
-} from '../../Common/Modal/styles';
-import { OrDivider } from '../../Common/Modal';
-import Button from '../../Common/Button';
-import Tooltip from '../../Common/Tooltip';
-import Alert from '../../Common/Alert';
+  ModalContent
+} from '../../Common/Modal/styles'
+import { OrDivider } from '../../Common/Modal'
+import Button from '../../Common/Button'
+import Tooltip from '../../Common/Tooltip'
+import Alert from '../../Common/Alert'
 
-import CircleSpinner from './CircleSpinner';
+import CircleSpinner from './CircleSpinner'
 
-import { RetryIconCircle, Scan } from '../../../assets/icons';
-import BrowserIcon from '../../Common/BrowserIcon';
-import { AlertIcon, TickIcon } from '../../../assets/icons';
-import { detectBrowser } from '../../../utils';
-import { useConnect } from '../../../hooks/useConnect';
+import { RetryIconCircle, Scan } from '../../../assets/icons'
+import BrowserIcon from '../../Common/BrowserIcon'
+import { AlertIcon, TickIcon } from '../../../assets/icons'
+import { detectBrowser } from '../../../utils'
+import { useConnect } from '../../../hooks/useConnect'
 
 const states = {
   CONNECTED: 'connected',
@@ -40,15 +33,15 @@ const states = {
   FAILED: 'failed',
   REJECTED: 'rejected',
   NOTCONNECTED: 'notconnected',
-  UNAVAILABLE: 'unavailable',
-};
+  UNAVAILABLE: 'unavailable'
+}
 
 const contentVariants: Variants = {
   initial: {
     willChange: 'transform,opacity',
     position: 'relative',
     opacity: 0,
-    scale: 0.95,
+    scale: 0.95
   },
   animate: {
     position: 'relative',
@@ -58,8 +51,8 @@ const contentVariants: Variants = {
       ease: [0.16, 1, 0.3, 1],
       duration: 0.4,
       delay: 0.05,
-      position: { delay: 0 },
-    },
+      position: { delay: 0 }
+    }
   },
   exit: {
     position: 'absolute',
@@ -67,17 +60,17 @@ const contentVariants: Variants = {
     scale: 0.95,
     transition: {
       ease: [0.16, 1, 0.3, 1],
-      duration: 0.3,
-    },
-  },
-};
+      duration: 0.3
+    }
+  }
+}
 
 const ConnectWithInjector: React.FC<{
-  connectorId: string;
-  switchConnectMethod: (id?: string) => void;
-  forceState?: typeof states;
+  connectorId: string
+  switchConnectMethod: (id?: string) => void
+  forceState?: typeof states
 }> = ({ connectorId, switchConnectMethod, forceState }) => {
-  const context = useContext();
+  const context = useContext()
 
   const { connect } = useConnect({
     chainGroup: context.addressGroup,
@@ -85,41 +78,33 @@ const ConnectWithInjector: React.FC<{
     networkId: context.network
   })
 
-  const [id, setId] = useState(connectorId);
-  const [showTryAgainTooltip, setShowTryAgainTooltip] = useState(false);
-  const connector = supportedConnectors.filter((c) => c.id === id)[0];
+  const [id, setId] = useState(connectorId)
+  const [showTryAgainTooltip, setShowTryAgainTooltip] = useState(false)
+  const connector = supportedConnectors.filter((c) => c.id === id)[0]
 
-  const expiryDefault = 9; // Starting at 10 causes layout shifting, better to start at 9
-  const [expiryTimer, setExpiryTimer] = useState<number>(expiryDefault);
+  const expiryDefault = 9 // Starting at 10 causes layout shifting, better to start at 9
+  const [expiryTimer, setExpiryTimer] = useState<number>(expiryDefault)
 
-  const hasExtensionInstalled =
-    connector.extensionIsInstalled && connector.extensionIsInstalled();
+  const hasExtensionInstalled = connector.extensionIsInstalled && connector.extensionIsInstalled()
 
-  const browser = detectBrowser();
-  const extensionUrl = connector.extensions
-    ? connector.extensions[browser]
-    : undefined;
+  const browser = detectBrowser()
+  const extensionUrl = connector.extensions ? connector.extensions[browser] : undefined
 
   const suggestedExtension = connector.extensions
     ? {
-      name: Object.keys(connector.extensions)[0],
-      label:
-        Object.keys(connector.extensions)[0].charAt(0).toUpperCase() +
-        Object.keys(connector.extensions)[0].slice(1), // Capitalise first letter, but this might be better suited as a lookup table
-      url: connector.extensions[Object.keys(connector.extensions)[0]],
-    }
-    : undefined;
+        name: Object.keys(connector.extensions)[0],
+        label:
+          Object.keys(connector.extensions)[0].charAt(0).toUpperCase() + Object.keys(connector.extensions)[0].slice(1), // Capitalise first letter, but this might be better suited as a lookup table
+        url: connector.extensions[Object.keys(connector.extensions)[0]]
+      }
+    : undefined
 
   const [status, setStatus] = useState(
-    forceState
-      ? forceState
-      : !hasExtensionInstalled
-        ? states.UNAVAILABLE
-        : states.CONNECTING
-  );
+    forceState ? forceState : !hasExtensionInstalled ? states.UNAVAILABLE : states.CONNECTING
+  )
 
   const runConnect = () => {
-    if (!hasExtensionInstalled) return;
+    if (!hasExtensionInstalled) return
 
     connect().then((address) => {
       if (!!address) {
@@ -127,18 +112,18 @@ const ConnectWithInjector: React.FC<{
       }
       context.setOpen(false)
     })
-  };
+  }
 
-  let connectTimeout: any;
+  let connectTimeout: any
   useEffect(() => {
-    if (status === states.UNAVAILABLE) return;
+    if (status === states.UNAVAILABLE) return
 
     // UX: Give user time to see the UI before opening the extension
-    connectTimeout = setTimeout(runConnect, 600);
+    connectTimeout = setTimeout(runConnect, 600)
     return () => {
-      clearTimeout(connectTimeout);
-    };
-  }, []);
+      clearTimeout(connectTimeout)
+    }
+  }, [])
 
   /** Timeout functionality if necessary
   let expiryTimeout: any;
@@ -168,13 +153,11 @@ const ConnectWithInjector: React.FC<{
         <Container>
           <ModalHeading>Invalid State</ModalHeading>
           <ModalContent>
-            <Alert>
-              No connectors match the id given. This state should never happen.
-            </Alert>
+            <Alert>No connectors match the id given. This state should never happen.</Alert>
           </ModalContent>
         </Container>
       </PageContent>
-    );
+    )
 
   // TODO: Make this more generic
   if (connector.id === 'walletConnect')
@@ -183,23 +166,17 @@ const ConnectWithInjector: React.FC<{
         <Container>
           <ModalHeading>Invalid State</ModalHeading>
           <ModalContent>
-            <Alert>
-              WalletConnect does not have an injection flow. This state should
-              never happen.
-            </Alert>
+            <Alert>WalletConnect does not have an injection flow. This state should never happen.</Alert>
           </ModalContent>
         </Container>
       </PageContent>
-    );
+    )
 
   return (
     <PageContent>
       <Container>
         <ConnectingContainer>
-          <ConnectingAnimation
-            $shake={status === states.FAILED || status === states.REJECTED}
-            $circle
-          >
+          <ConnectingAnimation $shake={status === states.FAILED || status === states.REJECTED} $circle>
             <AnimatePresence>
               {(status === states.FAILED || status === states.REJECTED) && (
                 <RetryButton
@@ -213,11 +190,8 @@ const ConnectWithInjector: React.FC<{
                 >
                   <RetryIconContainer>
                     <Tooltip
-                      open={
-                        showTryAgainTooltip &&
-                        (status === states.FAILED || status === states.REJECTED)
-                      }
-                      message={"try again"}
+                      open={showTryAgainTooltip && (status === states.FAILED || status === states.REJECTED)}
+                      message={'try again'}
                       xOffset={-6}
                     >
                       <RetryIconCircle />
@@ -293,7 +267,7 @@ const ConnectWithInjector: React.FC<{
                     style={{
                       transform: 'scale(1.14)',
                       position: 'relative',
-                      width: '100%',
+                      width: '100%'
                     }}
                   >
                     {connector.logos.transparent ?? connector.logos.default}
@@ -323,19 +297,16 @@ const ConnectWithInjector: React.FC<{
                 <ModalContent>
                   <ModalH1 $error>
                     <AlertIcon />
-                    {"failed"}
+                    {'failed'}
                   </ModalH1>
-                  <ModalBody>{"failed"}</ModalBody>
+                  <ModalBody>{'failed'}</ModalBody>
                 </ModalContent>
                 {/* Reason: Coinbase Wallet does not expose a QRURI when extension is installed */}
                 {connector.scannable && connector.id !== 'coinbaseWallet' && (
                   <>
                     <OrDivider />
-                    <Button
-                      icon={<Scan />}
-                      onClick={() => switchConnectMethod(id)}
-                    >
-                      {"scan qr code"}
+                    <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>
+                      {'scan qr code'}
                     </Button>
                   </>
                 )}
@@ -350,19 +321,16 @@ const ConnectWithInjector: React.FC<{
                 variants={contentVariants}
               >
                 <ModalContent style={{ paddingBottom: 28 }}>
-                  <ModalH1>{"rejected"}</ModalH1>
-                  <ModalBody>{"rejected"}</ModalBody>
+                  <ModalH1>{'rejected'}</ModalH1>
+                  <ModalBody>{'rejected'}</ModalBody>
                 </ModalContent>
 
                 {/* Reason: Coinbase Wallet does not expose a QRURI when extension is installed */}
                 {connector.scannable && connector.id !== 'coinbaseWallet' && (
                   <>
                     <OrDivider />
-                    <Button
-                      icon={<Scan />}
-                      onClick={() => switchConnectMethod(id)}
-                    >
-                      {"scan the qr code"}
+                    <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>
+                      {'scan the qr code'}
                     </Button>
                   </>
                 )}
@@ -377,11 +345,7 @@ const ConnectWithInjector: React.FC<{
                 variants={contentVariants}
               >
                 <ModalContent style={{ paddingBottom: 28 }}>
-                  <ModalH1>
-                    {connector.id === 'injected'
-                      ? "connecting"
-                      : "rejected"}
-                  </ModalH1>
+                  <ModalH1>{connector.id === 'injected' ? 'connecting' : 'rejected'}</ModalH1>
                 </ModalContent>
               </Content>
             )}
@@ -395,7 +359,7 @@ const ConnectWithInjector: React.FC<{
               >
                 <ModalContent>
                   <ModalH1 $valid>
-                    <TickIcon /> {"Connected"}
+                    <TickIcon /> {'Connected'}
                   </ModalH1>
                 </ModalContent>
               </Content>
@@ -409,7 +373,7 @@ const ConnectWithInjector: React.FC<{
                 variants={contentVariants}
               >
                 <ModalContent>
-                  <ModalH1>{"Not Connected"}</ModalH1>
+                  <ModalH1>{'Not Connected'}</ModalH1>
                 </ModalContent>
               </Content>
             )}
@@ -424,9 +388,7 @@ const ConnectWithInjector: React.FC<{
                 {!extensionUrl ? (
                   <>
                     <ModalContent style={{ paddingBottom: 12 }}>
-                      <ModalH1>
-                        {"Not Available"}
-                      </ModalH1>
+                      <ModalH1>{'Not Available'}</ModalH1>
                     </ModalContent>
 
                     {/**
@@ -443,12 +405,7 @@ const ConnectWithInjector: React.FC<{
                   </Button>
                   */}
                     {!hasExtensionInstalled && suggestedExtension && (
-                      <Button
-                        href={suggestedExtension?.url}
-                        icon={
-                          <BrowserIcon browser={suggestedExtension?.name} />
-                        }
-                      >
+                      <Button href={suggestedExtension?.url} icon={<BrowserIcon browser={suggestedExtension?.name} />}>
                         Install on {suggestedExtension?.label}
                       </Button>
                     )}
@@ -456,7 +413,7 @@ const ConnectWithInjector: React.FC<{
                 ) : (
                   <>
                     <ModalContent style={{ paddingBottom: 18 }}>
-                      <ModalH1>{"Install"}</ModalH1>
+                      <ModalH1>{'Install'}</ModalH1>
                     </ModalContent>
                     {/**
                   {(connector.scannable &&|
@@ -470,7 +427,7 @@ const ConnectWithInjector: React.FC<{
                   */}
                     {!hasExtensionInstalled && extensionUrl && (
                       <Button href={extensionUrl} icon={<BrowserIcon />}>
-                        {"Install the extension"}
+                        {'Install the extension'}
                       </Button>
                     )}
                   </>
@@ -481,7 +438,7 @@ const ConnectWithInjector: React.FC<{
         </ModalContentContainer>
       </Container>
     </PageContent>
-  );
-};
+  )
+}
 
-export default ConnectWithInjector;
+export default ConnectWithInjector

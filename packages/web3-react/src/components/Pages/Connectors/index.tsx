@@ -1,10 +1,8 @@
-import React from 'react';
-import { useContext, routes } from '../../AlephiumConnect';
-import supportedConnectors from '../../../constants/supportedConnectors';
+import React from 'react'
+import { useContext, routes } from '../../AlephiumConnect'
+import supportedConnectors from '../../../constants/supportedConnectors'
 
-import {
-  PageContent,
-} from '../../Common/Modal/styles';
+import { PageContent } from '../../Common/Modal/styles'
 
 import {
   ConnectorsContainer,
@@ -14,35 +12,33 @@ import {
   MobileConnectorsContainer,
   MobileConnectorButton,
   MobileConnectorLabel,
-  MobileConnectorIcon,
-} from './styles';
+  MobileConnectorIcon
+} from './styles'
 
-import { isMobile } from '../../../utils';
-import useDefaultWallets from '../../../wallets/useDefaultWallets';
+import { isMobile } from '../../../utils'
+import useDefaultWallets from '../../../wallets/useDefaultWallets'
 
 const Wallets: React.FC = () => {
-  const context = useContext();
-  const mobile = isMobile();
-  const wallets = useDefaultWallets();
+  const context = useContext()
+  const mobile = isMobile()
+  const wallets = useDefaultWallets()
 
   const findInjectedConnectorInfo = (name: string) => {
-    let walletList = name.split(/[(),]+/);
-    walletList.shift(); // remove "Injected" from array
-    walletList = walletList.map((x) => x.trim());
+    let walletList = name.split(/[(),]+/)
+    walletList.shift() // remove "Injected" from array
+    walletList = walletList.map((x) => x.trim())
 
     const hasWalletLogo = walletList.filter((x) => {
-      const a = wallets.map((wallet: any) => wallet.name).includes(x);
-      if (a) return x;
-      return null;
-    });
-    if (hasWalletLogo.length === 0) return null;
+      const a = wallets.map((wallet: any) => wallet.name).includes(x)
+      if (a) return x
+      return null
+    })
+    if (hasWalletLogo.length === 0) return null
 
-    const foundInjector = wallets.filter(
-      (wallet: any) => wallet.installed && wallet.name === hasWalletLogo[0]
-    )[0];
+    const foundInjector = wallets.filter((wallet: any) => wallet.installed && wallet.name === hasWalletLogo[0])[0]
 
-    return foundInjector;
-  };
+    return foundInjector
+  }
 
   return (
     <PageContent style={{ width: 312 }}>
@@ -50,24 +46,22 @@ const Wallets: React.FC = () => {
         <>
           <MobileConnectorsContainer>
             {supportedConnectors.map((connector) => {
-              const info = supportedConnectors.filter(
-                (c) => c.id === connector.id
-              )[0];
-              if (!info) return null;
+              const info = supportedConnectors.filter((c) => c.id === connector.id)[0]
+              if (!info) return null
 
-              let logos = info.logos;
-              let name = info.shortName ?? info.name ?? connector.name;
+              let logos = info.logos
+              let name = info.shortName ?? info.name ?? connector.name
 
               if (info.id === 'injected') {
-                const foundInjector = findInjectedConnectorInfo(connector.name ?? "");
+                const foundInjector = findInjectedConnectorInfo(connector.name ?? '')
                 if (foundInjector) {
-                  logos = foundInjector.logos;
-                  name = foundInjector.name.replace(' Wallet', '');
+                  logos = foundInjector.logos
+                  name = foundInjector.name.replace(' Wallet', '')
                 }
               }
 
               if (info.id === 'walletConnect') {
-                name = "Wallet Connect"
+                name = 'Wallet Connect'
               }
 
               return (
@@ -75,19 +69,16 @@ const Wallets: React.FC = () => {
                   key={`m-${connector.id}`}
                   //disabled={!connector.ready}
                   onClick={() => {
-                    context.setRoute(routes.CONNECT);
-                    context.setConnector(connector.id);
+                    context.setRoute(routes.CONNECT)
+                    context.setConnector(connector.id)
                   }}
                 >
                   <MobileConnectorIcon>
-                    {logos.mobile ??
-                      logos.appIcon ??
-                      logos.connectorButton ??
-                      logos.default}
+                    {logos.mobile ?? logos.appIcon ?? logos.connectorButton ?? logos.default}
                   </MobileConnectorIcon>
                   <MobileConnectorLabel>{name}</MobileConnectorLabel>
                 </MobileConnectorButton>
-              );
+              )
             })}
           </MobileConnectorsContainer>
         </>
@@ -95,30 +86,28 @@ const Wallets: React.FC = () => {
         <>
           <ConnectorsContainer>
             {supportedConnectors.map((connector) => {
-              const info = supportedConnectors.filter(
-                (c) => c.id === connector.id
-              )[0];
-              if (!info) return null;
+              const info = supportedConnectors.filter((c) => c.id === connector.id)[0]
+              if (!info) return null
 
-              let logos = info.logos;
+              let logos = info.logos
 
-              let name = info.name ?? connector.name;
+              let name = info.name ?? connector.name
               if (info.id === 'walletConnect') {
-                name = "Wallet Connect"
+                name = 'Wallet Connect'
               }
 
               if (info.id === 'injected') {
-                const foundInjector = findInjectedConnectorInfo(connector.name ?? "");
+                const foundInjector = findInjectedConnectorInfo(connector.name ?? '')
                 if (foundInjector) {
-                  logos = foundInjector.logos;
-                  name = foundInjector.name;
+                  logos = foundInjector.logos
+                  name = foundInjector.name
                 }
               }
 
-              let logo = logos.connectorButton ?? logos.default;
+              let logo = logos.connectorButton ?? logos.default
               if (info.extensionIsInstalled && logos.appIcon) {
                 if (info.extensionIsInstalled()) {
-                  logo = logos.appIcon;
+                  logo = logos.appIcon
                 }
               }
               return (
@@ -127,20 +116,20 @@ const Wallets: React.FC = () => {
                   disabled={context.route !== routes.CONNECTORS}
                   onClick={() => {
                     //connect()
-                    context.setRoute(routes.CONNECT);
-                    context.setConnector(connector.id);
+                    context.setRoute(routes.CONNECT)
+                    context.setConnector(connector.id)
                   }}
                 >
                   <ConnectorIcon>{logo}</ConnectorIcon>
                   <ConnectorLabel>{name}</ConnectorLabel>
                 </ConnectorButton>
-              );
+              )
             })}
           </ConnectorsContainer>
         </>
       )}
     </PageContent>
-  );
-};
+  )
+}
 
-export default Wallets;
+export default Wallets

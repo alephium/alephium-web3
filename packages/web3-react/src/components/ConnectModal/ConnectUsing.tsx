@@ -1,35 +1,32 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import React, { useState } from 'react';
-import supportedConnectors from './../../constants/supportedConnectors';
+import { AnimatePresence, motion } from 'framer-motion'
+import React, { useState } from 'react'
+import supportedConnectors from './../../constants/supportedConnectors'
 
-import { contentVariants } from '../Common/Modal';
-import ConnectWithInjector from './ConnectWithInjector';
+import { contentVariants } from '../Common/Modal'
+import ConnectWithInjector from './ConnectWithInjector'
 
-import Alert from '../Common/Alert';
+import Alert from '../Common/Alert'
 
 const states = {
   QRCODE: 'qrcode',
-  INJECTOR: 'injector',
-};
+  INJECTOR: 'injector'
+}
 const ConnectUsing: React.FC<{ connectorId: string }> = ({ connectorId }) => {
-  const [id, setId] = useState<string>(connectorId);
+  const [id, setId] = useState<string>(connectorId)
 
-  const connector = supportedConnectors.filter((c) => c.id === id)[0];
+  const connector = supportedConnectors.filter((c) => c.id === id)[0]
 
-  const hasExtensionInstalled =
-    connector.extensionIsInstalled && connector.extensionIsInstalled();
+  const hasExtensionInstalled = connector.extensionIsInstalled && connector.extensionIsInstalled()
 
   // If cannot be scanned, display injector flow, which if extension is not installed will show CTA to install it
-  const useInjector = !connector.scannable || hasExtensionInstalled;
+  const useInjector = !connector.scannable || hasExtensionInstalled
 
-  const [status, setStatus] = useState(
-    useInjector ? states.INJECTOR : states.QRCODE
-  );
+  const [status, setStatus] = useState(useInjector ? states.INJECTOR : states.QRCODE)
 
-  if (!connector) return <Alert>Connector not found</Alert>;
+  if (!connector) return <Alert>Connector not found</Alert>
 
   // TODO: Add WalletConnect
-  if (status === states.QRCODE) return <Alert>WalletConnect soon!</Alert>;
+  if (status === states.QRCODE) return <Alert>WalletConnect soon!</Alert>
 
   return (
     <AnimatePresence>
@@ -44,14 +41,14 @@ const ConnectUsing: React.FC<{ connectorId: string }> = ({ connectorId }) => {
           <ConnectWithInjector
             connectorId={id}
             switchConnectMethod={(id?: string) => {
-              if (id) setId(id);
-              setStatus(states.QRCODE);
+              if (id) setId(id)
+              setStatus(states.QRCODE)
             }}
           />
         </motion.div>
       )}
     </AnimatePresence>
-  );
-};
+  )
+}
 
-export default ConnectUsing;
+export default ConnectUsing

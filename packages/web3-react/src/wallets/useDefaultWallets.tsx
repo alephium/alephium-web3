@@ -1,8 +1,8 @@
-import { getWallets } from './';
-import { WalletProps } from './wallet';
+import { getWallets } from './'
+import { WalletProps } from './wallet'
 
 function useDefaultWallets(): WalletProps[] | any {
-  return getWallets({});
+  return getWallets({})
 }
 
-export default useDefaultWallets;
+export default useDefaultWallets

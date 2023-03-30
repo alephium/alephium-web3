@@ -1,12 +1,12 @@
-import { WalletProps } from './../wallet';
+import { WalletProps } from './../wallet'
 
-import { isMobile } from '../../utils';
-import Logos from './../../assets/logos';
+import { isMobile } from '../../utils'
+import Logos from './../../assets/logos'
 
 export const injected = (_walletOptions): WalletProps => {
   const isInstalled = typeof window !== 'undefined'
 
-  const shouldUseWalletConnect = isMobile() && !isInstalled;
+  const shouldUseWalletConnect = isMobile() && !isInstalled
 
   return {
     id: 'injected',
@@ -15,5 +15,5 @@ export const injected = (_walletOptions): WalletProps => {
     scannable: false,
     logos: { default: <Logos.AlephiumIcon /> },
     installed: Boolean(!shouldUseWalletConnect ? isInstalled : false)
-  };
-};
+  }
+}

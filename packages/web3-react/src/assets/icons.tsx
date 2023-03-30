@@ -1,12 +1,5 @@
 export const Scan = ({ ...props }) => (
-  <svg
-    aria-hidden="true"
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path
       fillRule="evenodd"
       clipRule="evenodd"
@@ -15,7 +8,7 @@ export const Scan = ({ ...props }) => (
       fillOpacity="0.3"
     />
   </svg>
-);
+)
 
 export const AlertIcon = ({ ...props }) => {
   return (
@@ -39,8 +32,8 @@ export const AlertIcon = ({ ...props }) => {
         fill="currentColor"
       />
     </svg>
-  );
-};
+  )
+}
 
 export const DisconnectIcon = ({ ...props }) => {
   return (
@@ -53,7 +46,7 @@ export const DisconnectIcon = ({ ...props }) => {
       xmlns="http://www.w3.org/2000/svg"
       style={{
         left: 0,
-        top: 0,
+        top: 0
       }}
       {...props}
     >
@@ -65,8 +58,8 @@ export const DisconnectIcon = ({ ...props }) => {
         fillOpacity="0.4"
       />
     </svg>
-  );
-};
+  )
+}
 
 export const TickIcon = ({ ...props }) => {
   return (
@@ -86,8 +79,8 @@ export const TickIcon = ({ ...props }) => {
         fill="currentColor"
       />
     </svg>
-  );
-};
+  )
+}
 
 export const RetryIconCircle = ({ ...props }) => {
   return (
@@ -107,9 +100,8 @@ export const RetryIconCircle = ({ ...props }) => {
         fill="currentColor"
       />
     </svg>
-  );
-};
-
+  )
+}
 
 export const CopyToClipboardIcon = ({ ...props }) => (
   <svg
@@ -126,15 +118,7 @@ export const CopyToClipboardIcon = ({ ...props }) => (
       stroke="var(--ck-body-color-muted)"
       strokeWidth="2"
     />
-    <rect
-      x="10"
-      y="10"
-      width="9"
-      height="9"
-      rx="2"
-      stroke="var(--ck-body-color-muted)"
-      strokeWidth="2"
-    />
+    <rect x="10" y="10" width="9" height="9" rx="2" stroke="var(--ck-body-color-muted)" strokeWidth="2" />
     <path
       d="M1 3L3 5L7 1"
       stroke="var(--ck-body-color)"
@@ -143,4 +127,4 @@ export const CopyToClipboardIcon = ({ ...props }) => (
       strokeLinejoin="round"
     />
   </svg>
-);
+)

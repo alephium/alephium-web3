@@ -1,6 +1,6 @@
-import { Balance } from '@alephium/web3/dist/src/api/api-alephium';
-import { useEffect, useState } from 'react';
-import { useContext } from '../components/AlephiumConnect';
+import { Balance } from '@alephium/web3/dist/src/api/api-alephium'
+import { useEffect, useState } from 'react'
+import { useContext } from '../components/AlephiumConnect'
 
 export function useBalance() {
   const context = useContext()
