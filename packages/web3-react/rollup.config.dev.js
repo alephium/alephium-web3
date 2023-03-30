@@ -28,15 +28,15 @@ export default [
       {
         file: packageJson.exports,
         format: 'esm',
-        sourcemap: false,
-      },
+        sourcemap: false
+      }
     ],
     plugins: [
       peerDepsExternal(),
       typescript({
         useTsconfigDeclarationDir: true,
-        exclude: 'node_modules/**',
-      }),
-    ],
-  },
-];
+        exclude: 'node_modules/**'
+      })
+    ]
+  }
+]

@@ -18,7 +18,7 @@
     "bootstrap": "lerna bootstrap --hoist",
     "test": "jest -i --config ./jest-config.json",
     "lint": "eslint . --ext ts",
-    "lint:fix": "eslint . --fix --ext ts",
+    "lint:fix": "eslint . --fix --ext .ts,.txs",
     "audit": "lerna exec -- npm audit --production",
     "update-schemas": "lerna run update-schemas",
     "lerna-version": "lerna version --no-push --no-private --no-git-tag-version",
