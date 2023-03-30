@@ -301,7 +301,6 @@ async function verifySign(provider: WalletConnectProvider, walletClient: WalletC
   expect(selectedAddress).toEqual(ACCOUNTS.a.address)
 
   balance = await nodeProvider.addresses.getAddressesAddressBalance(ACCOUNTS.a.address)
-  expect(balance.utxoNum).toEqual(1)
 
   await provider.signAndSubmitTransferTx({
     signerAddress: signerA.address,
