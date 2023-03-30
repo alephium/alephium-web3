@@ -308,6 +308,7 @@ importers:
   packages/web3-react:
     specifiers:
       '@alephium/get-extension-wallet': workspace:^
+      '@alephium/walletconnect-provider': workspace:^
       '@rollup/plugin-node-resolve': ^15.0.1
       '@types/node': ^16.18.23
       '@types/qrcode': ^1.5.0
@@ -332,6 +333,7 @@ importers:
       typescript: ^4.9.5
     dependencies:
       '@alephium/get-extension-wallet': link:../get-extension-wallet
+      '@alephium/walletconnect-provider': link:../walletconnect
       buffer: 6.0.3
       detect-browser: 5.3.0
       framer-motion: 6.5.1_biqbaboplfbrettd7655fr4n2y
