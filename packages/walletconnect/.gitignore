@@ -32,7 +32,6 @@ test.db
 setup
 result*
 ops/grafana/grafana.ini
-artifacts/
 coverage/
 .project.json
 
