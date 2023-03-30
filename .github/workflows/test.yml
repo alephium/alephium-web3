@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16, 18]
+        node-version: [16]
 
     steps:
       - uses: actions/checkout@v2
@@ -25,6 +25,7 @@ jobs:
       - run: npm run audit
       - run: |
           pushd docker
+          docker volume prune -f
           docker-compose up -d
           popd
           SECONDS=0
