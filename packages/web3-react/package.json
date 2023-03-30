@@ -32,7 +32,8 @@
     "react"
   ],
   "dependencies": {
-    "@alephium/get-extension-wallet": "workspace:^",
+    "@alephium/get-extension-wallet":  "workspace:^",
+    "@alephium/walletconnect-provider":  "workspace:^",
     "buffer": "^6.0.3",
     "detect-browser": "^5.3.0",
     "framer-motion": "^6.5.1",
