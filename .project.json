@@ -10,7 +10,7 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "6d38a630a86ab41cf13b2a09988d13feedf1822873fc805dae67a58bdd872266",
+      "sourceCodeHash": "08b300f2f13fb5b2403ee70186ae00e8be7e64097d25975a603040e08d1386a9",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "2b9e382c20b4facf21eb745a46a72447dae221c274518e19c60b5ddfe478cc9c",
       "warnings": []
@@ -104,7 +104,7 @@
     },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
-      "sourceCodeHash": "d6e41d2752285f53f8f88329dcc04a676cc10f81cd6a9e6e7f795473c4d77f2f",
+      "sourceCodeHash": "ac34cd186ae41d929c31e7d7fc880cb30b27e297c5245aa12a8604164844b855",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "585e6f61f7f835fb2bccc93bf8320d846441093a96f77224f44e158cd97557b0",
       "warnings": []
