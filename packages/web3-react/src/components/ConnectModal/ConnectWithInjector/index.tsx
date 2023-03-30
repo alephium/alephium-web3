@@ -92,7 +92,7 @@ const ConnectWithInjector: React.FC<{
   const { connect } = useConnect({
     chainGroup: context.addressGroup,
     keyType: context.keyType,
-    networkId: context.network
+    networkId: context.network ?? ''
   })
 
   const [id, setId] = useState(connectorId)
