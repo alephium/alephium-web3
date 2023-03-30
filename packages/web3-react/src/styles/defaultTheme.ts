@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Theme, ThemeMode, CustomTheme } from './types'
+import { Theme, CustomTheme } from './types'
 
 const defaultLightTheme: Theme = {
   font: {

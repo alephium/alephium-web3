@@ -23,7 +23,7 @@ import { BrowserIconContainer } from './styles'
 import { detectBrowser } from '../../../utils'
 import browsers from '../../../assets/browsers'
 
-const BrowserIcon = React.forwardRef(({ browser }: BrowserIconProps, ref: React.Ref<HTMLElement>) => {
+const BrowserIcon = React.forwardRef(({ browser }: BrowserIconProps) => {
   const currentBrowser = browser ?? detectBrowser()
 
   let icon

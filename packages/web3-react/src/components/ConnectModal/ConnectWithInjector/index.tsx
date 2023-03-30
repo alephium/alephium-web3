@@ -95,12 +95,8 @@ const ConnectWithInjector: React.FC<{
     networkId: context.network
   })
 
-  const [id, setId] = useState(connectorId)
   const [showTryAgainTooltip, setShowTryAgainTooltip] = useState(false)
-  const connector = supportedConnectors.filter((c) => c.id === id)[0]
-
-  const expiryDefault = 9 // Starting at 10 causes layout shifting, better to start at 9
-  const [expiryTimer, setExpiryTimer] = useState<number>(expiryDefault)
+  const connector = supportedConnectors.filter((c) => c.id === connectorId)[0]
 
   const hasExtensionInstalled = connector.extensionIsInstalled && connector.extensionIsInstalled()
 
@@ -131,7 +127,7 @@ const ConnectWithInjector: React.FC<{
     })
   }
 
-  let connectTimeout: any
+  let connectTimeout: ReturnType<typeof setTimeout>
   useEffect(() => {
     if (status === states.UNAVAILABLE) return
 
@@ -322,7 +318,7 @@ const ConnectWithInjector: React.FC<{
                 {connector.scannable && connector.id !== 'coinbaseWallet' && (
                   <>
                     <OrDivider />
-                    <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>
+                    <Button icon={<Scan />} onClick={() => switchConnectMethod(connectorId)}>
                       {'scan qr code'}
                     </Button>
                   </>
@@ -346,7 +342,7 @@ const ConnectWithInjector: React.FC<{
                 {connector.scannable && connector.id !== 'coinbaseWallet' && (
                   <>
                     <OrDivider />
-                    <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>
+                    <Button icon={<Scan />} onClick={() => switchConnectMethod(connectorId)}>
                       {'scan the qr code'}
                     </Button>
                   </>

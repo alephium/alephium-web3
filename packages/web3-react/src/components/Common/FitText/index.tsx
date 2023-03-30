@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import React from 'react'
 import useFitText from '../../../hooks/useFitText'
 
-const FitText = React.forwardRef(({ children }: { children: React.ReactNode }, ref: React.Ref<HTMLElement>) => {
+const FitText = React.forwardRef(({ children }: { children: React.ReactNode }) => {
   const [ready, setReady] = React.useState(false)
   const { fontSize, ref: textRef } = useFitText({
     logLevel: 'none',

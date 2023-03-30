@@ -19,7 +19,7 @@ import { WalletProps } from './../wallet'
 
 import Logos from './../../assets/logos'
 
-export const walletConnect = (_walletOptions): WalletProps => {
+export const walletConnect = (): WalletProps => {
   return {
     id: 'walletConnect',
     name: 'Other Wallets',

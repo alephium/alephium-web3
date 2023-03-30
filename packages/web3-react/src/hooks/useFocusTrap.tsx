@@ -27,7 +27,7 @@ function useFocusTrap() {
 
   function handleFocus(e: any) {
     if (!elRef.current) return
-    var focusableEls = elRef.current.querySelectorAll(`
+    const focusableEls = elRef.current.querySelectorAll(`
         a[href]:not(:disabled),
         button:not(:disabled),
         textarea:not(:disabled),
@@ -39,7 +39,7 @@ function useFocusTrap() {
       firstFocusableEl = focusableEls[0],
       lastFocusableEl = focusableEls[focusableEls.length - 1]
 
-    var isTabPressed = e.key === 'Tab' || e.keyCode === KEYCODE_TAB
+    const isTabPressed = e.key === 'Tab' || e.keyCode === KEYCODE_TAB
 
     if (!isTabPressed) {
       return

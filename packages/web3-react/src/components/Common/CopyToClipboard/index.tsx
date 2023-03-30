@@ -65,7 +65,7 @@ const CopyToClipboard: React.FC<{
 }> = ({ string, children, variant }) => {
   const [clipboard, setClipboard] = useState(false)
 
-  let timeout: any
+  let timeout: ReturnType<typeof setTimeout>
   const onCopy = () => {
     if (!string) return
     const str = string.trim()

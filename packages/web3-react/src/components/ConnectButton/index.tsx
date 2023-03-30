@@ -160,7 +160,6 @@ function AlephiumConnectButtonInner({
   separator?: string
   displayAccount: (account: Account) => string
 }) {
-  const context = useContext()
   const { account } = useAccount()
 
   return (

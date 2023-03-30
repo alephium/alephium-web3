@@ -101,7 +101,9 @@ if (typeof window != 'undefined') {
       },
       logoBackground: 'var(--ck-brand-walletConnect)',
       scannable: true,
-      defaultConnect: () => {}
+      defaultConnect: () => {
+        console.log('TODO')
+      }
     }
   ]
 }

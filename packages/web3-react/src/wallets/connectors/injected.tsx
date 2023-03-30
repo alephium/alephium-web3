@@ -20,7 +20,7 @@ import { WalletProps } from './../wallet'
 import { isMobile } from '../../utils'
 import Logos from './../../assets/logos'
 
-export const injected = (_walletOptions): WalletProps => {
+export const injected = (): WalletProps => {
   const isInstalled = typeof window !== 'undefined'
 
   const shouldUseWalletConnect = isMobile() && !isInstalled

@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React from 'react'
+import React, { MouseEvent } from 'react'
 
 export type ButtonProps = {
   children?: React.ReactNode
@@ -29,5 +29,5 @@ export type ButtonProps = {
   download?: boolean
   href?: string
   style?: React.CSSProperties
-  onClick?: (e: any) => void
+  onClick?: (e: MouseEvent<HTMLButtonElement>) => void
 }

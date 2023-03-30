@@ -49,7 +49,7 @@ export function useTxStatus(
         }
         web3.setCurrentNodeProvider(alephium.nodeProvider)
 
-        var subscription: TxStatusSubscription | undefined = undefined
+        let subscription: TxStatusSubscription | undefined = undefined
         if (subscriptionOptions) {
           subscription = subscribeToTxStatus(subscriptionOptions, txId)
         }
