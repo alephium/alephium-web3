@@ -24,8 +24,7 @@ import { Greeter, Main } from '../artifacts/ts'
 
 const NETWORK_ID = 4
 const CHAIN_GROUP = 0
-const PORT = 22973
-const RPC_URL = `http://localhost:${PORT}`
+const RPC_URL = 'http://127.0.0.1:22973'
 
 const nodeProvider = new NodeProvider(RPC_URL)
 web3.setCurrentNodeProvider(RPC_URL)
