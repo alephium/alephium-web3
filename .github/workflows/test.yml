@@ -19,9 +19,26 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: |
+          pushd docker
+          docker-compose up -d
+          popd
+          SECONDS=0
+          sleep 5
+          until curl http://localhost:22973/infos/self-clique
+          do
+            if (( SECONDS > 60 ))
+            then
+               echo "Alephium full node not working after 1 min..."
+               exit 1
+            fi
+            echo "Waiting..."
+            sleep 5
+          done
+          echo ""
+          echo "Alephium full node is up"
       - run: npm ci
       - run: npm run build
       - run: npm run lint
       - run: npm run audit
-      - run: npm run start-devnet
       - run: npm run test

@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:6-alpine
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  relay:
+    # Change for the docker image: https://github.com/WalletConnect/relay/pull/1
+    image: liuhongchao/relay:hc-dev-3
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - 5555:5000
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://relay:5000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      redis:
+        condition: service_healthy
+  alephium:
+    image: alephium/dev-alephium:2.1.0
+    restart: unless-stopped
+    ports:
+      - 19973:19973/tcp
+
+      - 19973:19973/udp
+      - 127.0.0.1:20973:20973
+      - 127.0.0.1:21973:21973
+      - 127.0.0.1:22973:22973
+    environment:
+      - ALEPHIUM_LOG_LEVEL=DEBUG
+      - ALEPHIUM_ENABLE_DEBUG_LOGGING=true
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./devnet.conf:/alephium-home/.alephium/user.conf
+

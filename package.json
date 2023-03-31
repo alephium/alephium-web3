@@ -5,7 +5,8 @@
   ],
   "type": "commonjs",
   "devDependencies": {
-    "eslint": "^7.32.0",
+    "@types/node": "^18.15.11",
+    "eslint": "^8.37.0",
     "eslint-plugin-jest": "^27.1.2",
     "jest": "^28.1.0",
     "lerna": "6.5.1"
@@ -16,9 +17,9 @@
     "build": "lerna run build",
     "codegen": "npx ts-node gen.ts",
     "bootstrap": "lerna bootstrap --hoist",
-    "test": "jest -i --config ./jest-config.json",
+    "test": "jest -i --config ./jest-config.json --forceExit",
     "lint": "eslint . --ext ts",
-    "lint:fix": "eslint . --fix --ext ts",
+    "lint:fix": "eslint . --fix --ext .ts,.txs",
     "audit": "lerna exec -- npm audit --production",
     "update-schemas": "lerna run update-schemas",
     "lerna-version": "lerna version --no-push --no-private --no-git-tag-version",
@@ -40,5 +41,8 @@
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=7.0.0"
+  },
+  "optionalDependencies": {
+    "@nrwl/nx-linux-x64-gnu": "^15.9.1"
   }
 }
