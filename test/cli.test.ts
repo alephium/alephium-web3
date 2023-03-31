@@ -26,7 +26,6 @@ describe('utils', () => {
   beforeAll(async () => {
     config = await loadConfig(getConfigFile())
     devnet = getNetwork(config, 'devnet')
-    console.log(`==== ${JSON.stringify(config)}`)
   })
 
   it('should load the config', () => {
