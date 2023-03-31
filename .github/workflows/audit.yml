@@ -19,4 +19,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: npm run audit
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7.19
+      - run: pnpm audit
