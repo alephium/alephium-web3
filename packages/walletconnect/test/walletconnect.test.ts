@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { formatChain, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
 import { WalletClient } from './shared'
-import { web3, node, NodeProvider, verifySignedMessage, Project, groupOfAddress } from '@alephium/web3'
+import { web3, node, verifySignedMessage, Project, groupOfAddress, ONE_ALPH, sleep } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
@@ -26,37 +26,6 @@ const NETWORK_ID = 4
 const CHAIN_GROUP = 0
 const PORT = 22973
 const RPC_URL = `http://localhost:${PORT}`
-
-const nodeProvider = new NodeProvider(RPC_URL)
-web3.setCurrentNodeProvider(RPC_URL)
-const signerA = new PrivateKeyWallet({ privateKey: 'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5' })
-const signerB = PrivateKeyWallet.Random(1)
-const signerC = PrivateKeyWallet.Random(2)
-const signerD = PrivateKeyWallet.Random(3)
-const ACCOUNTS = {
-  a: {
-    address: signerA.address,
-    privateKey: signerA.privateKey,
-    group: signerA.group
-  },
-  b: {
-    address: signerB.address,
-    privateKey: signerB.privateKey,
-    group: signerB.group
-  },
-  c: {
-    address: signerC.address,
-    privateKey: signerC.privateKey,
-    group: signerC.group
-  },
-  d: {
-    address: signerD.address,
-    privateKey: signerD.privateKey,
-    group: signerD.group
-  }
-}
-
-const ONE_ALPH = 10n ** 18n
 
 const TEST_RELAY_URL = process.env.TEST_RELAY_URL ? process.env.TEST_RELAY_URL : 'ws://localhost:5555'
 
@@ -83,12 +52,22 @@ const TEST_PROVIDER_OPTS: ProviderOptions = {
   relayUrl: TEST_RELAY_URL
 }
 
-const TEST_WALLET_CLIENT_OPTS = {
-  networkId: NETWORK_ID,
-  rpcUrl: RPC_URL,
-  activePrivateKey: ACCOUNTS.a.privateKey,
-  relayUrl: TEST_RELAY_URL,
-  metadata: TEST_WALLET_METADATA
+function getAccounts(): Record<string, PrivateKeyWallet> {
+  const a = new PrivateKeyWallet({ privateKey: 'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5' })
+  const b = PrivateKeyWallet.Random(1)
+  const c = PrivateKeyWallet.Random(2)
+  const d = PrivateKeyWallet.Random(3)
+  return { a, b, c, d }
+}
+
+function getTestWalletClientOpts(accounts: Record<string, PrivateKeyWallet>) {
+  return {
+    networkId: NETWORK_ID,
+    rpcUrl: RPC_URL,
+    activePrivateKey: accounts.a.privateKey,
+    relayUrl: TEST_RELAY_URL,
+    metadata: TEST_WALLET_METADATA
+  }
 }
 
 export const TEST_PROJECT_ID = process.env.TEST_PROJECT_ID ? process.env.TEST_PROJECT_ID : undefined
@@ -134,18 +113,22 @@ describe('WalletConnectProvider with single chainGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
+  let accounts: Record<string, PrivateKeyWallet>
 
   beforeAll(async () => {
+    web3.setCurrentNodeProvider(RPC_URL)
     provider = await WalletConnectProvider.init({
       ...TEST_PROVIDER_OPTS
     })
-    walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
+    accounts = getAccounts()
+    const clientOpts = getTestWalletClientOpts(accounts)
+    walletClient = await WalletClient.init(provider, clientOpts)
     walletAddress = walletClient.signer.address
-    expect(walletAddress).toEqual(ACCOUNTS.a.address)
+    expect(walletAddress).toEqual(accounts.a.address)
     await provider.connect()
     expect(provider.permittedChain).toEqual('alephium:4/0')
     const selectetAddress = (await provider.getSelectedAccount()).address
-    expect(selectetAddress).toEqual(signerA.address)
+    expect(selectetAddress).toEqual(accounts.a.address)
   })
 
   afterAll(async () => {
@@ -169,22 +152,22 @@ describe('WalletConnectProvider with single chainGroup', function () {
   })
 
   it('should sign', async () => {
-    await verifySign(provider, walletClient)
+    await verifySign(provider, walletClient, accounts)
   })
 
   it('accountChanged', async () => {
     // change to account within the same group
     const currentAddress = (await provider.getSelectedAccount()).address
-    expect(currentAddress).toEqual(ACCOUNTS.a.address)
+    expect(currentAddress).toEqual(accounts.a.address)
     const newAccount = PrivateKeyWallet.Random(groupOfAddress(currentAddress))
     await verifyAccountsChange(newAccount.privateKey, newAccount.address, provider, walletClient)
 
     // change back to account a
-    await verifyAccountsChange(ACCOUNTS.a.privateKey, ACCOUNTS.a.address, provider, walletClient)
+    await verifyAccountsChange(accounts.a.privateKey, accounts.a.address, provider, walletClient)
 
     // change to account b, which is not supported
     expectThrowsAsync(
-      async () => await walletClient.changeAccount(ACCOUNTS.b.privateKey),
+      async () => await walletClient.changeAccount(accounts.b.privateKey),
       'Error changing account, chain alephium:4/1 not permitted'
     )
   })
@@ -199,20 +182,24 @@ describe('WalletConnectProvider with arbitrary chainGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
+  let accounts: Record<string, PrivateKeyWallet>
 
   beforeAll(async () => {
+    web3.setCurrentNodeProvider(RPC_URL)
     provider = await WalletConnectProvider.init({
       ...TEST_PROVIDER_OPTS,
       networkId: NETWORK_ID,
       chainGroup: undefined
     })
-    walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
+    accounts = getAccounts()
+    const clientOpts = getTestWalletClientOpts(accounts)
+    walletClient = await WalletClient.init(provider, clientOpts)
     walletAddress = walletClient.signer.address
-    expect(walletAddress).toEqual(ACCOUNTS.a.address)
+    expect(walletAddress).toEqual(accounts.a.address)
     await provider.connect()
     expect(provider.permittedChain).toEqual('alephium:4/-1')
     const selectedAddress = (await provider.getSelectedAccount()).address
-    expect(selectedAddress).toEqual(signerA.address)
+    expect(selectedAddress).toEqual(accounts.a.address)
   })
 
   afterAll(async () => {
@@ -231,19 +218,23 @@ describe('WalletConnectProvider with arbitrary chainGroup', function () {
     expect(walletClient.client?.session.values.length).toEqual(0)
   })
 
+  it('should forward requests', async () => {
+    await provider.nodeProvider!.infos.getInfosVersion()
+  })
+
   it('should sign', async () => {
-    await verifySign(provider, walletClient)
+    await verifySign(provider, walletClient, accounts)
   })
 
   it('accountChanged', async () => {
     // change to account c
-    await verifyAccountsChange(ACCOUNTS.c.privateKey, ACCOUNTS.c.address, provider, walletClient)
+    await verifyAccountsChange(accounts.c.privateKey, accounts.c.address, provider, walletClient)
 
     // change to account b
-    await verifyAccountsChange(ACCOUNTS.b.privateKey, ACCOUNTS.b.address, provider, walletClient)
+    await verifyAccountsChange(accounts.b.privateKey, accounts.b.address, provider, walletClient)
 
     // change back to account a
-    await verifyAccountsChange(ACCOUNTS.a.privateKey, ACCOUNTS.a.address, provider, walletClient)
+    await verifyAccountsChange(accounts.a.privateKey, accounts.a.address, provider, walletClient)
   })
 })
 
@@ -284,13 +275,13 @@ async function verifyAccountsChange(
   ])
 }
 
-async function verifySign(provider: WalletConnectProvider, walletClient: WalletClient) {
+async function verifySign(provider: WalletConnectProvider, walletClient: WalletClient, accounts) {
   let balance: node.Balance
   async function checkBalanceDecreasing() {
-    delay(500)
-    const balance1 = await nodeProvider.addresses.getAddressesAddressBalance(ACCOUNTS.a.address)
+    await sleep(500)
+    const balance1 = await web3.getCurrentNodeProvider().addresses.getAddressesAddressBalance(accounts.a.address)
     if (balance1.balance >= balance.balance || balance1.balance === '0') {
-      checkBalanceDecreasing()
+      await checkBalanceDecreasing()
     }
     balance = balance1
   }
@@ -298,19 +289,19 @@ async function verifySign(provider: WalletConnectProvider, walletClient: WalletC
   await Project.build({ errorOnWarnings: false })
   const selectedAddress = (await provider.getSelectedAccount()).address
 
-  expect(selectedAddress).toEqual(ACCOUNTS.a.address)
+  expect(selectedAddress).toEqual(accounts.a.address)
 
-  balance = await nodeProvider.addresses.getAddressesAddressBalance(ACCOUNTS.a.address)
+  balance = await web3.getCurrentNodeProvider().addresses.getAddressesAddressBalance(accounts.a.address)
 
   await provider.signAndSubmitTransferTx({
-    signerAddress: signerA.address,
-    destinations: [{ address: ACCOUNTS.b.address, attoAlphAmount: ONE_ALPH }]
+    signerAddress: accounts.a.address,
+    destinations: [{ address: accounts.b.address, attoAlphAmount: ONE_ALPH }]
   })
 
   await checkBalanceDecreasing()
 
   const greeterResult = await Greeter.deploy(provider, {
-    initialFields: { btcPrice: 1n }
+    initialFields: { btcPrice: BigInt(1) }
   })
   await checkBalanceDecreasing()
 
@@ -323,13 +314,10 @@ async function verifySign(provider: WalletConnectProvider, walletClient: WalletC
   const signedMessage = await provider.signMessage({
     message,
     messageHasher: 'alephium',
-    signerAddress: signerA.address
+    signerAddress: accounts.a.address
   })
-  expect(verifySignedMessage(message, 'alephium', signerA.publicKey, signedMessage.signature)).toEqual(true)
-}
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  expect(verifySignedMessage(message, 'alephium', accounts.a.publicKey, signedMessage.signature)).toEqual(true)
 }
 
 function expectThrowsAsync(method: () => Promise<any>, errorMessage: string) {
