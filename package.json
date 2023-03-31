@@ -16,7 +16,7 @@
     "build": "lerna run build",
     "codegen": "npx ts-node gen.ts",
     "bootstrap": "lerna bootstrap --hoist",
-    "test": "jest -i --config ./jest-config.json",
+    "test": "jest -i --config ./jest-config.json --forceExit",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --fix --ext .ts,.txs",
     "audit": "lerna exec -- npm audit --production",

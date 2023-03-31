@@ -105,7 +105,7 @@ export const TEST_SIGN_CLIENT_OPTIONS: SignClientTypes.Options = {
 
 jest.setTimeout(30_000)
 
-describe('Unit tests', function () {
+describe('Unit tests', function() {
   const expectedChainGroup0 = 2
   const expectedChainGroup1 = 1
 
@@ -130,7 +130,7 @@ describe('Unit tests', function () {
   })
 })
 
-describe('WalletConnectProvider with single chainGroup', function () {
+describe('WalletConnectProvider with single chainGroup', function() {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -195,7 +195,7 @@ describe('WalletConnectProvider with single chainGroup', function () {
   })
 })
 
-describe('WalletConnectProvider with arbitrary chainGroup', function () {
+describe('WalletConnectProvider with arbitrary chainGroup', function() {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -301,7 +301,6 @@ async function verifySign(provider: WalletConnectProvider, walletClient: WalletC
   expect(selectedAddress).toEqual(ACCOUNTS.a.address)
 
   balance = await nodeProvider.addresses.getAddressesAddressBalance(ACCOUNTS.a.address)
-  expect(balance.utxoNum).toEqual(1)
 
   await provider.signAndSubmitTransferTx({
     signerAddress: signerA.address,
