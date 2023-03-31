@@ -2,6 +2,7 @@ name: Unit Test
 
 on:
   push:
+    branches: [master]
   pull_request:
 
 jobs:
@@ -10,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16]
+        node-version: [16, 18]
 
     steps:
       - uses: actions/checkout@v2
