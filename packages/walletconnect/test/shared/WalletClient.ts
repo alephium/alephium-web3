@@ -221,7 +221,7 @@ export class WalletClient {
         throw new Error(`${PROVIDER_NAMESPACE} namespace is required for session proposal`)
       }
 
-      const requiredChains = requiredNamespaces[PROVIDER_NAMESPACE].chains
+      const requiredChains = requiredNamespaces[PROVIDER_NAMESPACE].chains || []
       if (requiredChains.length !== 1) {
         throw new Error(
           `Only single chain is allowed in ${PROVIDER_NAMESPACE} namespace during session proposal, proposed chains: ${requiredChains}`
@@ -236,7 +236,7 @@ export class WalletClient {
       this.namespace = {
         methods: requiredAlephiumNamespace.methods,
         events: requiredAlephiumNamespace.events,
-        accounts: [this.chainAccount(requiredAlephiumNamespace.chains)]
+        accounts: [this.chainAccount(requiredAlephiumNamespace.chains || [])]
       }
 
       const namespaces = { alephium: this.namespace }
