@@ -25,7 +25,6 @@ jobs:
       - run: npm run audit
       - run: |
           pushd docker
-          docker volume prune -f
           docker-compose up -d
           popd
           SECONDS=0
@@ -40,5 +39,6 @@ jobs:
             echo "Waiting..."
             sleep 5
           done
+          echo ""
           echo "Alephium full node is up"
       - run: npm run test

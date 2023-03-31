@@ -5,6 +5,8 @@
   ],
   "type": "commonjs",
   "devDependencies": {
+    "@types/estree": "^1.0.0",
+    "@types/node": "^18.15.11",
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^27.1.2",
     "jest": "^28.1.0",
