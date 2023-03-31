@@ -26,7 +26,7 @@ services:
       redis:
         condition: service_healthy
   alephium:
-    image: alephium/dev-alephium:2.0.1
+    image: alephium/dev-alephium:2.1.0
     restart: unless-stopped
     ports:
       - 19973:19973/tcp
