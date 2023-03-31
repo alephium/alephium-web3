@@ -32,7 +32,8 @@ import {
   ExecuteScriptResult,
   SignerProvider,
   Fields,
-  ContractFactory
+  ContractFactory,
+  addStdIdToFields
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -283,7 +284,8 @@ function createDeployer<Settings = unknown>(
     params: DeployContractParams<P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>> => {
-    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(params.initialFields ?? {})
+    const initialFields = addStdIdToFields(contractFactory.contract, params.initialFields ?? {})
+    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(initialFields)
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(contractFactory.contract, taskTag)
     const previous = deployContractResults.get(taskId)

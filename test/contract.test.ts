@@ -184,6 +184,7 @@ describe('contract', function () {
     const event = testResult.events[0] as ContractCreatedEvent
     expect(event.fields.address).toEqual(addressFromContractId(expectedSubContractId))
     expect(event.fields.parentAddress).toEqual(addAddress)
+    expect(event.fields.stdInterfaceIdGuessed).toEqual(undefined)
   }
 
   it('should test contracts', async () => {

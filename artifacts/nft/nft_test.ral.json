@@ -1,16 +1,19 @@
 {
-  "version": "v2.0.1",
+  "version": "v2.1.0",
   "name": "NFTTest",
-  "bytecode": "010109010000000102ce0002",
-  "codeHash": "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3",
+  "bytecode": "020109010000000102ce0002",
+  "codeHash": "c654f89a813259b6e270c8cf609200907f0824755bb394b00d8b151c3fddf95f",
   "fieldsSig": {
     "names": [
-      "uri"
+      "uri",
+      "__stdInterfaceId"
     ],
     "types": [
+      "ByteVec",
       "ByteVec"
     ],
     "isMutable": [
+      false,
       false
     ]
   },
@@ -28,5 +31,6 @@
         "ByteVec"
       ]
     }
-  ]
+  ],
+  "stdInterfaceId": "0003"
 }

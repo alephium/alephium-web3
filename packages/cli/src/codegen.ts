@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, Project, Script, Contract, EventSig } from '@alephium/web3'
+import { node, Project, Script, Contract, EventSig, StdIdFieldName } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
 import fs from 'fs'
@@ -61,7 +61,10 @@ function toTsType(ralphType: string): string {
 }
 
 function formatParameters(fieldsSig: { names: string[]; types: string[] }): string {
-  return fieldsSig.names.map((name, idx) => `${name}: ${toTsType(fieldsSig.types[`${idx}`])}`).join(', ')
+  return fieldsSig.names
+    .map((name, idx) => (name === StdIdFieldName ? '' : `${name}: ${toTsType(fieldsSig.types[`${idx}`])}`))
+    .filter((str) => str !== '')
+    .join(', ')
 }
 
 function genCallMethod(contractName: string, functionSig: node.FunctionSig): string {
@@ -104,9 +107,9 @@ function contractTypes(contractName: string): string {
   return `${contractName}Types`
 }
 
-function contractFieldType(contract: Contract): string {
-  const hasFields = contract.fieldsSig.names.length > 0
-  return hasFields ? `${contractTypes(contract.name)}.Fields` : '{}'
+function contractFieldType(contractName: string, fieldsSig: node.FieldsSig): string {
+  const hasFields = fieldsSig.names.length > 0
+  return hasFields ? `${contractTypes(contractName)}.Fields` : '{}'
 }
 
 function genFetchState(contract: Contract): string {
@@ -175,13 +178,13 @@ function genContractStateType(contract: Contract): string {
   `
 }
 
-function genTestMethod(contract: Contract, functionSig: node.FunctionSig): string {
+function genTestMethod(contractName: string, fieldsSig: node.FieldsSig, functionSig: node.FunctionSig): string {
   const funcHasArgs = functionSig.paramNames.length > 0
-  const contractHasFields = contract.fieldsSig.names.length > 0
+  const contractHasFields = fieldsSig.names.length > 0
   const argsType = funcHasArgs
     ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
     : 'never'
-  const fieldsType = contractHasFields ? `${contractFieldType(contract)}` : 'never'
+  const fieldsType = contractHasFields ? `${contractFieldType(contractName, fieldsSig)}` : 'never'
   const params =
     funcHasArgs && contractHasFields
       ? `params: TestContractParams<${fieldsType}, ${argsType}>`
@@ -205,10 +208,10 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
   `
 }
 
-function genTestMethods(contract: Contract): string {
+function genTestMethods(contract: Contract, fieldsSig: node.FieldsSig): string {
   return `
     tests = {
-      ${contract.functions.map((f) => genTestMethod(contract, f)).join(',')}
+      ${contract.functions.map((f) => genTestMethod(contract.name, fieldsSig, f)).join(',')}
     }
   `
 }
@@ -270,7 +273,20 @@ function toUnixPath(p: string): string {
   return p.split(path.sep).join(path.posix.sep)
 }
 
+function getContractFields(contract: Contract): node.FieldsSig {
+  const stdIdFieldIndex = contract.fieldsSig.names.findIndex((name) => name === StdIdFieldName)
+  if (stdIdFieldIndex === -1) {
+    return contract.fieldsSig
+  }
+  return {
+    names: contract.fieldsSig.names.filter((_, index) => index !== stdIdFieldIndex),
+    types: contract.fieldsSig.types.filter((_, index) => index !== stdIdFieldIndex),
+    isMutable: contract.fieldsSig.isMutable.filter((_, index) => index !== stdIdFieldIndex)
+  }
+}
+
 function genContract(contract: Contract, artifactRelativePath: string): string {
+  const fieldsSig = getContractFields(contract)
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
   if (contractInfo === undefined) {
@@ -283,7 +299,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
       SubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
-      testMethod, callMethod, multicallMethods, fetchContractState, ContractInstance, getContractEventsCurrentCount
+      testMethod, callMethod, multicallMethods, fetchContractState,
+      ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
 
@@ -294,9 +311,9 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genCallMethodTypes(contract)}
     }
 
-    class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract)}> {
+    class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
       ${genAttach(getInstanceName(contract))}
-      ${genTestMethods(contract)}
+      ${genTestMethods(contract, fieldsSig)}
     }
 
     // Use this object to test and deploy the contract

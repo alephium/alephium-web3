@@ -16,7 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Project, stringToHex, subContractId, binToHex, encodeU256, ONE_ALPH } from '@alephium/web3'
+import {
+  web3,
+  Project,
+  stringToHex,
+  subContractId,
+  binToHex,
+  encodeU256,
+  ONE_ALPH,
+  addressFromContractId
+} from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { NFTTest } from '../artifacts/ts/NFTTest'
@@ -27,7 +36,7 @@ describe('nft collection', function () {
   let signer: NodeWallet
 
   beforeAll(async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await testNodeWallet()
     await Project.build({ errorOnWarnings: false })
   })
@@ -37,41 +46,24 @@ describe('nft collection', function () {
     const nftTest = (await NFTTest.deploy(signer, { initialFields: { uri: nftUri } })).instance
     expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
 
-    const name = stringToHex('Alelphium Punk')
-    const symbol = stringToHex('AP')
-    const totalSupply = 2n
-    const currentTokenIndex = 0n
+    const collectionUri = stringToHex('https://cryptopunks.app/cryptopunks')
     const nftCollectionTest = (
       await NFTCollectionTest.deploy(signer, {
         initialFields: {
           nftTemplateId: nftTest.contractId,
-          name,
-          symbol,
-          totalSupply,
-          currentTokenIndex
+          collectionUri: collectionUri,
+          totalSupply: 0n
         }
       })
     ).instance
 
-    expect((await nftCollectionTest.methods.getName()).returns).toEqual(name)
-    expect((await nftCollectionTest.methods.getSymbol()).returns).toEqual(symbol)
-    expect((await nftCollectionTest.methods.totalSupply()).returns).toEqual(totalSupply)
-    expect((await nftCollectionTest.fetchState()).fields.currentTokenIndex).toEqual(0n)
+    expect((await nftCollectionTest.methods.getCollectionUri()).returns).toEqual(collectionUri)
+    expect((await nftCollectionTest.methods.totalSupply()).returns).toEqual(0n)
 
-    await mintAndVerify(nftCollectionTest, nftUri, 0n)
-    await mintAndVerify(nftCollectionTest, nftUri, 1n)
-
-    // Fail when totalSupply is exceeded
-    await expect(
-      MintNFTTest.execute(signer, {
-        initialFields: {
-          nftCollectionContractId: nftCollectionTest.contractId,
-          uri: nftUri
-        },
-        attoAlphAmount: 2n * ONE_ALPH
-      })
-    ).rejects.toThrow(Error)
-  })
+    for (let i = 0n; i < 10n; i++) {
+      await mintAndVerify(nftCollectionTest, nftUri, i)
+    }
+  }, 10000)
 
   async function mintAndVerify(nftCollectionTest: NFTCollectionTestInstance, nftUri: string, tokenIndex: bigint) {
     await expect(nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).rejects.toThrow(Error)
@@ -84,6 +76,12 @@ describe('nft collection', function () {
     })
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
     expect((await nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
-    expect((await nftCollectionTest.fetchState()).fields.currentTokenIndex).toEqual(tokenIndex + 1n)
+
+    const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
+    const nftFields = (await nftInstance.fetchState()).fields
+    expect(nftFields.uri).toEqual(nftUri)
+
+    const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(nftInstance.contractId)
+    expect(stdInterfaceId).toEqual('0003')
   }
 })

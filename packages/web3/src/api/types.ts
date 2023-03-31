@@ -136,7 +136,12 @@ export function toApiVal(v: Val, tpe: string): node.Val {
   }
 }
 
-function _fromApiVal(vals: node.Val[], valIndex: number, tpe: string): [result: Val, nextIndex: number] {
+function _fromApiVal(
+  vals: node.Val[],
+  valIndex: number,
+  tpe: string,
+  systemEvent = false
+): [result: Val, nextIndex: number] {
   if (vals.length === 0) {
     throw new Error('Not enough Vals')
   }
@@ -146,7 +151,7 @@ function _fromApiVal(vals: node.Val[], valIndex: number, tpe: string): [result: 
     return [firstVal.value as boolean, valIndex + 1]
   } else if ((tpe === 'U256' || tpe === 'I256') && firstVal.type === tpe) {
     return [fromApiNumber256(firstVal.value as string), valIndex + 1]
-  } else if ((tpe === 'ByteVec' || tpe === 'Address') && firstVal.type === tpe) {
+  } else if ((tpe === 'ByteVec' || tpe === 'Address') && (firstVal.type === tpe || systemEvent)) {
     return [firstVal.value as string, valIndex + 1]
   } else {
     const [baseType, dims] = decodeArrayType(tpe)
@@ -162,26 +167,16 @@ function _fromApiVal(vals: node.Val[], valIndex: number, tpe: string): [result: 
   }
 }
 
-export function fromApiVals(
-  vals: node.Val[],
-  names: string[],
-  types: string[],
-  optionalNames: string[] = [],
-  optionalTypes: string[] = []
-): NamedVals {
+export function fromApiVals(vals: node.Val[], names: string[], types: string[], systemEvent = false): NamedVals {
   let valIndex = 0
   const result: NamedVals = {}
   types.forEach((currentType, index) => {
     const currentName = names[`${index}`]
-    const [val, nextIndex] = _fromApiVal(vals, valIndex, currentType)
+    const [val, nextIndex] = _fromApiVal(vals, valIndex, currentType, systemEvent)
     valIndex = nextIndex
     result[`${currentName}`] = val
   })
-  if (valIndex === vals.length) {
-    return result
-  }
-  const optionalFields = fromApiVals(vals.slice(valIndex), optionalNames, optionalTypes)
-  return { ...result, ...optionalFields }
+  return result
 }
 
 export function fromApiArray(vals: node.Val[], types: string[]): Val[] {
