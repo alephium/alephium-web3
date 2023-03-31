@@ -7,7 +7,10 @@
   "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
   "collectCoverage": true,
   "coverageDirectory": "./coverage/",
-  "collectCoverageFrom": ["packages/*/src/**/*.ts"],
+  "collectCoverageFrom": [
+    "packages/*/src/**/*.ts",
+    "!packages/web3-react/src/**/*.ts"
+  ],
   "moduleDirectories": [
     "node_modules"
   ]
