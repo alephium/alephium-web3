@@ -24,13 +24,17 @@ jobs:
         with:
           node-version: 16
 
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7.19
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: javascript
 
       - run: |
-          npm ci
+          pnpm i
           npm run build
 
       - name: Perform CodeQL Analysis

@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Configuration, Network } from './types'
-import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './utils'
+import { Configuration, Network } from '../packages/cli/dist'
+import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from '../packages/cli/dist'
 import path from 'path'
 
 describe('utils', () => {

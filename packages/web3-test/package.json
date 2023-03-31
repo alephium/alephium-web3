@@ -28,13 +28,13 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "@alephium/web3": "^0.8.2",
-    "@alephium/web3-wallet": "^0.8.2"
+    "@alephium/web3": "workspace:^",
+    "@alephium/web3-wallet": "workspace:^"
   },
   "devDependencies": {
-    "@types/find-up": "^2.1.0",
+    "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^9.0.13",
-    "@types/jest": "^27.5.1",
+    "@types/jest": "^27.5.2",
     "@types/mock-fs": "^4.13.1",
     "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
