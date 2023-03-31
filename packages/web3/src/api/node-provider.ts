@@ -20,7 +20,7 @@ import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request, Token
 import { Api as NodeApi } from './api-alephium'
 import { DEFAULT_THROTTLE_FETCH } from './utils'
 import { HexString } from '../contract'
-import { addressFromTokenId } from '../utils'
+import { addressFromTokenId, groupOfAddress } from '../utils'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
@@ -33,7 +33,21 @@ function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeo
   return nodeApi
 }
 
-export class NodeProvider {
+interface NodeProviderApis {
+  wallets: NodeApi<string>['wallets']
+  infos: NodeApi<string>['infos']
+  blockflow: NodeApi<string>['blockflow']
+  addresses: NodeApi<string>['addresses']
+  transactions: NodeApi<string>['transactions']
+  mempool: NodeApi<string>['mempool']
+  contracts: NodeApi<string>['contracts']
+  multisig: NodeApi<string>['multisig']
+  utils: NodeApi<string>['utils']
+  miners: NodeApi<string>['miners']
+  events: NodeApi<string>['events']
+}
+
+export class NodeProvider implements NodeProviderApis {
   readonly wallets: NodeApi<string>['wallets']
   readonly infos: NodeApi<string>['infos']
   readonly blockflow: NodeApi<string>['blockflow']
@@ -50,13 +64,9 @@ export class NodeProvider {
   constructor(provider: NodeProvider)
   constructor(handler: ApiRequestHandler)
   constructor(param0: string | NodeProvider | ApiRequestHandler, apiKey?: string, customFetch?: typeof fetch) {
-    let nodeApi: NodeProvider
+    let nodeApi: NodeProviderApis
     if (typeof param0 === 'string') {
-      const api = initializeNodeApi(param0, apiKey, customFetch)
-      nodeApi = {
-        ...api,
-        fetchStdTokenMetaData: async (tokenId: string) => fetchStdTokenMetaData(api.contracts, tokenId)
-      }
+      nodeApi = initializeNodeApi(param0, apiKey, customFetch)
     } else if (typeof param0 === 'function') {
       nodeApi = new NodeProvider('https://1.2.3.4:0')
       forwardRequests(nodeApi, param0 as ApiRequestHandler)
@@ -92,24 +102,30 @@ export class NodeProvider {
 
   // Only use this when the token is following the standard token interface
   fetchStdTokenMetaData = async (tokenId: HexString): Promise<TokenMetaData> => {
-    return fetchStdTokenMetaData(this.contracts, tokenId)
+    const group = 0
+    const address = addressFromTokenId(tokenId)
+    const calls = Array.from([0, 1, 2, 3], (index) => ({ methodIndex: index, group: group, address: address }))
+    const result = await this.contracts.postContractsMulticallContract({
+      calls: calls
+    })
+    return {
+      symbol: result.results[0].returns[0].value as any as string,
+      name: result.results[1].returns[0].value as any as string,
+      decimals: Number(result.results[2].returns[0].value as any as string),
+      totalSupply: BigInt(result.results[3].returns[0].value as any as string)
+    }
   }
-}
 
-async function fetchStdTokenMetaData(
-  contractAPI: NodeApi<string>['contracts'],
-  tokenId: HexString
-): Promise<TokenMetaData> {
-  const group = 0
-  const address = addressFromTokenId(tokenId)
-  const calls = Array.from([0, 1, 2, 3], (index) => ({ methodIndex: index, group: group, address: address }))
-  const result = await contractAPI.postContractsMulticallContract({
-    calls: calls
-  })
-  return {
-    symbol: result.results[0].returns[0].value as any as string,
-    name: result.results[1].returns[0].value as any as string,
-    decimals: Number(result.results[2].returns[0].value as any as string),
-    totalSupply: BigInt(result.results[3].returns[0].value as any as string)
+  guessStdInterfaceId = async (tokenId: HexString): Promise<HexString | undefined> => {
+    const address = addressFromTokenId(tokenId)
+    const group = groupOfAddress(address)
+    const rawState = await this.contracts.getContractsAddressState(addressFromTokenId(tokenId), { group })
+    const lastImmField = rawState.immFields.slice(-1).pop()?.value
+    const interfaceIdPrefix = '414c5048' // the hex of 'ALPH'
+    if (typeof lastImmField === 'string' && lastImmField.startsWith(interfaceIdPrefix)) {
+      return lastImmField.slice(8)
+    } else {
+      return undefined
+    }
   }
 }

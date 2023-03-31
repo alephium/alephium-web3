@@ -16,7 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Project, stringToHex, subContractId, binToHex, encodeU256, ONE_ALPH } from '@alephium/web3'
+import {
+  web3,
+  Project,
+  stringToHex,
+  subContractId,
+  binToHex,
+  encodeU256,
+  ONE_ALPH,
+  addressFromContractId
+} from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
 import { NFTTest } from '../artifacts/ts/NFTTest'
@@ -27,7 +36,7 @@ describe('nft collection', function () {
   let signer: NodeWallet
 
   beforeAll(async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await testNodeWallet()
     await Project.build({ errorOnWarnings: false })
   })
@@ -67,5 +76,12 @@ describe('nft collection', function () {
     })
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
     expect((await nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
+
+    const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
+    const nftFields = (await nftInstance.fetchState()).fields
+    expect(nftFields.uri).toEqual(nftUri)
+
+    const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(nftInstance.contractId)
+    expect(stdInterfaceId).toEqual('0003')
   }
 })

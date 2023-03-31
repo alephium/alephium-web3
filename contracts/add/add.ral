@@ -16,7 +16,7 @@ Contract Add(sub: Sub, mut result : U256) {
 
     @using(preapprovedAssets = true)
     pub fn createSubContract(a: U256, path: ByteVec, subContractId: ByteVec, payer: Address) -> () {
-        copyCreateSubContract!{payer -> ALPH: 1 alph}(path, subContractId, #00, encodeToByteVec!(a))
+        copyCreateSubContract!{payer -> ALPH: 1 alph}(path, subContractId, #00, Sub.encodeMutFields!(a))
     }
 
     @using(checkExternalCaller = false, assetsInContract = true)

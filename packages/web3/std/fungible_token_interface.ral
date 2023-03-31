@@ -1,3 +1,4 @@
+@std(id = #0001)
 Interface IFungibleToken {
   pub fn getSymbol() -> ByteVec
 

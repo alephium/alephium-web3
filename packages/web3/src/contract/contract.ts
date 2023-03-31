@@ -68,6 +68,8 @@ export type Fields = NamedVals
 export type Arguments = NamedVals
 export type HexString = string
 
+export const StdIdFieldName = '__stdInterfaceId'
+
 enum SourceKind {
   Contract = 0,
   Script = 1,
@@ -667,6 +669,7 @@ export class Contract extends Artifact {
   readonly codeHash: string
   readonly fieldsSig: FieldsSig
   readonly eventsSig: EventSig[]
+  readonly stdInterfaceId?: HexString
 
   readonly bytecodeDebug: string
   readonly codeHashDebug: string
@@ -680,7 +683,8 @@ export class Contract extends Artifact {
     codeHashDebug: string,
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
-    functions: FunctionSig[]
+    functions: FunctionSig[],
+    stdInterfaceId?: HexString
   ) {
     super(version, name, functions)
     this.bytecode = bytecode
@@ -688,6 +692,7 @@ export class Contract extends Artifact {
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
     this.eventsSig = eventsSig
+    this.stdInterfaceId = stdInterfaceId
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
     this.codeHashDebug = codeHashDebug
@@ -715,7 +720,8 @@ export class Contract extends Artifact {
       codeHashDebug ? codeHashDebug : artifact.codeHash,
       artifact.fieldsSig,
       artifact.eventsSig,
-      artifact.functions
+      artifact.functions,
+      artifact.stdInterfaceId === null ? undefined : artifact.stdInterfaceId
     )
     return contract
   }
@@ -730,7 +736,8 @@ export class Contract extends Artifact {
       result.codeHashDebug,
       result.fields,
       result.events,
-      result.functions
+      result.functions,
+      result.stdInterfaceId
     )
   }
 
@@ -742,7 +749,7 @@ export class Contract extends Artifact {
   }
 
   override toString(): string {
-    const object = {
+    const object: any = {
       version: this.version,
       name: this.name,
       bytecode: this.bytecode,
@@ -750,6 +757,9 @@ export class Contract extends Artifact {
       fieldsSig: this.fieldsSig,
       eventsSig: this.eventsSig,
       functions: this.functions
+    }
+    if (this.stdInterfaceId !== undefined) {
+      object.stdInterfaceId = this.stdInterfaceId
     }
     return JSON.stringify(object, null, 2)
   }
@@ -852,16 +862,14 @@ export class Contract extends Artifact {
   }
 
   static ContractCreatedEventIndex = -1
-  static ContractCreatedEvent: SystemEventSig = {
+  static ContractCreatedEvent: EventSig = {
     name: 'ContractCreated',
-    fieldNames: ['address'],
-    fieldTypes: ['Address'],
-    optionalFieldNames: ['parentAddress'],
-    optionalFieldTypes: ['Address']
+    fieldNames: ['address', 'parentAddress', 'stdInterfaceId'],
+    fieldTypes: ['Address', 'Address', 'ByteVec']
   }
 
   static ContractDestroyedEventIndex = -2
-  static ContractDestroyedEvent: SystemEventSig = {
+  static ContractDestroyedEvent: EventSig = {
     name: 'ContractDestroyed',
     fieldNames: ['address'],
     fieldTypes: ['Address']
@@ -872,10 +880,10 @@ export class Contract extends Artifact {
     let name: string
 
     if (event.eventIndex == Contract.ContractCreatedEventIndex) {
-      fields = fromApiSystemEventFields(event.fields, Contract.ContractCreatedEvent)
+      fields = toContractCreatedEventFields(fromApiEventFields(event.fields, Contract.ContractCreatedEvent, true))
       name = Contract.ContractCreatedEvent.name
     } else if (event.eventIndex == Contract.ContractDestroyedEventIndex) {
-      fields = fromApiSystemEventFields(event.fields, Contract.ContractDestroyedEvent)
+      fields = fromApiEventFields(event.fields, Contract.ContractDestroyedEvent, true)
       name = Contract.ContractDestroyedEvent.name
     } else {
       const contract = Project.currentProject.contractByCodeHash(codeHash!)
@@ -923,7 +931,8 @@ export class Contract extends Artifact {
     signer: SignerProvider,
     params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
-    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
+    const initialFields: Fields = params.initialFields ?? {}
+    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields))
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractTxParams = {
       signerAddress: selectedAccount.address,
@@ -1106,18 +1115,8 @@ function fromApiFields(immFields: node.Val[], mutFields: node.Val[], fieldsSig: 
   return fromApiVals(vals, fieldsSig.names, fieldsSig.types)
 }
 
-function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig): Fields {
-  return fromApiVals(vals, eventSig.fieldNames, eventSig.fieldTypes)
-}
-
-function fromApiSystemEventFields(vals: node.Val[], systemEventSig: SystemEventSig): Fields {
-  return fromApiVals(
-    vals,
-    systemEventSig.fieldNames,
-    systemEventSig.fieldTypes,
-    systemEventSig.optionalFieldNames ?? [],
-    systemEventSig.optionalFieldTypes ?? []
-  )
+function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig, systemEvent = false): Fields {
+  return fromApiVals(vals, eventSig.fieldNames, eventSig.fieldTypes, systemEvent)
 }
 
 export interface Asset {
@@ -1313,7 +1312,10 @@ export abstract class ContractFactory<I, F extends Fields = Fields> {
   abstract at(address: string): I
 
   async deploy(signer: SignerProvider, deployParams: DeployContractParams<F>): Promise<DeployContractResult<I>> {
-    const signerParams = await this.contract.txParamsForDeployment(signer, deployParams)
+    const signerParams = await this.contract.txParamsForDeployment(signer, {
+      ...deployParams,
+      initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
+    })
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
       ...result,
@@ -1327,7 +1329,7 @@ export abstract class ContractFactory<I, F extends Fields = Fields> {
       alphAmount: asset?.alphAmount ?? ONE_ALPH,
       tokens: asset?.tokens
     }
-    return this.contract.toState(initFields, newAsset, address)
+    return this.contract.toState(addStdIdToFields(this.contract, initFields), newAsset, address)
   }
 }
 
@@ -1374,19 +1376,32 @@ function specialContractAddress(n: number): string {
 export const CreateContractEventAddress = specialContractAddress(-1)
 export const DestroyContractEventAddress = specialContractAddress(-2)
 
-export interface SystemEventSig extends EventSig {
-  optionalFieldNames?: string[]
-  optionalFieldTypes?: string[]
+export type ContractCreatedEventFields = {
+  address: Address
+  parentAddress?: Address
+  stdInterfaceIdGuessed?: HexString
 }
+export type ContractDestroyedEventFields = {
+  address: Address
+}
+export type ContractCreatedEvent = ContractEvent<ContractCreatedEventFields>
+export type ContractDestroyedEvent = ContractEvent<ContractDestroyedEventFields>
 
-export type ContractCreatedEvent = ContractEvent<{ address: Address; parentAddress?: Address }>
-export type ContractDestroyedEvent = ContractEvent<{ address: Address }>
-
-function decodeSystemEvent(event: node.ContractEvent, systemEventSig: SystemEventSig, eventIndex: number): Fields {
+function decodeSystemEvent(event: node.ContractEvent, eventSig: EventSig, eventIndex: number): Fields {
   if (event.eventIndex !== eventIndex) {
     throw new Error(`Invalid event index: ${event.eventIndex}, expected: ${eventIndex}`)
   }
-  return fromApiSystemEventFields(event.fields, systemEventSig)
+  return fromApiEventFields(event.fields, eventSig, true)
+}
+
+function toContractCreatedEventFields(fields: Fields): ContractCreatedEventFields {
+  const parentAddress = fields['parentAddress'] as string
+  const stdInterfaceId = fields['stdInterfaceId'] as string
+  return {
+    address: fields['address'] as Address,
+    parentAddress: parentAddress === '' ? undefined : (parentAddress as Address),
+    stdInterfaceIdGuessed: stdInterfaceId === '' ? undefined : (stdInterfaceId as HexString)
+  }
 }
 
 export function decodeContractCreatedEvent(event: node.ContractEvent): Omit<ContractCreatedEvent, 'contractAddress'> {
@@ -1396,10 +1411,7 @@ export function decodeContractCreatedEvent(event: node.ContractEvent): Omit<Cont
     txId: event.txId,
     eventIndex: event.eventIndex,
     name: Contract.ContractCreatedEvent.name,
-    fields: {
-      address: fields['address'] as Address,
-      parentAddress: fields['parentAddress'] === undefined ? undefined : (fields['parentAddress'] as Address)
-    }
+    fields: toContractCreatedEventFields(fields)
   }
 }
 
@@ -1441,16 +1453,27 @@ export function subscribeEventsFromContract<T extends Fields, M extends Contract
   return subscribeToEvents(opt, address, fromCount)
 }
 
+export function addStdIdToFields<F extends Fields>(
+  contract: Contract,
+  fields: F
+): F | (F & { __stdInterfaceId: HexString }) {
+  const stdInterfaceIdPrefix = '414c5048' // the hex of 'ALPH'
+  return contract.stdInterfaceId === undefined
+    ? fields
+    : { ...fields, __stdInterfaceId: stdInterfaceIdPrefix + contract.stdInterfaceId }
+}
+
 export async function testMethod<I, F extends Fields, A extends Arguments, R>(
   contract: ContractFactory<I, F>,
   methodName: string,
   params: Optional<TestContractParams<F, A>, 'testArgs' | 'initialFields'>
 ): Promise<TestContractResult<R>> {
   const txId = params?.txId ?? randomTxId()
+  const initialFields = params.initialFields === undefined ? {} : params.initialFields
   const apiParams = contract.contract.toApiTestContractParams(methodName, {
     ...params,
     txId: txId,
-    initialFields: params.initialFields === undefined ? {} : params.initialFields,
+    initialFields: addStdIdToFields(contract.contract, initialFields),
     testArgs: params.testArgs === undefined ? {} : params.testArgs
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
