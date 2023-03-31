@@ -46,9 +46,12 @@ jobs:
         with:
           node-version: 16
           registry-url: 'https://registry.npmjs.org'
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7.19
       - name: Publish to npm
         run: |
-          npm ci
+          pnpm i
           npm run publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
