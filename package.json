@@ -5,7 +5,6 @@
   ],
   "type": "commonjs",
   "devDependencies": {
-    "@nrwl/nx-linux-x64-gnu": "^15.9.1",
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^27.1.2",
     "jest": "^28.1.0",
@@ -41,5 +40,8 @@
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=7.0.0"
+  },
+  "optionalDependencies": {
+    "@nrwl/nx-linux-x64-gnu": "^15.9.1"
   }
 }
