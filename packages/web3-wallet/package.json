@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-wallet",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Simple wallets for Alephium",
   "keywords": [
     "alephium",
@@ -43,8 +43,8 @@
     "@types/jest": "^27.5.1",
     "@types/mock-fs": "^4.13.1",
     "@types/rewire": "^2.5.28",
-    "@typescript-eslint/eslint-plugin": "^4.30.0",
-    "@typescript-eslint/parser": "^4.30.0",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
     "crypto-browserify": "^3.12.0"
   },
   "engines": {

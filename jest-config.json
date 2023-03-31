@@ -1,4 +1,5 @@
 {
+  "testSequencer": "<rootDir>/configs/testSequencer.js",
   "testPathIgnorePatterns": [".*/node_modules/", ".*/templates/.*"],
   "transform": {
     "^.+\\.(t|j)sx?$": "ts-jest"
@@ -7,7 +8,10 @@
   "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
   "collectCoverage": true,
   "coverageDirectory": "./coverage/",
-  "collectCoverageFrom": ["packages/*/src/**/*.ts"],
+  "collectCoverageFrom": [
+    "packages/*/src/**/*.ts",
+    "!packages/web3-react/src/**/*.ts"
+  ],
   "moduleDirectories": [
     "node_modules"
   ]
