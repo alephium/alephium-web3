@@ -28,8 +28,8 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "@alephium/web3": "^0.8.1",
-    "@alephium/web3-wallet": "^0.8.1"
+    "@alephium/web3": "workspace:^",
+    "@alephium/web3-wallet": "workspace:^"
   },
   "devDependencies": {
     "@types/find-up": "^2.1.0",

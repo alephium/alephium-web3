@@ -1,32 +1,32 @@
 {
   "license": "GPL",
-  "workspaces": [
-    "packages/*"
-  ],
   "type": "commonjs",
+  "dependencies": {
+    "@alephium/web3": "workspace:*",
+    "@alephium/web3-wallet": "workspace:*",
+    "@alephium/web3-test": "workspace:*",
+    "@alephium/cli": "workspace:*"
+  },
   "devDependencies": {
     "eslint": "^7.32.0",
     "eslint-plugin-jest": "^27.1.2",
     "jest": "^28.1.0",
-    "lerna": "6.5.1"
+    "@types/jest": "^28.1.0",
+    "typescript": "^4.7.4"
   },
   "scripts": {
-    "clean": "lerna clean",
-    "postinstall": "npm run bootstrap",
-    "build": "lerna run build",
+    "clean": "rm -rf .parcel-cache && pnpm -r run clean",
+    "build": "pnpm --stream -r run build",
     "codegen": "npx ts-node gen.ts",
-    "bootstrap": "lerna bootstrap --hoist",
-    "test": "jest -i --config ./jest-config.json",
+    "test": "jest -i --verbose --config ./jest-config.json",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --fix --ext ts",
-    "audit": "lerna exec -- npm audit --production",
-    "update-schemas": "lerna run update-schemas",
-    "lerna-version": "lerna version --no-push --no-private --no-git-tag-version",
-    "lerna-update-deps": "lerna exec -- npm i --package-lock-only",
+    "audit": "npm audit --omit=dev",
+    "update-schemas": "pnpm --stream -r run update-schemas",
     "publish": "npm run build && lerna exec -- npm publish --access public",
-    "start-devnet": "lerna run start-devnet",
-    "stop-devnet": "lerna run stop-devnet",
-    "restart-devnet": "lerna run restart-devnet"
+    "start-devnet": "pnpm --stream -r run start-devnet",
+    "stop-devnet": "pnpm --stream -r run stop-devnet",
+    "restart-devnet": "pnpm --stream -r run restart-devnet"
   },
   "prettier": {
     "printWidth": 120,
@@ -38,7 +38,7 @@
     "trailingComma": "none"
   },
   "engines": {
-    "node": ">=16.0.0",
+  "node": ">=16.0.0",
     "npm": ">=7.0.0"
   }
 }
