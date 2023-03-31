@@ -37,7 +37,6 @@ jobs:
           done
           echo ""
           echo "Alephium full node is up"
-          popd
       - run: npm ci
       - run: npm run build
       - run: npm run lint
