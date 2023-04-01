@@ -28,7 +28,8 @@ import {
   subContractId,
   contractIdFromAddress,
   binToHex,
-  addressFromContractId
+  addressFromContractId,
+  groupOfAddress
 } from '../packages/web3'
 import { Contract, Project, Script } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
@@ -52,9 +53,12 @@ describe('contract', function () {
     signer = await testNodeWallet()
     signerAccount = await signer.getSelectedAccount()
     signerGroup = signerAccount.group
+
+    expect(signerAccount.address).toEqual(testAddress)
+    expect(signerGroup).toEqual(groupOfAddress(testAddress))
   })
 
-  async function testSuite1() {
+  it('should test contract (1)', async () => {
     // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })
 
@@ -138,9 +142,9 @@ describe('contract', function () {
     })
     expect(callResult.returns).toEqual([6n, 2n])
     checkEvents(callResult.events)
-  }
+  })
 
-  async function testSuite2() {
+  it('should test contract (2)', async () => {
     await Project.build({ errorOnWarnings: false })
 
     const testResult = await Greeter.tests.greet({ initialFields: { btcPrice: 1n } })
@@ -157,9 +161,9 @@ describe('contract', function () {
 
     const mainScriptTx = await GreeterMain.execute(signer, { initialFields: { greeterContractId: greeter.contractId } })
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
-  }
+  })
 
-  async function testSuite3() {
+  it('should test contract (3)', async () => {
     await Project.build({ errorOnWarnings: false })
 
     const subState = Sub.stateForTest({ result: 0n })
@@ -185,12 +189,6 @@ describe('contract', function () {
     expect(event.fields.address).toEqual(addressFromContractId(expectedSubContractId))
     expect(event.fields.parentAddress).toEqual(addAddress)
     expect(event.fields.stdInterfaceIdGuessed).toEqual(undefined)
-  }
-
-  it('should test contracts', async () => {
-    await testSuite1()
-    await testSuite2()
-    await testSuite3()
   })
 
   function loadJson(fileName: string) {
