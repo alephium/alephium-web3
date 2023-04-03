@@ -34,28 +34,12 @@ import {
 
 import { isMobile } from '../../../utils'
 import useDefaultWallets from '../../../wallets/useDefaultWallets'
+import { WalletProps } from '../../../wallets/wallet'
 
 const Connectors: React.FC = () => {
   const context = useContext()
   const mobile = isMobile()
   const wallets = useDefaultWallets()
-
-  const findInjectedConnectorInfo = (name: string) => {
-    let walletList = name.split(/[(),]+/)
-    walletList.shift() // remove "Injected" from array
-    walletList = walletList.map((x) => x.trim())
-
-    const hasWalletLogo = walletList.filter((x) => {
-      const a = wallets.map((wallet: any) => wallet.name).includes(x)
-      if (a) return x
-      return null
-    })
-    if (hasWalletLogo.length === 0) return null
-
-    const foundInjector = wallets.filter((wallet: any) => wallet.installed && wallet.name === hasWalletLogo[0])[0]
-
-    return foundInjector
-  }
 
   return (
     <PageContent style={{ width: 312 }}>
@@ -69,8 +53,8 @@ const Connectors: React.FC = () => {
               let logos = info.logos
               let name = info.shortName ?? info.name ?? connector.name
 
-              if (info.id === 'injected') {
-                const foundInjector = findInjectedConnectorInfo(connector.name ?? '')
+              if (info.id === 'injected' && connector.name) {
+                const foundInjector = findInjectedConnectorInfo(connector.name, wallets)
                 if (foundInjector) {
                   logos = foundInjector.logos
                   name = foundInjector.name.replace(' Wallet', '')
@@ -107,14 +91,10 @@ const Connectors: React.FC = () => {
               if (!info) return null
 
               let logos = info.logos
+              let name = info.id === 'walletConnect' ? 'WalletConnect' : info.name ?? connector.name
 
-              let name = info.name ?? connector.name
-              if (info.id === 'walletConnect') {
-                name = 'Wallet Connect'
-              }
-
-              if (info.id === 'injected') {
-                const foundInjector = findInjectedConnectorInfo(connector.name ?? '')
+              if (info.id === 'injected' && connector.name) {
+                const foundInjector = findInjectedConnectorInfo(connector.name, wallets)
                 if (foundInjector) {
                   logos = foundInjector.logos
                   name = foundInjector.name
@@ -127,6 +107,7 @@ const Connectors: React.FC = () => {
                   logo = logos.appIcon
                 }
               }
+
               return (
                 <ConnectorButton
                   key={connector.id}
@@ -150,3 +131,20 @@ const Connectors: React.FC = () => {
 }
 
 export default Connectors
+
+const findInjectedConnectorInfo = (name: string, wallets: WalletProps[]) => {
+  let walletList = name.split(/[(),]+/)
+  walletList.shift() // remove "Injected" from array
+  walletList = walletList.map((x) => x.trim())
+
+  const hasWalletLogo = walletList.filter((x) => {
+    const a = wallets.map((wallet) => wallet.name).includes(x)
+    if (a) return x
+    return null
+  })
+  if (hasWalletLogo.length === 0) return null
+
+  const foundInjector = wallets.filter((wallet) => wallet.installed && wallet.name === hasWalletLogo[0])[0]
+
+  return foundInjector
+}

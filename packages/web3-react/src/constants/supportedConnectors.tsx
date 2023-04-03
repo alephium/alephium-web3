@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { ReactNode } from 'react'
 import Logos from './../assets/logos'
 
-let supportedConnectors: {
+type Connector = {
   id: string
   name?: string
   shortName?: string
@@ -34,15 +34,13 @@ let supportedConnectors: {
   scannable?: boolean
   extensions?: { [key: string]: string }
   appUrls?: { [key: string]: string }
-  extensionIsInstalled?: () => any
-  defaultConnect?: () => any
-}[] = []
+  extensionIsInstalled?: () => boolean
+  defaultConnect?: () => void
+}
+
+let supportedConnectors: Connector[] = []
 
 if (typeof window != 'undefined') {
-  interface IDictionary {
-    [index: string]: string
-  }
-
   supportedConnectors = [
     {
       id: 'injected',
@@ -100,8 +98,7 @@ if (typeof window != 'undefined') {
         qrCode: <Logos.WalletConnect background={true} />
       },
       logoBackground: 'var(--ck-brand-walletConnect)',
-      scannable: true,
-      defaultConnect: () => {}
+      scannable: true
     }
   ]
 }

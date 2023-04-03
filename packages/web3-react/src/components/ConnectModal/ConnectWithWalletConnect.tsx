@@ -25,7 +25,7 @@ let _init = false
 
 const ConnectWithWalletConnect: React.FC = () => {
   const context = useContext()
-  const [error, setError] = useState<string | undefined>(undefined)
+  const [error, setError] = useState<string>()
   const { connect } = useConnect({
     chainGroup: context.addressGroup,
     keyType: context.keyType,
