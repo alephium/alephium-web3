@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { createContext, createElement, useEffect, useState } from 'react'
+import React, { createContext, useEffect, useState } from 'react'
 
 import defaultTheme from '../styles/defaultTheme'
 
@@ -129,14 +129,12 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
     errorMessage
   }
 
-  return createElement(
-    Context.Provider,
-    { value },
-    <>
+  return (
+    <Context.Provider value={value}>
       <ThemeProvider theme={defaultTheme}>
         {children}
         <AlephiumConnectModal theme={theme} mode={mode} customTheme={customTheme} />
       </ThemeProvider>
-    </>
+    </Context.Provider>
   )
 }
