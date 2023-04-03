@@ -269,14 +269,22 @@ export class WalletConnectProvider extends SignerProvider {
       }
     }
 
-    return this.client.request({
-      request: {
-        method: args.method,
-        params: args.params
-      },
-      chainId: this.permittedChain,
-      topic: this.session?.topic
-    })
+    try {
+      const response = await this.client.request<T>({
+        request: {
+          method: args.method,
+          params: args.params
+        },
+        chainId: this.permittedChain,
+        topic: this.session?.topic
+      })
+      return response
+    } catch (error: any) {
+      if (error.message) {
+        throw new Error(error.message)
+      }
+      throw error
+    }
   }
 
   private requestNodeAPI = (args: ApiRequestArguments): Promise<any> => {
