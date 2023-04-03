@@ -49,7 +49,6 @@ type ContextValue = {
   addressGroup?: number
   keyType?: KeyType
   network?: string
-  networkId?: number
   theme: Theme
   setTheme: React.Dispatch<React.SetStateAction<Theme>>
   mode: Mode
@@ -71,7 +70,6 @@ type AlephiumConnectProviderProps = {
   useMode?: Mode
   useCustomTheme?: CustomTheme
   network?: string
-  networkId?: number
   addressGroup?: number
   keyType?: KeyType
   children?: React.ReactNode
@@ -82,7 +80,6 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
   useMode = 'auto',
   useCustomTheme,
   network,
-  networkId,
   addressGroup,
   keyType,
   children
@@ -120,7 +117,6 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
     signerProvider,
     setSignerProvider,
     network,
-    networkId,
     theme,
     setTheme,
     mode,

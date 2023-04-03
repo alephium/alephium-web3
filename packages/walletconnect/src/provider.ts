@@ -36,8 +36,7 @@ import {
   addressFromPublicKey,
   NodeProvider,
   ExplorerProvider,
-  ApiRequestArguments,
-  Address
+  ApiRequestArguments
 } from '@alephium/web3'
 
 import { LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -49,12 +48,13 @@ import {
   ProviderEventArgument,
   RelayMethod,
   ProjectMetaData,
-  ChainInfo
+  ChainInfo,
+  NetworkId
 } from './types'
 
 export interface ProviderOptions {
   // Alephium options
-  networkId: number // the id of the network, e.g. 0 for mainnet, 1 for testnet, 4 for devnet, etc.
+  networkId: NetworkId // the id of the network, e.g. mainnet, testnet or devnet.
   chainGroup?: number // either a specific group or undefined to support all groups
   methods?: RelayMethod[] // all of the methods to be used in relay; no need to configure in most cases
 
@@ -73,7 +73,7 @@ export class WalletConnectProvider extends SignerProvider {
   public nodeProvider: NodeProvider | undefined
   public explorerProvider: ExplorerProvider | undefined
 
-  public networkId: number
+  public networkId: NetworkId
   public chainGroup: ChainGroup
   public permittedChain: string
   public methods: RelayMethod[]
@@ -355,7 +355,7 @@ export function isCompatibleChainGroup(group: number, expectedChainGroup: ChainG
   return expectedChainGroup === undefined || expectedChainGroup === group
 }
 
-export function formatChain(networkId: number, chainGroup: ChainGroup): string {
+export function formatChain(networkId: NetworkId, chainGroup: ChainGroup): string {
   if (chainGroup !== undefined && chainGroup < 0) {
     throw Error('Chain group in provider needs to be either undefined or non-negative')
   }
@@ -369,7 +369,7 @@ export function parseChain(chainString: string): ChainInfo {
   if (chainGroupDecoded < -1) {
     throw Error('Chain group in protocol needs to be either -1 or non-negative')
   }
-  return { networkId: parseInt(networkId, 10), chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
+  return { networkId: networkId, chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
 }
 
 export function formatAccount(permittedChain: string, account: Account): string {
