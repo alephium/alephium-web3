@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { PageContent } from '../Common/Modal/styles'
 import { useContext } from '../AlephiumConnect'
 import { Container } from './ConnectWithInjector/styles'
@@ -25,6 +25,7 @@ let _init = false
 
 const ConnectWithWalletConnect: React.FC = () => {
   const context = useContext()
+  const [error, setError] = useState<string | undefined>(undefined)
   const { connect } = useConnect({
     chainGroup: context.addressGroup,
     keyType: context.keyType,
@@ -37,12 +38,12 @@ const ConnectWithWalletConnect: React.FC = () => {
     }
 
     _init = true
-    connect()
+    connect().catch((err) => setError(`${err}`))
   }, [])
 
   return (
     <PageContent>
-      <Container>{'Connecting to wallet connect'}</Container>
+      <Container>{error !== undefined ? error : 'Connecting to wallet connect'}</Container>
     </PageContent>
   )
 }
