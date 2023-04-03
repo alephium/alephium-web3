@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 
 import defaultTheme from '../styles/defaultTheme'
 
@@ -24,11 +24,7 @@ import { ThemeProvider } from 'styled-components'
 import { Account, KeyType, SignerProvider } from '@alephium/web3'
 import { Theme, Mode, CustomTheme } from '../types'
 import { routes } from './Common/Modal'
-import {
-  AlephiumConnectContext,
-  AlephiumConnectContextValue,
-  useAlephiumConnectContext
-} from '../contexts/alephiumConnect'
+import { AlephiumConnectContext, AlephiumConnectContextValue } from '../contexts/alephiumConnect'
 
 type AlephiumConnectProviderProps = {
   useTheme?: Theme
@@ -51,7 +47,7 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
 }) => {
   // Only allow for mounting AlephiumConnectProvider once, so we avoid weird global
   // state collisions.
-  const context = useAlephiumConnectContext()
+  const context = useContext(AlephiumConnectContext)
   if (context) {
     throw new Error('Multiple, nested usages of AlephiumConnectProvider detected. Please use only one.')
   }
@@ -61,7 +57,7 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
   const [customTheme, setCustomTheme] = useState<CustomTheme>(useCustomTheme ?? {})
 
   const [open, setOpen] = useState<boolean>(false)
-  const [connector, setConnector] = useState<string>('')
+  const [connectorId, setConnectorId] = useState<AlephiumConnectContextValue['connectorId']>('')
   const [route, setRoute] = useState<string>(routes.CONNECTORS)
   const [account, setAccount] = useState<Account>()
   const [errorMessage, setErrorMessage] = useState<AlephiumConnectContextValue['errorMessage']>('')
@@ -76,8 +72,8 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
     setOpen,
     route,
     setRoute,
-    connector,
-    setConnector,
+    connectorId,
+    setConnectorId,
     account,
     setAccount,
     signerProvider,

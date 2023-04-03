@@ -53,7 +53,7 @@ export function useConnect(options: ConnectOptions) {
   }, [context])
 
   const wcDisconnect = useCallback(async () => {
-    if (context.connector === 'walletConnect' && context.signerProvider) {
+    if (context.connectorId === 'walletConnect' && context.signerProvider) {
       await (context.signerProvider as WalletConnectProvider).disconnect()
       context.setSignerProvider(undefined)
       context.setAccount(undefined)
@@ -93,7 +93,7 @@ export function useConnect(options: ConnectOptions) {
   }, [context])
 
   return useMemo(() => {
-    if (context.connector === 'walletConnect') {
+    if (context.connectorId === 'walletConnect') {
       return { connect: wcConnect, disconnect: wcDisconnect }
     }
     return { connect: connectAlephium, disconnect: disconnectAlephium }

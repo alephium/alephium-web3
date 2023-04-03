@@ -45,7 +45,7 @@ const ConnectModal: React.FC<{
 
   const pages: Page[] = [
     { id: 'CONNECTORS', content: <Connectors /> },
-    { id: 'CONNECT', content: <ConnectUsing connectorId={context.connector} /> },
+    { id: 'CONNECT', content: <ConnectUsing connectorId={context.connectorId} /> },
     { id: 'PROFILE', content: <Profile /> }
   ]
 

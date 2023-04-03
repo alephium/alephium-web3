@@ -18,9 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import React, { createContext, useContext } from 'react'
 
 import { Account, KeyType, SignerProvider } from '@alephium/web3'
-import { Theme, Mode, CustomTheme } from '../types'
+import { Theme, Mode, CustomTheme, Connector } from '../types'
 
-type Connector = any
 type Error = string | React.ReactNode | null
 
 export type AlephiumConnectContextValue = {
@@ -29,8 +28,8 @@ export type AlephiumConnectContextValue = {
   route: string
   setRoute: React.Dispatch<React.SetStateAction<string>>
   errorMessage: Error
-  connector: Connector
-  setConnector: React.Dispatch<React.SetStateAction<Connector>>
+  connectorId: Connector['id']
+  setConnectorId: React.Dispatch<React.SetStateAction<Connector['id']>>
   account?: Account
   setAccount: React.Dispatch<React.SetStateAction<Account | undefined>>
   displayAccount?: (account: Account) => string

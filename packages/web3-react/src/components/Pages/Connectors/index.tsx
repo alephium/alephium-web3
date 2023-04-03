@@ -72,7 +72,7 @@ const Connectors: React.FC = () => {
                   //disabled={!connector.ready}
                   onClick={() => {
                     context.setRoute(routes.CONNECT)
-                    context.setConnector(connector.id)
+                    context.setConnectorId(connector.id)
                   }}
                 >
                   <MobileConnectorIcon>
@@ -116,7 +116,7 @@ const Connectors: React.FC = () => {
                   onClick={() => {
                     //connect()
                     context.setRoute(routes.CONNECT)
-                    context.setConnector(connector.id)
+                    context.setConnectorId(connector.id)
                   }}
                 >
                   <ConnectorIcon>{logo}</ConnectorIcon>
