@@ -25,6 +25,10 @@ export function useAccount(onDisconnected?: () => Promise<void>) {
 
   useEffect(() => {
     const handler = async () => {
+      if (context.connector === 'walletConnect') {
+        return
+      }
+
       const windowAlephium = await getDefaultAlephiumWallet()
       const keyType: KeyType = context.keyType ?? 'default'
       const connectedAccount = windowAlephium?.connectedAccount

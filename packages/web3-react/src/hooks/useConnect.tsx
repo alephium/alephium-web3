@@ -18,12 +18,44 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import type { EnableOptionsBase } from '@alephium/web3'
 import { useContext } from '../components/AlephiumConnect'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
+import { WalletConnectProvider, QRCodeModal } from '@alephium/walletconnect-provider'
 
 export type ConnectOptions = Omit<EnableOptionsBase, 'onDisconnected'>
 
 export function useConnect(options: ConnectOptions) {
   const context = useContext()
+  const wcConnect = useCallback(async () => {
+    const wcProvider = await WalletConnectProvider.init({
+      projectId: '6e2562e43678dd68a9070a62b6d52207',
+      networkId: 4 // FIXME: use correct network id
+    })
+
+    wcProvider.on('displayUri', (uri) => {
+      context.setOpen(false)
+      QRCodeModal.open(uri, () => console.log('qr closed'))
+    })
+
+    try {
+      await wcProvider.connect()
+
+      context.setAccount(wcProvider.account)
+      context.setSignerProvider(wcProvider as any)
+    } catch (e) {
+      console.log('wallet connect error')
+      console.error(e)
+    }
+
+    QRCodeModal.close()
+  }, [context])
+
+  const wcDisconnect = useCallback(async () => {
+    if (context.connector === 'walletConnect' && context.signerProvider) {
+      await (context.signerProvider as WalletConnectProvider).disconnect()
+      context.setSignerProvider(undefined)
+      context.setAccount(undefined)
+    }
+  }, [context])
 
   const disconnectAlephium = useCallback(() => {
     getDefaultAlephiumWallet()
@@ -57,5 +89,10 @@ export function useConnect(options: ConnectOptions) {
     return enabledAccount
   }, [context])
 
-  return { connect: connectAlephium, disconnect: disconnectAlephium }
+  return useMemo(() => {
+    if (context.connector === 'walletConnect') {
+      return { connect: wcConnect, disconnect: wcDisconnect }
+    }
+    return { connect: connectAlephium, disconnect: disconnectAlephium }
+  }, [context])
 }

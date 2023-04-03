@@ -15,46 +15,21 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useCallback, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { PageContent } from '../Common/Modal/styles'
 import { useContext } from '../AlephiumConnect'
 import { Container } from './ConnectWithInjector/styles'
-import { WalletConnectProvider, QRCodeModal } from '@alephium/walletconnect-provider'
+import { useConnect } from '../../hooks/useConnect'
 
 let _init = false
 
 const ConnectWithWalletConnect: React.FC = () => {
   const context = useContext()
-
-  const onQrClose = useCallback(() => {
-    console.log('qr closed')
-  }, [])
-
-  const wcConnect = async () => {
-    const wcProvider = await WalletConnectProvider.init({
-      projectId: '6e2562e43678dd68a9070a62b6d52207',
-      networkId: 0
-    })
-
-    wcProvider.on('displayUri', (uri) => {
-      context.setOpen(false)
-      QRCodeModal.open(uri, onQrClose)
-    })
-
-    try {
-      await wcProvider.connect()
-
-      context.setAccount(wcProvider.account)
-      context.setSignerProvider(wcProvider as any)
-      _init = true
-    } catch (e) {
-      _init = false
-      console.log('wallet connect error')
-      console.error(e)
-    }
-
-    QRCodeModal.close()
-  }
+  const { connect } = useConnect({
+    chainGroup: context.addressGroup,
+    keyType: context.keyType,
+    networkId: context.network ?? ''
+  })
 
   useEffect(() => {
     if (_init) {
@@ -62,7 +37,7 @@ const ConnectWithWalletConnect: React.FC = () => {
     }
 
     _init = true
-    wcConnect()
+    connect()
   }, [])
 
   return (
