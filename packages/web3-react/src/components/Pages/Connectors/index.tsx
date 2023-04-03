@@ -35,7 +35,7 @@ import {
 import { isMobile } from '../../../utils'
 import useDefaultWallets from '../../../wallets/useDefaultWallets'
 
-const Wallets: React.FC = () => {
+const Connectors: React.FC = () => {
   const context = useContext()
   const mobile = isMobile()
   const wallets = useDefaultWallets()
@@ -149,4 +149,4 @@ const Wallets: React.FC = () => {
   )
 }
 
-export default Wallets
+export default Connectors
