@@ -25,9 +25,9 @@ import { Account, KeyType, SignerProvider } from '@alephium/web3'
 import { Theme, Mode, CustomTheme } from '../types'
 
 export const routes = {
-  CONNECTORS: 'connectors',
-  PROFILE: 'profile',
-  CONNECT: 'connect'
+  CONNECTORS: 'CONNECTORS',
+  PROFILE: 'PROFILE',
+  CONNECT: 'CONNECT'
 }
 
 type Connector = any

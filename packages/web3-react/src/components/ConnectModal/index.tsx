@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { useEffect } from 'react'
 import { routes, useContext } from '../AlephiumConnect'
-import Modal from '../Common/Modal'
+import Modal, { Page } from '../Common/Modal'
 
 import Connectors from '../Pages/Connectors'
 import ConnectUsing from './ConnectUsing'
@@ -43,11 +43,11 @@ const ConnectModal: React.FC<{
     context.setRoute(routes.CONNECTORS)
   }
 
-  const pages: any = {
-    connectors: <Connectors />,
-    connect: <ConnectUsing connectorId={context.connector} />,
-    profile: <Profile />
-  }
+  const pages: Page[] = [
+    { id: 'CONNECTORS', content: <Connectors /> },
+    { id: 'CONNECT', content: <ConnectUsing connectorId={context.connector} /> },
+    { id: 'PROFILE', content: <Profile /> }
+  ]
 
   function hide() {
     context.setOpen(false)
