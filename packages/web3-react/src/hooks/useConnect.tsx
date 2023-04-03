@@ -17,14 +17,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import type { EnableOptionsBase } from '@alephium/web3'
-import { useContext } from '../components/AlephiumConnect'
-import { useCallback, useMemo } from 'react'
+import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
+import { useCallback, useMemo, useState } from 'react'
 import { WalletConnectProvider, QRCodeModal } from '@alephium/walletconnect-provider'
 
 export type ConnectOptions = Omit<EnableOptionsBase, 'onDisconnected'>
 
 export function useConnect(options: ConnectOptions) {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
   const wcConnect = useCallback(async () => {
     if (context.network === undefined) {
       throw new Error('No network id specified')

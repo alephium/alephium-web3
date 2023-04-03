@@ -40,13 +40,12 @@ import {
   ErrorMessage
 } from './styles'
 
-import { routes, useContext } from '../../AlephiumConnect'
-
 import { useTransition } from 'react-transition-state'
 import FocusTrap from '../../../hooks/useFocusTrap'
 import usePrevious from '../../../hooks/usePrevious'
 import FitText from '../FitText'
 import { ResetContainer } from '../../../styles'
+import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
 
 const InfoIcon = ({ ...props }) => (
   <svg
@@ -109,6 +108,12 @@ export const contentVariants: Variants = {
   }
 }
 
+export const routes = {
+  CONNECTORS: 'CONNECTORS',
+  PROFILE: 'PROFILE',
+  CONNECT: 'CONNECT'
+}
+
 export type Page = {
   id: keyof typeof routes
   content: ReactNode
@@ -125,7 +130,7 @@ type ModalProps = {
   onInfo?: () => void
 }
 const Modal: React.FC<ModalProps> = ({ open, pages, pageId, positionInside, inline, onClose, onBack, onInfo }) => {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
   const mobile = isMobile()
 
   const [state, setOpen] = useTransition({

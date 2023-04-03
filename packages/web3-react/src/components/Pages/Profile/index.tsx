@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import React, { useEffect, useState } from 'react'
-import { useContext } from '../../AlephiumConnect'
+import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
 
 import { PageContent, ModalBody, ModalContent, ModalH1 } from '../../Common/Modal/styles'
 import Button from '../../Common/Button'
@@ -32,7 +32,7 @@ import { prettifyAttoAlphAmount } from '@alephium/web3'
 import { useConnect } from '../../../hooks/useConnect'
 
 const Profile: React.FC<{ closeModal?: () => void }> = ({ closeModal }) => {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
   const { account } = useAccount()
   const { balance } = useBalance()
   const { disconnect } = useConnect({

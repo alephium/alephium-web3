@@ -17,11 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import { useEffect } from 'react'
-import { useContext } from '../components/AlephiumConnect'
+import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
 import { KeyType } from '@alephium/web3'
 
 export function useAccount(onDisconnected?: () => Promise<void>) {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
 
   useEffect(() => {
     const handler = async () => {
