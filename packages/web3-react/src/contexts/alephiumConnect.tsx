@@ -38,7 +38,6 @@ export type AlephiumConnectContextValue = {
   addressGroup?: number
   keyType?: KeyType
   network?: string
-  networkId?: number
   theme: Theme
   setTheme: React.Dispatch<React.SetStateAction<Theme>>
   mode: Mode
