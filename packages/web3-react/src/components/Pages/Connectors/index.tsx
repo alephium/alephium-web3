@@ -92,7 +92,10 @@ const Connectors: React.FC = () => {
               if (!info) return null
 
               let logos = info.logos
-              let name = info.id === 'walletConnect' ? 'WalletConnect' : info.name ?? connector.name
+              let name = info.name ?? connector.name
+              if (info.id === 'walletConnect') {
+                name = 'WalletConnect'
+              }
 
               if (info.id === 'injected' && connector.name) {
                 const foundInjector = findInjectedConnectorInfo(connector.name, wallets)
