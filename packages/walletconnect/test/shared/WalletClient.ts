@@ -272,6 +272,8 @@ export class WalletClient {
 
         let result: any
 
+        console.log(`==== Request: ${request.method} ${JSON.stringify(request.params)} ====`)
+
         switch (request.method as RelayMethod) {
           case 'alph_signAndSubmitTransferTx':
             result = await this.signer.signAndSubmitTransferTx(request.params as any as SignTransferTxParams)
