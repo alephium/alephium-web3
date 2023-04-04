@@ -18,8 +18,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import type { EnableOptionsBase } from '@alephium/web3'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
-import { useCallback, useMemo, useState } from 'react'
-import { WalletConnectProvider, QRCodeModal } from '@alephium/walletconnect-provider'
+import { useCallback, useMemo } from 'react'
+import { WalletConnectProvider } from '@alephium/walletconnect-provider'
+import QRCodeModal from '@walletconnect/qrcode-modal'
 
 export type ConnectOptions = Omit<EnableOptionsBase, 'onDisconnected'>
 

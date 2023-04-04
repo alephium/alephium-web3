@@ -15,8 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 export * from './provider'
 export * from './constants'
 export * from './types'
-
-export { default as QRCodeModal } from '@walletconnect/qrcode-modal'
