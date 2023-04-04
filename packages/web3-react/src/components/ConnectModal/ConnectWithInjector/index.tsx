@@ -319,7 +319,7 @@ const ConnectWithInjector: React.FC<{
                   <ModalBody>{'failed'}</ModalBody>
                 </ModalContent>
                 {/* Reason: Coinbase Wallet does not expose a QRURI when extension is installed */}
-                {connector.scannable && connector.id !== 'coinbaseWallet' && (
+                {connector.scannable && (
                   <>
                     <OrDivider />
                     <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>
@@ -343,7 +343,7 @@ const ConnectWithInjector: React.FC<{
                 </ModalContent>
 
                 {/* Reason: Coinbase Wallet does not expose a QRURI when extension is installed */}
-                {connector.scannable && connector.id !== 'coinbaseWallet' && (
+                {connector.scannable && (
                   <>
                     <OrDivider />
                     <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>
