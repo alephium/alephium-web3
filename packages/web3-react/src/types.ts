@@ -15,6 +15,28 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { ReactNode } from 'react'
+
 export type Theme = 'auto' | 'web95' | 'retro' | 'soft' | 'midnight' | 'minimal' | 'rounded' | 'nouns'
 export type Mode = 'light' | 'dark' | 'auto'
 export type CustomTheme = any // TODO: define type
+
+export type Connector = {
+  id: string
+  name?: string
+  shortName?: string
+  logos: {
+    default: ReactNode
+    transparent?: ReactNode
+    connectorButton?: ReactNode
+    qrCode?: ReactNode
+    appIcon?: ReactNode
+    mobile?: ReactNode
+  }
+  logoBackground?: string
+  scannable?: boolean
+  extensions?: { [key: string]: string }
+  appUrls?: { [key: string]: string }
+  extensionIsInstalled?: () => boolean
+  defaultConnect?: () => void
+}

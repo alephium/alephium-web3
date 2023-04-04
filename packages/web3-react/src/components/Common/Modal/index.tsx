@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
 import { AnimatePresence, motion, Variants } from 'framer-motion'
 
@@ -40,13 +40,12 @@ import {
   ErrorMessage
 } from './styles'
 
-import { routes, useContext } from '../../AlephiumConnect'
-
 import { useTransition } from 'react-transition-state'
 import FocusTrap from '../../../hooks/useFocusTrap'
 import usePrevious from '../../../hooks/usePrevious'
 import FitText from '../FitText'
 import { ResetContainer } from '../../../styles'
+import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
 
 const InfoIcon = ({ ...props }) => (
   <svg
@@ -109,9 +108,20 @@ export const contentVariants: Variants = {
   }
 }
 
+export const routes = {
+  CONNECTORS: 'CONNECTORS',
+  PROFILE: 'PROFILE',
+  CONNECT: 'CONNECT'
+}
+
+export type Page = {
+  id: keyof typeof routes
+  content: ReactNode
+}
+
 type ModalProps = {
   open?: boolean
-  pages: any
+  pages: Page[]
   pageId: string
   positionInside?: boolean
   inline?: boolean
@@ -120,7 +130,7 @@ type ModalProps = {
   onInfo?: () => void
 }
 const Modal: React.FC<ModalProps> = ({ open, pages, pageId, positionInside, inline, onClose, onBack, onInfo }) => {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
   const mobile = isMobile()
 
   const [state, setOpen] = useTransition({
@@ -359,30 +369,27 @@ const Modal: React.FC<ModalProps> = ({ open, pages, pageId, positionInside, inli
             </ModalHeading>
 
             <InnerContainer>
-              {Object.keys(pages).map((key) => {
-                const page = pages[key]
-                return (
-                  // TODO: We may need to use the follow check avoid unnecessary computations, but this causes a bug where the content flashes
-                  // (key === pageId || key === prevPage) && (
-                  <Page
-                    key={key}
-                    open={key === pageId}
-                    initial={!positionInside && state !== 'entered'}
-                    enterAnim={key === pageId ? (currentDepth > prevDepth ? 'active-scale-up' : 'active') : ''}
-                    exitAnim={key !== pageId ? (currentDepth < prevDepth ? 'exit-scale-down' : 'exit') : ''}
+              {pages.map(({ id, content }) => (
+                // TODO: We may need to use the follow check avoid unnecessary computations, but this causes a bug where the content flashes
+                // (key === pageId || key === prevPage) && (
+                <Page
+                  key={id}
+                  open={id === pageId}
+                  initial={!positionInside && state !== 'entered'}
+                  enterAnim={id === pageId ? (currentDepth > prevDepth ? 'active-scale-up' : 'active') : ''}
+                  exitAnim={id !== pageId ? (currentDepth < prevDepth ? 'exit-scale-down' : 'exit') : ''}
+                >
+                  <PageContents
+                    key={`inner-${id}`}
+                    ref={contentRef}
+                    style={{
+                      pointerEvents: id === pageId && rendered ? 'auto' : 'none'
+                    }}
                   >
-                    <PageContents
-                      key={`inner-${key}`}
-                      ref={contentRef}
-                      style={{
-                        pointerEvents: key === pageId && rendered ? 'auto' : 'none'
-                      }}
-                    >
-                      {page}
-                    </PageContents>
-                  </Page>
-                )
-              })}
+                    {content}
+                  </PageContents>
+                </Page>
+              ))}
             </InnerContainer>
           </BoxContainer>
         </Container>

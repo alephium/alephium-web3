@@ -17,10 +17,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Balance } from '@alephium/web3/dist/src/api/api-alephium'
 import { useEffect, useState } from 'react'
-import { useContext } from '../components/AlephiumConnect'
+import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
 
 export function useBalance() {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
   const [balance, setBalance] = useState<Balance>()
 
   useEffect(() => {

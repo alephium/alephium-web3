@@ -15,34 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { ReactNode } from 'react'
+import { Connector } from '../types'
 import Logos from './../assets/logos'
 
-let supportedConnectors: {
-  id: string
-  name?: string
-  shortName?: string
-  logos: {
-    default: ReactNode
-    transparent?: ReactNode
-    connectorButton?: ReactNode
-    qrCode?: ReactNode
-    appIcon?: ReactNode
-    mobile?: ReactNode
-  }
-  logoBackground?: string
-  scannable?: boolean
-  extensions?: { [key: string]: string }
-  appUrls?: { [key: string]: string }
-  extensionIsInstalled?: () => any
-  defaultConnect?: () => any
-}[] = []
+let supportedConnectors: Connector[] = []
 
 if (typeof window != 'undefined') {
-  interface IDictionary {
-    [index: string]: string
-  }
-
   supportedConnectors = [
     {
       id: 'injected',
@@ -100,8 +78,7 @@ if (typeof window != 'undefined') {
         qrCode: <Logos.WalletConnect background={true} />
       },
       logoBackground: 'var(--ck-brand-walletConnect)',
-      scannable: true,
-      defaultConnect: () => {}
+      scannable: true
     }
   ]
 }

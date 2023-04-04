@@ -15,7 +15,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-export { AlephiumConnectProvider, useContext } from './components/AlephiumConnect'
+export { AlephiumConnectProvider } from './components/AlephiumConnect'
+export { useAlephiumConnectContext } from './contexts/alephiumConnect'
 export { AlephiumConnectButton } from './components/ConnectButton'
 
 export { default as supportedConnectors } from './constants/supportedConnectors'
