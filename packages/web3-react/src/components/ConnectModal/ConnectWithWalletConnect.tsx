@@ -29,7 +29,7 @@ const ConnectWithWalletConnect: React.FC = () => {
   const { connect } = useConnect({
     chainGroup: context.addressGroup,
     keyType: context.keyType,
-    networkId: context.network ?? ''
+    networkId: context.network
   })
 
   useEffect(() => {
@@ -37,8 +37,12 @@ const ConnectWithWalletConnect: React.FC = () => {
       return
     }
 
-    _init = true
-    connect().catch((err) => setError(`${err}`))
+    connect()
+      .then(() => {
+        _init = true
+        setError(undefined)
+      })
+      .catch((err) => setError(`${err}`))
   }, [])
 
   return (

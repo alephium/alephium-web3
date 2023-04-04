@@ -27,6 +27,9 @@ import djb2 from './djb2'
 import { KeyType } from '../signer'
 import { HexString } from '../contract'
 
+export const networkIds = ['mainnet', 'testnet', 'devnet'] as const
+export type NetworkId = (typeof networkIds)[number]
+
 const ec = new EC('secp256k1')
 
 export function encodeSignature(signature: EC.Signature | { r: BN; s: BN }): string {

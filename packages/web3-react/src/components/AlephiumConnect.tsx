@@ -21,7 +21,7 @@ import defaultTheme from '../styles/defaultTheme'
 
 import AlephiumConnectModal from '../components/ConnectModal'
 import { ThemeProvider } from 'styled-components'
-import { Account, KeyType, SignerProvider } from '@alephium/web3'
+import { Account, KeyType, NetworkId, SignerProvider } from '@alephium/web3'
 import { Theme, Mode, CustomTheme } from '../types'
 import { routes } from './Common/Modal'
 import { AlephiumConnectContext, AlephiumConnectContextValue } from '../contexts/alephiumConnect'
@@ -30,7 +30,7 @@ type AlephiumConnectProviderProps = {
   useTheme?: Theme
   useMode?: Mode
   useCustomTheme?: CustomTheme
-  network?: string
+  network?: NetworkId
   addressGroup?: number
   keyType?: KeyType
   children?: React.ReactNode
@@ -57,7 +57,7 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
   const [customTheme, setCustomTheme] = useState<CustomTheme>(useCustomTheme ?? {})
 
   const [open, setOpen] = useState<boolean>(false)
-  const [connectorId, setConnectorId] = useState<AlephiumConnectContextValue['connectorId']>('')
+  const [connectorId, setConnectorId] = useState<AlephiumConnectContextValue['connectorId']>('injected')
   const [route, setRoute] = useState<string>(routes.CONNECTORS)
   const [account, setAccount] = useState<Account>()
   const [errorMessage, setErrorMessage] = useState<AlephiumConnectContextValue['errorMessage']>('')

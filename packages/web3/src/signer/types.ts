@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Number256, Token } from '../api'
 import { node } from '../api'
-import { Eq, assertType } from '../utils'
+import { Eq, assertType, NetworkId } from '../utils'
 
 export type Address = string
 
@@ -169,7 +169,7 @@ export interface EnableOptionsBase {
   // keyType - specify which type of signing algorithm to use. Default: Secp256K1
   keyType?: KeyType
   // networkId - specify which network to connect. Default: the current network
-  networkId?: string
+  networkId?: NetworkId
 
   onDisconnected: () => Promise<void> | void
 }
