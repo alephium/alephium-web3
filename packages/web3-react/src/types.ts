@@ -20,9 +20,10 @@ import { ReactNode } from 'react'
 export type Theme = 'auto' | 'web95' | 'retro' | 'soft' | 'midnight' | 'minimal' | 'rounded' | 'nouns'
 export type Mode = 'light' | 'dark' | 'auto'
 export type CustomTheme = any // TODO: define type
+export type ConnectorId = 'injected' | 'walletConnect'
 
 export type Connector = {
-  id: string
+  id: ConnectorId
   name?: string
   shortName?: string
   logos: {

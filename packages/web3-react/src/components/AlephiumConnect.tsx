@@ -57,7 +57,7 @@ export const AlephiumConnectProvider: React.FC<AlephiumConnectProviderProps> = (
   const [customTheme, setCustomTheme] = useState<CustomTheme>(useCustomTheme ?? {})
 
   const [open, setOpen] = useState<boolean>(false)
-  const [connectorId, setConnectorId] = useState<AlephiumConnectContextValue['connectorId']>('')
+  const [connectorId, setConnectorId] = useState<AlephiumConnectContextValue['connectorId']>('injected')
   const [route, setRoute] = useState<string>(routes.CONNECTORS)
   const [account, setAccount] = useState<Account>()
   const [errorMessage, setErrorMessage] = useState<AlephiumConnectContextValue['errorMessage']>('')
