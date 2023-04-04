@@ -254,13 +254,18 @@ function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
   return txStatus.type === 'Confirmed'
 }
 
-async function waitTxConfirmed(provider: NodeProvider, txId: string, confirmations: number): Promise<node.Confirmed> {
+async function waitTxConfirmed(
+  provider: NodeProvider,
+  txId: string,
+  confirmations: number,
+  requestInterval: number
+): Promise<node.Confirmed> {
   const status = await provider.transactions.getTransactionsStatus({ txId: txId })
   if (isConfirmed(status) && status.chainConfirmations >= confirmations) {
     return status
   }
-  await new Promise((r) => setTimeout(r, 1000))
-  return waitTxConfirmed(provider, txId, confirmations)
+  await new Promise((r) => setTimeout(r, requestInterval))
+  return waitTxConfirmed(provider, txId, confirmations, requestInterval)
 }
 
 function getTaskId(code: Contract | Script, taskTag?: string): string {
@@ -271,7 +276,8 @@ function createDeployer<Settings = unknown>(
   network: Network<Settings>,
   signer: PrivateKeyWallet,
   deployContractResults: Map<string, DeployContractExecutionResult>,
-  runScriptResults: Map<string, RunScriptResult>
+  runScriptResults: Map<string, RunScriptResult>,
+  requestInterval: number
 ): Deployer {
   const account: Account = {
     keyType: 'default',
@@ -312,7 +318,12 @@ function createDeployer<Settings = unknown>(
     console.log(`Deploying contract ${taskId}`)
     console.log(`Deployer - group ${signer.group} - ${signer.address}`)
     const deployResult = await contractFactory.deploy(signer, params)
-    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), deployResult.txId, confirmations)
+    const confirmed = await waitTxConfirmed(
+      web3.getCurrentNodeProvider(),
+      deployResult.txId,
+      confirmations,
+      requestInterval
+    )
     const result: DeployContractExecutionResult = {
       ...deployResult,
       gasPrice: deployResult.gasPrice.toString(),
@@ -352,7 +363,12 @@ function createDeployer<Settings = unknown>(
     }
     console.log(`Executing script ${taskId}`)
     const executeResult = await executeFunc(signer, params)
-    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), executeResult.txId, confirmations)
+    const confirmed = await waitTxConfirmed(
+      web3.getCurrentNodeProvider(),
+      executeResult.txId,
+      confirmations,
+      requestInterval
+    )
     const runScriptResult: RunScriptResult = {
       ...executeResult,
       gasPrice: executeResult.gasPrice.toString(),
@@ -492,7 +508,7 @@ export async function deploy<Settings = unknown>(
     const deploymentsPerAddress =
       deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
     deployments.add(deploymentsPerAddress)
-    await deployToGroup(configuration, deploymentsPerAddress, signer, network, scripts)
+    await deployToGroup(networkId, configuration, deploymentsPerAddress, signer, network, scripts)
   }
 }
 
@@ -504,13 +520,15 @@ export async function deployToDevnet(): Promise<Deployments> {
 }
 
 async function deployToGroup<Settings = unknown>(
+  networkId: NetworkId,
   configuration: Configuration<Settings>,
   deployments: DeploymentsPerAddress,
   signer: PrivateKeyWallet,
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
 ) {
-  const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts)
+  const requestInterval = networkId === 'devnet' ? 1000 : 15000
+  const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts, requestInterval)
 
   for (const script of scripts) {
     try {
