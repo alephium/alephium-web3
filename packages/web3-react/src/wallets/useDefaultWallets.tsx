@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { getWallets } from './'
 import { WalletProps } from './wallet'
 
-function useDefaultWallets(): WalletProps[] | any {
+function useDefaultWallets(): WalletProps[] {
   return getWallets({})
 }
 

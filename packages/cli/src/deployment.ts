@@ -33,7 +33,8 @@ import {
   SignerProvider,
   Fields,
   ContractFactory,
-  addStdIdToFields
+  addStdIdToFields,
+  NetworkId
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -43,7 +44,6 @@ import {
   DeployContractExecutionResult,
   RunScriptResult,
   Network,
-  NetworkType,
   Deployer,
   DeployFunction,
   Configuration,
@@ -116,7 +116,7 @@ export class Deployments {
     }
   }
 
-  static async load(configuration: Configuration, networkType: NetworkType): Promise<Deployments> {
+  static async load(configuration: Configuration, networkType: NetworkId): Promise<Deployments> {
     const network = getNetwork(configuration, networkType)
     const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkType, network)
     return Deployments.from(deploymentsFile)
@@ -440,7 +440,7 @@ function getSigners(privateKeys: string[]): PrivateKeyWallet[] {
 
 export async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkType: NetworkType,
+  networkType: NetworkId,
   deployments: Deployments
 ): Promise<void> {
   const network = await getNetwork(configuration, networkType)

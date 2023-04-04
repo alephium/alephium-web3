@@ -15,12 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { AnimatePresence, motion } from 'framer-motion'
 import React, { useState } from 'react'
 import supportedConnectors from './../../constants/supportedConnectors'
 
 import { contentVariants } from '../Common/Modal'
 import ConnectWithInjector from './ConnectWithInjector'
+import ConnectWithWalletConnect from './ConnectWithWalletConnect'
 
 import Alert from '../Common/Alert'
 
@@ -42,8 +44,7 @@ const ConnectUsing: React.FC<{ connectorId: string }> = ({ connectorId }) => {
 
   if (!connector) return <Alert>Connector not found</Alert>
 
-  // TODO: Add WalletConnect
-  if (status === states.QRCODE) return <Alert>WalletConnect soon!</Alert>
+  if (status === states.QRCODE) return <ConnectWithWalletConnect />
 
   return (
     <AnimatePresence>

@@ -18,7 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import path from 'path'
 import fs from 'fs'
-import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network, NetworkType } from './types'
+import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network } from './types'
+import { NetworkId } from '@alephium/web3'
 
 export function loadConfig<Settings = unknown>(filename: string): Configuration<Settings> {
   const configPath = path.resolve(filename)
@@ -63,7 +64,7 @@ export async function isDevnetLive(): Promise<boolean> {
 
 export function getDeploymentFilePath(
   artifactDir: string | undefined,
-  networkType: NetworkType,
+  networkType: NetworkId,
   network: Network
 ): string {
   return network.deploymentStatusFile
@@ -73,7 +74,7 @@ export function getDeploymentFilePath(
 
 export function getNetwork<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkType: NetworkType
+  networkType: NetworkId
 ): Network<Settings> & { networkId: number } {
   const networkInput = configuration.networks[`${networkType}`]
   const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[`${networkType}`]

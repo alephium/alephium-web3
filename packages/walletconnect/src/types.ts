@@ -94,7 +94,7 @@ export type ProviderEvent =
 assertType<Eq<ProviderEvent, keyof ProviderEventArguments>>()
 export type ProviderEventArgument<T extends ProviderEvent> = ProviderEventArguments[T]
 
-export type NetworkId = number
+export type NetworkId = string
 export type ChainGroup = number | undefined // number: a specific address group; undefined: all address groups
 export interface ChainInfo {
   networkId: NetworkId

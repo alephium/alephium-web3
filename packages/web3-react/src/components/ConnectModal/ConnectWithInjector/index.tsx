@@ -19,7 +19,7 @@ import React, { useEffect, useState } from 'react'
 import { AnimatePresence, Variants } from 'framer-motion'
 import { Container, ConnectingContainer, ConnectingAnimation, RetryButton, RetryIconContainer, Content } from './styles'
 
-import { useContext } from '../../AlephiumConnect'
+import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
 import supportedConnectors from '../../../constants/supportedConnectors'
 
 import {
@@ -87,7 +87,7 @@ const ConnectWithInjector: React.FC<{
   switchConnectMethod: (id?: string) => void
   forceState?: typeof states
 }> = ({ connectorId, switchConnectMethod, forceState }) => {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
 
   const { connect } = useConnect({
     chainGroup: context.addressGroup,
@@ -319,7 +319,7 @@ const ConnectWithInjector: React.FC<{
                   <ModalBody>{'failed'}</ModalBody>
                 </ModalContent>
                 {/* Reason: Coinbase Wallet does not expose a QRURI when extension is installed */}
-                {connector.scannable && connector.id !== 'coinbaseWallet' && (
+                {connector.scannable && (
                   <>
                     <OrDivider />
                     <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>
@@ -343,7 +343,7 @@ const ConnectWithInjector: React.FC<{
                 </ModalContent>
 
                 {/* Reason: Coinbase Wallet does not expose a QRURI when extension is installed */}
-                {connector.scannable && connector.id !== 'coinbaseWallet' && (
+                {connector.scannable && (
                   <>
                     <OrDivider />
                     <Button icon={<Scan />} onClick={() => switchConnectMethod(id)}>

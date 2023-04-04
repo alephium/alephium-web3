@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { useEffect } from 'react'
-import { routes, useContext } from '../AlephiumConnect'
-import Modal from '../Common/Modal'
+import { useAlephiumConnectContext } from '../../contexts/alephiumConnect'
+import Modal, { Page, routes } from '../Common/Modal'
 
 import Connectors from '../Pages/Connectors'
 import ConnectUsing from './ConnectUsing'
@@ -32,7 +32,7 @@ const ConnectModal: React.FC<{
   theme?: Theme
   customTheme?: CustomTheme
 }> = ({ mode = 'auto', theme = 'auto', customTheme = customThemeDefault }) => {
-  const context = useContext()
+  const context = useAlephiumConnectContext()
   const { isConnected } = useAccount()
 
   const closeable = true
@@ -43,11 +43,11 @@ const ConnectModal: React.FC<{
     context.setRoute(routes.CONNECTORS)
   }
 
-  const pages: any = {
-    connectors: <Connectors />,
-    connect: <ConnectUsing connectorId={context.connector} />,
-    profile: <Profile />
-  }
+  const pages: Page[] = [
+    { id: 'CONNECTORS', content: <Connectors /> },
+    { id: 'CONNECT', content: <ConnectUsing connectorId={context.connectorId} /> },
+    { id: 'PROFILE', content: <Profile /> }
+  ]
 
   function hide() {
     context.setOpen(false)
