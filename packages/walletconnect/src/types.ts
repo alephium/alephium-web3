@@ -29,7 +29,8 @@ import {
   SignMessageResult,
   ApiRequestArguments,
   assertType,
-  Eq
+  Eq,
+  NetworkId
 } from '@alephium/web3'
 import { SignClientTypes } from '@walletconnect/types'
 import { RELAY_METHODS } from './constants'
@@ -94,7 +95,6 @@ export type ProviderEvent =
 assertType<Eq<ProviderEvent, keyof ProviderEventArguments>>()
 export type ProviderEventArgument<T extends ProviderEvent> = ProviderEventArguments[T]
 
-export type NetworkId = string
 export type ChainGroup = number | undefined // number: a specific address group; undefined: all address groups
 export interface ChainInfo {
   networkId: NetworkId

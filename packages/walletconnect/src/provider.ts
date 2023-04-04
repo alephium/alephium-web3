@@ -36,7 +36,9 @@ import {
   addressFromPublicKey,
   NodeProvider,
   ExplorerProvider,
-  ApiRequestArguments
+  ApiRequestArguments,
+  NetworkId,
+  networkIds
 } from '@alephium/web3'
 
 import { LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -48,8 +50,7 @@ import {
   ProviderEventArgument,
   RelayMethod,
   ProjectMetaData,
-  ChainInfo,
-  NetworkId
+  ChainInfo
 } from './types'
 
 export interface ProviderOptions {
@@ -369,7 +370,11 @@ export function parseChain(chainString: string): ChainInfo {
   if (chainGroupDecoded < -1) {
     throw Error('Chain group in protocol needs to be either -1 or non-negative')
   }
-  return { networkId: networkId, chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
+  const networkIdList = networkIds as ReadonlyArray<string>
+  if (!networkIdList.includes(networkId)) {
+    throw Error(`Invalid network id, expect one of ${networkIdList}`)
+  }
+  return { networkId: networkId as NetworkId, chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
 }
 
 export function formatAccount(permittedChain: string, account: Account): string {
