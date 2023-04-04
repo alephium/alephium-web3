@@ -49,12 +49,13 @@ import {
   RelayMethod,
   ProjectMetaData,
   ChainInfo,
-  NetworkId
+  NetworkId,
+  networkIds
 } from './types'
 
 export interface ProviderOptions {
   // Alephium options
-  networkId: NetworkId // the id of the network, e.g. mainnet, testnet or devnet.
+  networkId: NetworkId // the id of the network
   chainGroup?: number // either a specific group or undefined to support all groups
   methods?: RelayMethod[] // all of the methods to be used in relay; no need to configure in most cases
 
@@ -369,7 +370,10 @@ export function parseChain(chainString: string): ChainInfo {
   if (chainGroupDecoded < -1) {
     throw Error('Chain group in protocol needs to be either -1 or non-negative')
   }
-  return { networkId: networkId, chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
+  if (!networkIds.some((id) => id === networkId)) {
+    throw Error('Network ID in protocol is not one of the valid values: mainnet, testnet, devnet')
+  }
+  return { networkId: networkId as NetworkId, chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
 }
 
 export function formatAccount(permittedChain: string, account: Account): string {

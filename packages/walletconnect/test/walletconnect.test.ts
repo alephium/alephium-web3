@@ -22,7 +22,7 @@ import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
 
-const NETWORK_ID = 'devnet'
+const NETWORK_ID: NetworkId = 'devnet'
 const CHAIN_GROUP = 0
 const RPC_URL = 'http://127.0.0.1:22973'
 
