@@ -18,23 +18,22 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { NetworkType, Configuration } from '../src/types'
 import { deploy, Deployments } from '../src/deployment'
-import { getDeploymentFilePath, getNetwork } from '../src'
+import { getDeploymentFilePath } from '../src'
 
 export async function deployAndSaveProgress<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkType: NetworkType
 ): Promise<void> {
-  const network = getNetwork(configuration, networkType)
-  const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkType, network)
+  const deploymentsFile = getDeploymentFilePath(configuration, networkType)
   const deployments = await Deployments.from(deploymentsFile)
   try {
     await deploy(configuration, networkType, deployments)
   } catch (error) {
-    await deployments.saveToFile(deploymentsFile)
+    await deployments.saveToFile(deploymentsFile, configuration)
     console.error(`Failed to deploy the project`)
     throw error
   }
 
-  await deployments.saveToFile(deploymentsFile)
+  await deployments.saveToFile(deploymentsFile, configuration)
   console.log('✅ Deployment scripts executed!')
 }

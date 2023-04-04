@@ -52,6 +52,7 @@ import {
 } from './types'
 import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './utils'
 import { groupOfAddress } from '@alephium/web3'
+import { genLoadDeployments } from './codegen'
 
 export class Deployments {
   deployments: DeploymentsPerAddress[]
@@ -91,14 +92,16 @@ export class Deployments {
     return this.deployments.find((deployment) => deployment.deployerAddress === deployerAddress)
   }
 
-  async saveToFile(filepath: string): Promise<void> {
+  async saveToFile(filepath: string, config: Configuration): Promise<void> {
     const dirpath = path.dirname(filepath)
     if (!fs.existsSync(dirpath)) {
       fs.mkdirSync(dirpath, { recursive: true })
     }
     const deployments = this.deployments.map((v) => v.marshal())
     const content = JSON.stringify(deployments.length === 1 ? deployments[0] : deployments, null, 2)
-    return fsPromises.writeFile(filepath, content)
+    await fsPromises.writeFile(filepath, content)
+    // This needs to be at the end since it will check if the deployments file exists
+    await genLoadDeployments(config)
   }
 
   static async from(filepath: string): Promise<Deployments> {
@@ -117,8 +120,7 @@ export class Deployments {
   }
 
   static async load(configuration: Configuration, networkId: NetworkId): Promise<Deployments> {
-    const network = getNetwork(configuration, networkId)
-    const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkId, network)
+    const deploymentsFile = getDeploymentFilePath(configuration, networkId)
     return Deployments.from(deploymentsFile)
   }
 }
