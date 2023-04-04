@@ -98,6 +98,7 @@ export class WalletConnectProvider extends SignerProvider {
     this.permittedChain = formatChain(this.networkId, this.chainGroup)
 
     this.methods = opts.methods ?? [...RELAY_METHODS]
+    console.log(`==== ${this.methods}`)
     if (this.methods.includes('alph_requestNodeApi')) {
       this.nodeProvider = NodeProvider.Remote(this.requestNodeAPI)
     } else {
@@ -257,6 +258,7 @@ export class WalletConnectProvider extends SignerProvider {
     if (!(this.methods as string[]).includes(args.method)) {
       return Promise.reject(new Error(`Invalid method was passed: ${args.method}`))
     }
+    console.log(`===== request ${args.method} ${JSON.stringify(args.params)}`)
 
     if (!args.method.startsWith('alph_request')) {
       const signerAddress = args.params?.signerAddress

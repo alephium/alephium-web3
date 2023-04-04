@@ -171,6 +171,10 @@ describe('WalletConnectProvider with single chainGroup', function () {
     await verifySign(provider, walletClient)
   })
 
+  it('should forward requests', async () => {
+    await provider.nodeProvider!.infos.getInfosVersion()
+  })
+
   it('accountChanged', async () => {
     // change to account within the same group
     const currentAddress = (await provider.getSelectedAccount()).address
