@@ -26,7 +26,8 @@ import {
   SignMessageParams,
   Account,
   addressToGroup,
-  ApiRequestArguments
+  ApiRequestArguments,
+  NetworkId
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
@@ -38,8 +39,7 @@ import {
   isCompatibleChainGroup,
   RelayMethod,
   WalletConnectProvider,
-  formatAccount,
-  NetworkId
+  formatAccount
 } from '../../src'
 import SignClient from '@walletconnect/sign-client'
 import { getSdkError } from '@walletconnect/utils'
@@ -94,7 +94,7 @@ export class WalletClient {
 
   constructor(provider: WalletConnectProvider, opts: Partial<WalletClientOpts>) {
     this.provider = provider
-    this.networkId = opts?.networkId ?? ''
+    this.networkId = opts?.networkId ?? 'devnet'
     this.rpcUrl = opts?.rpcUrl || 'http://alephium:22973'
     this.permittedChainGroup = undefined
     this.nodeProvider = new NodeProvider(this.rpcUrl)
