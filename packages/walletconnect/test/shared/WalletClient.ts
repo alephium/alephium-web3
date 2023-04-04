@@ -38,7 +38,8 @@ import {
   isCompatibleChainGroup,
   RelayMethod,
   WalletConnectProvider,
-  formatAccount
+  formatAccount,
+  NetworkId
 } from '../../src'
 import SignClient from '@walletconnect/sign-client'
 import { getSdkError } from '@walletconnect/utils'
@@ -46,7 +47,7 @@ import { getSdkError } from '@walletconnect/utils'
 export interface WalletClientOpts {
   activePrivateKey: string
   otherPrivateKeys: string[]
-  networkId: number
+  networkId: NetworkId
   rpcUrl: string
 }
 
@@ -56,7 +57,7 @@ export class WalletClient {
   public provider: WalletConnectProvider
   public nodeProvider: NodeProvider
   public signer: PrivateKeyWallet
-  public networkId: number
+  public networkId: NetworkId
   public rpcUrl: string
 
   public client?: SignClient
@@ -93,7 +94,7 @@ export class WalletClient {
 
   constructor(provider: WalletConnectProvider, opts: Partial<WalletClientOpts>) {
     this.provider = provider
-    this.networkId = opts?.networkId ?? -1
+    this.networkId = opts?.networkId ?? ''
     this.rpcUrl = opts?.rpcUrl || 'http://alephium:22973'
     this.permittedChainGroup = undefined
     this.nodeProvider = new NodeProvider(this.rpcUrl)
@@ -117,7 +118,7 @@ export class WalletClient {
     await this.updateAccounts(changedChainId)
   }
 
-  public async changeChain(networkId: number, rpcUrl: string) {
+  public async changeChain(networkId: NetworkId, rpcUrl: string) {
     if (this.networkId === networkId) {
       return
     }
@@ -137,7 +138,7 @@ export class WalletClient {
     this.disconnected = true
   }
 
-  private setNetworkId(networkId: number, rpcUrl: string) {
+  private setNetworkId(networkId: NetworkId, rpcUrl: string) {
     if (this.networkId !== networkId) {
       this.networkId = networkId
     }

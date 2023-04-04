@@ -15,14 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { formatChain, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
+import { formatChain, NetworkId, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
 import { WalletClient } from './shared'
 import { web3, node, NodeProvider, verifySignedMessage, Project, groupOfAddress } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
 
-const NETWORK_ID = 4
+const NETWORK_ID = 'devnet'
 const CHAIN_GROUP = 0
 const RPC_URL = 'http://127.0.0.1:22973'
 
@@ -109,14 +109,14 @@ describe('Unit tests', function () {
   const expectedChainGroup1 = 1
 
   it('test formatChain & parseChain', () => {
-    expect(formatChain(4, expectedChainGroup0)).toEqual('alephium:4/2')
-    expect(formatChain(4, expectedChainGroup1)).toEqual('alephium:4/1')
-    expect(formatChain(4, undefined)).toEqual('alephium:4/-1')
-    expect(() => formatChain(4, -1)).toThrow()
-    expect(parseChain('alephium:4/2')).toEqual({ networkId: 4, chainGroup: 2 })
-    expect(parseChain('alephium:4/1')).toEqual({ networkId: 4, chainGroup: 1 })
-    expect(parseChain('alephium:4/-1')).toEqual({ networkId: 4, chainGroup: undefined })
-    expect(() => parseChain('alephium:4/-2')).toThrow()
+    expect(formatChain('devnet', expectedChainGroup0)).toEqual('alephium:devnet/2')
+    expect(formatChain('devnet', expectedChainGroup1)).toEqual('alephium:devnet/1')
+    expect(formatChain('devnet', undefined)).toEqual('alephium:devnet/-1')
+    expect(() => formatChain('devnet', -1)).toThrow()
+    expect(parseChain('alephium:devnet/2')).toEqual({ networkId: 'devnet', chainGroup: 2 })
+    expect(parseChain('alephium:devnet/1')).toEqual({ networkId: 'devnet', chainGroup: 1 })
+    expect(parseChain('alephium:devnet/-1')).toEqual({ networkId: 'devnet', chainGroup: undefined })
+    expect(() => parseChain('alephium:devnet/-2')).toThrow()
   })
 
   it('should initialize providers', async () => {
@@ -142,7 +142,7 @@ describe('WalletConnectProvider with single chainGroup', function () {
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
     await provider.connect()
-    expect(provider.permittedChain).toEqual('alephium:4/0')
+    expect(provider.permittedChain).toEqual('alephium:devnet/0')
     const selectetAddress = (await provider.getSelectedAccount()).address
     expect(selectetAddress).toEqual(signerA.address)
   })
@@ -184,13 +184,13 @@ describe('WalletConnectProvider with single chainGroup', function () {
     // change to account b, which is not supported
     expectThrowsAsync(
       async () => await walletClient.changeAccount(ACCOUNTS.b.privateKey),
-      'Error changing account, chain alephium:4/1 not permitted'
+      'Error changing account, chain alephium:devnet/1 not permitted'
     )
   })
 
   it('networkChanged', async () => {
     // change to testnet
-    await verifyNetworkChange(1, 'https://testnet-wallet.alephium.org', provider, walletClient)
+    await verifyNetworkChange('testnet', 'https://testnet-wallet.alephium.org', provider, walletClient)
   })
 })
 
@@ -209,7 +209,7 @@ describe('WalletConnectProvider with arbitrary chainGroup', function () {
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
     await provider.connect()
-    expect(provider.permittedChain).toEqual('alephium:4/-1')
+    expect(provider.permittedChain).toEqual('alephium:devnet/-1')
     const selectedAddress = (await provider.getSelectedAccount()).address
     expect(selectedAddress).toEqual(signerA.address)
   })
@@ -247,7 +247,7 @@ describe('WalletConnectProvider with arbitrary chainGroup', function () {
 })
 
 async function verifyNetworkChange(
-  networkId: number,
+  networkId: NetworkId,
   rpcUrl: string,
   provider: WalletConnectProvider,
   walletClient: WalletClient
