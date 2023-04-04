@@ -40,6 +40,7 @@ const ConnectWithWalletConnect: React.FC = () => {
     connect()
       .then(() => {
         _init = true
+        setError(undefined)
       })
       .catch((err) => setError(`${err}`))
   }, [])
