@@ -15,9 +15,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { formatChain, NetworkId, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
+import { formatChain, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
 import { WalletClient } from './shared'
-import { web3, node, NodeProvider, verifySignedMessage, Project, groupOfAddress } from '@alephium/web3'
+import { web3, node, NodeProvider, verifySignedMessage, Project, groupOfAddress, NetworkId } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
@@ -83,7 +83,7 @@ const TEST_PROVIDER_OPTS: ProviderOptions = {
 }
 
 const TEST_WALLET_CLIENT_OPTS = {
-  networkId: NETWORK_ID,
+  networkId: NETWORK_ID as NetworkId,
   rpcUrl: RPC_URL,
   activePrivateKey: ACCOUNTS.a.privateKey,
   relayUrl: TEST_RELAY_URL,
