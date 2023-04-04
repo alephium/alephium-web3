@@ -30,7 +30,8 @@ import {
   Project,
   DEFAULT_COMPILER_OPTIONS,
   SignerProvider,
-  Script
+  Script,
+  NetworkId
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 import path from 'path'
@@ -44,8 +45,6 @@ export interface Network<Settings = unknown> {
   settings: Settings
 }
 
-export type NetworkType = 'mainnet' | 'testnet' | 'devnet'
-
 export interface Configuration<Settings = unknown> {
   nodeVersion?: string
   nodeConfigFile?: string
@@ -56,8 +55,8 @@ export interface Configuration<Settings = unknown> {
   deploymentScriptDir?: string
   compilerOptions?: CompilerOptions
 
-  defaultNetwork: NetworkType
-  networks: Record<NetworkType, Network<Settings>>
+  defaultNetwork: NetworkId
+  networks: Record<NetworkId, Network<Settings>>
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {

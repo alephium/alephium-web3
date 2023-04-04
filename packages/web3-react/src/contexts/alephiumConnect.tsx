@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import React, { createContext, useContext } from 'react'
 
-import { Account, KeyType, SignerProvider } from '@alephium/web3'
+import { Account, KeyType, SignerProvider, NetworkId } from '@alephium/web3'
 import { Theme, Mode, CustomTheme, Connector } from '../types'
 
 type Error = string | React.ReactNode | null
@@ -37,7 +37,7 @@ export type AlephiumConnectContextValue = {
   setSignerProvider: React.Dispatch<React.SetStateAction<SignerProvider | undefined>>
   addressGroup?: number
   keyType?: KeyType
-  network?: string
+  network?: NetworkId
   theme: Theme
   setTheme: React.Dispatch<React.SetStateAction<Theme>>
   mode: Mode
