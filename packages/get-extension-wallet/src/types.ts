@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Account, EnableOptionsBase, InteractiveSignerProvider } from '@alephium/web3'
+import { Account, EnableOptionsBase, InteractiveSignerProvider, NetworkId } from '@alephium/web3'
 
 export type EnableOptions = EnableOptionsBase
 
@@ -36,7 +36,7 @@ export abstract class AlephiumWindowObject extends InteractiveSignerProvider<Ena
   }
 
   abstract get connectedAccount(): Account | undefined
-  abstract get connectedNetworkId(): string | undefined
+  abstract get connectedNetworkId(): NetworkId | undefined
 }
 
 export type WalletProvider = {
