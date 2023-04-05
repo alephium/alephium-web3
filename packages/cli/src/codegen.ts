@@ -504,16 +504,24 @@ export async function genLoadDeployments(config: Configuration) {
 
     ${genDeploymentsType(allDeployments)}
 
-    export function loadDeployments(networkId: NetworkId, deployerAddress?: string): Deployments | undefined {
+    export function loadDeployments(networkId: NetworkId, deployerAddress?: string): Deployments {
       ${selectByNetwork}
       if (deployments === undefined) {
-        return undefined
+        throw Error('The contract has not been deployed to the ' + networkId)
       }
       const allDeployments = Array.isArray(deployments) ? deployments : [deployments]
       if (deployerAddress === undefined) {
-        return allDeployments[0] as Deployments
+        if (allDeployments.length > 1) {
+          throw Error('The contract has been deployed multiple times on ' + networkId + ', please specify the deployer address')
+        } else {
+          return allDeployments[0]
+        }
       }
-      return allDeployments.find((d) => d.deployerAddress === deployerAddress) as (Deployments | undefined)
+      const result = allDeployments.find((d) => d.deployerAddress === deployerAddress)
+      if (result === undefined) {
+        throw Error('The contract deployment result does not exist')
+      }
+      return result
     }
   `
   const deploymentsFilePath = path.join(tsPath, 'deployments.ts')
