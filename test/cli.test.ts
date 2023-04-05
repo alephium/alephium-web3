@@ -37,10 +37,8 @@ describe('utils', () => {
   })
 
   it('should get the deployment file path', () => {
-    expect(getDeploymentFilePath(undefined, 'devnet', devnet)).toEqual(
-      path.join('artifacts', '.deployments.devnet.json')
-    )
-    expect(getDeploymentFilePath('contracts', 'devnet', devnet)).toEqual(
+    expect(getDeploymentFilePath(config, 'devnet')).toEqual(path.join('artifacts', '.deployments.devnet.json'))
+    expect(getDeploymentFilePath({ ...config, artifactDir: 'contracts' }, 'devnet')).toEqual(
       path.join('contracts', '.deployments.devnet.json')
     )
   })

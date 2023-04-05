@@ -34,7 +34,8 @@ import {
   Fields,
   ContractFactory,
   addStdIdToFields,
-  NetworkId
+  NetworkId,
+  ContractInstance
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -52,6 +53,7 @@ import {
 } from './types'
 import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from './utils'
 import { groupOfAddress } from '@alephium/web3'
+import { genLoadDeployments } from './codegen'
 
 export class Deployments {
   deployments: DeploymentsPerAddress[]
@@ -91,14 +93,16 @@ export class Deployments {
     return this.deployments.find((deployment) => deployment.deployerAddress === deployerAddress)
   }
 
-  async saveToFile(filepath: string): Promise<void> {
+  async saveToFile(filepath: string, config: Configuration): Promise<void> {
     const dirpath = path.dirname(filepath)
     if (!fs.existsSync(dirpath)) {
       fs.mkdirSync(dirpath, { recursive: true })
     }
     const deployments = this.deployments.map((v) => v.marshal())
     const content = JSON.stringify(deployments.length === 1 ? deployments[0] : deployments, null, 2)
-    return fsPromises.writeFile(filepath, content)
+    await fsPromises.writeFile(filepath, content)
+    // This needs to be at the end since it will check if the deployments file exists
+    await genLoadDeployments(config)
   }
 
   static async from(filepath: string): Promise<Deployments> {
@@ -116,9 +120,8 @@ export class Deployments {
     }
   }
 
-  static async load(configuration: Configuration, networkType: NetworkId): Promise<Deployments> {
-    const network = getNetwork(configuration, networkType)
-    const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkType, network)
+  static async load(configuration: Configuration, networkId: NetworkId): Promise<Deployments> {
+    const deploymentsFile = getDeploymentFilePath(configuration, networkId)
     return Deployments.from(deploymentsFile)
   }
 }
@@ -252,13 +255,18 @@ function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
   return txStatus.type === 'Confirmed'
 }
 
-async function waitTxConfirmed(provider: NodeProvider, txId: string, confirmations: number): Promise<node.Confirmed> {
+async function waitTxConfirmed(
+  provider: NodeProvider,
+  txId: string,
+  confirmations: number,
+  requestInterval: number
+): Promise<node.Confirmed> {
   const status = await provider.transactions.getTransactionsStatus({ txId: txId })
   if (isConfirmed(status) && status.chainConfirmations >= confirmations) {
     return status
   }
-  await new Promise((r) => setTimeout(r, 1000))
-  return waitTxConfirmed(provider, txId, confirmations)
+  await new Promise((r) => setTimeout(r, requestInterval))
+  return waitTxConfirmed(provider, txId, confirmations, requestInterval)
 }
 
 function getTaskId(code: Contract | Script, taskTag?: string): string {
@@ -269,7 +277,8 @@ function createDeployer<Settings = unknown>(
   network: Network<Settings>,
   signer: PrivateKeyWallet,
   deployContractResults: Map<string, DeployContractExecutionResult>,
-  runScriptResults: Map<string, RunScriptResult>
+  runScriptResults: Map<string, RunScriptResult>,
+  requestInterval: number
 ): Deployer {
   const account: Account = {
     keyType: 'default',
@@ -279,7 +288,7 @@ function createDeployer<Settings = unknown>(
   }
   const confirmations = network.confirmations ? network.confirmations : 1
 
-  const deployContract = async <T, P extends Fields>(
+  const deployContract = async <T extends ContractInstance, P extends Fields>(
     contractFactory: ContractFactory<T, P>,
     params: DeployContractParams<P>,
     taskTag?: string
@@ -302,22 +311,32 @@ function createDeployer<Settings = unknown>(
       // we have checked in `needToDeployContract`
       console.log(`The deployment of contract ${taskId} is skipped as it has been deployed`)
       const previousDeployResult = previous!
+      const contractInstance = contractFactory.at(previousDeployResult.contractInstance.address)
       return {
         ...previousDeployResult,
-        instance: contractFactory.at(previousDeployResult.contractAddress)
+        contractInstance
       }
     }
     console.log(`Deploying contract ${taskId}`)
     console.log(`Deployer - group ${signer.group} - ${signer.address}`)
     const deployResult = await contractFactory.deploy(signer, params)
-    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), deployResult.txId, confirmations)
+    const confirmed = await waitTxConfirmed(
+      web3.getCurrentNodeProvider(),
+      deployResult.txId,
+      confirmations,
+      requestInterval
+    )
     const result: DeployContractExecutionResult = {
-      ...deployResult,
+      txId: deployResult.txId,
+      unsignedTx: deployResult.unsignedTx,
+      signature: deployResult.signature,
       gasPrice: deployResult.gasPrice.toString(),
+      gasAmount: deployResult.gasAmount,
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
       attoAlphAmount: tryBigIntToString(params.initialAttoAlphAmount),
       tokens: tokens,
+      contractInstance: deployResult.contractInstance,
       issueTokenAmount: tryBigIntToString(params.issueTokenAmount)
     }
     deployContractResults.set(taskId, result)
@@ -350,7 +369,12 @@ function createDeployer<Settings = unknown>(
     }
     console.log(`Executing script ${taskId}`)
     const executeResult = await executeFunc(signer, params)
-    const confirmed = await waitTxConfirmed(web3.getCurrentNodeProvider(), executeResult.txId, confirmations)
+    const confirmed = await waitTxConfirmed(
+      web3.getCurrentNodeProvider(),
+      executeResult.txId,
+      confirmations,
+      requestInterval
+    )
     const runScriptResult: RunScriptResult = {
       ...executeResult,
       gasPrice: executeResult.gasPrice.toString(),
@@ -440,12 +464,12 @@ function getSigners(privateKeys: string[]): PrivateKeyWallet[] {
 
 export async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkType: NetworkId,
+  networkId: NetworkId,
   deployments: Deployments
 ): Promise<void> {
-  const network = await getNetwork(configuration, networkType)
+  const network = await getNetwork(configuration, networkId)
   if (typeof network === 'undefined') {
-    throw new Error(`no network ${networkType} config`)
+    throw new Error(`no network ${networkId} config`)
   }
 
   const deployScriptsRootPath = configuration.deploymentScriptDir
@@ -484,13 +508,12 @@ export async function deploy<Settings = unknown>(
     configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
     configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   )
-  configuration.defaultNetwork = networkType
 
   for (const signer of signers) {
     const deploymentsPerAddress =
       deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
     deployments.add(deploymentsPerAddress)
-    await deployToGroup(configuration, deploymentsPerAddress, signer, network, scripts)
+    await deployToGroup(networkId, configuration, deploymentsPerAddress, signer, network, scripts)
   }
 }
 
@@ -502,13 +525,15 @@ export async function deployToDevnet(): Promise<Deployments> {
 }
 
 async function deployToGroup<Settings = unknown>(
+  networkId: NetworkId,
   configuration: Configuration<Settings>,
   deployments: DeploymentsPerAddress,
   signer: PrivateKeyWallet,
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
 ) {
-  const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts)
+  const requestInterval = networkId === 'devnet' ? 1000 : 10000
+  const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts, requestInterval)
 
   for (const script of scripts) {
     try {
@@ -518,7 +543,7 @@ async function deployToGroup<Settings = unknown>(
       }
       let skip = false
       if (script.func.skip !== undefined) {
-        skip = await script.func.skip(configuration)
+        skip = await script.func.skip(configuration, networkId)
       }
       if (skip) {
         console.log(`Skip the execution of ${script.scriptFilePath}`)

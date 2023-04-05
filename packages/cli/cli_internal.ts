@@ -16,12 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3 } from '@alephium/web3'
+import { Project, web3, NetworkId, networkIds } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
-import { Configuration, NetworkType } from './src/types'
+import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
@@ -31,6 +31,16 @@ function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   return loadConfig(configFile)
+}
+
+function checkAndGetNetworkId(networkId?: string): NetworkId {
+  if (networkId === undefined) {
+    return DEFAULT_CONFIGURATION_VALUES.networkId
+  }
+  if (!(networkIds as ReadonlyArray<string>).includes(networkId)) {
+    throw Error(`Invalid network id, expect one of ${networkIds}`)
+  }
+  return networkId as NetworkId
 }
 
 program
@@ -76,10 +86,10 @@ program
     try {
       const config = getConfig(options)
       console.log(`Full node version: ${config.nodeVersion}`)
-      const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
-      const nodeUrl = config.networks[networkType].nodeUrl
+      const networkId = checkAndGetNetworkId(options.network)
+      const nodeUrl = config.networks[networkId].nodeUrl
       if (!(await isNetworkLive(nodeUrl))) {
-        console.log(`${networkType} is not live`)
+        console.log(`${networkId} is not live`)
         process.exit(1)
       }
       web3.setCurrentNodeProvider(nodeUrl)
@@ -144,8 +154,8 @@ program
   .action(async (options) => {
     try {
       const config = getConfig(options)
-      const networkType = options.network ? (options.network as NetworkType) : config.defaultNetwork
-      await deployAndSaveProgress(config, networkType)
+      const networkId = checkAndGetNetworkId(options.network)
+      await deployAndSaveProgress(config, networkId)
     } catch (error) {
       program.error(`Failed to deploy contracts, error: ${(error as Error).stack}`)
     }

@@ -1300,9 +1300,14 @@ assertType<
     Omit<SignDeployContractTxParams, 'signerAddress' | 'signerKeyType' | 'bytecode'>
   >
 >
-export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }
+export type DeployContractResult<T extends ContractInstance> = Omit<
+  SignDeployContractTxResult,
+  'contractId' | 'contractAddress' | 'groupIndex'
+> & {
+  contractInstance: T
+}
 
-export abstract class ContractFactory<I, F extends Fields = Fields> {
+export abstract class ContractFactory<I extends ContractInstance, F extends Fields = Fields> {
   readonly contract: Contract
 
   constructor(contract: Contract) {
@@ -1319,7 +1324,7 @@ export abstract class ContractFactory<I, F extends Fields = Fields> {
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
       ...result,
-      instance: this.at(result.contractAddress)
+      contractInstance: this.at(result.contractAddress)
     }
   }
 
@@ -1463,7 +1468,7 @@ export function addStdIdToFields<F extends Fields>(
     : { ...fields, __stdInterfaceId: stdInterfaceIdPrefix + contract.stdInterfaceId }
 }
 
-export async function testMethod<I, F extends Fields, A extends Arguments, R>(
+export async function testMethod<I extends ContractInstance, F extends Fields, A extends Arguments, R>(
   contract: ContractFactory<I, F>,
   methodName: string,
   params: Optional<TestContractParams<F, A>, 'testArgs' | 'initialFields'>
@@ -1610,7 +1615,7 @@ export function subscribeContractEvents(
   return subscribeToEvents(opt, instance.address, fromCount)
 }
 
-export async function callMethod<I, F extends Fields, A extends Arguments, R>(
+export async function callMethod<I extends ContractInstance, F extends Fields, A extends Arguments, R>(
   contract: ContractFactory<I, F>,
   instance: ContractInstance,
   methodName: string,
@@ -1629,7 +1634,7 @@ export async function callMethod<I, F extends Fields, A extends Arguments, R>(
   return callResult as CallContractResult<R>
 }
 
-export async function multicallMethods<I, F extends Fields>(
+export async function multicallMethods<I extends ContractInstance, F extends Fields>(
   contract: ContractFactory<I, F>,
   instance: ContractInstance,
   calls: Record<string, Optional<CallContractParams<any>, 'args'>>

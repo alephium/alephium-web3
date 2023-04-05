@@ -108,9 +108,9 @@ describe('contract', function () {
     })
     expect(testResultPrivate.returns).toEqual([3n, 1n])
 
-    const sub = (await Sub.deploy(signer, { initialFields: { result: 0n } })).instance
+    const sub = (await Sub.deploy(signer, { initialFields: { result: 0n } })).contractInstance
     expect(sub.groupIndex).toEqual(signerGroup)
-    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } })).instance
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } })).contractInstance
     expect(add.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub before main script is executed
@@ -152,7 +152,7 @@ describe('contract', function () {
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
-    const greeter = (await Greeter.deploy(signer, { initialFields: { btcPrice: 1n } })).instance
+    const greeter = (await Greeter.deploy(signer, { initialFields: { btcPrice: 1n } })).contractInstance
     expect(greeter.groupIndex).toEqual(signerGroup)
     const contractState = await greeter.fetchState()
     expect(contractState.fields.btcPrice).toEqual(1n)

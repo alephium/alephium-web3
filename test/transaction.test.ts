@@ -94,12 +94,12 @@ describe('transactions', function () {
       destinations: [{ address: signer.address, attoAlphAmount: 10n * ONE_ALPH }]
     })
 
-    const subInstance = (await Sub.deploy(signer, { initialFields: { result: 0n } })).instance
+    const subInstance = (await Sub.deploy(signer, { initialFields: { result: 0n } })).contractInstance
     const subState = await subInstance.fetchState()
     expect(subState.fields.result).toBe(0n)
 
     const addInstance = (await Add.deploy(signer, { initialFields: { sub: subInstance.contractId, result: 0n } }))
-      .instance
+      .contractInstance
     expect((await addInstance.fetchState()).fields.result).toBe(0n)
 
     await Main.execute(signer, { initialFields: { addContractId: addInstance.contractId } })

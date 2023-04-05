@@ -40,7 +40,8 @@ describe('events', function () {
 
   async function deployContract(signer: NodeWallet): Promise<AddInstance> {
     const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
-    return (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } })).instance
+    return (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
   }
 
   function createSubscribeOptions<T>(events: Array<T>): SubscribeOptions<T> {
@@ -157,7 +158,7 @@ describe('events', function () {
     expect(events.length).toEqual(1)
     expect(events[0].eventIndex).toEqual(Contract.ContractCreatedEventIndex)
     expect(events[0].name).toEqual(Contract.ContractCreatedEvent.name)
-    expect(events[0].fields.address).toEqual(sub.instance.address)
+    expect(events[0].fields.address).toEqual(sub.contractInstance.address)
     expect(events[0].fields.parentAddress).toEqual(undefined)
     expect(events[0].fields.stdInterfaceIdGuessed).toEqual(undefined)
   })
