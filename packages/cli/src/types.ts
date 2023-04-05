@@ -108,7 +108,6 @@ export async function getEnv<Settings = unknown>(
 }
 
 export interface ExecutionResult {
-  groupIndex: number
   txId: string
   unsignedTx: string
   signature: string
@@ -121,11 +120,13 @@ export interface ExecutionResult {
 }
 
 export interface DeployContractExecutionResult<I extends ContractInstance = ContractInstance> extends ExecutionResult {
-  instance: I
+  contractInstance: I
   issueTokenAmount?: string
 }
 
-export type RunScriptResult = ExecutionResult
+export interface RunScriptResult extends ExecutionResult {
+  groupIndex: number
+}
 
 export interface Deployer {
   provider: NodeProvider

@@ -1300,7 +1300,12 @@ assertType<
     Omit<SignDeployContractTxParams, 'signerAddress' | 'signerKeyType' | 'bytecode'>
   >
 >
-export type DeployContractResult<T> = SignDeployContractTxResult & { instance: T }
+export type DeployContractResult<T extends ContractInstance> = Omit<
+  SignDeployContractTxResult,
+  'contractId' | 'contractAddress' | 'groupIndex'
+> & {
+  contractInstance: T
+}
 
 export abstract class ContractFactory<I extends ContractInstance, F extends Fields = Fields> {
   readonly contract: Contract
@@ -1319,7 +1324,7 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
       ...result,
-      instance: this.at(result.contractAddress)
+      contractInstance: this.at(result.contractAddress)
     }
   }
 

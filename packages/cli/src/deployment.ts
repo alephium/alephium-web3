@@ -311,12 +311,10 @@ function createDeployer<Settings = unknown>(
       // we have checked in `needToDeployContract`
       console.log(`The deployment of contract ${taskId} is skipped as it has been deployed`)
       const previousDeployResult = previous!
-      const instance = contractFactory.at(previousDeployResult.instance.address)
+      const contractInstance = contractFactory.at(previousDeployResult.contractInstance.address)
       return {
         ...previousDeployResult,
-        contractAddress: instance.address,
-        contractId: instance.contractId,
-        instance
+        contractInstance
       }
     }
     console.log(`Deploying contract ${taskId}`)
@@ -329,12 +327,16 @@ function createDeployer<Settings = unknown>(
       requestInterval
     )
     const result: DeployContractExecutionResult = {
-      ...deployResult,
+      txId: deployResult.txId,
+      unsignedTx: deployResult.unsignedTx,
+      signature: deployResult.signature,
       gasPrice: deployResult.gasPrice.toString(),
+      gasAmount: deployResult.gasAmount,
       blockHash: confirmed.blockHash,
       codeHash: codeHash,
       attoAlphAmount: tryBigIntToString(params.initialAttoAlphAmount),
       tokens: tokens,
+      contractInstance: deployResult.contractInstance,
       issueTokenAmount: tryBigIntToString(params.issueTokenAmount)
     }
     deployContractResults.set(taskId, result)
