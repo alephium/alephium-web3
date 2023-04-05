@@ -409,6 +409,10 @@ function genContracts(outDir: string, artifactDir: string, exports: string[]) {
   })
 }
 
+function dedup<T>(array: Array<T>): Array<T> {
+  return array.filter((elem, index) => array.indexOf(elem) === index)
+}
+
 // For different network ids, contracts deployed may differ.
 // For example, some contracts may only be deployed on devnet and not on testnet and mainnet.
 // For these contracts, we want to declare them as optional in the type declaration.
@@ -424,12 +428,12 @@ function getFields(arrays: string[][]): [string[], string[]] {
   }
   const remains = arrays.slice(1)
   const fields = firstArray.filter((elem) => remains.every((arr) => arr.includes(elem)))
-  const allElements = arrays.reduce((a, b) => a.concat(b)).filter((elem, index, arr) => arr.indexOf(elem) === index)
+  const allElements = dedup(arrays.reduce((a, b) => a.concat(b)))
   const optionalFields = allElements.filter((elem) => !fields.includes(elem))
   return [fields, optionalFields]
 }
 
-async function genDeploymentsType(config: Configuration): Promise<string> {
+async function getAllDeployments(config: Configuration): Promise<DeploymentsPerAddress[]> {
   const filePaths = networkIds
     .map((n) => getDeploymentFilePath(config, n))
     .filter((filePath) => fs.existsSync(filePath))
@@ -440,20 +444,26 @@ async function genDeploymentsType(config: Configuration): Promise<string> {
       allDeployments.push(deployments.deployments[0])
     }
   }
+  return allDeployments
+}
+
+function genDeploymentsType(allDeployments: DeploymentsPerAddress[]): string {
   const allContracts = allDeployments.map((d) => Array.from(d.contracts.keys()))
   const allScripts = allDeployments.map((d) => Array.from(d.scripts.keys()))
   const [contracts, optionalContracts] = getFields(allContracts)
   const [scripts, optionalScripts] = getFields(allScripts)
-  const contractFields = contracts.map((name) => `${name}: DeployContractExecutionResult`).join('\n')
-  const optionalContractFields = optionalContracts.map((name) => `${name}?: DeployContractExecutionResult`).join('\n')
+  const contractFields = contracts.map((name) => `${name}: DeployContractExecutionResult<${name}Instance>`).join('\n')
+  const optionalContractFields = optionalContracts
+    .map((name) => `${name}?: DeployContractExecutionResult<${name}Instance>`)
+    .join('\n')
   const scriptFields = scripts.map((name) => `${name}: RunScriptResult`).join('\n')
   const optionalScriptFields = optionalScripts.map((name) => `${name}?: RunScriptResult`).join('\n')
   const hasScript = scripts.length > 0 || optionalScripts.length > 0
   return `
     export type Deployments = {
       deployerAddress: string
-      contracts: { ${contractFields} ${optionalContractFields} }
-      ${hasScript ? `scripts: { ${scriptFields} ${optionalScriptFields} }` : ''}
+      contracts: { ${contractFields} \n ${optionalContractFields} }
+      ${hasScript ? `scripts: { ${scriptFields} \n ${optionalScriptFields} }` : ''}
     }
   `
 }
@@ -468,6 +478,10 @@ function getRelativePath(config: Configuration, networkId: NetworkId, fromPath: 
 
 export async function genLoadDeployments(config: Configuration) {
   const tsPath = path.join(config.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, 'ts')
+  const allDeployments = await getAllDeployments(config)
+  const contractInstanceTypes = dedup(allDeployments.flatMap((d) => Array.from(d.contracts.keys())))
+    .map((c) => `${c}Instance`)
+    .join(',')
   const deploymentsPath = networkIds.map((n) => [n, getRelativePath(config, n, tsPath)])
   const deploymentsExists = deploymentsPath.filter(([, filePath]) => filePath !== undefined)
   const imports = deploymentsExists
@@ -485,9 +499,10 @@ export async function genLoadDeployments(config: Configuration) {
 
     import { RunScriptResult, DeployContractExecutionResult } from '@alephium/cli'
     import { NetworkId } from '@alephium/web3'
+    import { ${contractInstanceTypes} } from '.'
     ${imports}
 
-    ${await genDeploymentsType(config)}
+    ${genDeploymentsType(allDeployments)}
 
     export function loadDeployments(networkId: NetworkId, deployerAddress?: string): Deployments | undefined {
       ${selectByNetwork}

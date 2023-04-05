@@ -34,7 +34,8 @@ import {
   Fields,
   ContractFactory,
   addStdIdToFields,
-  NetworkId
+  NetworkId,
+  ContractInstance
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -287,7 +288,7 @@ function createDeployer<Settings = unknown>(
   }
   const confirmations = network.confirmations ? network.confirmations : 1
 
-  const deployContract = async <T, P extends Fields>(
+  const deployContract = async <T extends ContractInstance, P extends Fields>(
     contractFactory: ContractFactory<T, P>,
     params: DeployContractParams<P>,
     taskTag?: string
@@ -310,9 +311,12 @@ function createDeployer<Settings = unknown>(
       // we have checked in `needToDeployContract`
       console.log(`The deployment of contract ${taskId} is skipped as it has been deployed`)
       const previousDeployResult = previous!
+      const instance = contractFactory.at(previousDeployResult.instance.address)
       return {
         ...previousDeployResult,
-        instance: contractFactory.at(previousDeployResult.contractAddress)
+        contractAddress: instance.address,
+        contractId: instance.contractId,
+        instance
       }
     }
     console.log(`Deploying contract ${taskId}`)

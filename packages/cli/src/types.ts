@@ -31,7 +31,8 @@ import {
   DEFAULT_COMPILER_OPTIONS,
   SignerProvider,
   Script,
-  NetworkId
+  NetworkId,
+  ContractInstance
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 import path from 'path'
@@ -119,9 +120,8 @@ export interface ExecutionResult {
   tokens?: Record<string, string>
 }
 
-export interface DeployContractExecutionResult extends ExecutionResult {
-  contractId: string
-  contractAddress: string
+export interface DeployContractExecutionResult<I extends ContractInstance = ContractInstance> extends ExecutionResult {
+  instance: I
   issueTokenAmount?: string
 }
 
@@ -131,7 +131,7 @@ export interface Deployer {
   provider: NodeProvider
   account: Account
 
-  deployContract<T, P extends Fields>(
+  deployContract<T extends ContractInstance, P extends Fields>(
     constractFactory: ContractFactory<T, P>,
     params: DeployContractParams<P>,
     taskTag?: string
