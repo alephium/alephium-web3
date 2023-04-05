@@ -116,9 +116,9 @@ export class Deployments {
     }
   }
 
-  static async load(configuration: Configuration, networkType: NetworkId): Promise<Deployments> {
-    const network = getNetwork(configuration, networkType)
-    const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkType, network)
+  static async load(configuration: Configuration, networkId: NetworkId): Promise<Deployments> {
+    const network = getNetwork(configuration, networkId)
+    const deploymentsFile = getDeploymentFilePath(configuration.artifactDir, networkId, network)
     return Deployments.from(deploymentsFile)
   }
 }
@@ -440,12 +440,12 @@ function getSigners(privateKeys: string[]): PrivateKeyWallet[] {
 
 export async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkType: NetworkId,
+  networkId: NetworkId,
   deployments: Deployments
 ): Promise<void> {
-  const network = await getNetwork(configuration, networkType)
+  const network = await getNetwork(configuration, networkId)
   if (typeof network === 'undefined') {
-    throw new Error(`no network ${networkType} config`)
+    throw new Error(`no network ${networkId} config`)
   }
 
   const deployScriptsRootPath = configuration.deploymentScriptDir
@@ -484,7 +484,7 @@ export async function deploy<Settings = unknown>(
     configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
     configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   )
-  configuration.defaultNetwork = networkType
+  configuration.defaultNetwork = networkId
 
   for (const signer of signers) {
     const deploymentsPerAddress =
