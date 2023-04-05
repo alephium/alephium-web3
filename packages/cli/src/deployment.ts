@@ -527,7 +527,7 @@ async function deployToGroup<Settings = unknown>(
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
 ) {
-  const requestInterval = networkId === 'devnet' ? 1000 : 15000
+  const requestInterval = networkId === 'devnet' ? 1000 : 10000
   const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts, requestInterval)
 
   for (const script of scripts) {
