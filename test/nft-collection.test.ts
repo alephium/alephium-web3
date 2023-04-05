@@ -43,7 +43,7 @@ describe('nft collection', function () {
 
   it('should mint nft', async () => {
     const nftUri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
-    const nftTest = (await NFTTest.deploy(signer, { initialFields: { uri: nftUri } })).instance
+    const nftTest = (await NFTTest.deploy(signer, { initialFields: { uri: nftUri } })).contractInstance
     expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
 
     const collectionUri = stringToHex('https://cryptopunks.app/cryptopunks')
@@ -55,7 +55,7 @@ describe('nft collection', function () {
           totalSupply: 0n
         }
       })
-    ).instance
+    ).contractInstance
 
     expect((await nftCollectionTest.methods.getCollectionUri()).returns).toEqual(collectionUri)
     expect((await nftCollectionTest.methods.totalSupply()).returns).toEqual(0n)

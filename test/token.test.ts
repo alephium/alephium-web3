@@ -37,7 +37,7 @@ describe('contract', function () {
   const initialFields = { symbol, name, decimals, totalSupply }
 
   it('should get token infos', async () => {
-    const tokenTest = (await TokenTest.deploy(signer, { initialFields })).instance
+    const tokenTest = (await TokenTest.deploy(signer, { initialFields })).contractInstance
 
     expect((await tokenTest.methods.getSymbol()).returns).toEqual(symbol)
     expect((await tokenTest.methods.getName()).returns).toEqual(name)
@@ -58,7 +58,7 @@ describe('contract', function () {
   })
 
   it('should multicall', async () => {
-    const tokenTest = (await TokenTest.deploy(signer, { initialFields })).instance
+    const tokenTest = (await TokenTest.deploy(signer, { initialFields })).contractInstance
     const result = await tokenTest.multicall({
       getSymbol: {},
       getName: {},
