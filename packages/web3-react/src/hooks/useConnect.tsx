@@ -22,6 +22,8 @@ import { useCallback, useMemo } from 'react'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 
+const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
+
 export type ConnectOptions = Omit<EnableOptionsBase, 'onDisconnected'>
 
 export function useConnect(options: ConnectOptions) {
@@ -31,7 +33,7 @@ export function useConnect(options: ConnectOptions) {
       throw new Error('No network id specified')
     }
     const wcProvider = await WalletConnectProvider.init({
-      projectId: '6e2562e43678dd68a9070a62b6d52207',
+      projectId: WALLET_CONNECT_PROJECT_ID,
       networkId: context.network
     })
 
@@ -53,8 +55,36 @@ export function useConnect(options: ConnectOptions) {
     QRCodeModal.close()
   }, [context])
 
+  const desktopWalletConnect = useCallback(async () => {
+    if (context.network === undefined) {
+      throw new Error('No network id specified')
+    }
+
+    const wcProvider = await WalletConnectProvider.init({
+      projectId: WALLET_CONNECT_PROJECT_ID,
+      networkId: context.network
+    })
+
+    wcProvider.on('displayUri', (uri) => {
+      window.open(`alephium://wc?uri=${uri}`)
+    })
+
+    try {
+      await wcProvider.connect()
+
+      context.setAccount(wcProvider.account)
+      context.setSignerProvider(wcProvider as any)
+    } catch (e) {
+      console.log('wallet connect error')
+      console.error(e)
+    }
+  }, [context])
+
   const wcDisconnect = useCallback(async () => {
-    if (context.connectorId === 'walletConnect' && context.signerProvider) {
+    if (
+      (context.connectorId === 'walletConnect' || context.connectorId === 'desktopWallet') &&
+      context.signerProvider
+    ) {
       await (context.signerProvider as WalletConnectProvider).disconnect()
       context.setSignerProvider(undefined)
       context.setAccount(undefined)
@@ -93,10 +123,13 @@ export function useConnect(options: ConnectOptions) {
     return enabledAccount
   }, [context])
 
-  return useMemo(() => {
-    if (context.connectorId === 'walletConnect') {
-      return { connect: wcConnect, disconnect: wcDisconnect }
-    }
-    return { connect: connectAlephium, disconnect: disconnectAlephium }
-  }, [context])
+  return useMemo(
+    () =>
+      ({
+        injected: { connect: connectAlephium, disconnect: disconnectAlephium },
+        walletConnect: { connect: wcConnect, disconnect: wcDisconnect },
+        desktopWallet: { connect: desktopWalletConnect, disconnect: wcDisconnect }
+      }[context.connectorId]),
+    [context]
+  )
 }

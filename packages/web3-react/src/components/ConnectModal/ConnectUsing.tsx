@@ -25,12 +25,16 @@ import ConnectWithInjector from './ConnectWithInjector'
 import ConnectWithWalletConnect from './ConnectWithWalletConnect'
 
 import Alert from '../Common/Alert'
+import { ConnectorId } from '../../types'
+import ConnectWithDesktopWallet from './ConnectWithDesktopWallet'
 
 const states = {
-  QRCODE: 'qrcode',
-  INJECTOR: 'injector'
+  QRCODE: 'QRCODE',
+  INJECTOR: 'INJECTOR',
+  DESKTOPWALLET: 'DESKTOPWALLET'
 }
-const ConnectUsing: React.FC<{ connectorId: string }> = ({ connectorId }) => {
+
+const ConnectUsing: React.FC<{ connectorId: ConnectorId }> = ({ connectorId }) => {
   const [id, setId] = useState<string>(connectorId)
 
   const connector = supportedConnectors.filter((c) => c.id === id)[0]
@@ -38,13 +42,16 @@ const ConnectUsing: React.FC<{ connectorId: string }> = ({ connectorId }) => {
   const hasExtensionInstalled = connector.extensionIsInstalled && connector.extensionIsInstalled()
 
   // If cannot be scanned, display injector flow, which if extension is not installed will show CTA to install it
-  const useInjector = !connector.scannable || hasExtensionInstalled
+  const useInjector = (!connector.scannable || hasExtensionInstalled) && connectorId !== 'desktopWallet'
 
-  const [status, setStatus] = useState(useInjector ? states.INJECTOR : states.QRCODE)
+  const [status, setStatus] = useState(
+    useInjector ? states.INJECTOR : connectorId === 'desktopWallet' ? states.DESKTOPWALLET : states.QRCODE
+  )
 
   if (!connector) return <Alert>Connector not found</Alert>
 
   if (status === states.QRCODE) return <ConnectWithWalletConnect />
+  if (status === states.DESKTOPWALLET) return <ConnectWithDesktopWallet />
 
   return (
     <AnimatePresence>

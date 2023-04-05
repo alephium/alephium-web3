@@ -56,6 +56,36 @@ if (typeof window != 'undefined') {
       }
     },
     {
+      id: 'desktopWallet',
+      name: 'Desktop wallet',
+      shortName: 'Desktop wallet',
+      logos: {
+        default: <Logos.AlephiumIcon />,
+        mobile: (
+          <div
+            style={{
+              padding: 5,
+              background: 'var(--ck-body-background-tertiary)',
+              borderRadius: '27%',
+              boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.02)'
+            }}
+          >
+            <div
+              style={{
+                transform: 'scale(0.75)',
+                position: 'relative',
+                width: '100%'
+              }}
+            >
+              <Logos.AlephiumIcon />
+            </div>
+          </div>
+        ),
+        transparent: <Logos.AlephiumIcon />
+      },
+      scannable: false
+    },
+    {
       id: 'walletConnect',
       name: 'WalletConnect',
       shortName: 'WalletConnect',

@@ -25,7 +25,7 @@ export function useAccount(onDisconnected?: () => Promise<void>) {
 
   useEffect(() => {
     const handler = async () => {
-      if (context.connectorId === 'walletConnect') {
+      if (context.connectorId === 'walletConnect' || context.connectorId === 'desktopWallet') {
         return
       }
 
