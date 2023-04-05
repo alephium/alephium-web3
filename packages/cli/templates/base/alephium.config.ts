@@ -8,7 +8,6 @@ export type Settings = {
 const defaultSettings: Settings = { issueTokenAmount: 100n }
 
 const configuration: Configuration<Settings> = {
-  defaultNetwork: 'devnet',
   networks: {
     devnet: {
       nodeUrl: 'http://localhost:22973',

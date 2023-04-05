@@ -55,7 +55,6 @@ export interface Configuration<Settings = unknown> {
   deploymentScriptDir?: string
   compilerOptions?: CompilerOptions
 
-  defaultNetwork: NetworkId
   networks: Record<NetworkId, Network<Settings>>
 }
 
@@ -66,6 +65,7 @@ export const DEFAULT_CONFIGURATION_VALUES = {
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
   compilerOptions: DEFAULT_COMPILER_OPTIONS,
   deploymentScriptDir: 'scripts',
+  networkId: 'devnet' as const,
   networks: {
     devnet: {
       networkId: 4,
@@ -90,10 +90,13 @@ export interface Environment<Settings = unknown> {
 }
 
 // it's convenient for users to write scripts
-export async function getEnv<Settings = unknown>(configFileName?: string): Promise<Environment<Settings>> {
+export async function getEnv<Settings = unknown>(
+  configFileName?: string,
+  networkId?: NetworkId
+): Promise<Environment<Settings>> {
   const configFile = configFileName ? configFileName : getConfigFile()
   const config = await loadConfig<Settings>(configFile)
-  const network = config.networks[config.defaultNetwork]
+  const network = config.networks[networkId ?? DEFAULT_CONFIGURATION_VALUES.networkId]
   web3.setCurrentNodeProvider(network.nodeUrl)
   await Project.build(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
   return {
@@ -147,6 +150,6 @@ export interface Deployer {
 
 export interface DeployFunction<Settings = unknown> {
   (deployer: Deployer, network: Network<Settings>): Promise<void | boolean>
-  skip?: (config: Configuration<Settings>) => Promise<boolean>
+  skip?: (config: Configuration<Settings>, networkId: NetworkId) => Promise<boolean>
   id?: string
 }

@@ -502,7 +502,6 @@ export async function deploy<Settings = unknown>(
     configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
     configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   )
-  configuration.defaultNetwork = networkId
 
   for (const signer of signers) {
     const deploymentsPerAddress =
@@ -538,7 +537,7 @@ async function deployToGroup<Settings = unknown>(
       }
       let skip = false
       if (script.func.skip !== undefined) {
-        skip = await script.func.skip(configuration)
+        skip = await script.func.skip(configuration, networkId)
       }
       if (skip) {
         console.log(`Skip the execution of ${script.scriptFilePath}`)
