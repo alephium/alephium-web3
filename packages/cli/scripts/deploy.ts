@@ -16,18 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NetworkType, Configuration } from '../src/types'
+import { Configuration } from '../src/types'
 import { deploy, Deployments } from '../src/deployment'
 import { getDeploymentFilePath } from '../src'
+import { NetworkId } from '@alephium/web3'
 
 export async function deployAndSaveProgress<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkType: NetworkType
+  networkId: NetworkId
 ): Promise<void> {
-  const deploymentsFile = getDeploymentFilePath(configuration, networkType)
+  const deploymentsFile = getDeploymentFilePath(configuration, networkId)
   const deployments = await Deployments.from(deploymentsFile)
   try {
-    await deploy(configuration, networkType, deployments)
+    await deploy(configuration, networkId, deployments)
   } catch (error) {
     await deployments.saveToFile(deploymentsFile, configuration)
     console.error(`Failed to deploy the project`)
