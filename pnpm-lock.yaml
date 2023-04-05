@@ -231,7 +231,7 @@ importers:
       eslint-config-prettier: ^8.8.0
       eslint-plugin-header: ^3.1.1
       eslint-plugin-prettier: ^4.2.1
-      eslint-plugin-security: 1.4.0
+      eslint-plugin-security: 1.6.0
       eventemitter3: ^4.0.7
       html-webpack-plugin: 5.5.0
       jest: ^28.1.3
@@ -281,7 +281,7 @@ importers:
       eslint-config-prettier: 8.8.0_eslint@8.37.0
       eslint-plugin-header: 3.1.1_eslint@8.37.0
       eslint-plugin-prettier: 4.2.1_ybb3aapb7235womryl2tm5ze2u
-      eslint-plugin-security: 1.4.0
+      eslint-plugin-security: 1.6.0
       html-webpack-plugin: 5.5.0_webpack@5.77.0
       jest: 28.1.3_nvyebh5scquam2x5zpmbhjtul4
       jest-localstorage-mock: 2.4.26
@@ -5589,10 +5589,10 @@ packages:
       string.prototype.matchall: 4.0.8
     dev: true
 
-  /eslint-plugin-security/1.4.0:
-    resolution: {integrity: sha512-xlS7P2PLMXeqfhyf3NpqbvbnW04kN8M9NtmhpR3XGyOvt/vNKS7XPXT5EDbwKW9vCjWH4PpfQvgD/+JgN0VJKA==}
+  /eslint-plugin-security/1.6.0:
+    resolution: {integrity: sha512-SGvyejbhW/dziRbzOroKX5bj8z/qtBOw7Q95C9CBbJQqBtFB2o4OxSM3MCO2u9noPp7B6DDaFGtXTx8ImPiO/A==}
     dependencies:
-      safe-regex: 1.1.0
+      safe-regex: 2.1.1
     dev: true
 
   /eslint-plugin-standard/4.1.0_eslint@8.37.0:
@@ -9042,6 +9042,11 @@ packages:
       '@babel/runtime': 7.21.0
     dev: true
 
+  /regexp-tree/0.1.24:
+    resolution: {integrity: sha512-s2aEVuLhvnVJW6s/iPgEGK6R+/xngd2jNQ+xy4bXNDKxZKJH6jpPHY6kVeVv1IeLCHgswRj+Kl3ELaDjG6V1iw==}
+    hasBin: true
+    dev: true
+
   /regexp.prototype.flags/1.4.3:
     resolution: {integrity: sha512-fjggEOO3slI6Wvgjwflkc4NFRCTZAu5CnNfBd5qOMYhWdn67nJBBu34/TkD++eeFmd8C9r9jfXJ27+nSiRkSUA==}
     engines: {node: '>= 0.4'}
@@ -9153,11 +9158,6 @@ packages:
       is-core-module: 2.11.0
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
-    dev: true
-
-  /ret/0.1.15:
-    resolution: {integrity: sha512-TTlYpa+OL+vMMNG24xSlQGEJ3B/RzEfUlLct7b5G/ytav+wPrplCpVMFuwzXbkecJrb6IYo1iFb0S9v37754mg==}
-    engines: {node: '>=0.12'}
     dev: true
 
   /reusify/1.0.4:
@@ -9309,10 +9309,10 @@ packages:
       is-regex: 1.1.4
     dev: true
 
-  /safe-regex/1.1.0:
-    resolution: {integrity: sha512-aJXcif4xnaNUzvUuC5gcb46oTS7zvg4jpMTnuqtrEPlR3vFr4pxtdTwaF1Qs3Enjn9HK+ZlwQui+a7z0SywIzg==}
+  /safe-regex/2.1.1:
+    resolution: {integrity: sha512-rx+x8AMzKb5Q5lQ95Zoi6ZbJqwCLkqi3XuJXp5P3rT8OEc6sZCJG5AE5dU3lsgRr/F4Bs31jSlVN+j5KrsGu9A==}
     dependencies:
-      ret: 0.1.15
+      regexp-tree: 0.1.24
     dev: true
 
   /safe-stable-stringify/2.4.3:
