@@ -99,7 +99,20 @@ export class Deployments {
       fs.mkdirSync(dirpath, { recursive: true })
     }
     const deployments = this.deployments.map((v) => v.marshal())
-    const content = JSON.stringify(deployments.length === 1 ? deployments[0] : deployments, null, 2)
+    const content = JSON.stringify(
+      deployments.length === 1 ? deployments[0] : deployments,
+      (key, value) => {
+        if (key === 'contractInstance' && value instanceof ContractInstance) {
+          return {
+            address: value.address,
+            contractId: value.contractId,
+            groupIndex: value.groupIndex
+          }
+        }
+        return value
+      },
+      2
+    )
     await fsPromises.writeFile(filepath, content)
     // This needs to be at the end since it will check if the deployments file exists
     await genLoadDeployments(config)

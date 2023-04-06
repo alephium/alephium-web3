@@ -447,6 +447,40 @@ async function getAllDeployments(config: Configuration): Promise<DeploymentsPerA
   return allDeployments
 }
 
+function genToDeployments(contracts: string[], optionalContracts: string[]): string {
+  const contractInstances = contracts
+    .map((name) => {
+      return `
+      ${name}: {
+        ...json.contracts.${name},
+        contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
+      }
+    `
+    })
+    .join(',')
+  const optionalContractInstances = optionalContracts
+    .map((name) => {
+      return `
+      ${name}: json.contracts.${name} === undefined ? undefined : {
+        ...json.contracts.${name},
+        contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
+      }
+      `
+    })
+    .join(',')
+  return `
+    function toDeployments(json: any): Deployments {
+      const contracts = {
+        ${contractInstances}, ${optionalContractInstances}
+      }
+      return {
+        ...json,
+        contracts: contracts as Deployments['contracts']
+      }
+    }
+  `
+}
+
 function genDeploymentsType(allDeployments: DeploymentsPerAddress[]): string {
   const allContracts = allDeployments.map((d) => Array.from(d.contracts.keys()))
   const allScripts = allDeployments.map((d) => Array.from(d.scripts.keys()))
@@ -465,6 +499,8 @@ function genDeploymentsType(allDeployments: DeploymentsPerAddress[]): string {
       contracts: { ${contractFields} \n ${optionalContractFields} }
       ${hasScript ? `scripts: { ${scriptFields} \n ${optionalScriptFields} }` : ''}
     }
+
+    ${genToDeployments(contracts, optionalContracts)}
   `
 }
 
@@ -480,7 +516,7 @@ export async function genLoadDeployments(config: Configuration) {
   const tsPath = path.join(config.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, 'ts')
   const allDeployments = await getAllDeployments(config)
   const contractInstanceTypes = dedup(allDeployments.flatMap((d) => Array.from(d.contracts.keys())))
-    .map((c) => `${c}Instance`)
+    .map((contractName) => `${contractName}, ${contractName}Instance`)
     .join(',')
   const deploymentsPath = networkIds.map((n) => [n, getRelativePath(config, n, tsPath)])
   const deploymentsExists = deploymentsPath.filter(([, filePath]) => filePath !== undefined)
@@ -514,14 +550,14 @@ export async function genLoadDeployments(config: Configuration) {
         if (allDeployments.length > 1) {
           throw Error('The contract has been deployed multiple times on ' + networkId + ', please specify the deployer address')
         } else {
-          return allDeployments[0]
+          return toDeployments(allDeployments[0])
         }
       }
       const result = allDeployments.find((d) => d.deployerAddress === deployerAddress)
       if (result === undefined) {
         throw Error('The contract deployment result does not exist')
       }
-      return result
+      return toDeployments(result)
     }
   `
   const deploymentsFilePath = path.join(tsPath, 'deployments.ts')
