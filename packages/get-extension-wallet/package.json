@@ -1,6 +1,6 @@
 {
   "name": "@alephium/get-extension-wallet",
-  "version": "0.10.0-rc.3",
+  "version": "0.10.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
