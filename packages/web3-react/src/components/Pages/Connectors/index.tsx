@@ -64,6 +64,8 @@ const Connectors: React.FC = () => {
 
               if (info.id === 'walletConnect') {
                 name = 'Wallet Connect'
+              } else if (info.id === 'desktopWallet') {
+                name = 'Desktop wallet'
               }
 
               return (
@@ -95,6 +97,8 @@ const Connectors: React.FC = () => {
               let name = info.name ?? connector.name
               if (info.id === 'walletConnect') {
                 name = 'WalletConnect'
+              } else if (info.id === 'desktopWallet') {
+                name = 'Desktop wallet'
               }
 
               if (info.id === 'injected' && connector.name) {

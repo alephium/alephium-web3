@@ -15,10 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { desktopWallet } from './connectors/desktopWallet'
-import { injected } from './connectors/injected'
-import { walletConnect } from './connectors/walletConnect'
+import { WalletProps } from '../wallet'
 
-export const getWallets = ({}: { appName?: string; shimDisconnect?: boolean }) => {
-  return [injected({}), walletConnect({}), desktopWallet()]
+import supportedConnectors from '../../constants/supportedConnectors'
+
+export const desktopWallet = (): WalletProps => {
+  const desktopWalletConnector = supportedConnectors.find((connector) => connector.id === 'desktopWallet')
+
+  if (!desktopWalletConnector) throw new Error('Desktop wallet connector configuration not found')
+
+  return desktopWalletConnector as WalletProps
 }
