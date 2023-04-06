@@ -102,8 +102,8 @@ export class NodeProvider implements NodeProviderApis {
 
   // Only use this when the token is following the standard token interface
   fetchStdTokenMetaData = async (tokenId: HexString): Promise<TokenMetaData> => {
-    const group = 0
     const address = addressFromTokenId(tokenId)
+    const group = groupOfAddress(address)
     const calls = Array.from([0, 1, 2, 3], (index) => ({ methodIndex: index, group: group, address: address }))
     const result = await this.contracts.postContractsMulticallContract({
       calls: calls
