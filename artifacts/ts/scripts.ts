@@ -3,6 +3,7 @@
 /* eslint-disable */
 
 import {
+  Address,
   ExecuteScriptParams,
   ExecuteScriptResult,
   Script,
@@ -17,7 +18,7 @@ import { default as MintNFTTestScriptJson } from "../nft/mint_nft_test.ral.json"
 export namespace DestroyAdd {
   export async function execute(
     signer: SignerProvider,
-    params: ExecuteScriptParams<{ add: HexString; caller: HexString }>
+    params: ExecuteScriptParams<{ add: HexString; caller: Address }>
   ): Promise<ExecuteScriptResult> {
     const signerParams = await script.txParamsForExecution(signer, params);
     return await signer.signAndSubmitExecuteScriptTx(signerParams);

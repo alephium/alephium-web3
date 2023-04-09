@@ -77,18 +77,13 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     createSubContract: async (
       params: TestContractParams<
         AddTypes.Fields,
-        {
-          a: bigint;
-          path: HexString;
-          subContractId: HexString;
-          payer: HexString;
-        }
+        { a: bigint; path: HexString; subContractId: HexString; payer: Address }
       >
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "createSubContract", params);
     },
     destroy: async (
-      params: TestContractParams<AddTypes.Fields, { caller: HexString }>
+      params: TestContractParams<AddTypes.Fields, { caller: Address }>
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "destroy", params);
     },

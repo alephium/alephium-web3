@@ -56,6 +56,7 @@ function toTsType(ralphType: string): string {
     case 'Bool':
       return 'boolean'
     case 'Address':
+      return 'Address'
     case 'ByteVec':
       return 'HexString'
     default: // array type
@@ -377,6 +378,7 @@ function genScripts(outDir: string, artifactDir: string, exports: string[]) {
     ${header}
 
     import {
+      Address,
       ExecuteScriptParams,
       ExecuteScriptResult,
       Script,
