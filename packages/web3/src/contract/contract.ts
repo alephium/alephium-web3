@@ -60,6 +60,7 @@ import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
+import { config } from '../../package.json'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -183,6 +184,7 @@ type CodeInfo = {
 class ProjectArtifact {
   static readonly artifactFileName = '.project.json'
 
+  fullNodeVersion: string
   compilerOptionsUsed: node.CompilerOptions
   infos: Map<string, CodeInfo>
 
@@ -197,8 +199,9 @@ class ProjectArtifact {
     }
   }
 
-  constructor(compilerOptionsUsed: node.CompilerOptions, infos: Map<string, CodeInfo>) {
+  constructor(fullNodeVersion: string, compilerOptionsUsed: node.CompilerOptions, infos: Map<string, CodeInfo>) {
     ProjectArtifact.checkCompilerOptionsParameter(compilerOptionsUsed)
+    this.fullNodeVersion = fullNodeVersion
     this.compilerOptionsUsed = compilerOptionsUsed
     this.infos = infos
   }
@@ -206,6 +209,7 @@ class ProjectArtifact {
   async saveToFile(rootPath: string): Promise<void> {
     const filepath = path.join(rootPath, ProjectArtifact.artifactFileName)
     const artifact = {
+      fullNodeVersion: this.fullNodeVersion,
       compilerOptionsUsed: this.compilerOptionsUsed,
       infos: Object.fromEntries(new Map([...this.infos].sort()))
     }
@@ -213,8 +217,11 @@ class ProjectArtifact {
     return fsPromises.writeFile(filepath, content)
   }
 
-  needToReCompile(compilerOptions: node.CompilerOptions, sourceInfos: SourceInfo[]): boolean {
+  needToReCompile(compilerOptions: node.CompilerOptions, sourceInfos: SourceInfo[], fullNodeVersion: string): boolean {
     ProjectArtifact.checkCompilerOptionsParameter(compilerOptions)
+    if (this.fullNodeVersion !== fullNodeVersion) {
+      return true
+    }
 
     const optionsMatched = Object.entries(compilerOptions).every(([key, inputOption]) => {
       const usedOption = this.compilerOptionsUsed[`${key}`]
@@ -242,11 +249,17 @@ class ProjectArtifact {
     if (!fs.existsSync(filepath)) {
       return undefined
     }
-    const content = await fsPromises.readFile(filepath)
-    const json = JSON.parse(content.toString())
-    const compilerOptionsUsed = json.compilerOptionsUsed as node.CompilerOptions
-    const files = new Map(Object.entries<CodeInfo>(json.infos))
-    return new ProjectArtifact(compilerOptionsUsed, files)
+    try {
+      const content = await fsPromises.readFile(filepath)
+      const json = JSON.parse(content.toString())
+      const fullNodeVersion = json.fullNodeVersion as string
+      const compilerOptionsUsed = json.compilerOptionsUsed as node.CompilerOptions
+      const files = new Map(Object.entries<CodeInfo>(json.infos))
+      return new ProjectArtifact(fullNodeVersion, compilerOptionsUsed, files)
+    } catch (error) {
+      console.log(`Failed to load project artifact, error: ${error}`)
+      return undefined
+    }
   }
 }
 
@@ -277,6 +290,7 @@ export class Project {
   ]
 
   static buildProjectArtifact(
+    fullNodeVersion: string,
     sourceInfos: SourceInfo[],
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
@@ -311,7 +325,7 @@ export class Project {
         warnings: []
       })
     })
-    return new ProjectArtifact(compilerOptions, files)
+    return new ProjectArtifact(fullNodeVersion, compilerOptions, files)
   }
 
   private constructor(
@@ -396,6 +410,7 @@ export class Project {
   }
 
   private static async compile(
+    fullNodeVersion: string,
     provider: NodeProvider,
     sourceInfos: SourceInfo[],
     projectRootDir: string,
@@ -421,7 +436,13 @@ export class Project {
       const script = Script.fromCompileResult(scriptResult)
       scripts.set(script.name, new Compiled(sourceInfo, script, scriptResult.warnings))
     })
-    const projectArtifact = Project.buildProjectArtifact(sourceInfos, contracts, scripts, compilerOptions)
+    const projectArtifact = Project.buildProjectArtifact(
+      fullNodeVersion,
+      sourceInfos,
+      contracts,
+      scripts,
+      compilerOptions
+    )
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,
@@ -476,6 +497,7 @@ export class Project {
     } catch (error) {
       console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
       return Project.compile(
+        projectArtifact.fullNodeVersion,
         provider,
         sourceInfos,
         projectRootDir,
@@ -604,15 +626,20 @@ export class Project {
     compilerOptionsPartial: Partial<CompilerOptions> = {},
     projectRootDir = '.',
     contractsRootDir = Project.DEFAULT_CONTRACTS_DIR,
-    artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR
+    artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR,
+    fullNodeVersion: string = config.alephium_version
   ): Promise<void> {
     const provider = getCurrentNodeProvider()
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
-    if (typeof projectArtifact === 'undefined' || projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles)) {
+    if (
+      projectArtifact === undefined ||
+      projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles, fullNodeVersion)
+    ) {
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
       Project.currentProject = await Project.compile(
+        fullNodeVersion,
         provider,
         sourceFiles,
         projectRootDir,
