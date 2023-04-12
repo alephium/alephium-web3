@@ -1,0 +1,18 @@
+@std(enabled = false)
+Abstract Contract FungibleTokenUnimplemented() implements IFungibleToken {
+  pub fn getSymbol() -> ByteVec {
+    panic!()
+  }
+
+  pub fn getName() -> ByteVec {
+    panic!()
+  }
+
+  pub fn getDecimals() -> U256 {
+    panic!()
+  }
+
+  pub fn getTotalSupply() -> U256 {
+    panic!()
+  }
+}

@@ -19,6 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { web3, Project } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
+import { FakeTokenTest } from '../artifacts/ts'
 import { TokenTest } from '../artifacts/ts/TokenTest'
 
 describe('contract', function () {
@@ -75,5 +76,11 @@ describe('contract', function () {
     expect(metadata.name).toEqual(name)
     expect(metadata.decimals).toEqual(Number(decimals))
     expect(metadata.totalSupply).toEqual(totalSupply)
+  })
+
+  it('should test the contract of unimplemented fungible token', async () => {
+    const fakeToken = (await FakeTokenTest.deploy(signer, { initialFields: { a: 0n } })).contractInstance
+    const state = await fakeToken.fetchState()
+    expect(state.fields).toEqual({ a: 0n })
   })
 })

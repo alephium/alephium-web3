@@ -36,6 +36,20 @@
       "codeHashDebug": "",
       "warnings": []
     },
+    "FakeTokenTest": {
+      "sourceFile": "token/fake_token_test.ral",
+      "sourceCodeHash": "81d0d45be2609f88d2750a5974575da582383484b323c8d15b04fdfed44766c6",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "88d74dcc19bfd075e97c90ab5f48d374f9ff982133d8257d4efc32305c5885b3",
+      "warnings": []
+    },
+    "FungibleTokenUnimplemented": {
+      "sourceFile": "../packages/web3/std/fungible_token_unimplemented.ral",
+      "sourceCodeHash": "dc2d6de72bcb5f86cb30e0d3adf57566d8a9c99219843f357674bf71b2830aa4",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "Greeter": {
       "sourceFile": "greeter/greeter.ral",
       "sourceCodeHash": "66c5ae4dc1029150388645f19e5658daf97420c6357cf8ea849038f1de2ee74a",
@@ -124,7 +138,7 @@
       "warnings": []
     },
     "TokenTest": {
-      "sourceFile": "token_test.ral",
+      "sourceFile": "token/token_test.ral",
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
