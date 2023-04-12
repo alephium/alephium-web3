@@ -93,14 +93,9 @@ program
         process.exit(1)
       }
       web3.setCurrentNodeProvider(nodeUrl)
+      const fullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosNode()).buildInfo.releaseVersion
       const cwd = path.resolve(process.cwd())
-      await Project.build(
-        config.compilerOptions,
-        cwd,
-        config.sourceDir,
-        config.artifactDir,
-        DEFAULT_CONFIGURATION_VALUES.nodeVersion
-      )
+      await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir, fullNodeVersion)
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
         return
