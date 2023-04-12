@@ -94,7 +94,13 @@ program
       }
       web3.setCurrentNodeProvider(nodeUrl)
       const cwd = path.resolve(process.cwd())
-      await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir)
+      await Project.build(
+        config.compilerOptions,
+        cwd,
+        config.sourceDir,
+        config.artifactDir,
+        DEFAULT_CONFIGURATION_VALUES.nodeVersion
+      )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
         return

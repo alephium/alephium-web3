@@ -60,7 +60,6 @@ import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
-import { config } from '../../package.json'
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
@@ -627,9 +626,10 @@ export class Project {
     projectRootDir = '.',
     contractsRootDir = Project.DEFAULT_CONTRACTS_DIR,
     artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR,
-    fullNodeVersion: string = config.alephium_version
+    defaultFullNodeVersion: string | undefined = undefined
   ): Promise<void> {
     const provider = getCurrentNodeProvider()
+    const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosNode()).buildInfo.releaseVersion
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
