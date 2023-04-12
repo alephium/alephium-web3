@@ -1,0 +1,5 @@
+import "std/fungible_token_unimplemented"
+
+Contract FakeTokenTest(@unused a: U256) extends FungibleTokenUnimplemented() {
+  pub fn foo() -> () {}
+}

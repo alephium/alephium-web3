@@ -11,5 +11,6 @@ export * from "./Assert";
 export * from "./Debug";
 export * from "./MetaData";
 export * from "./Warnings";
+export * from "./FakeTokenTest";
 export * from "./TokenTest";
 export * from "./scripts";

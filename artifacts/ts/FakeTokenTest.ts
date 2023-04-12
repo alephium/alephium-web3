@@ -24,15 +24,12 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as TokenTestContractJson } from "../token/token_test.ral.json";
+import { default as FakeTokenTestContractJson } from "../token/fake_token_test.ral.json";
 
 // Custom types for the contract
-export namespace TokenTestTypes {
+export namespace FakeTokenTestTypes {
   export type Fields = {
-    symbol: HexString;
-    name: HexString;
-    decimals: bigint;
-    totalSupply: bigint;
+    a: bigint;
   };
 
   export type State = ContractState<Fields>;
@@ -70,92 +67,112 @@ export namespace TokenTestTypes {
 }
 
 class Factory extends ContractFactory<
-  TokenTestInstance,
-  TokenTestTypes.Fields
+  FakeTokenTestInstance,
+  FakeTokenTestTypes.Fields
 > {
-  at(address: string): TokenTestInstance {
-    return new TokenTestInstance(address);
+  at(address: string): FakeTokenTestInstance {
+    return new FakeTokenTestInstance(address);
   }
 
   tests = {
     getSymbol: async (
-      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<HexString>> => {
       return testMethod(this, "getSymbol", params);
     },
     getName: async (
-      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<HexString>> => {
       return testMethod(this, "getName", params);
     },
     getDecimals: async (
-      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<bigint>> => {
       return testMethod(this, "getDecimals", params);
     },
     getTotalSupply: async (
-      params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<bigint>> => {
       return testMethod(this, "getTotalSupply", params);
+    },
+    foo: async (
+      params: Omit<
+        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "foo", params);
     },
   };
 }
 
 // Use this object to test and deploy the contract
-export const TokenTest = new Factory(
+export const FakeTokenTest = new Factory(
   Contract.fromJson(
-    TokenTestContractJson,
+    FakeTokenTestContractJson,
     "",
-    "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd"
+    "88d74dcc19bfd075e97c90ab5f48d374f9ff982133d8257d4efc32305c5885b3"
   )
 );
 
 // Use this class to interact with the blockchain
-export class TokenTestInstance extends ContractInstance {
+export class FakeTokenTestInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
   }
 
-  async fetchState(): Promise<TokenTestTypes.State> {
-    return fetchContractState(TokenTest, this);
+  async fetchState(): Promise<FakeTokenTestTypes.State> {
+    return fetchContractState(FakeTokenTest, this);
   }
 
   methods = {
     getSymbol: async (
-      params?: TokenTestTypes.CallMethodParams<"getSymbol">
-    ): Promise<TokenTestTypes.CallMethodResult<"getSymbol">> => {
+      params?: FakeTokenTestTypes.CallMethodParams<"getSymbol">
+    ): Promise<FakeTokenTestTypes.CallMethodResult<"getSymbol">> => {
       return callMethod(
-        TokenTest,
+        FakeTokenTest,
         this,
         "getSymbol",
         params === undefined ? {} : params
       );
     },
     getName: async (
-      params?: TokenTestTypes.CallMethodParams<"getName">
-    ): Promise<TokenTestTypes.CallMethodResult<"getName">> => {
+      params?: FakeTokenTestTypes.CallMethodParams<"getName">
+    ): Promise<FakeTokenTestTypes.CallMethodResult<"getName">> => {
       return callMethod(
-        TokenTest,
+        FakeTokenTest,
         this,
         "getName",
         params === undefined ? {} : params
       );
     },
     getDecimals: async (
-      params?: TokenTestTypes.CallMethodParams<"getDecimals">
-    ): Promise<TokenTestTypes.CallMethodResult<"getDecimals">> => {
+      params?: FakeTokenTestTypes.CallMethodParams<"getDecimals">
+    ): Promise<FakeTokenTestTypes.CallMethodResult<"getDecimals">> => {
       return callMethod(
-        TokenTest,
+        FakeTokenTest,
         this,
         "getDecimals",
         params === undefined ? {} : params
       );
     },
     getTotalSupply: async (
-      params?: TokenTestTypes.CallMethodParams<"getTotalSupply">
-    ): Promise<TokenTestTypes.CallMethodResult<"getTotalSupply">> => {
+      params?: FakeTokenTestTypes.CallMethodParams<"getTotalSupply">
+    ): Promise<FakeTokenTestTypes.CallMethodResult<"getTotalSupply">> => {
       return callMethod(
-        TokenTest,
+        FakeTokenTest,
         this,
         "getTotalSupply",
         params === undefined ? {} : params
@@ -163,13 +180,13 @@ export class TokenTestInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends TokenTestTypes.MultiCallParams>(
+  async multicall<Calls extends FakeTokenTestTypes.MultiCallParams>(
     calls: Calls
-  ): Promise<TokenTestTypes.MultiCallResults<Calls>> {
+  ): Promise<FakeTokenTestTypes.MultiCallResults<Calls>> {
     return (await multicallMethods(
-      TokenTest,
+      FakeTokenTest,
       this,
       calls
-    )) as TokenTestTypes.MultiCallResults<Calls>;
+    )) as FakeTokenTestTypes.MultiCallResults<Calls>;
   }
 }
