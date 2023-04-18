@@ -22,8 +22,8 @@ const deployFaucet: DeployFunction<Settings> = async (
       balance: issueTokenAmount
     }
   })
-  console.log('Token faucet contract id: ' + result.contractId)
-  console.log('Token faucet contract address: ' + result.contractAddress)
+  console.log('Token faucet contract id: ' + result.contractInstance.contractId)
+  console.log('Token faucet contract address: ' + result.contractInstance.address)
 }
 
 export default deployFaucet
