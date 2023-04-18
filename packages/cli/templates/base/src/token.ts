@@ -27,8 +27,8 @@ async function withdraw() {
       console.log(`The contract is not deployed on group ${account.group}`)
       continue
     }
-    const tokenId = deployed.contractId
-    const tokenAddress = deployed.contractAddress
+    const tokenId = deployed.contractInstance.contractId
+    const tokenAddress = deployed.contractInstance.address
 
     // Submit a transaction to use the transaction script
     await Withdraw.execute(signer, {

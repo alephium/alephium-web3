@@ -122,9 +122,9 @@ describe('integration tests', () => {
         console.log(`The contract is not deployed on group ${account.group}`)
         continue
       }
-      const tokenId = deployed.contractId
-      const tokenAddress = deployed.contractAddress
-      expect(deployed.groupIndex).toEqual(testGroup)
+      const tokenId = deployed.contractInstance.contractId
+      const tokenAddress = deployed.contractInstance.address
+      expect(deployed.contractInstance.groupIndex).toEqual(testGroup)
 
       const faucet = TokenFaucet.at(tokenAddress)
       const initialState = await faucet.fetchState()
