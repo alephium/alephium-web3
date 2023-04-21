@@ -31,7 +31,7 @@ Contract NFTCollectionTest(
    pub fn mint(nftUri: ByteVec) -> (ByteVec) {
      let minter = callerAddress!()
 
-     let initialImmState = NFTTest.encodeImmFields!(nftUri)
+     let initialImmState = NFTTest.encodeImmFields!(selfContractId!(), nftUri)
 
      let contractId = copyCreateSubContractWithToken!{minter -> ALPH: 1 alph}(
          toByteVec!(totalSupply),

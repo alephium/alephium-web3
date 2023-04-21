@@ -43,7 +43,15 @@ describe('nft collection', function () {
 
   it('should mint nft', async () => {
     const nftUri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
-    const nftTest = (await NFTTest.deploy(signer, { initialFields: { uri: nftUri } })).contractInstance
+    const nftTest = (
+      await NFTTest.deploy(signer, {
+        initialFields: {
+          collectionId: stringToHex('collection-id'),
+          uri: nftUri
+        }
+      })
+    ).contractInstance
+
     expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
 
     const collectionUri = stringToHex('https://cryptopunks.app/cryptopunks')
