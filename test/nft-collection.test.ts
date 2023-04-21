@@ -88,6 +88,8 @@ describe('nft collection', function () {
     const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
     const nftFields = (await nftInstance.fetchState()).fields
     expect(nftFields.uri).toEqual(nftUri)
+    expect(nftFields.collectionId).toEqual(nftCollectionTest.contractId)
+    expect((await nftInstance.methods.getCollectionId()).returns).toEqual(nftCollectionTest.contractId)
 
     const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(nftInstance.contractId)
     expect(stdInterfaceId).toEqual('0003')
