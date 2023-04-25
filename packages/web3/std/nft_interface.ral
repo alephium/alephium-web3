@@ -22,4 +22,6 @@ Interface INFT {
    //     }
    // }
    pub fn getTokenUri() -> ByteVec
+
+   pub fn getCollectionId() -> ByteVec
 }

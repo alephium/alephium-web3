@@ -43,7 +43,15 @@ describe('nft collection', function () {
 
   it('should mint nft', async () => {
     const nftUri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
-    const nftTest = (await NFTTest.deploy(signer, { initialFields: { uri: nftUri } })).contractInstance
+    const nftTest = (
+      await NFTTest.deploy(signer, {
+        initialFields: {
+          collectionId: stringToHex('collection-id'),
+          uri: nftUri
+        }
+      })
+    ).contractInstance
+
     expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
 
     const collectionUri = stringToHex('https://cryptopunks.app/cryptopunks')
@@ -80,6 +88,8 @@ describe('nft collection', function () {
     const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
     const nftFields = (await nftInstance.fetchState()).fields
     expect(nftFields.uri).toEqual(nftUri)
+    expect(nftFields.collectionId).toEqual(nftCollectionTest.contractId)
+    expect((await nftInstance.methods.getCollectionId()).returns).toEqual(nftCollectionTest.contractId)
 
     const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(nftInstance.contractId)
     expect(stdInterfaceId).toEqual('0003')

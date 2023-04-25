@@ -1,18 +1,21 @@
 {
   "version": "v2.1.2",
   "name": "NFTTest",
-  "bytecode": "020109010000000102ce0002",
-  "codeHash": "c654f89a813259b6e270c8cf609200907f0824755bb394b00d8b151c3fddf95f",
+  "bytecode": "03020912010000000102ce0102010000000102ce0002",
+  "codeHash": "657b46b2236b78c955660db6731d43b42dd8204bb6220181de3c5f8678d90da0",
   "fieldsSig": {
     "names": [
+      "collectionId",
       "uri",
       "__stdInterfaceId"
     ],
     "types": [
       "ByteVec",
+      "ByteVec",
       "ByteVec"
     ],
     "isMutable": [
+      false,
       false,
       false
     ]
@@ -21,6 +24,18 @@
   "functions": [
     {
       "name": "getTokenUri",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "getCollectionId",
       "usePreapprovedAssets": false,
       "useAssetsInContract": false,
       "isPublic": true,
