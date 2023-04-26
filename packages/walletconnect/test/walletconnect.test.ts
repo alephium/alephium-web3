@@ -23,7 +23,7 @@ import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
 
 const NETWORK_ID = 'devnet'
-const CHAIN_GROUP = 0
+const ADDRESS_GROUP = 0
 const RPC_URL = 'http://127.0.0.1:22973'
 
 const nodeProvider = new NodeProvider(RPC_URL)
@@ -75,7 +75,7 @@ const TEST_WALLET_METADATA = {
 
 const TEST_PROVIDER_OPTS: ProviderOptions = {
   networkId: NETWORK_ID,
-  addressGroup: CHAIN_GROUP,
+  addressGroup: ADDRESS_GROUP,
 
   metadata: TEST_APP_METADATA,
   logger: 'error',
