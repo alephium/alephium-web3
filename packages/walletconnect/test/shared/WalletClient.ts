@@ -35,8 +35,8 @@ import {
   parseChain,
   formatChain,
   PROVIDER_NAMESPACE,
-  ChainGroup,
-  isCompatibleChainGroup,
+  AddressGroup,
+  isCompatibleAddressGroup,
   RelayMethod,
   WalletConnectProvider,
   formatAccount
@@ -64,7 +64,7 @@ export class WalletClient {
   public topic?: string
 
   public namespace?: SessionTypes.Namespace
-  public permittedChainGroup: ChainGroup
+  public permittedAddressGroup: AddressGroup
 
   public disconnected = false
 
@@ -96,7 +96,7 @@ export class WalletClient {
     this.provider = provider
     this.networkId = opts?.networkId ?? 'devnet'
     this.rpcUrl = opts?.rpcUrl || 'http://alephium:22973'
-    this.permittedChainGroup = undefined
+    this.permittedAddressGroup = undefined
     this.nodeProvider = new NodeProvider(this.rpcUrl)
     this.signer = this.getWallet(opts.activePrivateKey)
   }
@@ -104,13 +104,13 @@ export class WalletClient {
   public async changeAccount(privateKey: string) {
     const wallet = this.getWallet(privateKey)
     let changedChainId: string
-    if (this.permittedChainGroup === undefined) {
+    if (this.permittedAddressGroup === undefined) {
       changedChainId = formatChain(this.networkId, undefined)
     } else {
       changedChainId = formatChain(this.networkId, wallet.group)
     }
 
-    if (!isCompatibleChainGroup(wallet.account.group, this.permittedChainGroup)) {
+    if (!isCompatibleAddressGroup(wallet.account.group, this.permittedAddressGroup)) {
       throw new Error(`Error changing account, chain ${changedChainId} not permitted`)
     }
 
@@ -232,7 +232,7 @@ export class WalletClient {
       const requiredChain = requiredChains[0]
       const { networkId, addressGroup } = parseChain(requiredChain)
       this.networkId = networkId
-      this.permittedChainGroup = addressGroup
+      this.permittedAddressGroup = addressGroup
 
       this.namespace = {
         methods: requiredAlephiumNamespace.methods,
@@ -266,7 +266,7 @@ export class WalletClient {
       const { networkId, addressGroup } = parseChain(chainId)
 
       try {
-        if (!(networkId === this.networkId && addressGroup === this.permittedChainGroup)) {
+        if (!(networkId === this.networkId && addressGroup === this.permittedAddressGroup)) {
           throw new Error(`Target chain(${chainId}) is not permitted`)
         }
 

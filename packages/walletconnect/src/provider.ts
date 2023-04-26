@@ -43,7 +43,7 @@ import {
 
 import { LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
 import {
-  ChainGroup,
+  AddressGroup,
   RelayMethodParams,
   RelayMethodResult,
   ProviderEvent,
@@ -75,7 +75,7 @@ export class WalletConnectProvider extends SignerProvider {
   public explorerProvider: ExplorerProvider | undefined
 
   public networkId: NetworkId
-  public addressGroup: ChainGroup
+  public addressGroup: AddressGroup
   public permittedChain: string
   public methods: RelayMethod[]
 
@@ -339,7 +339,7 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     const newAccount = parsedAccounts[0]
-    if (!isCompatibleChainGroup(newAccount.group, this.addressGroup)) {
+    if (!isCompatibleAddressGroup(newAccount.group, this.addressGroup)) {
       throw Error('The new account belongs to an unexpected chain group')
     }
 
@@ -352,11 +352,11 @@ export function isCompatibleChain(chain: string): boolean {
   return chain.startsWith(`${PROVIDER_NAMESPACE}:`)
 }
 
-export function isCompatibleChainGroup(group: number, expectedChainGroup: ChainGroup): boolean {
-  return expectedChainGroup === undefined || expectedChainGroup === group
+export function isCompatibleAddressGroup(group: number, expectedAddressGroup: AddressGroup): boolean {
+  return expectedAddressGroup === undefined || expectedAddressGroup === group
 }
 
-export function formatChain(networkId: NetworkId, addressGroup: ChainGroup): string {
+export function formatChain(networkId: NetworkId, addressGroup: AddressGroup): string {
   if (addressGroup !== undefined && addressGroup < 0) {
     throw Error('Chain group in provider needs to be either undefined or non-negative')
   }

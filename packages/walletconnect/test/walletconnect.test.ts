@@ -105,12 +105,12 @@ export const TEST_SIGN_CLIENT_OPTIONS: SignClientTypes.Options = {
 jest.setTimeout(30_000)
 
 describe('Unit tests', function () {
-  const expectedChainGroup0 = 2
-  const expectedChainGroup1 = 1
+  const expectedAddressGroup0 = 2
+  const expectedAddressGroup1 = 1
 
   it('test formatChain & parseChain', () => {
-    expect(formatChain('devnet', expectedChainGroup0)).toEqual('alephium:devnet/2')
-    expect(formatChain('devnet', expectedChainGroup1)).toEqual('alephium:devnet/1')
+    expect(formatChain('devnet', expectedAddressGroup0)).toEqual('alephium:devnet/2')
+    expect(formatChain('devnet', expectedAddressGroup1)).toEqual('alephium:devnet/1')
     expect(formatChain('devnet', undefined)).toEqual('alephium:devnet/-1')
     expect(() => formatChain('devnet', -1)).toThrow()
     expect(parseChain('alephium:devnet/2')).toEqual({ networkId: 'devnet', addressGroup: 2 })
