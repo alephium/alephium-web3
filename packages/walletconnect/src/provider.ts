@@ -374,7 +374,10 @@ export function parseChain(chainString: string): ChainInfo {
   if (!networkIdList.includes(networkId)) {
     throw Error(`Invalid network id, expect one of ${networkIdList}`)
   }
-  return { networkId: networkId as NetworkId, addressGroup: addressGroupDecoded === -1 ? undefined : addressGroupDecoded }
+  return {
+    networkId: networkId as NetworkId,
+    addressGroup: addressGroupDecoded === -1 ? undefined : addressGroupDecoded
+  }
 }
 
 export function formatAccount(permittedChain: string, account: Account): string {
