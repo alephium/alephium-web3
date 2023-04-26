@@ -75,7 +75,7 @@ const TEST_WALLET_METADATA = {
 
 const TEST_PROVIDER_OPTS: ProviderOptions = {
   networkId: NETWORK_ID,
-  chainGroup: CHAIN_GROUP,
+  addressGroup: CHAIN_GROUP,
 
   metadata: TEST_APP_METADATA,
   logger: 'error',
@@ -113,9 +113,9 @@ describe('Unit tests', function () {
     expect(formatChain('devnet', expectedChainGroup1)).toEqual('alephium:devnet/1')
     expect(formatChain('devnet', undefined)).toEqual('alephium:devnet/-1')
     expect(() => formatChain('devnet', -1)).toThrow()
-    expect(parseChain('alephium:devnet/2')).toEqual({ networkId: 'devnet', chainGroup: 2 })
-    expect(parseChain('alephium:devnet/1')).toEqual({ networkId: 'devnet', chainGroup: 1 })
-    expect(parseChain('alephium:devnet/-1')).toEqual({ networkId: 'devnet', chainGroup: undefined })
+    expect(parseChain('alephium:devnet/2')).toEqual({ networkId: 'devnet', addressGroup: 2 })
+    expect(parseChain('alephium:devnet/1')).toEqual({ networkId: 'devnet', addressGroup: 1 })
+    expect(parseChain('alephium:devnet/-1')).toEqual({ networkId: 'devnet', addressGroup: undefined })
     expect(() => parseChain('alephium:devnet/-2')).toThrow()
   })
 
@@ -129,7 +129,7 @@ describe('Unit tests', function () {
   })
 })
 
-describe('WalletConnectProvider with single chainGroup', function () {
+describe('WalletConnectProvider with single addressGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -194,7 +194,7 @@ describe('WalletConnectProvider with single chainGroup', function () {
   })
 })
 
-describe('WalletConnectProvider with arbitrary chainGroup', function () {
+describe('WalletConnectProvider with arbitrary addressGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -203,7 +203,7 @@ describe('WalletConnectProvider with arbitrary chainGroup', function () {
     provider = await WalletConnectProvider.init({
       ...TEST_PROVIDER_OPTS,
       networkId: NETWORK_ID,
-      chainGroup: undefined
+      addressGroup: undefined
     })
     walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
     walletAddress = walletClient.signer.address

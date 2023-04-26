@@ -179,12 +179,12 @@ export class WalletClient {
 
   private chainAccount(chains: string[]) {
     const accounts = chains.flatMap((chain) => {
-      const { chainGroup } = parseChain(chain)
+      const { addressGroup } = parseChain(chain)
 
       const accounts = this.accounts
         .filter((account) => {
           const group = addressToGroup(account.address, 4)
-          return chainGroup === undefined || group === (chainGroup as number)
+          return addressGroup === undefined || group === (addressGroup as number)
         })
         .map((account) => formatAccount(chain, account))
 
@@ -230,9 +230,9 @@ export class WalletClient {
       }
 
       const requiredChain = requiredChains[0]
-      const { networkId, chainGroup } = parseChain(requiredChain)
+      const { networkId, addressGroup } = parseChain(requiredChain)
       this.networkId = networkId
-      this.permittedChainGroup = chainGroup
+      this.permittedChainGroup = addressGroup
 
       this.namespace = {
         methods: requiredAlephiumNamespace.methods,
@@ -263,10 +263,10 @@ export class WalletClient {
       if (topic !== this.topic) return
 
       const { chainId, request } = params
-      const { networkId, chainGroup } = parseChain(chainId)
+      const { networkId, addressGroup } = parseChain(chainId)
 
       try {
-        if (!(networkId === this.networkId && chainGroup === this.permittedChainGroup)) {
+        if (!(networkId === this.networkId && addressGroup === this.permittedChainGroup)) {
           throw new Error(`Target chain(${chainId}) is not permitted`)
         }
 

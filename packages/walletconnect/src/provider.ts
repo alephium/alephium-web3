@@ -56,7 +56,7 @@ import {
 export interface ProviderOptions {
   // Alephium options
   networkId: NetworkId // the id of the network, e.g. mainnet, testnet or devnet.
-  chainGroup?: number // either a specific group or undefined to support all groups
+  addressGroup?: number // either a specific group or undefined to support all groups
   methods?: RelayMethod[] // all of the methods to be used in relay; no need to configure in most cases
 
   // WalletConnect options
@@ -75,7 +75,7 @@ export class WalletConnectProvider extends SignerProvider {
   public explorerProvider: ExplorerProvider | undefined
 
   public networkId: NetworkId
-  public chainGroup: ChainGroup
+  public addressGroup: ChainGroup
   public permittedChain: string
   public methods: RelayMethod[]
 
@@ -95,8 +95,8 @@ export class WalletConnectProvider extends SignerProvider {
 
     this.providerOpts = opts
     this.networkId = opts.networkId
-    this.chainGroup = opts.chainGroup
-    this.permittedChain = formatChain(this.networkId, this.chainGroup)
+    this.addressGroup = opts.addressGroup
+    this.permittedChain = formatChain(this.networkId, this.addressGroup)
 
     this.methods = opts.methods ?? [...RELAY_METHODS]
     if (this.methods.includes('alph_requestNodeApi')) {
@@ -339,7 +339,7 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     const newAccount = parsedAccounts[0]
-    if (!isCompatibleChainGroup(newAccount.group, this.chainGroup)) {
+    if (!isCompatibleChainGroup(newAccount.group, this.addressGroup)) {
       throw Error('The new account belongs to an unexpected chain group')
     }
 
@@ -356,25 +356,25 @@ export function isCompatibleChainGroup(group: number, expectedChainGroup: ChainG
   return expectedChainGroup === undefined || expectedChainGroup === group
 }
 
-export function formatChain(networkId: NetworkId, chainGroup: ChainGroup): string {
-  if (chainGroup !== undefined && chainGroup < 0) {
+export function formatChain(networkId: NetworkId, addressGroup: ChainGroup): string {
+  if (addressGroup !== undefined && addressGroup < 0) {
     throw Error('Chain group in provider needs to be either undefined or non-negative')
   }
-  const chainGroupEncoded = chainGroup !== undefined ? chainGroup : -1
-  return `${PROVIDER_NAMESPACE}:${networkId}/${chainGroupEncoded}`
+  const addressGroupEncoded = addressGroup !== undefined ? addressGroup : -1
+  return `${PROVIDER_NAMESPACE}:${networkId}/${addressGroupEncoded}`
 }
 
 export function parseChain(chainString: string): ChainInfo {
-  const [_namespace, networkId, chainGroup] = chainString.replace(/\//g, ':').split(':')
-  const chainGroupDecoded = parseInt(chainGroup, 10)
-  if (chainGroupDecoded < -1) {
+  const [_namespace, networkId, addressGroup] = chainString.replace(/\//g, ':').split(':')
+  const addressGroupDecoded = parseInt(addressGroup, 10)
+  if (addressGroupDecoded < -1) {
     throw Error('Chain group in protocol needs to be either -1 or non-negative')
   }
   const networkIdList = networkIds as ReadonlyArray<string>
   if (!networkIdList.includes(networkId)) {
     throw Error(`Invalid network id, expect one of ${networkIdList}`)
   }
-  return { networkId: networkId as NetworkId, chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
+  return { networkId: networkId as NetworkId, addressGroup: addressGroupDecoded === -1 ? undefined : addressGroupDecoded }
 }
 
 export function formatAccount(permittedChain: string, account: Account): string {

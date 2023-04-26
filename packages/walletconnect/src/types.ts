@@ -98,7 +98,7 @@ export type ProviderEventArgument<T extends ProviderEvent> = ProviderEventArgume
 export type ChainGroup = number | undefined // number: a specific address group; undefined: all address groups
 export interface ChainInfo {
   networkId: NetworkId
-  chainGroup: ChainGroup
+  addressGroup: ChainGroup
 }
 
 export type ProjectMetaData = SignClientTypes.Metadata

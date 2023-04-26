@@ -25,7 +25,7 @@ const ConnectWithDesktopWallet: React.FC = () => {
   const context = useAlephiumConnectContext()
   const [error, setError] = useState<string>()
   const { connect } = useConnect({
-    chainGroup: context.addressGroup,
+    addressGroup: context.addressGroup,
     keyType: context.keyType,
     networkId: context.network
   })
