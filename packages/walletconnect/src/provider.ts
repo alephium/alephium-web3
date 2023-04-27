@@ -316,7 +316,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   private setChain(chains: string[]) {
     if (!this.sameChains(chains, [this.permittedChain])) {
-      throw Error('Network or chain group has changed')
+      throw Error('Network or address group has changed')
     }
   }
 
@@ -343,7 +343,7 @@ export class WalletConnectProvider extends SignerProvider {
 
     const newAccount = parsedAccounts[0]
     if (!isCompatibleAddressGroup(newAccount.group, this.addressGroup)) {
-      throw Error('The new account belongs to an unexpected chain group')
+      throw Error('The new account belongs to an unexpected address group')
     }
 
     this.account = newAccount
@@ -361,7 +361,7 @@ export function isCompatibleAddressGroup(group: number, expectedAddressGroup: Ad
 
 export function formatChain(networkId: NetworkId, addressGroup: AddressGroup): string {
   if (addressGroup !== undefined && addressGroup < 0) {
-    throw Error('Chain group in provider needs to be either undefined or non-negative')
+    throw Error('Address group in provider needs to be either undefined or non-negative')
   }
   const addressGroupEncoded = addressGroup !== undefined ? addressGroup : -1
   return `${PROVIDER_NAMESPACE}:${networkId}/${addressGroupEncoded}`
@@ -371,7 +371,7 @@ export function parseChain(chainString: string): ChainInfo {
   const [_namespace, networkId, addressGroup] = chainString.replace(/\//g, ':').split(':')
   const addressGroupDecoded = parseInt(addressGroup, 10)
   if (addressGroupDecoded < -1) {
-    throw Error('Chain group in protocol needs to be either -1 or non-negative')
+    throw Error('Address group in protocol needs to be either -1 or non-negative')
   }
   const networkIdList = networkIds as ReadonlyArray<string>
   if (!networkIdList.includes(networkId)) {
