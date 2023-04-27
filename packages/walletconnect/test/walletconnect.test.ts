@@ -76,6 +76,9 @@ const TEST_WALLET_METADATA = {
 const TEST_PROVIDER_OPTS: ProviderOptions = {
   networkId: NETWORK_ID,
   addressGroup: ADDRESS_GROUP,
+  onDisconnected: () => {
+    return
+  },
 
   metadata: TEST_APP_METADATA,
   logger: 'error',
