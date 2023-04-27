@@ -38,7 +38,8 @@ import {
   ExplorerProvider,
   ApiRequestArguments,
   NetworkId,
-  networkIds
+  networkIds,
+  EnableOptionsBase
 } from '@alephium/web3'
 
 import { LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -53,7 +54,7 @@ import {
   ChainInfo
 } from './types'
 
-export interface ProviderOptions {
+export interface ProviderOptions extends EnableOptionsBase {
   // Alephium options
   networkId: NetworkId // the id of the network, e.g. mainnet, testnet or devnet.
   addressGroup?: number // either a specific group or undefined to support all groups
@@ -134,6 +135,8 @@ export class WalletConnectProvider extends SignerProvider {
     if (!this.client) {
       throw new Error('Sign Client not initialized')
     }
+
+    await this.providerOpts.onDisconnected()
 
     await this.client.disconnect({
       topic: this.session.topic,
