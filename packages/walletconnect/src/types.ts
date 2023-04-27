@@ -95,10 +95,10 @@ export type ProviderEvent =
 assertType<Eq<ProviderEvent, keyof ProviderEventArguments>>()
 export type ProviderEventArgument<T extends ProviderEvent> = ProviderEventArguments[T]
 
-export type ChainGroup = number | undefined // number: a specific address group; undefined: all address groups
+export type AddressGroup = number | undefined // number: a specific address group; undefined: all address groups
 export interface ChainInfo {
   networkId: NetworkId
-  chainGroup: ChainGroup
+  addressGroup: AddressGroup
 }
 
 export type ProjectMetaData = SignClientTypes.Metadata

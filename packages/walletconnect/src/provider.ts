@@ -38,12 +38,13 @@ import {
   ExplorerProvider,
   ApiRequestArguments,
   NetworkId,
-  networkIds
+  networkIds,
+  EnableOptionsBase
 } from '@alephium/web3'
 
 import { LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
 import {
-  ChainGroup,
+  AddressGroup,
   RelayMethodParams,
   RelayMethodResult,
   ProviderEvent,
@@ -53,10 +54,10 @@ import {
   ChainInfo
 } from './types'
 
-export interface ProviderOptions {
+export interface ProviderOptions extends EnableOptionsBase {
   // Alephium options
   networkId: NetworkId // the id of the network, e.g. mainnet, testnet or devnet.
-  chainGroup?: number // either a specific group or undefined to support all groups
+  addressGroup?: number // either a specific group or undefined to support all groups
   methods?: RelayMethod[] // all of the methods to be used in relay; no need to configure in most cases
 
   // WalletConnect options
@@ -75,7 +76,7 @@ export class WalletConnectProvider extends SignerProvider {
   public explorerProvider: ExplorerProvider | undefined
 
   public networkId: NetworkId
-  public chainGroup: ChainGroup
+  public addressGroup: AddressGroup
   public permittedChain: string
   public methods: RelayMethod[]
 
@@ -95,8 +96,8 @@ export class WalletConnectProvider extends SignerProvider {
 
     this.providerOpts = opts
     this.networkId = opts.networkId
-    this.chainGroup = opts.chainGroup
-    this.permittedChain = formatChain(this.networkId, this.chainGroup)
+    this.addressGroup = opts.addressGroup
+    this.permittedChain = formatChain(this.networkId, this.addressGroup)
 
     this.methods = opts.methods ?? [...RELAY_METHODS]
     if (this.methods.includes('alph_requestNodeApi')) {
@@ -134,6 +135,8 @@ export class WalletConnectProvider extends SignerProvider {
     if (!this.client) {
       throw new Error('Sign Client not initialized')
     }
+
+    await this.providerOpts.onDisconnected()
 
     await this.client.disconnect({
       topic: this.session.topic,
@@ -313,7 +316,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   private setChain(chains: string[]) {
     if (!this.sameChains(chains, [this.permittedChain])) {
-      throw Error('Network or chain group has changed')
+      throw Error('Network or address group has changed')
     }
   }
 
@@ -339,8 +342,8 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     const newAccount = parsedAccounts[0]
-    if (!isCompatibleChainGroup(newAccount.group, this.chainGroup)) {
-      throw Error('The new account belongs to an unexpected chain group')
+    if (!isCompatibleAddressGroup(newAccount.group, this.addressGroup)) {
+      throw Error('The new account belongs to an unexpected address group')
     }
 
     this.account = newAccount
@@ -352,29 +355,32 @@ export function isCompatibleChain(chain: string): boolean {
   return chain.startsWith(`${PROVIDER_NAMESPACE}:`)
 }
 
-export function isCompatibleChainGroup(group: number, expectedChainGroup: ChainGroup): boolean {
-  return expectedChainGroup === undefined || expectedChainGroup === group
+export function isCompatibleAddressGroup(group: number, expectedAddressGroup: AddressGroup): boolean {
+  return expectedAddressGroup === undefined || expectedAddressGroup === group
 }
 
-export function formatChain(networkId: NetworkId, chainGroup: ChainGroup): string {
-  if (chainGroup !== undefined && chainGroup < 0) {
-    throw Error('Chain group in provider needs to be either undefined or non-negative')
+export function formatChain(networkId: NetworkId, addressGroup: AddressGroup): string {
+  if (addressGroup !== undefined && addressGroup < 0) {
+    throw Error('Address group in provider needs to be either undefined or non-negative')
   }
-  const chainGroupEncoded = chainGroup !== undefined ? chainGroup : -1
-  return `${PROVIDER_NAMESPACE}:${networkId}/${chainGroupEncoded}`
+  const addressGroupEncoded = addressGroup !== undefined ? addressGroup : -1
+  return `${PROVIDER_NAMESPACE}:${networkId}/${addressGroupEncoded}`
 }
 
 export function parseChain(chainString: string): ChainInfo {
-  const [_namespace, networkId, chainGroup] = chainString.replace(/\//g, ':').split(':')
-  const chainGroupDecoded = parseInt(chainGroup, 10)
-  if (chainGroupDecoded < -1) {
-    throw Error('Chain group in protocol needs to be either -1 or non-negative')
+  const [_namespace, networkId, addressGroup] = chainString.replace(/\//g, ':').split(':')
+  const addressGroupDecoded = parseInt(addressGroup, 10)
+  if (addressGroupDecoded < -1) {
+    throw Error('Address group in protocol needs to be either -1 or non-negative')
   }
   const networkIdList = networkIds as ReadonlyArray<string>
   if (!networkIdList.includes(networkId)) {
     throw Error(`Invalid network id, expect one of ${networkIdList}`)
   }
-  return { networkId: networkId as NetworkId, chainGroup: chainGroupDecoded === -1 ? undefined : chainGroupDecoded }
+  return {
+    networkId: networkId as NetworkId,
+    addressGroup: addressGroupDecoded === -1 ? undefined : addressGroupDecoded
+  }
 }
 
 export function formatAccount(permittedChain: string, account: Account): string {

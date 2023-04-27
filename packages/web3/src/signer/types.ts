@@ -164,8 +164,8 @@ export interface SubmissionResult {
 }
 
 export interface EnableOptionsBase {
-  // chainGroup - specify whether to use addresses from a specific group. Default: any group
-  chainGroup?: number
+  // addressGroup - specify whether to use addresses from a specific group. Default: any group
+  addressGroup?: number
   // keyType - specify which type of signing algorithm to use. Default: Secp256K1
   keyType?: KeyType
   // networkId - specify which network to connect. Default: the current network

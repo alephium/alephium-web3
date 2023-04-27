@@ -34,7 +34,9 @@ export function useConnect(options: ConnectOptions) {
     }
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
-      networkId: context.network
+      networkId: context.network,
+      addressGroup: options.addressGroup,
+      onDisconnected: wcDisconnect
     })
 
     wcProvider.on('displayUri', (uri) => {
@@ -62,7 +64,9 @@ export function useConnect(options: ConnectOptions) {
 
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
-      networkId: context.network
+      networkId: context.network,
+      addressGroup: options.addressGroup,
+      onDisconnected: wcDisconnect
     })
 
     wcProvider.on('displayUri', (uri) => {

@@ -23,7 +23,7 @@ import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
 
 const NETWORK_ID = 'devnet'
-const CHAIN_GROUP = 0
+const ADDRESS_GROUP = 0
 const RPC_URL = 'http://127.0.0.1:22973'
 
 const nodeProvider = new NodeProvider(RPC_URL)
@@ -75,7 +75,10 @@ const TEST_WALLET_METADATA = {
 
 const TEST_PROVIDER_OPTS: ProviderOptions = {
   networkId: NETWORK_ID,
-  chainGroup: CHAIN_GROUP,
+  addressGroup: ADDRESS_GROUP,
+  onDisconnected: () => {
+    return
+  },
 
   metadata: TEST_APP_METADATA,
   logger: 'error',
@@ -105,17 +108,17 @@ export const TEST_SIGN_CLIENT_OPTIONS: SignClientTypes.Options = {
 jest.setTimeout(30_000)
 
 describe('Unit tests', function () {
-  const expectedChainGroup0 = 2
-  const expectedChainGroup1 = 1
+  const expectedAddressGroup0 = 2
+  const expectedAddressGroup1 = 1
 
   it('test formatChain & parseChain', () => {
-    expect(formatChain('devnet', expectedChainGroup0)).toEqual('alephium:devnet/2')
-    expect(formatChain('devnet', expectedChainGroup1)).toEqual('alephium:devnet/1')
+    expect(formatChain('devnet', expectedAddressGroup0)).toEqual('alephium:devnet/2')
+    expect(formatChain('devnet', expectedAddressGroup1)).toEqual('alephium:devnet/1')
     expect(formatChain('devnet', undefined)).toEqual('alephium:devnet/-1')
     expect(() => formatChain('devnet', -1)).toThrow()
-    expect(parseChain('alephium:devnet/2')).toEqual({ networkId: 'devnet', chainGroup: 2 })
-    expect(parseChain('alephium:devnet/1')).toEqual({ networkId: 'devnet', chainGroup: 1 })
-    expect(parseChain('alephium:devnet/-1')).toEqual({ networkId: 'devnet', chainGroup: undefined })
+    expect(parseChain('alephium:devnet/2')).toEqual({ networkId: 'devnet', addressGroup: 2 })
+    expect(parseChain('alephium:devnet/1')).toEqual({ networkId: 'devnet', addressGroup: 1 })
+    expect(parseChain('alephium:devnet/-1')).toEqual({ networkId: 'devnet', addressGroup: undefined })
     expect(() => parseChain('alephium:devnet/-2')).toThrow()
   })
 
@@ -129,7 +132,7 @@ describe('Unit tests', function () {
   })
 })
 
-describe('WalletConnectProvider with single chainGroup', function () {
+describe('WalletConnectProvider with single addressGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -194,7 +197,7 @@ describe('WalletConnectProvider with single chainGroup', function () {
   })
 })
 
-describe('WalletConnectProvider with arbitrary chainGroup', function () {
+describe('WalletConnectProvider with arbitrary addressGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -203,7 +206,7 @@ describe('WalletConnectProvider with arbitrary chainGroup', function () {
     provider = await WalletConnectProvider.init({
       ...TEST_PROVIDER_OPTS,
       networkId: NETWORK_ID,
-      chainGroup: undefined
+      addressGroup: undefined
     })
     walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
     walletAddress = walletClient.signer.address

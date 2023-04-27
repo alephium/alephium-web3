@@ -45,7 +45,7 @@ export function useAccount(onDisconnected?: () => Promise<void>) {
       const enabledAccount = await windowAlephium?.enableIfConnected({
         onDisconnected: onDisconnected ?? (() => Promise.resolve()),
         networkId: context.network,
-        chainGroup: context.addressGroup,
+        addressGroup: context.addressGroup,
         keyType: context.keyType
       })
 
