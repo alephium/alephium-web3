@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "2.1.2",
+  "fullNodeVersion": "2.2.1",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -14,7 +14,10 @@
       "sourceCodeHash": "08b300f2f13fb5b2403ee70186ae00e8be7e64097d25975a603040e08d1386a9",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "2b9e382c20b4facf21eb745a46a72447dae221c274518e19c60b5ddfe478cc9c",
-      "warnings": []
+      "warnings": [
+        "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
+        "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
+      ]
     },
     "Assert": {
       "sourceFile": "test/assert.ral",
@@ -106,8 +109,9 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f",
       "warnings": [
-        "Private function MetaData.bar is not used",
-        "Private function MetaData.baz is not used"
+        "No external caller check for function \"MetaData.foo\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
+        "Private function \"MetaData.bar\" is not used",
+        "Private function \"MetaData.baz\" is not used"
       ]
     },
     "MintNFTTest": {
@@ -122,7 +126,9 @@
       "sourceCodeHash": "48153e84f255034d94000e672083a6fade5180f2ca438baaf0709f6c696b498a",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "eb5cd3718797773ac0228163144546830ca51e0faef84e0e53287776a7805777",
-      "warnings": []
+      "warnings": [
+        "No external caller check for function \"NFTCollectionTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
+      ]
     },
     "NFTTest": {
       "sourceFile": "nft/nft_test.ral",
