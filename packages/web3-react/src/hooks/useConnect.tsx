@@ -28,6 +28,18 @@ export type ConnectOptions = Omit<EnableOptionsBase, 'onDisconnected'>
 
 export function useConnect(options: ConnectOptions) {
   const context = useAlephiumConnectContext()
+
+  const wcDisconnect = useCallback(async () => {
+    if (
+      (context.connectorId === 'walletConnect' || context.connectorId === 'desktopWallet') &&
+      context.signerProvider
+    ) {
+      await (context.signerProvider as WalletConnectProvider).disconnect()
+      context.setSignerProvider(undefined)
+      context.setAccount(undefined)
+    }
+  }, [context])
+
   const wcConnect = useCallback(async () => {
     if (context.network === undefined) {
       throw new Error('No network id specified')
@@ -55,7 +67,7 @@ export function useConnect(options: ConnectOptions) {
     }
 
     QRCodeModal.close()
-  }, [context])
+  }, [context, wcDisconnect])
 
   const desktopWalletConnect = useCallback(async () => {
     if (context.network === undefined) {
@@ -82,18 +94,7 @@ export function useConnect(options: ConnectOptions) {
       console.log('wallet connect error')
       console.error(e)
     }
-  }, [context])
-
-  const wcDisconnect = useCallback(async () => {
-    if (
-      (context.connectorId === 'walletConnect' || context.connectorId === 'desktopWallet') &&
-      context.signerProvider
-    ) {
-      await (context.signerProvider as WalletConnectProvider).disconnect()
-      context.setSignerProvider(undefined)
-      context.setAccount(undefined)
-    }
-  }, [context])
+  }, [context, wcDisconnect])
 
   const disconnectAlephium = useCallback(() => {
     getDefaultAlephiumWallet()
