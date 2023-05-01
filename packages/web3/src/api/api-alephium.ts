@@ -1217,7 +1217,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.2.1
+ * @version 2.2.2
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -1785,6 +1785,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/infos/current-hashrate`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Infos
+     * @name GetInfosCurrentDifficulty
+     * @summary Get the average difficulty of the latest blocks from all shards
+     * @request GET:/infos/current-difficulty
+     */
+    getInfosCurrentDifficulty: (params: RequestParams = {}) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/infos/current-difficulty`,
+        method: 'GET',
         format: 'json',
         ...params
       }).then(convertHttpResponse)
