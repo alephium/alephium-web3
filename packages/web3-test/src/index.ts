@@ -32,9 +32,9 @@ export const testPassword = 'alph'
 async function prepareWallet(testNodeProvider: NodeProvider) {
   const wallets = await testNodeProvider.wallets.getWallets()
   if (wallets.find((wallet) => wallet.walletName === testWalletName)) {
-    unlockWallet(testNodeProvider)
+    await unlockWallet(testNodeProvider)
   } else {
-    createWallet(testNodeProvider)
+    await createWallet(testNodeProvider)
   }
 }
 
