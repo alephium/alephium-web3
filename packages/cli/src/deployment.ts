@@ -115,7 +115,11 @@ export class Deployments {
     )
     await fsPromises.writeFile(filepath, content)
     // This needs to be at the end since it will check if the deployments file exists
-    await genLoadDeployments(config)
+    try {
+      await genLoadDeployments(config)
+    } catch (error) {
+      console.log(`failed to generate deployments.ts, error: ${error}`)
+    }
   }
 
   static async from(filepath: string): Promise<Deployments> {
