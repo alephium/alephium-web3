@@ -30,11 +30,11 @@ export async function deployAndSaveProgress<Settings = unknown>(
   try {
     await deploy(configuration, networkId, deployments)
   } catch (error) {
-    await deployments.saveToFile(deploymentsFile, configuration)
+    await deployments.saveToFile(deploymentsFile, configuration, false)
     console.error(`Failed to deploy the project`)
     throw error
   }
 
-  await deployments.saveToFile(deploymentsFile, configuration)
+  await deployments.saveToFile(deploymentsFile, configuration, true)
   console.log('✅ Deployment scripts executed!')
 }

@@ -93,7 +93,7 @@ export class Deployments {
     return this.deployments.find((deployment) => deployment.deployerAddress === deployerAddress)
   }
 
-  async saveToFile(filepath: string, config: Configuration): Promise<void> {
+  async saveToFile(filepath: string, config: Configuration, deploymentSuccessful: boolean): Promise<void> {
     const dirpath = path.dirname(filepath)
     if (!fs.existsSync(dirpath)) {
       fs.mkdirSync(dirpath, { recursive: true })
@@ -115,10 +115,12 @@ export class Deployments {
     )
     await fsPromises.writeFile(filepath, content)
     // This needs to be at the end since it will check if the deployments file exists
-    try {
-      await genLoadDeployments(config)
-    } catch (error) {
-      console.log(`failed to generate deployments.ts, error: ${error}`)
+    if (deploymentSuccessful) {
+      try {
+        await genLoadDeployments(config)
+      } catch (error) {
+        console.log(`failed to generate deployments.ts, error: ${error}`)
+      }
     }
   }
 
