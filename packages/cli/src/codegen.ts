@@ -450,31 +450,26 @@ async function getAllDeployments(config: Configuration): Promise<DeploymentsPerA
 }
 
 function genToDeployments(contracts: string[], optionalContracts: string[]): string {
-  const contractInstances = contracts
-    .map((name) => {
-      return `
-      ${name}: {
-        ...json.contracts.${name},
-        contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
-      }
+  const contractInstances = contracts.map((name) => {
+    return `
+    ${name}: {
+      ...json.contracts.${name},
+      contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
+    }
     `
-    })
-    .join(',')
-  const optionalContractInstances = optionalContracts
-    .map((name) => {
-      return `
-      ${name}: json.contracts.${name} === undefined ? undefined : {
-        ...json.contracts.${name},
-        contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
-      }
-      `
-    })
-    .join(',')
+  })
+  const optionalContractInstances = optionalContracts.map((name) => {
+    return `
+    ${name}: json.contracts.${name} === undefined ? undefined : {
+      ...json.contracts.${name},
+      contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
+    }
+    `
+  })
+  const allContractInstances = contractInstances.concat(optionalContractInstances).join(',')
   return `
     function toDeployments(json: any): Deployments {
-      const contracts = {
-        ${contractInstances}, ${optionalContractInstances}
-      }
+      const contracts = { ${allContractInstances} }
       return {
         ...json,
         contracts: contracts as Deployments['contracts']
@@ -516,6 +511,9 @@ function getRelativePath(config: Configuration, networkId: NetworkId, fromPath: 
 
 export async function genLoadDeployments(config: Configuration) {
   const tsPath = path.join(config.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, 'ts')
+  if (!fs.existsSync(tsPath)) {
+    fs.mkdirSync(tsPath, { recursive: true })
+  }
   const allDeployments = await getAllDeployments(config)
   const contractInstanceTypes = dedup(allDeployments.flatMap((d) => Array.from(d.contracts.keys())))
     .map((contractName) => `${contractName}, ${contractName}Instance`)
