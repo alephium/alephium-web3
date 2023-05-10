@@ -96,4 +96,4 @@ const describeReturnType = () => {
         <%~ bodyContentKindTmpl ? `type: ${bodyContentKindTmpl},` : '' %>
         <%~ responseFormatTmpl ? `format: ${responseFormatTmpl},` : '' %>
         ...<%~ _.get(requestConfigParam, "name") %>,
-    }).then(convertHttpResponse)<%~ route.namespace ? ',' : '' %>
+    }).then(<%~ responseBodyInfo.success.schema.contentKind === 'TEXT' ? 'convertTextHttpResponse' : 'convertHttpResponse' %>)<%~ route.namespace ? ',' : '' %>
