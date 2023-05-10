@@ -564,7 +564,7 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
   blocks = {
     /**
-     * @description List blocks within time interval
+     * @description List latest blocks
      *
      * @tags Blocks
      * @name GetBlocks
@@ -841,10 +841,28 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name GetAddressesAddressTokens
      * @request GET:/addresses/{address}/tokens
      */
-    getAddressesAddressTokens: (address: string, params: RequestParams = {}) =>
+    getAddressesAddressTokens: (
+      address: string,
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+        /** Reverse pagination */
+        reverse?: boolean
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/tokens`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse),
@@ -942,6 +960,38 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/addresses/${address}/export-transactions/csv`,
         method: 'GET',
         query: query,
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressAmountHistory
+     * @request GET:/addresses/{address}/amount-history
+     */
+    getAddressesAddressAmountHistory: (
+      address: string,
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+        'interval-type': IntervalType
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/amount-history`,
+        method: 'GET',
+        query: query,
+        format: 'json',
         ...params
       }).then(convertHttpResponse)
   }
