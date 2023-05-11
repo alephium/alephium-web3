@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "2.3.1",
+  "fullNodeVersion": "v2.3.1",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
