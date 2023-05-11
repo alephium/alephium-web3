@@ -273,6 +273,8 @@ export interface BuildSweepAddressTransactions {
   fromPublicKey: string
   /** @format address */
   toAddress: string
+  /** @format uint256 */
+  maxAttoAlphPerUTXO?: string
   /** @format int64 */
   lockTime?: number
   /** @format gas */
@@ -639,7 +641,8 @@ export interface NodeInfo {
 }
 
 export interface NodeVersion {
-  version: ReleaseVersion
+  /** @format semver */
+  version: string
 }
 
 export interface NotFound {
@@ -689,15 +692,6 @@ export interface Project {
 export interface Reachable {
   peers: string[]
   type: string
-}
-
-export interface ReleaseVersion {
-  /** @format int32 */
-  major: number
-  /** @format int32 */
-  minor: number
-  /** @format int32 */
-  patch: number
 }
 
 export interface RevealMnemonic {
@@ -1217,7 +1211,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.2.2
+ * @version 2.3.1
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
