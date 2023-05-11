@@ -629,7 +629,7 @@ export class Project {
     defaultFullNodeVersion: string | undefined = undefined
   ): Promise<void> {
     const provider = getCurrentNodeProvider()
-    const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosNode()).buildInfo.releaseVersion
+    const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosVersion()).version
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
