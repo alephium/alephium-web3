@@ -93,7 +93,7 @@ program
         process.exit(1)
       }
       web3.setCurrentNodeProvider(nodeUrl)
-      const fullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosNode()).buildInfo.releaseVersion
+      const fullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
       const cwd = path.resolve(process.cwd())
       await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir, fullNodeVersion)
       console.log('✅ Compilation completed!')
