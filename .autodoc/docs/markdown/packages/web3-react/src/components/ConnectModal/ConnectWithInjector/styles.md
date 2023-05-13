@@ -1,0 +1,14 @@
+[View code on GitHub](https://github.com/alephium/alephium-web3/packages/web3-react/src/components/ConnectModal/ConnectWithInjector/styles.ts)
+
+This file contains styled components for a loading spinner and retry button that are used in the Alephium web3 project. The `Content` component is a container for the modal content and has a flexbox layout with a vertical column direction and a gap of 6px between its child elements. It also has a relative position and spans the full width of its parent container. The `Container` component is a container for the loading spinner and has a motion animation applied to it. The `ConnectingContainer` component is a container for the loading spinner and has a fixed height of 120px and is centered horizontally and vertically within its parent container. The `ConnectingAnimation` component is the actual loading spinner and has two animation keyframes applied to it: `shakeKeyframes` and `outlineKeyframes`. The `shakeKeyframes` animation causes the spinner to shake back and forth horizontally, while the `outlineKeyframes` animation causes a red outline to appear around the spinner and then fade out. The `RetryButton` component is a button that appears when there is an error and allows the user to retry the action. It has a fixed position in the bottom right corner of its parent container and has a circular shape with a 32px diameter. The `RetryIconContainer` component is a container for the retry button icon and has a conic gradient applied to it. 
+
+These components are used throughout the Alephium web3 project to provide visual feedback to the user during loading and error states. For example, the `ConnectingContainer` component may be used when the user is waiting for a transaction to be confirmed on the blockchain, while the `RetryButton` component may be used when there is an error fetching data from a remote server. The use of styled components allows for easy customization of the visual appearance of these components, making it simple to match the design of the loading spinner and retry button to the overall look and feel of the Alephium web3 project.
+## Questions: 
+ 1. What is the purpose of this code file?
+- This code file contains styled components for a connecting animation and retry button for a modal.
+
+2. What is the license for this library?
+- The library is licensed under the GNU Lesser General Public License, version 3 or later.
+
+3. What is the purpose of the `ConnectingAnimation` component's props `$shake` and `$circle`?
+- The `$shake` prop is used to trigger a shaking animation for the connecting animation, while the `$circle` prop is used to change the shape of the animation from a square to a circle.

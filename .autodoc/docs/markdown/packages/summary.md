@@ -1,0 +1,17 @@
+[View code on GitHub](https://github.com/alephium/alephium-web3/.autodoc/docs/json/packages)
+
+The `.autodoc/docs/json/packages` folder contains essential code modules and configuration files for the `alephium-web3` project, which provides a convenient and flexible way to interact with the Alephium blockchain through its web3 API. The project is organized into several subfolders, each focusing on a specific aspect of the Alephium blockchain interaction.
+
+For instance, the `cli` folder provides a command-line interface (CLI) for developers to manage and interact with smart contract projects built on the Alephium blockchain. The `cli.js` script serves as an entry point for the Alephium CLI, allowing users to execute various commands through a terminal interface. The `cli_internal.ts` file contains the actual implementation of the CLI commands, such as creating a new project, starting or stopping a local development network, compiling smart contracts, running tests, and deploying contracts to a specified network.
+
+The `get-extension-wallet` folder provides essential functionality for interacting with Alephium wallets. It contains several functions and data structures that enable users to connect their wallets to the Alephium blockchain and ensure that only supported wallet providers are used. For example, the `getAlephium.ts` file contains functions like `getDefaultAlephiumWallet()`, `scanKnownWallets()`, `getKnownWallet()`, `getWalletObject()`, and `isWalletObj()`.
+
+The `walletconnect` folder is crucial for enabling decentralized applications (dApps) to interact with the Alephium blockchain through WalletConnect-compatible wallets. It provides a set of constants, types, and a provider class that can be used by other parts of the project to establish connections, sign and submit transactions, and handle events. The `WalletConnectProvider` class in `src/provider.ts` serves as a bridge between the Alephium blockchain and WalletConnect.
+
+The `web3` folder contains essential configuration files and code modules for the `alephium-web3` project. The `tsconfig.json` file is a configuration file for the TypeScript compiler, specifying the settings for compiling the TypeScript code in the project. The `webpack.config.js` file is a configuration file for the webpack module bundler, specifying how to bundle the Alephium Web3 library for production use.
+
+The `web3-react` folder offers a set of components, hooks, and utilities for developers to easily integrate the Alephium blockchain into their web applications. The main component, `AlephiumConnectProvider`, wraps the entire application and provides access to the web3 provider, allowing users to connect their wallets and interact with the Alephium blockchain.
+
+The `web3-wallet` folder focuses on managing Alephium wallets and performing cryptographic operations. The `hd-wallet.ts` module offers functions and classes related to HD wallets and private key derivation. The `node-wallet.ts` module contains the `NodeWallet` class for interacting with a wallet on the Alephium blockchain network.
+
+In summary, the code in the `.autodoc/docs/json/packages` folder provides a comprehensive set of tools and utilities for interacting with the Alephium blockchain through its web3 API. By using these modules and functions, developers can easily build decentralized applications on the Alephium network, send transactions, interact with smart contracts, and manage tokens.
