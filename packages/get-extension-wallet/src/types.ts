@@ -31,7 +31,6 @@ export interface AddNewTokenParameters {
 export declare type RequestMessage = {
   type: "AddNewToken";
   params: AddNewTokenParameters;
-  result: boolean;
 };
 
 export abstract class AlephiumWindowObject extends InteractiveSignerProvider<EnableOptions> {
