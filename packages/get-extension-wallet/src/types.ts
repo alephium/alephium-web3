@@ -19,6 +19,21 @@ import { Account, EnableOptionsBase, InteractiveSignerProvider, NetworkId } from
 
 export type EnableOptions = EnableOptionsBase
 
+export interface AddNewTokenParameters {
+  id: string;
+  networkId: string;
+  symbol: string;
+  decimals: number;
+  name: string;
+  logoURI?: string;
+}
+
+export declare type RequestMessage = {
+  type: "AddNewToken";
+  params: AddNewTokenParameters;
+  result: boolean;
+};
+
 export abstract class AlephiumWindowObject extends InteractiveSignerProvider<EnableOptions> {
   abstract id: string
   abstract name: string
@@ -37,6 +52,7 @@ export abstract class AlephiumWindowObject extends InteractiveSignerProvider<Ena
 
   abstract get connectedAccount(): Account | undefined
   abstract get connectedNetworkId(): NetworkId | undefined
+  abstract request: (message: RequestMessage) => Promise<boolean>
 }
 
 export type WalletProvider = {
