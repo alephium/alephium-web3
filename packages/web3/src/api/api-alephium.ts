@@ -379,6 +379,8 @@ export interface CompileContractResult {
   codeHashDebug: string
   fields: FieldsSig
   functions: FunctionSig[]
+  constants: Constant[]
+  enums: Enum[]
   events: EventSig[]
   warnings: string[]
   stdInterfaceId?: string
@@ -420,6 +422,11 @@ export interface Confirmed {
   /** @format int32 */
   toGroupConfirmations: number
   type: string
+}
+
+export interface Constant {
+  name: string
+  value: Val
 }
 
 export interface Contract {
@@ -529,6 +536,16 @@ export interface Destination {
 }
 
 export type DiscoveryAction = Reachable | Unreachable
+
+export interface Enum {
+  name: string
+  fields: EnumField[]
+}
+
+export interface EnumField {
+  name: string
+  value: Val
+}
 
 export interface EventSig {
   name: string
@@ -1211,7 +1228,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.3.1
+ * @version 2.3.2
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

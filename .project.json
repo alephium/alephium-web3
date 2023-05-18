@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.3.1",
+  "fullNodeVersion": "v2.3.2",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -42,7 +42,7 @@
     },
     "FakeTokenTest": {
       "sourceFile": "token/fake_token_test.ral",
-      "sourceCodeHash": "81d0d45be2609f88d2750a5974575da582383484b323c8d15b04fdfed44766c6",
+      "sourceCodeHash": "c51d0d664dc1c0ff0e2c4f9c133bbd4d8cc6b8c55b44df42c98a19b43fe329e5",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "88d74dcc19bfd075e97c90ab5f48d374f9ff982133d8257d4efc32305c5885b3",
       "warnings": []
