@@ -16,7 +16,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, Project, Script, Contract, EventSig, StdIdFieldName, NetworkId, networkIds } from '@alephium/web3'
+import {
+  node,
+  Project,
+  Script,
+  Contract,
+  EventSig,
+  Constant,
+  Enum,
+  Val,
+  StdIdFieldName,
+  NetworkId,
+  networkIds,
+  fromApiVal
+} from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
 import fs from 'fs'
@@ -134,6 +147,42 @@ function genEventType(event: EventSig): string {
   }
   const fieldsType = `{${formatParameters({ names: event.fieldNames, types: event.fieldTypes })}}`
   return `export type ${getEventType(event)} = ContractEvent<${fieldsType}>`
+}
+
+function valToString(value: node.Val): string {
+  const v = fromApiVal(value, value.type)
+  if (typeof v === 'bigint') {
+    // use BigInt(...) format to avoid that some projects do not support es2020
+    return `BigInt(${v.toString()})`
+  } else if (typeof v === 'string') {
+    return `"${v}"`
+  } else {
+    return v.toString()
+  }
+}
+
+function genConstants(constants: Constant[]): string {
+  if (constants.length === 0) {
+    return ''
+  }
+  return constants
+    .map((constant) => {
+      const valueType = toTsType(constant.value.type)
+      return `const ${constant.name}: ${valueType} = ${valToString(constant.value)}`
+    })
+    .join('\n')
+}
+
+function genEnum(enumDef: Enum): string {
+  const fields = enumDef.fields.map((field) => `${field.name}: ${valToString(field.value)}`).join(',')
+  return `const ${enumDef.name} = { ${fields} }`
+}
+
+function genEnums(enums: Enum[]): string {
+  if (enums.length === 0) {
+    return ''
+  }
+  return enums.map((enumDef) => genEnum(enumDef)).join('\n')
 }
 
 function genGetContractEventsCurrentCount(contract: Contract): string {
@@ -316,6 +365,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
+      ${genConstants(contract.constants)}
+      ${genEnums(contract.enums)}
       ${genAttach(getInstanceName(contract))}
       ${genTestMethods(contract, fieldsSig)}
     }

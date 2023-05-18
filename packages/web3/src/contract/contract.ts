@@ -67,6 +67,8 @@ export type FunctionSig = node.FunctionSig
 export type Fields = NamedVals
 export type Arguments = NamedVals
 export type HexString = string
+export type Constant = node.Constant
+export type Enum = node.Enum
 
 export const StdIdFieldName = '__stdInterfaceId'
 
@@ -696,6 +698,8 @@ export class Contract extends Artifact {
   readonly codeHash: string
   readonly fieldsSig: FieldsSig
   readonly eventsSig: EventSig[]
+  readonly constants: Constant[]
+  readonly enums: Enum[]
   readonly stdInterfaceId?: HexString
 
   readonly bytecodeDebug: string
@@ -711,6 +715,8 @@ export class Contract extends Artifact {
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
     functions: FunctionSig[],
+    constants: Constant[],
+    enums: Enum[],
     stdInterfaceId?: HexString
   ) {
     super(version, name, functions)
@@ -719,6 +725,8 @@ export class Contract extends Artifact {
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
     this.eventsSig = eventsSig
+    this.constants = constants
+    this.enums = enums
     this.stdInterfaceId = stdInterfaceId
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
@@ -734,6 +742,8 @@ export class Contract extends Artifact {
       artifact.codeHash == null ||
       artifact.fieldsSig == null ||
       artifact.eventsSig == null ||
+      artifact.constants == null ||
+      artifact.enums == null ||
       artifact.functions == null
     ) {
       throw Error('The artifact JSON for contract is incomplete')
@@ -748,6 +758,8 @@ export class Contract extends Artifact {
       artifact.fieldsSig,
       artifact.eventsSig,
       artifact.functions,
+      artifact.constants,
+      artifact.enums,
       artifact.stdInterfaceId === null ? undefined : artifact.stdInterfaceId
     )
     return contract
@@ -764,6 +776,8 @@ export class Contract extends Artifact {
       result.fields,
       result.events,
       result.functions,
+      result.constants,
+      result.enums,
       result.stdInterfaceId
     )
   }
@@ -783,7 +797,9 @@ export class Contract extends Artifact {
       codeHash: this.codeHash,
       fieldsSig: this.fieldsSig,
       eventsSig: this.eventsSig,
-      functions: this.functions
+      functions: this.functions,
+      constants: this.constants,
+      enums: this.enums
     }
     if (this.stdInterfaceId !== undefined) {
       object.stdInterfaceId = this.stdInterfaceId

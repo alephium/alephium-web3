@@ -20,5 +20,94 @@
       "paramIsMutable": [],
       "returnTypes": []
     }
+  ],
+  "constants": [
+    {
+      "name": "Error",
+      "value": {
+        "type": "U256",
+        "value": "3"
+      }
+    },
+    {
+      "name": "A",
+      "value": {
+        "type": "I256",
+        "value": "-3"
+      }
+    },
+    {
+      "name": "B",
+      "value": {
+        "type": "Address",
+        "value": "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH"
+      }
+    },
+    {
+      "name": "C",
+      "value": {
+        "type": "ByteVec",
+        "value": "0011"
+      }
+    }
+  ],
+  "enums": [
+    {
+      "name": "Numbers",
+      "fields": [
+        {
+          "name": "A",
+          "value": {
+            "type": "U256",
+            "value": "0"
+          }
+        },
+        {
+          "name": "B",
+          "value": {
+            "type": "U256",
+            "value": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Addresses",
+      "fields": [
+        {
+          "name": "A",
+          "value": {
+            "type": "Address",
+            "value": "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH"
+          }
+        },
+        {
+          "name": "B",
+          "value": {
+            "type": "Address",
+            "value": "14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ByteVecs",
+      "fields": [
+        {
+          "name": "A",
+          "value": {
+            "type": "ByteVec",
+            "value": "00"
+          }
+        },
+        {
+          "name": "B",
+          "value": {
+            "type": "ByteVec",
+            "value": "11"
+          }
+        }
+      ]
+    }
   ]
 }

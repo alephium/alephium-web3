@@ -32,6 +32,17 @@ export namespace AssertTypes {
 }
 
 class Factory extends ContractFactory<AssertInstance, {}> {
+  Error: bigint = BigInt(3);
+  A: bigint = BigInt(-3);
+  B: Address = "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH";
+  C: HexString = "0011";
+  Numbers = { A: BigInt(0), B: BigInt(1) };
+  Addresses = {
+    A: "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH",
+    B: "14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF",
+  };
+  ByteVecs = { A: "00", B: "11" };
+
   at(address: string): AssertInstance {
     return new AssertInstance(address);
   }

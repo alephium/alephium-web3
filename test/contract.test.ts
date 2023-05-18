@@ -261,4 +261,18 @@ describe('contract', function () {
     const testAddress = randomContractAddress()
     expectAssertionError(Assert.tests.test({ address: testAddress }), testAddress, 3)
   })
+
+  it('should test enums and constants', async () => {
+    await Project.build({ errorOnWarnings: false })
+    expect(Assert.Error).toEqual(3n)
+    expect(Assert.A).toEqual(-3n)
+    expect(Assert.B).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(Assert.C).toEqual('0011')
+    expect(Assert.Numbers.A).toEqual(0n)
+    expect(Assert.Numbers.B).toEqual(1n)
+    expect(Assert.Addresses.A).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(Assert.Addresses.B).toEqual('14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF')
+    expect(Assert.ByteVecs.A).toEqual('00')
+    expect(Assert.ByteVecs.B).toEqual('11')
+  })
 })

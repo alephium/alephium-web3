@@ -38,5 +38,15 @@
       ],
       "returnTypes": []
     }
-  ]
+  ],
+  "constants": [
+    {
+      "name": "C",
+      "value": {
+        "type": "U256",
+        "value": "0"
+      }
+    }
+  ],
+  "enums": []
 }

@@ -72,6 +72,8 @@ class Factory extends ContractFactory<
   NFTCollectionTestInstance,
   NFTCollectionTestTypes.Fields
 > {
+  ErrorCodes = { IncorrectTokenIndex: BigInt(0), NFTNotFound: BigInt(1) };
+
   at(address: string): NFTCollectionTestInstance {
     return new NFTCollectionTestInstance(address);
   }

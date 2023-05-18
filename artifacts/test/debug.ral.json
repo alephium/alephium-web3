@@ -20,5 +20,7 @@
       "paramIsMutable": [],
       "returnTypes": []
     }
-  ]
+  ],
+  "constants": [],
+  "enums": []
 }

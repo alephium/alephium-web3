@@ -21,10 +21,12 @@
     },
     "Assert": {
       "sourceFile": "test/assert.ral",
-      "sourceCodeHash": "9b4654791b1ea966c94c14055182f54f1de4ad51b05520658b067076a824dc08",
+      "sourceCodeHash": "6e29a32037532fe7c415d6a8076626ee81767ff3162d3d2f34d08f7e0594a914",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
-      "warnings": []
+      "warnings": [
+        "Found unused constants in Assert: A, Addresses.A, Addresses.B, B, ByteVecs.A, ByteVecs.B, C, Numbers.A, Numbers.B"
+      ]
     },
     "Debug": {
       "sourceFile": "test/debug.ral",
