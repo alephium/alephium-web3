@@ -16,7 +16,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { node, Project, Script, Contract, EventSig, StdIdFieldName, NetworkId, networkIds } from '@alephium/web3'
+import {
+  node,
+  Project,
+  Script,
+  Contract,
+  EventSig,
+  Constant,
+  Enum,
+  Val,
+  StdIdFieldName,
+  NetworkId,
+  networkIds,
+  fromApiVal
+} from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
 import fs from 'fs'
@@ -134,6 +147,41 @@ function genEventType(event: EventSig): string {
   }
   const fieldsType = `{${formatParameters({ names: event.fieldNames, types: event.fieldTypes })}}`
   return `export type ${getEventType(event)} = ContractEvent<${fieldsType}>`
+}
+
+function valToString(value: node.Val): string {
+  const v = fromApiVal(value, value.type)
+  if (typeof v === 'bigint') {
+    // use BigInt(...) format to avoid that some projects do not support es2020
+    return `BigInt(${v.toString()})`
+  } else if (typeof v === 'string') {
+    return `"${v}"`
+  } else {
+    return v.toString()
+  }
+}
+
+function genConsts(contract: Contract): string {
+  const constants = genConstants(contract.constants)
+  const enums = genEnums(contract.enums)
+  const constDefs = constants.concat(enums)
+  if (constDefs.length === 0) {
+    return ''
+  }
+  return `consts = { ${constDefs.join(',')} }`
+}
+
+function genConstants(constants: Constant[]): string[] {
+  return constants.map((constant) => `${constant.name}: ${valToString(constant.value)}`)
+}
+
+function genEnum(enumDef: Enum): string {
+  const fields = enumDef.fields.map((field) => `${field.name}: ${valToString(field.value)}`).join(',')
+  return `${enumDef.name}: { ${fields} }`
+}
+
+function genEnums(enums: Enum[]): string[] {
+  return enums.map((enumDef) => genEnum(enumDef))
 }
 
 function genGetContractEventsCurrentCount(contract: Contract): string {
@@ -316,6 +364,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
+      ${genConsts(contract)}
       ${genAttach(getInstanceName(contract))}
       ${genTestMethods(contract, fieldsSig)}
     }

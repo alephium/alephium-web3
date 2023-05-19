@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as MetaDataContractJson } from "../test/metadata.ral.json";
+import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 
 // Custom types for the contract
 export namespace MetaDataTypes {

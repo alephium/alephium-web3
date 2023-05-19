@@ -67,6 +67,8 @@ export type FunctionSig = node.FunctionSig
 export type Fields = NamedVals
 export type Arguments = NamedVals
 export type HexString = string
+export type Constant = node.Constant
+export type Enum = node.Enum
 
 export const StdIdFieldName = '__stdInterfaceId'
 
@@ -123,12 +125,15 @@ class SourceInfo {
   isExternal: boolean
 
   getArtifactPath(artifactsRootDir: string): string {
+    let fullPath: string
     if (this.isExternal) {
       const relativePath = removeParentsPrefix(this.contractRelativePath.split(path.sep))
       const externalPath = path.join('.external', relativePath)
-      return path.join(artifactsRootDir, externalPath) + '.json'
+      fullPath = path.join(artifactsRootDir, externalPath)
+    } else {
+      fullPath = path.join(artifactsRootDir, this.contractRelativePath)
     }
-    return path.join(artifactsRootDir, this.contractRelativePath) + '.json'
+    return path.join(path.dirname(fullPath), `${this.name}.ral.json`)
   }
 
   constructor(
@@ -418,20 +423,38 @@ export class Project {
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions
   ): Promise<Project> {
-    const sourceStr = sourceInfos.map((f) => f.sourceCode).join('\n')
+    const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
+      if (acc.find((info) => info.sourceCodeHash === sourceInfo.sourceCodeHash) === undefined) {
+        acc.push(sourceInfo)
+      }
+      return acc
+    }, [])
+    const sourceStr = removeDuplicates.map((f) => f.sourceCode).join('\n')
     const result = await provider.contracts.postContractsCompileProject({
       code: sourceStr,
       compilerOptions: compilerOptions
     })
     const contracts = new Map<string, Compiled<Contract>>()
     const scripts = new Map<string, Compiled<Script>>()
-    result.contracts.forEach((contractResult, index) => {
-      const sourceInfo = sourceInfos[`${index}`]
+    result.contracts.forEach((contractResult) => {
+      const sourceInfo = sourceInfos.find(
+        (sourceInfo) => sourceInfo.type === SourceKind.Contract && sourceInfo.name === contractResult.name
+      )
+      if (sourceInfo === undefined) {
+        // this should never happen
+        throw new Error(`SourceInfo does not exist for contract ${contractResult.name}`)
+      }
       const contract = Contract.fromCompileResult(contractResult)
       contracts.set(contract.name, new Compiled(sourceInfo, contract, contractResult.warnings))
     })
-    result.scripts.forEach((scriptResult, index) => {
-      const sourceInfo = sourceInfos[index + contracts.size]
+    result.scripts.forEach((scriptResult) => {
+      const sourceInfo = sourceInfos.find(
+        (sourceInfo) => sourceInfo.type === SourceKind.Script && sourceInfo.name === scriptResult.name
+      )
+      if (sourceInfo === undefined) {
+        // this should never happen
+        throw new Error(`SourceInfo does not exist for script ${scriptResult.name}`)
+      }
       const script = Script.fromCompileResult(scriptResult)
       scripts.set(script.name, new Compiled(sourceInfo, script, scriptResult.warnings))
     })
@@ -696,6 +719,8 @@ export class Contract extends Artifact {
   readonly codeHash: string
   readonly fieldsSig: FieldsSig
   readonly eventsSig: EventSig[]
+  readonly constants: Constant[]
+  readonly enums: Enum[]
   readonly stdInterfaceId?: HexString
 
   readonly bytecodeDebug: string
@@ -711,6 +736,8 @@ export class Contract extends Artifact {
     fieldsSig: FieldsSig,
     eventsSig: EventSig[],
     functions: FunctionSig[],
+    constants: Constant[],
+    enums: Enum[],
     stdInterfaceId?: HexString
   ) {
     super(version, name, functions)
@@ -719,6 +746,8 @@ export class Contract extends Artifact {
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
     this.eventsSig = eventsSig
+    this.constants = constants
+    this.enums = enums
     this.stdInterfaceId = stdInterfaceId
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
@@ -734,6 +763,8 @@ export class Contract extends Artifact {
       artifact.codeHash == null ||
       artifact.fieldsSig == null ||
       artifact.eventsSig == null ||
+      artifact.constants == null ||
+      artifact.enums == null ||
       artifact.functions == null
     ) {
       throw Error('The artifact JSON for contract is incomplete')
@@ -748,6 +779,8 @@ export class Contract extends Artifact {
       artifact.fieldsSig,
       artifact.eventsSig,
       artifact.functions,
+      artifact.constants,
+      artifact.enums,
       artifact.stdInterfaceId === null ? undefined : artifact.stdInterfaceId
     )
     return contract
@@ -764,6 +797,8 @@ export class Contract extends Artifact {
       result.fields,
       result.events,
       result.functions,
+      result.constants,
+      result.enums,
       result.stdInterfaceId
     )
   }
@@ -783,7 +818,9 @@ export class Contract extends Artifact {
       codeHash: this.codeHash,
       fieldsSig: this.fieldsSig,
       eventsSig: this.eventsSig,
-      functions: this.functions
+      functions: this.functions,
+      constants: this.constants,
+      enums: this.enums
     }
     if (this.stdInterfaceId !== undefined) {
       object.stdInterfaceId = this.stdInterfaceId

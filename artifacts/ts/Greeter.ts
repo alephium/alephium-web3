@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as GreeterContractJson } from "../greeter/greeter.ral.json";
+import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 
 // Custom types for the contract
 export namespace GreeterTypes {

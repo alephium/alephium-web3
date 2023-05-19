@@ -86,5 +86,27 @@
       ]
     }
   ],
+  "constants": [],
+  "enums": [
+    {
+      "name": "ErrorCodes",
+      "fields": [
+        {
+          "name": "IncorrectTokenIndex",
+          "value": {
+            "type": "U256",
+            "value": "0"
+          }
+        },
+        {
+          "name": "NFTNotFound",
+          "value": {
+            "type": "U256",
+            "value": "1"
+          }
+        }
+      ]
+    }
+  ],
   "stdInterfaceId": "0002"
 }

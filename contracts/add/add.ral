@@ -24,3 +24,8 @@ Contract Add(sub: Sub, mut result : U256) {
         destroySelf!(caller)
     }
 }
+
+TxScript Main(addContractId: ByteVec) {
+    let add = Add(addContractId)
+    add.add([2, 1])
+}

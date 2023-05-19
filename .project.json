@@ -11,7 +11,7 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "08b300f2f13fb5b2403ee70186ae00e8be7e64097d25975a603040e08d1386a9",
+      "sourceCodeHash": "6c08da762c111145d8c876e36bb9f69dcbc86368a546b4c5bfe23f0f4db1975b",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "2b9e382c20b4facf21eb745a46a72447dae221c274518e19c60b5ddfe478cc9c",
       "warnings": [
@@ -21,10 +21,12 @@
     },
     "Assert": {
       "sourceFile": "test/assert.ral",
-      "sourceCodeHash": "9b4654791b1ea966c94c14055182f54f1de4ad51b05520658b067076a824dc08",
+      "sourceCodeHash": "6e29a32037532fe7c415d6a8076626ee81767ff3162d3d2f34d08f7e0594a914",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
-      "warnings": []
+      "warnings": [
+        "Found unused constants in Assert: A, Addresses.A, Addresses.B, B, ByteVecs.A, ByteVecs.B, C, Numbers.A, Numbers.B"
+      ]
     },
     "Debug": {
       "sourceFile": "test/debug.ral",
@@ -56,21 +58,21 @@
     },
     "Greeter": {
       "sourceFile": "greeter/greeter.ral",
-      "sourceCodeHash": "66c5ae4dc1029150388645f19e5658daf97420c6357cf8ea849038f1de2ee74a",
+      "sourceCodeHash": "b5b681c035f2a1faa371ec0960f004e97c3dfebb0e2fd12e682665b6c3e79de6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a",
       "warnings": []
     },
     "GreeterInterface": {
-      "sourceFile": "greeter/greeter_interface.ral",
-      "sourceCodeHash": "00adef627e3e3d00a232cb082ffead857cc8001c86036831675e676336bb7935",
+      "sourceFile": "greeter/greeter.ral",
+      "sourceCodeHash": "b5b681c035f2a1faa371ec0960f004e97c3dfebb0e2fd12e682665b6c3e79de6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "GreeterMain": {
-      "sourceFile": "greeter_main.ral",
-      "sourceCodeHash": "b73c6e7ace059017085a9aba7bc6b797c6e26bc1b10312c0862ff84e973dfdff",
+      "sourceFile": "greeter/greeter.ral",
+      "sourceCodeHash": "b5b681c035f2a1faa371ec0960f004e97c3dfebb0e2fd12e682665b6c3e79de6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -97,8 +99,8 @@
       "warnings": []
     },
     "Main": {
-      "sourceFile": "main.ral",
-      "sourceCodeHash": "8cc5c1a2de002650a5904078f91005932982e700f7b0a393cbe4e3a64cfdf842",
+      "sourceFile": "add/add.ral",
+      "sourceCodeHash": "6c08da762c111145d8c876e36bb9f69dcbc86368a546b4c5bfe23f0f4db1975b",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []

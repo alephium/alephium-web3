@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as AssertContractJson } from "../test/assert.ral.json";
+import { default as AssertContractJson } from "../test/Assert.ral.json";
 
 // Custom types for the contract
 export namespace AssertTypes {
@@ -32,6 +32,19 @@ export namespace AssertTypes {
 }
 
 class Factory extends ContractFactory<AssertInstance, {}> {
+  consts = {
+    Error: BigInt(3),
+    A: BigInt(-3),
+    B: "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH",
+    C: "0011",
+    Addresses: {
+      A: "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH",
+      B: "14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF",
+    },
+    Numbers: { A: BigInt(0), B: BigInt(1) },
+    ByteVecs: { A: "00", B: "11" },
+  };
+
   at(address: string): AssertInstance {
     return new AssertInstance(address);
   }
