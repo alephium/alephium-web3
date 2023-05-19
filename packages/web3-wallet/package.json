@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-wallet",
-  "version": "0.11.8",
+  "version": "0.12.0",
   "description": "Simple wallets for Alephium",
   "keywords": [
     "alephium",

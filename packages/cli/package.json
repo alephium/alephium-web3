@@ -1,6 +1,6 @@
 {
   "name": "@alephium/cli",
-  "version": "0.11.8",
+  "version": "0.12.0",
   "description": "Alephium command line tool",
   "license": "GPL",
   "repository": {
