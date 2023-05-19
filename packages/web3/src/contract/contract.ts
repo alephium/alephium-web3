@@ -125,12 +125,15 @@ class SourceInfo {
   isExternal: boolean
 
   getArtifactPath(artifactsRootDir: string): string {
+    let fullPath: string
     if (this.isExternal) {
       const relativePath = removeParentsPrefix(this.contractRelativePath.split(path.sep))
       const externalPath = path.join('.external', relativePath)
-      return path.join(artifactsRootDir, externalPath) + '.json'
+      fullPath = path.join(artifactsRootDir, externalPath)
+    } else {
+      fullPath = path.join(artifactsRootDir, this.contractRelativePath)
     }
-    return path.join(artifactsRootDir, this.contractRelativePath) + '.json'
+    return path.join(path.dirname(fullPath), `${this.name}.ral.json`)
   }
 
   constructor(
@@ -420,20 +423,38 @@ export class Project {
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions
   ): Promise<Project> {
-    const sourceStr = sourceInfos.map((f) => f.sourceCode).join('\n')
+    const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
+      if (acc.find((info) => info.sourceCodeHash === sourceInfo.sourceCodeHash) === undefined) {
+        acc.push(sourceInfo)
+      }
+      return acc
+    }, [])
+    const sourceStr = removeDuplicates.map((f) => f.sourceCode).join('\n')
     const result = await provider.contracts.postContractsCompileProject({
       code: sourceStr,
       compilerOptions: compilerOptions
     })
     const contracts = new Map<string, Compiled<Contract>>()
     const scripts = new Map<string, Compiled<Script>>()
-    result.contracts.forEach((contractResult, index) => {
-      const sourceInfo = sourceInfos[`${index}`]
+    result.contracts.forEach((contractResult) => {
+      const sourceInfo = sourceInfos.find(
+        (sourceInfo) => sourceInfo.type === SourceKind.Contract && sourceInfo.name === contractResult.name
+      )
+      if (sourceInfo === undefined) {
+        // this should never happen
+        throw new Error(`SourceInfo does not exist for contract ${contractResult.name}`)
+      }
       const contract = Contract.fromCompileResult(contractResult)
       contracts.set(contract.name, new Compiled(sourceInfo, contract, contractResult.warnings))
     })
-    result.scripts.forEach((scriptResult, index) => {
-      const sourceInfo = sourceInfos[index + contracts.size]
+    result.scripts.forEach((scriptResult) => {
+      const sourceInfo = sourceInfos.find(
+        (sourceInfo) => sourceInfo.type === SourceKind.Script && sourceInfo.name === scriptResult.name
+      )
+      if (sourceInfo === undefined) {
+        // this should never happen
+        throw new Error(`SourceInfo does not exist for script ${scriptResult.name}`)
+      }
       const script = Script.fromCompileResult(scriptResult)
       scripts.set(script.name, new Compiled(sourceInfo, script, scriptResult.warnings))
     })
