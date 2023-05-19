@@ -37,7 +37,7 @@ export namespace WarningsTypes {
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
-  C: bigint = BigInt(0);
+  consts = { C: BigInt(0) };
 
   at(address: string): WarningsInstance {
     return new WarningsInstance(address);

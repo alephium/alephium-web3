@@ -161,28 +161,27 @@ function valToString(value: node.Val): string {
   }
 }
 
-function genConstants(constants: Constant[]): string {
-  if (constants.length === 0) {
+function genConsts(contract: Contract): string {
+  const constants = genConstants(contract.constants)
+  const enums = genEnums(contract.enums)
+  const constDefs = constants.concat(enums)
+  if (constDefs.length === 0) {
     return ''
   }
-  return constants
-    .map((constant) => {
-      const valueType = toTsType(constant.value.type)
-      return `const ${constant.name}: ${valueType} = ${valToString(constant.value)}`
-    })
-    .join('\n')
+  return `consts = { ${constDefs.join(',')} }`
+}
+
+function genConstants(constants: Constant[]): string[] {
+  return constants.map((constant) => `${constant.name}: ${valToString(constant.value)}`)
 }
 
 function genEnum(enumDef: Enum): string {
   const fields = enumDef.fields.map((field) => `${field.name}: ${valToString(field.value)}`).join(',')
-  return `const ${enumDef.name} = { ${fields} }`
+  return `${enumDef.name}: { ${fields} }`
 }
 
-function genEnums(enums: Enum[]): string {
-  if (enums.length === 0) {
-    return ''
-  }
-  return enums.map((enumDef) => genEnum(enumDef)).join('\n')
+function genEnums(enums: Enum[]): string[] {
+  return enums.map((enumDef) => genEnum(enumDef))
 }
 
 function genGetContractEventsCurrentCount(contract: Contract): string {
@@ -365,8 +364,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
-      ${genConstants(contract.constants)}
-      ${genEnums(contract.enums)}
+      ${genConsts(contract)}
       ${genAttach(getInstanceName(contract))}
       ${genTestMethods(contract, fieldsSig)}
     }
