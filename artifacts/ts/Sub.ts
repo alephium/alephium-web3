@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as SubContractJson } from "../sub/sub.ral.json";
+import { default as SubContractJson } from "../sub/Sub.ral.json";
 
 // Custom types for the contract
 export namespace SubTypes {

@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as DebugContractJson } from "../test/debug.ral.json";
+import { default as DebugContractJson } from "../test/Debug.ral.json";
 
 // Custom types for the contract
 export namespace DebugTypes {

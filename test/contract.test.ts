@@ -214,12 +214,12 @@ describe('contract', function () {
   })
 
   it('should load contract from json', () => {
-    loadContract('./artifacts/add/add.ral.json')
-    loadContract('./artifacts/sub/sub.ral.json')
-    loadScript('./artifacts/main.ral.json')
+    loadContract('./artifacts/add/Add.ral.json')
+    loadContract('./artifacts/sub/Sub.ral.json')
+    loadScript('./artifacts/add/Main.ral.json')
 
-    loadContract('./artifacts/greeter/greeter.ral.json')
-    loadScript('./artifacts/greeter_main.ral.json')
+    loadContract('./artifacts/greeter/Greeter.ral.json')
+    loadScript('./artifacts/greeter/GreeterMain.ral.json')
   })
 
   it('should extract metadata of contracts', async () => {

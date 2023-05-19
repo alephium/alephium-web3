@@ -53,25 +53,6 @@
   ],
   "enums": [
     {
-      "name": "Numbers",
-      "fields": [
-        {
-          "name": "A",
-          "value": {
-            "type": "U256",
-            "value": "0"
-          }
-        },
-        {
-          "name": "B",
-          "value": {
-            "type": "U256",
-            "value": "1"
-          }
-        }
-      ]
-    },
-    {
       "name": "Addresses",
       "fields": [
         {
@@ -86,6 +67,25 @@
           "value": {
             "type": "Address",
             "value": "14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Numbers",
+      "fields": [
+        {
+          "name": "A",
+          "value": {
+            "type": "U256",
+            "value": "0"
+          }
+        },
+        {
+          "name": "B",
+          "value": {
+            "type": "U256",
+            "value": "1"
           }
         }
       ]
