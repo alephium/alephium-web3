@@ -1,5 +1,5 @@
 {
-  "version": "v2.1.0",
+  "version": "v2.3.2",
   "name": "Greeter",
   "bytecode": "010109010000000102ce0002",
   "codeHash": "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3",
@@ -28,5 +28,7 @@
         "U256"
       ]
     }
-  ]
+  ],
+  "constants": [],
+  "enums": []
 }
