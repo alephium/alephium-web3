@@ -11,8 +11,8 @@ import {
   HexString,
 } from "@alephium/web3";
 import { default as MainScriptJson } from "../add/Main.ral.json";
-import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
+import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
 
 export namespace Main {
@@ -27,18 +27,6 @@ export namespace Main {
   export const script = Script.fromJson(MainScriptJson);
 }
 
-export namespace GreeterMain {
-  export async function execute(
-    signer: SignerProvider,
-    params: ExecuteScriptParams<{ greeterContractId: HexString }>
-  ): Promise<ExecuteScriptResult> {
-    const signerParams = await script.txParamsForExecution(signer, params);
-    return await signer.signAndSubmitExecuteScriptTx(signerParams);
-  }
-
-  export const script = Script.fromJson(GreeterMainScriptJson);
-}
-
 export namespace DestroyAdd {
   export async function execute(
     signer: SignerProvider,
@@ -49,6 +37,18 @@ export namespace DestroyAdd {
   }
 
   export const script = Script.fromJson(DestroyAddScriptJson);
+}
+
+export namespace GreeterMain {
+  export async function execute(
+    signer: SignerProvider,
+    params: ExecuteScriptParams<{ greeterContractId: HexString }>
+  ): Promise<ExecuteScriptResult> {
+    const signerParams = await script.txParamsForExecution(signer, params);
+    return await signer.signAndSubmitExecuteScriptTx(signerParams);
+  }
+
+  export const script = Script.fromJson(GreeterMainScriptJson);
 }
 
 export namespace MintNFTTest {
