@@ -23,6 +23,7 @@ import {
   DeployContractResult,
   Fields,
   ContractFactory,
+  ExecutableScript,
   ExecuteScriptParams,
   ExecuteScriptResult,
   CompilerOptions,
@@ -139,8 +140,7 @@ export interface Deployer {
   ): Promise<DeployContractResult<T>>
 
   runScript<P extends Fields>(
-    executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
-    script: Script,
+    executableScript: ExecutableScript<P>,
     params: ExecuteScriptParams<P>,
     taskTag?: string
   ): Promise<ExecuteScriptResult>

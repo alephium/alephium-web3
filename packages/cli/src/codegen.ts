@@ -394,21 +394,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
 function genScript(script: Script): string {
   console.log(`Generating code for script ${script.name}`)
-  const usePreapprovedAssets = script.functions[0].usePreapprovedAssets
   const fieldsType = script.fieldsSig.names.length > 0 ? `{${formatParameters(script.fieldsSig)}}` : '{}'
-  const paramsType = usePreapprovedAssets
-    ? `ExecuteScriptParams<${fieldsType}>`
-    : `Omit<ExecuteScriptParams<${fieldsType}>, 'attoAlphAmount' | 'tokens'>`
-  return `
-    export namespace ${script.name} {
-      export async function execute(signer: SignerProvider, params: ${paramsType}): Promise<ExecuteScriptResult> {
-        const signerParams = await script.txParamsForExecution(signer, params)
-        return await signer.signAndSubmitExecuteScriptTx(signerParams)
-      }
-
-      export const script = Script.fromJson(${script.name}ScriptJson)
-    }
-  `
+  return `export const ${script.name} = new ExecutableScript<${fieldsType}>(Script.fromJson(${script.name}ScriptJson))`
 }
 
 function genScripts(outDir: string, artifactDir: string, exports: string[]) {
@@ -428,6 +415,7 @@ function genScripts(outDir: string, artifactDir: string, exports: string[]) {
 
     import {
       Address,
+      ExecutableScript,
       ExecuteScriptParams,
       ExecuteScriptResult,
       Script,

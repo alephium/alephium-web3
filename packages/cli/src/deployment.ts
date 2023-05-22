@@ -35,7 +35,8 @@ import {
   ContractFactory,
   addStdIdToFields,
   NetworkId,
-  ContractInstance
+  ContractInstance,
+  ExecutableScript
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -363,14 +364,13 @@ function createDeployer<Settings = unknown>(
   }
 
   const runScript = async <P extends Fields>(
-    executeFunc: (signer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
-    script: Script,
+    executableScript: ExecutableScript<P>,
     params: ExecuteScriptParams<P>,
     taskTag?: string
   ): Promise<ExecuteScriptResult> => {
-    const initFieldsAndByteCode = script.buildByteCodeToDeploy(params.initialFields ?? {})
+    const initFieldsAndByteCode = executableScript.script.buildByteCodeToDeploy(params.initialFields ?? {})
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
-    const taskId = getTaskId(script, taskTag)
+    const taskId = getTaskId(executableScript.script, taskTag)
     const previous = runScriptResults.get(taskId)
     const tokens = params.tokens ? getTokenRecord(params.tokens) : undefined
     const needToRun = await needToRunScript(
@@ -387,7 +387,7 @@ function createDeployer<Settings = unknown>(
       return { ...previousExecuteResult }
     }
     console.log(`Executing script ${taskId}`)
-    const executeResult = await executeFunc(signer, params)
+    const executeResult = await executableScript.execute(signer, params)
     const confirmed = await waitTxConfirmed(
       web3.getCurrentNodeProvider(),
       executeResult.txId,
