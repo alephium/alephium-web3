@@ -55,6 +55,7 @@ const requestContentKind = {
 const responseContentKind = {
     "JSON": '"json"',
     "IMAGE": '"blob"',
+    "TEXT": '"text"',
     "FORM_DATA": isFetchTemplate ? '"formData"' : '"document"'
 }
 
@@ -96,4 +97,4 @@ const describeReturnType = () => {
         <%~ bodyContentKindTmpl ? `type: ${bodyContentKindTmpl},` : '' %>
         <%~ responseFormatTmpl ? `format: ${responseFormatTmpl},` : '' %>
         ...<%~ _.get(requestConfigParam, "name") %>,
-    }).then(convertHttpResponse)<%~ route.namespace ? ',' : '' %>
+    }).then(<%~ responseFormatTmpl === '"text"' ? 'convertTextHttpResponse' : 'convertHttpResponse' %>)<%~ route.namespace ? ',' : '' %>

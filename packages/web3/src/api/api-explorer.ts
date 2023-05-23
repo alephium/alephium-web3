@@ -346,7 +346,7 @@ export interface ValU256 {
 }
 
 import 'cross-fetch/polyfill'
-import { convertHttpResponse } from './utils'
+import { convertHttpResponse, convertTextHttpResponse } from './utils'
 
 export type QueryParamsType = Record<string | number, any>
 export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>
@@ -960,8 +960,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/addresses/${address}/export-transactions/csv`,
         method: 'GET',
         query: query,
+        format: 'text',
         ...params
-      }).then(convertHttpResponse),
+      }).then(convertTextHttpResponse),
 
     /**
      * No description
@@ -1069,8 +1070,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/supply/total-alph`,
         method: 'GET',
+        format: 'text',
         ...params
-      }).then(convertHttpResponse),
+      }).then(convertTextHttpResponse),
 
     /**
      * @description Get the ALPH circulating supply
@@ -1083,8 +1085,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/supply/circulating-alph`,
         method: 'GET',
+        format: 'text',
         ...params
-      }).then(convertHttpResponse),
+      }).then(convertTextHttpResponse),
 
     /**
      * @description Get the ALPH reserved supply
@@ -1097,8 +1100,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/supply/reserved-alph`,
         method: 'GET',
+        format: 'text',
         ...params
-      }).then(convertHttpResponse),
+      }).then(convertTextHttpResponse),
 
     /**
      * @description Get the ALPH locked supply
@@ -1111,8 +1115,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/supply/locked-alph`,
         method: 'GET',
+        format: 'text',
         ...params
-      }).then(convertHttpResponse),
+      }).then(convertTextHttpResponse),
 
     /**
      * @description Get the total number of transactions
@@ -1125,8 +1130,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/total-transactions`,
         method: 'GET',
+        format: 'text',
         ...params
-      }).then(convertHttpResponse),
+      }).then(convertTextHttpResponse),
 
     /**
      * @description Get the average block time for each chain
