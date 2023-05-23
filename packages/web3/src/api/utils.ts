@@ -28,17 +28,6 @@ export function convertHttpResponse<T>(response: { data: T; error?: { detail: st
   }
 }
 
-export async function convertTextHttpResponse(response: {
-  text: () => Promise<string>
-  error?: { detail: string }
-}): Promise<string> {
-  if (response.error) {
-    throw new Error(`[API Error] - ${response.error.detail}`)
-  } else {
-    return await response.text()
-  }
-}
-
 export async function retryFetch(...fetchParams: Parameters<typeof fetch>): ReturnType<typeof fetch> {
   const retry = async (retryCount: number): ReturnType<typeof fetch> => {
     const response = await fetch(...fetchParams)

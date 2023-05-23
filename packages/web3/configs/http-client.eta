@@ -2,6 +2,6 @@
 <% /* https://github.com/acacode/swagger-typescript-api/tree/next/templates/base/http-clients/ */ %>
 
 import 'cross-fetch/polyfill'
-import { convertHttpResponse, convertTextHttpResponse } from './utils'
+import { convertHttpResponse } from './utils'
 
 <%~ includeFile(`@base/http-clients/fetch-http-client`, it) %>
