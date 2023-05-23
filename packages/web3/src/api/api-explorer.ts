@@ -346,7 +346,7 @@ export interface ValU256 {
 }
 
 import 'cross-fetch/polyfill'
-import { convertHttpResponse, convertTextHttpResponse } from './utils'
+import { convertHttpResponse } from './utils'
 
 export type QueryParamsType = Record<string | number, any>
 export type ResponseFormat = keyof Omit<Body, 'body' | 'bodyUsed'>
@@ -962,7 +962,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         query: query,
         format: 'text',
         ...params
-      }).then(convertTextHttpResponse),
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -1072,7 +1072,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'text',
         ...params
-      }).then(convertTextHttpResponse),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the ALPH circulating supply
@@ -1087,7 +1087,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'text',
         ...params
-      }).then(convertTextHttpResponse),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the ALPH reserved supply
@@ -1102,7 +1102,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'text',
         ...params
-      }).then(convertTextHttpResponse),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the ALPH locked supply
@@ -1117,7 +1117,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'text',
         ...params
-      }).then(convertTextHttpResponse),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the total number of transactions
@@ -1132,7 +1132,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'text',
         ...params
-      }).then(convertTextHttpResponse),
+      }).then(convertHttpResponse),
 
     /**
      * @description Get the average block time for each chain
