@@ -17,7 +17,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { webcrypto as crypto } from 'crypto'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import {
@@ -54,12 +53,15 @@ import {
   Eq,
   Optional,
   groupOfAddress,
-  addressFromContractId
+  addressFromContractId,
+  WebCrypto
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
+
+const crypto = new WebCrypto()
 
 export type FieldsSig = node.FieldsSig
 export type EventSig = node.EventSig
