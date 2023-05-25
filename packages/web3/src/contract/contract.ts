@@ -53,13 +53,13 @@ import {
   Eq,
   Optional,
   groupOfAddress,
-  addressFromContractId
+  addressFromContractId,
+  WebCrypto
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
-import { WebCrypto } from '../utils'
 
 const crypto = new WebCrypto()
 

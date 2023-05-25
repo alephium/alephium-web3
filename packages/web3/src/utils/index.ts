@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+export * from './webcrypto'
 export * from './address'
 export * from './bs58'
 export * from './djb2'
@@ -23,4 +24,3 @@ export * from './utils'
 export * from './subscription'
 export * from './sign'
 export * from './number'
-export * from './webcrypto'
