@@ -17,20 +17,23 @@ import {
   TokenTest,
 } from ".";
 
+let contracts: ContractFactory<any>[] | undefined = undefined;
 export function getContractByCodeHash(codeHash: string): Contract {
-  const contracts: ContractFactory<any>[] = [
-    Add,
-    Greeter,
-    NFTCollectionTest,
-    NFTTest,
-    Sub,
-    Assert,
-    Debug,
-    MetaData,
-    Warnings,
-    FakeTokenTest,
-    TokenTest,
-  ];
+  if (contracts === undefined) {
+    contracts = [
+      Add,
+      Greeter,
+      NFTCollectionTest,
+      NFTTest,
+      Sub,
+      Assert,
+      Debug,
+      MetaData,
+      Warnings,
+      FakeTokenTest,
+      TokenTest,
+    ];
+  }
   const c = contracts.find(
     (c) =>
       c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash

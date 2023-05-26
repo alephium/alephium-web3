@@ -455,8 +455,11 @@ function genContractByCodeHash(outDir: string, contractNames: string[]) {
     import { Contract, ContractFactory } from '@alephium/web3'
     ${contracts.length === 0 ? '' : `import { ${contracts} } from '.'`}
 
+    let contracts: ContractFactory<any>[] | undefined = undefined
     export function getContractByCodeHash(codeHash: string): Contract {
-      const contracts: ContractFactory<any>[] = [${contracts}]
+      if (contracts === undefined) {
+        contracts = [${contracts}]
+      }
       const c = contracts.find((c) => c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash)
       if (c === undefined) {
         throw new Error("Unknown code with code hash: " + codeHash)
