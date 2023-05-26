@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as AddContractJson } from "../add/add.ral.json";
+import { default as AddContractJson } from "../add/Add.ral.json";
 
 // Custom types for the contract
 export namespace AddTypes {

@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as NFTCollectionTestContractJson } from "../nft/nft_collection_test.ral.json";
+import { default as NFTCollectionTestContractJson } from "../nft/NFTCollectionTest.ral.json";
 
 // Custom types for the contract
 export namespace NFTCollectionTestTypes {
@@ -72,6 +72,10 @@ class Factory extends ContractFactory<
   NFTCollectionTestInstance,
   NFTCollectionTestTypes.Fields
 > {
+  consts = {
+    ErrorCodes: { IncorrectTokenIndex: BigInt(0), NFTNotFound: BigInt(1) },
+  };
+
   at(address: string): NFTCollectionTestInstance {
     return new NFTCollectionTestInstance(address);
   }

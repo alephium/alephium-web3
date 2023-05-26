@@ -23,6 +23,7 @@ import {
   DeployContractResult,
   Fields,
   ContractFactory,
+  ExecutableScript,
   ExecuteScriptParams,
   ExecuteScriptResult,
   CompilerOptions,
@@ -60,7 +61,7 @@ export interface Configuration<Settings = unknown> {
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {
-  nodeVersion: '2.3.2',
+  nodeVersion: '2.3.3',
   nodeConfigFile: 'devnet-user.conf',
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
@@ -139,8 +140,7 @@ export interface Deployer {
   ): Promise<DeployContractResult<T>>
 
   runScript<P extends Fields>(
-    executeFunc: (singer: SignerProvider, params: ExecuteScriptParams<P>) => Promise<ExecuteScriptResult>,
-    script: Script,
+    executableScript: ExecutableScript<P>,
     params: ExecuteScriptParams<P>,
     taskTag?: string
   ): Promise<ExecuteScriptResult>

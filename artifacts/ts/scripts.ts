@@ -4,64 +4,29 @@
 
 import {
   Address,
+  ExecutableScript,
   ExecuteScriptParams,
   ExecuteScriptResult,
   Script,
   SignerProvider,
   HexString,
 } from "@alephium/web3";
-import { default as DestroyAddScriptJson } from "../add/destroy_add.ral.json";
-import { default as GreeterMainScriptJson } from "../greeter_main.ral.json";
-import { default as MainScriptJson } from "../main.ral.json";
-import { default as MintNFTTestScriptJson } from "../nft/mint_nft_test.ral.json";
+import { default as MainScriptJson } from "../add/Main.ral.json";
+import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
+import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
+import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
 
-export namespace DestroyAdd {
-  export async function execute(
-    signer: SignerProvider,
-    params: ExecuteScriptParams<{ add: HexString; caller: Address }>
-  ): Promise<ExecuteScriptResult> {
-    const signerParams = await script.txParamsForExecution(signer, params);
-    return await signer.signAndSubmitExecuteScriptTx(signerParams);
-  }
-
-  export const script = Script.fromJson(DestroyAddScriptJson);
-}
-
-export namespace GreeterMain {
-  export async function execute(
-    signer: SignerProvider,
-    params: ExecuteScriptParams<{ greeterContractId: HexString }>
-  ): Promise<ExecuteScriptResult> {
-    const signerParams = await script.txParamsForExecution(signer, params);
-    return await signer.signAndSubmitExecuteScriptTx(signerParams);
-  }
-
-  export const script = Script.fromJson(GreeterMainScriptJson);
-}
-
-export namespace Main {
-  export async function execute(
-    signer: SignerProvider,
-    params: ExecuteScriptParams<{ addContractId: HexString }>
-  ): Promise<ExecuteScriptResult> {
-    const signerParams = await script.txParamsForExecution(signer, params);
-    return await signer.signAndSubmitExecuteScriptTx(signerParams);
-  }
-
-  export const script = Script.fromJson(MainScriptJson);
-}
-
-export namespace MintNFTTest {
-  export async function execute(
-    signer: SignerProvider,
-    params: ExecuteScriptParams<{
-      nftCollectionContractId: HexString;
-      uri: HexString;
-    }>
-  ): Promise<ExecuteScriptResult> {
-    const signerParams = await script.txParamsForExecution(signer, params);
-    return await signer.signAndSubmitExecuteScriptTx(signerParams);
-  }
-
-  export const script = Script.fromJson(MintNFTTestScriptJson);
-}
+export const Main = new ExecutableScript<{ addContractId: HexString }>(
+  Script.fromJson(MainScriptJson)
+);
+export const DestroyAdd = new ExecutableScript<{
+  add: HexString;
+  caller: Address;
+}>(Script.fromJson(DestroyAddScriptJson));
+export const GreeterMain = new ExecutableScript<{
+  greeterContractId: HexString;
+}>(Script.fromJson(GreeterMainScriptJson));
+export const MintNFTTest = new ExecutableScript<{
+  nftCollectionContractId: HexString;
+  uri: HexString;
+}>(Script.fromJson(MintNFTTestScriptJson));

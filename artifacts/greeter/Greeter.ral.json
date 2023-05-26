@@ -1,8 +1,8 @@
 {
-  "version": "v2.1.0",
+  "version": "v2.3.3",
   "name": "Greeter",
-  "bytecode": "010109010000000102ce0002",
-  "codeHash": "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3",
+  "bytecode": "01010c010000000105030c7bce0002",
+  "codeHash": "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a",
   "fieldsSig": {
     "names": [
       "btcPrice"
@@ -28,5 +28,7 @@
         "U256"
       ]
     }
-  ]
+  ],
+  "constants": [],
+  "enums": []
 }

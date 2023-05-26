@@ -1,15 +1,18 @@
 {
-  "version": "v2.3.2",
-  "name": "GreeterMain",
-  "bytecodeTemplate": "01010300020014{0}17000c0d160001000d2f0c7b{0}17010c0d160101000d2f0c7b",
+  "version": "v2.3.3",
+  "name": "MintNFTTest",
+  "bytecodeTemplate": "0101030001000b{0}1700b413c40de0b6b3a7640000a2{1}0d0d1600010318",
   "fieldsSig": {
     "names": [
-      "greeterContractId"
+      "nftCollectionContractId",
+      "uri"
     ],
     "types": [
+      "ByteVec",
       "ByteVec"
     ],
     "isMutable": [
+      false,
       false
     ]
   },

@@ -214,12 +214,12 @@ describe('contract', function () {
   })
 
   it('should load contract from json', () => {
-    loadContract('./artifacts/add/add.ral.json')
-    loadContract('./artifacts/sub/sub.ral.json')
-    loadScript('./artifacts/main.ral.json')
+    loadContract('./artifacts/add/Add.ral.json')
+    loadContract('./artifacts/sub/Sub.ral.json')
+    loadScript('./artifacts/add/Main.ral.json')
 
-    loadContract('./artifacts/greeter/greeter.ral.json')
-    loadScript('./artifacts/greeter_main.ral.json')
+    loadContract('./artifacts/greeter/Greeter.ral.json')
+    loadScript('./artifacts/greeter/GreeterMain.ral.json')
   })
 
   it('should extract metadata of contracts', async () => {
@@ -260,5 +260,19 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
     const testAddress = randomContractAddress()
     expectAssertionError(Assert.tests.test({ address: testAddress }), testAddress, 3)
+  })
+
+  it('should test enums and constants', async () => {
+    await Project.build({ errorOnWarnings: false })
+    expect(Assert.consts.Error).toEqual(3n)
+    expect(Assert.consts.A).toEqual(-3n)
+    expect(Assert.consts.B).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(Assert.consts.C).toEqual('0011')
+    expect(Assert.consts.Numbers.A).toEqual(0n)
+    expect(Assert.consts.Numbers.B).toEqual(1n)
+    expect(Assert.consts.Addresses.A).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(Assert.consts.Addresses.B).toEqual('14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF')
+    expect(Assert.consts.ByteVecs.A).toEqual('00')
+    expect(Assert.consts.ByteVecs.B).toEqual('11')
   })
 })

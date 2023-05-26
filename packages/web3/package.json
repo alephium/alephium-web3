@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "0.12.0",
+  "version": "0.12.3",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "main": "dist/src/index.js",
@@ -27,7 +27,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "2.3.2",
+    "alephium_version": "2.3.3",
     "explorer_backend_version": "1.13.5"
   },
   "scripts": {
@@ -48,8 +48,10 @@
     "bn.js": "5.2.1",
     "buffer": "^6.0.3",
     "cross-fetch": "^3.1.5",
+    "crypto-browserify": "^3.12.0",
     "elliptic": "6.5.4",
-    "eventemitter3": "^4.0.7"
+    "eventemitter3": "^4.0.7",
+    "path-browserify": "^1.0.1"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.21.3",
@@ -63,7 +65,6 @@
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "clean-webpack-plugin": "4.0.0",
-    "crypto-browserify": "^3.12.0",
     "eslint": "^8.37.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-header": "^3.1.1",
@@ -75,7 +76,6 @@
     "jest-websocket-mock": "^2.4.0",
     "mock-fs": "^5.2.0",
     "mock-socket": "^9.2.1",
-    "path-browserify": "^1.0.1",
     "prettier": "^2.8.7",
     "process": "^0.11.10",
     "rewire": "^6.0.0",

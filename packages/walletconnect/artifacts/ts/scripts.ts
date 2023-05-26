@@ -3,13 +3,14 @@
 /* eslint-disable */
 
 import {
+  Address,
   ExecuteScriptParams,
   ExecuteScriptResult,
   Script,
   SignerProvider,
   HexString,
 } from "@alephium/web3";
-import { default as MainScriptJson } from "../greeter_main.ral.json";
+import { default as MainScriptJson } from "../Main.ral.json";
 
 export namespace Main {
   export async function execute(

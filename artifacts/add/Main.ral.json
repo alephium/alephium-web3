@@ -1,10 +1,10 @@
 {
-  "version": "v2.1.0",
+  "version": "v2.3.3",
   "name": "Main",
-  "bytecodeTemplate": "0101030001000a{0}17000c0d160001000d2f0c7b",
+  "bytecodeTemplate": "0101030001000a{0}17000e0d0e0e160001001818",
   "fieldsSig": {
     "names": [
-      "greeterContractId"
+      "addContractId"
     ],
     "types": [
       "ByteVec"

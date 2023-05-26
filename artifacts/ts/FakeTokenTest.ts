@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as FakeTokenTestContractJson } from "../token/fake_token_test.ral.json";
+import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
 
 // Custom types for the contract
 export namespace FakeTokenTestTypes {

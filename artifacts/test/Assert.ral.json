@@ -1,0 +1,113 @@
+{
+  "version": "v2.3.3",
+  "name": "Assert",
+  "bytecode": "00010b0100000000050d0e2f0f7b",
+  "codeHash": "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
+  "fieldsSig": {
+    "names": [],
+    "types": [],
+    "isMutable": []
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "test",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ],
+  "constants": [
+    {
+      "name": "Error",
+      "value": {
+        "type": "U256",
+        "value": "3"
+      }
+    },
+    {
+      "name": "A",
+      "value": {
+        "type": "I256",
+        "value": "-3"
+      }
+    },
+    {
+      "name": "B",
+      "value": {
+        "type": "Address",
+        "value": "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH"
+      }
+    },
+    {
+      "name": "C",
+      "value": {
+        "type": "ByteVec",
+        "value": "0011"
+      }
+    }
+  ],
+  "enums": [
+    {
+      "name": "Addresses",
+      "fields": [
+        {
+          "name": "A",
+          "value": {
+            "type": "Address",
+            "value": "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH"
+          }
+        },
+        {
+          "name": "B",
+          "value": {
+            "type": "Address",
+            "value": "14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Numbers",
+      "fields": [
+        {
+          "name": "A",
+          "value": {
+            "type": "U256",
+            "value": "0"
+          }
+        },
+        {
+          "name": "B",
+          "value": {
+            "type": "U256",
+            "value": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ByteVecs",
+      "fields": [
+        {
+          "name": "A",
+          "value": {
+            "type": "ByteVec",
+            "value": "00"
+          }
+        },
+        {
+          "name": "B",
+          "value": {
+            "type": "ByteVec",
+            "value": "11"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as WarningsContractJson } from "../test/warnings.ral.json";
+import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 
 // Custom types for the contract
 export namespace WarningsTypes {
@@ -37,6 +37,8 @@ export namespace WarningsTypes {
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
+  consts = { C: BigInt(0) };
+
   at(address: string): WarningsInstance {
     return new WarningsInstance(address);
   }
