@@ -1404,6 +1404,19 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
   }
 }
 
+export class ExecutableScript<P extends Fields = Fields> {
+  readonly script: Script
+
+  constructor(script: Script) {
+    this.script = script
+  }
+
+  async execute(signer: SignerProvider, params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
+    const signerParams = await this.script.txParamsForExecution(signer, params)
+    return await signer.signAndSubmitExecuteScriptTx(signerParams)
+  }
+}
+
 export interface ExecuteScriptParams<P extends Fields = Fields> {
   initialFields: P
   attoAlphAmount?: Number256
