@@ -42,6 +42,9 @@ import { Add, AddTypes } from '../artifacts/ts/Add'
 import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
+import { getContractByCodeHash } from '../artifacts/ts/contracts'
+import { NFTTest, TokenTest } from '../artifacts/ts'
+import { randomBytes } from 'crypto'
 
 describe('contract', function () {
   let signer: NodeWallet
@@ -274,5 +277,18 @@ describe('contract', function () {
     expect(Assert.consts.Addresses.B).toEqual('14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF')
     expect(Assert.consts.ByteVecs.A).toEqual('00')
     expect(Assert.consts.ByteVecs.B).toEqual('11')
+  })
+
+  it('should get contract by code hash', () => {
+    expect(getContractByCodeHash(Add.contract.codeHash).bytecode).toEqual(Add.contract.bytecode)
+    expect(getContractByCodeHash(Sub.contract.codeHash).bytecode).toEqual(Sub.contract.bytecode)
+    expect(getContractByCodeHash(Greeter.contract.codeHash).bytecode).toEqual(Greeter.contract.bytecode)
+    expect(getContractByCodeHash(Assert.contract.codeHash).bytecode).toEqual(Assert.contract.bytecode)
+    expect(getContractByCodeHash(Debug.contract.codeHash).bytecode).toEqual(Debug.contract.bytecode)
+    expect(getContractByCodeHash(NFTTest.contract.codeHash).bytecode).toEqual(NFTTest.contract.bytecode)
+    expect(getContractByCodeHash(TokenTest.contract.codeHash).bytecode).toEqual(TokenTest.contract.bytecode)
+
+    const invalidCodeHash = randomBytes(32).toString('hex')
+    expect(() => getContractByCodeHash(invalidCodeHash)).toThrow(`Unknown code with code hash: ${invalidCodeHash}`)
   })
 })

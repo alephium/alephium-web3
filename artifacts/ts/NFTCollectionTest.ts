@@ -25,6 +25,7 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as NFTCollectionTestContractJson } from "../nft/NFTCollectionTest.ral.json";
+import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace NFTCollectionTestTypes {
@@ -143,7 +144,8 @@ export class NFTCollectionTestInstance extends ContractInstance {
         NFTCollectionTest,
         this,
         "getCollectionUri",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
     totalSupply: async (
@@ -153,18 +155,31 @@ export class NFTCollectionTestInstance extends ContractInstance {
         NFTCollectionTest,
         this,
         "totalSupply",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
     nftByIndex: async (
       params: NFTCollectionTestTypes.CallMethodParams<"nftByIndex">
     ): Promise<NFTCollectionTestTypes.CallMethodResult<"nftByIndex">> => {
-      return callMethod(NFTCollectionTest, this, "nftByIndex", params);
+      return callMethod(
+        NFTCollectionTest,
+        this,
+        "nftByIndex",
+        params,
+        getContractByCodeHash
+      );
     },
     mint: async (
       params: NFTCollectionTestTypes.CallMethodParams<"mint">
     ): Promise<NFTCollectionTestTypes.CallMethodResult<"mint">> => {
-      return callMethod(NFTCollectionTest, this, "mint", params);
+      return callMethod(
+        NFTCollectionTest,
+        this,
+        "mint",
+        params,
+        getContractByCodeHash
+      );
     },
   };
 
@@ -174,7 +189,8 @@ export class NFTCollectionTestInstance extends ContractInstance {
     return (await multicallMethods(
       NFTCollectionTest,
       this,
-      calls
+      calls,
+      getContractByCodeHash
     )) as NFTCollectionTestTypes.MultiCallResults<Calls>;
   }
 }

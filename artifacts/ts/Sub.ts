@@ -25,6 +25,7 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
+import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace SubTypes {
@@ -110,7 +111,7 @@ export class SubInstance extends ContractInstance {
     sub: async (
       params: SubTypes.CallMethodParams<"sub">
     ): Promise<SubTypes.CallMethodResult<"sub">> => {
-      return callMethod(Sub, this, "sub", params);
+      return callMethod(Sub, this, "sub", params, getContractByCodeHash);
     },
   };
 
@@ -120,7 +121,8 @@ export class SubInstance extends ContractInstance {
     return (await multicallMethods(
       Sub,
       this,
-      calls
+      calls,
+      getContractByCodeHash
     )) as SubTypes.MultiCallResults<Calls>;
   }
 }

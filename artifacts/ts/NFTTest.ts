@@ -25,6 +25,7 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
+import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace NFTTestTypes {
@@ -105,7 +106,8 @@ export class NFTTestInstance extends ContractInstance {
         NFTTest,
         this,
         "getTokenUri",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
     getCollectionId: async (
@@ -115,7 +117,8 @@ export class NFTTestInstance extends ContractInstance {
         NFTTest,
         this,
         "getCollectionId",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
   };
@@ -126,7 +129,8 @@ export class NFTTestInstance extends ContractInstance {
     return (await multicallMethods(
       NFTTest,
       this,
-      calls
+      calls,
+      getContractByCodeHash
     )) as NFTTestTypes.MultiCallResults<Calls>;
   }
 }

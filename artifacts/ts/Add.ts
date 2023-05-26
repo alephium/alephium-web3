@@ -25,6 +25,7 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
+import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace AddTypes {
@@ -150,7 +151,7 @@ export class AddInstance extends ContractInstance {
     add: async (
       params: AddTypes.CallMethodParams<"add">
     ): Promise<AddTypes.CallMethodResult<"add">> => {
-      return callMethod(Add, this, "add", params);
+      return callMethod(Add, this, "add", params, getContractByCodeHash);
     },
   };
 
@@ -160,7 +161,8 @@ export class AddInstance extends ContractInstance {
     return (await multicallMethods(
       Add,
       this,
-      calls
+      calls,
+      getContractByCodeHash
     )) as AddTypes.MultiCallResults<Calls>;
   }
 }
