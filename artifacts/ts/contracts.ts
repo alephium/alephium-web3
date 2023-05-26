@@ -17,8 +17,7 @@ import {
   TokenTest,
 } from ".";
 
-export function getContractByCodeHash(codeHash: string): Contract {
-  const contracts: ContractFactory<any>[] = [
+  const contracts = (): ContractFactory<any>[] => [
     Add,
     Greeter,
     NFTCollectionTest,
@@ -31,9 +30,14 @@ export function getContractByCodeHash(codeHash: string): Contract {
     FakeTokenTest,
     TokenTest,
   ];
-  const c = contracts.find(
-    (c) =>
-      c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash
+
+export const getContractByCodeHash = (codeHash: string): Contract => {
+  // console.log(contracts)
+  const c = contracts().find(
+    (c) => {
+      console.log(c)
+      return c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash
+    }
   );
   if (c === undefined) {
     throw new Error("Unknown code with code hash: " + codeHash);
