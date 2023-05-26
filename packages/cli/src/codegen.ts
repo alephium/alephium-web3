@@ -24,7 +24,6 @@ import {
   EventSig,
   Constant,
   Enum,
-  Val,
   StdIdFieldName,
   NetworkId,
   networkIds,
@@ -91,7 +90,7 @@ function genCallMethod(contractName: string, functionSig: node.FunctionSig): str
   const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
   return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
-      return callMethod(${contractName}, this, "${functionSig.name}", ${callParams})
+      return callMethod(${contractName}, this, "${functionSig.name}", ${callParams}, getContractByCodeHash)
     }
   `
 }
@@ -315,7 +314,7 @@ function genMulticall(contract: Contract): string {
       async multicall<Calls extends ${types}.MultiCallParams>(
         calls: Calls
       ): Promise<${types}.MultiCallResults<Calls>> {
-        return (await multicallMethods(${contract.name}, this, calls)) as ${types}.MultiCallResults<Calls>
+        return (await multicallMethods(${contract.name}, this, calls, getContractByCodeHash)) as ${types}.MultiCallResults<Calls>
       }
     `
     : ''
@@ -355,6 +354,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
+    import { getContractByCodeHash } from './contracts'
 
     // Custom types for the contract
     export namespace ${contract.name}Types {
@@ -433,6 +433,31 @@ function genIndexTs(outDir: string, exports: string[]) {
   const indexPath = path.join(outDir, 'index.ts')
   const exportStatements = exports.map((e) => `export * from "${e}"`).join('\n')
   formatAndSaveToFile(indexPath, header + exportStatements)
+}
+
+function genContractByCodeHash(outDir: string, contractNames: string[]) {
+  const contracts = contractNames.join(',')
+  const source = `
+    ${header}
+
+    import { Contract, ContractFactory } from '@alephium/web3'
+    ${contracts.length === 0 ? '' : `import { ${contracts} } from '.'`}
+
+    let contracts: ContractFactory<any>[] | undefined = undefined
+    export function getContractByCodeHash(codeHash: string): Contract {
+      if (contracts === undefined) {
+        contracts = [${contracts}]
+      }
+      const c = contracts.find((c) => c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash)
+      if (c === undefined) {
+        throw new Error("Unknown code with code hash: " + codeHash)
+      }
+      return c.contract
+    }
+  `
+  const filename = 'contracts.ts'
+  const sourcePath = path.join(outDir, filename)
+  formatAndSaveToFile(sourcePath, source)
 }
 
 function genContracts(outDir: string, artifactDir: string, exports: string[]) {
@@ -616,6 +641,8 @@ export function codegen(artifactDir: string) {
   const exports: string[] = []
   try {
     genContracts(outDir, artifactDir, exports)
+    const contractNames = exports.map((p) => p.slice(2))
+    genContractByCodeHash(outDir, contractNames)
     genScripts(outDir, artifactDir, exports)
     genIndexTs(outDir, exports)
   } catch (error) {

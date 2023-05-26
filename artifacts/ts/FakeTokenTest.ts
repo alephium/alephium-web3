@@ -25,6 +25,7 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
+import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace FakeTokenTestTypes {
@@ -145,7 +146,8 @@ export class FakeTokenTestInstance extends ContractInstance {
         FakeTokenTest,
         this,
         "getSymbol",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
     getName: async (
@@ -155,7 +157,8 @@ export class FakeTokenTestInstance extends ContractInstance {
         FakeTokenTest,
         this,
         "getName",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
     getDecimals: async (
@@ -165,7 +168,8 @@ export class FakeTokenTestInstance extends ContractInstance {
         FakeTokenTest,
         this,
         "getDecimals",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
     getTotalSupply: async (
@@ -175,7 +179,8 @@ export class FakeTokenTestInstance extends ContractInstance {
         FakeTokenTest,
         this,
         "getTotalSupply",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
   };
@@ -186,7 +191,8 @@ export class FakeTokenTestInstance extends ContractInstance {
     return (await multicallMethods(
       FakeTokenTest,
       this,
-      calls
+      calls,
+      getContractByCodeHash
     )) as FakeTokenTestTypes.MultiCallResults<Calls>;
   }
 }

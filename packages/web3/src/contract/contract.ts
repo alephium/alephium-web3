@@ -922,8 +922,13 @@ export class Contract extends Artifact {
     }
   }
 
-  static fromApiContractState(state: node.ContractState): ContractState {
-    const contract = Project.currentProject.contractByCodeHash(state.codeHash)
+  static fromApiContractState(
+    state: node.ContractState,
+    getContractByCodeHash?: (codeHash: string) => Contract
+  ): ContractState {
+    const contract = getContractByCodeHash
+      ? getContractByCodeHash(state.codeHash)
+      : Project.currentProject.contractByCodeHash(state.codeHash)
     return contract.fromApiContractState(state)
   }
 
@@ -941,7 +946,12 @@ export class Contract extends Artifact {
     fieldTypes: ['Address']
   }
 
-  static fromApiEvent(event: node.ContractEventByTxId, codeHash: string | undefined, txId: string): ContractEvent {
+  static fromApiEvent(
+    event: node.ContractEventByTxId,
+    codeHash: string | undefined,
+    txId: string,
+    getContractByCodeHash?: (codeHash: string) => Contract
+  ): ContractEvent {
     let fields: Fields
     let name: string
 
@@ -952,7 +962,9 @@ export class Contract extends Artifact {
       fields = fromApiEventFields(event.fields, Contract.ContractDestroyedEvent, true)
       name = Contract.ContractDestroyedEvent.name
     } else {
-      const contract = Project.currentProject.contractByCodeHash(codeHash!)
+      const contract = getContractByCodeHash
+        ? getContractByCodeHash(codeHash!)
+        : Project.currentProject.contractByCodeHash(codeHash!)
       const eventSig = contract.eventsSig[event.eventIndex]
       fields = fromApiEventFields(event.fields, eventSig)
       name = eventSig.name
@@ -1020,13 +1032,14 @@ export class Contract extends Artifact {
   static fromApiEvents(
     events: node.ContractEventByTxId[],
     addressToCodeHash: Map<string, string>,
-    txId: string
+    txId: string,
+    getContractByCodeHash?: (codeHash: string) => Contract
   ): ContractEvent[] {
     return events.map((event) => {
       const contractAddress = event.contractAddress
       const codeHash = addressToCodeHash.get(contractAddress)
       if (typeof codeHash !== 'undefined' || event.eventIndex < 0) {
-        return Contract.fromApiEvent(event, codeHash, txId)
+        return Contract.fromApiEvent(event, codeHash, txId, getContractByCodeHash)
       } else {
         throw Error(`Cannot find codeHash for the contract address: ${contractAddress}`)
       }
@@ -1053,7 +1066,8 @@ export class Contract extends Artifact {
   fromApiCallContractResult(
     result: node.CallContractResult,
     txId: string,
-    methodIndex: number
+    methodIndex: number,
+    getContractByCodeHash?: (codeHash: string) => Contract
   ): CallContractResult<unknown> {
     const returnTypes = this.functions[`${methodIndex}`].returnTypes
     const rawReturn = fromApiArray(result.returns, returnTypes)
@@ -1064,10 +1078,10 @@ export class Contract extends Artifact {
     return {
       returns: returns,
       gasUsed: result.gasUsed,
-      contracts: result.contracts.map((state) => Contract.fromApiContractState(state)),
+      contracts: result.contracts.map((state) => Contract.fromApiContractState(state, getContractByCodeHash)),
       txInputs: result.txInputs,
       txOutputs: result.txOutputs.map((output) => fromApiOutput(output)),
-      events: Contract.fromApiEvents(result.events, addressToCodeHash, txId)
+      events: Contract.fromApiEvents(result.events, addressToCodeHash, txId, getContractByCodeHash)
     }
   }
 }
@@ -1698,7 +1712,8 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
   contract: ContractFactory<I, F>,
   instance: ContractInstance,
   methodName: string,
-  params: Optional<CallContractParams<A>, 'args'>
+  params: Optional<CallContractParams<A>, 'args'>,
+  getContractByCodeHash?: (codeHash: string) => Contract
 ): Promise<CallContractResult<R>> {
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const txId = params?.txId ?? randomTxId()
@@ -1709,14 +1724,15 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
     methodIndex
   )
   const result = await getCurrentNodeProvider().contracts.postContractsCallContract(callParams)
-  const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex)
+  const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex, getContractByCodeHash)
   return callResult as CallContractResult<R>
 }
 
 export async function multicallMethods<I extends ContractInstance, F extends Fields>(
   contract: ContractFactory<I, F>,
   instance: ContractInstance,
-  calls: Record<string, Optional<CallContractParams<any>, 'args'>>
+  calls: Record<string, Optional<CallContractParams<any>, 'args'>>,
+  getContractByCodeHash?: (codeHash: string) => Contract
 ): Promise<Record<string, CallContractResult<any>>> {
   const callEntries = Object.entries(calls)
   const callsParams = callEntries.map((entry) => {
@@ -1739,7 +1755,8 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
     callsResult[`${methodName}`] = contract.contract.fromApiCallContractResult(
       callResult,
       call.txId!,
-      methodIndex
+      methodIndex,
+      getContractByCodeHash
     ) as CallContractResult<any>
   })
   return callsResult
