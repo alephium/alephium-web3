@@ -25,7 +25,6 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token/TokenTest.ral.json";
-import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace TokenTestTypes {
@@ -129,8 +128,7 @@ export class TokenTestInstance extends ContractInstance {
         TokenTest,
         this,
         "getSymbol",
-        params === undefined ? {} : params,
-        getContractByCodeHash
+        params === undefined ? {} : params
       );
     },
     getName: async (
@@ -140,8 +138,7 @@ export class TokenTestInstance extends ContractInstance {
         TokenTest,
         this,
         "getName",
-        params === undefined ? {} : params,
-        getContractByCodeHash
+        params === undefined ? {} : params
       );
     },
     getDecimals: async (
@@ -151,8 +148,7 @@ export class TokenTestInstance extends ContractInstance {
         TokenTest,
         this,
         "getDecimals",
-        params === undefined ? {} : params,
-        getContractByCodeHash
+        params === undefined ? {} : params
       );
     },
     getTotalSupply: async (
@@ -162,8 +158,7 @@ export class TokenTestInstance extends ContractInstance {
         TokenTest,
         this,
         "getTotalSupply",
-        params === undefined ? {} : params,
-        getContractByCodeHash
+        params === undefined ? {} : params
       );
     },
   };
@@ -174,8 +169,7 @@ export class TokenTestInstance extends ContractInstance {
     return (await multicallMethods(
       TokenTest,
       this,
-      calls,
-      getContractByCodeHash
+      calls
     )) as TokenTestTypes.MultiCallResults<Calls>;
   }
 }

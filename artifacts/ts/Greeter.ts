@@ -25,7 +25,6 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
-import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace GreeterTypes {
@@ -96,8 +95,7 @@ export class GreeterInstance extends ContractInstance {
         Greeter,
         this,
         "greet",
-        params === undefined ? {} : params,
-        getContractByCodeHash
+        params === undefined ? {} : params
       );
     },
   };
@@ -108,8 +106,7 @@ export class GreeterInstance extends ContractInstance {
     return (await multicallMethods(
       Greeter,
       this,
-      calls,
-      getContractByCodeHash
+      calls
     )) as GreeterTypes.MultiCallResults<Calls>;
   }
 }
