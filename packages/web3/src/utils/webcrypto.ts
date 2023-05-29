@@ -22,7 +22,7 @@ import { webcrypto, randomFillSync } from 'crypto'
 const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
 export class WebCrypto {
-  subtle = isBrowser ? globalThis.crypto.subtle : webcrypto.subtle
+  subtle = isBrowser ? globalThis.crypto.subtle : webcrypto ? webcrypto.subtle : crypto.subtle
 
   public getRandomValues<T extends ArrayBufferView | null>(array: T): T {
     if (!ArrayBuffer.isView(array)) {
