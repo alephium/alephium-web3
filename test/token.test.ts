@@ -71,7 +71,10 @@ describe('contract', function () {
     expect(result.getDecimals.returns).toEqual(decimals)
     expect(result.getTotalSupply.returns).toEqual(totalSupply)
 
-    const metadata = await web3.getCurrentNodeProvider().fetchStdTokenMetaData(tokenTest.contractId)
+    const tokenType = await web3.getCurrentNodeProvider().guessStdTokenType(tokenTest.contractId)
+    expect(tokenType).toEqual('fungible')
+
+    const metadata = await web3.getCurrentNodeProvider().fetchFungibleTokenMetaData(tokenTest.contractId)
     expect(metadata.symbol).toEqual(symbol)
     expect(metadata.name).toEqual(name)
     expect(metadata.decimals).toEqual(Number(decimals))

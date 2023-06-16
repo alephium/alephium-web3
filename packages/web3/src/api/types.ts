@@ -264,9 +264,14 @@ export async function request(provider: Record<string, any>, args: ApiRequestArg
   return call(...args.params)
 }
 
-export interface TokenMetaData {
+export interface FungibleTokenMetaData {
   name: string
   symbol: string
   decimals: number
   totalSupply: Number256
+}
+
+export interface NFTMetaData {
+  collectionAddress: string
+  tokenUri: string
 }

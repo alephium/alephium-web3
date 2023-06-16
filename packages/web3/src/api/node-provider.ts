@@ -16,11 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request, TokenMetaData } from './types'
+import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request, FungibleTokenMetaData, NFTMetaData } from './types'
 import { Api as NodeApi } from './api-alephium'
 import { DEFAULT_THROTTLE_FETCH } from './utils'
 import { HexString } from '../contract'
-import { addressFromTokenId, groupOfAddress } from '../utils'
+import { addressFromContractId, addressFromTokenId, groupOfAddress, hexToString } from '../utils'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
@@ -100,8 +100,8 @@ export class NodeProvider implements NodeProviderApis {
     return new NodeProvider(handler)
   }
 
-  // Only use this when the token is following the standard token interface
-  fetchStdTokenMetaData = async (tokenId: HexString): Promise<TokenMetaData> => {
+  // Only use this when the token follows the fungible token interface, check `guessTokenType` first
+  fetchFungibleTokenMetaData = async (tokenId: HexString): Promise<FungibleTokenMetaData> => {
     const address = addressFromTokenId(tokenId)
     const group = groupOfAddress(address)
     const calls = Array.from([0, 1, 2, 3], (index) => ({ methodIndex: index, group: group, address: address }))
@@ -116,6 +116,20 @@ export class NodeProvider implements NodeProviderApis {
     }
   }
 
+  // Only use this when the token follows the non-fungile token interface, check `guessTokenType` first
+  fetchNFTMetaData = async (tokenId: HexString): Promise<NFTMetaData> => {
+    const address = addressFromTokenId(tokenId)
+    const group = groupOfAddress(address)
+    const calls = Array.from([0, 1], (index) => ({ methodIndex: index, group: group, address: address }))
+    const result = await this.contracts.postContractsMulticallContract({
+      calls: calls
+    })
+    return {
+      tokenUri: hexToString(result.results[0].returns[0].value as any as string),
+      collectionAddress: addressFromContractId(result.results[1].returns[0].value as any as string)
+    }
+  }
+
   guessStdInterfaceId = async (tokenId: HexString): Promise<HexString | undefined> => {
     const address = addressFromTokenId(tokenId)
     const group = groupOfAddress(address)
@@ -126,6 +140,18 @@ export class NodeProvider implements NodeProviderApis {
       return lastImmField.slice(8)
     } else {
       return undefined
+    }
+  }
+
+  guessStdTokenType = async (tokenId: HexString): Promise<'fungible' | 'non-fungible' | undefined> => {
+    const interfaceId = await this.guessStdInterfaceId(tokenId)
+    switch (interfaceId) {
+      case '0001':
+        return 'fungible'
+      case '0003':
+        return 'non-fungible'
+      default:
+        return undefined
     }
   }
 }
