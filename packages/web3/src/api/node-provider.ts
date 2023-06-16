@@ -16,7 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request, FungibleTokenMetaData, NFTMetaData } from './types'
+import {
+  ApiRequestArguments,
+  ApiRequestHandler,
+  forwardRequests,
+  request,
+  FungibleTokenMetaData,
+  NFTMetaData
+} from './types'
 import { Api as NodeApi } from './api-alephium'
 import { DEFAULT_THROTTLE_FETCH } from './utils'
 import { HexString } from '../contract'

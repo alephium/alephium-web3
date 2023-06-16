@@ -1228,7 +1228,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.3.4
+ * @version 2.3.5
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2016,10 +2016,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get the balance of an address
      * @request GET:/addresses/{address}/balance
      */
-    getAddressesAddressBalance: (address: string, params: RequestParams = {}) =>
+    getAddressesAddressBalance: (
+      address: string,
+      query?: {
+        mempool?: boolean
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<Balance, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/balance`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse),
