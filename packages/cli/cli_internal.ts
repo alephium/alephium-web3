@@ -85,7 +85,6 @@ program
   .action(async (options) => {
     try {
       const config = getConfig(options)
-      console.log(`Full node version: ${config.nodeVersion}`)
       const networkId = checkAndGetNetworkId(options.network)
       const nodeUrl = config.networks[networkId].nodeUrl
       if (!(await isNetworkLive(nodeUrl))) {
@@ -94,6 +93,7 @@ program
       }
       web3.setCurrentNodeProvider(nodeUrl)
       const fullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
+      console.log(`Full node version: ${fullNodeVersion}`)
       const cwd = path.resolve(process.cwd())
       await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir, fullNodeVersion)
       console.log('✅ Compilation completed!')
