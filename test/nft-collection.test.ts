@@ -24,7 +24,8 @@ import {
   binToHex,
   encodeU256,
   ONE_ALPH,
-  addressFromContractId
+  addressFromContractId,
+  hexToString
 } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
@@ -93,5 +94,14 @@ describe('nft collection', function () {
 
     const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(nftInstance.contractId)
     expect(stdInterfaceId).toEqual('0003')
+
+    const tokenType = await web3.getCurrentNodeProvider().guessStdTokenType(nftInstance.contractId)
+    expect(tokenType).toEqual('non-fungible')
+
+    const nftMetadata = await web3.getCurrentNodeProvider().fetchNFTMetaData(nftInstance.contractId)
+    expect(nftMetadata).toEqual({
+      tokenUri: hexToString(nftUri),
+      collectionAddress: nftCollectionTest.address
+    })
   }
 })
