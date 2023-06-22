@@ -20,9 +20,10 @@ import 'cross-fetch/polyfill'
 import { sleep } from '../utils'
 import { RateLimit } from 'async-sema'
 
-export function convertHttpResponse<T>(response: { data: T; error?: { detail: string } }): T {
+export function convertHttpResponse<T>(response: { status: number; data: T; error?: { detail: string } }): T {
   if (response.error) {
-    throw new Error(`[API Error] - ${response.error.detail}`)
+    const errorMessage = response.error.detail ?? `status code: ${response.status}`
+    throw new Error(`[API Error] - ${errorMessage}`)
   } else {
     return response.data
   }
