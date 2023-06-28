@@ -55,7 +55,8 @@ describe('nft collection', function () {
 
     expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
 
-    const collectionUri = stringToHex('https://cryptopunks.app/cryptopunks')
+    const rawCollectionUri = 'https://cryptopunks.app/cryptopunks'
+    const collectionUri = stringToHex(rawCollectionUri)
     const nftCollectionTest = (
       await NFTCollectionTest.deploy(signer, {
         initialFields: {
@@ -68,6 +69,16 @@ describe('nft collection', function () {
 
     expect((await nftCollectionTest.methods.getCollectionUri()).returns).toEqual(collectionUri)
     expect((await nftCollectionTest.methods.totalSupply()).returns).toEqual(0n)
+
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const isFollowsNFTCollectionStd = await nodeProvider.guessFollowsNFTCollectionStd(nftCollectionTest.contractId)
+    expect(isFollowsNFTCollectionStd).toEqual(true)
+
+    const nftCollectionMetadata = await nodeProvider.fetchNFTCollectionMetaData(nftCollectionTest.contractId)
+    expect(nftCollectionMetadata).toEqual({
+      collectionUri: rawCollectionUri,
+      totalSupply: 0n
+    })
 
     for (let i = 0n; i < 10n; i++) {
       await mintAndVerify(nftCollectionTest, nftUri, i)

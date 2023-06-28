@@ -22,7 +22,8 @@ import {
   forwardRequests,
   request,
   FungibleTokenMetaData,
-  NFTMetaData
+  NFTMetaData,
+  NFTCollectionMetaData
 } from './types'
 import { Api as NodeApi } from './api-alephium'
 import { DEFAULT_THROTTLE_FETCH } from './utils'
@@ -137,6 +138,18 @@ export class NodeProvider implements NodeProviderApis {
     }
   }
 
+  // Only use this when the contract follows the NFT collection interface, check `guessFollowsNFTCollectionStd` first
+  fetchNFTCollectionMetaData = async (contractId: HexString): Promise<NFTCollectionMetaData> => {
+    const address = addressFromContractId(contractId)
+    const group = groupOfAddress(address)
+    const calls = Array.from([0, 1], (index) => ({ methodIndex: index, group: group, address: address }))
+    const result = await this.contracts.postContractsMulticallContract({ calls })
+    return {
+      collectionUri: hexToString(result.results[0].returns[0].value as any as string),
+      totalSupply: BigInt(result.results[1].returns[0].value as any as string)
+    }
+  }
+
   guessStdInterfaceId = async (tokenId: HexString): Promise<HexString | undefined> => {
     const address = addressFromTokenId(tokenId)
     const group = groupOfAddress(address)
@@ -148,6 +161,11 @@ export class NodeProvider implements NodeProviderApis {
     } else {
       return undefined
     }
+  }
+
+  guessFollowsNFTCollectionStd = async (contractId: HexString): Promise<boolean> => {
+    const interfaceId = await this.guessStdInterfaceId(contractId)
+    return interfaceId === '0002'
   }
 
   guessStdTokenType = async (tokenId: HexString): Promise<'fungible' | 'non-fungible' | undefined> => {

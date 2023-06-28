@@ -275,3 +275,8 @@ export interface NFTMetaData {
   collectionAddress: string
   tokenUri: string
 }
+
+export interface NFTCollectionMetaData {
+  collectionUri: string
+  totalSupply: Number256
+}
