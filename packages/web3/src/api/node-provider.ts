@@ -23,7 +23,8 @@ import {
   request,
   FungibleTokenMetaData,
   NFTMetaData,
-  NFTCollectionMetaData
+  NFTCollectionMetaData,
+  StdInterfaceIds
 } from './types'
 import { Api as NodeApi } from './api-alephium'
 import { DEFAULT_THROTTLE_FETCH } from './utils'
@@ -165,15 +166,15 @@ export class NodeProvider implements NodeProviderApis {
 
   guessFollowsNFTCollectionStd = async (contractId: HexString): Promise<boolean> => {
     const interfaceId = await this.guessStdInterfaceId(contractId)
-    return interfaceId === '0002'
+    return interfaceId === StdInterfaceIds.NFTCollection
   }
 
   guessStdTokenType = async (tokenId: HexString): Promise<'fungible' | 'non-fungible' | undefined> => {
     const interfaceId = await this.guessStdInterfaceId(tokenId)
     switch (interfaceId) {
-      case '0001':
+      case StdInterfaceIds.FungibleToken:
         return 'fungible'
-      case '0003':
+      case StdInterfaceIds.NFT:
         return 'non-fungible'
       default:
         return undefined
