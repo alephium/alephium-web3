@@ -264,6 +264,12 @@ export async function request(provider: Record<string, any>, args: ApiRequestArg
   return call(...args.params)
 }
 
+export enum StdInterfaceIds {
+  FungibleToken = '0001',
+  NFTCollection = '0002',
+  NFT = '0003'
+}
+
 export interface FungibleTokenMetaData {
   name: string
   symbol: string
@@ -274,4 +280,9 @@ export interface FungibleTokenMetaData {
 export interface NFTMetaData {
   collectionAddress: string
   tokenUri: string
+}
+
+export interface NFTCollectionMetaData {
+  collectionUri: string
+  totalSupply: Number256
 }
