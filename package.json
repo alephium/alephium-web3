@@ -26,10 +26,7 @@
     "audit": "npm audit --omit=dev",
     "update-schemas": "pnpm --stream -r run update-schemas",
     "version": "pnpm --stream -r exec npm version",
-    "publish": "npm run build && pnpm -r publish --access public --no-git-checks",
-    "start-devnet": "pnpm --stream -r run start-devnet",
-    "stop-devnet": "pnpm --stream -r run stop-devnet",
-    "restart-devnet": "pnpm --stream -r run restart-devnet"
+    "publish": "npm run build && pnpm -r publish --access public --no-git-checks"
   },
   "prettier": {
     "printWidth": 120,
