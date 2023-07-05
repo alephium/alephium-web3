@@ -20,12 +20,16 @@ import { Project, web3, NetworkId, networkIds } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
+import fs from 'fs'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
+import { generateImagesWithOpenAI, uploadImageMetadataToIPFS, uploadImagesToIPFS } from './scripts/pre-designed-nft'
 import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
+import { Configuration as OpenAIConfiguration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
+import { create as ipfsHttpClient } from 'ipfs-http-client'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -159,6 +163,85 @@ program
       await deployAndSaveProgress(config, networkId)
     } catch (error) {
       program.error(`Failed to deploy contracts, error: ${(error as Error).stack}`)
+    }
+  })
+
+program
+  .command('generate-images-with-openai')
+  .description('Generate images using OpenAI')
+  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
+  .option('-n, --network <network-type>', 'specify the network to use', 'devnet')
+  .option('-d, --dir <directory-of-stored-images>', 'Directory where to store the images')
+  .option('-n, --number <number-of-images>', 'Number of images to generate', '1')
+  .option('-s, --size <size-of-image>', 'Size of the image to generate', '512x512')
+  .action(async (options, args) => {
+    try {
+      const config = getConfig(options)
+      const networkId = checkAndGetNetworkId(options.network)
+      const openaiAPIKey = config.networks[networkId].settings.openaiAPIKey
+      if (!openaiAPIKey) {
+        program.error('OpenAI API key not specified')
+      }
+      const numberOfImages = Number(options.number)
+      const imageSize = options.size as CreateImageRequestSizeEnum
+      const prompt = args.args.join(' ')
+      const storedDir = options.dir as string
+
+      await generateImagesWithOpenAI(openaiAPIKey, prompt, numberOfImages, imageSize, storedDir)
+    } catch (error) {
+      program.error(`Failed to generate images, error: ${(error as Error).stack}`)
+    }
+  })
+
+program
+  .command('upload-images-to-ipfs')
+  .description('Upload images to IPFS')
+  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
+  .option('-n, --network <network-type>', 'specify the network to use', 'devnet')
+  .option('-d, --localDir <directory-of-local-images>', 'Directory of local images to be uploaded')
+  .option('-i, --ipfsDir <ipfs-directory-of-uploaded-images>', 'IPFS directory to upload the images')
+  .option('-m, --metadataFile <metadata-file>', 'File to store the metadata of the uploaded images')
+  .action(async (options) => {
+    try {
+      const localDir = options.localDir as string
+      const ipfsDir = options.ipfsDir as string
+      const metadataFile = options.metadataFile as string
+      const config = getConfig(options)
+      const networkId = checkAndGetNetworkId(options.network)
+      const settings = config.networks[networkId].settings
+      const projectId = settings.ipfs.infura.projectId
+      const projectSecret = settings.ipfs.infura.projectSecret
+      if (!projectId || !projectSecret) {
+        program.error('Infura project id or secret not specified')
+      }
+
+      await uploadImagesToIPFS(localDir, ipfsDir, metadataFile, projectId, projectSecret)
+    } catch (error) {
+      program.error(`Failed to upload images, error: ${(error as Error).stack}`)
+    }
+  })
+
+program
+  .command('upload-images-metadata-to-ipfs')
+  .description('Upload images metadata to IPFS')
+  .option('-m, --metadataFile <tokens-metadata-file>', 'Tokens metadata file')
+  .option('-i, --ipfsDir <ipfs-directory-of-uploaded-metadata>', 'IPFS directory to upload the images metadata')
+  .action(async (options) => {
+    try {
+      const metadataFile = options.metadataFile as string
+      const ipfsDir = options.ipfsDir as string
+      const config = getConfig(options)
+      const networkId = checkAndGetNetworkId(options.network)
+      const settings = config.networks[networkId].settings
+      const projectId = settings.ipfs.infura.projectId
+      const projectSecret = settings.ipfs.infura.projectSecret
+      if (!projectId || !projectSecret) {
+        program.error('Infura project id or secret not specified')
+      }
+
+      await uploadImageMetadataToIPFS(ipfsDir, metadataFile, projectId, projectSecret)
+    } catch (error) {
+      program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
     }
   })
 
