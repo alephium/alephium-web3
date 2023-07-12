@@ -32,3 +32,43 @@ export interface NFTCollectionMetadata {
   description: string
   image: string
 }
+
+export function validateNFTMetadata(metadata: any): NFTMetadata {
+  const name = validateNonEmptyString(metadata, 'name')
+  const description = validateNonEmptyString(metadata, 'description')
+  const image = validateNonEmptyString(metadata, 'image')
+
+  return { name, description, image }
+}
+
+export function validateNFTCollectionMetadata(metadata: any): NFTCollectionMetadata {
+  const name = validateNonEmptyString(metadata, 'name')
+  const description = validateNonEmptyString(metadata, 'description')
+  const image = validateNonEmptyString(metadata, 'image')
+
+  return { name, description, image }
+}
+
+export async function validateNFTPreDesignedCollectionTokenBaseUri(
+  tokenBaseUri: string,
+  maxSupply: number
+): Promise<NFTMetadata[]> {
+  const nftMetadataz: NFTMetadata[] = []
+
+  for (let i = 0; i < maxSupply; i++) {
+    const nftMetadata = await (await fetch(`${tokenBaseUri}${i}`)).json()
+    const validatedNFTMetadata = validateNFTMetadata(nftMetadata)
+    nftMetadataz.push(validatedNFTMetadata)
+  }
+
+  return nftMetadataz
+}
+
+function validateNonEmptyString(obj: object, field: string): string {
+  const value = obj[`${field}`]
+  if (!(typeof value === 'string' && value !== '')) {
+    throw new Error(`JSON field '${field}' is not a non empty string`)
+  }
+
+  return value
+}
