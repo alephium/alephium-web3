@@ -20,16 +20,18 @@ import { Project, web3, NetworkId, networkIds } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
-import fs from 'fs'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
-import { generateImagesWithOpenAI, uploadImageMetadataToIPFS, uploadImagesToIPFS } from './scripts/pre-designed-nft'
+import {
+  generateImagesWithOpenAI,
+  uploadImageMetadataToIPFS,
+  uploadImagesToIPFS,
+  validateTokenBaseUri
+} from './scripts/pre-designed-nft'
 import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
-import { Configuration as OpenAIConfiguration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
-import { create as ipfsHttpClient } from 'ipfs-http-client'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -240,6 +242,22 @@ program
       }
 
       await uploadImageMetadataToIPFS(ipfsDir, metadataFile, projectId, projectSecret)
+    } catch (error) {
+      program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
+    }
+  })
+
+program
+  .command('validate-token-base-uri-for-pre-designed-collection')
+  .description('Validate token base uri for pre-designed collection')
+  .option('-t, --tokenBaseUri <token-based-uri>', 'Token based uri for a pre-designed collection')
+  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'MaxSupply of the pre-designed collection')
+  .action(async (options) => {
+    try {
+      const tokenBaseUri = options.tokenBaseUri as string
+      const maxSupply = Number(options.maxSupply)
+      const result = await validateTokenBaseUri(tokenBaseUri, maxSupply)
+      console.log(result)
     } catch (error) {
       program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
     }

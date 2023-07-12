@@ -19,6 +19,7 @@ import fs from 'fs'
 import path from 'path'
 import { Configuration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
+import { validateTokenBaseUriForPreDesignedCollection, NFTMetadata } from '@alephium/web3'
 
 export async function generateImagesWithOpenAI(
   openaiApiKey: string,
@@ -130,6 +131,10 @@ export async function uploadImageMetadataToIPFS(
   } else {
     throw new Error(`Directory ${metadataFile} does not exist`)
   }
+}
+
+export async function validateTokenBaseUri(tokenBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {
+  return await validateTokenBaseUriForPreDesignedCollection(tokenBaseUri, maxSupply)
 }
 
 function createIPFSClient(projectId: string, projectSecret: string) {
