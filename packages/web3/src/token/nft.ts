@@ -18,6 +18,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 // JSON Schema for the NFT metadata, which is pointed to by the value
 // returned from the `getTokenUri` method of the NFT contract
+
+import assert from 'assert'
+import 'cross-fetch/polyfill'
+
 export interface NFTMetadata {
   name: string
   description: string
@@ -49,19 +53,23 @@ export function validateNFTCollectionMetadata(metadata: any): NFTCollectionMetad
   return { name, description, image }
 }
 
-export async function validateNFTPreDesignedCollectionTokenBaseUri(
+export async function validateTokenBaseUriForPreDesignedCollection(
   tokenBaseUri: string,
   maxSupply: number
 ): Promise<NFTMetadata[]> {
-  const nftMetadataz: NFTMetadata[] = []
+  if (Number.isInteger(maxSupply) && maxSupply > 0) {
+    const nftMetadataz: NFTMetadata[] = []
 
-  for (let i = 0; i < maxSupply; i++) {
-    const nftMetadata = await (await fetch(`${tokenBaseUri}${i}`)).json()
-    const validatedNFTMetadata = validateNFTMetadata(nftMetadata)
-    nftMetadataz.push(validatedNFTMetadata)
+    for (let i = 0; i < maxSupply; i++) {
+      const nftMetadata = await (await fetch(`${tokenBaseUri}${i}`)).json()
+      const validatedNFTMetadata = validateNFTMetadata(nftMetadata)
+      nftMetadataz.push(validatedNFTMetadata)
+    }
+
+    return nftMetadataz
+  } else {
+    throw new Error('maxSupply should be a positive integer')
   }
-
-  return nftMetadataz
 }
 
 function validateNonEmptyString(obj: object, field: string): string {
