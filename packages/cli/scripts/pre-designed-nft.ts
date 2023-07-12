@@ -1,3 +1,20 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 import fs from 'fs'
 import path from 'path'
 import { Configuration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
@@ -15,9 +32,9 @@ export async function generateImagesWithOpenAI(
   }
 
   const configuration = new Configuration({
-    apiKey: openaiApiKey,
-  });
-  const openai = new OpenAIApi(configuration);
+    apiKey: openaiApiKey
+  })
+  const openai = new OpenAIApi(configuration)
   const response = await openai.createImage({
     prompt: prompt,
     n: numberOfImages,
@@ -27,8 +44,8 @@ export async function generateImagesWithOpenAI(
   for (let i = 0; i < numberOfImages; i++) {
     const imageUrl = response.data.data[i].url
     const imageResponse = await fetch(imageUrl)
-    const fileStream = fs.createWriteStream(`${storedDir}/${i}`, { flags: 'wx' });
-    await imageResponse.body.pipe(fileStream);
+    const fileStream = fs.createWriteStream(`${storedDir}/${i}`, { flags: 'wx' })
+    await imageResponse.body.pipe(fileStream)
   }
 }
 
@@ -40,13 +57,13 @@ export async function uploadImagesToIPFS(
   infuraProjectSecret: string
 ) {
   if (fs.existsSync(localDir)) {
-    const files = fs.readdirSync(localDir, { recursive: true });
+    const files = fs.readdirSync(localDir, { recursive: true })
 
     const toBeUploaded = []
     for (const file of files) {
-      const localFilePath = path.join(localDir, file);
-      const ipfsFilePath = path.join(ipfsDir, file);
-      const fileStream = fs.createReadStream(localFilePath);
+      const localFilePath = path.join(localDir, file)
+      const ipfsFilePath = path.join(ipfsDir, file)
+      const fileStream = fs.createReadStream(localFilePath)
       toBeUploaded.push({ path: ipfsFilePath, content: fileStream })
     }
 
@@ -64,9 +81,9 @@ export async function uploadImagesToIPFS(
       if (remoteDirURL) {
         for (const file of files) {
           metadata.push({
-            "name": file,
-            "description": "",
-            "image": `${remoteDirURL}/${file}`
+            name: file,
+            description: '',
+            image: `${remoteDirURL}/${file}`
           })
         }
       }
@@ -93,7 +110,7 @@ export async function uploadImageMetadataToIPFS(
 
     const toBeUploaded = []
     metadataz.forEach((metadata, index) => {
-      const remoteFilePath = path.join(ipfsDir, index.toString());
+      const remoteFilePath = path.join(ipfsDir, index.toString())
       toBeUploaded.push({ path: remoteFilePath, content: JSON.stringify(metadata) })
     })
 
@@ -106,7 +123,7 @@ export async function uploadImageMetadataToIPFS(
         }
       }
 
-      console.log("tokenBaseUri", remoteDirURL)
+      console.log('tokenBaseUri', remoteDirURL)
     } else {
       throw new Error(`Directory ${metadataFile} is empty`)
     }
@@ -116,14 +133,14 @@ export async function uploadImageMetadataToIPFS(
 }
 
 function createIPFSClient(projectId: string, projectSecret: string) {
-  const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+  const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64')
 
   return ipfsHttpClient({
     host: 'ipfs.infura.io',
     port: 5001,
     protocol: 'https',
     headers: {
-      authorization: auth,
-    },
+      authorization: auth
+    }
   })
 }
