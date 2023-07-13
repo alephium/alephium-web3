@@ -27,8 +27,7 @@ import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
 import {
   generateImagesWithOpenAI,
-  parseMetadataConfig,
-  uploadImageMetadataToIPFS,
+  uploadImagesAndMetadataToIPFS,
   validateTokenBaseUri
 } from './scripts/pre-designed-nft'
 import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
@@ -196,7 +195,7 @@ program
   })
 
 program
-  .command('upload-images-to-ipfs')
+  .command('upload-images-and-metadata-to-ipfs')
   .description('Upload images to IPFS')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'specify the network to use', 'devnet')
@@ -217,35 +216,11 @@ program
         program.error('Infura project id or secret not specified')
       }
 
-      await uploadImagesToIPFS(localDir, ipfsDir, metadataFile, projectId, projectSecret)
-    } catch (error) {
-      program.error(`Failed to upload images, error: ${(error as Error).stack}`)
-    }
-  })
-
-program
-  .command('upload-images-metadata-to-ipfs')
-  .description('Upload images metadata to IPFS')
-  .option('-m, --metadataFile <tokens-metadata-file>', 'Tokens metadata file')
-  .option('-i, --ipfsDir <ipfs-directory-of-uploaded-metadata>', 'IPFS directory to upload the images metadata')
-  .action(async (options) => {
-    try {
-      const metadataFile = options.metadataFile as string
-      const ipfsDir = options.ipfsDir as string
-      const config = getConfig(options)
-      const networkId = checkAndGetNetworkId(options.network)
-      const settings = config.networks[networkId].settings
-      const projectId = settings.ipfs.infura.projectId
-      const projectSecret = settings.ipfs.infura.projectSecret
-      if (!projectId || !projectSecret) {
-        program.error('Infura project id or secret not specified')
-      }
-
-      const result = await uploadImageMetadataToIPFS(ipfsDir, metadataFile, projectId, projectSecret)
+      const result = await uploadImagesAndMetadataToIPFS(localDir, ipfsDir, metadataFile, projectId, projectSecret)
       console.log('TokenBaseUri:')
       console.log(result)
     } catch (error) {
-      program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
+      program.error(`Failed to upload images, error: ${(error as Error).stack}`)
     }
   })
 

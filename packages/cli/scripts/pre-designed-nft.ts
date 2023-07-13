@@ -64,93 +64,53 @@ export async function generateImagesWithOpenAI(
   }
 }
 
-export async function uploadImagesToIPFS(
+export async function uploadImagesAndMetadataToIPFS(
   localDir: string,
   ipfsDir: string,
-  metadataFile: string,
-  infuraProjectId: string,
-  infuraProjectSecret: string
-) {
-  if (fs.existsSync(localDir)) {
-    const files = fs.readdirSync(localDir, { recursive: true })
-
-    const toBeUploaded = []
-    for (const file of files) {
-      const localFilePath = path.join(localDir, file)
-      const ipfsFilePath = path.join(ipfsDir, file)
-      const fileStream = fs.createReadStream(localFilePath)
-      toBeUploaded.push({ path: ipfsFilePath, content: fileStream })
-    }
-
-    if (toBeUploaded.length > 0) {
-      const ipfsClient = createIPFSClient(infuraProjectId, infuraProjectSecret)
-
-      let remoteDirURL: string | undefined = undefined
-      const metadata = []
-      for await (const result of ipfsClient.addAll(toBeUploaded)) {
-        if (result.path === ipfsDir) {
-          remoteDirURL = `https://ipfs.io/ipfs/${result.cid.toString()}`
-        }
-      }
-
-      if (remoteDirURL) {
-        for (const file of files) {
-          metadata.push({
-            name: file,
-            description: '',
-            image: `${remoteDirURL}/${file}`
-          })
-        }
-      }
-
-      fs.writeFileSync(metadataFile, JSON.stringify(metadata, null, 2))
-      console.log(metadata)
-    } else {
-      throw new Error(`Directory ${localDir} is empty`)
-    }
-  } else {
-    throw new Error(`Directory ${localDir} does not exist`)
-  }
-}
-
-export async function uploadImageMetadataToIPFS(
-  ipfsDir: string,
-  metadataFile: string,
+  metadataConfigFile: string,
   infuraProjectId: string,
   infuraProjectSecret: string
 ): Promise<string> {
-  if (fs.existsSync(metadataFile)) {
-    const content = fs.readFileSync(metadataFile, 'utf8')
-    const metadataz = JSON.parse(content)
+  const metadataConfig = parseMetadataConfig(metadataConfigFile, localDir)
+  console.log(metadataConfig)
 
-    const toBeUploaded = []
-    metadataz.forEach((metadata, index) => {
-      const remoteFilePath = path.join(ipfsDir, index.toString())
-      toBeUploaded.push({ path: remoteFilePath, content: JSON.stringify(metadata) })
-    })
+  const files = Object.keys(metadataConfig)
 
-    if (toBeUploaded.length > 0) {
-      const ipfsClient = createIPFSClient(infuraProjectId, infuraProjectSecret)
-      let remoteDirURL: string | undefined = undefined
-      for await (const result of ipfsClient.addAll(toBeUploaded)) {
-        if (result.path === ipfsDir) {
-          remoteDirURL = `https://ipfs.io/ipfs/${result.cid.toString()}`
-        }
+  const toBeUploaded = []
+  files.forEach((file) => {
+    const localFilePath = path.join(localDir, file)
+    const ipfsFilePath = path.join(ipfsDir, file)
+    const fileStream = fs.createReadStream(localFilePath)
+    toBeUploaded.push({ path: ipfsFilePath, content: fileStream })
+    return file
+  })
+
+  if (toBeUploaded.length > 0) {
+    const ipfsClient = createIPFSClient(infuraProjectId, infuraProjectSecret)
+
+    let remoteDirURL: string | undefined = undefined
+    const metadata: NFTMetadata[] = []
+    for await (const result of ipfsClient.addAll(toBeUploaded)) {
+      if (result.path === ipfsDir) {
+        remoteDirURL = `https://ipfs.io/ipfs/${result.cid.toString()}`
       }
-
-      return remoteDirURL
-    } else {
-      throw new Error(`Directory ${metadataFile} is empty`)
     }
-  } else {
-    throw new Error(`Directory ${metadataFile} does not exist`)
-  }
-}
 
-export function parseMetadataConfig(file: string, localImageDir: string): NFTMetadataConfig {
-  const content = fs.readFileSync(file, 'utf8')
-  const parsedContent = parse(content)
-  return validateMetadataConfig(parsedContent, localImageDir)
+    if (remoteDirURL) {
+      files.forEach((file, index) => {
+        metadata.push({
+          name: metadataConfig[file].name ?? `#${index}}`,
+          description: metadataConfig[file].description,
+          image: `${remoteDirURL} / ${file}`,
+          attributes: convertAttributes(metadataConfig[file].attributes)
+        })
+      })
+    }
+
+    return await uploadImageMetadataToIPFS(ipfsDir, metadata, infuraProjectId, infuraProjectSecret)
+  } else {
+    throw new Error(`Directory ${localDir} is empty`)
+  }
 }
 
 export function validateMetadataConfig(config: object, localDir: string): NFTMetadataConfig {
@@ -211,16 +171,61 @@ function validateAttributesTypeIfExists(parent: string, attributes?: object) {
       throw new Error(`Field 'attributes' under '${parent}' should be an array`)
     }
 
-    attributes.forEach(item => {
+    attributes.forEach((item) => {
       if (typeof item !== 'object') {
         throw new Error(`Field 'attributes' under '${parent}' should be an array of objects`)
       }
 
-      Object.keys(item).forEach(key => {
+      Object.keys(item).forEach((key) => {
         if (!validMetadataAttributeTypes.includes(typeof item[key])) {
-          throw new Error(`Field '${key}' in 'attributes' should be a string, boolean or number, but is ${typeof item[key]}`)
+          throw new Error(
+            `Field '${key}' in 'attributes' should be a string, boolean or number, but is ${typeof item[key]}`
+          )
         }
       })
-    });
+    })
+  }
+}
+
+async function uploadImageMetadataToIPFS(
+  ipfsDir: string,
+  metadataz: any[],
+  infuraProjectId: string,
+  infuraProjectSecret: string
+): Promise<string> {
+  const toBeUploaded = []
+  metadataz.forEach((metadata, index) => {
+    const remoteFilePath = path.join(ipfsDir, index.toString())
+    toBeUploaded.push({ path: remoteFilePath, content: JSON.stringify(metadata) })
+  })
+
+  if (toBeUploaded.length > 0) {
+    const ipfsClient = createIPFSClient(infuraProjectId, infuraProjectSecret)
+    let remoteDirURL: string | undefined = undefined
+    for await (const result of ipfsClient.addAll(toBeUploaded)) {
+      if (result.path === ipfsDir) {
+        remoteDirURL = `https://ipfs.io/ipfs/${result.cid.toString()}`
+      }
+    }
+
+    return remoteDirURL
+  } else {
+    throw new Error(`Empty metadata`)
+  }
+}
+
+function parseMetadataConfig(file: string, localImageDir: string): NFTMetadataConfig {
+  const content = fs.readFileSync(file, 'utf8')
+  const parsedContent = parse(content)
+  return validateMetadataConfig(parsedContent, localImageDir)
+}
+
+function convertAttributes(attributes: NFTMetadataConfig['attributes']): NFTMetadata['attributes'] {
+  if (attributes) {
+    return attributes.map((attribute) => {
+      const traitType = Object.keys(attribute)[0]
+      const value = attribute[traitType]
+      return { trait_type: traitType, value }
+    })
   }
 }
