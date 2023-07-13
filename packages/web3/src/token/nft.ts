@@ -19,13 +19,18 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 // JSON Schema for the NFT metadata, which is pointed to by the value
 // returned from the `getTokenUri` method of the NFT contract
 
-import assert from 'assert'
 import 'cross-fetch/polyfill'
 
 export interface NFTMetadata {
   name: string
   description: string
   image: string
+  attributes?: [
+    {
+      trait_type: string
+      value: string | number | boolean
+    }
+  ]
 }
 
 // JSON Schema for the NFT Collection metadata, which is pointed to by

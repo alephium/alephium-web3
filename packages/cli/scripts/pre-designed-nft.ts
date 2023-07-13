@@ -20,6 +20,20 @@ import path from 'path'
 import { Configuration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
 import { validateTokenBaseUriForPreDesignedCollection, NFTMetadata } from '@alephium/web3'
+import { parse, stringify } from 'yaml'
+
+export interface NFTMetadataConfig {
+  name?: string
+  description?: string
+  attributes?: [
+    {
+      [key: string]: string | number | boolean
+    }
+  ]
+}
+
+const validMetadataFields = ['name', 'description', 'attributes']
+const validMetadataAttributeTypes = ['string', 'number', 'boolean']
 
 export async function generateImagesWithOpenAI(
   openaiApiKey: string,
@@ -104,7 +118,7 @@ export async function uploadImageMetadataToIPFS(
   metadataFile: string,
   infuraProjectId: string,
   infuraProjectSecret: string
-) {
+): Promise<string> {
   if (fs.existsSync(metadataFile)) {
     const content = fs.readFileSync(metadataFile, 'utf8')
     const metadataz = JSON.parse(content)
@@ -124,13 +138,48 @@ export async function uploadImageMetadataToIPFS(
         }
       }
 
-      console.log('tokenBaseUri', remoteDirURL)
+      return remoteDirURL
     } else {
       throw new Error(`Directory ${metadataFile} is empty`)
     }
   } else {
     throw new Error(`Directory ${metadataFile} does not exist`)
   }
+}
+
+export function parseMetadataConfig(file: string, localImageDir: string): NFTMetadataConfig {
+  const content = fs.readFileSync(file, 'utf8')
+  const parsedContent = parse(content)
+  return validateMetadataConfig(parsedContent, localImageDir)
+}
+
+export function validateMetadataConfig(config: object, localDir: string): NFTMetadataConfig {
+  const images = Object.keys(config)
+
+  images.forEach((image) => {
+    const fileExists = fs.existsSync(path.join(localDir, image))
+    if (!fileExists) {
+      throw new Error(`File ${image} does not exist in ${localDir}`)
+    }
+
+    const metadata = config[image] as NFTMetadataConfig
+
+    Object.keys(metadata).forEach((key) => {
+      if (!validMetadataFields.includes(key)) {
+        throw new Error(`Invalid field ${key} in ${metadata}, only ${validMetadataFields} are allowed`)
+      }
+    })
+
+    validateStringTypeIfExists(image, metadata, 'name')
+    validateStringTypeIfExists(image, metadata, 'description')
+    validateAttributesTypeIfExists(image, metadata['attributes'])
+  })
+
+  return config as NFTMetadataConfig
+}
+
+export async function validateMetadataFile(tokenBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {
+  return await validateTokenBaseUriForPreDesignedCollection(tokenBaseUri, maxSupply)
 }
 
 export async function validateTokenBaseUri(tokenBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {
@@ -148,4 +197,30 @@ function createIPFSClient(projectId: string, projectSecret: string) {
       authorization: auth
     }
   })
+}
+
+function validateStringTypeIfExists(parent: string, obj: object, key: string) {
+  if (!!obj[key] && typeof obj[key] !== 'string') {
+    throw new Error(`Key '${key}' under '${parent}' should be a string`)
+  }
+}
+
+function validateAttributesTypeIfExists(parent: string, attributes?: object) {
+  if (!!attributes) {
+    if (!Array.isArray(attributes)) {
+      throw new Error(`Field 'attributes' under '${parent}' should be an array`)
+    }
+
+    attributes.forEach(item => {
+      if (typeof item !== 'object') {
+        throw new Error(`Field 'attributes' under '${parent}' should be an array of objects`)
+      }
+
+      Object.keys(item).forEach(key => {
+        if (!validMetadataAttributeTypes.includes(typeof item[key])) {
+          throw new Error(`Field '${key}' in 'attributes' should be a string, boolean or number, but is ${typeof item[key]}`)
+        }
+      })
+    });
+  }
 }

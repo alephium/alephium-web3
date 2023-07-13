@@ -27,8 +27,8 @@ import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
 import {
   generateImagesWithOpenAI,
+  parseMetadataConfig,
   uploadImageMetadataToIPFS,
-  uploadImagesToIPFS,
   validateTokenBaseUri
 } from './scripts/pre-designed-nft'
 import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
@@ -241,7 +241,9 @@ program
         program.error('Infura project id or secret not specified')
       }
 
-      await uploadImageMetadataToIPFS(ipfsDir, metadataFile, projectId, projectSecret)
+      const result = await uploadImageMetadataToIPFS(ipfsDir, metadataFile, projectId, projectSecret)
+      console.log('TokenBaseUri:')
+      console.log(result)
     } catch (error) {
       program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
     }
@@ -257,6 +259,7 @@ program
       const tokenBaseUri = options.tokenBaseUri as string
       const maxSupply = Number(options.maxSupply)
       const result = await validateTokenBaseUri(tokenBaseUri, maxSupply)
+      console.log('Token Metadataz:')
       console.log(result)
     } catch (error) {
       program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
