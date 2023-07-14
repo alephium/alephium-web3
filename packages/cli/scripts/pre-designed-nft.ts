@@ -19,8 +19,12 @@ import fs from 'fs'
 import path from 'path'
 import { Configuration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
-import { validateTokenBaseUriForPreDesignedCollection, NFTMetadata } from '@alephium/web3'
-import { parse, stringify } from 'yaml'
+import {
+  validateTokenBaseUriForPreDesignedCollection,
+  NFTMetadata,
+  validNFTMetadataAttributeTypes
+} from '@alephium/web3'
+import { parse } from 'yaml'
 
 export interface NFTMetadataConfig {
   name?: string
@@ -32,8 +36,7 @@ export interface NFTMetadataConfig {
   ]
 }
 
-const validMetadataFields = ['name', 'description', 'attributes']
-const validMetadataAttributeTypes = ['string', 'number', 'boolean']
+const validMetadataConfigFields = ['name', 'description', 'attributes']
 
 export async function generateImagesWithOpenAI(
   openaiApiKey: string,
@@ -43,7 +46,7 @@ export async function generateImagesWithOpenAI(
   storedDir: string
 ) {
   if (!fs.existsSync(storedDir)) {
-    throw new Error(`Directory ${storedDir} does not exist`)
+    fs.mkdirSync(storedDir, { recursive: true })
   }
 
   const configuration = new Configuration({
@@ -71,7 +74,7 @@ export async function uploadImagesAndMetadataToIPFS(
   infuraProjectId: string,
   infuraProjectSecret: string
 ): Promise<string> {
-  const metadataConfig = parseMetadataConfig(metadataConfigFile, localDir)
+  const metadataConfig = parseNFTMetadataConfig(metadataConfigFile, localDir)
   console.log(metadataConfig)
 
   const files = Object.keys(metadataConfig)
@@ -85,7 +88,8 @@ export async function uploadImagesAndMetadataToIPFS(
     return file
   })
 
-  if (toBeUploaded.length > 0) {
+  const totalUploaded = toBeUploaded.length
+  if (totalUploaded > 0) {
     const ipfsClient = createIPFSClient(infuraProjectId, infuraProjectSecret)
 
     let remoteDirURL: string | undefined = undefined
@@ -96,13 +100,14 @@ export async function uploadImagesAndMetadataToIPFS(
       }
     }
 
+    const numberLength = numberOfDigits(totalUploaded)
     if (remoteDirURL) {
       files.forEach((file, index) => {
         metadata.push({
-          name: metadataConfig[file].name ?? `#${index}}`,
-          description: metadataConfig[file].description,
+          name: metadataConfig[file]?.name ?? `#${padding(index, numberLength)}`,
+          description: metadataConfig[file]?.description,
           image: `${remoteDirURL}/${file}`,
-          attributes: convertAttributes(metadataConfig[file].attributes)
+          attributes: convertAttributes(metadataConfig[file]?.attributes)
         })
       })
     }
@@ -122,11 +127,11 @@ export function validateMetadataConfig(config: object, localDir: string): NFTMet
       throw new Error(`File ${image} does not exist in ${localDir}`)
     }
 
-    const metadata = config[image] as NFTMetadataConfig
+    const metadata = (config[image] as NFTMetadataConfig) || {}
 
     Object.keys(metadata).forEach((key) => {
-      if (!validMetadataFields.includes(key)) {
-        throw new Error(`Invalid field ${key} in ${metadata}, only ${validMetadataFields} are allowed`)
+      if (!validMetadataConfigFields.includes(key)) {
+        throw new Error(`Invalid field ${key} in ${metadata}, only ${validMetadataConfigFields} are allowed`)
       }
     })
 
@@ -173,7 +178,7 @@ function validateAttributesTypeIfExists(parent: string, attributes?: object) {
       }
 
       Object.keys(item).forEach((key) => {
-        if (!validMetadataAttributeTypes.includes(typeof item[key])) {
+        if (!validNFTMetadataAttributeTypes.includes(typeof item[key])) {
           throw new Error(
             `Field '${key}' in 'attributes' should be a string, boolean or number, but is ${typeof item[key]}`
           )
@@ -200,7 +205,7 @@ async function uploadImageMetadataToIPFS(
     let remoteDirURL: string | undefined = undefined
     for await (const result of ipfsClient.addAll(toBeUploaded)) {
       if (result.path === ipfsDir) {
-        remoteDirURL = `https://ipfs.io/ipfs/${result.cid.toString()}`
+        remoteDirURL = `https://ipfs.io/ipfs/${result.cid.toString()}/`
       }
     }
 
@@ -210,7 +215,7 @@ async function uploadImageMetadataToIPFS(
   }
 }
 
-function parseMetadataConfig(file: string, localImageDir: string): NFTMetadataConfig {
+function parseNFTMetadataConfig(file: string, localImageDir: string): NFTMetadataConfig {
   const content = fs.readFileSync(file, 'utf8')
   const parsedContent = parse(content)
   return validateMetadataConfig(parsedContent, localImageDir)
@@ -224,4 +229,16 @@ function convertAttributes(attributes: NFTMetadataConfig['attributes']): NFTMeta
       return { trait_type: traitType, value }
     })
   }
+}
+
+function padding(num: number, size: number): string {
+  let s = num + ''
+  while (s.length < size) {
+    s = '0' + s
+  }
+  return s
+}
+
+function numberOfDigits(num: number): number {
+  return num.toString().length
 }

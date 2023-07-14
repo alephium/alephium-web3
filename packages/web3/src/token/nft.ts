@@ -140,7 +140,7 @@ function validateNonEmptyStringIfExists(obj: object, field: string): string {
 
 function validateNonEmptyAttributeValue(obj: object, field: string): string | number | boolean {
   const value = obj[`${field}`]
-  if (!(typeof value === 'string' && value !== '' || typeof value === 'number' || typeof value === 'boolean')) {
+  if (!((typeof value === 'string' && value !== '') || typeof value === 'number' || typeof value === 'boolean')) {
     throw new Error(`Attribute value should be a non empty string, number or boolean`)
   }
 
