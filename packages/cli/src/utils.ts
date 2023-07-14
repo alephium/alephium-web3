@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import path from 'path'
 import fs from 'fs'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network } from './types'
-import { NetworkId } from '@alephium/web3'
+import { NetworkId, node, NodeProvider } from '@alephium/web3'
 
 export function loadConfig<Settings = unknown>(filename: string): Configuration<Settings> {
   const configPath = path.resolve(filename)
@@ -76,4 +76,22 @@ export function getNetwork<Settings = unknown>(
   const networkInput = configuration.networks[`${networkId}`]
   const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[`${networkId}`]
   return { ...defaultValues, ...networkInput }
+}
+
+function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
+  return txStatus.type === 'Confirmed'
+}
+
+export async function waitTxConfirmed(
+  provider: NodeProvider,
+  txId: string,
+  confirmations: number,
+  requestInterval: number
+): Promise<node.Confirmed> {
+  const status = await provider.transactions.getTransactionsStatus({ txId: txId })
+  if (isConfirmed(status) && status.chainConfirmations >= confirmations) {
+    return status
+  }
+  await new Promise((r) => setTimeout(r, requestInterval))
+  return waitTxConfirmed(provider, txId, confirmations, requestInterval)
 }

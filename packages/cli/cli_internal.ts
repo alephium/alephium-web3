@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3, NetworkId, networkIds } from '@alephium/web3'
+import { Project, web3, NetworkId, networkIds, validateEnumerableNFTBaseUri } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -25,6 +25,7 @@ import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
+import { generateImagesWithOpenAI, uploadImagesAndMetadataToIPFS } from './scripts/pre-designed-nft'
 import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
 
 function getConfig(options: any): Configuration {
@@ -159,6 +160,80 @@ program
       await deployAndSaveProgress(config, networkId)
     } catch (error) {
       program.error(`Failed to deploy contracts, error: ${(error as Error).stack}`)
+    }
+  })
+
+program
+  .command('generate-images-with-openai')
+  .description('Generate images using OpenAI')
+  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
+  .option('-n, --network <network-type>', 'specify the network to use', 'devnet')
+  .option('-d, --dir <directory-of-stored-images>', 'Directory where to store the images')
+  .option('-n, --number <number-of-images>', 'Number of images to generate', '1')
+  .option('-s, --size <size-of-image>', 'Size of the image to generate', '512x512')
+  .action(async (options, args) => {
+    try {
+      const config = getConfig(options)
+      const networkId = checkAndGetNetworkId(options.network)
+      const openaiAPIKey = config.networks[networkId].settings.openaiAPIKey
+      if (!openaiAPIKey) {
+        program.error('OpenAI API key not specified')
+      }
+      const numberOfImages = Number(options.number)
+      const imageSize = options.size as CreateImageRequestSizeEnum
+      const prompt = args.args.join(' ')
+      const storedDir = options.dir as string
+
+      await generateImagesWithOpenAI(openaiAPIKey, prompt, numberOfImages, imageSize, storedDir)
+    } catch (error) {
+      program.error(`Failed to generate images, error: ${(error as Error).stack}`)
+    }
+  })
+
+program
+  .command('upload-images-and-metadata-to-ipfs')
+  .description('Upload images to IPFS')
+  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
+  .option('-n, --network <network-type>', 'specify the network to use', 'devnet')
+  .option('-d, --localDir <directory-of-local-images>', 'Directory of local images to be uploaded')
+  .option('-i, --ipfsDir <ipfs-directory-of-uploaded-images>', 'IPFS directory to upload the images')
+  .option('-m, --metadataFile <metadata-file>', 'File to store the metadata of the uploaded images')
+  .action(async (options) => {
+    try {
+      const localDir = options.localDir as string
+      const ipfsDir = options.ipfsDir as string
+      const metadataFile = options.metadataFile as string
+      const config = getConfig(options)
+      const networkId = checkAndGetNetworkId(options.network)
+      const settings = config.networks[networkId].settings
+      const projectId = settings.ipfs.infura.projectId
+      const projectSecret = settings.ipfs.infura.projectSecret
+      if (!projectId || !projectSecret) {
+        program.error('Infura project id or secret not specified')
+      }
+
+      const result = await uploadImagesAndMetadataToIPFS(localDir, ipfsDir, metadataFile, projectId, projectSecret)
+      console.log('NFTBaseUri:')
+      console.log(result)
+    } catch (error) {
+      program.error(`Failed to upload images, error: ${(error as Error).stack}`)
+    }
+  })
+
+program
+  .command('validate-enumerable-nft-base-uri')
+  .description('Validate token base uri for pre-designed collection')
+  .option('-n, --nftBaseUri <nft-base-uri>', 'Enumerable NFT base uri')
+  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'MaxSupply of the enumerable NFT collection')
+  .action(async (options) => {
+    try {
+      const nftBaseUri = options.nftBaseUri as string
+      const maxSupply = Number(options.maxSupply)
+      const result = await validateEnumerableNFTBaseUri(nftBaseUri, maxSupply)
+      console.log('Token Metadataz:')
+      console.log(result)
+    } catch (error) {
+      program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
     }
   })
 
