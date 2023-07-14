@@ -80,7 +80,7 @@ export async function validateTokenBaseUriForPreDesignedCollection(
   tokenBaseUri: string,
   maxSupply: number
 ): Promise<NFTMetadata[]> {
-  if (Number.isInteger(maxSupply) && maxSupply > 0) {
+  if (isInteger(maxSupply) && maxSupply > 0) {
     const nftMetadataz: NFTMetadata[] = []
 
     for (let i = 0; i < maxSupply; i++) {
@@ -153,4 +153,8 @@ async function fetchNFTMetadata(tokenBaseUri: string, index: number) {
   } catch (e) {
     throw new Error(`Error fetching NFT metadata from ${tokenBaseUri}${index}: ${e}`)
   }
+}
+
+function isInteger(num: number) {
+  return num === parseInt(num.toString(), 10)
 }
