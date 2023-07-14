@@ -84,7 +84,7 @@ export async function validateTokenBaseUriForPreDesignedCollection(
     const nftMetadataz: NFTMetadata[] = []
 
     for (let i = 0; i < maxSupply; i++) {
-      const nftMetadata = await (await fetch(`${tokenBaseUri}${i}`)).json()
+      const nftMetadata = await fetchNFTMetadata(tokenBaseUri, i)
       const validatedNFTMetadata = validateNFTMetadata(nftMetadata)
       nftMetadataz.push(validatedNFTMetadata)
     }
@@ -145,4 +145,12 @@ function validateNonEmptyAttributeValue(obj: object, field: string): string | nu
   }
 
   return value
+}
+
+async function fetchNFTMetadata(tokenBaseUri: string, index: number) {
+  try {
+    return await (await fetch(`${tokenBaseUri}${index}`)).json()
+  } catch (e) {
+    throw new Error(`Error fetching NFT metadata from ${tokenBaseUri}${index}: ${e}`)
+  }
 }
