@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3, NetworkId, networkIds } from '@alephium/web3'
+import { Project, web3, NetworkId, networkIds, validateEnumerableNFTBaseUri } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -25,11 +25,7 @@ import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { startDevnet } from './scripts/start-devnet'
 import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
-import {
-  generateImagesWithOpenAI,
-  uploadImagesAndMetadataToIPFS,
-  validateTokenBaseUri
-} from './scripts/pre-designed-nft'
+import { generateImagesWithOpenAI, uploadImagesAndMetadataToIPFS } from './scripts/pre-designed-nft'
 import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
 
 function getConfig(options: any): Configuration {
@@ -217,7 +213,7 @@ program
       }
 
       const result = await uploadImagesAndMetadataToIPFS(localDir, ipfsDir, metadataFile, projectId, projectSecret)
-      console.log('TokenBaseUri:')
+      console.log('NFTBaseUri:')
       console.log(result)
     } catch (error) {
       program.error(`Failed to upload images, error: ${(error as Error).stack}`)
@@ -225,15 +221,15 @@ program
   })
 
 program
-  .command('validate-token-base-uri-for-pre-designed-collection')
+  .command('validate-enumerable-nft-base-uri')
   .description('Validate token base uri for pre-designed collection')
-  .option('-t, --tokenBaseUri <token-based-uri>', 'Token based uri for a pre-designed collection')
-  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'MaxSupply of the pre-designed collection')
+  .option('-n, --nftBaseUri <nft-based-uri>', 'Enumerable NFT based uri')
+  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'MaxSupply of the enumerable NFT collection')
   .action(async (options) => {
     try {
-      const tokenBaseUri = options.tokenBaseUri as string
+      const nftBaseUri = options.nftBaseUri as string
       const maxSupply = Number(options.maxSupply)
-      const result = await validateTokenBaseUri(tokenBaseUri, maxSupply)
+      const result = await validateEnumerableNFTBaseUri(nftBaseUri, maxSupply)
       console.log('Token Metadataz:')
       console.log(result)
     } catch (error) {

@@ -19,11 +19,7 @@ import fs from 'fs'
 import path from 'path'
 import { Configuration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
-import {
-  validateTokenBaseUriForPreDesignedCollection,
-  NFTMetadata,
-  validNFTMetadataAttributeTypes
-} from '@alephium/web3'
+import { validateEnumerableNFTBaseUri, NFTMetadata, validNFTMetadataAttributeTypes } from '@alephium/web3'
 import { parse } from 'yaml'
 
 export interface NFTMetadataConfig {
@@ -141,10 +137,6 @@ export function validateMetadataConfig(config: object, localDir: string): NFTMet
   })
 
   return config as NFTMetadataConfig
-}
-
-export async function validateTokenBaseUri(tokenBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {
-  return await validateTokenBaseUriForPreDesignedCollection(tokenBaseUri, maxSupply)
 }
 
 function createIPFSClient(projectId: string, projectSecret: string) {

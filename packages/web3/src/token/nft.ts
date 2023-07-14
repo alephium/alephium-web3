@@ -76,15 +76,12 @@ export function validateNFTCollectionMetadata(metadata: any): NFTCollectionMetad
   return { name, description, image }
 }
 
-export async function validateTokenBaseUriForPreDesignedCollection(
-  tokenBaseUri: string,
-  maxSupply: number
-): Promise<NFTMetadata[]> {
+export async function validateEnumerableNFTBaseUri(nftBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {
   if (isInteger(maxSupply) && maxSupply > 0) {
     const nftMetadataz: NFTMetadata[] = []
 
     for (let i = 0; i < maxSupply; i++) {
-      const nftMetadata = await fetchNFTMetadata(tokenBaseUri, i)
+      const nftMetadata = await fetchNFTMetadata(nftBaseUri, i)
       const validatedNFTMetadata = validateNFTMetadata(nftMetadata)
       nftMetadataz.push(validatedNFTMetadata)
     }
@@ -147,11 +144,11 @@ function validateNonEmptyAttributeValue(obj: object, field: string): string | nu
   return value
 }
 
-async function fetchNFTMetadata(tokenBaseUri: string, index: number) {
+async function fetchNFTMetadata(nftBaseUri: string, index: number) {
   try {
-    return await (await fetch(`${tokenBaseUri}${index}`)).json()
+    return await (await fetch(`${nftBaseUri}${index}`)).json()
   } catch (e) {
-    throw new Error(`Error fetching NFT metadata from ${tokenBaseUri}${index}: ${e}`)
+    throw new Error(`Error fetching NFT metadata from ${nftBaseUri}${index}: ${e}`)
   }
 }
 
