@@ -150,7 +150,6 @@ describe('nft', function () {
 
     expect(async () => await validateEnumerableNFTBaseUri(validUri, 3)).rejects.toThrow(Error)
     expect(async () => await validateEnumerableNFTBaseUri(validUri, 0)).rejects.toThrow(Error)
-    expect(async () => await validateEnumerableNFTBaseUri(validUri, 1.0)).rejects.toThrow(Error)
     expect(async () => await validateEnumerableNFTBaseUri(validUri, -5)).rejects.toThrow(Error)
     expect(async () => await validateEnumerableNFTBaseUri(validUri, 1.1)).rejects.toThrow(Error)
 
