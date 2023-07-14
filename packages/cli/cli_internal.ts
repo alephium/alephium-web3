@@ -223,7 +223,7 @@ program
 program
   .command('validate-enumerable-nft-base-uri')
   .description('Validate token base uri for pre-designed collection')
-  .option('-n, --nftBaseUri <nft-based-uri>', 'Enumerable NFT based uri')
+  .option('-n, --nftBaseUri <nft-base-uri>', 'Enumerable NFT base uri')
   .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'MaxSupply of the enumerable NFT collection')
   .action(async (options) => {
     try {
