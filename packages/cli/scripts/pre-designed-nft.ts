@@ -100,7 +100,7 @@ export async function uploadImagesAndMetadataToIPFS(
       }
     }
 
-    const numberLength = numberOfDigits(totalUploaded)
+    const numberLength = totalUploaded.toString().length
     if (remoteDirURL) {
       files.forEach((file, index) => {
         metadata.push({
@@ -232,13 +232,5 @@ function convertAttributes(attributes: NFTMetadataConfig['attributes']): NFTMeta
 }
 
 function padding(num: number, size: number): string {
-  let s = num + ''
-  while (s.length < size) {
-    s = '0' + s
-  }
-  return s
-}
-
-function numberOfDigits(num: number): number {
-  return num.toString().length
+  return num.toString().padStart(size, '0')
 }
