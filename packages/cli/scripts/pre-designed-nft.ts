@@ -101,7 +101,7 @@ export async function uploadImagesAndMetadataToIPFS(
         metadata.push({
           name: metadataConfig[file].name ?? `#${index}}`,
           description: metadataConfig[file].description,
-          image: `${remoteDirURL} / ${file}`,
+          image: `${remoteDirURL}/${file}`,
           attributes: convertAttributes(metadataConfig[file].attributes)
         })
       })
@@ -136,10 +136,6 @@ export function validateMetadataConfig(config: object, localDir: string): NFTMet
   })
 
   return config as NFTMetadataConfig
-}
-
-export async function validateMetadataFile(tokenBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {
-  return await validateTokenBaseUriForPreDesignedCollection(tokenBaseUri, maxSupply)
 }
 
 export async function validateTokenBaseUri(tokenBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {

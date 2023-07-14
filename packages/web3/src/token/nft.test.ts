@@ -29,13 +29,21 @@ describe('nft', function () {
     expect(validateNFTMetadata(valid)).toEqual(valid)
     expect(validateNFTCollectionMetadata(valid)).toEqual(valid)
 
-    const withEmptyField = {
+    const withEmptyDescription = {
       name: 'NFT name',
       description: '',
       image: 'https://example.com/'
     }
-    expect(() => validateNFTMetadata(withEmptyField)).toThrow(Error)
-    expect(() => validateNFTCollectionMetadata(withEmptyField)).toThrow(Error)
+    expect(() => validateNFTMetadata(withEmptyDescription)).toThrow(Error)
+    expect(() => validateNFTCollectionMetadata(withEmptyDescription)).toThrow(Error)
+
+    const withEmptyName = {
+      name: '',
+      description: 'NFT description',
+      image: 'https://example.com/'
+    }
+    expect(() => validateNFTMetadata(withEmptyName)).toThrow(Error)
+    expect(() => validateNFTCollectionMetadata(withEmptyName)).toThrow(Error)
 
     const withWrongField = {
       name: 'NFT name',
@@ -45,12 +53,19 @@ describe('nft', function () {
     expect(() => validateNFTMetadata(withWrongField)).toThrow(Error)
     expect(() => validateNFTCollectionMetadata(withWrongField)).toThrow(Error)
 
-    const withMissingField = {
+    const withMissingDescription = {
       name: 'NFT name',
       image: 'https://example.com/'
     }
-    expect(() => validateNFTMetadata(withMissingField)).toThrow(Error)
-    expect(() => validateNFTCollectionMetadata(withMissingField)).toThrow(Error)
+    expect(validateNFTMetadata(withMissingDescription)).toEqual(withMissingDescription)
+    expect(() => validateNFTCollectionMetadata(withMissingDescription)).toThrow(Error)
+
+    const withMissingName = {
+      description: 'NFT description',
+      image: 'https://example.com/'
+    }
+    expect(() => validateNFTMetadata(withMissingName)).toThrow(Error)
+    expect(() => validateNFTCollectionMetadata(withMissingName)).toThrow(Error)
 
     const notAJson = 'not-a-json'
     expect(() => validateNFTMetadata(notAJson)).toThrow(Error)

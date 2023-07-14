@@ -23,7 +23,7 @@ import 'cross-fetch/polyfill'
 
 export interface NFTMetadata {
   name: string
-  description: string
+  description?: string
   image: string
   attributes?: [
     {
@@ -44,7 +44,7 @@ export interface NFTCollectionMetadata {
 
 export function validateNFTMetadata(metadata: any): NFTMetadata {
   const name = validateNonEmptyString(metadata, 'name')
-  const description = validateNonEmptyString(metadata, 'description')
+  const description = validateNonEmptyStringIfExists(metadata, 'description')
   const image = validateNonEmptyString(metadata, 'image')
 
   return { name, description, image }
@@ -80,6 +80,15 @@ export async function validateTokenBaseUriForPreDesignedCollection(
 function validateNonEmptyString(obj: object, field: string): string {
   const value = obj[`${field}`]
   if (!(typeof value === 'string' && value !== '')) {
+    throw new Error(`JSON field '${field}' is not a non empty string`)
+  }
+
+  return value
+}
+
+function validateNonEmptyStringIfExists(obj: object, field: string): string {
+  const value = obj[`${field}`]
+  if (value !== undefined && !(typeof value === 'string' && value !== '')) {
     throw new Error(`JSON field '${field}' is not a non empty string`)
   }
 
