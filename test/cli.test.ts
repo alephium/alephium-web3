@@ -23,8 +23,8 @@ import path from 'path'
 describe('utils', () => {
   let config: Configuration
   let devnet: Network
-  beforeAll(async () => {
-    config = await loadConfig(getConfigFile())
+  beforeAll(() => {
+    config = loadConfig(getConfigFile())
     devnet = getNetwork(config, 'devnet')
   })
 

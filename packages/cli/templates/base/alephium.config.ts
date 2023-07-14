@@ -15,11 +15,11 @@ export type Settings = {
 
 const defaultSettings: Settings = {
   issueTokenAmount: 100n,
-  openaiAPIKey: process.env.OPENAI_API_KEY,
+  openaiAPIKey: process.env.OPENAI_API_KEY || '',
   ipfs: {
     infura: {
-      projectId: process.env.IPFS_INFURA_PROJECT_ID,
-      projectSecret: process.env.IPFS_INFURA_PROJECT_SECRET
+      projectId: process.env.IPFS_INFURA_PROJECT_ID || '',
+      projectSecret: process.env.IPFS_INFURA_PROJECT_SECRET || ''
     }
   }
 }
