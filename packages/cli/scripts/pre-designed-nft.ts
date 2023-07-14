@@ -216,7 +216,7 @@ function parseMetadataConfig(file: string, localImageDir: string): NFTMetadataCo
   return validateMetadataConfig(parsedContent, localImageDir)
 }
 
-function convertAttributes(attributes: NFTMetadataConfig['attributes']): NFTMetadata['attributes'] {
+function convertAttributes(attributes: NFTMetadataConfig['attributes']): NFTMetadata['attributes'] | undefined {
   if (attributes) {
     return attributes.map((attribute) => {
       const traitType = Object.keys(attribute)[0]

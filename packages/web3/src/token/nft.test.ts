@@ -18,16 +18,39 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { validateNFTCollectionMetadata, validateNFTMetadata, validateTokenBaseUriForPreDesignedCollection } from './nft'
 
-describe('nft', function () {
+describe('nft', function() {
   it('should validate NFT and NFT collection metadata', () => {
-    const valid = {
+    const validWithoutAttributes = {
       name: 'NFT name',
       description: 'NFT description',
       image: 'https://example.com/'
     }
 
-    expect(validateNFTMetadata(valid)).toEqual(valid)
-    expect(validateNFTCollectionMetadata(valid)).toEqual(valid)
+    expect(validateNFTMetadata(validWithoutAttributes)).toEqual(validWithoutAttributes)
+    expect(validateNFTCollectionMetadata(validWithoutAttributes)).toEqual(validWithoutAttributes)
+
+    const validWithAttributes = {
+      name: 'NFT name',
+      description: 'NFT description',
+      image: 'https://example.com/',
+      attributes: [
+        {
+          trait_type: 'color',
+          value: 'blue'
+        },
+        {
+          trait_type: 'size',
+          value: 100
+        },
+        {
+          trait_type: 'valid',
+          value: true
+        }
+      ]
+    }
+
+    expect(validateNFTMetadata(validWithAttributes)).toEqual(validWithAttributes)
+    expect(() => validateNFTCollectionMetadata(validWithAttributes)).toThrow(Error)
 
     const withEmptyDescription = {
       name: 'NFT name',
@@ -70,6 +93,36 @@ describe('nft', function () {
     const notAJson = 'not-a-json'
     expect(() => validateNFTMetadata(notAJson)).toThrow(Error)
     expect(() => validateNFTCollectionMetadata(notAJson)).toThrow(Error)
+
+    const withWrongAttributesType = {
+      ...validWithAttributes,
+      attributes: 'not-an-array'
+    }
+    expect(() => validateNFTMetadata(withWrongAttributesType)).toThrow(Error)
+
+    const withWrongAttributesValueType = {
+      ...validWithAttributes,
+      attributes: [{ trait_type: 'color', value: [] }]
+    }
+    expect(() => validateNFTMetadata(withWrongAttributesValueType)).toThrow(Error)
+
+    const withWrongAttributesTraitType = {
+      ...validWithAttributes,
+      attributes: [{ trait_type: 1, value: 'blue' }]
+    }
+    expect(() => validateNFTMetadata(withWrongAttributesTraitType)).toThrow(Error)
+
+    const withWrongAttributesField = {
+      ...validWithAttributes,
+      attributes: [{ trait_type: 'color', trait_type_2: "color", value: 'blue' }]
+    }
+    expect(() => validateNFTMetadata(withWrongAttributesField)).toThrow(Error)
+
+    const withWrongEmptyAttributesField = {
+      ...validWithAttributes,
+      attributes: [{ trait_type: '', value: '' }]
+    }
+    expect(() => validateNFTMetadata(withWrongEmptyAttributesField)).toThrow(Error)
   })
 
   it('should validate NFT collection token base URL', async () => {

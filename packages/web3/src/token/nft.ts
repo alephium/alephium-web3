@@ -42,15 +42,33 @@ export interface NFTCollectionMetadata {
   image: string
 }
 
+export const validNFTMetadataFields = ['name', 'description', 'image', 'attributes']
+export const validNFTMetadataAttributesFields = ['trait_type', 'value']
+export const validNFTMetadataAttributeTypes = ['string', 'number', 'boolean']
+export const validNFTCollectionMetadataFields = ['name', 'description', 'image']
+
 export function validateNFTMetadata(metadata: any): NFTMetadata {
+  Object.keys(metadata).forEach((key) => {
+    if (!validNFTMetadataFields.includes(key)) {
+      throw new Error(`Invalid field ${key}, only ${validNFTMetadataFields} are allowed`)
+    }
+  })
+
   const name = validateNonEmptyString(metadata, 'name')
   const description = validateNonEmptyStringIfExists(metadata, 'description')
   const image = validateNonEmptyString(metadata, 'image')
+  const attributes = validateNFTMetadataAttributes(metadata['attributes'])
 
-  return { name, description, image }
+  return { name, description, image, attributes }
 }
 
 export function validateNFTCollectionMetadata(metadata: any): NFTCollectionMetadata {
+  Object.keys(metadata).forEach((key) => {
+    if (!validNFTCollectionMetadataFields.includes(key)) {
+      throw new Error(`Invalid field ${key}, only ${validNFTCollectionMetadataFields} are allowed`)
+    }
+  })
+
   const name = validateNonEmptyString(metadata, 'name')
   const description = validateNonEmptyString(metadata, 'description')
   const image = validateNonEmptyString(metadata, 'image')
@@ -77,6 +95,31 @@ export async function validateTokenBaseUriForPreDesignedCollection(
   }
 }
 
+function validateNFTMetadataAttributes(attributes: any): NFTMetadata['attributes'] {
+  if (!!attributes) {
+    if (!Array.isArray(attributes)) {
+      throw new Error(`Field 'attributes' should be an array`)
+    }
+
+    attributes.forEach((item) => {
+      if (typeof item !== 'object') {
+        throw new Error(`Field 'attributes' should be an array of objects`)
+      }
+
+      Object.keys(item).forEach((key) => {
+        if (!validNFTMetadataAttributesFields.includes(key)) {
+          throw new Error(`Invalid field ${key} for attributes, only ${validNFTMetadataAttributesFields} are allowed`)
+        }
+      })
+
+      validateNonEmptyString(item, 'trait_type')
+      validateNonEmptyAttributeValue(item, 'value')
+    })
+  }
+
+  return attributes as NFTMetadata['attributes']
+}
+
 function validateNonEmptyString(obj: object, field: string): string {
   const value = obj[`${field}`]
   if (!(typeof value === 'string' && value !== '')) {
@@ -90,6 +133,15 @@ function validateNonEmptyStringIfExists(obj: object, field: string): string {
   const value = obj[`${field}`]
   if (value !== undefined && !(typeof value === 'string' && value !== '')) {
     throw new Error(`JSON field '${field}' is not a non empty string`)
+  }
+
+  return value
+}
+
+function validateNonEmptyAttributeValue(obj: object, field: string): string | number | boolean {
+  const value = obj[`${field}`]
+  if (!(typeof value === 'string' && value !== '' || typeof value === 'number' || typeof value === 'boolean')) {
+    throw new Error(`Attribute value should be a non empty string, number or boolean`)
   }
 
   return value
