@@ -17,10 +17,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "rm -rf dist/* && npx tsc --build . && node scripts/copy-template.js",
-    "start-devnet": "npx ts-node cli_internal.ts devnet start",
-    "stop-devnet": "npx ts-node cli_internal.ts devnet stop",
-    "restart-devnet": "npx ts-node cli_internal.ts devnet start"
+    "build": "rm -rf dist/* && npx tsc --build . && node scripts/copy-template.js"
   },
   "bin": "cli.js",
   "type": "commonjs",

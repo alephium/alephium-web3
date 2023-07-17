@@ -22,8 +22,6 @@ import { run as runJestTests } from 'jest'
 import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
-import { startDevnet } from './scripts/start-devnet'
-import { stopDevnet } from './scripts/stop-devnet'
 import { createProject } from './scripts/create-project'
 import { generateImagesWithOpenAI, uploadImagesAndMetadataToIPFS } from './scripts/pre-designed-nft'
 import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
@@ -60,22 +58,6 @@ program
     const projectRoot = path.resolve(dir as string)
     createProject(templateType, __dirname, projectRoot)
   })
-
-const nodeCommand = program.command('devnet').description('start/stop a devnet')
-nodeCommand
-  .command('start')
-  .description('start devnet')
-  .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
-  .action(async (options) => {
-    const config = getConfig(options)
-    const version = config.nodeVersion! // there is a default value always
-    const nodeConfigFile = path.join(__dirname, config.nodeConfigFile!) // there is a default value always
-    await startDevnet(version, nodeConfigFile)
-  })
-nodeCommand
-  .command('stop')
-  .description('stop devnet')
-  .action(() => stopDevnet())
 
 program
   .command('compile')
