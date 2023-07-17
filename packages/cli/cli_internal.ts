@@ -163,14 +163,16 @@ program
     }
   })
 
-program
+const nftCommand = program.command('nft').description('nft subcommand')
+
+nftCommand
   .command('generate-images-with-openai')
-  .description('Generate images using OpenAI')
+  .description('generate images using OpenAI')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'specify the network to use', 'devnet')
-  .option('-d, --dir <directory-of-stored-images>', 'Directory where to store the images')
-  .option('-n, --number <number-of-images>', 'Number of images to generate', '1')
-  .option('-s, --size <size-of-image>', 'Size of the image to generate', '512x512')
+  .option('-d, --dir <directory-of-stored-images>', 'directory where to store the images')
+  .option('-n, --number <number-of-images>', 'number of images to generate', '1')
+  .option('-s, --size <size-of-image>', 'size of the image to generate', '512x512')
   .action(async (options, args) => {
     try {
       const config = getConfig(options)
@@ -190,14 +192,14 @@ program
     }
   })
 
-program
+nftCommand
   .command('upload-images-and-metadata-to-ipfs')
-  .description('Upload images to IPFS')
+  .description('upload images to IPFS')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'specify the network to use', 'devnet')
-  .option('-d, --localDir <directory-of-local-images>', 'Directory of local images to be uploaded')
+  .option('-d, --localDir <directory-of-local-images>', 'directory of local images to be uploaded')
   .option('-i, --ipfsDir <ipfs-directory-of-uploaded-images>', 'IPFS directory to upload the images')
-  .option('-m, --metadataFile <metadata-file>', 'File to store the metadata of the uploaded images')
+  .option('-m, --metadataFile <metadata-file>', 'file to store the metadata of the uploaded images')
   .action(async (options) => {
     try {
       const localDir = options.localDir as string
@@ -220,11 +222,11 @@ program
     }
   })
 
-program
+nftCommand
   .command('validate-enumerable-nft-base-uri')
-  .description('Validate token base uri for pre-designed collection')
-  .option('-n, --nftBaseUri <nft-base-uri>', 'Enumerable NFT base uri')
-  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'MaxSupply of the enumerable NFT collection')
+  .description('validate token base uri for pre-designed collection')
+  .option('-n, --nftBaseUri <nft-base-uri>', 'enumerable NFT base uri')
+  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'max supply of the enumerable NFT collection')
   .action(async (options) => {
     try {
       const nftBaseUri = options.nftBaseUri as string
