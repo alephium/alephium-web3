@@ -9,7 +9,12 @@
     "url": "git+https://github.com/alephium/alephium-web3-react"
   },
   "type": "module",
-  "exports": "./build/index.es.js",
+  "exports": {
+    ".": {
+      "types": "./build/index.d.ts",
+      "import": "./build/index.es.js"
+    }
+  },
   "types": "./build/index.d.ts",
   "engines": {
     "node": ">=12.4"
