@@ -26,7 +26,7 @@ export default [
     external: ['react', 'react-dom', 'framer-motion'],
     output: [
       {
-        file: packageJson.exports,
+        file: packageJson.exports['.'].import,
         format: 'esm',
         sourcemap: false
       }
