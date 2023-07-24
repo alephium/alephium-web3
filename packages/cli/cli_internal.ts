@@ -130,16 +130,35 @@ program
     await runJestTests(jestOptions)
   })
 
+function tryGetScriptIndex(str: string | undefined): number | undefined {
+  if (str === undefined) return undefined
+  const num = parseInt(str)
+  if (num.toString() !== str || num < 0) {
+    throw new Error(`Invalid script index: ${str}`)
+  }
+  return num
+}
+
 program
   .command('deploy')
   .description('deploy contracts')
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'specify the network to use')
+  .option(
+    '-f, --from <number>',
+    'run scripts from a specific index, the number refers to the prefix of the script file'
+  )
+  .option(
+    '-t, --to <number>',
+    'run scripts to a specific index(inclusive), the number refers to the prefix of the script file'
+  )
   .action(async (options) => {
     try {
       const config = getConfig(options)
       const networkId = checkAndGetNetworkId(options.network)
-      await deployAndSaveProgress(config, networkId)
+      const fromIndex = tryGetScriptIndex(options.from)
+      const toIndex = tryGetScriptIndex(options.to)
+      await deployAndSaveProgress(config, networkId, fromIndex, toIndex)
     } catch (error) {
       program.error(`Failed to deploy contracts, error: ${(error as Error).stack}`)
     }
