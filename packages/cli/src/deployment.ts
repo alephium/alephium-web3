@@ -272,7 +272,12 @@ function getTokenRecord(tokens: Token[]): Record<string, string> {
 }
 
 function getTaskId(code: Contract | Script, taskTag?: string): string {
-  return taskTag ? `${code.name}:${taskTag}` : code.name
+  if (taskTag === undefined) return code.name
+  const taskTagRegex = new RegExp('^[a-zA-Z0-9_-]*$')
+  if (!taskTagRegex.test(taskTag)) {
+    throw new Error(`Invalid task tag, the task tag must match the pattern: ${taskTagRegex.source}`)
+  }
+  return `${code.name}:${taskTag}`
 }
 
 function createDeployer<Settings = unknown>(

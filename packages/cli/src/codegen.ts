@@ -511,33 +511,52 @@ async function getAllDeployments(config: Configuration): Promise<DeploymentsPerA
   return allDeployments
 }
 
-function genToDeployments(contracts: string[], optionalContracts: string[]): string {
-  const contractInstances = contracts.map((name) => {
+function genToDeployments(contracts: string[], optionalContracts: string[], allScripts: string[]): string {
+  const contractInstances = contracts.map((taskId) => {
+    const typeName = getTypeFromTaskId(taskId)
     return `
-    ${name}: {
-      ...json.contracts.${name},
-      contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
+    ${convertToVariableName(taskId)}: {
+      ...json.contracts['${taskId}'],
+      contractInstance: ${typeName}.at(json.contracts['${taskId}'].contractInstance.address)
     }
     `
   })
-  const optionalContractInstances = optionalContracts.map((name) => {
+  const optionalContractInstances = optionalContracts.map((taskId) => {
+    const typeName = getTypeFromTaskId(taskId)
     return `
-    ${name}: json.contracts.${name} === undefined ? undefined : {
-      ...json.contracts.${name},
-      contractInstance: ${name}.at(json.contracts.${name}.contractInstance.address)
+    ${convertToVariableName(taskId)}: json.contracts['${taskId}'] === undefined ? undefined : {
+      ...json.contracts['${taskId}'],
+      contractInstance: ${typeName}.at(json.contracts['${taskId}'].contractInstance.address)
     }
     `
   })
+  const scripts = allScripts.map((taskId) => `${convertToVariableName(taskId)}: json.scripts['${taskId}']`).join(',')
   const allContractInstances = contractInstances.concat(optionalContractInstances).join(',')
   return `
     function toDeployments(json: any): Deployments {
       const contracts = { ${allContractInstances} }
       return {
         ...json,
-        contracts: contracts as Deployments['contracts']
+        contracts: contracts as Deployments['contracts'],
+        ${allScripts.length > 0 ? `scripts: { ${scripts} }` : ''}
       }
     }
   `
+}
+
+function convertToVariableName(taskId: string): string {
+  return taskId.replace(/[:\-]/g, '_')
+}
+
+function genContractField(taskId: string, optional: boolean): string {
+  const typeName = getTypeFromTaskId(taskId)
+  const varName = convertToVariableName(taskId)
+  return `${varName}${optional ? '?' : ''}: DeployContractExecutionResult<${typeName}Instance>`
+}
+
+function genScriptField(taskId: string, optional: boolean): string {
+  const varName = convertToVariableName(taskId)
+  return `${varName}${optional ? '?' : ''}: RunScriptResult`
 }
 
 function genDeploymentsType(allDeployments: DeploymentsPerAddress[]): string {
@@ -545,12 +564,10 @@ function genDeploymentsType(allDeployments: DeploymentsPerAddress[]): string {
   const allScripts = allDeployments.map((d) => Array.from(d.scripts.keys()))
   const [contracts, optionalContracts] = getFields(allContracts)
   const [scripts, optionalScripts] = getFields(allScripts)
-  const contractFields = contracts.map((name) => `${name}: DeployContractExecutionResult<${name}Instance>`).join('\n')
-  const optionalContractFields = optionalContracts
-    .map((name) => `${name}?: DeployContractExecutionResult<${name}Instance>`)
-    .join('\n')
-  const scriptFields = scripts.map((name) => `${name}: RunScriptResult`).join('\n')
-  const optionalScriptFields = optionalScripts.map((name) => `${name}?: RunScriptResult`).join('\n')
+  const contractFields = contracts.map((taskId) => genContractField(taskId, false)).join('\n')
+  const optionalContractFields = optionalContracts.map((taskId) => genContractField(taskId, true)).join('\n')
+  const scriptFields = scripts.map((taskId) => genScriptField(taskId, false)).join('\n')
+  const optionalScriptFields = optionalScripts.map((taskId) => genScriptField(taskId, true)).join('\n')
   const hasScript = scripts.length > 0 || optionalScripts.length > 0
   return `
     export type Deployments = {
@@ -559,7 +576,7 @@ function genDeploymentsType(allDeployments: DeploymentsPerAddress[]): string {
       ${hasScript ? `scripts: { ${scriptFields} \n ${optionalScriptFields} }` : ''}
     }
 
-    ${genToDeployments(contracts, optionalContracts)}
+    ${genToDeployments(contracts, optionalContracts, [...scripts, ...optionalScripts])}
   `
 }
 
@@ -571,13 +588,19 @@ function getRelativePath(config: Configuration, networkId: NetworkId, fromPath: 
   return path.relative(fromPath, deploymentFilePath)
 }
 
+function getTypeFromTaskId(taskId: string): string {
+  return taskId.split(':')[0]
+}
+
 export async function genLoadDeployments(config: Configuration) {
   const tsPath = path.join(config.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, 'ts')
   if (!fs.existsSync(tsPath)) {
     fs.mkdirSync(tsPath, { recursive: true })
   }
   const allDeployments = await getAllDeployments(config)
-  const contractInstanceTypes = dedup(allDeployments.flatMap((d) => Array.from(d.contracts.keys())))
+  const contractInstanceTypes = dedup(
+    allDeployments.flatMap((d) => Array.from(d.contracts.keys()).map((taskId) => getTypeFromTaskId(taskId)))
+  )
     .map((contractName) => `${contractName}, ${contractName}Instance`)
     .join(',')
   const deploymentsPath = networkIds.map((n) => [n, getRelativePath(config, n, tsPath)])
