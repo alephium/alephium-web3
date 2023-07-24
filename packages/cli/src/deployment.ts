@@ -468,10 +468,24 @@ function getSigners(privateKeys: string[]): PrivateKeyWallet[] {
   return signers
 }
 
+function tryGetScriptsFromRange(scripts: string[], fromIndex?: number, toIndex?: number): string[] {
+  const from = fromIndex ?? 0
+  const to = toIndex ?? scripts.length - 1
+  if (from > to) {
+    throw new Error('The from index must not be greater than the to index')
+  }
+  if (from < 0 || to > scripts.length - 1) {
+    throw new Error(`Invalid script range: [${from}, ${to}]`)
+  }
+  return scripts.slice(from, to + 1)
+}
+
 export async function deploy<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkId: NetworkId,
-  deployments: Deployments
+  deployments: Deployments,
+  fromIndex?: number,
+  toIndex?: number
 ): Promise<void> {
   const network = await getNetwork(configuration, networkId)
   if (typeof network === 'undefined') {
@@ -481,7 +495,8 @@ export async function deploy<Settings = unknown>(
   const deployScriptsRootPath = configuration.deploymentScriptDir
     ? configuration.deploymentScriptDir
     : DEFAULT_CONFIGURATION_VALUES.deploymentScriptDir
-  const scriptFiles = await getDeployScriptFiles(path.resolve(deployScriptsRootPath))
+  const allScriptFiles = await getDeployScriptFiles(path.resolve(deployScriptsRootPath))
+  const scriptFiles = tryGetScriptsFromRange(allScriptFiles, fromIndex, toIndex)
   const scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[] = []
   for (const scriptFilePath of scriptFiles) {
     try {

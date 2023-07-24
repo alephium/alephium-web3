@@ -23,12 +23,14 @@ import { NetworkId } from '@alephium/web3'
 
 export async function deployAndSaveProgress<Settings = unknown>(
   configuration: Configuration<Settings>,
-  networkId: NetworkId
+  networkId: NetworkId,
+  fromIndex?: number,
+  toIndex?: number
 ): Promise<void> {
   const deploymentsFile = getDeploymentFilePath(configuration, networkId)
   const deployments = await Deployments.from(deploymentsFile)
   try {
-    await deploy(configuration, networkId, deployments)
+    await deploy(configuration, networkId, deployments, fromIndex, toIndex)
   } catch (error) {
     await deployments.saveToFile(deploymentsFile, configuration, false)
     console.error(`Failed to deploy the project`)
