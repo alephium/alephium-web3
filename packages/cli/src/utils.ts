@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import path from 'path'
 import fs from 'fs'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network } from './types'
-import { DEFAULT_THROTTLE_FETCH, NetworkId, node, NodeProvider } from '@alephium/web3'
+import { NetworkId, node, NodeProvider } from '@alephium/web3'
 import * as fetchRetry from 'fetch-retry'
 
 export function loadConfig<Settings = unknown>(filename: string): Configuration<Settings> {
@@ -97,7 +97,7 @@ export async function waitTxConfirmed(
   return waitTxConfirmed(provider, txId, confirmations, requestInterval)
 }
 
-export const retryFetch = fetchRetry.default(DEFAULT_THROTTLE_FETCH, {
+export const retryFetch = fetchRetry.default(fetch, {
   retryDelay: (attempt: number) => {
     return Math.floor(Math.pow(1.2, attempt) * 3000)
   }
