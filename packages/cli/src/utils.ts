@@ -98,7 +98,6 @@ export async function waitTxConfirmed(
 }
 
 export const retryFetch = fetchRetry.default(fetch, {
-  retryDelay: (attempt: number) => {
-    return Math.floor(Math.pow(1.2, attempt) * 3000)
-  }
+  retries: 20,
+  retryDelay: 1000
 })
