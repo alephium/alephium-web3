@@ -20,6 +20,7 @@ import path from 'path'
 import fs from 'fs'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network } from './types'
 import { NetworkId, node, NodeProvider } from '@alephium/web3'
+import * as fetchRetry from 'fetch-retry'
 
 export function loadConfig<Settings = unknown>(filename: string): Configuration<Settings> {
   const configPath = path.resolve(filename)
@@ -95,3 +96,8 @@ export async function waitTxConfirmed(
   await new Promise((r) => setTimeout(r, requestInterval))
   return waitTxConfirmed(provider, txId, confirmations, requestInterval)
 }
+
+export const retryFetch = fetchRetry.default(fetch, {
+  retries: 20,
+  retryDelay: 1000
+})

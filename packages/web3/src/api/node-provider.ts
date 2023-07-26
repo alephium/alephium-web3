@@ -27,7 +27,6 @@ import {
   StdInterfaceIds
 } from './types'
 import { Api as NodeApi } from './api-alephium'
-import { DEFAULT_THROTTLE_FETCH } from './utils'
 import { HexString } from '../contract'
 import { addressFromContractId, addressFromTokenId, groupOfAddress, hexToString } from '../utils'
 
@@ -36,7 +35,7 @@ function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeo
     baseUrl: baseUrl,
     baseApiParams: { secure: true },
     securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {}),
-    customFetch: customFetch ?? DEFAULT_THROTTLE_FETCH
+    customFetch: customFetch ?? fetch
   })
   nodeApi.setSecurityData(apiKey ?? null)
   return nodeApi

@@ -18,14 +18,13 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ApiRequestArguments, ApiRequestHandler, forwardRequests, request } from './types'
 import { Api as ExplorerApi } from './api-explorer'
-import { DEFAULT_THROTTLE_FETCH } from './utils'
 
 function initializeExplorerApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): ExplorerApi<string> {
   const explorerApi = new ExplorerApi<string>({
     baseUrl: baseUrl,
     baseApiParams: { secure: true },
     securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {}),
-    customFetch: customFetch ?? DEFAULT_THROTTLE_FETCH
+    customFetch: customFetch ?? fetch
   })
   explorerApi.setSecurityData(apiKey ?? null)
   return explorerApi

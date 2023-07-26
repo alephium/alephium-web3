@@ -44,6 +44,7 @@ importers:
       commander: ^9.5.0
       cross-fetch: ^3.1.5
       crypto-js: ^4.1.1
+      fetch-retry: ^5.0.6
       fs-extra: ^10.1.0
       ipfs-http-client: ^56.0.0
       jest: ^28.1.3
@@ -58,6 +59,7 @@ importers:
       commander: 9.5.0
       cross-fetch: 3.1.5
       crypto-js: 4.1.1
+      fetch-retry: 5.0.6
       fs-extra: 10.1.0
       ipfs-http-client: 56.0.3_node-fetch@3.3.1
       jest: 28.1.3_iexojlkm67agnxlqoru7qsjvga
@@ -228,7 +230,6 @@ importers:
       '@types/rewire': ^2.5.28
       '@typescript-eslint/eslint-plugin': ^5.57.0
       '@typescript-eslint/parser': ^5.57.0
-      async-sema: ^3.1.1
       base-x: 4.0.0
       bignumber.js: ^9.1.1
       blakejs: 1.2.1
@@ -266,7 +267,6 @@ importers:
       webpack-cli: ^4.10.0
     dependencies:
       '@noble/secp256k1': 1.7.1
-      async-sema: 3.1.1
       base-x: 4.0.0
       bignumber.js: 9.1.1
       blakejs: 1.2.1
@@ -4055,10 +4055,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /async-sema/3.1.1:
-    resolution: {integrity: sha512-tLRNUXati5MFePdAk8dw7Qt7DpxPB60ofAgn8WRhW6a2rcimZnYBP9oxHiv0OHy+Wz7kPMG+t4LGdt31+4EmGg==}
-    dev: false
-
   /asynckit/0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
     dev: false
@@ -6195,6 +6191,10 @@ packages:
     dependencies:
       node-domexception: 1.0.0
       web-streams-polyfill: 3.2.1
+
+  /fetch-retry/5.0.6:
+    resolution: {integrity: sha512-3yurQZ2hD9VISAhJJP9bpYFNQrHHBXE2JxxjY5aLEcDi46RmAzJE2OC9FAde0yis5ElW0jTTzs0zfg/Cca4XqQ==}
+    dev: false
 
   /file-entry-cache/6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}

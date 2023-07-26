@@ -52,7 +52,7 @@ import {
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from './types'
-import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig, waitTxConfirmed } from './utils'
+import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig, retryFetch, waitTxConfirmed } from './utils'
 import { groupOfAddress } from '@alephium/web3'
 import { genLoadDeployments } from './codegen'
 
@@ -516,7 +516,7 @@ export async function deploy<Settings = unknown>(
     }
   }
 
-  web3.setCurrentNodeProvider(network.nodeUrl)
+  web3.setCurrentNodeProvider(network.nodeUrl, undefined, retryFetch)
   const signers = getSigners(network.privateKeys)
   await validateChainParams(
     network.networkId,

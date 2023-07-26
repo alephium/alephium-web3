@@ -32,7 +32,8 @@
     "prettier": "^2.8.7",
     "openai": "^3.3.0",
     "ipfs-http-client": "^56.0.0",
-    "yaml": "^2.3.1"
+    "yaml": "^2.3.1",
+    "fetch-retry": "^5.0.6"
   },
   "devDependencies": {
     "@types/jest": "^27.5.2",
