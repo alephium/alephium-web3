@@ -12,7 +12,8 @@
   "exports": {
     ".": {
       "types": "./build/index.d.ts",
-      "import": "./build/index.es.js"
+      "import": "./build/index.es.js",
+      "default": "./build/index.es.js"
     }
   },
   "types": "./build/index.d.ts",
