@@ -204,14 +204,14 @@ async function isTxExists(provider: NodeProvider, txId: string): Promise<boolean
   return txStatus.type !== 'TxNotFound'
 }
 
-function recordEqual(left: Record<string, string>, right: Record<string, string>): boolean {
+export function recordEqual(left: Record<string, string>, right: Record<string, string>): boolean {
   const leftKeys = Object.keys(left)
   const rightKeys = Object.keys(right)
   if (leftKeys.length !== rightKeys.length) {
     return false
   }
   for (const key of leftKeys) {
-    if (left[`$key}`] !== right[`${key}`]) {
+    if (left[`${key}`] !== right[`${key}`]) {
       return false
     }
   }
