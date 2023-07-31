@@ -35,7 +35,7 @@ function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeo
     baseUrl: baseUrl,
     baseApiParams: { secure: true },
     securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {}),
-    customFetch: customFetch
+    customFetch: customFetch ?? ((...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams))
   })
   nodeApi.setSecurityData(apiKey ?? null)
   return nodeApi

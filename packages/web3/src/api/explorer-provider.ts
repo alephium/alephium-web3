@@ -24,7 +24,7 @@ function initializeExplorerApi(baseUrl: string, apiKey?: string, customFetch?: t
     baseUrl: baseUrl,
     baseApiParams: { secure: true },
     securityWorker: (accessToken) => (accessToken !== null ? { headers: { 'X-API-KEY': `${accessToken}` } } : {}),
-    customFetch: customFetch
+    customFetch: customFetch ?? ((...fetchParams: Parameters<typeof fetch>) => fetch(...fetchParams))
   })
   explorerApi.setSecurityData(apiKey ?? null)
   return explorerApi
