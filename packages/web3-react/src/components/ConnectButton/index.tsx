@@ -119,7 +119,7 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
   const isMounted = useIsMounted()
   const context = useAlephiumConnectContext()
 
-  const { account } = useAccount()
+  const account = useAccount()
   const isConnected = false
   const isConnecting = false
 
@@ -162,7 +162,7 @@ function AlephiumConnectButtonInner({
   displayAccount: (account: Account) => string
 }) {
   const context = useAlephiumConnectContext()
-  const { account } = useAccount()
+  const account = useAccount()
 
   return (
     <AnimatePresence initial={false}>
@@ -232,7 +232,8 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
   const isMounted = useIsMounted()
 
   const context = useAlephiumConnectContext()
-  const { isConnected } = useAccount()
+  const account = useAccount()
+  const isConnected = !!account
 
   function show() {
     context.setOpen(true)
