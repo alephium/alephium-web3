@@ -16,9 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { validateNFTCollectionMetadata, validateNFTMetadata, validateEnumerableNFTBaseUri } from './nft'
+import { validateNFTCollectionUriMetadata, validateNFTTokenUriMetadata, validateEnumerableNFTBaseUri } from './nft'
 
-describe('nft', function () {
+describe('nft', function() {
   it('should validate NFT and NFT collection metadata', () => {
     const validWithoutAttributes = {
       name: 'NFT name',
@@ -26,8 +26,8 @@ describe('nft', function () {
       image: 'https://example.com/'
     }
 
-    expect(validateNFTMetadata(validWithoutAttributes)).toEqual(validWithoutAttributes)
-    expect(validateNFTCollectionMetadata(validWithoutAttributes)).toEqual(validWithoutAttributes)
+    expect(validateNFTTokenUriMetadata(validWithoutAttributes)).toEqual(validWithoutAttributes)
+    expect(validateNFTCollectionUriMetadata(validWithoutAttributes)).toEqual(validWithoutAttributes)
 
     const validWithAttributes = {
       name: 'NFT name',
@@ -49,80 +49,80 @@ describe('nft', function () {
       ]
     }
 
-    expect(validateNFTMetadata(validWithAttributes)).toEqual(validWithAttributes)
-    expect(() => validateNFTCollectionMetadata(validWithAttributes)).toThrow(Error)
+    expect(validateNFTTokenUriMetadata(validWithAttributes)).toEqual(validWithAttributes)
+    expect(() => validateNFTCollectionUriMetadata(validWithAttributes)).toThrow(Error)
 
     const withEmptyDescription = {
       name: 'NFT name',
       description: '',
       image: 'https://example.com/'
     }
-    expect(() => validateNFTMetadata(withEmptyDescription)).toThrow(Error)
-    expect(() => validateNFTCollectionMetadata(withEmptyDescription)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withEmptyDescription)).toThrow(Error)
+    expect(() => validateNFTCollectionUriMetadata(withEmptyDescription)).toThrow(Error)
 
     const withEmptyName = {
       name: '',
       description: 'NFT description',
       image: 'https://example.com/'
     }
-    expect(() => validateNFTMetadata(withEmptyName)).toThrow(Error)
-    expect(() => validateNFTCollectionMetadata(withEmptyName)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withEmptyName)).toThrow(Error)
+    expect(() => validateNFTCollectionUriMetadata(withEmptyName)).toThrow(Error)
 
     const withWrongField = {
       name: 'NFT name',
       description: '',
       url: 'https://example.com/'
     }
-    expect(() => validateNFTMetadata(withWrongField)).toThrow(Error)
-    expect(() => validateNFTCollectionMetadata(withWrongField)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withWrongField)).toThrow(Error)
+    expect(() => validateNFTCollectionUriMetadata(withWrongField)).toThrow(Error)
 
     const withMissingDescription = {
       name: 'NFT name',
       image: 'https://example.com/'
     }
-    expect(validateNFTMetadata(withMissingDescription)).toEqual(withMissingDescription)
-    expect(() => validateNFTCollectionMetadata(withMissingDescription)).toThrow(Error)
+    expect(validateNFTTokenUriMetadata(withMissingDescription)).toEqual(withMissingDescription)
+    expect(() => validateNFTCollectionUriMetadata(withMissingDescription)).toThrow(Error)
 
     const withMissingName = {
       description: 'NFT description',
       image: 'https://example.com/'
     }
-    expect(() => validateNFTMetadata(withMissingName)).toThrow(Error)
-    expect(() => validateNFTCollectionMetadata(withMissingName)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withMissingName)).toThrow(Error)
+    expect(() => validateNFTCollectionUriMetadata(withMissingName)).toThrow(Error)
 
     const notAJson = 'not-a-json'
-    expect(() => validateNFTMetadata(notAJson)).toThrow(Error)
-    expect(() => validateNFTCollectionMetadata(notAJson)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(notAJson)).toThrow(Error)
+    expect(() => validateNFTCollectionUriMetadata(notAJson)).toThrow(Error)
 
     const withWrongAttributesType = {
       ...validWithAttributes,
       attributes: 'not-an-array'
     }
-    expect(() => validateNFTMetadata(withWrongAttributesType)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withWrongAttributesType)).toThrow(Error)
 
     const withWrongAttributesValueType = {
       ...validWithAttributes,
       attributes: [{ trait_type: 'color', value: [] }]
     }
-    expect(() => validateNFTMetadata(withWrongAttributesValueType)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withWrongAttributesValueType)).toThrow(Error)
 
     const withWrongAttributesTraitType = {
       ...validWithAttributes,
       attributes: [{ trait_type: 1, value: 'blue' }]
     }
-    expect(() => validateNFTMetadata(withWrongAttributesTraitType)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withWrongAttributesTraitType)).toThrow(Error)
 
     const withWrongAttributesField = {
       ...validWithAttributes,
       attributes: [{ trait_type: 'color', trait_type_2: 'color', value: 'blue' }]
     }
-    expect(() => validateNFTMetadata(withWrongAttributesField)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withWrongAttributesField)).toThrow(Error)
 
     const withWrongEmptyAttributesField = {
       ...validWithAttributes,
       attributes: [{ trait_type: '', value: '' }]
     }
-    expect(() => validateNFTMetadata(withWrongEmptyAttributesField)).toThrow(Error)
+    expect(() => validateNFTTokenUriMetadata(withWrongEmptyAttributesField)).toThrow(Error)
   })
 
   it('should validate NFT collection token base URL', async () => {

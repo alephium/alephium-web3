@@ -20,34 +20,14 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 // returned from the `getTokenUri` method of the NFT contract
 
 import 'cross-fetch/polyfill'
-
-export interface NFTMetadata {
-  name: string
-  description?: string
-  image: string
-  attributes?: [
-    {
-      trait_type: string
-      value: string | number | boolean
-    }
-  ]
-}
-
-// JSON Schema for the NFT Collection metadata, which is pointed to by
-// the value returned from the `getCollectionUri` method of the NFT Collection
-// Contract
-export interface NFTCollectionMetadata {
-  name: string
-  description: string
-  image: string
-}
+import { NFTCollectionUriMetaData, NFTTokenUriMetaData } from '../api'
 
 export const validNFTMetadataFields = ['name', 'description', 'image', 'attributes']
 export const validNFTMetadataAttributesFields = ['trait_type', 'value']
 export const validNFTMetadataAttributeTypes = ['string', 'number', 'boolean']
 export const validNFTCollectionMetadataFields = ['name', 'description', 'image']
 
-export function validateNFTMetadata(metadata: any): NFTMetadata {
+export function validateNFTTokenUriMetadata(metadata: any): NFTTokenUriMetaData {
   Object.keys(metadata).forEach((key) => {
     if (!validNFTMetadataFields.includes(key)) {
       throw new Error(`Invalid field ${key}, only ${validNFTMetadataFields} are allowed`)
@@ -57,12 +37,12 @@ export function validateNFTMetadata(metadata: any): NFTMetadata {
   const name = validateNonEmptyString(metadata, 'name')
   const description = validateNonEmptyStringIfExists(metadata, 'description')
   const image = validateNonEmptyString(metadata, 'image')
-  const attributes = validateNFTMetadataAttributes(metadata['attributes'])
+  const attributes = validateNFTTokenUriMetadataAttributes(metadata['attributes'])
 
   return { name, description, image, attributes }
 }
 
-export function validateNFTCollectionMetadata(metadata: any): NFTCollectionMetadata {
+export function validateNFTCollectionUriMetadata(metadata: any): NFTCollectionUriMetaData {
   Object.keys(metadata).forEach((key) => {
     if (!validNFTCollectionMetadataFields.includes(key)) {
       throw new Error(`Invalid field ${key}, only ${validNFTCollectionMetadataFields} are allowed`)
@@ -76,13 +56,13 @@ export function validateNFTCollectionMetadata(metadata: any): NFTCollectionMetad
   return { name, description, image }
 }
 
-export async function validateEnumerableNFTBaseUri(nftBaseUri: string, maxSupply: number): Promise<NFTMetadata[]> {
+export async function validateEnumerableNFTBaseUri(nftBaseUri: string, maxSupply: number): Promise<NFTTokenUriMetaData[]> {
   if (isInteger(maxSupply) && maxSupply > 0) {
-    const nftMetadataz: NFTMetadata[] = []
+    const nftMetadataz: NFTTokenUriMetaData[] = []
 
     for (let i = 0; i < maxSupply; i++) {
       const nftMetadata = await fetchNFTMetadata(nftBaseUri, i)
-      const validatedNFTMetadata = validateNFTMetadata(nftMetadata)
+      const validatedNFTMetadata = validateNFTTokenUriMetadata(nftMetadata)
       nftMetadataz.push(validatedNFTMetadata)
     }
 
@@ -92,7 +72,7 @@ export async function validateEnumerableNFTBaseUri(nftBaseUri: string, maxSupply
   }
 }
 
-function validateNFTMetadataAttributes(attributes: any): NFTMetadata['attributes'] {
+function validateNFTTokenUriMetadataAttributes(attributes: any): NFTTokenUriMetaData['attributes'] {
   if (!!attributes) {
     if (!Array.isArray(attributes)) {
       throw new Error(`Field 'attributes' should be an array`)
@@ -114,7 +94,7 @@ function validateNFTMetadataAttributes(attributes: any): NFTMetadata['attributes
     })
   }
 
-  return attributes as NFTMetadata['attributes']
+  return attributes as NFTTokenUriMetaData['attributes']
 }
 
 function validateNonEmptyString(obj: object, field: string): string {
