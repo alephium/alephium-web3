@@ -19,7 +19,7 @@ import fs from 'fs'
 import path from 'path'
 import { Configuration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
-import { validateEnumerableNFTBaseUri, NFTMetadata, validNFTMetadataAttributeTypes } from '@alephium/web3'
+import { validateNFTBaseUri, NFTMetadata, validNFTUriMetadataAttributeTypes } from '@alephium/web3'
 import { parse } from 'yaml'
 
 export interface NFTMetadataConfig {
@@ -170,7 +170,7 @@ function validateAttributesTypeIfExists(parent: string, attributes?: object) {
       }
 
       Object.keys(item).forEach((key) => {
-        if (!validNFTMetadataAttributeTypes.includes(typeof item[key])) {
+        if (!validNFTMetadataUriAttributeTypes.includes(typeof item[key])) {
           throw new Error(
             `Field '${key}' in 'attributes' should be a string, boolean or number, but is ${typeof item[key]}`
           )

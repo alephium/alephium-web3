@@ -16,9 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { validateNFTCollectionUriMetadata, validateNFTTokenUriMetadata, validateEnumerableNFTBaseUri } from './nft'
+import { validateNFTCollectionUriMetadata, validateNFTTokenUriMetadata, validateNFTBaseUri } from './nft'
 
-describe('nft', function() {
+describe('nft', function () {
   it('should validate NFT and NFT collection metadata', () => {
     const validWithoutAttributes = {
       name: 'NFT name',
@@ -127,7 +127,7 @@ describe('nft', function() {
 
   it('should validate NFT collection token base URL', async () => {
     const validUri = 'https://ipfs.io/ipfs/QmU7N7JMP3sF3YpSZ1v2G763BE8hHoaH7e6jJmxiu6N6Sh/'
-    expect(await validateEnumerableNFTBaseUri(validUri, 2)).toEqual([
+    expect(await validateNFTBaseUri(validUri, 2)).toEqual([
       {
         name: 'Tom',
         description: 'Tom is a grumpy brown male cat',
@@ -140,7 +140,7 @@ describe('nft', function() {
       }
     ])
 
-    expect(await validateEnumerableNFTBaseUri(validUri, 1)).toEqual([
+    expect(await validateNFTBaseUri(validUri, 1)).toEqual([
       {
         name: 'Tom',
         description: 'Tom is a grumpy brown male cat',
@@ -148,12 +148,12 @@ describe('nft', function() {
       }
     ])
 
-    expect(async () => await validateEnumerableNFTBaseUri(validUri, 3)).rejects.toThrow(Error)
-    expect(async () => await validateEnumerableNFTBaseUri(validUri, 0)).rejects.toThrow(Error)
-    expect(async () => await validateEnumerableNFTBaseUri(validUri, -5)).rejects.toThrow(Error)
-    expect(async () => await validateEnumerableNFTBaseUri(validUri, 1.1)).rejects.toThrow(Error)
+    expect(async () => await validateNFTBaseUri(validUri, 3)).rejects.toThrow(Error)
+    expect(async () => await validateNFTBaseUri(validUri, 0)).rejects.toThrow(Error)
+    expect(async () => await validateNFTBaseUri(validUri, -5)).rejects.toThrow(Error)
+    expect(async () => await validateNFTBaseUri(validUri, 1.1)).rejects.toThrow(Error)
 
     const invalidUri = 'https://ipfs.io/ipfs/invalid'
-    expect(async () => await validateEnumerableNFTBaseUri(invalidUri, 2)).rejects.toThrow(Error)
+    expect(async () => await validateNFTBaseUri(invalidUri, 2)).rejects.toThrow(Error)
   })
 })
