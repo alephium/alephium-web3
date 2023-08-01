@@ -160,6 +160,14 @@ function valToString(value: node.Val): string {
   }
 }
 
+function genEventIndex(contract: Contract): string {
+  if (contract.eventsSig.length === 0) {
+    return ''
+  }
+  const defs = contract.eventsSig.map((eventSig, index) => `${eventSig.name}: ${index}`).join(',')
+  return `eventIndex = { ${defs} }`
+}
+
 function genConsts(contract: Contract): string {
   const constants = genConstants(contract.constants)
   const enums = genEnums(contract.enums)
@@ -364,6 +372,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
+      ${genEventIndex(contract)}
       ${genConsts(contract)}
       ${genAttach(getInstanceName(contract))}
       ${genTestMethods(contract, fieldsSig)}

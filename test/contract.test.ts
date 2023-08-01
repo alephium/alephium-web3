@@ -63,6 +63,12 @@ describe('contract', function () {
     expect(signerGroup).toEqual(groupOfAddress(testAddress))
   })
 
+  it('should test event index', () => {
+    expect(Add.eventIndex.Add).toEqual(0)
+    expect(Add.eventIndex.Add1).toEqual(1)
+    expect(Sub.eventIndex.Sub).toEqual(0)
+  })
+
   it('should test contract (1)', async () => {
     // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })
