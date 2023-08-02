@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3, NetworkId, networkIds, validateEnumerableNFTBaseUri } from '@alephium/web3'
+import { Project, web3, NetworkId, networkIds, validateNFTBaseUri } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -224,15 +224,15 @@ nftCommand
   })
 
 nftCommand
-  .command('validate-enumerable-nft-base-uri')
-  .description('validate token base uri for pre-designed collection')
-  .option('-n, --nftBaseUri <nft-base-uri>', 'enumerable NFT base uri')
-  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'max supply of the enumerable NFT collection')
+  .command('validate-nft-base-uri')
+  .description('validate nft base uri for pre-designed collection')
+  .option('-n, --nftBaseUri <nft-base-uri>', 'NFT base uri')
+  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'max supply of the NFT collection')
   .action(async (options) => {
     try {
       const nftBaseUri = options.nftBaseUri as string
       const maxSupply = Number(options.maxSupply)
-      const result = await validateEnumerableNFTBaseUri(nftBaseUri, maxSupply)
+      const result = await validateNFTBaseUri(nftBaseUri, maxSupply)
       console.log('Token Metadataz:')
       console.log(result)
     } catch (error) {
