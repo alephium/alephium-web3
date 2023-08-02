@@ -56,5 +56,5 @@ export function useAccount(onDisconnected?: () => Promise<void>) {
     handler()
   }, [onDisconnected])
 
-  return { account: context.account, isConnected: !!context.account }
+  return context.account ? { networkType: context.network, ...context.account } : undefined
 }

@@ -33,7 +33,8 @@ const ConnectModal: React.FC<{
   customTheme?: CustomTheme
 }> = ({ mode = 'auto', theme = 'auto', customTheme = customThemeDefault }) => {
   const context = useAlephiumConnectContext()
-  const { isConnected } = useAccount()
+  const account = useAccount()
+  const isConnected = !!account
 
   const closeable = true
 

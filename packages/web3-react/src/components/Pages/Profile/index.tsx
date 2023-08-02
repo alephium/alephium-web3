@@ -33,7 +33,7 @@ import { useConnect } from '../../../hooks/useConnect'
 
 const Profile: React.FC<{ closeModal?: () => void }> = ({ closeModal }) => {
   const context = useAlephiumConnectContext()
-  const { account } = useAccount()
+  const account = useAccount()
   const { balance } = useBalance()
   const { disconnect } = useConnect({
     addressGroup: context.addressGroup,
