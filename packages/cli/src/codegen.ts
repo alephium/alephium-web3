@@ -206,7 +206,7 @@ function genSubscribeEvent(contractName: string, event: EventSig): string {
   const eventType = getEventType(event)
   const scopedEventType = `${contractTypes(contractName)}.${eventType}`
   return `
-    subscribe${eventType}(options: SubscribeOptions<${scopedEventType}>, fromCount?: number): EventSubscription {
+    subscribe${eventType}(options: EventSubscribeOptions<${scopedEventType}>, fromCount?: number): EventSubscription {
       return subscribeContractEvent(${contractName}.contract, this, options, "${event.name}", fromCount)
     }
   `
@@ -218,7 +218,7 @@ function genSubscribeAllEvents(contract: Contract): string {
   }
   const eventTypes = contract.eventsSig.map((e) => `${contractTypes(contract.name)}.${getEventType(e)}`).join(' | ')
   return `
-    subscribeAllEvents(options: SubscribeOptions<${eventTypes}>, fromCount?: number): EventSubscription {
+    subscribeAllEvents(options: EventSubscribeOptions<${eventTypes}>, fromCount?: number): EventSubscription {
       return subscribeContractEvents(${contract.name}.contract, this, options, fromCount)
     }
   `
@@ -356,7 +356,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
     import {
       Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
-      SubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
+      EventSubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, multicallMethods, fetchContractState,
       ContractInstance, getContractEventsCurrentCount

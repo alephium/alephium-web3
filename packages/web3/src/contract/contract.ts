@@ -47,7 +47,6 @@ import {
   bs58,
   binToHex,
   contractIdFromAddress,
-  SubscribeOptions,
   Subscription,
   assertType,
   Eq,
@@ -58,7 +57,7 @@ import {
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
-import { EventSubscription, subscribeToEvents } from './events'
+import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
 
 const crypto = new WebCrypto()
@@ -1540,7 +1539,7 @@ export function decodeContractDestroyedEvent(
 }
 
 export function subscribeEventsFromContract<T extends Fields, M extends ContractEvent<T>>(
-  options: SubscribeOptions<M>,
+  options: EventSubscribeOptions<M>,
   address: string,
   eventIndex: number,
   decodeFunc: (event: node.ContractEvent) => M,
@@ -1556,10 +1555,11 @@ export function subscribeEventsFromContract<T extends Fields, M extends Contract
   const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
     return options.errorCallback(err, subscription as unknown as Subscription<M>)
   }
-  const opt: SubscribeOptions<node.ContractEvent> = {
+  const opt: EventSubscribeOptions<node.ContractEvent> = {
     pollingInterval: options.pollingInterval,
     messageCallback: messageCallback,
-    errorCallback: errorCallback
+    errorCallback: errorCallback,
+    onEventCountChanged: options.onEventCountChanged
   }
   return subscribeToEvents(opt, address, fromCount)
 }
@@ -1620,7 +1620,7 @@ export async function fetchContractState<F extends Fields, I extends ContractIns
 }
 
 export function subscribeContractCreatedEvent(
-  options: SubscribeOptions<ContractCreatedEvent>,
+  options: EventSubscribeOptions<ContractCreatedEvent>,
   fromCount?: number
 ): EventSubscription {
   return subscribeEventsFromContract(
@@ -1638,7 +1638,7 @@ export function subscribeContractCreatedEvent(
 }
 
 export function subscribeContractDestroyedEvent(
-  options: SubscribeOptions<ContractDestroyedEvent>,
+  options: EventSubscribeOptions<ContractDestroyedEvent>,
   fromCount?: number
 ): EventSubscription {
   return subscribeEventsFromContract(
@@ -1684,7 +1684,7 @@ export function decodeEvent<F extends Fields, M extends ContractEvent<F>>(
 export function subscribeContractEvent<F extends Fields, M extends ContractEvent<F>>(
   contract: Contract,
   instance: ContractInstance,
-  options: SubscribeOptions<M>,
+  options: EventSubscribeOptions<M>,
   eventName: string,
   fromCount?: number
 ): EventSubscription {
@@ -1701,7 +1701,7 @@ export function subscribeContractEvent<F extends Fields, M extends ContractEvent
 export function subscribeContractEvents(
   contract: Contract,
   instance: ContractInstance,
-  options: SubscribeOptions<ContractEvent<any>>,
+  options: EventSubscribeOptions<ContractEvent<any>>,
   fromCount?: number
 ): EventSubscription {
   const messageCallback = (event: node.ContractEvent): Promise<void> => {
@@ -1713,10 +1713,11 @@ export function subscribeContractEvents(
   const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
     return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<any>>)
   }
-  const opt: SubscribeOptions<node.ContractEvent> = {
+  const opt: EventSubscribeOptions<node.ContractEvent> = {
     pollingInterval: options.pollingInterval,
     messageCallback: messageCallback,
-    errorCallback: errorCallback
+    errorCallback: errorCallback,
+    onEventCountChanged: options.onEventCountChanged
   }
   return subscribeToEvents(opt, instance.address, fromCount)
 }

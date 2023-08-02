@@ -20,14 +20,20 @@ import { web3 } from '..'
 import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
 
+export interface EventSubscribeOptions<Message> extends SubscribeOptions<Message> {
+  onEventCountChanged?: (eventCount: number) => Promise<void>
+}
+
 export class EventSubscription extends Subscription<node.ContractEvent> {
   readonly contractAddress: string
   private fromCount: number
+  private onEventCountChanged?: (eventCount: number) => Promise<void>
 
-  constructor(options: SubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
+  constructor(options: EventSubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
     super(options)
     this.contractAddress = contractAddress
     this.fromCount = typeof fromCount === 'undefined' ? 0 : fromCount
+    this.onEventCountChanged = options.onEventCountChanged
 
     this.startPolling()
   }
@@ -60,6 +66,11 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
       const promises = events.events.map((event) => this.messageCallback(event))
       await Promise.all(promises)
       this.fromCount = events.nextStart
+
+      if (this.onEventCountChanged !== undefined) {
+        await this.onEventCountChanged(this.fromCount)
+      }
+
       await this.polling()
     } catch (err) {
       await this.errorCallback(err, this)
@@ -68,7 +79,7 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
 }
 
 export function subscribeToEvents(
-  options: SubscribeOptions<node.ContractEvent>,
+  options: EventSubscribeOptions<node.ContractEvent>,
   contractAddress: string,
   fromCount?: number
 ): EventSubscription {
