@@ -59,6 +59,7 @@ export async function generateImagesWithOpenAI(
     const imageUrl = response.data.data[i].url!
     const imageResponse: Response = await fetch(imageUrl)
     const fileStream = fs.createWriteStream(`${storedDir}/${i}`, { flags: 'wx' })
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     await imageResponse.body!.pipe(fileStream)
   }
@@ -76,7 +77,7 @@ export async function uploadImagesAndMetadataToIPFS(
 
   const files = Object.keys(metadataConfig)
 
-  const toBeUploaded: { path: string, content: ReadStream }[] = []
+  const toBeUploaded: { path: string; content: ReadStream }[] = []
   files.forEach((file) => {
     const localFilePath = path.join(localDir, file)
     const ipfsFilePath = path.join(ipfsDir, file)
@@ -187,7 +188,7 @@ async function uploadImageMetadataToIPFS(
   infuraProjectId: string,
   infuraProjectSecret: string
 ): Promise<string | undefined> {
-  const toBeUploaded: { path: string, content: string }[] = []
+  const toBeUploaded: { path: string; content: string }[] = []
   metadataz.forEach((metadata, index) => {
     const remoteFilePath = path.join(ipfsDir, index.toString())
     toBeUploaded.push({ path: remoteFilePath, content: JSON.stringify(metadata) })

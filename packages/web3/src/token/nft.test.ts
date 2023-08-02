@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { validateNFTCollectionUriMetaData, validateNFTTokenUriMetaData, validateNFTBaseUri } from './nft'
 
-describe('nft', function() {
+describe('nft', function () {
   it('should validate NFT and NFT collection metadata', () => {
     const validWithoutAttributes = {
       name: 'NFT name',
