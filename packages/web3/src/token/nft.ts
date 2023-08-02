@@ -24,6 +24,7 @@ import { NFTCollectionUriMetaData, NFTTokenUriMetaData } from '../api'
 
 export const validNFTTokenUriMetadataFields = ['name', 'description', 'image', 'attributes']
 export const validNFTTokenUriMetadataAttributesFields = ['trait_type', 'value']
+export const validNFTUriMetadataAttributeTypes = ['string', 'number', 'boolean']
 export const validNFTCollectionUriMetadataFields = ['name', 'description', 'image']
 
 export function validateNFTTokenUriMetadata(metadata: any): NFTTokenUriMetaData {

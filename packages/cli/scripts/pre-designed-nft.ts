@@ -15,11 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import fs from 'fs'
+import fs, { ReadStream } from 'fs'
 import path from 'path'
 import { Configuration, CreateImageRequestSizeEnum, OpenAIApi } from 'openai'
 import { create as ipfsHttpClient } from 'ipfs-http-client'
-import { validateNFTBaseUri, NFTMetadata, validNFTUriMetadataAttributeTypes } from '@alephium/web3'
+import { validateNFTBaseUri, NFTTokenUriMetaData, validNFTUriMetadataAttributeTypes } from '@alephium/web3'
 import { parse } from 'yaml'
 
 export interface NFTMetadataConfig {
@@ -56,10 +56,11 @@ export async function generateImagesWithOpenAI(
   })
 
   for (let i = 0; i < numberOfImages; i++) {
-    const imageUrl = response.data.data[i].url
-    const imageResponse = await fetch(imageUrl)
+    const imageUrl = response.data.data[i].url!
+    const imageResponse: Response = await fetch(imageUrl)
     const fileStream = fs.createWriteStream(`${storedDir}/${i}`, { flags: 'wx' })
-    await imageResponse.body.pipe(fileStream)
+    // @ts-ignore
+    await imageResponse.body!.pipe(fileStream)
   }
 }
 
@@ -69,13 +70,13 @@ export async function uploadImagesAndMetadataToIPFS(
   metadataConfigFile: string,
   infuraProjectId: string,
   infuraProjectSecret: string
-): Promise<string> {
+): Promise<string | undefined> {
   const metadataConfig = parseNFTMetadataConfig(metadataConfigFile, localDir)
   console.log(metadataConfig)
 
   const files = Object.keys(metadataConfig)
 
-  const toBeUploaded = []
+  const toBeUploaded: { path: string, content: ReadStream }[] = []
   files.forEach((file) => {
     const localFilePath = path.join(localDir, file)
     const ipfsFilePath = path.join(ipfsDir, file)
@@ -89,7 +90,7 @@ export async function uploadImagesAndMetadataToIPFS(
     const ipfsClient = createIPFSClient(infuraProjectId, infuraProjectSecret)
 
     let remoteDirURL: string | undefined = undefined
-    const metadata: NFTMetadata[] = []
+    const metadata: NFTTokenUriMetaData[] = []
     for await (const result of ipfsClient.addAll(toBeUploaded)) {
       if (result.path === ipfsDir) {
         remoteDirURL = `https://ipfs.io/ipfs/${result.cid.toString()}`
@@ -170,7 +171,7 @@ function validateAttributesTypeIfExists(parent: string, attributes?: object) {
       }
 
       Object.keys(item).forEach((key) => {
-        if (!validNFTMetadataUriAttributeTypes.includes(typeof item[key])) {
+        if (!validNFTUriMetadataAttributeTypes.includes(typeof item[key])) {
           throw new Error(
             `Field '${key}' in 'attributes' should be a string, boolean or number, but is ${typeof item[key]}`
           )
@@ -185,8 +186,8 @@ async function uploadImageMetadataToIPFS(
   metadataz: any[],
   infuraProjectId: string,
   infuraProjectSecret: string
-): Promise<string> {
-  const toBeUploaded = []
+): Promise<string | undefined> {
+  const toBeUploaded: { path: string, content: string }[] = []
   metadataz.forEach((metadata, index) => {
     const remoteFilePath = path.join(ipfsDir, index.toString())
     toBeUploaded.push({ path: remoteFilePath, content: JSON.stringify(metadata) })
@@ -213,13 +214,13 @@ function parseNFTMetadataConfig(file: string, localImageDir: string): NFTMetadat
   return validateMetadataConfig(parsedContent, localImageDir)
 }
 
-function convertAttributes(attributes: NFTMetadataConfig['attributes']): NFTMetadata['attributes'] | undefined {
+function convertAttributes(attributes: NFTMetadataConfig['attributes']): NFTTokenUriMetaData['attributes'] {
   if (attributes) {
     return attributes.map((attribute) => {
       const traitType = Object.keys(attribute)[0]
       const value = attribute[traitType]
-      return { trait_type: traitType, value }
-    })
+      return { trait_type: traitType, value: value }
+    }) as NFTTokenUriMetaData['attributes']
   }
 }
 

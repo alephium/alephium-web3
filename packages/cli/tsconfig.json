@@ -15,6 +15,6 @@
     "experimentalDecorators": true,
     "noImplicitOverride": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "scripts/**/*.ts"],
   "exclude": ["node_modules", "templates", "src/**/*.test.ts", "src/**/fixtures/*"]
 }

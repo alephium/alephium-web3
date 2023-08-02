@@ -224,10 +224,10 @@ nftCommand
   })
 
 nftCommand
-  .command('validate-enumerable-nft-base-uri')
-  .description('validate token base uri for pre-designed collection')
-  .option('-n, --nftBaseUri <nft-base-uri>', 'enumerable NFT base uri')
-  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'max supply of the enumerable NFT collection')
+  .command('validate-nft-base-uri')
+  .description('validate nft base uri for pre-designed collection')
+  .option('-n, --nftBaseUri <nft-base-uri>', 'NFT base uri')
+  .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'max supply of the NFT collection')
   .action(async (options) => {
     try {
       const nftBaseUri = options.nftBaseUri as string
