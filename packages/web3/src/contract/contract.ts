@@ -187,7 +187,7 @@ type CodeInfo = {
   warnings: string[]
 }
 
-class ProjectArtifact {
+export class ProjectArtifact {
   static readonly artifactFileName = '.project.json'
 
   fullNodeVersion: string
@@ -210,6 +210,19 @@ class ProjectArtifact {
     this.fullNodeVersion = fullNodeVersion
     this.compilerOptionsUsed = compilerOptionsUsed
     this.infos = infos
+  }
+
+  static isCodeChanged(current: ProjectArtifact, previous: ProjectArtifact): boolean {
+    if (current.infos.size !== previous.infos.size) {
+      return true
+    }
+    for (const [name, codeInfo] of current.infos) {
+      const prevCodeInfo = previous.infos.get(name)
+      if (prevCodeInfo?.codeHashDebug !== codeInfo.codeHashDebug) {
+        return true
+      }
+    }
+    return false
   }
 
   async saveToFile(rootPath: string): Promise<void> {

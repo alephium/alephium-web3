@@ -29,8 +29,9 @@ export async function deployAndSaveProgress<Settings = unknown>(
 ): Promise<void> {
   const deploymentsFile = getDeploymentFilePath(configuration, networkId)
   const deployments = await Deployments.from(deploymentsFile)
+  let scriptExecuted: boolean
   try {
-    await deploy(configuration, networkId, deployments, fromIndex, toIndex)
+    scriptExecuted = await deploy(configuration, networkId, deployments, fromIndex, toIndex)
   } catch (error) {
     await deployments.saveToFile(deploymentsFile, configuration, false)
     console.error(`Failed to deploy the project`)
@@ -38,5 +39,5 @@ export async function deployAndSaveProgress<Settings = unknown>(
   }
 
   await deployments.saveToFile(deploymentsFile, configuration, true)
-  console.log('✅ Deployment scripts executed!')
+  if (scriptExecuted) console.log('✅ Deployment scripts executed!')
 }

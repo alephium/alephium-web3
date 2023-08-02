@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { recordEqual } from './deployment'
+import { Deployments, DeploymentsPerAddress, recordEqual } from './deployment'
 
 describe('deployments', () => {
   it('test record equal', () => {
@@ -29,5 +29,33 @@ describe('deployments', () => {
     expect(recordEqual({ a: '20000', b: '20' }, { a: '10000', b: '20' })).toEqual(false)
     expect(recordEqual({ a: '20000', b: '20' }, { a: '10000', b: '10' })).toEqual(false)
     expect(recordEqual({ a: '20000', b: '20' }, { c: '10000', d: '10' })).toEqual(false)
+  })
+
+  it('test if deployments is empty', () => {
+    const deployments = Deployments.empty()
+    expect(deployments.isEmpty()).toEqual(true)
+
+    const deploymentsPerAddress0 = DeploymentsPerAddress.empty('Address0')
+    expect(deploymentsPerAddress0.isEmpty()).toEqual(true)
+
+    deployments.add(deploymentsPerAddress0)
+    expect(deployments.isEmpty()).toEqual(true)
+
+    deploymentsPerAddress0.contracts.set('Foo', undefined as any)
+    expect(deploymentsPerAddress0.isEmpty()).toEqual(false)
+    expect(deployments.isEmpty()).toEqual(false)
+
+    deploymentsPerAddress0.contracts.clear()
+    deploymentsPerAddress0.scripts.set('Foo', undefined as any)
+    expect(deploymentsPerAddress0.isEmpty()).toEqual(false)
+    expect(deployments.isEmpty()).toEqual(false)
+
+    deploymentsPerAddress0.scripts.clear()
+    deploymentsPerAddress0.migrations.set('Foo', 0)
+    expect(deploymentsPerAddress0.isEmpty()).toEqual(false)
+    expect(deployments.isEmpty()).toEqual(false)
+
+    deployments.add(DeploymentsPerAddress.empty('Address1'))
+    expect(deployments.isEmpty()).toEqual(false)
   })
 })

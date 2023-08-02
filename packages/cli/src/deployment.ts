@@ -22,7 +22,6 @@ import {
   Project,
   Contract,
   Script,
-  node,
   web3,
   Token,
   Number256,
@@ -30,13 +29,13 @@ import {
   DeployContractResult,
   ExecuteScriptParams,
   ExecuteScriptResult,
-  SignerProvider,
   Fields,
   ContractFactory,
   addStdIdToFields,
   NetworkId,
   ContractInstance,
-  ExecutableScript
+  ExecutableScript,
+  ProjectArtifact
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -52,9 +51,17 @@ import {
   ExecutionResult,
   DEFAULT_CONFIGURATION_VALUES
 } from './types'
-import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig, retryFetch, waitTxConfirmed } from './utils'
+import {
+  getConfigFile,
+  getDeploymentFilePath,
+  getNetwork,
+  loadConfig,
+  retryFetch,
+  waitTxConfirmed,
+  waitUserConfirmation
+} from './utils'
 import { groupOfAddress } from '@alephium/web3'
-import { genLoadDeployments } from './codegen'
+import { codegen, genLoadDeployments } from './codegen'
 
 export class Deployments {
   deployments: DeploymentsPerAddress[]
@@ -65,6 +72,10 @@ export class Deployments {
 
   static empty(): Deployments {
     return new Deployments([])
+  }
+
+  isEmpty(): boolean {
+    return this.deployments.length === 0 || this.deployments.every((d) => d.isEmpty())
   }
 
   deploymentsByGroup(group: number): DeploymentsPerAddress | undefined {
@@ -179,6 +190,10 @@ export class DeploymentsPerAddress {
 
   static empty(deployerAddress: string): DeploymentsPerAddress {
     return new DeploymentsPerAddress(deployerAddress, new Map(), new Map(), new Map())
+  }
+
+  isEmpty(): boolean {
+    return this.contracts.size === 0 && this.scripts.size === 0 && this.migrations.size === 0
   }
 
   marshal(): any {
@@ -486,10 +501,37 @@ export async function deploy<Settings = unknown>(
   deployments: Deployments,
   fromIndex?: number,
   toIndex?: number
-): Promise<void> {
-  const network = await getNetwork(configuration, networkId)
+): Promise<boolean> {
+  const network = getNetwork(configuration, networkId)
   if (typeof network === 'undefined') {
     throw new Error(`no network ${networkId} config`)
+  }
+
+  web3.setCurrentNodeProvider(network.nodeUrl, undefined, retryFetch)
+  const projectRootDir = path.resolve(process.cwd())
+  const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
+  const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
+  await Project.build(
+    configuration.compilerOptions,
+    path.resolve(process.cwd()),
+    configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
+    artifactDir
+  )
+
+  // When the contract has been deployed previously, and the contract
+  // code has changed, ask the user to confirm whether to redeploy the contract
+  if (
+    !deployments.isEmpty() &&
+    prevProjectArtifact !== undefined &&
+    ProjectArtifact.isCodeChanged(Project.currentProject.projectArtifact, prevProjectArtifact)
+  ) {
+    const msg =
+      'The contract code has been changed, which will result in redeploying the contract.\nPlease confirm if you want to proceed?'
+    if (!(await waitUserConfirmation(msg))) {
+      return false
+    }
+    // We need to regenerate the code because the deployment scripts depend on the generated ts code
+    codegen(artifactDir)
   }
 
   const deployScriptsRootPath = configuration.deploymentScriptDir
@@ -516,18 +558,10 @@ export async function deploy<Settings = unknown>(
     }
   }
 
-  web3.setCurrentNodeProvider(network.nodeUrl, undefined, retryFetch)
   const signers = getSigners(network.privateKeys)
   await validateChainParams(
     network.networkId,
     signers.map((signer) => signer.group)
-  )
-
-  await Project.build(
-    configuration.compilerOptions,
-    path.resolve(process.cwd()),
-    configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
-    configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   )
 
   for (const signer of signers) {
@@ -536,6 +570,7 @@ export async function deploy<Settings = unknown>(
     deployments.add(deploymentsPerAddress)
     await deployToGroup(networkId, configuration, deploymentsPerAddress, signer, network, scripts)
   }
+  return true
 }
 
 export async function deployToDevnet(): Promise<Deployments> {

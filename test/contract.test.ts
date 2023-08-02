@@ -29,7 +29,9 @@ import {
   contractIdFromAddress,
   binToHex,
   addressFromContractId,
-  groupOfAddress
+  groupOfAddress,
+  ProjectArtifact,
+  DEFAULT_NODE_COMPILER_OPTIONS
 } from '../packages/web3'
 import { Contract, Project, Script } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
@@ -290,5 +292,38 @@ describe('contract', function () {
 
     const invalidCodeHash = randomBytes(32).toString('hex')
     expect(() => getContractByCodeHash(invalidCodeHash)).toThrow(`Unknown code with code hash: ${invalidCodeHash}`)
+  })
+
+  it('should test contract code changed', () => {
+    const createArtifact = (codes: [string, string][]): ProjectArtifact => {
+      const codeInfos = new Map()
+      codes.forEach(([name, codeHash]) => {
+        const codeInfo = { codeHashDebug: codeHash }
+        codeInfos.set(name, codeInfo)
+      })
+      return new ProjectArtifact('', DEFAULT_NODE_COMPILER_OPTIONS, codeInfos as any)
+    }
+
+    const artifact0 = createArtifact([['Foo', '00']])
+    const artifact1 = createArtifact([
+      ['Foo', '01'],
+      ['Bar', '00']
+    ])
+    const artifact2 = createArtifact([
+      ['Foo', '01'],
+      ['Bar', '01']
+    ])
+    const artifact3 = createArtifact([
+      ['Add', '03'],
+      ['Sub', '04'],
+      ['Greeter', '05']
+    ])
+    expect(ProjectArtifact.isCodeChanged(artifact0, artifact0)).toEqual(false)
+    expect(ProjectArtifact.isCodeChanged(artifact1, artifact1)).toEqual(false)
+    expect(ProjectArtifact.isCodeChanged(artifact2, artifact2)).toEqual(false)
+    expect(ProjectArtifact.isCodeChanged(artifact0, artifact1)).toEqual(true)
+    expect(ProjectArtifact.isCodeChanged(artifact1, artifact0)).toEqual(true)
+    expect(ProjectArtifact.isCodeChanged(artifact1, artifact2)).toEqual(true)
+    expect(ProjectArtifact.isCodeChanged(artifact3, artifact2)).toEqual(true)
   })
 })
