@@ -525,13 +525,13 @@ export async function deploy<Settings = unknown>(
     prevProjectArtifact !== undefined &&
     ProjectArtifact.isCodeChanged(Project.currentProject.projectArtifact, prevProjectArtifact)
   ) {
+    // We need to regenerate the code because the deployment scripts depend on the generated ts code
+    codegen(artifactDir)
     const msg =
       'The contract code has been changed, which will result in redeploying the contract.\nPlease confirm if you want to proceed?'
     if (!(await waitUserConfirmation(msg))) {
       return false
     }
-    // We need to regenerate the code because the deployment scripts depend on the generated ts code
-    codegen(artifactDir)
   }
 
   const deployScriptsRootPath = configuration.deploymentScriptDir
