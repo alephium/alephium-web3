@@ -39,5 +39,5 @@ export async function deployAndSaveProgress<Settings = unknown>(
   }
 
   await deployments.saveToFile(deploymentsFile, configuration, true)
-  if (scriptExecuted) console.log('✅ Deployment scripts executed!')
+  if (scriptExecuted) console.log('✅ Scripts deployment executed!')
 }
