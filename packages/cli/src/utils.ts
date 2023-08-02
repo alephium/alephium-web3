@@ -21,6 +21,7 @@ import fs from 'fs'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network } from './types'
 import { NetworkId, node, NodeProvider } from '@alephium/web3'
 import * as fetchRetry from 'fetch-retry'
+import * as readline from 'readline'
 
 export function loadConfig<Settings = unknown>(filename: string): Configuration<Settings> {
   const configPath = path.resolve(filename)
@@ -101,3 +102,17 @@ export const retryFetch = fetchRetry.default(fetch, {
   retries: 20,
   retryDelay: 1000
 })
+
+export function waitUserConfirmation(msg: string): Promise<boolean> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+
+  return new Promise((resolve) => {
+    rl.question(`${msg} (y) `, (answer) => {
+      rl.close()
+      resolve(answer.toLowerCase() === 'y')
+    })
+  })
+}
