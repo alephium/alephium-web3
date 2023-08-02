@@ -64,5 +64,9 @@ export abstract class Subscription<Message> {
     }
   }
 
+  isCancelled(): boolean {
+    return this.cancelled
+  }
+
   abstract polling(): Promise<void>
 }

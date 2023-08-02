@@ -9,7 +9,7 @@ import {
   TestContractResult,
   HexString,
   ContractFactory,
-  SubscribeOptions,
+  EventSubscribeOptions,
   EventSubscription,
   CallContractParams,
   CallContractResult,
@@ -58,6 +58,8 @@ export namespace SubTypes {
 }
 
 class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
+  eventIndex = { Sub: 0 };
+
   at(address: string): SubInstance {
     return new SubInstance(address);
   }
@@ -95,7 +97,7 @@ export class SubInstance extends ContractInstance {
   }
 
   subscribeSubEvent(
-    options: SubscribeOptions<SubTypes.SubEvent>,
+    options: EventSubscribeOptions<SubTypes.SubEvent>,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvent(

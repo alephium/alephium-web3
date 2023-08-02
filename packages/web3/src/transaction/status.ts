@@ -26,12 +26,20 @@ export class TxStatusSubscription extends Subscription<TxStatus> {
   readonly txId: string
   readonly fromGroup?: number
   readonly toGroup?: number
+  readonly confirmations: number
 
-  constructor(options: SubscribeOptions<TxStatus>, txId: string, fromGroup?: number, toGroup?: number) {
+  constructor(
+    options: SubscribeOptions<TxStatus>,
+    txId: string,
+    fromGroup?: number,
+    toGroup?: number,
+    confirmations?: number
+  ) {
     super(options)
     this.txId = txId
     this.fromGroup = fromGroup
     this.toGroup = toGroup
+    this.confirmations = confirmations ?? 1
 
     this.startPolling()
   }
@@ -45,6 +53,9 @@ export class TxStatusSubscription extends Subscription<TxStatus> {
       })
 
       await this.messageCallback(txStatus)
+      if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= this.confirmations) {
+        this.unsubscribe()
+      }
     } catch (err) {
       await this.errorCallback(err, this)
     }
@@ -55,7 +66,8 @@ export function subscribeToTxStatus(
   options: SubscribeOptions<TxStatus>,
   txId: string,
   fromGroup?: number,
-  toGroup?: number
+  toGroup?: number,
+  confirmations?: number
 ): TxStatusSubscription {
-  return new TxStatusSubscription(options, txId, fromGroup, toGroup)
+  return new TxStatusSubscription(options, txId, fromGroup, toGroup, confirmations)
 }

@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Project, Contract, getContractEventsCurrentCount } from '../packages/web3'
 import { NodeWallet } from '../packages/web3-wallet'
-import { SubscribeOptions, sleep } from '../packages/web3'
+import { EventSubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { Sub } from '../artifacts/ts/Sub'
@@ -30,6 +30,7 @@ import { ContractDestroyedEvent, subscribeContractDestroyedEvent } from '../pack
 
 describe('events', function () {
   let signer: NodeWallet
+  let eventCount: number
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
@@ -38,13 +39,17 @@ describe('events', function () {
     await Project.build({ errorOnWarnings: false })
   })
 
+  beforeEach(() => {
+    eventCount = 0
+  })
+
   async function deployContract(signer: NodeWallet): Promise<AddInstance> {
     const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
     return (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
       .contractInstance
   }
 
-  function createSubscribeOptions<T>(events: Array<T>): SubscribeOptions<T> {
+  function createSubscribeOptions<T>(events: Array<T>): EventSubscribeOptions<T> {
     return {
       pollingInterval: 500,
       messageCallback: (event: T): Promise<void> => {
@@ -54,6 +59,10 @@ describe('events', function () {
       errorCallback: (error: any, subscription): Promise<void> => {
         console.log(error)
         subscription.unsubscribe()
+        return Promise.resolve()
+      },
+      onEventCountChanged: (count: number) => {
+        eventCount = count
         return Promise.resolve()
       }
     }
@@ -77,6 +86,7 @@ describe('events', function () {
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
     const currentContractEventsCount = await add.getContractEventsCurrentCount()
     expect(currentContractEventsCount).toEqual(addEvents.length)
+    expect(eventCount).toEqual(3)
 
     subscription.unsubscribe()
   }, 15000)
@@ -117,6 +127,7 @@ describe('events', function () {
       }
     })
     expect(subscription.currentEventCount()).toEqual(3)
+    expect(eventCount).toEqual(3)
 
     subscription.unsubscribe()
   })
@@ -128,6 +139,7 @@ describe('events', function () {
     const subscription = add.subscribeAddEvent(subscribeOptions)
     const scriptTx0 = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await sleep(1500)
+    expect(eventCount).toEqual(1)
     subscription.unsubscribe()
 
     expect(addEvents.length).toEqual(1)
@@ -138,6 +150,7 @@ describe('events', function () {
 
     await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
     await sleep(1500)
+    expect(eventCount).toEqual(1)
     expect(addEvents.length).toEqual(1)
   })
 
