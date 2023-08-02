@@ -69,14 +69,11 @@ describe('transactions', function () {
     expect(txStatus).toMatchObject({ type: 'Confirmed' })
 
     expect(counterBeforeSubscribe).toBeLessThan(counter)
+    expect(subscription.isCancelled()).toEqual(true)
+    const counterAfterConfirmed = counter
 
-    subscription.unsubscribe()
-
-    const counterAfterUnsubscribe = counter
     await sleep(1500)
-    expect(txStatus).toMatchObject({ type: 'Confirmed' })
-    // There maybe a pending request when we unsubscribe
-    expect([counter, counter - 1]).toContain(counterAfterUnsubscribe)
+    expect(counter).toEqual(counterAfterConfirmed)
   }, 10000)
 
   it('should use Schnorr address', async () => {
