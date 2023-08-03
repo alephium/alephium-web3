@@ -33,7 +33,7 @@ import {
   ProjectArtifact,
   DEFAULT_NODE_COMPILER_OPTIONS
 } from '../packages/web3'
-import { Contract, Project, Script } from '../packages/web3'
+import { Contract, Project, Script, getContractIdFromTxId } from '../packages/web3'
 import { testNodeWallet } from '../packages/web3-test'
 import { expectAssertionError, testAddress, randomContractAddress } from '../packages/web3-test'
 import { NodeWallet } from '@alephium/web3-wallet'
@@ -67,6 +67,17 @@ describe('contract', function () {
     expect(Add.eventIndex.Add).toEqual(0)
     expect(Add.eventIndex.Add1).toEqual(1)
     expect(Sub.eventIndex.Sub).toEqual(0)
+  })
+
+  it('should get contract id from tx id', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const deployResult0 = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const subContractId = await getContractIdFromTxId(nodeProvider, deployResult0.txId, signerGroup)
+    expect(subContractId).toEqual(deployResult0.contractInstance.contractId)
+
+    const deployResult1 = await Add.deploy(signer, { initialFields: { sub: subContractId, result: 0n } })
+    const addContractId = await getContractIdFromTxId(nodeProvider, deployResult1.txId, signerGroup)
+    expect(addContractId).toEqual(deployResult1.contractInstance.contractId)
   })
 
   it('should test contract (1)', async () => {

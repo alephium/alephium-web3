@@ -53,12 +53,14 @@ import {
   Optional,
   groupOfAddress,
   addressFromContractId,
-  WebCrypto
+  WebCrypto,
+  hexToBinUnsafe
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
+import * as blake from 'blakejs'
 
 const crypto = new WebCrypto()
 
@@ -1786,3 +1788,20 @@ export async function getContractEventsCurrentCount(contractAddress: Address): P
       throw error
     })
 }
+
+export const getContractIdFromTxId = async (
+  nodeProvider: NodeProvider,
+  txId: string,
+  groupIndex: number
+): Promise<HexString> => {
+  const txDetails = await nodeProvider.transactions.getTransactionsDetailsTxid(txId, {
+    fromGroup: groupIndex,
+    toGroup: groupIndex
+  })
+  const outputIndex = txDetails.unsigned.fixedOutputs.length
+  const hex = txId + outputIndex.toString(16).padStart(8, '0')
+  const hashHex = binToHex(blake.blake2b(hexToBinUnsafe(hex), undefined, 32))
+  return hashHex.slice(0, 62) + groupIndex.toString(16).padStart(2, '0')
+}
+
+export const getTokenIdFromTxId = getContractIdFromTxId
