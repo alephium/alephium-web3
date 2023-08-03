@@ -34,9 +34,8 @@ import {
   DEFAULT_NODE_COMPILER_OPTIONS
 } from '../packages/web3'
 import { Contract, Project, Script } from '../packages/web3'
-import { testNodeWallet } from '../packages/web3-test'
 import { expectAssertionError, testAddress, randomContractAddress } from '../packages/web3-test'
-import { NodeWallet } from '@alephium/web3-wallet'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
 import { GreeterMain, Main } from '../artifacts/ts/scripts'
 import { Sub, SubTypes } from '../artifacts/ts/Sub'
@@ -47,19 +46,19 @@ import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { NFTTest, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
+import { getSigner } from '@alephium/web3-test'
 
 describe('contract', function () {
-  let signer: NodeWallet
+  let signer: PrivateKeyWallet
   let signerAccount: Account
   let signerGroup: number
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
-    signer = await testNodeWallet()
-    signerAccount = await signer.getSelectedAccount()
+    signer = await getSigner()
+    signerAccount = signer.account
     signerGroup = signerAccount.group
 
-    expect(signerAccount.address).toEqual(testAddress)
     expect(signerGroup).toEqual(groupOfAddress(testAddress))
   })
 
@@ -186,7 +185,7 @@ describe('contract', function () {
       subContractPath,
       groupIndex
     )
-    const payer = testAddress
+    const payer = signer.address
     const testResult = await Add.tests.createSubContract({
       address: addAddress,
       group: groupIndex,
@@ -269,8 +268,8 @@ describe('contract', function () {
 
   it('should test assert!', async () => {
     await Project.build({ errorOnWarnings: false })
-    const testAddress = randomContractAddress()
-    expectAssertionError(Assert.tests.test({ address: testAddress }), testAddress, 3)
+    const contractAddress = randomContractAddress()
+    expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, 3)
   })
 
   it('should test enums and constants', async () => {
