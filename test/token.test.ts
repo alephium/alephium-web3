@@ -17,17 +17,17 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { web3, Project } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-test'
-import { NodeWallet } from '@alephium/web3-wallet'
 import { FakeTokenTest } from '../artifacts/ts'
 import { TokenTest } from '../artifacts/ts/TokenTest'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { getSigner } from '@alephium/web3-test'
 
 describe('contract', function () {
-  let signer: NodeWallet
+  let signer: PrivateKeyWallet
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-    signer = await testNodeWallet()
+    signer = await getSigner()
     await Project.build({ errorOnWarnings: false })
   })
 

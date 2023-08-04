@@ -17,24 +17,24 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Project, Contract, getContractEventsCurrentCount } from '../packages/web3'
-import { NodeWallet } from '../packages/web3-wallet'
 import { EventSubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
-import { testNodeWallet } from '../packages/web3-test'
 import { Sub } from '../artifacts/ts/Sub'
 import { Add, AddTypes, AddInstance } from '../artifacts/ts/Add'
 import { Main, DestroyAdd } from '../artifacts/ts/scripts'
 import { CreateContractEventAddress, DestroyContractEventAddress } from '../packages/web3'
 import { ContractCreatedEvent, subscribeContractCreatedEvent } from '../packages/web3'
 import { ContractDestroyedEvent, subscribeContractDestroyedEvent } from '../packages/web3'
+import { PrivateKeyWallet } from '@alephium/web3-wallet/dist/src/privatekey-wallet'
+import { getSigner } from '@alephium/web3-test'
 
 describe('events', function () {
-  let signer: NodeWallet
+  let signer: PrivateKeyWallet
   let eventCount: number
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
-    signer = await testNodeWallet()
+    signer = await getSigner()
     // ignore unused private function warnings
     await Project.build({ errorOnWarnings: false })
   })
@@ -43,7 +43,7 @@ describe('events', function () {
     eventCount = 0
   })
 
-  async function deployContract(signer: NodeWallet): Promise<AddInstance> {
+  async function deployContract(signer: PrivateKeyWallet): Promise<AddInstance> {
     const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
     return (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
       .contractInstance
