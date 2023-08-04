@@ -35,7 +35,7 @@ export function useBalance() {
   const updateBalanceForTx = useCallback(
     (txId: string, confirmations?: number) => {
       const expectedConfirmations = confirmations ?? 1
-      const pollingInterval = context.network === 'devnet' ? 1000 : 10000
+      const pollingInterval = context.network === 'devnet' ? 1000 : 4000
       const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
         if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
           await updateBalance()
