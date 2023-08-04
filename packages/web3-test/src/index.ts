@@ -26,7 +26,8 @@ import {
   ONE_ALPH,
   ALPH_TOKEN_ID,
   DUST_AMOUNT,
-  Address
+  Address,
+  TOTAL_NUMBER_OF_GROUPS
 } from '@alephium/web3'
 import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
@@ -86,7 +87,15 @@ function tryGetDevnetNodeProvider(): NodeProvider {
   }
 }
 
-export async function getSigner(alphAmount = ONE_ALPH * 100n): Promise<PrivateKeyWallet> {
+function checkGroup(group: number) {
+  if (group < 0 || group >= TOTAL_NUMBER_OF_GROUPS) {
+    throw new Error('Invalid group index')
+  }
+}
+
+export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promise<PrivateKeyWallet> {
+  checkGroup(group)
+
   try {
     const nodeProvider = tryGetDevnetNodeProvider()
     const balances = await nodeProvider.addresses.getAddressesAddressBalance(testAddress)
@@ -95,7 +104,7 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n): Promise<PrivateKe
       throw new Error('Not enough balance, please restart the devnet')
     }
     const rootWallet = new PrivateKeyWallet({ privateKey: testPrivateKey })
-    const wallet = PrivateKeyWallet.Random(rootWallet.group)
+    const wallet = PrivateKeyWallet.Random(group)
     const destinations = [{ address: wallet.address, attoAlphAmount: alphAmount }]
     await rootWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
     return wallet
@@ -104,10 +113,20 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n): Promise<PrivateKe
   }
 }
 
-export async function getSigners(num: number, alphAmountPerSigner = ONE_ALPH * 100n): Promise<PrivateKeyWallet[]> {
+export async function getSigners(
+  num: number,
+  alphAmountPerSigner = ONE_ALPH * 100n,
+  group = 0
+): Promise<PrivateKeyWallet[]> {
+  checkGroup(group)
+
   try {
-    const promises = Array.from(Array(num).keys()).map(() => getSigner(alphAmountPerSigner))
-    return await Promise.all(promises)
+    const wallets: PrivateKeyWallet[] = []
+    for (let index = 0; index < num; index++) {
+      const wallet = await getSigner(alphAmountPerSigner, group)
+      wallets.push(wallet)
+    }
+    return wallets
   } catch (_) {
     throw new Error('Failed to get signers, please restart the devnet')
   }
