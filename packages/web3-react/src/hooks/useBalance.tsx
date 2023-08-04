@@ -30,7 +30,7 @@ export function useBalance() {
       const result = await nodeProvider.addresses.getAddressesAddressBalance(context.account.address)
       setBalance(result)
     }
-  }, [context.signerProvider?.nodeProvider, context.account])
+  }, [context.signerProvider?.nodeProvider, context.account, setBalance])
 
   const updateBalanceForTx = useCallback(
     (txId: string, confirmations?: number) => {
@@ -58,7 +58,7 @@ export function useBalance() {
 
   useEffect(() => {
     updateBalance()
-  }, [])
+  }, [updateBalance])
 
   return { balance, updateBalanceForTx }
 }
