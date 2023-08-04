@@ -1789,6 +1789,7 @@ export async function getContractEventsCurrentCount(contractAddress: Address): P
     })
 }
 
+// This function only works in the simple case where a single non-subcontract is created in the tx
 export const getContractIdFromTxId = async (
   nodeProvider: NodeProvider,
   txId: string,
@@ -1804,4 +1805,5 @@ export const getContractIdFromTxId = async (
   return hashHex.slice(0, 62) + groupIndex.toString(16).padStart(2, '0')
 }
 
+// This function only works in the simple case where a single non-subcontract is created in the tx
 export const getTokenIdFromTxId = getContractIdFromTxId
