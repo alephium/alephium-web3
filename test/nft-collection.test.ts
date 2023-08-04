@@ -27,18 +27,18 @@ import {
   addressFromContractId,
   hexToString
 } from '@alephium/web3'
-import { testNodeWallet } from '@alephium/web3-test'
-import { NodeWallet } from '@alephium/web3-wallet'
 import { NFTTest } from '../artifacts/ts/NFTTest'
 import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NFTCollectionTest'
 import { MintNFTTest } from '../artifacts/ts/scripts'
+import { getSigner } from '@alephium/web3-test'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('nft collection', function () {
-  let signer: NodeWallet
+  let signer: PrivateKeyWallet
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
-    signer = await testNodeWallet()
+    signer = await getSigner()
     await Project.build({ errorOnWarnings: false })
   })
 

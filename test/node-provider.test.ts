@@ -16,12 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { testAddress, testWalletName } from '@alephium/web3-test'
+import { testAddress, testNodeWallet, testWalletName } from '@alephium/web3-test'
 import { web3, NodeProvider } from '../packages/web3/src'
 
 describe('node provider', () => {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   const nodeProvider = web3.getCurrentNodeProvider()
+  beforeAll(async () => {
+    await testNodeWallet()
+  })
 
   it('remote node provider should forward requests', async () => {
     const request = nodeProvider.request

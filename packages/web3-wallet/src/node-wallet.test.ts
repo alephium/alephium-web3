@@ -19,10 +19,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { web3 } from '@alephium/web3'
 import { randomBytes } from 'crypto'
 import { NodeWallet } from './node-wallet'
+import { testNodeWallet } from '@alephium/web3-test'
 
 describe('node wallet', () => {
-  beforeAll(() => {
+  beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
+    await testNodeWallet()
   })
 
   it('should transfer (1)', async () => {

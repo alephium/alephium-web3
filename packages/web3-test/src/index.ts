@@ -18,8 +18,18 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import 'cross-fetch/polyfill'
 
-import { addressFromContractId, isBase58, NodeProvider } from '@alephium/web3'
-import { NodeWallet } from '@alephium/web3-wallet'
+import {
+  addressFromContractId,
+  isBase58,
+  NodeProvider,
+  web3,
+  ONE_ALPH,
+  ALPH_TOKEN_ID,
+  DUST_AMOUNT,
+  Address,
+  TOTAL_NUMBER_OF_GROUPS
+} from '@alephium/web3'
+import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
 
 export const testMnemonic =
@@ -65,6 +75,70 @@ export async function testNodeWallet(baseUrl = 'http://127.0.0.1:22973'): Promis
   const wallet = new NodeWallet(testWalletName, nodeProvider)
   await wallet.unlock(testPassword)
   return wallet
+}
+
+function tryGetDevnetNodeProvider(): NodeProvider {
+  try {
+    return web3.getCurrentNodeProvider()
+  } catch (err) {
+    const nodeProvider = new NodeProvider('http://127.0.0.1:22973')
+    web3.setCurrentNodeProvider(nodeProvider)
+    return nodeProvider
+  }
+}
+
+function checkGroup(group: number) {
+  if (group < 0 || group >= TOTAL_NUMBER_OF_GROUPS) {
+    throw new Error('Invalid group index')
+  }
+}
+
+export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promise<PrivateKeyWallet> {
+  checkGroup(group)
+
+  try {
+    const nodeProvider = tryGetDevnetNodeProvider()
+    const balances = await nodeProvider.addresses.getAddressesAddressBalance(testAddress)
+    const availableBalance = BigInt(balances.balance) - BigInt(balances.lockedBalance)
+    if (availableBalance < alphAmount) {
+      throw new Error('Not enough balance, please restart the devnet')
+    }
+    const rootWallet = new PrivateKeyWallet({ privateKey: testPrivateKey })
+    const wallet = PrivateKeyWallet.Random(group)
+    const destinations = [{ address: wallet.address, attoAlphAmount: alphAmount }]
+    await rootWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
+    return wallet
+  } catch (_) {
+    throw new Error('Failed to get signer, please restart the devnet')
+  }
+}
+
+export async function getSigners(
+  num: number,
+  alphAmountPerSigner = ONE_ALPH * 100n,
+  group = 0
+): Promise<PrivateKeyWallet[]> {
+  checkGroup(group)
+
+  try {
+    const wallets: PrivateKeyWallet[] = []
+    for (let index = 0; index < num; index++) {
+      const wallet = await getSigner(alphAmountPerSigner, group)
+      wallets.push(wallet)
+    }
+    return wallets
+  } catch (_) {
+    throw new Error('Failed to get signers, please restart the devnet')
+  }
+}
+
+export async function transfer(from: PrivateKeyWallet, to: Address, tokenId: string, amount: bigint) {
+  const destination = {
+    address: to,
+    attoAlphAmount: tokenId === ALPH_TOKEN_ID ? amount : DUST_AMOUNT,
+    tokens: tokenId === ALPH_TOKEN_ID ? [] : [{ id: tokenId, amount }]
+  }
+  return await from.signAndSubmitTransferTx({ signerAddress: from.address, destinations: [destination] })
 }
 
 export async function expectAssertionError(p: Promise<unknown>, address: string, errorCode: number): Promise<void> {
