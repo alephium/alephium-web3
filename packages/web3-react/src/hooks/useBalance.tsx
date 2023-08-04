@@ -16,24 +16,49 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Balance } from '@alephium/web3/dist/src/api/api-alephium'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
+import { SubscribeOptions, Subscription, node, subscribeToTxStatus } from '@alephium/web3'
 
 export function useBalance() {
   const context = useAlephiumConnectContext()
   const [balance, setBalance] = useState<Balance>()
 
-  useEffect(() => {
-    const handler = async () => {
-      const nodeProvider = context.signerProvider?.nodeProvider
-      if (nodeProvider && context.account) {
-        const result = await nodeProvider.addresses.getAddressesAddressBalance(context.account.address)
-        setBalance(result)
-      }
+  const updateBalance = useCallback(async () => {
+    const nodeProvider = context.signerProvider?.nodeProvider
+    if (nodeProvider && context.account) {
+      const result = await nodeProvider.addresses.getAddressesAddressBalance(context.account.address)
+      setBalance(result)
     }
-
-    handler()
   }, [context.signerProvider?.nodeProvider, context.account])
 
-  return { balance }
+  const updateBalanceForTx = useCallback(
+    (txId: string, confirmations?: number) => {
+      const expectedConfirmations = confirmations ?? 1
+      const pollingInterval = context.network === 'devnet' ? 1000 : 4000
+      const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
+        if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
+          await updateBalance()
+        }
+      }
+      const errorCallback = (err: any, subscription: Subscription<node.TxStatus>): Promise<void> => {
+        subscription.unsubscribe()
+        console.error(`tx status subscription error: ${err}`)
+        return Promise.resolve()
+      }
+      const options: SubscribeOptions<node.TxStatus> = {
+        pollingInterval,
+        messageCallback,
+        errorCallback
+      }
+      subscribeToTxStatus(options, txId, undefined, undefined, expectedConfirmations)
+    },
+    [updateBalance]
+  )
+
+  useEffect(() => {
+    updateBalance()
+  }, [])
+
+  return { balance, updateBalanceForTx }
 }
