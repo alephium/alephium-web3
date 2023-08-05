@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
 import { KeyType } from '@alephium/web3'
 
@@ -56,5 +56,7 @@ export function useAccount(onDisconnected?: () => Promise<void>) {
     handler()
   }, [onDisconnected])
 
-  return context.account ? { networkType: context.network, ...context.account } : undefined
+  return useMemo(() => {
+    return context.account ? { networkType: context.network, ...context.account } : undefined
+  }, [context.account])
 }
