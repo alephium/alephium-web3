@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { assertType, bs58, Eq } from '../utils'
+import { assertType, bs58, Eq, isBase58, isHexString } from '../utils'
 import * as node from './api-alephium'
 
 export type Number256 = bigint | string
@@ -58,10 +58,15 @@ export function toApiNumber256(v: Val): string {
   if ((typeof v === 'number' && Number.isInteger(v)) || typeof v === 'bigint') {
     return v.toString()
   } else if (typeof v === 'string') {
-    return v
-  } else {
-    throw new Error(`Invalid 256 bit number: ${v}`)
+    try {
+      if (BigInt(v).toString() === v) {
+        return v
+      }
+    } catch (_) {
+      throw new Error(`Invalid value: ${v}, expected a 256 bit number`)
+    }
   }
+  throw new Error(`Invalid value: ${v}, expected a 256 bit number`)
 }
 
 export function toApiNumber256Optional(v?: Val): string | undefined {
@@ -72,9 +77,12 @@ export function fromApiNumber256(n: string): bigint {
   return BigInt(n)
 }
 
-// TODO: check hex string
 export function toApiByteVec(v: Val): string {
-  if (typeof v === 'string') {
+  if (typeof v !== 'string') {
+    throw new Error(`Invalid value: ${v}, expected a hex-string`)
+  }
+  if (isHexString(v)) return v
+  if (isBase58(v)) {
     // try to convert from address to contract id
     try {
       const address = bs58.decode(v)
@@ -82,12 +90,10 @@ export function toApiByteVec(v: Val): string {
         return Buffer.from(address.slice(1)).toString('hex')
       }
     } catch (_) {
-      return v as string
+      throw new Error(`Invalid hex-string: ${v}`)
     }
-    return v as string
-  } else {
-    throw new Error(`Invalid string: ${v}`)
   }
+  throw new Error(`Invalid hex-string: ${v}`)
 }
 
 export function toApiAddress(v: Val): string {
@@ -99,7 +105,7 @@ export function toApiAddress(v: Val): string {
       throw new Error(`Invalid base58 string: ${v}`)
     }
   } else {
-    throw new Error(`Invalid string: ${v}`)
+    throw new Error(`Invalid value: ${v}, expected a base58 string`)
   }
 }
 
