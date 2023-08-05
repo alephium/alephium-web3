@@ -115,4 +115,27 @@ describe('nft collection', function () {
       collectionAddress: nftCollectionTest.address
     })
   }
+
+  it('should check script initial fields', async () => {
+    const initialFields = {
+      uri: stringToHex('https://cryptopunks.app/cryptopunks/details/1'),
+      nftCollectionContractId: '09fdf4189d4b5d70dc02d6e3d05b6e603f9ee78ea76af61b5b0638f88333fd00'
+    }
+
+    const invalidInitialFields0 = {
+      ...initialFields,
+      uri: 'https://cryptopunks.app/cryptopunks/details/1'
+    }
+    await expect(MintNFTTest.execute(signer, { initialFields: invalidInitialFields0 })).rejects.toThrowError(
+      'Failed to build bytecode for script MintNFTTest, error: Error: Invalid uri, error: Invalid hex-string: https://cryptopunks.app/cryptopunks/details/1'
+    )
+
+    const invalidInitialFields1 = {
+      ...initialFields,
+      nftCollectionContractId: '09fdf4189d4b5d70dc02d6e3d05b6e603f9ee78ea76af61b5b0638f88333fdzz'
+    }
+    await expect(MintNFTTest.execute(signer, { initialFields: invalidInitialFields1 })).rejects.toThrowError(
+      'Failed to build bytecode for script MintNFTTest, error: Error: Invalid nftCollectionContractId, error: Invalid hex-string: 09fdf4189d4b5d70dc02d6e3d05b6e603f9ee78ea76af61b5b0638f88333fdzz'
+    )
+  })
 })
