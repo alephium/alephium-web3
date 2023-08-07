@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import 'cross-fetch/polyfill'
+import { node } from '..'
 
 export function convertHttpResponse<T>(response: { status: number; data: T; error?: { detail: string } }): T {
   if (response.error) {
@@ -25,4 +26,21 @@ export function convertHttpResponse<T>(response: { status: number; data: T; erro
   } else {
     return response.data
   }
+}
+
+export function isBalanceEqual(b0: node.Balance, b1: node.Balance): boolean {
+  const isTokenBalanceEqual = (tokens0?: node.Token[], tokens1?: node.Token[]): boolean => {
+    const tokens0Size = tokens0?.length ?? 0
+    const tokens1Size = tokens1?.length ?? 0
+    if (tokens0Size !== tokens1Size) return false
+    if (tokens0Size === 0) return true
+    return tokens0!.every((t0) => tokens1!.find((t1) => t0.id === t1.id && t0.amount === t1.amount) !== undefined)
+  }
+
+  const isAlphBalanceEqual = b0.balance === b1.balance && b0.lockedBalance === b1.lockedBalance
+  return (
+    isAlphBalanceEqual &&
+    isTokenBalanceEqual(b0.tokenBalances, b1.tokenBalances) &&
+    isTokenBalanceEqual(b0.lockedTokenBalances, b1.lockedTokenBalances)
+  )
 }
