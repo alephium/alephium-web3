@@ -22,6 +22,6 @@ export function useAccount() {
   const context = useAlephiumConnectContext()
 
   return useMemo(() => {
-    return context.account ? { networkType: context.network, ...context.account } : undefined
+    return context.account ? { ...context.account } : undefined
   }, [context.account])
 }

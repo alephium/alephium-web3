@@ -19,7 +19,7 @@ import React, { useEffect, useState } from 'react'
 import { AnimatePresence, Variants } from 'framer-motion'
 import { Container, ConnectingContainer, ConnectingAnimation, RetryButton, RetryIconContainer, Content } from './styles'
 
-import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
+import { useConnectSettingContext } from '../../../contexts/alephiumConnect'
 import supportedConnectors from '../../../constants/supportedConnectors'
 
 import {
@@ -87,11 +87,10 @@ const ConnectWithInjector: React.FC<{
   switchConnectMethod: (id?: string) => void
   forceState?: typeof states
 }> = ({ connectorId, switchConnectMethod, forceState }) => {
-  const context = useAlephiumConnectContext()
+  const context = useConnectSettingContext()
 
   const { connect } = useConnect({
     addressGroup: context.addressGroup,
-    keyType: context.keyType,
     networkId: context.network
   })
 

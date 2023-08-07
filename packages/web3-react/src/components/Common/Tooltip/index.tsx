@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
+import { useConnectSettingContext } from '../../../contexts/alephiumConnect'
 import useMeasure from 'react-use-measure'
 
 import { TooltipProps, TooltipSizeProps } from './types'
@@ -27,7 +27,7 @@ import Portal from '../Portal'
 import { ResetContainer } from '../../../styles'
 
 const Tooltip: React.FC<TooltipProps> = ({ children, message, open, xOffset = 0, yOffset = 0, delay }) => {
-  const context = useAlephiumConnectContext()
+  const context = useConnectSettingContext()
 
   const [isOpen, setIsOpen] = useState(false)
   const [outOfBounds, setOutOfBounds] = useState(false)

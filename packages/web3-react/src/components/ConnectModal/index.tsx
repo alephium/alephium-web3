@@ -16,14 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { useEffect } from 'react'
-import { useAlephiumConnectContext } from '../../contexts/alephiumConnect'
+import { useConnectSettingContext } from '../../contexts/alephiumConnect'
 import Modal, { Page, routes } from '../Common/Modal'
 
 import Connectors from '../Pages/Connectors'
 import ConnectUsing from './ConnectUsing'
 import Profile from '../Pages/Profile'
 import { Theme, Mode, CustomTheme } from '../../types'
-import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
+import { useConnect } from '../../hooks/useConnect'
+import { useAccount } from '../../hooks/useAccount'
 
 const customThemeDefault: object = {}
 
@@ -32,40 +33,19 @@ const ConnectModal: React.FC<{
   theme?: Theme
   customTheme?: CustomTheme
 }> = ({ mode = 'auto', theme = 'auto', customTheme = customThemeDefault }) => {
-  const context = useAlephiumConnectContext()
-  const isConnected = !!context.account
+  const context = useConnectSettingContext()
+  const account = useAccount()
+  const isConnected = !!account
+  const { autoConnect } = useConnect({
+    networkId: context.network,
+    addressGroup: context.addressGroup
+  })
 
   useEffect(() => {
-    const handler = async () => {
-      if (context.connectorId === 'walletConnect' || context.connectorId === 'desktopWallet') {
-        return
-      }
-
-      const windowAlephium = await getDefaultAlephiumWallet()
-      const enabledAccount = await windowAlephium?.enableIfConnected({
-        onDisconnected: () => {
-          return Promise.resolve()
-        },
-        networkId: context.network,
-        addressGroup: context.addressGroup,
-        keyType: context.keyType
-      })
-
-      if (windowAlephium && enabledAccount) {
-        context.setSignerProvider(windowAlephium)
-        context.setAccount(enabledAccount)
-      }
+    if (autoConnect !== undefined && !isConnected) {
+      autoConnect()
     }
-
-    handler()
-  }, [
-    context.connectorId,
-    context.network,
-    context.addressGroup,
-    context.keyType,
-    context.setSignerProvider,
-    context.setAccount
-  ])
+  }, [autoConnect, isConnected])
 
   const closeable = true
 

@@ -45,7 +45,7 @@ import FocusTrap from '../../../hooks/useFocusTrap'
 import usePrevious from '../../../hooks/usePrevious'
 import FitText from '../FitText'
 import { ResetContainer } from '../../../styles'
-import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
+import { useConnectSettingContext } from '../../../contexts/alephiumConnect'
 
 const InfoIcon = ({ ...props }) => (
   <svg
@@ -130,7 +130,7 @@ type ModalProps = {
   onInfo?: () => void
 }
 const Modal: React.FC<ModalProps> = ({ open, pages, pageId, positionInside, inline, onClose, onBack, onInfo }) => {
-  const context = useAlephiumConnectContext()
+  const context = useConnectSettingContext()
   const mobile = isMobile()
 
   const [state, setOpen] = useTransition({

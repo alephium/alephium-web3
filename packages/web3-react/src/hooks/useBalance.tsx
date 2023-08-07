@@ -19,9 +19,11 @@ import { Balance } from '@alephium/web3/dist/src/api/api-alephium'
 import { useCallback, useEffect, useState } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
 import { SubscribeOptions, Subscription, isBalanceEqual, node, subscribeToTxStatus } from '@alephium/web3'
+import { useAccount } from './useAccount'
 
 export function useBalance() {
   const context = useAlephiumConnectContext()
+  const account = useAccount()
   const [balance, setBalance] = useState<Balance>()
 
   const updateBalance = useCallback(async () => {
@@ -40,7 +42,7 @@ export function useBalance() {
   const updateBalanceForTx = useCallback(
     (txId: string, confirmations?: number) => {
       const expectedConfirmations = confirmations ?? 1
-      const pollingInterval = context.network === 'devnet' ? 1000 : 4000
+      const pollingInterval = account?.networkType === 'devnet' ? 1000 : 4000
       const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
         if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
           await updateBalance()

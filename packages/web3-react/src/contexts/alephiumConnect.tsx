@@ -22,7 +22,7 @@ import { Theme, Mode, CustomTheme, ConnectorId } from '../types'
 
 type Error = string | React.ReactNode | null
 
-export type AlephiumConnectContextValue = {
+export type ConnectSettingValue = {
   open: boolean
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
   route: string
@@ -30,20 +30,31 @@ export type AlephiumConnectContextValue = {
   errorMessage: Error
   connectorId: ConnectorId
   setConnectorId: React.Dispatch<React.SetStateAction<ConnectorId>>
-  account?: Account
-  setAccount: React.Dispatch<React.SetStateAction<Account | undefined>>
   displayAccount?: (account: Account) => string
-  signerProvider?: SignerProvider
-  setSignerProvider: React.Dispatch<React.SetStateAction<SignerProvider | undefined>>
-  addressGroup?: number
-  keyType?: KeyType
-  network?: NetworkId
+  addressGroup: number
+  keyType: KeyType
+  network: NetworkId
   theme: Theme
   setTheme: React.Dispatch<React.SetStateAction<Theme>>
   mode: Mode
   setMode: React.Dispatch<React.SetStateAction<Mode>>
   customTheme: CustomTheme
   setCustomTheme: React.Dispatch<React.SetStateAction<CustomTheme>>
+}
+
+export const ConnectSettingContext = createContext<ConnectSettingValue | null>(null)
+
+export const useConnectSettingContext = () => {
+  const context = useContext(ConnectSettingContext)
+  if (!context) throw Error('ConnectSetting Hook must be inside a Provider.')
+  return context
+}
+
+export type AlephiumConnectContextValue = {
+  account?: Account & { networkType: NetworkId }
+  setAccount: React.Dispatch<React.SetStateAction<(Account & { networkType: NetworkId }) | undefined>>
+  signerProvider?: SignerProvider
+  setSignerProvider: React.Dispatch<React.SetStateAction<SignerProvider | undefined>>
 }
 
 export const AlephiumConnectContext = createContext<AlephiumConnectContextValue | null>(null)

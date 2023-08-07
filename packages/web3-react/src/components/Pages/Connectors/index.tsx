@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import React from 'react'
-import { useAlephiumConnectContext } from '../../../contexts/alephiumConnect'
+import { useConnectSettingContext } from '../../../contexts/alephiumConnect'
 import supportedConnectors from '../../../constants/supportedConnectors'
 
 import { PageContent } from '../../Common/Modal/styles'
@@ -38,7 +38,7 @@ import { WalletProps } from '../../../wallets/wallet'
 import { routes } from '../../Common/Modal'
 
 const Connectors: React.FC = () => {
-  const context = useAlephiumConnectContext()
+  const context = useConnectSettingContext()
   const mobile = isMobile()
   const wallets = useDefaultWallets()
 
