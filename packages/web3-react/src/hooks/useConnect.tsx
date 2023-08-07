@@ -96,19 +96,19 @@ export function useConnect(options: ConnectOptions) {
     }
   }, [context, wcDisconnect])
 
-  const disconnectAlephium = useCallback(() => {
+  const disconnectAlephium = () => {
     getDefaultAlephiumWallet()
       .then((alephium) => {
         if (!!alephium) {
           alephium.disconnect()
-          context.setAccount(undefined)
           context.setSignerProvider(undefined)
+          context.setAccount(undefined)
         }
       })
       .catch((error: any) => {
         console.error(error)
       })
-  }, [context])
+  }
 
   const connectAlephium = useCallback(async () => {
     const windowAlephium = await getDefaultAlephiumWallet()
@@ -116,7 +116,9 @@ export function useConnect(options: ConnectOptions) {
     const enabledAccount = await windowAlephium
       ?.enable({
         ...options,
-        onDisconnected: disconnectAlephium
+        onDisconnected: () => {
+          return Promise.resolve()
+        }
       })
       .catch(() => undefined) // Need to catch the exception here
 

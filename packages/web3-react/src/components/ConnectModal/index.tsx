@@ -22,8 +22,8 @@ import Modal, { Page, routes } from '../Common/Modal'
 import Connectors from '../Pages/Connectors'
 import ConnectUsing from './ConnectUsing'
 import Profile from '../Pages/Profile'
-import { useAccount } from '../../hooks/useAccount'
 import { Theme, Mode, CustomTheme } from '../../types'
+import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 
 const customThemeDefault: object = {}
 
@@ -33,8 +33,39 @@ const ConnectModal: React.FC<{
   customTheme?: CustomTheme
 }> = ({ mode = 'auto', theme = 'auto', customTheme = customThemeDefault }) => {
   const context = useAlephiumConnectContext()
-  const account = useAccount()
-  const isConnected = !!account
+  const isConnected = !!context.account
+
+  useEffect(() => {
+    const handler = async () => {
+      if (context.connectorId === 'walletConnect' || context.connectorId === 'desktopWallet') {
+        return
+      }
+
+      const windowAlephium = await getDefaultAlephiumWallet()
+      const enabledAccount = await windowAlephium?.enableIfConnected({
+        onDisconnected: () => {
+          return Promise.resolve()
+        },
+        networkId: context.network,
+        addressGroup: context.addressGroup,
+        keyType: context.keyType
+      })
+
+      if (windowAlephium && enabledAccount) {
+        context.setSignerProvider(windowAlephium)
+        context.setAccount(enabledAccount)
+      }
+    }
+
+    handler()
+  }, [
+    context.connectorId,
+    context.network,
+    context.addressGroup,
+    context.keyType,
+    context.setSignerProvider,
+    context.setAccount
+  ])
 
   const closeable = true
 

@@ -15,46 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
-import { KeyType } from '@alephium/web3'
 
-export function useAccount(onDisconnected?: () => Promise<void>) {
+export function useAccount() {
   const context = useAlephiumConnectContext()
-
-  useEffect(() => {
-    const handler = async () => {
-      if (context.connectorId === 'walletConnect' || context.connectorId === 'desktopWallet') {
-        return
-      }
-
-      const windowAlephium = await getDefaultAlephiumWallet()
-      const keyType: KeyType = context.keyType ?? 'default'
-      const connectedAccount = windowAlephium?.connectedAccount
-      if (
-        onDisconnected === undefined &&
-        connectedAccount !== undefined &&
-        connectedAccount.group === context.addressGroup &&
-        connectedAccount.keyType === keyType &&
-        windowAlephium?.connectedNetworkId === context.network
-      ) {
-        return
-      }
-
-      const enabledAccount = await windowAlephium?.enableIfConnected({
-        onDisconnected: onDisconnected ?? (() => Promise.resolve()),
-        networkId: context.network,
-        addressGroup: context.addressGroup,
-        keyType: context.keyType
-      })
-
-      windowAlephium && context.setSignerProvider(windowAlephium)
-      enabledAccount && context.setAccount(enabledAccount)
-    }
-
-    handler()
-  }, [onDisconnected])
 
   return useMemo(() => {
     return context.account ? { networkType: context.network, ...context.account } : undefined
