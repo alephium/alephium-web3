@@ -31,7 +31,7 @@ type ConnectSettingProviderProps = {
   useMode?: Mode
   useCustomTheme?: CustomTheme
   network: NetworkId
-  addressGroup: number
+  addressGroup?: number
   keyType?: KeyType
   children?: React.ReactNode
 }
