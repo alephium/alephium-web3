@@ -34,11 +34,18 @@ export function isBalanceEqual(b0: node.Balance, b1: node.Balance): boolean {
     const tokens1Size = tokens1?.length ?? 0
     if (tokens0Size !== tokens1Size) return false
     if (tokens0Size === 0) return true
-    return tokens0!.every((t0) => tokens1!.find((t1) => t0.id === t1.id && t0.amount === t1.amount) !== undefined)
+    const _tokens1 = tokens1!.map((t) => ({ ...t, used: false }))
+    return tokens0!.every((t0) => {
+      const t1 = _tokens1.find((t) => !t.used && t0.id === t.id && t0.amount === t.amount)
+      if (t1 === undefined) return false
+      t1.used = true
+      return true
+    })
   }
 
   const isAlphBalanceEqual = b0.balance === b1.balance && b0.lockedBalance === b1.lockedBalance
   return (
+    b0.utxoNum === b1.utxoNum &&
     isAlphBalanceEqual &&
     isTokenBalanceEqual(b0.tokenBalances, b1.tokenBalances) &&
     isTokenBalanceEqual(b0.lockedTokenBalances, b1.lockedTokenBalances)

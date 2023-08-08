@@ -38,7 +38,7 @@ describe('utils', function () {
     const b1 = { ...b0 }
 
     expect(isBalanceEqual(b0, b1)).toEqual(true)
-    expect(isBalanceEqual(b0, { ...b1, utxoNum: 2 })).toEqual(true)
+    expect(isBalanceEqual(b0, { ...b1, utxoNum: 2 })).toEqual(false)
     expect(isBalanceEqual(b0, { ...b1, balance: '10000' })).toEqual(false)
     expect(isBalanceEqual(b0, { ...b1, lockedBalance: '10000' })).toEqual(false)
 
@@ -65,6 +65,42 @@ describe('utils', function () {
         { ...b1, tokenBalances: [{ id: '0', amount: '1' }] }
       )
     ).toEqual(false)
+    expect(
+      isBalanceEqual(
+        {
+          ...b0,
+          tokenBalances: [
+            { id: '0', amount: '2' },
+            { id: '0', amount: '2' }
+          ]
+        },
+        {
+          ...b1,
+          tokenBalances: [
+            { id: '0', amount: '2' },
+            { id: '1', amount: '2' }
+          ]
+        }
+      )
+    ).toEqual(false)
+    expect(
+      isBalanceEqual(
+        {
+          ...b0,
+          tokenBalances: [
+            { id: '0', amount: '2' },
+            { id: '0', amount: '2' }
+          ]
+        },
+        {
+          ...b1,
+          tokenBalances: [
+            { id: '0', amount: '2' },
+            { id: '0', amount: '2' }
+          ]
+        }
+      )
+    ).toEqual(true)
 
     expect(isBalanceEqual(b0, { ...b1, lockedTokenBalances: [{ id: '0', amount: '1' }] })).toEqual(false)
     expect(
