@@ -25,7 +25,7 @@ import QRCodeModal from '@walletconnect/qrcode-modal'
 const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
 
 export interface ConnectOptions {
-  addressGroup: number
+  addressGroup?: number
   networkId: NetworkId
 }
 

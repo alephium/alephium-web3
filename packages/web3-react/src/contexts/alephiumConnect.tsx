@@ -31,7 +31,7 @@ export type ConnectSettingValue = {
   connectorId: ConnectorId
   setConnectorId: React.Dispatch<React.SetStateAction<ConnectorId>>
   displayAccount?: (account: Account) => string
-  addressGroup: number
+  addressGroup?: number
   keyType: KeyType
   network: NetworkId
   theme: Theme
