@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { Val } from '../api'
+import { Val, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
 import { bs58, isHexString } from '../utils'
 import { Fields, FieldsSig } from './contract'
 
@@ -197,38 +197,24 @@ export function encodeScriptFieldAsString(tpe: string, value: Val): string {
   return Buffer.from(encodeScriptField(tpe, value)).toString('hex')
 }
 
+// TODO: support array type
 export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   switch (tpe) {
     case 'Bool':
-      if (typeof value === 'boolean') {
-        const byte = value ? Instruction.trueConst : Instruction.falseConst
-        return new Uint8Array([byte])
-      }
-      break
+      const byte = toApiBoolean(value) ? Instruction.trueConst : Instruction.falseConst
+      return new Uint8Array([byte])
     case 'I256':
-      if (typeof value === 'number' && Number.isInteger(value)) {
-        return encodeScriptFieldI256(BigInt(value))
-      } else if (typeof value === 'bigint') {
-        return encodeScriptFieldI256(value)
-      }
-      break
+      const i256 = toApiNumber256(value)
+      return encodeScriptFieldI256(BigInt(i256))
     case 'U256':
-      if (typeof value === 'number' && Number.isInteger(value)) {
-        return encodeScriptFieldU256(BigInt(value))
-      } else if (typeof value === 'bigint') {
-        return encodeScriptFieldU256(value)
-      }
-      break
+      const u256 = toApiNumber256(value)
+      return encodeScriptFieldU256(BigInt(u256))
     case 'ByteVec':
-      if (typeof value === 'string') {
-        return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(value)])
-      }
-      break
+      const hexStr = toApiByteVec(value)
+      return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(hexStr)])
     case 'Address':
-      if (typeof value === 'string') {
-        return new Uint8Array([Instruction.addressConst, ...encodeAddress(value)])
-      }
-      break
+      const address = toApiAddress(value)
+      return new Uint8Array([Instruction.addressConst, ...encodeAddress(address)])
   }
 
   throw invalidScriptField(tpe, value)
@@ -242,11 +228,22 @@ export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fi
     const fieldType = fieldsSig.types[`${fieldIndex}`]
     if (fieldName in fields) {
       const fieldValue = fields[`${fieldName}`]
-      return encodeScriptFieldAsString(fieldType, fieldValue)
+      return _encodeField(fieldName, () => encodeScriptFieldAsString(fieldType, fieldValue))
     } else {
       throw new Error(`The value of field ${fieldName} is not provided`)
     }
   })
+}
+
+function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
+  try {
+    return encodeFunc()
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Invalid ${fieldName}, error: ${error.message}`)
+    }
+    throw error
+  }
 }
 
 function encodeFields(fields: Fields, fieldsSig: FieldsSig, mutable: boolean) {
@@ -258,7 +255,7 @@ function encodeFields(fields: Fields, fieldsSig: FieldsSig, mutable: boolean) {
     const fieldType = fieldsSig.types[`${fieldIndex}`]
     if (fieldName in fields) {
       const fieldValue = fields[`${fieldName}`]
-      return encodeContractField(fieldType, fieldValue)
+      return _encodeField(fieldName, () => encodeContractField(fieldType, fieldValue))
     } else {
       throw new Error(`The value of field ${fieldName} is not provided`)
     }
@@ -311,46 +308,25 @@ function encodeContractFieldArray(tpe: string, val: Val): Uint8Array[] {
 export function encodeContractField(tpe: string, value: Val): Uint8Array[] {
   switch (tpe) {
     case 'Bool':
-      if (typeof value === 'boolean') {
-        const byte = value ? 1 : 0
-        return [new Uint8Array([ApiValType.Bool, byte])]
-      }
-      break
+      const byte = toApiBoolean(value) ? 1 : 0
+      return [new Uint8Array([ApiValType.Bool, byte])]
     case 'I256':
-      if (typeof value === 'number' && Number.isInteger(value)) {
-        return [encodeContractFieldI256(BigInt(value))]
-      } else if (typeof value === 'bigint') {
-        return [encodeContractFieldI256(value)]
-      }
-      break
+      const i256 = toApiNumber256(value)
+      return [encodeContractFieldI256(BigInt(i256))]
     case 'U256':
-      if (typeof value === 'number' && Number.isInteger(value)) {
-        return [encodeContractFieldU256(BigInt(value))]
-      } else if (typeof value === 'bigint') {
-        return [encodeContractFieldU256(value)]
-      }
-      break
+      const u256 = toApiNumber256(value)
+      return [encodeContractFieldU256(BigInt(u256))]
     case 'ByteVec':
-      if (typeof value === 'string') {
-        return [new Uint8Array([ApiValType.ByteVec, ...encodeByteVec(value)])]
-      }
-      break
+      const hexStr = toApiByteVec(value)
+      return [new Uint8Array([ApiValType.ByteVec, ...encodeByteVec(hexStr)])]
     case 'Address':
-      if (typeof value === 'string') {
-        return [new Uint8Array([ApiValType.Address, ...encodeAddress(value)])]
-      }
-      break
+      const address = toApiAddress(value)
+      return [new Uint8Array([ApiValType.Address, ...encodeAddress(address)])]
 
     default:
       // Array type
       return encodeContractFieldArray(tpe, value)
   }
-
-  throw invalidVal(tpe, value)
-}
-
-function invalidVal(tpe: string, value: Val): Error {
-  return Error(`Invalid API value ${value} for type ${tpe}`)
 }
 
 export function buildDebugBytecode(bytecode: string, bytecodePatch: string): string {

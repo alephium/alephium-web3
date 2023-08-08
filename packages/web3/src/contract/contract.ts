@@ -1040,7 +1040,11 @@ export class Contract extends Artifact {
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {
-    return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
+    try {
+      return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
+    } catch (error) {
+      throw new Error(`Failed to build bytecode for contract ${this.name}, error: ${error}`)
+    }
   }
 
   static fromApiEvents(
@@ -1186,7 +1190,11 @@ export class Script extends Artifact {
   }
 
   buildByteCodeToDeploy(initialFields: Fields): string {
-    return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig)
+    try {
+      return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig)
+    } catch (error) {
+      throw new Error(`Failed to build bytecode for script ${this.name}, error: ${error}`)
+    }
   }
 }
 

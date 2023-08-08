@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { web3, Project } from '@alephium/web3'
 import { FakeTokenTest } from '../artifacts/ts'
-import { TokenTest } from '../artifacts/ts/TokenTest'
+import { TokenTest, TokenTestTypes } from '../artifacts/ts/TokenTest'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { getSigner } from '@alephium/web3-test'
 
@@ -85,5 +85,23 @@ describe('contract', function () {
     const fakeToken = (await FakeTokenTest.deploy(signer, { initialFields: { a: 0n } })).contractInstance
     const state = await fakeToken.fetchState()
     expect(state.fields).toEqual({ a: 0n })
+  })
+
+  it('should check contract initial fields', async () => {
+    const invalidInitialFields0 = {
+      ...initialFields,
+      name: 'TF'
+    }
+    await expect(TokenTest.deploy(signer, { initialFields: invalidInitialFields0 })).rejects.toThrowError(
+      'Failed to build bytecode for contract TokenTest, error: Error: Invalid name, error: Invalid hex-string: TF'
+    )
+
+    const invalidInitialFields1 = {
+      ...initialFields,
+      symbol: 'TokenFaucet'
+    }
+    await expect(TokenTest.deploy(signer, { initialFields: invalidInitialFields1 })).rejects.toThrowError(
+      'Failed to build bytecode for contract TokenTest, error: Error: Invalid symbol, error: Invalid hex-string: TokenFaucet'
+    )
   })
 })
