@@ -115,3 +115,28 @@ export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> =
 
   return <AlephiumConnectContext.Provider value={value}>{children}</AlephiumConnectContext.Provider>
 }
+
+export const AlephiumWalletProvider = ({
+  useTheme,
+  useMode,
+  useCustomTheme,
+  network,
+  addressGroup,
+  keyType,
+  children
+}: ConnectSettingProviderProps) => {
+  return (
+    <AlephiumConnectProvider>
+      <ConnectSettingProvider
+        useTheme={useTheme}
+        useMode={useMode}
+        useCustomTheme={useCustomTheme}
+        network={network}
+        addressGroup={addressGroup}
+        keyType={keyType}
+      >
+        {children}
+      </ConnectSettingProvider>
+    </AlephiumConnectProvider>
+  )
+}
