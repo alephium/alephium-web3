@@ -17,18 +17,17 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import React, { useEffect, useState } from 'react'
 import { PageContent } from '../Common/Modal/styles'
-import { useAlephiumConnectContext } from '../../contexts/alephiumConnect'
+import { useConnectSettingContext } from '../../contexts/alephiumConnect'
 import { Container } from './ConnectWithInjector/styles'
 import { useConnect } from '../../hooks/useConnect'
 
 let _init = false
 
 const ConnectWithWalletConnect: React.FC = () => {
-  const context = useAlephiumConnectContext()
+  const context = useConnectSettingContext()
   const [error, setError] = useState<string>()
   const { connect } = useConnect({
     addressGroup: context.addressGroup,
-    keyType: context.keyType,
     networkId: context.network
   })
 
@@ -40,6 +39,7 @@ const ConnectWithWalletConnect: React.FC = () => {
     connect()
       .then(() => {
         _init = true
+        context.setOpen(false)
         setError(undefined)
       })
       .catch((err) => setError(`${err}`))

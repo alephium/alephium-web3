@@ -18,24 +18,31 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Balance } from '@alephium/web3/dist/src/api/api-alephium'
 import { useCallback, useEffect, useState } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
-import { SubscribeOptions, Subscription, node, subscribeToTxStatus } from '@alephium/web3'
+import { SubscribeOptions, Subscription, isBalanceEqual, node, subscribeToTxStatus } from '@alephium/web3'
+import { useAccount } from './useAccount'
 
 export function useBalance() {
   const context = useAlephiumConnectContext()
+  const account = useAccount()
   const [balance, setBalance] = useState<Balance>()
 
   const updateBalance = useCallback(async () => {
     const nodeProvider = context.signerProvider?.nodeProvider
     if (nodeProvider && context.account) {
-      const result = await nodeProvider.addresses.getAddressesAddressBalance(context.account.address)
-      setBalance(result)
+      const newBalance = await nodeProvider.addresses.getAddressesAddressBalance(context.account.address)
+      setBalance((prevBalance) => {
+        if (prevBalance !== undefined && isBalanceEqual(prevBalance, newBalance)) {
+          return prevBalance
+        }
+        return newBalance
+      })
     }
   }, [context.signerProvider?.nodeProvider, context.account, setBalance])
 
   const updateBalanceForTx = useCallback(
     (txId: string, confirmations?: number) => {
       const expectedConfirmations = confirmations ?? 1
-      const pollingInterval = context.network === 'devnet' ? 1000 : 4000
+      const pollingInterval = account?.network === 'devnet' ? 1000 : 4000
       const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
         if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
           await updateBalance()

@@ -32,16 +32,16 @@ npm run dev
 ## Example
 
 To add a auth button to your react/nextjs app, simply wrap your app
-with `AlephiumConnectProvider` component and add the
-`AlephiumConnectButton` component.
+with `AlephiumWalletProvider` component and add the
+`AlephiumWalletProvider` component.
 
 ```typescript
 const App = () => {
   return (
-    <AlephiumConnectProvider useTheme="win95">
+    <AlephiumWalletProvider useTheme="win95">
       /* Your App */
       <AlephiumConnectButton />
-    </AlephiumConnectProvider>
+    </AlephiumWalletProvider>
   );
 ```
 
