@@ -103,7 +103,7 @@ export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> =
     throw new Error('Multiple, nested usages of AlephiumConnectProvider detected. Please use only one.')
   }
 
-  const [account, setAccount] = useState<Account & { networkType: NetworkId }>()
+  const [account, setAccount] = useState<Account & { network: NetworkId }>()
   const [signerProvider, setSignerProvider] = useState<SignerProvider | undefined>()
 
   const value = {

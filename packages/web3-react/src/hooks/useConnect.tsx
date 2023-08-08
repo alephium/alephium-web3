@@ -60,7 +60,7 @@ export function useConnect(options: ConnectOptions) {
       await wcProvider.connect()
 
       if (wcProvider.account) {
-        context.setAccount({ ...wcProvider.account, networkType: options.networkId })
+        context.setAccount({ ...wcProvider.account, network: options.networkId })
         context.setSignerProvider(wcProvider as any)
       }
     } catch (e) {
@@ -87,7 +87,7 @@ export function useConnect(options: ConnectOptions) {
       await wcProvider.connect()
 
       if (wcProvider.account) {
-        context.setAccount({ ...wcProvider.account, networkType: options.networkId })
+        context.setAccount({ ...wcProvider.account, network: options.networkId })
         context.setSignerProvider(wcProvider as any)
       }
     } catch (e) {
@@ -126,7 +126,7 @@ export function useConnect(options: ConnectOptions) {
 
     if (windowAlephium && enabledAccount) {
       context.setSignerProvider(windowAlephium)
-      context.setAccount({ ...enabledAccount, networkType: enableOptions.networkId })
+      context.setAccount({ ...enabledAccount, network: enableOptions.networkId })
     }
 
     return enabledAccount
@@ -139,7 +139,7 @@ export function useConnect(options: ConnectOptions) {
 
     if (windowAlephium && enabledAccount) {
       context.setSignerProvider(windowAlephium)
-      context.setAccount({ ...enabledAccount, networkType: enableOptions.networkId })
+      context.setAccount({ ...enabledAccount, network: enableOptions.networkId })
     }
   }, [enableOptions])
 

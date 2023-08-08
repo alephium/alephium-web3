@@ -51,8 +51,8 @@ export const useConnectSettingContext = () => {
 }
 
 export type AlephiumConnectContextValue = {
-  account?: Account & { networkType: NetworkId }
-  setAccount: React.Dispatch<React.SetStateAction<(Account & { networkType: NetworkId }) | undefined>>
+  account?: Account & { network: NetworkId }
+  setAccount: React.Dispatch<React.SetStateAction<(Account & { network: NetworkId }) | undefined>>
   signerProvider?: SignerProvider
   setSignerProvider: React.Dispatch<React.SetStateAction<SignerProvider | undefined>>
 }
