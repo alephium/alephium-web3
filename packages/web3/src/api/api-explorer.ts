@@ -43,6 +43,15 @@ export interface AddressInfo {
   txNumber: number
 }
 
+export interface AddressTokenBalance {
+  /** @format 32-byte-hash */
+  tokenId: string
+  /** @format uint256 */
+  balance: string
+  /** @format uint256 */
+  lockedBalance: string
+}
+
 export interface AssetOutput {
   /** @format int32 */
   hint: number
@@ -71,9 +80,9 @@ export interface BlockEntryLite {
   hash: string
   /** @format int64 */
   timestamp: number
-  /** @format int32 */
+  /** @format group-index */
   chainFrom: number
-  /** @format int32 */
+  /** @format group-index */
   chainTo: number
   /** @format int32 */
   height: number
@@ -121,6 +130,10 @@ export interface Event {
 export interface ExplorerInfo {
   releaseVersion: string
   commit: string
+  /** @format int32 */
+  migrationsVersion: number
+  /** @format int64 */
+  lastFinalizedInputTime: number
 }
 
 export interface Hashrate {
@@ -166,9 +179,9 @@ export interface LogbackValue {
 export interface MempoolTransaction {
   /** @format 32-byte-hash */
   hash: string
-  /** @format int32 */
+  /** @format group-index */
   chainFrom: number
-  /** @format int32 */
+  /** @format group-index */
   chainTo: number
   inputs?: Input[]
   outputs?: Output[]
@@ -197,9 +210,9 @@ export interface OutputRef {
 export interface PendingTransaction {
   /** @format 32-byte-hash */
   hash: string
-  /** @format int32 */
+  /** @format group-index */
   chainFrom: number
-  /** @format int32 */
+  /** @format group-index */
   chainTo: number
   inputs?: Input[]
   outputs?: Output[]
@@ -630,8 +643,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -695,8 +706,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -727,8 +736,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       data?: string[],
       params: RequestParams = {}
@@ -773,8 +780,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -854,8 +859,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -888,8 +891,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -909,9 +910,46 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/addresses/{address}/tokens/{token_id}/balance
      */
     getAddressesAddressTokensTokenIdBalance: (address: string, tokenId: string, params: RequestParams = {}) =>
-      this.request<AddressBalance, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        AddressTokenBalance,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
         path: `/addresses/${address}/tokens/${tokenId}/balance`,
         method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Get address tokens with balance
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressTokensBalance
+     * @request GET:/addresses/{address}/tokens-balance
+     */
+    getAddressesAddressTokensBalance: (
+      address: string,
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        AddressTokenBalance[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/addresses/${address}/tokens-balance`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse),
@@ -1046,8 +1084,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -1171,8 +1207,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -1207,8 +1241,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -1240,8 +1272,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -1389,8 +1419,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -1423,8 +1451,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
@@ -1472,8 +1498,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
-        /** Reverse pagination */
-        reverse?: boolean
       },
       params: RequestParams = {}
     ) =>
