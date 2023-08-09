@@ -190,16 +190,20 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
     [updateBalance, connectContext.account?.network]
   )
 
-  useEffect(() => {
-    if (balance === undefined) {
-      updateBalance()
-    } else if (connectContext.account === undefined) {
-      setBalance(undefined)
-    }
-  }, [updateBalance, balance, connectContext.account])
+  /*
+    No update by default, only when useBalance is called
+  */
+  // useEffect(() => {
+  //   if (balance === undefined) {
+  //     updateBalance()
+  //   } else if (connectContext.account === undefined) {
+  //     setBalance(undefined)
+  //   }
+  // }, [updateBalance, balance, connectContext.account])
 
   const value = {
     balance,
+    updateBalance,
     updateBalanceForTx
   }
 
@@ -216,17 +220,19 @@ export const AlephiumWalletProvider = ({
   children
 }: ConnectSettingProviderProps) => {
   return (
-    <AlephiumConnectProvider>
-      <ConnectSettingProvider
-        useTheme={useTheme}
-        useMode={useMode}
-        useCustomTheme={useCustomTheme}
-        network={network}
-        addressGroup={addressGroup}
-        keyType={keyType}
-      >
-        {children}
-      </ConnectSettingProvider>
-    </AlephiumConnectProvider>
+    <ConnectSettingProvider
+      useTheme={useTheme}
+      useMode={useMode}
+      useCustomTheme={useCustomTheme}
+      network={network}
+      addressGroup={addressGroup}
+      keyType={keyType}
+    >
+      <AlephiumConnectProvider>
+        <AlephiumBalanceProvider>
+          {children}
+        </AlephiumBalanceProvider>
+      </AlephiumConnectProvider>
+    </ConnectSettingProvider>
   )
 }

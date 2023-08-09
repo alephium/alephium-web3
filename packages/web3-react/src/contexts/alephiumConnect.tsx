@@ -68,6 +68,7 @@ export const useAlephiumConnectContext = () => {
 
 export type AlephiumBalanceContextValue = {
   balance?: node.Balance
+  updateBalance: () => void
   updateBalanceForTx: (txId: string, confirmations?: number) => void
 }
 
