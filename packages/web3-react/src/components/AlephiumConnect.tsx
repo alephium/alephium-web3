@@ -168,8 +168,12 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
 
   const updateBalanceForTx = useCallback(
     (txId: string, confirmations?: number) => {
+      if (account === undefined) {
+        throw new Error('Wallet is not connected')
+      }
+
       const expectedConfirmations = confirmations ?? 1
-      const pollingInterval = account?.network === 'devnet' ? 1000 : 4000
+      const pollingInterval = account.network === 'devnet' ? 1000 : 4000
       const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
         if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
           await updateBalance()
@@ -187,7 +191,7 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
       }
       subscribeToTxStatus(options, txId, undefined, undefined, expectedConfirmations)
     },
-    [updateBalance, account?.network]
+    [updateBalance, account]
   )
 
   useEffect(() => {
