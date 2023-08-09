@@ -15,19 +15,20 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { useContext, useEffect, useMemo } from 'react'
-import { AlephiumBalanceContext } from '../contexts/alephiumConnect'
+import { useEffect, useMemo } from 'react'
+import { useAlephiumBalanceContext } from '../contexts/alephiumConnect'
 
 export function useBalance() {
-  const context = useContext(AlephiumBalanceContext)
+  const context = useAlephiumBalanceContext()
 
   useEffect(() => {
-    if (context?.balance === undefined) {
-      context?.updateBalance()
+    if (context.balance === undefined) {
+      context.updateBalance()
     }
-  }, [context, context?.balance, context?.updateBalance])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context.balance, context.updateBalance])
 
   return useMemo(() => {
-    return context?.balance
-  }, [context?.balance])
+    return context.balance
+  }, [context.balance])
 }
