@@ -19,6 +19,7 @@ import React, { createContext, useContext } from 'react'
 
 import { Account, KeyType, SignerProvider, NetworkId } from '@alephium/web3'
 import { Theme, Mode, CustomTheme, ConnectorId } from '../types'
+import { node } from '@alephium/web3'
 
 type Error = string | React.ReactNode | null
 
@@ -51,6 +52,8 @@ export const useConnectSettingContext = () => {
 }
 
 export type AlephiumConnectContextValue = {
+  balance?: node.Balance
+  updateBalanceForTx: (txId: string, confirmations?: number) => void
   account?: Account & { network: NetworkId }
   setAccount: React.Dispatch<React.SetStateAction<(Account & { network: NetworkId }) | undefined>>
   signerProvider?: SignerProvider
