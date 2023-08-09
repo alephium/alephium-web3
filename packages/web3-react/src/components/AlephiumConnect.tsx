@@ -191,15 +191,14 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
   )
 
   useEffect(() => {
-    if (balance === undefined) {
-      updateBalance()
-    } else if (connectContext.account === undefined) {
+    if (connectContext.account === undefined) {
       setBalance(undefined)
     }
-  }, [updateBalance, balance, connectContext.account])
+  }, [connectContext.account])
 
   const value = {
     balance,
+    updateBalance,
     updateBalanceForTx
   }
 
@@ -225,7 +224,7 @@ export const AlephiumWalletProvider = ({
         addressGroup={addressGroup}
         keyType={keyType}
       >
-        {children}
+        <AlephiumBalanceProvider>{children}</AlephiumBalanceProvider>
       </ConnectSettingProvider>
     </AlephiumConnectProvider>
   )

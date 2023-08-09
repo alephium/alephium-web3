@@ -15,11 +15,19 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { useContext } from 'react'
+import { useContext, useEffect, useMemo } from 'react'
 import { AlephiumBalanceContext } from '../contexts/alephiumConnect'
 
 export function useBalance() {
   const context = useContext(AlephiumBalanceContext)
-  if (!context) throw Error('AlephiumBalance Hook must be inside a Provider.')
-  return context
+
+  useEffect(() => {
+    if (context?.balance === undefined) {
+      context?.updateBalance()
+    }
+  }, [context, context?.balance, context?.updateBalance])
+
+  return useMemo(() => {
+    return context?.balance
+  }, [context?.balance])
 }

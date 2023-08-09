@@ -68,7 +68,14 @@ export const useAlephiumConnectContext = () => {
 
 export type AlephiumBalanceContextValue = {
   balance?: node.Balance
+  updateBalance: () => void
   updateBalanceForTx: (txId: string, confirmations?: number) => void
 }
 
 export const AlephiumBalanceContext = createContext<AlephiumBalanceContextValue | null>(null)
+
+export const useAlephiumBalanceContext = () => {
+  const context = useContext(AlephiumBalanceContext)
+  if (!context) throw Error('AlephiumBalance Hook must be inside a Provider.')
+  return context
+}
