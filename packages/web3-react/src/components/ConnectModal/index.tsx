@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useConnectSettingContext } from '../../contexts/alephiumConnect'
 import Modal, { Page, routes } from '../Common/Modal'
 
@@ -61,23 +61,19 @@ const ConnectModal: React.FC<{
     { id: 'PROFILE', content: <Profile /> }
   ]
 
-  function hide() {
+  const hide = useCallback(() => {
     context.setOpen(false)
-  }
+  }, [context])
 
   useEffect(() => {
-    if (isConnected) {
-      if (context.route !== routes.PROFILE) {
-        hide() // Hide on connect
-      }
-    } else {
-      hide() // Hide on connect
+    if (isConnected && context.route !== routes.PROFILE) {
+      hide()
     }
-  }, [isConnected])
+  }, [isConnected, context.route, hide])
 
-  useEffect(() => context.setMode(mode), [mode])
-  useEffect(() => context.setTheme(theme), [theme])
-  useEffect(() => context.setCustomTheme(customTheme), [customTheme])
+  useEffect(() => context.setMode(mode), [context, mode])
+  useEffect(() => context.setTheme(theme), [context, theme])
+  useEffect(() => context.setCustomTheme(customTheme), [context, customTheme])
 
   /* When pulling data into WalletConnect, it prioritises the og:title tag over the title tag */
   useEffect(() => {

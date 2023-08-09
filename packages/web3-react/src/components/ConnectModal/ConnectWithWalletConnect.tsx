@@ -43,7 +43,7 @@ const ConnectWithWalletConnect: React.FC = () => {
         setError(undefined)
       })
       .catch((err) => setError(`${err}`))
-  }, [])
+  }, [connect, context])
 
   return (
     <PageContent>

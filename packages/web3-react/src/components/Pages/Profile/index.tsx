@@ -54,7 +54,7 @@ const Profile: React.FC<{ closeModal?: () => void }> = ({ closeModal }) => {
       disconnect()
       context.setOpen(false)
     }
-  }, [shouldDisconnect])
+  }, [shouldDisconnect, disconnect, context, closeModal])
 
   return (
     <PageContent>

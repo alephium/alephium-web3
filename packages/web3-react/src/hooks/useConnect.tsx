@@ -42,7 +42,7 @@ export function useConnect(options: ConnectOptions) {
       context.setSignerProvider(undefined)
       context.setAccount(undefined)
     }
-  }, [settings.connectorId])
+  }, [settings.connectorId, context])
 
   const wcConnect = useCallback(async () => {
     const wcProvider = await WalletConnectProvider.init({
@@ -69,7 +69,7 @@ export function useConnect(options: ConnectOptions) {
     }
 
     QRCodeModal.close()
-  }, [options, wcDisconnect])
+  }, [options, wcDisconnect, context])
 
   const desktopWalletConnect = useCallback(async () => {
     const wcProvider = await WalletConnectProvider.init({
@@ -94,9 +94,9 @@ export function useConnect(options: ConnectOptions) {
       console.log('wallet connect error')
       console.error(e)
     }
-  }, [options, wcDisconnect])
+  }, [options, wcDisconnect, context])
 
-  const disconnectAlephium = () => {
+  const disconnectAlephium = useCallback(() => {
     getDefaultAlephiumWallet()
       .then((alephium) => {
         if (!!alephium) {
@@ -106,7 +106,7 @@ export function useConnect(options: ConnectOptions) {
       .catch((error: any) => {
         console.error(error)
       })
-  }
+  }, [])
 
   const enableOptions = useMemo(() => {
     return {
@@ -117,7 +117,7 @@ export function useConnect(options: ConnectOptions) {
         context.setAccount(undefined)
       }
     }
-  }, [options, settings.keyType])
+  }, [options, settings.keyType, context])
 
   const connectAlephium = useCallback(async () => {
     const windowAlephium = await getDefaultAlephiumWallet()
@@ -130,7 +130,7 @@ export function useConnect(options: ConnectOptions) {
     }
 
     return enabledAccount
-  }, [enableOptions])
+  }, [enableOptions, context])
 
   const autoConnectAlephium = useCallback(async () => {
     const windowAlephium = await getDefaultAlephiumWallet()
@@ -141,7 +141,7 @@ export function useConnect(options: ConnectOptions) {
       context.setSignerProvider(windowAlephium)
       context.setAccount({ ...enabledAccount, network: enableOptions.networkId })
     }
-  }, [enableOptions])
+  }, [enableOptions, context])
 
   return useMemo(
     () =>
@@ -150,6 +150,14 @@ export function useConnect(options: ConnectOptions) {
         walletConnect: { connect: wcConnect, disconnect: wcDisconnect },
         desktopWallet: { connect: desktopWalletConnect, disconnect: wcDisconnect }
       }[settings.connectorId]),
-    [settings.connectorId]
+    [
+      settings.connectorId,
+      connectAlephium,
+      disconnectAlephium,
+      autoConnectAlephium,
+      wcConnect,
+      desktopWalletConnect,
+      wcDisconnect
+    ]
   )
 }
