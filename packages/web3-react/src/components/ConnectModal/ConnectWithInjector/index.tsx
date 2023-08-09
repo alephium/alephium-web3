@@ -87,11 +87,11 @@ const ConnectWithInjector: React.FC<{
   switchConnectMethod: (id?: string) => void
   forceState?: typeof states
 }> = ({ connectorId, switchConnectMethod, forceState }) => {
-  const context = useConnectSettingContext()
+  const { addressGroup, network, setOpen } = useConnectSettingContext()
 
   const { connect } = useConnect({
-    addressGroup: context.addressGroup,
-    networkId: context.network
+    addressGroup: addressGroup,
+    networkId: network
   })
 
   const [id, setId] = useState(connectorId)
@@ -126,9 +126,9 @@ const ConnectWithInjector: React.FC<{
       if (!!address) {
         setStatus(states.CONNECTED)
       }
-      context.setOpen(false)
+      setOpen(false)
     })
-  }, [hasExtensionInstalled, context, connect])
+  }, [hasExtensionInstalled, setOpen, connect])
 
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => {

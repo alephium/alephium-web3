@@ -33,12 +33,13 @@ const ConnectModal: React.FC<{
   theme?: Theme
   customTheme?: CustomTheme
 }> = ({ mode = 'auto', theme = 'auto', customTheme = customThemeDefault }) => {
-  const context = useConnectSettingContext()
+  const { network, addressGroup, route, setRoute, open, setOpen, connectorId, setMode, setTheme, setCustomTheme } =
+    useConnectSettingContext()
   const account = useAccount()
   const isConnected = !!account
   const { autoConnect } = useConnect({
-    networkId: context.network,
-    addressGroup: context.addressGroup
+    networkId: network,
+    addressGroup: addressGroup
   })
 
   useEffect(() => {
@@ -49,36 +50,36 @@ const ConnectModal: React.FC<{
 
   const closeable = true
 
-  const showBackButton = context.route !== routes.CONNECTORS && context.route !== routes.PROFILE
+  const showBackButton = route !== routes.CONNECTORS && route !== routes.PROFILE
 
   const onBack = () => {
-    context.setRoute(routes.CONNECTORS)
+    setRoute(routes.CONNECTORS)
   }
 
   const pages: Page[] = [
     { id: 'CONNECTORS', content: <Connectors /> },
-    { id: 'CONNECT', content: <ConnectUsing connectorId={context.connectorId} /> },
+    { id: 'CONNECT', content: <ConnectUsing connectorId={connectorId} /> },
     { id: 'PROFILE', content: <Profile /> }
   ]
 
   const hide = useCallback(() => {
-    context.setOpen(false)
-  }, [context])
+    setOpen(false)
+  }, [setOpen])
 
   useEffect(() => {
-    if (isConnected && context.route !== routes.PROFILE) {
+    if (isConnected && route !== routes.PROFILE) {
       hide()
     }
-  }, [isConnected, context.route, hide])
+  }, [isConnected, route, hide])
 
-  useEffect(() => context.setMode(mode), [context, mode])
-  useEffect(() => context.setTheme(theme), [context, theme])
-  useEffect(() => context.setCustomTheme(customTheme), [context, customTheme])
+  useEffect(() => setMode(mode), [setMode, mode])
+  useEffect(() => setTheme(theme), [setTheme, theme])
+  useEffect(() => setCustomTheme(customTheme), [setCustomTheme, customTheme])
 
   /* When pulling data into WalletConnect, it prioritises the og:title tag over the title tag */
   useEffect(() => {
     const appName = 'alephium'
-    if (!appName || !context.open) return
+    if (!appName || !open) return
 
     const title = document.createElement('meta')
     title.setAttribute('property', 'og:title')
@@ -99,13 +100,13 @@ const ConnectModal: React.FC<{
       document.head.removeChild(title)
       //if (appIcon) document.head.removeChild(icon);
     }
-  }, [context.open])
+  }, [open])
 
   return (
     <Modal
-      open={context.open}
+      open={open}
       pages={pages}
-      pageId={context.route}
+      pageId={route}
       onClose={closeable ? hide : undefined}
       onInfo={undefined}
       onBack={showBackButton ? onBack : undefined}

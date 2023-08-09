@@ -148,28 +148,28 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
     throw new Error('Multiple, nested usages of AlephiumBalanceProvider detected. Please use only one.')
   }
 
-  const connectContext = useAlephiumConnectContext()
+  const { account, signerProvider } = useAlephiumConnectContext()
   const [balance, setBalance] = useState<node.Balance | undefined>()
 
   const updateBalance = useCallback(async () => {
-    const nodeProvider = tryGetNodeProvider() ?? connectContext.signerProvider?.nodeProvider
-    if (nodeProvider && connectContext.account) {
-      const newBalance = await nodeProvider.addresses.getAddressesAddressBalance(connectContext.account.address)
+    const nodeProvider = tryGetNodeProvider() ?? signerProvider?.nodeProvider
+    if (nodeProvider && account) {
+      const newBalance = await nodeProvider.addresses.getAddressesAddressBalance(account.address)
       setBalance((prevBalance) => {
         if (prevBalance !== undefined && isBalanceEqual(prevBalance, newBalance)) {
           return prevBalance
         }
         return newBalance
       })
-    } else if (connectContext.account === undefined) {
+    } else if (account === undefined) {
       setBalance(undefined)
     }
-  }, [connectContext.account, connectContext.signerProvider])
+  }, [account, signerProvider])
 
   const updateBalanceForTx = useCallback(
     (txId: string, confirmations?: number) => {
       const expectedConfirmations = confirmations ?? 1
-      const pollingInterval = connectContext.account?.network === 'devnet' ? 1000 : 4000
+      const pollingInterval = account?.network === 'devnet' ? 1000 : 4000
       const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
         if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
           await updateBalance()
@@ -187,14 +187,14 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
       }
       subscribeToTxStatus(options, txId, undefined, undefined, expectedConfirmations)
     },
-    [updateBalance, connectContext.account?.network]
+    [updateBalance, account?.network]
   )
 
   useEffect(() => {
-    if (connectContext.account === undefined) {
+    if (account === undefined) {
       setBalance(undefined)
     }
-  }, [connectContext.account])
+  }, [account])
 
   const value = {
     balance,

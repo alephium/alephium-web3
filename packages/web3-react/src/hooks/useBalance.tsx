@@ -19,16 +19,15 @@ import { useEffect, useMemo } from 'react'
 import { useAlephiumBalanceContext } from '../contexts/alephiumConnect'
 
 export function useBalance() {
-  const context = useAlephiumBalanceContext()
+  const { balance, updateBalance } = useAlephiumBalanceContext()
 
   useEffect(() => {
-    if (context.balance === undefined) {
-      context.updateBalance()
+    if (balance === undefined) {
+      updateBalance()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [context.balance, context.updateBalance])
+  }, [balance, updateBalance])
 
   return useMemo(() => {
-    return context.balance
-  }, [context.balance])
+    return balance
+  }, [balance])
 }
