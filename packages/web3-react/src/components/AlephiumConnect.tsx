@@ -36,7 +36,13 @@ import {
 } from '@alephium/web3'
 import { Theme, Mode, CustomTheme } from '../types'
 import { routes } from './Common/Modal'
-import { AlephiumConnectContext, ConnectSettingContext, ConnectSettingValue } from '../contexts/alephiumConnect'
+import {
+  AlephiumBalanceContext,
+  AlephiumConnectContext,
+  ConnectSettingContext,
+  ConnectSettingValue,
+  useAlephiumConnectContext
+} from '../contexts/alephiumConnect'
 
 type ConnectSettingProviderProps = {
   useTheme?: Theme
@@ -125,27 +131,45 @@ export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> =
 
   const [account, setAccount] = useState<Account & { network: NetworkId }>()
   const [signerProvider, setSignerProvider] = useState<SignerProvider | undefined>()
+
+  const value = {
+    account,
+    setAccount,
+    signerProvider,
+    setSignerProvider
+  }
+
+  return <AlephiumConnectContext.Provider value={value}>{children}</AlephiumConnectContext.Provider>
+}
+
+export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const context = useContext(AlephiumBalanceContext)
+  if (context) {
+    throw new Error('Multiple, nested usages of AlephiumBalanceProvider detected. Please use only one.')
+  }
+
+  const connectContext = useAlephiumConnectContext()
   const [balance, setBalance] = useState<node.Balance | undefined>()
 
   const updateBalance = useCallback(async () => {
-    const nodeProvider = tryGetNodeProvider() ?? signerProvider?.nodeProvider
-    if (nodeProvider && account) {
-      const newBalance = await nodeProvider.addresses.getAddressesAddressBalance(account.address)
+    const nodeProvider = tryGetNodeProvider() ?? connectContext.signerProvider?.nodeProvider
+    if (nodeProvider && connectContext.account) {
+      const newBalance = await nodeProvider.addresses.getAddressesAddressBalance(connectContext.account.address)
       setBalance((prevBalance) => {
         if (prevBalance !== undefined && isBalanceEqual(prevBalance, newBalance)) {
           return prevBalance
         }
         return newBalance
       })
-    } else if (account === undefined) {
+    } else if (connectContext.account === undefined) {
       setBalance(undefined)
     }
-  }, [signerProvider?.nodeProvider, account, setBalance])
+  }, [connectContext.account, connectContext.signerProvider])
 
   const updateBalanceForTx = useCallback(
     (txId: string, confirmations?: number) => {
       const expectedConfirmations = confirmations ?? 1
-      const pollingInterval = account?.network === 'devnet' ? 1000 : 4000
+      const pollingInterval = connectContext.account?.network === 'devnet' ? 1000 : 4000
       const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
         if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
           await updateBalance()
@@ -163,23 +187,23 @@ export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> =
       }
       subscribeToTxStatus(options, txId, undefined, undefined, expectedConfirmations)
     },
-    [updateBalance, account?.network]
+    [updateBalance, connectContext.account?.network]
   )
 
   useEffect(() => {
-    updateBalance()
-  }, [updateBalance])
+    if (balance === undefined) {
+      updateBalance()
+    } else if (connectContext.account === undefined) {
+      setBalance(undefined)
+    }
+  }, [updateBalance, balance, connectContext.account])
 
   const value = {
     balance,
-    updateBalanceForTx,
-    account,
-    setAccount,
-    signerProvider,
-    setSignerProvider
+    updateBalanceForTx
   }
 
-  return <AlephiumConnectContext.Provider value={value}>{children}</AlephiumConnectContext.Provider>
+  return <AlephiumBalanceContext.Provider value={value}>{children}</AlephiumBalanceContext.Provider>
 }
 
 export const AlephiumWalletProvider = ({

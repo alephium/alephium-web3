@@ -52,8 +52,6 @@ export const useConnectSettingContext = () => {
 }
 
 export type AlephiumConnectContextValue = {
-  balance?: node.Balance
-  updateBalanceForTx: (txId: string, confirmations?: number) => void
   account?: Account & { network: NetworkId }
   setAccount: React.Dispatch<React.SetStateAction<(Account & { network: NetworkId }) | undefined>>
   signerProvider?: SignerProvider
@@ -67,3 +65,10 @@ export const useAlephiumConnectContext = () => {
   if (!context) throw Error('AlephiumConnect Hook must be inside a Provider.')
   return context
 }
+
+export type AlephiumBalanceContextValue = {
+  balance?: node.Balance
+  updateBalanceForTx: (txId: string, confirmations?: number) => void
+}
+
+export const AlephiumBalanceContext = createContext<AlephiumBalanceContextValue | null>(null)
