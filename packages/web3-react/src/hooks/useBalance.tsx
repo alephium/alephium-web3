@@ -15,11 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useAlephiumBalanceContext } from '../contexts/alephiumConnect'
 
 export function useBalance() {
-  const { balance, updateBalance } = useAlephiumBalanceContext()
+  const { balance, updateBalance, updateBalanceForTx } = useAlephiumBalanceContext()
 
   useEffect(() => {
     if (balance === undefined) {
@@ -27,5 +27,7 @@ export function useBalance() {
     }
   }, [balance, updateBalance])
 
-  return balance
+  return useMemo(() => {
+    return { balance, updateBalanceForTx }
+  }, [balance, updateBalanceForTx])
 }
