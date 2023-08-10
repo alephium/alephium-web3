@@ -8,9 +8,7 @@ npm install
 
 ## Start a local devnet for testing and development
 
-```
-npx @alephium/cli@latest devnet start
-```
+Please refer to the documentation here: https://wiki.alephium.org/full-node/devnet
 
 ## Compile
 
@@ -18,12 +16,6 @@ Compile the TypeScript files into JavaScript:
 
 ```
 npx @alephium/cli@latest compile 
-```
-
-## Stop/restart devnet
-
-```
-npx @alephium/cli@latest devnet stop
 ```
 
 ## Testing
