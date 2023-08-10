@@ -16,31 +16,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import React, { useEffect, useState } from 'react'
-import { useConnectSettingContext } from '../../../contexts/alephiumConnect'
+import { useAlephiumConnectContext, useConnectSettingContext } from '../../../contexts/alephiumConnect'
 
-import { PageContent, ModalBody, ModalContent, ModalH1 } from '../../Common/Modal/styles'
+import { PageContent, ModalContent, ModalH1 } from '../../Common/Modal/styles'
 import Button from '../../Common/Button'
 
 import { DisconnectIcon } from '../../../assets/icons'
 import CopyToClipboard from '../../Common/CopyToClipboard'
-import { useAccount } from '../../../hooks/useAccount'
 import { truncatedAddress } from '../../../utils'
-import { useBalance } from '../../../hooks/useBalance'
-import { AnimatePresence } from 'framer-motion'
-import { Balance, BalanceContainer, LoadingBalance } from './styles'
-import { prettifyAttoAlphAmount } from '@alephium/web3'
 import { useConnect } from '../../../hooks/useConnect'
 
 const Profile: React.FC<{ closeModal?: () => void }> = ({ closeModal }) => {
-  const context = useConnectSettingContext()
-  const account = useAccount()
-  const { balance } = useBalance()
+  const { addressGroup, network, displayAccount, setOpen } = useConnectSettingContext()
+  const { account } = useAlephiumConnectContext()
   const { disconnect } = useConnect({
-    addressGroup: context.addressGroup,
-    networkId: context.network
+    addressGroup: addressGroup,
+    networkId: network
   })
   const [shouldDisconnect, setShouldDisconnect] = useState(false)
-  const address = account ? (context.displayAccount ? context.displayAccount(account) : account.address) : undefined
+  const address = account ? (displayAccount ? displayAccount(account) : account.address) : undefined
 
   useEffect(() => {
     if (!shouldDisconnect) return
@@ -48,13 +42,13 @@ const Profile: React.FC<{ closeModal?: () => void }> = ({ closeModal }) => {
     if (closeModal) {
       closeModal()
     } else {
-      context.setOpen(false)
+      setOpen(false)
     }
     return () => {
       disconnect()
-      context.setOpen(false)
+      setOpen(false)
     }
-  }, [shouldDisconnect])
+  }, [shouldDisconnect, disconnect, closeModal, setOpen])
 
   return (
     <PageContent>
@@ -62,33 +56,6 @@ const Profile: React.FC<{ closeModal?: () => void }> = ({ closeModal }) => {
         <ModalH1>
           <CopyToClipboard string={address}>{address && truncatedAddress(address)}</CopyToClipboard>
         </ModalH1>
-        <ModalBody>
-          <BalanceContainer>
-            <AnimatePresence exitBeforeEnter initial={false}>
-              {balance && (
-                <Balance
-                  key={`alephium`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {prettifyAttoAlphAmount(BigInt(balance.balance))} ALPH
-                </Balance>
-              )}
-              {!balance && (
-                <LoadingBalance
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  &nbsp;
-                </LoadingBalance>
-              )}
-            </AnimatePresence>
-          </BalanceContainer>
-        </ModalBody>
       </ModalContent>
       <Button onClick={() => setShouldDisconnect(true)} icon={<DisconnectIcon />}>
         {'Disconnect'}

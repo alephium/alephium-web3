@@ -15,16 +15,34 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 
 import defaultTheme from '../styles/defaultTheme'
 
 import AlephiumConnectModal from '../components/ConnectModal'
 import { ThemeProvider } from 'styled-components'
-import { Account, KeyType, NetworkId, SignerProvider } from '@alephium/web3'
+import {
+  Account,
+  KeyType,
+  NetworkId,
+  NodeProvider,
+  SignerProvider,
+  SubscribeOptions,
+  Subscription,
+  isBalanceEqual,
+  node,
+  subscribeToTxStatus,
+  web3
+} from '@alephium/web3'
 import { Theme, Mode, CustomTheme } from '../types'
 import { routes } from './Common/Modal'
-import { AlephiumConnectContext, ConnectSettingContext, ConnectSettingValue } from '../contexts/alephiumConnect'
+import {
+  AlephiumBalanceContext,
+  AlephiumConnectContext,
+  ConnectSettingContext,
+  ConnectSettingValue,
+  useAlephiumConnectContext
+} from '../contexts/alephiumConnect'
 
 type ConnectSettingProviderProps = {
   useTheme?: Theme
@@ -95,6 +113,14 @@ export const ConnectSettingProvider: React.FC<ConnectSettingProviderProps> = ({
   )
 }
 
+function tryGetNodeProvider(): NodeProvider | undefined {
+  try {
+    return web3.getCurrentNodeProvider()
+  } catch (_) {
+    return undefined
+  }
+}
+
 export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
   // Only allow for mounting AlephiumConnectProvider once, so we avoid weird global
   // state collisions.
@@ -116,6 +142,73 @@ export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> =
   return <AlephiumConnectContext.Provider value={value}>{children}</AlephiumConnectContext.Provider>
 }
 
+export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const context = useContext(AlephiumBalanceContext)
+  if (context) {
+    throw new Error('Multiple, nested usages of AlephiumBalanceProvider detected. Please use only one.')
+  }
+
+  const { account, signerProvider } = useAlephiumConnectContext()
+  const [balance, setBalance] = useState<node.Balance | undefined>()
+
+  const updateBalance = useCallback(async () => {
+    const nodeProvider = tryGetNodeProvider() ?? signerProvider?.nodeProvider
+    if (nodeProvider && account) {
+      const newBalance = await nodeProvider.addresses.getAddressesAddressBalance(account.address)
+      setBalance((prevBalance) => {
+        if (prevBalance !== undefined && isBalanceEqual(prevBalance, newBalance)) {
+          return prevBalance
+        }
+        return newBalance
+      })
+    } else if (account === undefined) {
+      setBalance(undefined)
+    }
+  }, [account, signerProvider])
+
+  const updateBalanceForTx = useCallback(
+    (txId: string, confirmations?: number) => {
+      if (account === undefined) {
+        throw new Error('Wallet is not connected')
+      }
+
+      const expectedConfirmations = confirmations ?? 1
+      const pollingInterval = account.network === 'devnet' ? 1000 : 4000
+      const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
+        if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
+          await updateBalance()
+        }
+      }
+      const errorCallback = (err: any, subscription: Subscription<node.TxStatus>): Promise<void> => {
+        subscription.unsubscribe()
+        console.error(`tx status subscription error: ${err}`)
+        return Promise.resolve()
+      }
+      const options: SubscribeOptions<node.TxStatus> = {
+        pollingInterval,
+        messageCallback,
+        errorCallback
+      }
+      subscribeToTxStatus(options, txId, undefined, undefined, expectedConfirmations)
+    },
+    [updateBalance, account]
+  )
+
+  useEffect(() => {
+    if (account === undefined) {
+      setBalance(undefined)
+    }
+  }, [account])
+
+  const value = {
+    balance,
+    updateBalance,
+    updateBalanceForTx
+  }
+
+  return <AlephiumBalanceContext.Provider value={value}>{children}</AlephiumBalanceContext.Provider>
+}
+
 export const AlephiumWalletProvider = ({
   useTheme,
   useMode,
@@ -135,7 +228,7 @@ export const AlephiumWalletProvider = ({
         addressGroup={addressGroup}
         keyType={keyType}
       >
-        {children}
+        <AlephiumBalanceProvider>{children}</AlephiumBalanceProvider>
       </ConnectSettingProvider>
     </AlephiumConnectProvider>
   )

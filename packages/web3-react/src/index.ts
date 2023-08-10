@@ -15,13 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-export { AlephiumWalletProvider } from './components/AlephiumConnect'
-export { useAlephiumConnectContext } from './contexts/alephiumConnect'
+export { AlephiumWalletProvider, AlephiumBalanceProvider } from './components/AlephiumConnect'
+export { useAlephiumConnectContext, useAlephiumBalanceContext } from './contexts/alephiumConnect'
 export { AlephiumConnectButton } from './components/ConnectButton'
 
 export { default as supportedConnectors } from './constants/supportedConnectors'
 
-export { useAccount } from './hooks/useAccount'
 export { useConnect } from './hooks/useConnect'
 export { useTxStatus } from './hooks/useTxStatus'
 export { useBalance } from './hooks/useBalance'
+export { useWallet, Wallet } from './hooks/useWallet'

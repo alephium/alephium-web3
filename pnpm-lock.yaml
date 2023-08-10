@@ -327,6 +327,7 @@ importers:
       '@walletconnect/qrcode-modal': ^1.8.0
       buffer: ^6.0.3
       detect-browser: ^5.3.0
+      eslint-plugin-react-hooks: ^4.6.0
       framer-motion: ^6.5.1
       qrcode: ^1.5.1
       react: 17.x || 18.x
@@ -362,6 +363,7 @@ importers:
       '@types/react': 18.0.37
       '@types/react-dom': 18.0.11
       '@types/styled-components': 5.1.26
+      eslint-plugin-react-hooks: 4.6.0_eslint@8.38.0
       rollup: 2.79.1
       rollup-plugin-peer-deps-external: 2.2.4_rollup@2.79.1
       rollup-plugin-terser: 7.0.2_rollup@2.79.1
@@ -5828,6 +5830,15 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0
+    dependencies:
+      eslint: 8.38.0
+    dev: true
+
+  /eslint-plugin-react-hooks/4.6.0_eslint@8.38.0:
+    resolution: {integrity: sha512-oFc7Itz9Qxh2x4gNHStv3BqJq54ExXmfC+a1NjAta66IAN87Wu0R/QArgIS9qKzX3dXKPI9H5crl9QchNMY9+g==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
     dependencies:
       eslint: 8.38.0
     dev: true
