@@ -30,25 +30,23 @@ export interface ConnectOptions {
 }
 
 export function useConnect(options: ConnectOptions) {
-  const settings = useConnectSettingContext()
-  const context = useAlephiumConnectContext()
+  const { addressGroup, networkId } = options
+  const { connectorId, keyType } = useConnectSettingContext()
+  const { signerProvider, setSignerProvider, setAccount } = useAlephiumConnectContext()
 
   const wcDisconnect = useCallback(async () => {
-    if (
-      (settings.connectorId === 'walletConnect' || settings.connectorId === 'desktopWallet') &&
-      context.signerProvider
-    ) {
-      await (context.signerProvider as WalletConnectProvider).disconnect()
-      context.setSignerProvider(undefined)
-      context.setAccount(undefined)
+    if ((connectorId === 'walletConnect' || connectorId === 'desktopWallet') && signerProvider) {
+      await (signerProvider as WalletConnectProvider).disconnect()
+      setSignerProvider(undefined)
+      setAccount(undefined)
     }
-  }, [settings.connectorId])
+  }, [connectorId, signerProvider, setSignerProvider, setAccount])
 
   const wcConnect = useCallback(async () => {
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
-      networkId: options.networkId,
-      addressGroup: options.addressGroup,
+      networkId: networkId,
+      addressGroup: addressGroup,
       onDisconnected: wcDisconnect
     })
 
@@ -60,8 +58,8 @@ export function useConnect(options: ConnectOptions) {
       await wcProvider.connect()
 
       if (wcProvider.account) {
-        context.setAccount({ ...wcProvider.account, network: options.networkId })
-        context.setSignerProvider(wcProvider as any)
+        setAccount({ ...wcProvider.account, network: networkId })
+        setSignerProvider(wcProvider as any)
       }
     } catch (e) {
       console.log('wallet connect error')
@@ -69,13 +67,13 @@ export function useConnect(options: ConnectOptions) {
     }
 
     QRCodeModal.close()
-  }, [options, wcDisconnect])
+  }, [networkId, addressGroup, wcDisconnect, setAccount, setSignerProvider])
 
   const desktopWalletConnect = useCallback(async () => {
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
-      networkId: options.networkId,
-      addressGroup: options.addressGroup,
+      networkId: networkId,
+      addressGroup: addressGroup,
       onDisconnected: wcDisconnect
     })
 
@@ -87,16 +85,16 @@ export function useConnect(options: ConnectOptions) {
       await wcProvider.connect()
 
       if (wcProvider.account) {
-        context.setAccount({ ...wcProvider.account, network: options.networkId })
-        context.setSignerProvider(wcProvider as any)
+        setAccount({ ...wcProvider.account, network: networkId })
+        setSignerProvider(wcProvider as any)
       }
     } catch (e) {
       console.log('wallet connect error')
       console.error(e)
     }
-  }, [options, wcDisconnect])
+  }, [networkId, addressGroup, wcDisconnect, setAccount, setSignerProvider])
 
-  const disconnectAlephium = () => {
+  const disconnectAlephium = useCallback(() => {
     getDefaultAlephiumWallet()
       .then((alephium) => {
         if (!!alephium) {
@@ -106,18 +104,19 @@ export function useConnect(options: ConnectOptions) {
       .catch((error: any) => {
         console.error(error)
       })
-  }
+  }, [])
 
   const enableOptions = useMemo(() => {
     return {
-      ...options,
-      keyType: settings.keyType,
+      addressGroup: addressGroup,
+      networkId: networkId,
+      keyType: keyType,
       onDisconnected: () => {
-        context.setSignerProvider(undefined)
-        context.setAccount(undefined)
+        setSignerProvider(undefined)
+        setAccount(undefined)
       }
     }
-  }, [options, settings.keyType])
+  }, [networkId, addressGroup, keyType, setSignerProvider, setAccount])
 
   const connectAlephium = useCallback(async () => {
     const windowAlephium = await getDefaultAlephiumWallet()
@@ -125,12 +124,12 @@ export function useConnect(options: ConnectOptions) {
     const enabledAccount = await windowAlephium?.enable(enableOptions).catch(() => undefined) // Need to catch the exception here
 
     if (windowAlephium && enabledAccount) {
-      context.setSignerProvider(windowAlephium)
-      context.setAccount({ ...enabledAccount, network: enableOptions.networkId })
+      setSignerProvider(windowAlephium)
+      setAccount({ ...enabledAccount, network: enableOptions.networkId })
     }
 
     return enabledAccount
-  }, [enableOptions])
+  }, [enableOptions, setSignerProvider, setAccount])
 
   const autoConnectAlephium = useCallback(async () => {
     const windowAlephium = await getDefaultAlephiumWallet()
@@ -138,10 +137,10 @@ export function useConnect(options: ConnectOptions) {
     const enabledAccount = await windowAlephium?.enableIfConnected(enableOptions).catch(() => undefined) // Need to catch the exception here
 
     if (windowAlephium && enabledAccount) {
-      context.setSignerProvider(windowAlephium)
-      context.setAccount({ ...enabledAccount, network: enableOptions.networkId })
+      setSignerProvider(windowAlephium)
+      setAccount({ ...enabledAccount, network: enableOptions.networkId })
     }
-  }, [enableOptions])
+  }, [enableOptions, setSignerProvider, setAccount])
 
   return useMemo(
     () =>
@@ -149,7 +148,15 @@ export function useConnect(options: ConnectOptions) {
         injected: { connect: connectAlephium, disconnect: disconnectAlephium, autoConnect: autoConnectAlephium },
         walletConnect: { connect: wcConnect, disconnect: wcDisconnect },
         desktopWallet: { connect: desktopWalletConnect, disconnect: wcDisconnect }
-      }[settings.connectorId]),
-    [settings.connectorId]
+      }[`${connectorId}`]),
+    [
+      connectorId,
+      connectAlephium,
+      disconnectAlephium,
+      autoConnectAlephium,
+      wcConnect,
+      desktopWalletConnect,
+      wcDisconnect
+    ]
   )
 }

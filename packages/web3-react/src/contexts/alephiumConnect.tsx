@@ -19,6 +19,7 @@ import React, { createContext, useContext } from 'react'
 
 import { Account, KeyType, SignerProvider, NetworkId } from '@alephium/web3'
 import { Theme, Mode, CustomTheme, ConnectorId } from '../types'
+import { node } from '@alephium/web3'
 
 type Error = string | React.ReactNode | null
 
@@ -62,5 +63,19 @@ export const AlephiumConnectContext = createContext<AlephiumConnectContextValue 
 export const useAlephiumConnectContext = () => {
   const context = useContext(AlephiumConnectContext)
   if (!context) throw Error('AlephiumConnect Hook must be inside a Provider.')
+  return context
+}
+
+export type AlephiumBalanceContextValue = {
+  balance?: node.Balance
+  updateBalance: () => void
+  updateBalanceForTx: (txId: string, confirmations?: number) => void
+}
+
+export const AlephiumBalanceContext = createContext<AlephiumBalanceContextValue | null>(null)
+
+export const useAlephiumBalanceContext = () => {
+  const context = useContext(AlephiumBalanceContext)
+  if (!context) throw Error('AlephiumBalance Hook must be inside a Provider.')
   return context
 }

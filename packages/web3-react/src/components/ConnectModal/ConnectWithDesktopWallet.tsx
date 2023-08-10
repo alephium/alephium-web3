@@ -31,7 +31,7 @@ const ConnectWithDesktopWallet: React.FC = () => {
 
   useEffect(() => {
     connect().catch((err) => setError(`${err}`))
-  }, [])
+  }, [connect])
 
   return (
     <PageContent>

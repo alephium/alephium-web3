@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, Variants } from 'framer-motion'
 import { Container, ConnectingContainer, ConnectingAnimation, RetryButton, RetryIconContainer, Content } from './styles'
 
@@ -87,11 +87,11 @@ const ConnectWithInjector: React.FC<{
   switchConnectMethod: (id?: string) => void
   forceState?: typeof states
 }> = ({ connectorId, switchConnectMethod, forceState }) => {
-  const context = useConnectSettingContext()
+  const { addressGroup, network, setOpen } = useConnectSettingContext()
 
   const { connect } = useConnect({
-    addressGroup: context.addressGroup,
-    networkId: context.network
+    addressGroup: addressGroup,
+    networkId: network
   })
 
   const [id, setId] = useState(connectorId)
@@ -119,27 +119,27 @@ const ConnectWithInjector: React.FC<{
     forceState ? forceState : !hasExtensionInstalled ? states.UNAVAILABLE : states.CONNECTING
   )
 
-  const runConnect = () => {
+  const runConnect = useCallback(() => {
     if (!hasExtensionInstalled) return
 
     connect().then((address) => {
       if (!!address) {
         setStatus(states.CONNECTED)
       }
-      context.setOpen(false)
+      setOpen(false)
     })
-  }
+  }, [hasExtensionInstalled, setOpen, connect])
 
-  let connectTimeout: any
+  const connectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => {
     if (status === states.UNAVAILABLE) return
 
     // UX: Give user time to see the UI before opening the extension
-    connectTimeout = setTimeout(runConnect, 600)
+    connectTimeoutRef.current = setTimeout(runConnect, 600)
     return () => {
-      clearTimeout(connectTimeout)
+      clearTimeout(connectTimeoutRef.current)
     }
-  }, [])
+  }, [status, runConnect])
 
   /** Timeout functionality if necessary
   let expiryTimeout: any;

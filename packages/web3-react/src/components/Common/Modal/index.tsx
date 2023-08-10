@@ -170,7 +170,8 @@ const Modal: React.FC<ModalProps> = ({ open, pages, pageId, positionInside, inli
     })
   }
 
-  let blockTimeout: ReturnType<typeof setTimeout>
+  const ref = useRef<any>(null)
+  const blockTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   const contentRef = useCallback(
     (node: any) => {
       if (!node) return
@@ -178,20 +179,19 @@ const Modal: React.FC<ModalProps> = ({ open, pages, pageId, positionInside, inli
 
       // Avoid transition mixups
       setInTransition(inTransition === undefined ? false : true)
-      clearTimeout(blockTimeout)
-      blockTimeout = setTimeout(() => setInTransition(false), 360)
+      clearTimeout(blockTimeoutRef.current)
+      blockTimeoutRef.current = setTimeout(() => setInTransition(false), 360)
 
       // Calculate new content bounds
       updateBounds(node)
     },
-    [open, inTransition]
+    [inTransition, blockTimeoutRef, ref]
   )
 
   // Update layout on chain/network switch to avoid clipping
   //const { chain } = useNetwork();
   //const { switchNetwork } = useSwitchNetwork();
 
-  const ref = useRef<any>(null)
   useEffect(() => {
     if (ref.current) updateBounds(ref.current)
     //  }, [chain, switchNetwork, mobile]);

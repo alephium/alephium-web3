@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import { node, SubscribeOptions, subscribeToTxStatus, TxStatusSubscription, web3 } from '@alephium/web3'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export function useTxStatus(
   txId: string,
@@ -25,21 +25,24 @@ export function useTxStatus(
 ) {
   const [txStatus, setTxStatus] = useState<node.TxStatus | undefined>(undefined)
 
-  const subscriptionOptions: SubscribeOptions<node.TxStatus> = {
-    pollingInterval: 3000,
-    messageCallback: async (status: node.TxStatus): Promise<void> => {
-      setTxStatus(status)
-      if (status.type === 'Confirmed' || status.type === 'TxNotFound') {
-        await new Promise((r) => setTimeout(r, 5000))
+  const subscriptionOptions: SubscribeOptions<node.TxStatus> = useMemo(
+    () => ({
+      pollingInterval: 3000,
+      messageCallback: async (status: node.TxStatus): Promise<void> => {
+        setTxStatus(status)
+        if (status.type === 'Confirmed' || status.type === 'TxNotFound') {
+          await new Promise((r) => setTimeout(r, 5000))
+        }
+        txStatusCallback(status)
+      },
+      errorCallback: (error: any, subscription): Promise<void> => {
+        console.error(error)
+        subscription.unsubscribe()
+        return Promise.resolve()
       }
-      txStatusCallback(status)
-    },
-    errorCallback: (error: any, subscription): Promise<void> => {
-      console.error(error)
-      subscription.unsubscribe()
-      return Promise.resolve()
-    }
-  }
+    }),
+    [txStatusCallback]
+  )
 
   useEffect(() => {
     getDefaultAlephiumWallet()
@@ -49,7 +52,7 @@ export function useTxStatus(
         }
         web3.setCurrentNodeProvider(alephium.nodeProvider)
 
-        var subscription: TxStatusSubscription | undefined = undefined
+        let subscription: TxStatusSubscription | undefined = undefined
         if (subscriptionOptions) {
           subscription = subscribeToTxStatus(subscriptionOptions, txId)
         }
@@ -63,7 +66,7 @@ export function useTxStatus(
       .then((error: any) => {
         console.error(error)
       })
-  }, [])
+  }, [subscriptionOptions, txId])
 
   return { txStatus }
 }

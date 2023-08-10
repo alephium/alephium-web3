@@ -16,28 +16,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { useMemo } from 'react'
-import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
-import { Address, NodeProvider, SignerProvider } from '@alephium/web3'
+import { AlephiumConnectContextValue, useAlephiumConnectContext } from '../contexts/alephiumConnect'
+import { NodeProvider, SignerProvider } from '@alephium/web3'
 
 export interface Wallet {
   signer: SignerProvider
-  address: Address
-  group: number
-  nodeProvider: NodeProvider
+  account: AlephiumConnectContextValue['account']
+  nodeProvider?: NodeProvider
 }
 
 export function useWallet() {
-  const context = useAlephiumConnectContext()
+  const { account, signerProvider } = useAlephiumConnectContext()
 
   return useMemo(() => {
-    if (context.account !== undefined && context.signerProvider?.nodeProvider !== undefined) {
+    if (account !== undefined && signerProvider !== undefined) {
       return {
-        signer: context.signerProvider,
-        address: context.account.address,
-        group: context.account.group,
-        nodeProvider: context.signerProvider.nodeProvider
+        signer: signerProvider,
+        account: account,
+        nodeProvider: signerProvider.nodeProvider
       }
     }
     return undefined
-  }, [context.signerProvider, context.account])
+  }, [signerProvider, account])
 }
