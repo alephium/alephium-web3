@@ -15,13 +15,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { useMemo } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
 
 export function useAccount() {
-  const context = useAlephiumConnectContext()
-
-  return useMemo(() => {
-    return context.account ? { ...context.account } : undefined
-  }, [context.account])
+  const { account } = useAlephiumConnectContext()
+  return account
 }
