@@ -1798,20 +1798,16 @@ export async function getContractEventsCurrentCount(contractAddress: Address): P
 }
 
 // This function only works in the simple case where a single non-subcontract is created in the tx
-export const getContractIdFromTxId = async (
+export const getContractIdFromUnsignedTx = async (
   nodeProvider: NodeProvider,
-  txId: string,
-  groupIndex: number
+  unsignedTx: string
 ): Promise<HexString> => {
-  const txDetails = await nodeProvider.transactions.getTransactionsDetailsTxid(txId, {
-    fromGroup: groupIndex,
-    toGroup: groupIndex
-  })
-  const outputIndex = txDetails.unsigned.fixedOutputs.length
-  const hex = txId + outputIndex.toString(16).padStart(8, '0')
+  const result = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx })
+  const outputIndex = result.unsignedTx.fixedOutputs.length
+  const hex = result.unsignedTx.txId + outputIndex.toString(16).padStart(8, '0')
   const hashHex = binToHex(blake.blake2b(hexToBinUnsafe(hex), undefined, 32))
-  return hashHex.slice(0, 62) + groupIndex.toString(16).padStart(2, '0')
+  return hashHex.slice(0, 62) + result.fromGroup.toString(16).padStart(2, '0')
 }
 
 // This function only works in the simple case where a single non-subcontract is created in the tx
-export const getTokenIdFromTxId = getContractIdFromTxId
+export const getTokenIdFromUnsignedTx = getContractIdFromUnsignedTx
