@@ -19,11 +19,10 @@ import React from 'react'
 import useIsMounted from '../../hooks/useIsMounted'
 
 import { TextContainer } from './styles'
-import { useConnectSettingContext } from '../../contexts/alephiumConnect'
+import { useAlephiumConnectContext, useConnectSettingContext } from '../../contexts/alephiumConnect'
 import { AnimatePresence, Variants } from 'framer-motion'
 import ThemedButton, { ThemeContainer } from '../Common/ThemedButton'
 import { ResetContainer } from '../../styles'
-import { useAccount } from '../../hooks/useAccount'
 import { truncatedAddress } from '../../utils'
 import { Account } from '@alephium/web3'
 import { routes } from '../Common/Modal'
@@ -119,7 +118,7 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
   const isMounted = useIsMounted()
   const context = useConnectSettingContext()
 
-  const account = useAccount()
+  const { account } = useAlephiumConnectContext()
   const isConnected = false
   const isConnecting = false
 
@@ -161,7 +160,7 @@ function AlephiumConnectButtonInner({
   separator?: string
   displayAccount: (account: Account) => string
 }) {
-  const account = useAccount()
+  const { account } = useAlephiumConnectContext()
 
   return (
     <AnimatePresence initial={false}>
@@ -231,7 +230,7 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
   const isMounted = useIsMounted()
 
   const context = useConnectSettingContext()
-  const account = useAccount()
+  const { account } = useAlephiumConnectContext()
   const isConnected = !!account
 
   function show() {
