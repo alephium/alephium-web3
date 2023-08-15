@@ -27,7 +27,7 @@ import {
   StdInterfaceIds
 } from './types'
 import { Api as NodeApi } from './api-alephium'
-import { HexString } from '../contract'
+import { HexString, tryGetCallResult } from '../contract'
 import { addressFromContractId, addressFromTokenId, groupOfAddress, hexToString } from '../utils'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
@@ -116,11 +116,12 @@ export class NodeProvider implements NodeProviderApis {
     const result = await this.contracts.postContractsMulticallContract({
       calls: calls
     })
+    const callResults = result.results.map((r) => tryGetCallResult(r))
     return {
-      symbol: result.results[0].returns[0].value as any as string,
-      name: result.results[1].returns[0].value as any as string,
-      decimals: Number(result.results[2].returns[0].value as any as string),
-      totalSupply: BigInt(result.results[3].returns[0].value as any as string)
+      symbol: callResults[0].returns[0].value as any as string,
+      name: callResults[1].returns[0].value as any as string,
+      decimals: Number(callResults[2].returns[0].value as any as string),
+      totalSupply: BigInt(callResults[3].returns[0].value as any as string)
     }
   }
 
@@ -132,9 +133,10 @@ export class NodeProvider implements NodeProviderApis {
     const result = await this.contracts.postContractsMulticallContract({
       calls: calls
     })
+    const callResults = result.results.map((r) => tryGetCallResult(r))
     return {
-      tokenUri: hexToString(result.results[0].returns[0].value as any as string),
-      collectionAddress: addressFromContractId(result.results[1].returns[0].value as any as string)
+      tokenUri: hexToString(callResults[0].returns[0].value as any as string),
+      collectionAddress: addressFromContractId(callResults[1].returns[0].value as any as string)
     }
   }
 
@@ -144,9 +146,10 @@ export class NodeProvider implements NodeProviderApis {
     const group = groupOfAddress(address)
     const calls = Array.from([0, 1], (index) => ({ methodIndex: index, group: group, address: address }))
     const result = await this.contracts.postContractsMulticallContract({ calls })
+    const callResults = result.results.map((r) => tryGetCallResult(r))
     return {
-      collectionUri: hexToString(result.results[0].returns[0].value as any as string),
-      totalSupply: BigInt(result.results[1].returns[0].value as any as string)
+      collectionUri: hexToString(callResults[0].returns[0].value as any as string),
+      totalSupply: BigInt(callResults[1].returns[0].value as any as string)
     }
   }
 
