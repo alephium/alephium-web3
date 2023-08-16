@@ -86,7 +86,7 @@
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
-      "sourceCodeHash": "491b0726ad455d7f2df52f71e071f34c2630de3e17f1e3fb9fd5d7efd81461a0",
+      "sourceCodeHash": "1fefa4eb581554fa2b7b083b0eb232c787c101e67e2eeedd6d518bb0c8b93a2d",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -125,18 +125,18 @@
     },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
-      "sourceCodeHash": "61708c6b182adba9e3a143e693c3037bc6ef04610fc36bb6f41a071a0a150940",
+      "sourceCodeHash": "a166844ef1b4e5a6a41431e10ff08df9ae96ae841d51db659f831f6c64db7981",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "898896f2a322e795b7d2a8908214eff18fa0ff1e14c4e945380838fac6852023",
+      "codeHashDebug": "62a74b8496ee1693de16f2d67d5b3ba3273e3a04cb59aec3a24c1ae5a51c2e0c",
       "warnings": [
         "No external caller check for function \"NFTCollectionTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "NFTTest": {
       "sourceFile": "nft/nft_test.ral",
-      "sourceCodeHash": "0c4716a9246e851c1a5b54f3bdbe6074ec5f34079d7b8b6f44fc9e96fd8588dc",
+      "sourceCodeHash": "f1918b2d68dd1c03ed42738c0a7b91d93cfa9c50b4e44b5bd80b333ee4635bde",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "657b46b2236b78c955660db6731d43b42dd8204bb6220181de3c5f8678d90da0",
+      "codeHashDebug": "c654f89a813259b6e270c8cf609200907f0824755bb394b00d8b151c3fddf95f",
       "warnings": []
     },
     "Sub": {

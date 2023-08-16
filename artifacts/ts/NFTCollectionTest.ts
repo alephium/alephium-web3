@@ -122,7 +122,7 @@ export const NFTCollectionTest = new Factory(
   Contract.fromJson(
     NFTCollectionTestContractJson,
     "",
-    "898896f2a322e795b7d2a8908214eff18fa0ff1e14c4e945380838fac6852023"
+    "62a74b8496ee1693de16f2d67d5b3ba3273e3a04cb59aec3a24c1ae5a51c2e0c"
   )
 );
 

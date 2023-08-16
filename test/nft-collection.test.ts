@@ -47,7 +47,6 @@ describe('nft collection', function () {
     const nftTest = (
       await NFTTest.deploy(signer, {
         initialFields: {
-          collectionId: stringToHex('collection-id'),
           uri: nftUri
         }
       })
@@ -66,20 +65,17 @@ describe('nft collection', function () {
         }
       })
     ).contractInstance
-
     expect((await nftCollectionTest.methods.getCollectionUri()).returns).toEqual(collectionUri)
     expect((await nftCollectionTest.methods.totalSupply()).returns).toEqual(0n)
 
     const nodeProvider = web3.getCurrentNodeProvider()
     const isFollowsNFTCollectionStd = await nodeProvider.guessFollowsNFTCollectionStd(nftCollectionTest.contractId)
     expect(isFollowsNFTCollectionStd).toEqual(true)
-
     const nftCollectionMetadata = await nodeProvider.fetchNFTCollectionMetaData(nftCollectionTest.contractId)
     expect(nftCollectionMetadata).toEqual({
       collectionUri: rawCollectionUri,
       totalSupply: 0n
     })
-
     for (let i = 0n; i < 10n; i++) {
       await mintAndVerify(nftCollectionTest, nftUri, i)
     }
@@ -96,23 +92,16 @@ describe('nft collection', function () {
     })
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
     expect((await nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
-
     const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
     const nftFields = (await nftInstance.fetchState()).fields
     expect(nftFields.uri).toEqual(nftUri)
-    expect(nftFields.collectionId).toEqual(nftCollectionTest.contractId)
-    expect((await nftInstance.methods.getCollectionId()).returns).toEqual(nftCollectionTest.contractId)
-
     const stdInterfaceId = await web3.getCurrentNodeProvider().guessStdInterfaceId(nftInstance.contractId)
     expect(stdInterfaceId).toEqual('0003')
-
     const tokenType = await web3.getCurrentNodeProvider().guessStdTokenType(nftInstance.contractId)
     expect(tokenType).toEqual('non-fungible')
-
     const nftMetadata = await web3.getCurrentNodeProvider().fetchNFTMetaData(nftInstance.contractId)
     expect(nftMetadata).toEqual({
-      tokenUri: hexToString(nftUri),
-      collectionAddress: nftCollectionTest.address
+      tokenUri: hexToString(nftUri)
     })
   }
 
