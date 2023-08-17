@@ -20,5 +20,6 @@ jobs:
           version: 7.19
       - run: cd packages/web3 && pnpm i
       # Wait for this issue to be resolved: https://github.com/acacode/swagger-typescript-api/issues/370
+      - run: git status --porcelain
       - run: npm run update-schemas && test -z "$(git status --porcelain)"
       - run: npm run build

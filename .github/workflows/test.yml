@@ -45,4 +45,5 @@ jobs:
       - run: npm run build
       - run: npm run lint
       - run: npm run test
+      - run: git status --porcelain
       - run: npm run codegen && test -z "$(git status --porcelain)"
