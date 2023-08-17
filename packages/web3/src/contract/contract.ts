@@ -1088,18 +1088,19 @@ export class Contract extends Artifact {
     getContractByCodeHash?: (codeHash: string) => Contract
   ): CallContractResult<unknown> {
     const returnTypes = this.functions[`${methodIndex}`].returnTypes
-    const rawReturn = fromApiArray(result.returns, returnTypes)
+    const callResult = tryGetCallResult(result)
+    const rawReturn = fromApiArray(callResult.returns, returnTypes)
     const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
 
     const addressToCodeHash = new Map<string, string>()
-    result.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
+    callResult.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
     return {
       returns: returns,
-      gasUsed: result.gasUsed,
-      contracts: result.contracts.map((state) => Contract.fromApiContractState(state, getContractByCodeHash)),
-      txInputs: result.txInputs,
-      txOutputs: result.txOutputs.map((output) => fromApiOutput(output)),
-      events: Contract.fromApiEvents(result.events, addressToCodeHash, txId, getContractByCodeHash)
+      gasUsed: callResult.gasUsed,
+      contracts: callResult.contracts.map((state) => Contract.fromApiContractState(state, getContractByCodeHash)),
+      txInputs: callResult.txInputs,
+      txOutputs: callResult.txOutputs.map((output) => fromApiOutput(output)),
+      events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash)
     }
   }
 }
@@ -1811,3 +1812,10 @@ export const getContractIdFromUnsignedTx = async (
 
 // This function only works in the simple case where a single non-subcontract is created in the tx
 export const getTokenIdFromUnsignedTx = getContractIdFromUnsignedTx
+
+export function tryGetCallResult(result: node.CallContractResult): node.CallContractSucceeded {
+  if (result.type === 'CallContractFailed') {
+    throw new Error(`Failed to call contract, error: ${(result as node.CallContractFailed).error}`)
+  }
+  return result as node.CallContractSucceeded
+}

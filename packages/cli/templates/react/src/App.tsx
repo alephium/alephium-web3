@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import './App.css'
 
 import { ExplorerProvider, Contract, Script } from '@alephium/web3'
-import contractJson from './artifacts/greeter.ral.json'
-import scriptJson from './artifacts/greeter_main.ral.json'
+import contractJson from './artifacts/Greeter.ral.json'
+import scriptJson from './artifacts/GreeterMain.ral.json'
 
 function Dashboard() {
   const api = new ExplorerProvider('https://mainnet-backend.alephium.org')
