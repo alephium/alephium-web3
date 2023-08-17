@@ -11,7 +11,7 @@ A Typescript library for building decentralized applications on Alephium.
 You could run the following command to scaffold a skeleton project for smart contract development:
 
 ```
-npx @alephium/cli <project-dir> [-t (base | react)]
+npx @alephium/cli init <project-dir> [-t (base | react | nextjs)]
 ```
 
 Please read the [documentation](https://docs.alephium.org/dapps/alephium-web3) for more.
