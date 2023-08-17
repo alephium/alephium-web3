@@ -129,14 +129,9 @@ export class NodeProvider implements NodeProviderApis {
   fetchNFTMetaData = async (tokenId: HexString): Promise<NFTMetaData> => {
     const address = addressFromTokenId(tokenId)
     const group = groupOfAddress(address)
-    const calls = Array.from([0, 1], (index) => ({ methodIndex: index, group: group, address: address }))
-    const result = await this.contracts.postContractsMulticallContract({
-      calls: calls
-    })
-    const callResults = result.results.map((r) => tryGetCallResult(r))
+    const result = await this.contracts.postContractsCallContract({ methodIndex: 0, group, address })
     return {
-      tokenUri: hexToString(callResults[0].returns[0].value as any as string),
-      collectionAddress: addressFromContractId(callResults[1].returns[0].value as any as string)
+      tokenUri: hexToString(tryGetCallResult(result).returns[0].value as any as string)
     }
   }
 

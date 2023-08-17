@@ -155,5 +155,5 @@ describe('nft', function () {
 
     const invalidUri = 'https://ipfs.io/ipfs/invalid'
     expect(async () => await validateNFTBaseUri(invalidUri, 2)).rejects.toThrow(Error)
-  })
+  }, 10000)
 })
