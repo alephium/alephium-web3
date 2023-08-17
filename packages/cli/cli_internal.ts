@@ -42,18 +42,24 @@ function checkAndGetNetworkId(networkId?: string): NetworkId {
   return networkId as NetworkId
 }
 
+const templateTypes = ['base', 'react', 'nextjs']
+
 program
   .command('init')
   .description('creates a new and empty project')
   .argument('<dir>', 'project directory')
-  .option('-t, --template <template-type>', 'specify a template for the project: either base or react', 'base')
+  .option(
+    '-t, --template <template-type>',
+    `specify a template for the project: expect one of ${templateTypes}`,
+    'base'
+  )
   .action((dir, options) => {
     if (dir === undefined) {
       program.error('Please specify the project directory')
     }
     const templateType = options.template as string
-    if (!['base', 'react', 'nextjs'].includes(templateType)) {
-      program.error(`Invalid template type ${templateType}, expected base, react or nextjs`)
+    if (!templateTypes.includes(templateType)) {
+      program.error(`Invalid template type ${templateType}, expect on of ${templateTypes}`)
     }
     const projectRoot = path.resolve(dir as string)
     createProject(templateType, __dirname, projectRoot)
