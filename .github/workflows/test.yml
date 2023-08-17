@@ -2,7 +2,7 @@ name: Unit Test
 
 on:
   push:
-    branches: [master]
+    branches: [test-remove-get-collection-id]
   pull_request:
 
 jobs:
