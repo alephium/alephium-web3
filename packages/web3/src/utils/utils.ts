@@ -242,6 +242,9 @@ export function stringToHex(str: string): string {
 }
 
 export function hexToString(str: string): string {
+  if (!isHexString(str)) {
+    throw new Error(`Invalid hex string: ${str}`)
+  }
   return Buffer.from(str, 'hex').toString()
 }
 
