@@ -182,6 +182,8 @@ describe('utils', function () {
   it('should convert from string to hex and back', () => {
     expect(utils.stringToHex('Hello Alephium!')).toBe('48656c6c6f20416c65706869756d21')
     expect(utils.hexToString('48656c6c6f20416c65706869756d21')).toBe('Hello Alephium!')
+
+    expect(() => utils.hexToString('zzzz')).toThrow('Invalid hex string: zzzz')
   })
 
   it('should check hex string', () => {
