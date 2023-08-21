@@ -47,7 +47,9 @@ export function useConnect(options: ConnectOptions) {
       projectId: WALLET_CONNECT_PROJECT_ID,
       networkId: networkId,
       addressGroup: addressGroup,
-      onDisconnected: wcDisconnect
+      onDisconnected: () => {
+        return Promise.resolve()
+      }
     })
 
     wcProvider.on('displayUri', (uri) => {
@@ -67,14 +69,16 @@ export function useConnect(options: ConnectOptions) {
     }
 
     QRCodeModal.close()
-  }, [networkId, addressGroup, wcDisconnect, setAccount, setSignerProvider])
+  }, [networkId, addressGroup, setAccount, setSignerProvider])
 
   const desktopWalletConnect = useCallback(async () => {
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
       networkId: networkId,
       addressGroup: addressGroup,
-      onDisconnected: wcDisconnect
+      onDisconnected: () => {
+        return Promise.resolve()
+      }
     })
 
     wcProvider.on('displayUri', (uri) => {
@@ -92,7 +96,7 @@ export function useConnect(options: ConnectOptions) {
       console.log('wallet connect error')
       console.error(e)
     }
-  }, [networkId, addressGroup, wcDisconnect, setAccount, setSignerProvider])
+  }, [networkId, addressGroup, setAccount, setSignerProvider])
 
   const disconnectAlephium = useCallback(() => {
     getDefaultAlephiumWallet()
