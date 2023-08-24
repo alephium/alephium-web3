@@ -34,27 +34,30 @@ export function useConnect(options: ConnectOptions) {
   const { connectorId, keyType } = useConnectSettingContext()
   const { signerProvider, setSignerProvider, setAccount } = useAlephiumConnectContext()
 
+  const onDisconnectedCallback = useCallback(() => {
+    setSignerProvider(undefined)
+    setAccount(undefined)
+  }, [setSignerProvider, setAccount])
+
   const wcDisconnect = useCallback(async () => {
     if ((connectorId === 'walletConnect' || connectorId === 'desktopWallet') && signerProvider) {
       await (signerProvider as WalletConnectProvider).disconnect()
-      setSignerProvider(undefined)
-      setAccount(undefined)
     }
-  }, [connectorId, signerProvider, setSignerProvider, setAccount])
+  }, [connectorId, signerProvider])
 
   const wcConnect = useCallback(async () => {
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
       networkId: networkId,
       addressGroup: addressGroup,
-      onDisconnected: () => {
-        return Promise.resolve()
-      }
+      onDisconnected: onDisconnectedCallback
     })
 
     wcProvider.on('displayUri', (uri) => {
       QRCodeModal.open(uri, () => console.log('qr closed'))
     })
+
+    wcProvider.on('session_delete', onDisconnectedCallback)
 
     try {
       await wcProvider.connect()
@@ -69,21 +72,21 @@ export function useConnect(options: ConnectOptions) {
     }
 
     QRCodeModal.close()
-  }, [networkId, addressGroup, setAccount, setSignerProvider])
+  }, [networkId, addressGroup, setAccount, setSignerProvider, onDisconnectedCallback])
 
   const desktopWalletConnect = useCallback(async () => {
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
       networkId: networkId,
       addressGroup: addressGroup,
-      onDisconnected: () => {
-        return Promise.resolve()
-      }
+      onDisconnected: onDisconnectedCallback
     })
 
     wcProvider.on('displayUri', (uri) => {
       window.open(`alephium://wc?uri=${uri}`)
     })
+
+    wcProvider.on('session_delete', onDisconnectedCallback)
 
     try {
       await wcProvider.connect()
@@ -96,7 +99,7 @@ export function useConnect(options: ConnectOptions) {
       console.log('wallet connect error')
       console.error(e)
     }
-  }, [networkId, addressGroup, setAccount, setSignerProvider])
+  }, [networkId, addressGroup, setAccount, setSignerProvider, onDisconnectedCallback])
 
   const disconnectAlephium = useCallback(() => {
     getDefaultAlephiumWallet()
@@ -115,12 +118,9 @@ export function useConnect(options: ConnectOptions) {
       addressGroup: addressGroup,
       networkId: networkId,
       keyType: keyType,
-      onDisconnected: () => {
-        setSignerProvider(undefined)
-        setAccount(undefined)
-      }
+      onDisconnected: onDisconnectedCallback
     }
-  }, [networkId, addressGroup, keyType, setSignerProvider, setAccount])
+  }, [networkId, addressGroup, keyType, onDisconnectedCallback])
 
   const connectAlephium = useCallback(async () => {
     const windowAlephium = await getDefaultAlephiumWallet()
