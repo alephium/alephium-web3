@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useAlephiumConnectContext, useConnectSettingContext } from '../../contexts/alephiumConnect'
 import Modal, { Page, routes } from '../Common/Modal'
 
@@ -34,9 +34,10 @@ const ConnectModal: React.FC<{
 }> = ({ mode = 'auto', theme = 'auto', customTheme = customThemeDefault }) => {
   const { network, addressGroup, route, setRoute, open, setOpen, connectorId, setMode, setTheme, setCustomTheme } =
     useConnectSettingContext()
+  const networkRef = useRef(network)
   const { account } = useAlephiumConnectContext()
   const isConnected = !!account
-  const { autoConnect } = useConnect({
+  const { autoConnect, disconnect } = useConnect({
     networkId: network,
     addressGroup: addressGroup
   })
@@ -46,6 +47,13 @@ const ConnectModal: React.FC<{
       autoConnect()
     }
   }, [autoConnect, isConnected])
+
+  useEffect(() => {
+    if (networkRef.current !== network && isConnected) {
+      disconnect()
+    }
+    networkRef.current = network
+  }, [network, networkRef, disconnect, isConnected])
 
   const closeable = true
 
