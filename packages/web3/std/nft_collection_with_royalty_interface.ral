@@ -1,0 +1,7 @@
+@std(id = #000201)
+Interface INFTCollectionWithRoyalty extends INFTCollection {
+    pub fn royaltyAmount(tokenId: ByteVec, salePrice: U256) -> (U256)
+
+    @using(assetsInContract = true, preapprovedAssets = true)
+    pub fn payRoyalty(payer: Address, amount: U256) -> ()
+}

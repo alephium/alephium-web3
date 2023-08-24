@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.5.0",
+  "fullNodeVersion": "v2.5.1",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -98,6 +98,13 @@
       "codeHashDebug": "",
       "warnings": []
     },
+    "INFTCollectionWithRoyalty": {
+      "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
+      "sourceCodeHash": "b567610c6350d6faf18660432c1be77cd58d9ae6328cb46d3a6f5201fd99f424",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "Main": {
       "sourceFile": "add/add.ral",
       "sourceCodeHash": "6c08da762c111145d8c876e36bb9f69dcbc86368a546b4c5bfe23f0f4db1975b",
@@ -125,11 +132,27 @@
     },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
-      "sourceCodeHash": "a166844ef1b4e5a6a41431e10ff08df9ae96ae841d51db659f831f6c64db7981",
+      "sourceCodeHash": "ac1d8da86e8cb3e5c412c463d7cf0376db563d9cbc459eb034d3067dcaa2045e",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "62a74b8496ee1693de16f2d67d5b3ba3273e3a04cb59aec3a24c1ae5a51c2e0c",
       "warnings": [
         "No external caller check for function \"NFTCollectionTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
+      ]
+    },
+    "NFTCollectionTestBase": {
+      "sourceFile": "nft/nft_collection_test_base.ral",
+      "sourceCodeHash": "bd7e9ef029b957c87b096c22075318ce9a5eb299fc178e60717163cef555d438",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "NFTCollectionWithRoyaltyTest": {
+      "sourceFile": "nft/nft_collection_with_royalty_test.ral",
+      "sourceCodeHash": "e9c4833032bda16191297075bec86ba4979546be85d9902d54658475c14bb253",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "39b53db551e311226739b920b44e9f7423d047de6d2a1fd0f83352466ddce4fb",
+      "warnings": [
+        "No external caller check for function \"NFTCollectionWithRoyaltyTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "NFTTest": {
