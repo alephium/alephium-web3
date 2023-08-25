@@ -125,7 +125,7 @@
     },
     "MintNFTTest": {
       "sourceFile": "nft/mint_nft_test.ral",
-      "sourceCodeHash": "8fb15a40044814f9033d565288542d52048bd0d687267b31293d465662c42191",
+      "sourceCodeHash": "1fb25375808315eddf482b5e6bf58a9e4d6b1ee875c35f72c2b5692f024c8ba8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
