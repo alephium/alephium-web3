@@ -228,10 +228,11 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(20)
+    expect(sourceFiles.length).toEqual(23)
     sourceFiles.slice(0, 11).forEach((c) => expect(c.type).toEqual(0)) // contracts
     sourceFiles.slice(12, 15).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(16).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(16, 17).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(18).forEach((i) => expect(i.type).toEqual(3)) // interfaces
   })
 
   it('should load contract from json', () => {

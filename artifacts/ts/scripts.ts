@@ -29,4 +29,5 @@ export const GreeterMain = new ExecutableScript<{
 export const MintNFTTest = new ExecutableScript<{
   nftCollectionContractId: HexString;
   uri: HexString;
+  royalty: boolean;
 }>(Script.fromJson(MintNFTTestScriptJson));

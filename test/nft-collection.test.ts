@@ -32,6 +32,7 @@ import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NF
 import { MintNFTTest } from '../artifacts/ts/scripts'
 import { getSigner } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
 
 describe('nft collection', function () {
   let signer: PrivateKeyWallet
@@ -54,39 +55,78 @@ describe('nft collection', function () {
 
     expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
 
+    await testNFTCollection(nftTest.contractId, nftUri, false)
+    await testNFTCollection(nftTest.contractId, nftUri, true)
+  }, 10000)
+
+  async function testNFTCollection(nftContractId: string, nftUri: string, royalty: boolean) {
     const rawCollectionUri = 'https://cryptopunks.app/cryptopunks'
     const collectionUri = stringToHex(rawCollectionUri)
-    const nftCollectionTest = (
-      await NFTCollectionTest.deploy(signer, {
-        initialFields: {
-          nftTemplateId: nftTest.contractId,
-          collectionUri: collectionUri,
-          totalSupply: 0n
-        }
-      })
-    ).contractInstance
-    expect((await nftCollectionTest.methods.getCollectionUri()).returns).toEqual(collectionUri)
-    expect((await nftCollectionTest.methods.totalSupply()).returns).toEqual(0n)
+    let nftCollectionInstance: NFTCollectionTestInstance | NFTCollectionWithRoyaltyTestInstance
+
+    if (royalty) {
+      const royaltyRate = 200n // basis points
+      nftCollectionInstance = (
+        await NFTCollectionWithRoyaltyTest.deploy(signer, {
+          initialFields: {
+            nftTemplateId: nftContractId,
+            collectionUri: collectionUri,
+            royaltyRate,
+            totalSupply: 0n
+          }
+        })
+      ).contractInstance
+
+      expect(
+        (
+          await nftCollectionInstance.methods.royaltyAmount({
+            args: {
+              tokenId: nftContractId,
+              salePrice: ONE_ALPH
+            }
+          })
+        ).returns
+      ).toEqual((ONE_ALPH * royaltyRate) / 10000n)
+    } else {
+      nftCollectionInstance = (
+        await NFTCollectionTest.deploy(signer, {
+          initialFields: {
+            nftTemplateId: nftContractId,
+            collectionUri: collectionUri,
+            totalSupply: 0n
+          }
+        })
+      ).contractInstance
+    }
+
+    expect((await nftCollectionInstance.methods.getCollectionUri()).returns).toEqual(collectionUri)
+    expect((await nftCollectionInstance.methods.totalSupply()).returns).toEqual(0n)
 
     const nodeProvider = web3.getCurrentNodeProvider()
-    const isFollowsNFTCollectionStd = await nodeProvider.guessFollowsNFTCollectionStd(nftCollectionTest.contractId)
+    const isFollowsNFTCollectionStd = await nodeProvider.guessFollowsNFTCollectionStd(nftCollectionInstance.contractId)
     expect(isFollowsNFTCollectionStd).toEqual(true)
-    const nftCollectionMetadata = await nodeProvider.fetchNFTCollectionMetaData(nftCollectionTest.contractId)
+    const nftCollectionMetadata = await nodeProvider.fetchNFTCollectionMetaData(nftCollectionInstance.contractId)
     expect(nftCollectionMetadata).toEqual({
       collectionUri: rawCollectionUri,
       totalSupply: 0n
     })
     for (let i = 0n; i < 10n; i++) {
-      await mintAndVerify(nftCollectionTest, nftUri, i)
+      await mintAndVerify(nftCollectionInstance, nftUri, i)
     }
-  }, 10000)
+  }
 
-  async function mintAndVerify(nftCollectionTest: NFTCollectionTestInstance, nftUri: string, tokenIndex: bigint) {
+  async function mintAndVerify(
+    nftCollectionTest: NFTCollectionTestInstance | NFTCollectionWithRoyaltyTestInstance,
+    nftUri: string,
+    tokenIndex: bigint
+  ) {
+    const royalty = nftCollectionTest instanceof NFTCollectionWithRoyaltyTestInstance
     await expect(nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).rejects.toThrow(Error)
     await MintNFTTest.execute(signer, {
       initialFields: {
         nftCollectionContractId: nftCollectionTest.contractId,
-        uri: nftUri
+        uri: nftUri,
+        royalty
       },
       attoAlphAmount: 2n * ONE_ALPH
     })
@@ -108,7 +148,8 @@ describe('nft collection', function () {
   it('should check script initial fields', async () => {
     const initialFields = {
       uri: stringToHex('https://cryptopunks.app/cryptopunks/details/1'),
-      nftCollectionContractId: '09fdf4189d4b5d70dc02d6e3d05b6e603f9ee78ea76af61b5b0638f88333fd00'
+      nftCollectionContractId: '09fdf4189d4b5d70dc02d6e3d05b6e603f9ee78ea76af61b5b0638f88333fd00',
+      royalty: false
     }
 
     const invalidInitialFields0 = {

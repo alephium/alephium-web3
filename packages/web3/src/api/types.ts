@@ -273,7 +273,8 @@ export async function request(provider: Record<string, any>, args: ApiRequestArg
 export enum StdInterfaceIds {
   FungibleToken = '0001',
   NFTCollection = '0002',
-  NFT = '0003'
+  NFT = '0003',
+  NFTCollectionWithRoyalty = '000201'
 }
 
 export interface FungibleTokenMetaData {

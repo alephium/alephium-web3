@@ -163,7 +163,7 @@ export class NodeProvider implements NodeProviderApis {
 
   guessFollowsNFTCollectionStd = async (contractId: HexString): Promise<boolean> => {
     const interfaceId = await this.guessStdInterfaceId(contractId)
-    return interfaceId === StdInterfaceIds.NFTCollection
+    return !!interfaceId && interfaceId.startsWith(StdInterfaceIds.NFTCollection)
   }
 
   guessStdTokenType = async (tokenId: HexString): Promise<'fungible' | 'non-fungible' | undefined> => {
