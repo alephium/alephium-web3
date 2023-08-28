@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.5.1",
+  "fullNodeVersion": "v2.5.2",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -100,7 +100,7 @@
     },
     "INFTCollectionWithRoyalty": {
       "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
-      "sourceCodeHash": "b567610c6350d6faf18660432c1be77cd58d9ae6328cb46d3a6f5201fd99f424",
+      "sourceCodeHash": "8d84c2a902d9fa920dc8081d2941b1e85d1dfcbfd669528692abbba306cf4efd",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
