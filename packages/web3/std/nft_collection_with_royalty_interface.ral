@@ -2,6 +2,6 @@
 Interface INFTCollectionWithRoyalty extends INFTCollection {
     pub fn royaltyAmount(tokenId: ByteVec, salePrice: U256) -> (U256)
 
-    @using(assetsInContract = true, preapprovedAssets = true)
+    @using(preapprovedAssets = true)
     pub fn payRoyalty(payer: Address, amount: U256) -> ()
 }
