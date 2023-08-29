@@ -15,14 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { node, SubscribeOptions, subscribeToTxStatus, TxStatusSubscription, web3 } from '@alephium/web3'
+import { node, SubscribeOptions, subscribeToTxStatus } from '@alephium/web3'
 import { useEffect, useMemo, useState } from 'react'
 
-export function useTxStatus(
-  txId: string,
-  txStatusCallback: (status: node.TxStatus) => Promise<any> = (_) => Promise.resolve()
-) {
+export function useTxStatus(txId: string, txStatusCallback?: (status: node.TxStatus) => Promise<any>) {
   const [txStatus, setTxStatus] = useState<node.TxStatus | undefined>(undefined)
 
   const subscriptionOptions: SubscribeOptions<node.TxStatus> = useMemo(
@@ -30,10 +26,9 @@ export function useTxStatus(
       pollingInterval: 3000,
       messageCallback: async (status: node.TxStatus): Promise<void> => {
         setTxStatus(status)
-        if (status.type === 'Confirmed' || status.type === 'TxNotFound') {
-          await new Promise((r) => setTimeout(r, 5000))
+        if (txStatusCallback !== undefined) {
+          await txStatusCallback(status)
         }
-        txStatusCallback(status)
       },
       errorCallback: (error: any, subscription): Promise<void> => {
         console.error(error)
@@ -45,27 +40,8 @@ export function useTxStatus(
   )
 
   useEffect(() => {
-    getDefaultAlephiumWallet()
-      .then((alephium) => {
-        if (!alephium?.nodeProvider) {
-          throw Error('Alephium object is not initialized')
-        }
-        web3.setCurrentNodeProvider(alephium.nodeProvider)
-
-        let subscription: TxStatusSubscription | undefined = undefined
-        if (subscriptionOptions) {
-          subscription = subscribeToTxStatus(subscriptionOptions, txId)
-        }
-
-        return () => {
-          if (subscription) {
-            subscription.unsubscribe()
-          }
-        }
-      })
-      .then((error: any) => {
-        console.error(error)
-      })
+    const subscription = subscribeToTxStatus(subscriptionOptions, txId)
+    return () => subscription.unsubscribe()
   }, [subscriptionOptions, txId])
 
   return { txStatus }
