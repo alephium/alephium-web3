@@ -45,9 +45,9 @@ import {
 } from '../contexts/alephiumConnect'
 
 type ConnectSettingProviderProps = {
-  useTheme?: Theme
-  useMode?: Mode
-  useCustomTheme?: CustomTheme
+  theme?: Theme
+  mode?: Mode
+  customTheme?: CustomTheme
   network: NetworkId
   addressGroup?: number
   keyType?: KeyType
@@ -55,9 +55,9 @@ type ConnectSettingProviderProps = {
 }
 
 export const ConnectSettingProvider: React.FC<ConnectSettingProviderProps> = ({
-  useTheme = 'auto',
-  useMode = 'auto',
-  useCustomTheme,
+  theme = 'auto',
+  mode = 'auto',
+  customTheme,
   network,
   addressGroup,
   keyType,
@@ -70,9 +70,9 @@ export const ConnectSettingProvider: React.FC<ConnectSettingProviderProps> = ({
     throw new Error('Multiple, nested usages of ConnectSettingContext detected. Please use only one.')
   }
 
-  const [theme, setTheme] = useState<Theme>(useTheme)
-  const [mode, setMode] = useState<Mode>(useMode)
-  const [customTheme, setCustomTheme] = useState<CustomTheme>(useCustomTheme ?? {})
+  const [_theme, setTheme] = useState<Theme>(theme)
+  const [_mode, setMode] = useState<Mode>(mode)
+  const [_customTheme, setCustomTheme] = useState<CustomTheme>(customTheme ?? {})
 
   const [open, setOpen] = useState<boolean>(false)
   const [connectorId, setConnectorId] = useState<ConnectSettingValue['connectorId']>('injected')
@@ -91,11 +91,11 @@ export const ConnectSettingProvider: React.FC<ConnectSettingProviderProps> = ({
     connectorId,
     setConnectorId,
     network,
-    theme,
+    theme: _theme,
     setTheme,
-    mode,
+    mode: _mode,
     setMode,
-    customTheme,
+    customTheme: _customTheme,
     setCustomTheme,
     addressGroup,
     keyType: keyType ?? 'default',
@@ -107,7 +107,7 @@ export const ConnectSettingProvider: React.FC<ConnectSettingProviderProps> = ({
     <ConnectSettingContext.Provider value={value}>
       <ThemeProvider theme={defaultTheme}>
         {children}
-        <AlephiumConnectModal theme={theme} mode={mode} customTheme={customTheme} />
+        <AlephiumConnectModal theme={_theme} mode={_mode} customTheme={_customTheme} />
       </ThemeProvider>
     </ConnectSettingContext.Provider>
   )
@@ -210,9 +210,9 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
 }
 
 export const AlephiumWalletProvider = ({
-  useTheme,
-  useMode,
-  useCustomTheme,
+  theme,
+  mode,
+  customTheme,
   network,
   addressGroup,
   keyType,
@@ -221,9 +221,9 @@ export const AlephiumWalletProvider = ({
   return (
     <AlephiumConnectProvider>
       <ConnectSettingProvider
-        useTheme={useTheme}
-        useMode={useMode}
-        useCustomTheme={useCustomTheme}
+        theme={theme}
+        mode={mode}
+        customTheme={customTheme}
         network={network}
         addressGroup={addressGroup}
         keyType={keyType}
