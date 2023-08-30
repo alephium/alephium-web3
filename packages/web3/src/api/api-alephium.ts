@@ -293,6 +293,26 @@ export interface BuildSweepAddressTransactionsResult {
   toGroup: number
 }
 
+export interface BuildSweepMultisig {
+  /** @format address */
+  fromAddress: string
+  fromPublicKeys: string[]
+  /** @format address */
+  toAddress: string
+  /** @format uint256 */
+  maxAttoAlphPerUTXO?: string
+  /** @format int64 */
+  lockTime?: number
+  /** @format gas */
+  gasAmount?: number
+  /** @format uint256 */
+  gasPrice?: string
+  /** @format int32 */
+  utxosLimit?: number
+  /** @format block-hash */
+  targetBlockHash?: string
+}
+
 export interface BuildTransaction {
   /** @format hex-string */
   fromPublicKey: string
@@ -1236,7 +1256,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.5.0
+ * @version 2.5.3
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2503,6 +2523,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/multisig/build`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Multi-signature
+     * @name PostMultisigSweep
+     * @summary Sweep all unlocked ALPH and token balances of a multisig address to another address
+     * @request POST:/multisig/sweep
+     */
+    postMultisigSweep: (data: BuildSweepMultisig, params: RequestParams = {}) =>
+      this.request<
+        BuildSweepAddressTransactionsResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/multisig/sweep`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
