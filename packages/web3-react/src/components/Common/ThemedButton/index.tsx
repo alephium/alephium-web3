@@ -20,6 +20,7 @@ import React from 'react'
 import { ThemeContainer, Container } from './styles'
 
 import useMeasure from 'react-use-measure'
+import { CustomStyle } from '../../../types'
 
 type ThemedButtonProps = {
   children?: React.ReactNode
@@ -30,7 +31,7 @@ type ThemedButtonProps = {
   onClick?: () => void
 }
 
-const ThemedButton: React.FC<ThemedButtonProps> = ({
+const ThemedButton: React.FC<ThemedButtonProps & CustomStyle> = ({
   children,
   variant = 'primary',
   autoSize = true,

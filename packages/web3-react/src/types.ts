@@ -22,6 +22,12 @@ export type Mode = 'light' | 'dark' | 'auto'
 export type CustomTheme = any // TODO: define type
 export type ConnectorId = 'injected' | 'walletConnect' | 'desktopWallet'
 
+export type CustomStyle = {
+  theme?: Theme
+  mode?: Mode
+  customTheme?: CustomTheme
+}
+
 export type Connector = {
   id: ConnectorId
   name?: string

@@ -245,6 +245,10 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
         }}
       >
         <ThemedButton
+          variant={'secondary'}
+          theme={context.theme}
+          mode={context.mode}
+          customTheme={context.customTheme}
           style={{
             overflow: 'hidden'
           }}
