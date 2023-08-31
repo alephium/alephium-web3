@@ -26,10 +26,12 @@ import {
   prettifyExactAmount,
   prettifyNumber,
   prettifyNumberConfig,
-  prettifyTokenAmount
+  prettifyTokenAmount,
+  toFixedNumber
 } from './number'
 
 import { tests, tests1 } from './number.fixture'
+import { ONE_ALPH } from '../constants'
 
 describe('prettify number', () => {
   describe('when valid', () => {
@@ -99,5 +101,18 @@ describe('Number256', () => {
   it('should convert to bigint', () => {
     expect(number256ToBigint(1n)).toEqual(1n)
     expect(number256ToBigint('1')).toEqual(1n)
+  })
+})
+
+describe('toFixedNumber', () => {
+  it('should return the correct string', () => {
+    expect(toFixedNumber(0n, 0)).toEqual('0')
+    expect(toFixedNumber(1n, 0)).toEqual('1')
+    expect(toFixedNumber(10n, 0)).toEqual('10')
+    expect(toFixedNumber(0n, 1)).toEqual('0.0')
+    expect(toFixedNumber(1n, 1)).toEqual('0.1')
+    expect(toFixedNumber(10n, 1)).toEqual('1.0')
+    expect(toFixedNumber(ONE_ALPH, 18)).toEqual('1.0')
+    expect(toFixedNumber(ONE_ALPH / 10n, 18)).toEqual('0.1')
   })
 })

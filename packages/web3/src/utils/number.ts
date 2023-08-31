@@ -115,7 +115,7 @@ const BN_0 = BigInt(0)
 // Constant to pull zeros from for multipliers
 const Zeros = '0000'
 
-function toFixedNumber(val: bigint, decimals: number): string {
+export function toFixedNumber(val: bigint, decimals: number): string {
   let negative = ''
   if (val < BN_0) {
     negative = '-'
