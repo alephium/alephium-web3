@@ -101,8 +101,10 @@ const textVariants: Variants = {
   }
 }
 
+const defaultDisplayAccount = (account: Account) => account.address
+
 type ConnectButtonRendererProps = {
-  displayAccount: (account: Account) => string
+  displayAccount?: (account: Account) => string
   children?: (renderProps: {
     show?: () => void
     hide?: () => void
@@ -129,7 +131,7 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
 
   if (!children) return null
 
-  const displayAddress = account ? displayAccount(account) : undefined
+  const displayAddress = account ? (displayAccount ?? defaultDisplayAccount)(account) : undefined
 
   return (
     <>
