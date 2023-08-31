@@ -27,7 +27,7 @@ import {
   prettifyExactAmount,
   prettifyNumber,
   prettifyNumberConfig,
-  prettifyTokenAmount,
+  prettifyTokenAmount
 } from './number'
 
 import { tests, tests1 } from './number.fixture'
