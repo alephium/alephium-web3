@@ -153,11 +153,15 @@ export function convertAmountWithDecimals(amount: string | number, decimals: num
   }
 }
 
-// E.g. `1.23 ALPH` will be converted to `1230000000000000000`
+// E.g. `1.23` ALPH will be converted to `1230000000000000000`
 export function convertAlphAmountWithDecimals(amount: string | number): bigint | undefined {
   return convertAmountWithDecimals(amount, 18)
 }
 
 export function number256ToBigint(number: Number256): bigint {
   return typeof number === 'string' ? BigInt(number) : number
+}
+
+export function number256ToNumber(number: Number256, decimals: number): number {
+  return parseFloat(toFixedNumber(number256ToBigint(number), decimals))
 }

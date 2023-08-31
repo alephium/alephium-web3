@@ -22,6 +22,7 @@ import {
   convertAmountWithDecimals,
   isNumeric,
   number256ToBigint,
+  number256ToNumber,
   prettifyAttoAlphAmount,
   prettifyExactAmount,
   prettifyNumber,
@@ -30,6 +31,7 @@ import {
 } from './number'
 
 import { tests, tests1 } from './number.fixture'
+import { ONE_ALPH } from '../constants'
 
 describe('prettify number', () => {
   describe('when valid', () => {
@@ -99,5 +101,27 @@ describe('Number256', () => {
   it('should convert to bigint', () => {
     expect(number256ToBigint(1n)).toEqual(1n)
     expect(number256ToBigint('1')).toEqual(1n)
+  })
+})
+
+describe('toFixedNumber', () => {
+  it('should return the correct string', () => {
+    expect(number256ToNumber(0n, 0)).toEqual(0)
+    expect(number256ToNumber(1n, 0)).toEqual(1)
+    expect(number256ToNumber(10n, 0)).toEqual(10)
+    expect(number256ToNumber(0n, 1)).toEqual(0.0)
+    expect(number256ToNumber(1n, 1)).toEqual(0.1)
+    expect(number256ToNumber(10n, 1)).toEqual(1.0)
+    expect(number256ToNumber(ONE_ALPH, 18)).toEqual(1.0)
+    expect(number256ToNumber(ONE_ALPH / 10n, 18)).toEqual(0.1)
+
+    expect(number256ToNumber('0', 0)).toEqual(0)
+    expect(number256ToNumber('1', 0)).toEqual(1)
+    expect(number256ToNumber('10', 0)).toEqual(10)
+    expect(number256ToNumber('0', 1)).toEqual(0.0)
+    expect(number256ToNumber('1', 1)).toEqual(0.1)
+    expect(number256ToNumber('10', 1)).toEqual(1.0)
+    expect(number256ToNumber(`${ONE_ALPH}`, 18)).toEqual(1.0)
+    expect(number256ToNumber(`${ONE_ALPH / 10n}`, 18)).toEqual(0.1)
   })
 })
