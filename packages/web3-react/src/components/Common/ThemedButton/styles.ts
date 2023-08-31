@@ -112,7 +112,8 @@ export const ThemeContainer = styled.button`
       border-radius: var(--active-border-radius, var(--hover-border-radius, var(--border-radius)));
     }
   }
-  &:focus-visible {
-    outline: 2px solid var(--ck-family-brand);
+  &:focus-visible,
+  &:focus {
+    outline: none;
   }
 `
