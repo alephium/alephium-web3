@@ -27,12 +27,9 @@ import { truncatedAddress } from '../../../utils'
 import { useConnect } from '../../../hooks/useConnect'
 
 const Profile: React.FC<{ closeModal?: () => void }> = ({ closeModal }) => {
-  const { addressGroup, network, displayAccount, setOpen } = useConnectSettingContext()
+  const { displayAccount, setOpen } = useConnectSettingContext()
   const { account } = useAlephiumConnectContext()
-  const { disconnect } = useConnect({
-    addressGroup: addressGroup,
-    networkId: network
-  })
+  const { disconnect } = useConnect()
   const [shouldDisconnect, setShouldDisconnect] = useState(false)
   const address = account ? (displayAccount ? displayAccount(account) : account.address) : undefined
 

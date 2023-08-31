@@ -32,9 +32,6 @@ export type ConnectSettingValue = {
   connectorId: ConnectorId
   setConnectorId: React.Dispatch<React.SetStateAction<ConnectorId>>
   displayAccount?: (account: Account) => string
-  addressGroup?: number
-  keyType: KeyType
-  network: NetworkId
   theme: Theme
   setTheme: React.Dispatch<React.SetStateAction<Theme>>
   mode: Mode
@@ -52,8 +49,11 @@ export const useConnectSettingContext = () => {
 }
 
 export type AlephiumConnectContextValue = {
-  account?: Account & { network: NetworkId }
-  setAccount: React.Dispatch<React.SetStateAction<(Account & { network: NetworkId }) | undefined>>
+  addressGroup?: number
+  keyType: KeyType
+  network: NetworkId
+  account?: Account
+  setAccount: (account: Account | undefined) => void
   signerProvider?: SignerProvider
   setSignerProvider: React.Dispatch<React.SetStateAction<SignerProvider | undefined>>
 }

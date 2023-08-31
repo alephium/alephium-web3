@@ -19,7 +19,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, Variants } from 'framer-motion'
 import { Container, ConnectingContainer, ConnectingAnimation, RetryButton, RetryIconContainer, Content } from './styles'
 
-import { useConnectSettingContext } from '../../../contexts/alephiumConnect'
+import { useAlephiumConnectContext, useConnectSettingContext } from '../../../contexts/alephiumConnect'
 import supportedConnectors from '../../../constants/supportedConnectors'
 
 import {
@@ -87,12 +87,8 @@ const ConnectWithInjector: React.FC<{
   switchConnectMethod: (id?: string) => void
   forceState?: typeof states
 }> = ({ connectorId, switchConnectMethod, forceState }) => {
-  const { addressGroup, network, setOpen } = useConnectSettingContext()
-
-  const { connect } = useConnect({
-    addressGroup: addressGroup,
-    networkId: network
-  })
+  const { setOpen } = useConnectSettingContext()
+  const { connect } = useConnect()
 
   const [id, setId] = useState(connectorId)
   const [showTryAgainTooltip, setShowTryAgainTooltip] = useState(false)

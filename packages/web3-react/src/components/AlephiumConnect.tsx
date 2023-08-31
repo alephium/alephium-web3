@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 import defaultTheme from '../styles/defaultTheme'
 
@@ -43,8 +43,10 @@ import {
   ConnectSettingValue,
   useAlephiumConnectContext
 } from '../contexts/alephiumConnect'
+import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
+import { ConnectResult, getConnectorById } from '../utils/connector'
 
-type ConnectSettingProviderProps = {
+type AlephiumWalletProviderProps = {
   theme?: Theme
   mode?: Mode
   customTheme?: CustomTheme
@@ -54,15 +56,12 @@ type ConnectSettingProviderProps = {
   children?: React.ReactNode
 }
 
-export const ConnectSettingProvider: React.FC<ConnectSettingProviderProps> = ({
-  theme = 'auto',
-  mode = 'auto',
-  customTheme,
-  network,
-  addressGroup,
-  keyType,
-  children
-}) => {
+export const ConnectSettingProvider: React.FC<{
+  theme?: Theme
+  mode?: Mode
+  customTheme?: CustomTheme
+  children?: React.ReactNode
+}> = ({ theme = 'auto', mode = 'auto', customTheme, children }) => {
   // Only allow for mounting ConnectSettingProvider once, so we avoid weird global
   // state collisions.
   const context = useContext(ConnectSettingContext)
@@ -90,15 +89,12 @@ export const ConnectSettingProvider: React.FC<ConnectSettingProviderProps> = ({
     setRoute,
     connectorId,
     setConnectorId,
-    network,
     theme: _theme,
     setTheme,
     mode: _mode,
     setMode,
     customTheme: _customTheme,
     setCustomTheme,
-    addressGroup,
-    keyType: keyType ?? 'default',
     // Other configuration
     errorMessage
   }
@@ -121,7 +117,12 @@ function tryGetNodeProvider(): NodeProvider | undefined {
   }
 }
 
-export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+export const AlephiumConnectProvider: React.FC<{
+  network: NetworkId
+  addressGroup?: number
+  keyType?: KeyType
+  children?: React.ReactNode
+}> = ({ network, addressGroup, keyType, children }) => {
   // Only allow for mounting AlephiumConnectProvider once, so we avoid weird global
   // state collisions.
   const context = useContext(AlephiumConnectContext)
@@ -129,12 +130,63 @@ export const AlephiumConnectProvider: React.FC<{ children?: React.ReactNode }> =
     throw new Error('Multiple, nested usages of AlephiumConnectProvider detected. Please use only one.')
   }
 
-  const [account, setAccount] = useState<Account & { network: NetworkId }>()
+  const lastConnectedAccount = useMemo(() => {
+    const result = getLastConnectedAccount()
+    if (result === undefined) {
+      return undefined
+    }
+    if (
+      result.network === network &&
+      (addressGroup === undefined || result.account.group === addressGroup) &&
+      (keyType === undefined || result.account.keyType === keyType)
+    ) {
+      return result
+    }
+  }, [network, addressGroup, keyType])
+
+  const [account, setAccount] = useState<Account | undefined>(lastConnectedAccount?.account)
   const [signerProvider, setSignerProvider] = useState<SignerProvider | undefined>()
 
+  const updateAccount = useMemo(() => {
+    return (newAccount: Account | undefined) => {
+      setAccount((prev) => (prev?.address === newAccount?.address ? prev : newAccount))
+    }
+  }, [setAccount])
+
+  useEffect(() => {
+    const func = async () => {
+      if (lastConnectedAccount === undefined) return
+      const connector = getConnectorById(lastConnectedAccount.connectorId)
+      if (connector.autoConnect === undefined) return
+      const onDisconnected = () => {
+        updateAccount(undefined)
+        setSignerProvider(undefined)
+      }
+      const onConnected = (result: ConnectResult) => {
+        updateAccount(result.account)
+        setSignerProvider(result.signerProvider)
+      }
+
+      try {
+        const result = await connector.autoConnect({ network, addressGroup, keyType, onDisconnected, onConnected })
+        if (result === undefined) {
+          updateAccount(undefined)
+          removeLastConnectedAccount()
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    func()
+  }, [lastConnectedAccount, network, addressGroup, keyType, setSignerProvider, updateAccount])
+
   const value = {
+    network,
+    addressGroup,
+    keyType: keyType ?? 'default',
     account,
-    setAccount,
+    setAccount: updateAccount,
     signerProvider,
     setSignerProvider
   }
@@ -148,7 +200,7 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
     throw new Error('Multiple, nested usages of AlephiumBalanceProvider detected. Please use only one.')
   }
 
-  const { account, signerProvider } = useAlephiumConnectContext()
+  const { account, signerProvider, network } = useAlephiumConnectContext()
   const [balance, setBalance] = useState<node.Balance | undefined>()
 
   const updateBalance = useCallback(async () => {
@@ -173,7 +225,7 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
       }
 
       const expectedConfirmations = confirmations ?? 1
-      const pollingInterval = account.network === 'devnet' ? 1000 : 4000
+      const pollingInterval = network === 'devnet' ? 1000 : 4000
       const messageCallback = async (txStatus: node.TxStatus): Promise<void> => {
         if (txStatus.type === 'Confirmed' && (txStatus as node.Confirmed).chainConfirmations >= expectedConfirmations) {
           await updateBalance()
@@ -191,7 +243,7 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
       }
       subscribeToTxStatus(options, txId, undefined, undefined, expectedConfirmations)
     },
-    [updateBalance, account]
+    [updateBalance, account, network]
   )
 
   useEffect(() => {
@@ -217,17 +269,10 @@ export const AlephiumWalletProvider = ({
   addressGroup,
   keyType,
   children
-}: ConnectSettingProviderProps) => {
+}: AlephiumWalletProviderProps) => {
   return (
-    <AlephiumConnectProvider>
-      <ConnectSettingProvider
-        theme={theme}
-        mode={mode}
-        customTheme={customTheme}
-        network={network}
-        addressGroup={addressGroup}
-        keyType={keyType}
-      >
+    <AlephiumConnectProvider network={network} addressGroup={addressGroup} keyType={keyType}>
+      <ConnectSettingProvider theme={theme} mode={mode} customTheme={customTheme}>
         <AlephiumBalanceProvider>{children}</AlephiumBalanceProvider>
       </ConnectSettingProvider>
     </AlephiumConnectProvider>

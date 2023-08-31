@@ -20,22 +20,20 @@ import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
 import { NodeProvider, SignerProvider, Account, NetworkId } from '@alephium/web3'
 
 export interface Wallet {
-  signer: SignerProvider
-  account: Account & { network: NetworkId }
-  nodeProvider?: NodeProvider
+  signer: SignerProvider | undefined
+  account: (Account & { network: NetworkId }) | undefined
+  nodeProvider: NodeProvider | undefined
 }
 
 export function useWallet() {
-  const { account, signerProvider } = useAlephiumConnectContext()
+  const { account, signerProvider, network } = useAlephiumConnectContext()
 
-  return useMemo<Wallet | undefined>(() => {
-    if (account !== undefined && signerProvider !== undefined) {
-      return {
-        signer: signerProvider,
-        account: account,
-        nodeProvider: signerProvider.nodeProvider
-      }
+  return useMemo<Wallet>(() => {
+    return {
+      signer: signerProvider,
+      account: account === undefined ? undefined : { ...account, network },
+      network: network,
+      nodeProvider: signerProvider?.nodeProvider
     }
-    return undefined
-  }, [signerProvider, account])
+  }, [signerProvider, account, network])
 }
