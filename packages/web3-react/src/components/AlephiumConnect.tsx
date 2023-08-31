@@ -79,6 +79,8 @@ export const ConnectSettingProvider: React.FC<{
   const [errorMessage, setErrorMessage] = useState<ConnectSettingValue['errorMessage']>('')
 
   useEffect(() => setTheme(theme), [theme])
+  useEffect(() => setMode(mode), [mode])
+  useEffect(() => setCustomTheme(customTheme ?? {}), [customTheme])
   // useEffect(() => setErrorMessage(null), [route, open]) TODO: handle error properly
 
   // Check if chain is supported, elsewise redirect to switches page
@@ -142,6 +144,7 @@ export const AlephiumConnectProvider: React.FC<{
     ) {
       return result
     }
+    return undefined
   }, [network, addressGroup, keyType])
 
   const [account, setAccount] = useState<Account | undefined>(lastConnectedAccount?.account)
