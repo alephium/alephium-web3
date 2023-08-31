@@ -119,8 +119,6 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
   const context = useConnectSettingContext()
 
   const { account } = useAlephiumConnectContext()
-  const isConnected = false
-  const isConnecting = false
 
   function hide() {
     context.setOpen(false)
@@ -128,7 +126,7 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
 
   function show() {
     context.setOpen(true)
-    context.setRoute(isConnected ? routes.PROFILE : routes.CONNECTORS)
+    context.setRoute(!!account ? routes.PROFILE : routes.CONNECTORS)
   }
 
   if (!children) return null
@@ -142,7 +140,7 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
         show,
         hide,
         isConnected: !!account,
-        isConnecting: isConnecting,
+        isConnecting: context.open,
         address: displayAddress,
         truncatedAddress: displayAddress ? truncatedAddress(displayAddress) : undefined
       })}
