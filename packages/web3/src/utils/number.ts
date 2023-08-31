@@ -115,7 +115,7 @@ const BN_0 = BigInt(0)
 // Constant to pull zeros from for multipliers
 const Zeros = '0000'
 
-export function toFixedNumber(val: bigint, decimals: number): string {
+function toFixedNumber(val: bigint, decimals: number): string {
   let negative = ''
   if (val < BN_0) {
     negative = '-'
@@ -160,4 +160,8 @@ export function convertAlphAmountWithDecimals(amount: string | number): bigint |
 
 export function number256ToBigint(number: Number256): bigint {
   return typeof number === 'string' ? BigInt(number) : number
+}
+
+export function number256ToNumber(number: Number256, decimals: number): number {
+  return parseFloat(toFixedNumber(number256ToBigint(number), decimals))
 }
