@@ -66,8 +66,8 @@ async function _wcConnect(onDisplayUri: (uri: string) => void, options: ConnectO
       return wcProvider.account
     }
   } catch (e) {
-    console.log('wallet connect error')
-    console.error(e)
+    console.error(`Wallet connect error:`, e)
+    options.onDisconnected()
   }
   return undefined
 }
@@ -97,7 +97,8 @@ const injectedConnect = async (options: ConnectOptions): Promise<Account | undef
       return enabledAccount
     }
   } catch (error) {
-    console.error(error)
+    console.error(`Wallet connect error:`, error)
+    options.onDisconnected()
   }
   return undefined
 }
@@ -118,7 +119,8 @@ const injectedAutoConnect = async (options: ConnectOptions): Promise<Account | u
 
     return enabledAccount
   } catch (error) {
-    console.error(error)
+    console.error(`Wallet auto-connect error:`, error)
+    options.onDisconnected()
   }
   return undefined
 }
