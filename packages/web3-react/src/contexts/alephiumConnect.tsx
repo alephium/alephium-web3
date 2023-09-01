@@ -48,7 +48,7 @@ export const useConnectSettingContext = () => {
   return context
 }
 
-export type ConnectionStatus = 'connected' | 'connecting' | 'reconnecting' | 'disconnected'
+export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected'
 
 export type AlephiumConnectContextValue = {
   addressGroup?: number

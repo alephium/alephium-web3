@@ -185,7 +185,6 @@ export const AlephiumConnectProvider: React.FC<{
 
       try {
         const lastConnectorId = lastConnectedAccount?.connectorId
-        connectionStatusRef.current = lastConnectorId === undefined ? 'connecting' : 'reconnecting'
         const allConnectorIds = Array.from(connectorIds)
         const sortedConnectorIds =
           lastConnectorId === undefined

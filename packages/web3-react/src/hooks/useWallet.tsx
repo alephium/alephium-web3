@@ -29,7 +29,7 @@ export type Wallet =
   | {
       signer: SignerProvider | undefined
       account: (Account & { network: NetworkId }) | undefined
-      connectionStatus: 'connecting' | 'reconnecting'
+      connectionStatus: 'connecting'
       nodeProvider: NodeProvider | undefined
     }
   | {
