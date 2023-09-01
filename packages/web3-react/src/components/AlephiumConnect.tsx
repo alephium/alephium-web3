@@ -138,7 +138,9 @@ export const AlephiumConnectProvider: React.FC<{
     return undefined
   }, [network, addressGroup, keyType])
 
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting')
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
+    lastConnectedAccount !== undefined ? 'connecting' : 'disconnected'
+  )
   const [account, setAccount] = useState<Account | undefined>(lastConnectedAccount?.account)
   const [signerProvider, setSignerProvider] = useState<SignerProvider | undefined>()
 
