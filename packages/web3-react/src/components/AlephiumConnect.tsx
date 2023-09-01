@@ -34,7 +34,7 @@ import {
   subscribeToTxStatus,
   web3
 } from '@alephium/web3'
-import { Theme, Mode, CustomTheme } from '../types'
+import { Theme, Mode, CustomTheme, connectorIds } from '../types'
 import { routes } from './Common/Modal'
 import {
   AlephiumBalanceContext,
@@ -45,16 +45,6 @@ import {
 } from '../contexts/alephiumConnect'
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
 import { ConnectResult, getConnectorById } from '../utils/connector'
-
-type AlephiumWalletProviderProps = {
-  theme?: Theme
-  mode?: Mode
-  customTheme?: CustomTheme
-  network: NetworkId
-  addressGroup?: number
-  keyType?: KeyType
-  children?: React.ReactNode
-}
 
 export const ConnectSettingProvider: React.FC<{
   theme?: Theme
@@ -158,10 +148,8 @@ export const AlephiumConnectProvider: React.FC<{
 
   useEffect(() => {
     const func = async () => {
-      if (lastConnectedAccount === undefined) return
-      const connector = getConnectorById(lastConnectedAccount.connectorId)
-      if (connector.autoConnect === undefined) return
       const onDisconnected = () => {
+        removeLastConnectedAccount()
         updateAccount(undefined)
         setSignerProvider(undefined)
       }
@@ -171,14 +159,27 @@ export const AlephiumConnectProvider: React.FC<{
       }
 
       try {
-        const result = await connector.autoConnect({ network, addressGroup, keyType, onDisconnected, onConnected })
-        if (result === undefined) {
-          updateAccount(undefined)
-          removeLastConnectedAccount()
+        const lastConnectorId = lastConnectedAccount?.connectorId
+        const allConnectorIds = Array.from(connectorIds)
+        const sortedConnectorIds =
+          lastConnectorId === undefined
+            ? allConnectorIds
+            : [lastConnectorId].concat(allConnectorIds.filter((c) => c !== lastConnectorId))
+
+        for (const connectorId of sortedConnectorIds) {
+          const connector = getConnectorById(connectorId)
+          if (connector.autoConnect !== undefined) {
+            const result = await connector.autoConnect({ network, addressGroup, keyType, onDisconnected, onConnected })
+            if (result !== undefined) {
+              return
+            }
+          }
         }
       } catch (error) {
         console.error(error)
       }
+
+      onDisconnected()
     }
 
     func()
@@ -262,6 +263,16 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
   }
 
   return <AlephiumBalanceContext.Provider value={value}>{children}</AlephiumBalanceContext.Provider>
+}
+
+type AlephiumWalletProviderProps = {
+  theme?: Theme
+  mode?: Mode
+  customTheme?: CustomTheme
+  network: NetworkId
+  addressGroup?: number
+  keyType?: KeyType
+  children?: React.ReactNode
 }
 
 export const AlephiumWalletProvider = ({
