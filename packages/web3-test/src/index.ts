@@ -27,10 +27,12 @@ import {
   ALPH_TOKEN_ID,
   DUST_AMOUNT,
   Address,
-  TOTAL_NUMBER_OF_GROUPS
+  TOTAL_NUMBER_OF_GROUPS,
+  getContractIdFromUnsignedTx
 } from '@alephium/web3'
 import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
+import { createAndTransferToken } from './token'
 
 export const testMnemonic =
   'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
@@ -139,6 +141,13 @@ export async function transfer(from: PrivateKeyWallet, to: Address, tokenId: str
     tokens: tokenId === ALPH_TOKEN_ID ? [] : [{ id: tokenId, amount }]
   }
   return await from.signAndSubmitTransferTx({ signerAddress: from.address, destinations: [destination] })
+}
+
+export async function mintToken(from: PrivateKeyWallet, amount: bigint) {
+  const nodeProvider = tryGetDevnetNodeProvider()
+  const result = await createAndTransferToken(nodeProvider, from, amount)
+  const contractId = await getContractIdFromUnsignedTx(nodeProvider, result.unsignedTx)
+  return { ...result, contractId, contractAddress: addressFromContractId(contractId) }
 }
 
 export async function expectAssertionError(p: Promise<unknown>, address: string, errorCode: number): Promise<void> {

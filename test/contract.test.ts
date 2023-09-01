@@ -46,7 +46,7 @@ import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { NFTTest, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
-import { getSigner } from '@alephium/web3-test'
+import { getSigner, mintToken } from '@alephium/web3-test'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -344,5 +344,18 @@ describe('contract', function () {
     expect(ProjectArtifact.isCodeChanged(artifact1, artifact0)).toEqual(true)
     expect(ProjectArtifact.isCodeChanged(artifact1, artifact2)).toEqual(true)
     expect(ProjectArtifact.isCodeChanged(artifact3, artifact2)).toEqual(true)
+  })
+
+  it('should get token', async () => {
+    const wallet = await getSigner(ONE_ALPH * 5n)
+    const amount = ONE_ALPH * 10n
+    const result = await mintToken(wallet, amount)
+    const contractId = result.contractId
+    const nodeProvider = web3.getCurrentNodeProvider()
+    expect(await nodeProvider.guessStdTokenType(contractId)).toEqual('fungible')
+
+    const balances = await nodeProvider.addresses.getAddressesAddressBalance(wallet.address)
+    const tokenBalance = balances.tokenBalances?.find((t) => t.id === contractId)
+    expect(tokenBalance?.amount).toEqual(amount.toString())
   })
 })
