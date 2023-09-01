@@ -34,7 +34,7 @@ import {
   subscribeToTxStatus,
   web3
 } from '@alephium/web3'
-import { Theme, Mode, CustomTheme, connectorIds } from '../types'
+import { Theme, Mode, CustomTheme, connectorIds, ProviderTheme } from '../types'
 import { routes } from './Common/Modal'
 import {
   AlephiumBalanceContext,
@@ -294,8 +294,7 @@ export const AlephiumBalanceProvider: React.FC<{ children?: React.ReactNode }> =
 }
 
 type AlephiumWalletProviderProps = {
-  theme?: Theme
-  mode?: Mode
+  theme?: ProviderTheme
   customTheme?: CustomTheme
   network: NetworkId
   addressGroup?: number
@@ -305,7 +304,6 @@ type AlephiumWalletProviderProps = {
 
 export const AlephiumWalletProvider = ({
   theme,
-  mode,
   customTheme,
   network,
   addressGroup,
@@ -314,7 +312,11 @@ export const AlephiumWalletProvider = ({
 }: AlephiumWalletProviderProps) => {
   return (
     <AlephiumConnectProvider network={network} addressGroup={addressGroup} keyType={keyType}>
-      <ConnectSettingProvider theme={theme} mode={mode} customTheme={customTheme}>
+      <ConnectSettingProvider
+        theme={theme === 'simple-light' || theme === 'simple-dark' ? 'auto' : theme}
+        mode={theme === 'simple-light' ? 'light' : theme === 'simple-dark' ? 'dark' : 'auto'}
+        customTheme={customTheme}
+      >
         <AlephiumBalanceProvider>{children}</AlephiumBalanceProvider>
       </ConnectSettingProvider>
     </AlephiumConnectProvider>
