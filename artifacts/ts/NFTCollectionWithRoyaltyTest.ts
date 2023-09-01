@@ -78,8 +78,8 @@ class Factory extends ContractFactory<
   NFTCollectionWithRoyaltyTestInstance,
   NFTCollectionWithRoyaltyTestTypes.Fields
 > {
-  getDefaultInitialFields() {
-    return this.contract.getDefaultInitialFields() as NFTCollectionWithRoyaltyTestTypes.Fields;
+  getInitialFieldsWithDefaultValues() {
+    return this.contract.getInitialFieldsWithDefaultValues() as NFTCollectionWithRoyaltyTestTypes.Fields;
   }
 
   consts = {

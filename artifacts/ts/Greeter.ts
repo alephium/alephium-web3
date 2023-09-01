@@ -64,8 +64,8 @@ export namespace GreeterTypes {
 }
 
 class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
-  getDefaultInitialFields() {
-    return this.contract.getDefaultInitialFields() as GreeterTypes.Fields;
+  getInitialFieldsWithDefaultValues() {
+    return this.contract.getInitialFieldsWithDefaultValues() as GreeterTypes.Fields;
   }
 
   at(address: string): GreeterInstance {

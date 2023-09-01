@@ -165,7 +165,7 @@ describe('contract', function () {
   })
 
   it('should test contract (2)', async () => {
-    const initialFields = Greeter.getDefaultInitialFields()
+    const initialFields = Greeter.getInitialFieldsWithDefaultValues()
     const testResult = await Greeter.tests.greet({ initialFields: { ...initialFields, btcPrice: 1n } })
     expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
@@ -210,7 +210,7 @@ describe('contract', function () {
   })
 
   it('should deploy contract with default initial values', async () => {
-    const initialFields = Greeter.getDefaultInitialFields()
+    const initialFields = Greeter.getInitialFieldsWithDefaultValues()
     const result = await Greeter.deploy(signer, { initialFields })
     const state = await result.contractInstance.fetchState()
     expect(state.fields).toEqual(initialFields)

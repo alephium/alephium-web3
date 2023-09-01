@@ -87,7 +87,7 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promis
   checkGroup(group)
 
   try {
-    const nodeProvider = tryGetDevnetNodeProvider()
+    const nodeProvider = await tryGetDevnetNodeProvider()
     const balances = await nodeProvider.addresses.getAddressesAddressBalance(testAddress)
     const availableBalance = BigInt(balances.balance) - BigInt(balances.lockedBalance)
     if (availableBalance < alphAmount) {

@@ -845,7 +845,7 @@ export class Contract extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  getDefaultInitialFields(): Fields {
+  getInitialFieldsWithDefaultValues(): Fields {
     const fields =
       this.stdInterfaceId === undefined
         ? this.fieldsSig

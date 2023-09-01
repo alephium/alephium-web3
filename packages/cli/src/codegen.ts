@@ -230,14 +230,14 @@ function genSubscribeAllEvents(contract: Contract): string {
   `
 }
 
-function genGetDefaultInitialFields(contract: Contract): string {
+function genGetInitialFieldsWithDefaultValues(contract: Contract): string {
   const fieldsSig = getContractFields(contract)
   if (fieldsSig.names.length === 0) {
     return ''
   }
   return `
-    getDefaultInitialFields() {
-      return this.contract.getDefaultInitialFields() as ${contract.name}Types.Fields
+    getInitialFieldsWithDefaultValues() {
+      return this.contract.getInitialFieldsWithDefaultValues() as ${contract.name}Types.Fields
     }
   `
 }
@@ -390,7 +390,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
-      ${genGetDefaultInitialFields(contract)}
+      ${genGetInitialFieldsWithDefaultValues(contract)}
       ${genEventIndex(contract)}
       ${genConsts(contract)}
       ${genAttach(getInstanceName(contract))}

@@ -32,12 +32,24 @@ export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
 export const testPrivateKey = testPrivateKeys[0]
 export const testPassword = 'alph'
 
-export function tryGetDevnetNodeProvider(): NodeProvider {
-  try {
-    return web3.getCurrentNodeProvider()
-  } catch (err) {
+export async function tryGetDevnetNodeProvider(): Promise<NodeProvider> {
+  const currentNodeProvider = (() => {
+    try {
+      return web3.getCurrentNodeProvider()
+    } catch (err) {
+      return undefined
+    }
+  })()
+
+  if (currentNodeProvider === undefined) {
     const nodeProvider = new NodeProvider('http://127.0.0.1:22973')
     web3.setCurrentNodeProvider(nodeProvider)
     return nodeProvider
   }
+
+  const chainParams = await currentNodeProvider.infos.getInfosChainParams()
+  if (chainParams.networkId === 0 || chainParams.networkId === 1) {
+    throw new Error('Invalid network, expect devnet')
+  }
+  return currentNodeProvider
 }

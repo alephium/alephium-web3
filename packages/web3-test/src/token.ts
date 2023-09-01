@@ -112,7 +112,7 @@ async function createAndTransferToken(
 
 export async function mintToken(recipient: Address, amount: bigint) {
   const group = groupOfAddress(recipient)
-  const nodeProvider = tryGetDevnetNodeProvider()
+  const nodeProvider = await tryGetDevnetNodeProvider()
   const deployer = new PrivateKeyWallet({ privateKey: testPrivateKeys[`${group}`], nodeProvider })
   const result = await createAndTransferToken(nodeProvider, deployer, recipient, amount)
   const contractId = await getContractIdFromUnsignedTx(nodeProvider, result.unsignedTx)

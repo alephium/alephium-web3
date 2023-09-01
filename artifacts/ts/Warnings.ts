@@ -38,8 +38,8 @@ export namespace WarningsTypes {
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
-  getDefaultInitialFields() {
-    return this.contract.getDefaultInitialFields() as WarningsTypes.Fields;
+  getInitialFieldsWithDefaultValues() {
+    return this.contract.getInitialFieldsWithDefaultValues() as WarningsTypes.Fields;
   }
 
   consts = { C: BigInt(0) };
