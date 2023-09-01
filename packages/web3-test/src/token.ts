@@ -16,7 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Contract, DUST_AMOUNT, NodeProvider, ONE_ALPH, Script, SignerProvider, stringToHex } from '@alephium/web3'
+import {
+  Address,
+  Contract,
+  DUST_AMOUNT,
+  NodeProvider,
+  ONE_ALPH,
+  Script,
+  SignerProvider,
+  addressFromContractId,
+  getContractIdFromUnsignedTx,
+  groupOfAddress,
+  stringToHex
+} from '@alephium/web3'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { testPrivateKeys, tryGetDevnetNodeProvider } from './const'
 
 function createTokenContract(symbol: string, name: string): string {
   return `
@@ -65,14 +79,15 @@ async function getContractArtifact(nodeProvider: NodeProvider): Promise<Contract
 async function getScriptArtifact(nodeProvider: NodeProvider): Promise<Script> {
   const contract = await getContractArtifact(nodeProvider)
   const scriptCode = `
-    TxScript Main(address: Address, totalSupply: U256) {
+    TxScript Main(recipient: Address, totalSupply: U256) {
       let (encodedImmFields, encodedMutFields) = Token.encodeFields!(totalSupply)
-      createContractWithToken!{address -> ALPH: 1 alph}(
+      transferToken!(callerAddress!(), recipient, ALPH, dustAmount!())
+      createContractWithToken!{callerAddress!() -> ALPH: 1 alph}(
         #${contract.bytecode},
         encodedImmFields,
         encodedMutFields,
         totalSupply,
-        address
+        recipient
       )
     }
     ${contractCode}
@@ -81,12 +96,25 @@ async function getScriptArtifact(nodeProvider: NodeProvider): Promise<Script> {
   return Script.fromCompileResult(scriptResult)
 }
 
-export async function createAndTransferToken(nodeProvider: NodeProvider, signer: SignerProvider, amount: bigint) {
+async function createAndTransferToken(
+  nodeProvider: NodeProvider,
+  deployer: SignerProvider,
+  recipient: Address,
+  amount: bigint
+) {
   const script = await getScriptArtifact(nodeProvider)
-  const account = await signer.getSelectedAccount()
-  const params = await script.txParamsForExecution(signer, {
-    initialFields: { address: account.address, totalSupply: amount },
+  const params = await script.txParamsForExecution(deployer, {
+    initialFields: { recipient, totalSupply: amount },
     attoAlphAmount: ONE_ALPH + DUST_AMOUNT
   })
-  return await signer.signAndSubmitExecuteScriptTx(params)
+  return await deployer.signAndSubmitExecuteScriptTx(params)
+}
+
+export async function mintToken(recipient: Address, amount: bigint) {
+  const group = groupOfAddress(recipient)
+  const nodeProvider = tryGetDevnetNodeProvider()
+  const deployer = new PrivateKeyWallet({ privateKey: testPrivateKeys[`${group}`], nodeProvider })
+  const result = await createAndTransferToken(nodeProvider, deployer, recipient, amount)
+  const contractId = await getContractIdFromUnsignedTx(nodeProvider, result.unsignedTx)
+  return { ...result, contractId, contractAddress: addressFromContractId(contractId) }
 }

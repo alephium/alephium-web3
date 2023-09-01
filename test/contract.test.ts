@@ -31,10 +31,11 @@ import {
   addressFromContractId,
   groupOfAddress,
   ProjectArtifact,
-  DEFAULT_NODE_COMPILER_OPTIONS
+  DEFAULT_NODE_COMPILER_OPTIONS,
+  DUST_AMOUNT
 } from '../packages/web3'
 import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
-import { expectAssertionError, testAddress, randomContractAddress } from '../packages/web3-test'
+import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
 import { GreeterMain, Main } from '../artifacts/ts/scripts'
@@ -46,7 +47,6 @@ import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { NFTTest, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
-import { getSigner, mintToken } from '@alephium/web3-test'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -348,16 +348,18 @@ describe('contract', function () {
     expect(ProjectArtifact.isCodeChanged(artifact3, artifact2)).toEqual(true)
   })
 
-  it('should get token', async () => {
+  it('should mint token', async () => {
+    const tokenAmount = ONE_ALPH * 10n
+    const alphAmount = ONE_ALPH * 5n
     const wallet = await getSigner(ONE_ALPH * 5n)
-    const amount = ONE_ALPH * 10n
-    const result = await mintToken(wallet, amount)
+    const result = await mintToken(wallet.address, tokenAmount)
     const contractId = result.contractId
     const nodeProvider = web3.getCurrentNodeProvider()
     expect(await nodeProvider.guessStdTokenType(contractId)).toEqual('fungible')
 
     const balances = await nodeProvider.addresses.getAddressesAddressBalance(wallet.address)
+    expect(balances.balance).toEqual((alphAmount + DUST_AMOUNT).toString())
     const tokenBalance = balances.tokenBalances?.find((t) => t.id === contractId)
-    expect(tokenBalance?.amount).toEqual(amount.toString())
+    expect(tokenBalance?.amount).toEqual(tokenAmount.toString())
   })
 })
