@@ -58,10 +58,10 @@ export function useWallet() {
           nodeProvider: undefined
         }
       : {
-          signer: signerProvider,
+          signer: undefined,
           account: account === undefined ? undefined : { ...account, network },
           connectionStatus,
-          nodeProvider: signerProvider?.nodeProvider
+          nodeProvider: undefined
         }
   }, [signerProvider, account, network, connectionStatus])
 }
