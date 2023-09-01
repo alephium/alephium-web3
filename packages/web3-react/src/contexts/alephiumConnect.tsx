@@ -67,6 +67,7 @@ export type AlephiumConnectContextValue = {
 
 export const AlephiumConnectContext = createContext<AlephiumConnectContextValue | null>(null)
 
+// Use hooks `useWallet` and `useWalletConfig` instead
 export const useAlephiumConnectContext = () => {
   const context = useContext(AlephiumConnectContext)
   if (!context) throw Error('AlephiumConnect Hook must be inside a Provider.')
@@ -81,6 +82,7 @@ export type AlephiumBalanceContextValue = {
 
 export const AlephiumBalanceContext = createContext<AlephiumBalanceContextValue | null>(null)
 
+// Use hook `useBalance` instead
 export const useAlephiumBalanceContext = () => {
   const context = useContext(AlephiumBalanceContext)
   if (!context) throw Error('AlephiumBalance Hook must be inside a Provider.')
