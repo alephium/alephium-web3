@@ -78,6 +78,10 @@ class Factory extends ContractFactory<
   NFTCollectionWithRoyaltyTestInstance,
   NFTCollectionWithRoyaltyTestTypes.Fields
 > {
+  getInitialFieldsWithDefaultValues() {
+    return this.contract.getInitialFieldsWithDefaultValues() as NFTCollectionWithRoyaltyTestTypes.Fields;
+  }
+
   consts = {
     ErrorCodes: { IncorrectTokenIndex: BigInt(0), NFTNotFound: BigInt(1) },
   };

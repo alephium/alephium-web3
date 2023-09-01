@@ -71,6 +71,10 @@ class Factory extends ContractFactory<
   FakeTokenTestInstance,
   FakeTokenTestTypes.Fields
 > {
+  getInitialFieldsWithDefaultValues() {
+    return this.contract.getInitialFieldsWithDefaultValues() as FakeTokenTestTypes.Fields;
+  }
+
   at(address: string): FakeTokenTestInstance {
     return new FakeTokenTestInstance(address);
   }

@@ -16,7 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Deployments, DeploymentsPerAddress, recordEqual } from './deployment'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { Deployments, DeploymentsPerAddress, recordEqual, validatePrivateKeys } from './deployment'
+import { NodeProvider } from '@alephium/web3'
+import { web3 } from '@alephium/web3'
 
 describe('deployments', () => {
   it('test record equal', () => {
@@ -57,5 +60,19 @@ describe('deployments', () => {
 
     deployments.add(DeploymentsPerAddress.empty('Address1'))
     expect(deployments.isEmpty()).toEqual(false)
+  })
+
+  it('should validate private keys', () => {
+    web3.setCurrentNodeProvider('http://127.0.0.1')
+    const privateKeys = [0, 1, 2, 3].map((group) => PrivateKeyWallet.Random(group).privateKey)
+
+    expect(() => validatePrivateKeys([])).toThrowError('No private key specified')
+    Array.from([1, 2, 3, 4]).forEach((size) => {
+      const keys = privateKeys.slice(0, size).sort((a, b) => (a > b ? 1 : -1))
+      expect(validatePrivateKeys(keys).length).toEqual(size)
+
+      keys.push(privateKeys[size - 1])
+      expect(() => validatePrivateKeys(keys)).toThrowError(`Duplicated private keys on group ${size - 1}`)
+    })
   })
 })

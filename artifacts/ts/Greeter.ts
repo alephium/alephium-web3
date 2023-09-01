@@ -31,6 +31,14 @@ import { getContractByCodeHash } from "./contracts";
 export namespace GreeterTypes {
   export type Fields = {
     btcPrice: bigint;
+    array0: [[bigint, bigint], [bigint, bigint], [bigint, bigint]];
+    array1: [[boolean, boolean], [boolean, boolean], [boolean, boolean]];
+    array2: [
+      [HexString, HexString],
+      [HexString, HexString],
+      [HexString, HexString]
+    ];
+    array3: [[Address, Address], [Address, Address], [Address, Address]];
   };
 
   export type State = ContractState<Fields>;
@@ -56,6 +64,10 @@ export namespace GreeterTypes {
 }
 
 class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
+  getInitialFieldsWithDefaultValues() {
+    return this.contract.getInitialFieldsWithDefaultValues() as GreeterTypes.Fields;
+  }
+
   at(address: string): GreeterInstance {
     return new GreeterInstance(address);
   }
@@ -74,7 +86,7 @@ export const Greeter = new Factory(
   Contract.fromJson(
     GreeterContractJson,
     "",
-    "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a"
+    "3813cf61a6e0f126463190119cd861a14ca9c2f92839e193c4f9934517b02477"
   )
 );
 

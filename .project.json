@@ -58,21 +58,21 @@
     },
     "Greeter": {
       "sourceFile": "greeter/greeter.ral",
-      "sourceCodeHash": "b5b681c035f2a1faa371ec0960f004e97c3dfebb0e2fd12e682665b6c3e79de6",
+      "sourceCodeHash": "703915a6b6d323f3e5a4f62f53a2a1ae2302539b5941570af254617f45ff99d3",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a",
+      "codeHashDebug": "3813cf61a6e0f126463190119cd861a14ca9c2f92839e193c4f9934517b02477",
       "warnings": []
     },
     "GreeterInterface": {
       "sourceFile": "greeter/greeter.ral",
-      "sourceCodeHash": "b5b681c035f2a1faa371ec0960f004e97c3dfebb0e2fd12e682665b6c3e79de6",
+      "sourceCodeHash": "703915a6b6d323f3e5a4f62f53a2a1ae2302539b5941570af254617f45ff99d3",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "GreeterMain": {
       "sourceFile": "greeter/greeter.ral",
-      "sourceCodeHash": "b5b681c035f2a1faa371ec0960f004e97c3dfebb0e2fd12e682665b6c3e79de6",
+      "sourceCodeHash": "703915a6b6d323f3e5a4f62f53a2a1ae2302539b5941570af254617f45ff99d3",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []

@@ -1,16 +1,28 @@
 {
   "version": "v2.5.3",
   "name": "Greeter",
-  "bytecode": "01010c010000000105030c7bce0002",
-  "codeHash": "d8a1c2190c6c54f720608a4b264d1c648a9865e0744e942e489c87e64d4e596a",
+  "bytecode": "19010c010000000105030c7bce0002",
+  "codeHash": "3813cf61a6e0f126463190119cd861a14ca9c2f92839e193c4f9934517b02477",
   "fieldsSig": {
     "names": [
-      "btcPrice"
+      "btcPrice",
+      "array0",
+      "array1",
+      "array2",
+      "array3"
     ],
     "types": [
-      "U256"
+      "U256",
+      "[[U256;2];3]",
+      "[[Bool;2];3]",
+      "[[ByteVec;2];3]",
+      "[[Address;2];3]"
     ],
     "isMutable": [
+      false,
+      false,
+      false,
+      false,
       false
     ]
   },

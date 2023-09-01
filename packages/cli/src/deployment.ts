@@ -470,7 +470,7 @@ async function validateChainParams(networkId: number, groups: number[]): Promise
   }
 }
 
-function getSigners(privateKeys: string[]): PrivateKeyWallet[] {
+export function validatePrivateKeys(privateKeys: string[]): PrivateKeyWallet[] {
   if (privateKeys.length === 0) {
     throw new Error('No private key specified')
   }
@@ -558,7 +558,7 @@ export async function deploy<Settings = unknown>(
     }
   }
 
-  const signers = getSigners(network.privateKeys)
+  const signers = validatePrivateKeys(network.privateKeys)
   await validateChainParams(
     network.networkId,
     signers.map((signer) => signer.group)

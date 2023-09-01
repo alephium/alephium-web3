@@ -16,7 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { toApiAddress, toApiByteVec, toApiNumber256 } from './index'
+import { ZERO_ADDRESS } from '../constants'
+import { getDefaultValue, toApiAddress, toApiByteVec, toApiNumber256 } from './index'
 
 describe('ralph types', function () {
   it('should check u256/i256', () => {
@@ -53,5 +54,17 @@ describe('ralph types', function () {
     expect(() => toApiAddress(true)).toThrowError('Invalid value: true, expected a base58 string')
     expect(() => toApiAddress(1n)).toThrowError('Invalid value: 1, expected a base58 string')
     expect(() => toApiAddress('ilLI')).toThrowError('Invalid base58 string: ilLI')
+  })
+
+  it('should get default value by type', () => {
+    expect(getDefaultValue('I256')).toEqual(0n)
+    expect(getDefaultValue('U256')).toEqual(0n)
+    expect(getDefaultValue('Bool')).toEqual(false)
+    expect(getDefaultValue('Address')).toEqual(ZERO_ADDRESS)
+    expect(getDefaultValue('ByteVec')).toEqual('')
+
+    expect(getDefaultValue('[Bool; 4]')).toEqual(Array(4).fill(false))
+    expect(getDefaultValue('[[Bool; 2]; 4]')).toEqual(Array(4).fill(Array(2).fill(false)))
+    expect(getDefaultValue('[[[Address; 2]; 4]; 3]')).toEqual(Array(3).fill(Array(4).fill(Array(2).fill(ZERO_ADDRESS))))
   })
 })

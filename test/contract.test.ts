@@ -31,10 +31,11 @@ import {
   addressFromContractId,
   groupOfAddress,
   ProjectArtifact,
-  DEFAULT_NODE_COMPILER_OPTIONS
+  DEFAULT_NODE_COMPILER_OPTIONS,
+  DUST_AMOUNT
 } from '../packages/web3'
 import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
-import { expectAssertionError, testAddress, randomContractAddress } from '../packages/web3-test'
+import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
 import { GreeterMain, Main } from '../artifacts/ts/scripts'
@@ -46,7 +47,6 @@ import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { NFTTest, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
-import { getSigner } from '@alephium/web3-test'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -55,6 +55,8 @@ describe('contract', function () {
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
+
+    await Project.build({ errorOnWarnings: false })
     signer = await getSigner()
     signerAccount = signer.account
     signerGroup = signerAccount.group
@@ -80,9 +82,6 @@ describe('contract', function () {
   })
 
   it('should test contract (1)', async () => {
-    // ignore unused private function warnings
-    await Project.build({ errorOnWarnings: false })
-
     const subState = Sub.stateForTest({ result: 0n })
     const testResult = await Add.tests.add({
       initialFields: { sub: subState.contractId, result: 0n },
@@ -166,14 +165,14 @@ describe('contract', function () {
   })
 
   it('should test contract (2)', async () => {
-    await Project.build({ errorOnWarnings: false })
-
-    const testResult = await Greeter.tests.greet({ initialFields: { btcPrice: 1n } })
+    const initialFields = Greeter.getInitialFieldsWithDefaultValues()
+    const testResult = await Greeter.tests.greet({ initialFields: { ...initialFields, btcPrice: 1n } })
     expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
-    const greeter = (await Greeter.deploy(signer, { initialFields: { btcPrice: 1n } })).contractInstance
+    const greeter = (await Greeter.deploy(signer, { initialFields: { ...initialFields, btcPrice: 1n } }))
+      .contractInstance
     expect(greeter.groupIndex).toEqual(signerGroup)
     const contractState = await greeter.fetchState()
     expect(contractState.fields.btcPrice).toEqual(1n)
@@ -185,8 +184,6 @@ describe('contract', function () {
   })
 
   it('should test contract (3)', async () => {
-    await Project.build({ errorOnWarnings: false })
-
     const subState = Sub.stateForTest({ result: 0n })
     const groupIndex = 0
     const addAddress = randomContractAddress()
@@ -210,6 +207,13 @@ describe('contract', function () {
     expect(event.fields.address).toEqual(addressFromContractId(expectedSubContractId))
     expect(event.fields.parentAddress).toEqual(addAddress)
     expect(event.fields.stdInterfaceIdGuessed).toEqual(undefined)
+  })
+
+  it('should deploy contract with default initial values', async () => {
+    const initialFields = Greeter.getInitialFieldsWithDefaultValues()
+    const result = await Greeter.deploy(signer, { initialFields })
+    const state = await result.contractInstance.fetchState()
+    expect(state.fields).toEqual(initialFields)
   })
 
   function loadJson(fileName: string) {
@@ -342,5 +346,20 @@ describe('contract', function () {
     expect(ProjectArtifact.isCodeChanged(artifact1, artifact0)).toEqual(true)
     expect(ProjectArtifact.isCodeChanged(artifact1, artifact2)).toEqual(true)
     expect(ProjectArtifact.isCodeChanged(artifact3, artifact2)).toEqual(true)
+  })
+
+  it('should mint token', async () => {
+    const tokenAmount = ONE_ALPH * 10n
+    const alphAmount = ONE_ALPH * 5n
+    const wallet = await getSigner(ONE_ALPH * 5n)
+    const result = await mintToken(wallet.address, tokenAmount)
+    const contractId = result.contractId
+    const nodeProvider = web3.getCurrentNodeProvider()
+    expect(await nodeProvider.guessStdTokenType(contractId)).toEqual('fungible')
+
+    const balances = await nodeProvider.addresses.getAddressesAddressBalance(wallet.address)
+    expect(balances.balance).toEqual((alphAmount + DUST_AMOUNT).toString())
+    const tokenBalance = balances.tokenBalances?.find((t) => t.id === contractId)
+    expect(tokenBalance?.amount).toEqual(tokenAmount.toString())
   })
 })

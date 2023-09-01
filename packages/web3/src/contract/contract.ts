@@ -33,7 +33,8 @@ import {
   Val,
   fromApiTokens,
   fromApiVals,
-  typeLength
+  typeLength,
+  getDefaultValue
 } from '../api'
 import {
   SignDeployContractTxParams,
@@ -842,6 +843,21 @@ export class Contract extends Artifact {
       object.stdInterfaceId = this.stdInterfaceId
     }
     return JSON.stringify(object, null, 2)
+  }
+
+  getInitialFieldsWithDefaultValues(): Fields {
+    const fields =
+      this.stdInterfaceId === undefined
+        ? this.fieldsSig
+        : {
+            names: this.fieldsSig.names.slice(-1),
+            types: this.fieldsSig.types.slice(-1),
+            isMutable: this.fieldsSig.isMutable.slice(-1)
+          }
+    return fields.names.reduce((acc, key, index) => {
+      acc[`${key}`] = getDefaultValue(fields.types[`${index}`])
+      return acc
+    }, {})
   }
 
   toState<T extends Fields>(fields: T, asset: Asset, address?: string): ContractState<T> {
