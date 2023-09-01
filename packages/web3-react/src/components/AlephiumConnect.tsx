@@ -123,20 +123,28 @@ export const AlephiumConnectProvider: React.FC<{
     throw new Error('Multiple, nested usages of AlephiumConnectProvider detected. Please use only one.')
   }
 
+  const [_network, setNetwork] = useState<NetworkId>(network)
+  const [_addressGroup, setAddressGroup] = useState<number | undefined>(addressGroup)
+  const [_keyType, setKeyType] = useState<KeyType>(keyType ?? 'default')
+
+  useEffect(() => setNetwork(network), [network])
+  useEffect(() => setAddressGroup(addressGroup), [addressGroup])
+  useEffect(() => setKeyType(keyType ?? 'default'), [keyType])
+
   const lastConnectedAccount = useMemo(() => {
     const result = getLastConnectedAccount()
     if (result === undefined) {
       return undefined
     }
     if (
-      result.network === network &&
-      (addressGroup === undefined || result.account.group === addressGroup) &&
-      (keyType === undefined || result.account.keyType === keyType)
+      result.network === _network &&
+      (_addressGroup === undefined || result.account.group === _addressGroup) &&
+      (_keyType === undefined || result.account.keyType === _keyType)
     ) {
       return result
     }
     return undefined
-  }, [network, addressGroup, keyType])
+  }, [_network, _addressGroup, _keyType])
 
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
     lastConnectedAccount !== undefined ? 'connecting' : 'disconnected'
@@ -200,9 +208,12 @@ export const AlephiumConnectProvider: React.FC<{
   }, [])
 
   const value = {
-    network,
-    addressGroup,
-    keyType: keyType ?? 'default',
+    network: _network,
+    setNetwork,
+    addressGroup: _addressGroup,
+    setAddressGroup,
+    keyType: _keyType ?? 'default',
+    setKeyType,
     account,
     connectionStatus,
     setConnectionStatus,
