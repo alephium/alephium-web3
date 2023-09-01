@@ -60,6 +60,10 @@ export namespace AddTypes {
 }
 
 class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
+  readonly defaultInitialFields: AddTypes.Fields = {
+    sub: "",
+    result: BigInt(0),
+  };
   eventIndex = { Add: 0, Add1: 1 };
 
   at(address: string): AddInstance {

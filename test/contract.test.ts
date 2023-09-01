@@ -55,6 +55,8 @@ describe('contract', function () {
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
+
+    await Project.build({ errorOnWarnings: false })
     signer = await getSigner()
     signerAccount = signer.account
     signerGroup = signerAccount.group
@@ -80,9 +82,6 @@ describe('contract', function () {
   })
 
   it('should test contract (1)', async () => {
-    // ignore unused private function warnings
-    await Project.build({ errorOnWarnings: false })
-
     const subState = Sub.stateForTest({ result: 0n })
     const testResult = await Add.tests.add({
       initialFields: { sub: subState.contractId, result: 0n },
@@ -166,14 +165,13 @@ describe('contract', function () {
   })
 
   it('should test contract (2)', async () => {
-    await Project.build({ errorOnWarnings: false })
-
-    const testResult = await Greeter.tests.greet({ initialFields: { btcPrice: 1n } })
+    const testResult = await Greeter.tests.greet({ initialFields: { ...Greeter.defaultInitialFields, btcPrice: 1n } })
     expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
-    const greeter = (await Greeter.deploy(signer, { initialFields: { btcPrice: 1n } })).contractInstance
+    const greeter = (await Greeter.deploy(signer, { initialFields: { ...Greeter.defaultInitialFields, btcPrice: 1n } }))
+      .contractInstance
     expect(greeter.groupIndex).toEqual(signerGroup)
     const contractState = await greeter.fetchState()
     expect(contractState.fields.btcPrice).toEqual(1n)
@@ -185,8 +183,6 @@ describe('contract', function () {
   })
 
   it('should test contract (3)', async () => {
-    await Project.build({ errorOnWarnings: false })
-
     const subState = Sub.stateForTest({ result: 0n })
     const groupIndex = 0
     const addAddress = randomContractAddress()
@@ -210,6 +206,12 @@ describe('contract', function () {
     expect(event.fields.address).toEqual(addressFromContractId(expectedSubContractId))
     expect(event.fields.parentAddress).toEqual(addAddress)
     expect(event.fields.stdInterfaceIdGuessed).toEqual(undefined)
+  })
+
+  it('should deploy contract with default initial values', async () => {
+    const result = await Greeter.deploy(signer, { initialFields: Greeter.defaultInitialFields })
+    const state = await result.contractInstance.fetchState()
+    expect(state.fields).toEqual(Greeter.defaultInitialFields)
   })
 
   function loadJson(fileName: string) {

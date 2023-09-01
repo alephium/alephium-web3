@@ -73,6 +73,12 @@ class Factory extends ContractFactory<
   NFTCollectionTestInstance,
   NFTCollectionTestTypes.Fields
 > {
+  readonly defaultInitialFields: NFTCollectionTestTypes.Fields = {
+    nftTemplateId: "",
+    collectionUri: "",
+    totalSupply: BigInt(0),
+  };
+
   consts = {
     ErrorCodes: { IncorrectTokenIndex: BigInt(0), NFTNotFound: BigInt(1) },
   };

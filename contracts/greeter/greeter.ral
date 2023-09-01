@@ -2,7 +2,13 @@ Interface GreeterInterface {
     pub fn greet() -> U256
 }
 
-Contract Greeter(btcPrice: U256) implements GreeterInterface {
+Contract Greeter(
+    btcPrice: U256,
+    @unused array0: [[U256; 2]; 3],
+    @unused array1: [[Bool; 2]; 3],
+    @unused array2: [[ByteVec; 2]; 3],
+    @unused array3: [[Address; 2]; 3]
+) implements GreeterInterface {
     pub fn greet() -> U256 {
         checkCaller!(true, 0)
         return btcPrice

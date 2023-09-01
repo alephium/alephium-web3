@@ -74,6 +74,13 @@ class Factory extends ContractFactory<
   TokenTestInstance,
   TokenTestTypes.Fields
 > {
+  readonly defaultInitialFields: TokenTestTypes.Fields = {
+    symbol: "",
+    name: "",
+    decimals: BigInt(0),
+    totalSupply: BigInt(0),
+  };
+
   at(address: string): TokenTestInstance {
     return new TokenTestInstance(address);
   }

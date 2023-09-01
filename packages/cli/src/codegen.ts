@@ -27,7 +27,9 @@ import {
   StdIdFieldName,
   NetworkId,
   networkIds,
-  fromApiVal
+  fromApiVal,
+  getDefaultValue,
+  Val
 } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
@@ -148,13 +150,18 @@ function genEventType(event: EventSig): string {
   return `export type ${getEventType(event)} = ContractEvent<${fieldsType}>`
 }
 
-function valToString(value: node.Val): string {
-  const v = fromApiVal(value, value.type)
+function nodeValToString(value: node.Val): string {
+  return valToString(fromApiVal(value, value.type))
+}
+
+function valToString(v: Val): string {
   if (typeof v === 'bigint') {
     // use BigInt(...) format to avoid that some projects do not support es2020
     return `BigInt(${v.toString()})`
   } else if (typeof v === 'string') {
     return `"${v}"`
+  } else if (Array.isArray(v)) {
+    return `[${v.map((e) => valToString(e)).join(',')}]`
   } else {
     return v.toString()
   }
@@ -179,11 +186,11 @@ function genConsts(contract: Contract): string {
 }
 
 function genConstants(constants: Constant[]): string[] {
-  return constants.map((constant) => `${constant.name}: ${valToString(constant.value)}`)
+  return constants.map((constant) => `${constant.name}: ${nodeValToString(constant.value)}`)
 }
 
 function genEnum(enumDef: Enum): string {
-  const fields = enumDef.fields.map((field) => `${field.name}: ${valToString(field.value)}`).join(',')
+  const fields = enumDef.fields.map((field) => `${field.name}: ${nodeValToString(field.value)}`).join(',')
   return `${enumDef.name}: { ${fields} }`
 }
 
@@ -222,6 +229,18 @@ function genSubscribeAllEvents(contract: Contract): string {
       return subscribeContractEvents(${contract.name}.contract, this, options, fromCount)
     }
   `
+}
+
+function genDefaultFieldsForTemplateContract(contract: Contract): string {
+  const fieldsSig = getContractFields(contract)
+  if (fieldsSig.names.length === 0) {
+    return ''
+  }
+  const fields = fieldsSig.names.map((name, index) => {
+    const type = fieldsSig.types[`${index}`]
+    return `${name}: ${valToString(getDefaultValue(type))}`
+  })
+  return `readonly defaultInitialFields: ${contract.name}Types.Fields = { ${fields.join(',')} }`
 }
 
 function genContractStateType(contract: Contract): string {
@@ -372,6 +391,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
+      ${genDefaultFieldsForTemplateContract(contract)}
       ${genEventIndex(contract)}
       ${genConsts(contract)}
       ${genAttach(getInstanceName(contract))}

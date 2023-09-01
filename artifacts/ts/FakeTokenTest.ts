@@ -71,6 +71,8 @@ class Factory extends ContractFactory<
   FakeTokenTestInstance,
   FakeTokenTestTypes.Fields
 > {
+  readonly defaultInitialFields: FakeTokenTestTypes.Fields = { a: BigInt(0) };
+
   at(address: string): FakeTokenTestInstance {
     return new FakeTokenTestInstance(address);
   }
