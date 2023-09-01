@@ -24,12 +24,9 @@ import { useConnect } from '../../hooks/useConnect'
 let _init = false
 
 const ConnectWithWalletConnect: React.FC = () => {
-  const { addressGroup, network, setOpen } = useConnectSettingContext()
+  const { setOpen } = useConnectSettingContext()
   const [error, setError] = useState<string>()
-  const { connect } = useConnect({
-    addressGroup: addressGroup,
-    networkId: network
-  })
+  const { connect } = useConnect()
 
   useEffect(() => {
     if (_init) {

@@ -17,25 +17,57 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { useMemo } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
-import { NodeProvider, SignerProvider, Account, NetworkId } from '@alephium/web3'
+import { NodeProvider, SignerProvider, Account, NetworkId, ExplorerProvider } from '@alephium/web3'
 
-export interface Wallet {
-  signer: SignerProvider
-  account: Account & { network: NetworkId }
-  nodeProvider?: NodeProvider
-}
+export type Wallet =
+  | {
+      connectionStatus: 'connected'
+      signer: SignerProvider
+      account: Account & { network: NetworkId }
+      nodeProvider: NodeProvider | undefined
+      explorerProvider: ExplorerProvider | undefined
+    }
+  | {
+      connectionStatus: 'connecting'
+      signer: undefined
+      account: (Account & { network: NetworkId }) | undefined
+      nodeProvider: undefined
+      explorerProvider: undefined
+    }
+  | {
+      connectionStatus: 'disconnected'
+      signer: undefined
+      account: undefined
+      nodeProvider: undefined
+      explorerProvider: undefined
+    }
 
 export function useWallet() {
-  const { account, signerProvider } = useAlephiumConnectContext()
+  const { account, signerProvider, connectionStatus, network } = useAlephiumConnectContext()
 
-  return useMemo<Wallet | undefined>(() => {
-    if (account !== undefined && signerProvider !== undefined) {
-      return {
-        signer: signerProvider,
-        account: account,
-        nodeProvider: signerProvider.nodeProvider
-      }
-    }
-    return undefined
-  }, [signerProvider, account])
+  return useMemo<Wallet>(() => {
+    return connectionStatus === 'connected'
+      ? {
+          connectionStatus,
+          signer: signerProvider as SignerProvider,
+          account: { ...(account as Account), network },
+          nodeProvider: signerProvider?.nodeProvider,
+          explorerProvider: signerProvider?.explorerProvider
+        }
+      : connectionStatus === 'disconnected'
+      ? {
+          connectionStatus,
+          signer: undefined,
+          account: undefined,
+          nodeProvider: undefined,
+          explorerProvider: undefined
+        }
+      : {
+          connectionStatus,
+          signer: undefined,
+          account: account === undefined ? undefined : { ...account, network },
+          nodeProvider: undefined,
+          explorerProvider: undefined
+        }
+  }, [signerProvider, account, network, connectionStatus])
 }

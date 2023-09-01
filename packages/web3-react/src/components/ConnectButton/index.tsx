@@ -25,6 +25,7 @@ import { ResetContainer } from '../../styles'
 import { truncatedAddress } from '../../utils'
 import { Account } from '@alephium/web3'
 import { routes } from '../Common/Modal'
+import { useConnect } from '../../hooks/useConnect'
 
 const contentVariants: Variants = {
   initial: {
@@ -110,7 +111,8 @@ type ConnectButtonRendererProps = {
     hide?: () => void
     isConnected: boolean
     isConnecting: boolean
-    address?: string
+    disconnect: () => Promise<void>
+    account?: Account
     truncatedAddress?: string
   }) => React.ReactNode
 }
@@ -119,6 +121,7 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
   const context = useConnectSettingContext()
 
   const { account } = useAlephiumConnectContext()
+  const { disconnect } = useConnect()
 
   function hide() {
     context.setOpen(false)
@@ -140,7 +143,8 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
         hide,
         isConnected: !!account,
         isConnecting: context.open,
-        address: displayAddress,
+        disconnect,
+        account: account,
         truncatedAddress: displayAddress ? truncatedAddress(displayAddress) : undefined
       })}
     </>
@@ -245,6 +249,9 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
         }}
       >
         <ThemedButton
+          theme={context.theme}
+          mode={context.mode}
+          customTheme={context.customTheme}
           style={{
             overflow: 'hidden'
           }}

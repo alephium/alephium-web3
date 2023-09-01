@@ -17,10 +17,28 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ReactNode } from 'react'
 
-export type Theme = 'auto' | 'web95' | 'retro' | 'soft' | 'midnight' | 'minimal' | 'rounded' | 'nouns'
+export type ProviderTheme =
+  | 'simple-light'
+  | 'simple-dark'
+  | 'web95'
+  | 'retro'
+  | 'soft'
+  | 'midnight'
+  | 'minimal'
+  | 'rounded'
+  | 'nouns'
+
+export type Theme = Exclude<ProviderTheme, 'simple-light' | 'simple-dark'> | 'auto'
 export type Mode = 'light' | 'dark' | 'auto'
 export type CustomTheme = any // TODO: define type
-export type ConnectorId = 'injected' | 'walletConnect' | 'desktopWallet'
+export const connectorIds = ['injected', 'walletConnect', 'desktopWallet'] as const
+export type ConnectorId = (typeof connectorIds)[number]
+
+export type CustomStyle = {
+  theme?: Theme
+  mode?: Mode
+  customTheme?: CustomTheme
+}
 
 export type Connector = {
   id: ConnectorId

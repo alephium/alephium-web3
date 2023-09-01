@@ -15,152 +15,58 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { NetworkId } from '@alephium/web3'
 import { useAlephiumConnectContext, useConnectSettingContext } from '../contexts/alephiumConnect'
 import { useCallback, useMemo } from 'react'
-import { WalletConnectProvider } from '@alephium/walletconnect-provider'
-import QRCodeModal from '@walletconnect/qrcode-modal'
+import { removeLastConnectedAccount } from '../utils/storage'
+import { ConnectResult, getConnectorById } from '../utils/connector'
 
-const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
+export function useConnect() {
+  const { connectorId } = useConnectSettingContext()
+  const { signerProvider, setSignerProvider, setConnectionStatus, setAccount, addressGroup, network, keyType } =
+    useAlephiumConnectContext()
 
-export interface ConnectOptions {
-  addressGroup?: number
-  networkId: NetworkId
-}
-
-export function useConnect(options: ConnectOptions) {
-  const { addressGroup, networkId } = options
-  const { connectorId, keyType } = useConnectSettingContext()
-  const { signerProvider, setSignerProvider, setAccount } = useAlephiumConnectContext()
-
-  const onDisconnectedCallback = useCallback(() => {
+  const onDisconnected = useCallback(() => {
+    removeLastConnectedAccount()
     setSignerProvider(undefined)
     setAccount(undefined)
   }, [setSignerProvider, setAccount])
 
-  const wcDisconnect = useCallback(async () => {
-    if ((connectorId === 'walletConnect' || connectorId === 'desktopWallet') && signerProvider) {
-      await (signerProvider as WalletConnectProvider).disconnect()
-    }
-  }, [connectorId, signerProvider])
-
-  const wcConnect = useCallback(async () => {
-    const wcProvider = await WalletConnectProvider.init({
-      projectId: WALLET_CONNECT_PROJECT_ID,
-      networkId: networkId,
-      addressGroup: addressGroup,
-      onDisconnected: onDisconnectedCallback
-    })
-
-    wcProvider.on('displayUri', (uri) => {
-      QRCodeModal.open(uri, () => console.log('qr closed'))
-    })
-
-    wcProvider.on('session_delete', onDisconnectedCallback)
-
-    try {
-      await wcProvider.connect()
-
-      if (wcProvider.account) {
-        setAccount({ ...wcProvider.account, network: networkId })
-        setSignerProvider(wcProvider as any)
-      }
-    } catch (e) {
-      console.log('wallet connect error')
-      console.error(e)
-    }
-
-    QRCodeModal.close()
-  }, [networkId, addressGroup, setAccount, setSignerProvider, onDisconnectedCallback])
-
-  const desktopWalletConnect = useCallback(async () => {
-    const wcProvider = await WalletConnectProvider.init({
-      projectId: WALLET_CONNECT_PROJECT_ID,
-      networkId: networkId,
-      addressGroup: addressGroup,
-      onDisconnected: onDisconnectedCallback
-    })
-
-    wcProvider.on('displayUri', (uri) => {
-      window.open(`alephium://wc?uri=${uri}`)
-    })
-
-    wcProvider.on('session_delete', onDisconnectedCallback)
-
-    try {
-      await wcProvider.connect()
-
-      if (wcProvider.account) {
-        setAccount({ ...wcProvider.account, network: networkId })
-        setSignerProvider(wcProvider as any)
-      }
-    } catch (e) {
-      console.log('wallet connect error')
-      console.error(e)
-    }
-  }, [networkId, addressGroup, setAccount, setSignerProvider, onDisconnectedCallback])
-
-  const disconnectAlephium = useCallback(() => {
-    getDefaultAlephiumWallet()
-      .then((alephium) => {
-        if (!!alephium) {
-          alephium.disconnect()
-        }
-      })
-      .catch((error: any) => {
-        console.error(error)
-      })
-  }, [])
-
-  const enableOptions = useMemo(() => {
-    return {
-      addressGroup: addressGroup,
-      networkId: networkId,
-      keyType: keyType,
-      onDisconnected: onDisconnectedCallback
-    }
-  }, [networkId, addressGroup, keyType, onDisconnectedCallback])
-
-  const connectAlephium = useCallback(async () => {
-    const windowAlephium = await getDefaultAlephiumWallet()
-
-    const enabledAccount = await windowAlephium?.enable(enableOptions).catch(() => undefined) // Need to catch the exception here
-
-    if (windowAlephium && enabledAccount) {
-      setSignerProvider(windowAlephium)
-      setAccount({ ...enabledAccount, network: enableOptions.networkId })
-    }
-
-    return enabledAccount
-  }, [enableOptions, setSignerProvider, setAccount])
-
-  const autoConnectAlephium = useCallback(async () => {
-    const windowAlephium = await getDefaultAlephiumWallet()
-
-    const enabledAccount = await windowAlephium?.enableIfConnected(enableOptions).catch(() => undefined) // Need to catch the exception here
-
-    if (windowAlephium && enabledAccount) {
-      setSignerProvider(windowAlephium)
-      setAccount({ ...enabledAccount, network: enableOptions.networkId })
-    }
-  }, [enableOptions, setSignerProvider, setAccount])
-
-  return useMemo(
-    () =>
-      ({
-        injected: { connect: connectAlephium, disconnect: disconnectAlephium, autoConnect: autoConnectAlephium },
-        walletConnect: { connect: wcConnect, disconnect: wcDisconnect },
-        desktopWallet: { connect: desktopWalletConnect, disconnect: wcDisconnect }
-      }[`${connectorId}`]),
-    [
-      connectorId,
-      connectAlephium,
-      disconnectAlephium,
-      autoConnectAlephium,
-      wcConnect,
-      desktopWalletConnect,
-      wcDisconnect
-    ]
+  const onConnected = useCallback(
+    (connectResult: ConnectResult) => {
+      setAccount(connectResult.account)
+      setSignerProvider(connectResult.signerProvider)
+    },
+    [setAccount, setSignerProvider]
   )
+
+  const connectOptions = useMemo(() => {
+    return {
+      network,
+      addressGroup,
+      keyType,
+      onDisconnected,
+      onConnected
+    }
+  }, [onDisconnected, onConnected, network, addressGroup, keyType])
+
+  const connector = useMemo(() => {
+    return getConnectorById(connectorId)
+  }, [connectorId])
+
+  const connect = useMemo(() => {
+    return async () => {
+      setConnectionStatus('connecting')
+      return await connector.connect(connectOptions)
+    }
+  }, [connector, connectOptions, setConnectionStatus])
+
+  const disconnect = useMemo(() => {
+    return async () => {
+      if (signerProvider) {
+        await connector.disconnect(signerProvider)
+      }
+    }
+  }, [connector, signerProvider])
+
+  return useMemo(() => ({ connect, disconnect }), [connect, disconnect])
 }

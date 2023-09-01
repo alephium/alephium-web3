@@ -329,7 +329,8 @@ export const ResetContainer = styled(motion.div)<{
     font-weight: 600;
   }
   a:focus-visible,
+  button:focus,
   button:focus-visible {
-    outline: 2px solid var(--ck-focus-color);
+    outline: none;
   }
 `
