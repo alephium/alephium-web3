@@ -22,7 +22,8 @@ import { ConnectResult, getConnectorById } from '../utils/connector'
 
 export function useConnect() {
   const { connectorId } = useConnectSettingContext()
-  const { signerProvider, setSignerProvider, setAccount, addressGroup, network, keyType } = useAlephiumConnectContext()
+  const { signerProvider, setSignerProvider, setConnectionStatus, setAccount, addressGroup, network, keyType } =
+    useAlephiumConnectContext()
 
   const onDisconnected = useCallback(() => {
     removeLastConnectedAccount()
@@ -53,12 +54,17 @@ export function useConnect() {
   }, [connectorId])
 
   const connect = useMemo(() => {
-    return () => connector.connect(connectOptions)
-  }, [connector, connectOptions])
+    return async () => {
+      setConnectionStatus('connecting')
+      return await connector.connect(connectOptions)
+    }
+  }, [connector, connectOptions, setConnectionStatus])
 
   const disconnect = useMemo(() => {
-    return () => {
-      signerProvider && connector.disconnect(signerProvider)
+    return async () => {
+      if (signerProvider) {
+        await connector.disconnect(signerProvider)
+      }
     }
   }, [connector, signerProvider])
 

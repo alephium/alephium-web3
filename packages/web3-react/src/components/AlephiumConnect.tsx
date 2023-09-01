@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import defaultTheme from '../styles/defaultTheme'
 
@@ -41,6 +41,7 @@ import {
   AlephiumConnectContext,
   ConnectSettingContext,
   ConnectSettingValue,
+  ConnectionStatus,
   useAlephiumConnectContext
 } from '../contexts/alephiumConnect'
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
@@ -137,8 +138,30 @@ export const AlephiumConnectProvider: React.FC<{
     return undefined
   }, [network, addressGroup, keyType])
 
+  const connectionStatusRef = useRef<ConnectionStatus>('connecting')
   const [account, setAccount] = useState<Account | undefined>(lastConnectedAccount?.account)
   const [signerProvider, setSignerProvider] = useState<SignerProvider | undefined>()
+
+  const setConnectionStatus = useCallback(
+    (status: ConnectionStatus) => {
+      connectionStatusRef.current = status
+    },
+    [connectionStatusRef]
+  )
+
+  const updateSignerProvider = useMemo(() => {
+    return (newSignerProvider: SignerProvider | undefined) => {
+      setSignerProvider((prev) => {
+        if (prev !== undefined && newSignerProvider === undefined) {
+          connectionStatusRef.current = 'disconnected'
+        }
+        if (prev === undefined && newSignerProvider !== undefined) {
+          connectionStatusRef.current = 'connected'
+        }
+        return newSignerProvider
+      })
+    }
+  }, [setSignerProvider, connectionStatusRef])
 
   const updateAccount = useMemo(() => {
     return (newAccount: Account | undefined) => {
@@ -148,18 +171,21 @@ export const AlephiumConnectProvider: React.FC<{
 
   useEffect(() => {
     const func = async () => {
+      if (connectionStatusRef.current !== 'connecting') return
+
       const onDisconnected = () => {
         removeLastConnectedAccount()
         updateAccount(undefined)
-        setSignerProvider(undefined)
+        updateSignerProvider(undefined)
       }
       const onConnected = (result: ConnectResult) => {
         updateAccount(result.account)
-        setSignerProvider(result.signerProvider)
+        updateSignerProvider(result.signerProvider)
       }
 
       try {
         const lastConnectorId = lastConnectedAccount?.connectorId
+        connectionStatusRef.current = lastConnectorId === undefined ? 'connecting' : 'reconnecting'
         const allConnectorIds = Array.from(connectorIds)
         const sortedConnectorIds =
           lastConnectorId === undefined
@@ -183,16 +209,18 @@ export const AlephiumConnectProvider: React.FC<{
     }
 
     func()
-  }, [lastConnectedAccount, network, addressGroup, keyType, setSignerProvider, updateAccount])
+  }, [lastConnectedAccount, network, addressGroup, keyType, updateSignerProvider, updateAccount, connectionStatusRef])
 
   const value = {
     network,
     addressGroup,
     keyType: keyType ?? 'default',
     account,
+    connectionStatus: connectionStatusRef.current,
+    setConnectionStatus,
     setAccount: updateAccount,
     signerProvider,
-    setSignerProvider
+    setSignerProvider: updateSignerProvider
   }
 
   return <AlephiumConnectContext.Provider value={value}>{children}</AlephiumConnectContext.Provider>

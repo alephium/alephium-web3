@@ -48,14 +48,18 @@ export const useConnectSettingContext = () => {
   return context
 }
 
+export type ConnectionStatus = 'connected' | 'connecting' | 'reconnecting' | 'disconnected'
+
 export type AlephiumConnectContextValue = {
   addressGroup?: number
   keyType: KeyType
   network: NetworkId
   account?: Account
   setAccount: (account: Account | undefined) => void
+  connectionStatus: ConnectionStatus
+  setConnectionStatus: (status: ConnectionStatus) => void
   signerProvider?: SignerProvider
-  setSignerProvider: React.Dispatch<React.SetStateAction<SignerProvider | undefined>>
+  setSignerProvider: (signerProvider: SignerProvider | undefined) => void
 }
 
 export const AlephiumConnectContext = createContext<AlephiumConnectContextValue | null>(null)
