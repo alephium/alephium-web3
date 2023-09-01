@@ -64,38 +64,9 @@ export namespace GreeterTypes {
 }
 
 class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
-  readonly defaultInitialFields: GreeterTypes.Fields = {
-    btcPrice: BigInt(0),
-    array0: [
-      [BigInt(0), BigInt(0)],
-      [BigInt(0), BigInt(0)],
-      [BigInt(0), BigInt(0)],
-    ],
-    array1: [
-      [false, false],
-      [false, false],
-      [false, false],
-    ],
-    array2: [
-      ["", ""],
-      ["", ""],
-      ["", ""],
-    ],
-    array3: [
-      [
-        "tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq",
-        "tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq",
-      ],
-      [
-        "tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq",
-        "tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq",
-      ],
-      [
-        "tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq",
-        "tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrjq",
-      ],
-    ],
-  };
+  getDefaultInitialFields() {
+    return this.contract.getDefaultInitialFields() as GreeterTypes.Fields;
+  }
 
   at(address: string): GreeterInstance {
     return new GreeterInstance(address);

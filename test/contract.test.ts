@@ -165,12 +165,13 @@ describe('contract', function () {
   })
 
   it('should test contract (2)', async () => {
-    const testResult = await Greeter.tests.greet({ initialFields: { ...Greeter.defaultInitialFields, btcPrice: 1n } })
+    const initialFields = Greeter.getDefaultInitialFields()
+    const testResult = await Greeter.tests.greet({ initialFields: { ...initialFields, btcPrice: 1n } })
     expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
-    const greeter = (await Greeter.deploy(signer, { initialFields: { ...Greeter.defaultInitialFields, btcPrice: 1n } }))
+    const greeter = (await Greeter.deploy(signer, { initialFields: { ...initialFields, btcPrice: 1n } }))
       .contractInstance
     expect(greeter.groupIndex).toEqual(signerGroup)
     const contractState = await greeter.fetchState()
@@ -209,9 +210,10 @@ describe('contract', function () {
   })
 
   it('should deploy contract with default initial values', async () => {
-    const result = await Greeter.deploy(signer, { initialFields: Greeter.defaultInitialFields })
+    const initialFields = Greeter.getDefaultInitialFields()
+    const result = await Greeter.deploy(signer, { initialFields })
     const state = await result.contractInstance.fetchState()
-    expect(state.fields).toEqual(Greeter.defaultInitialFields)
+    expect(state.fields).toEqual(initialFields)
   })
 
   function loadJson(fileName: string) {

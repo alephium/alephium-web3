@@ -28,7 +28,6 @@ import {
   NetworkId,
   networkIds,
   fromApiVal,
-  getDefaultValue,
   Val
 } from '@alephium/web3'
 import * as prettier from 'prettier'
@@ -231,16 +230,16 @@ function genSubscribeAllEvents(contract: Contract): string {
   `
 }
 
-function genDefaultFieldsForTemplateContract(contract: Contract): string {
+function genGetDefaultInitialFields(contract: Contract): string {
   const fieldsSig = getContractFields(contract)
   if (fieldsSig.names.length === 0) {
     return ''
   }
-  const fields = fieldsSig.names.map((name, index) => {
-    const type = fieldsSig.types[`${index}`]
-    return `${name}: ${valToString(getDefaultValue(type))}`
-  })
-  return `readonly defaultInitialFields: ${contract.name}Types.Fields = { ${fields.join(',')} }`
+  return `
+    getDefaultInitialFields() {
+      return this.contract.getDefaultInitialFields() as ${contract.name}Types.Fields
+    }
+  `
 }
 
 function genContractStateType(contract: Contract): string {
@@ -391,7 +390,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
-      ${genDefaultFieldsForTemplateContract(contract)}
+      ${genGetDefaultInitialFields(contract)}
       ${genEventIndex(contract)}
       ${genConsts(contract)}
       ${genAttach(getInstanceName(contract))}

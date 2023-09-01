@@ -56,7 +56,9 @@ export namespace NFTTestTypes {
 }
 
 class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
-  readonly defaultInitialFields: NFTTestTypes.Fields = { uri: "" };
+  getDefaultInitialFields() {
+    return this.contract.getDefaultInitialFields() as NFTTestTypes.Fields;
+  }
 
   at(address: string): NFTTestInstance {
     return new NFTTestInstance(address);

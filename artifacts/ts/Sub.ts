@@ -58,7 +58,10 @@ export namespace SubTypes {
 }
 
 class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
-  readonly defaultInitialFields: SubTypes.Fields = { result: BigInt(0) };
+  getDefaultInitialFields() {
+    return this.contract.getDefaultInitialFields() as SubTypes.Fields;
+  }
+
   eventIndex = { Sub: 0 };
 
   at(address: string): SubInstance {
