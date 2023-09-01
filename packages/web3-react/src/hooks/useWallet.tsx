@@ -17,26 +17,29 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { useMemo } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
-import { NodeProvider, SignerProvider, Account, NetworkId } from '@alephium/web3'
+import { NodeProvider, SignerProvider, Account, NetworkId, ExplorerProvider } from '@alephium/web3'
 
 export type Wallet =
   | {
+      connectionStatus: 'connected'
       signer: SignerProvider
       account: Account & { network: NetworkId }
-      connectionStatus: 'connected'
       nodeProvider: NodeProvider | undefined
+      explorerProvider: ExplorerProvider | undefined
     }
   | {
-      signer: SignerProvider | undefined
-      account: (Account & { network: NetworkId }) | undefined
       connectionStatus: 'connecting'
-      nodeProvider: NodeProvider | undefined
+      signer: undefined
+      account: (Account & { network: NetworkId }) | undefined
+      nodeProvider: undefined
+      explorerProvider: undefined
     }
   | {
+      connectionStatus: 'disconnected'
       signer: undefined
       account: undefined
-      connectionStatus: 'disconnected'
       nodeProvider: undefined
+      explorerProvider: undefined
     }
 
 export function useWallet() {
@@ -45,23 +48,26 @@ export function useWallet() {
   return useMemo<Wallet>(() => {
     return connectionStatus === 'connected'
       ? {
+          connectionStatus,
           signer: signerProvider as SignerProvider,
           account: { ...(account as Account), network },
-          connectionStatus,
-          nodeProvider: signerProvider?.nodeProvider
+          nodeProvider: signerProvider?.nodeProvider,
+          explorerProvider: signerProvider?.explorerProvider
         }
       : connectionStatus === 'disconnected'
       ? {
+          connectionStatus,
           signer: undefined,
           account: undefined,
-          connectionStatus,
-          nodeProvider: undefined
+          nodeProvider: undefined,
+          explorerProvider: undefined
         }
       : {
+          connectionStatus,
           signer: undefined,
           account: account === undefined ? undefined : { ...account, network },
-          connectionStatus,
-          nodeProvider: undefined
+          nodeProvider: undefined,
+          explorerProvider: undefined
         }
   }, [signerProvider, account, network, connectionStatus])
 }
