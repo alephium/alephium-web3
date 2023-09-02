@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { useMemo } from 'react'
 import { useAlephiumConnectContext } from '../contexts/alephiumConnect'
 import { NodeProvider, SignerProvider, Account, NetworkId, ExplorerProvider } from '@alephium/web3'
+import { KeyType } from '@alephium/web3'
 
 export type Wallet =
   | {
@@ -70,4 +71,28 @@ export function useWallet() {
           explorerProvider: undefined
         }
   }, [signerProvider, account, network, connectionStatus])
+}
+
+export type WalletConfig = {
+  network: NetworkId
+  setNetwork: (network: NetworkId) => void
+  addressGroup?: number
+  setAddressGroup: (addressGroup: number | undefined) => void
+  keyType: KeyType
+  setKeyType: (keyType: KeyType) => void
+}
+
+export function useWalletConfig() {
+  const { network, setNetwork, addressGroup, setAddressGroup, keyType, setKeyType } = useAlephiumConnectContext()
+  return useMemo<WalletConfig>(
+    () => ({
+      network,
+      setNetwork,
+      addressGroup,
+      setAddressGroup,
+      keyType,
+      setKeyType
+    }),
+    [network, setNetwork, addressGroup, setAddressGroup, keyType, setKeyType]
+  )
 }
