@@ -33,17 +33,31 @@ const ConnectModal: React.FC<{
   customTheme?: CustomTheme
 }> = ({ mode = 'auto', theme = 'auto', customTheme = customThemeDefault }) => {
   const { route, setRoute, open, setOpen, connectorId, setMode, setTheme, setCustomTheme } = useConnectSettingContext()
-  const { account, network } = useAlephiumConnectContext()
+  const { account, network, addressGroup, keyType } = useAlephiumConnectContext()
   const networkRef = useRef(network)
+  const addressGroupRef = useRef(addressGroup)
+  const keyTypeRef = useRef(keyType)
   const isConnected = !!account
   const { disconnect } = useConnect()
 
   useEffect(() => {
-    if (networkRef.current !== network && isConnected) {
+    if (isConnected && networkRef.current !== network) {
       disconnect()
     }
     networkRef.current = network
   }, [network, networkRef, disconnect, isConnected])
+  useEffect(() => {
+    if (isConnected && addressGroup !== undefined && addressGroupRef.current !== addressGroup) {
+      disconnect()
+    }
+    addressGroupRef.current = addressGroup
+  }, [addressGroup, addressGroupRef, disconnect, isConnected])
+  useEffect(() => {
+    if (isConnected && keyTypeRef.current !== keyType) {
+      disconnect()
+    }
+    keyTypeRef.current = keyType
+  }, [keyType, keyTypeRef, disconnect, isConnected])
 
   const closeable = true
 
