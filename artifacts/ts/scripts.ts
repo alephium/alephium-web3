@@ -33,6 +33,6 @@ export const MintNFTTest = new ExecutableScript<{
   royalty: boolean;
 }>(Script.fromJson(MintNFTTestScriptJson));
 export const WithdrawNFTCollectionTest = new ExecutableScript<{
-  collectionContractId: HexString;
+  collection: HexString;
   amount: bigint;
 }>(Script.fromJson(WithdrawNFTCollectionTestScriptJson));

@@ -34,7 +34,7 @@ import { getSigner } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
 
-describe('nft collection', function () {
+describe('nft collection', function() {
   let signer: PrivateKeyWallet
 
   beforeAll(async () => {
@@ -121,7 +121,7 @@ describe('nft collection', function () {
       expect(balanceBefore.balanceHint).toEqual('2 ALPH')
       await WithdrawNFTCollectionTest.execute(signer, {
         initialFields: {
-          collectionContractId: nftCollectionInstance.contractId,
+          collection: nftCollectionInstance.contractId,
           amount: ONE_ALPH
         }
       })
