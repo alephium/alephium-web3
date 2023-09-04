@@ -1,7 +1,7 @@
 {
   "version": "v2.5.3",
   "name": "MintNFTTest",
-  "bytecodeTemplate": "01010300000015{2}4c0ab413c40de0b6b3a7640000a2{1}0d0d{0}0105184a09b413c40de0b6b3a7640000a2{1}0d0d{0}010318",
+  "bytecodeTemplate": "01010300000015{2}4c0ab413c40de0b6b3a7640000a2{1}0d0d{0}0106184a09b413c40de0b6b3a7640000a2{1}0d0d{0}010318",
   "fieldsSig": {
     "names": [
       "nftCollectionContractId",

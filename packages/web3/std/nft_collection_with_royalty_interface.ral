@@ -4,4 +4,6 @@ Interface INFTCollectionWithRoyalty extends INFTCollection {
 
     @using(preapprovedAssets = true)
     pub fn payRoyalty(payer: Address, amount: U256) -> ()
+
+    pub fn withdraw(to: Address, amount: U256) -> ()
 }

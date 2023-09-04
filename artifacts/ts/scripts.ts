@@ -12,22 +12,27 @@ import {
   HexString,
 } from "@alephium/web3";
 import { default as MainScriptJson } from "../add/Main.ral.json";
-import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
+import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
+import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
 
 export const Main = new ExecutableScript<{ addContractId: HexString }>(
   Script.fromJson(MainScriptJson)
 );
+export const GreeterMain = new ExecutableScript<{
+  greeterContractId: HexString;
+}>(Script.fromJson(GreeterMainScriptJson));
 export const DestroyAdd = new ExecutableScript<{
   add: HexString;
   caller: Address;
 }>(Script.fromJson(DestroyAddScriptJson));
-export const GreeterMain = new ExecutableScript<{
-  greeterContractId: HexString;
-}>(Script.fromJson(GreeterMainScriptJson));
 export const MintNFTTest = new ExecutableScript<{
   nftCollectionContractId: HexString;
   uri: HexString;
   royalty: boolean;
 }>(Script.fromJson(MintNFTTestScriptJson));
+export const WithdrawNFTCollectionTest = new ExecutableScript<{
+  collectionContractId: HexString;
+  amount: bigint;
+}>(Script.fromJson(WithdrawNFTCollectionTestScriptJson));

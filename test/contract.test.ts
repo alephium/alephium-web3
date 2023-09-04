@@ -48,7 +48,7 @@ import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { NFTTest, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 
-describe('contract', function () {
+describe('contract', function() {
   let signer: PrivateKeyWallet
   let signerAccount: Account
   let signerGroup: number
@@ -232,11 +232,11 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(23)
+    expect(sourceFiles.length).toEqual(24)
     sourceFiles.slice(0, 11).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(12, 15).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(16, 17).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(18).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(12, 16).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(17, 18).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(19).forEach((i) => expect(i.type).toEqual(3)) // interfaces
   })
 
   it('should load contract from json', () => {
