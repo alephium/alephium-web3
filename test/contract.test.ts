@@ -48,7 +48,7 @@ import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { NFTTest, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 
-describe('contract', function() {
+describe('contract', function () {
   let signer: PrivateKeyWallet
   let signerAccount: Account
   let signerGroup: number

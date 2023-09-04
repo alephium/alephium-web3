@@ -100,7 +100,7 @@
     },
     "INFTCollectionWithRoyalty": {
       "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
-      "sourceCodeHash": "483ef71347a84478484c8b36f32e4653ae2a87fd43d7aed65ab2f9f23a5ad0dd",
+      "sourceCodeHash": "6407fb10136b21e191c5cf1f695be89f9e427ce2b01c039dd525dac587f3fc05",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -148,7 +148,7 @@
     },
     "NFTCollectionWithRoyaltyTest": {
       "sourceFile": "nft/nft_collection_with_royalty_test.ral",
-      "sourceCodeHash": "6d7eafa318758a865bcba457908df05008f06454fcf10cf2e5d89319f167ee0b",
+      "sourceCodeHash": "797c82a70c622eb1c8b06a1aade4e44050e9f198afd0496231b61c7cb7c4b1c7",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "20a954c393c53be16870624398a07c18985c0495f0ccb37848ec920bbea742cc",
       "warnings": [
@@ -189,7 +189,7 @@
     },
     "WithdrawNFTCollectionTest": {
       "sourceFile": "nft/withdraw_nft_collection_test.ral",
-      "sourceCodeHash": "73e7c2f9d206493eb37deadc61c1d7bc84870bc74c23d060d8ecffceb5ced36a",
+      "sourceCodeHash": "b06eed2252a147738da24c9098452123c444d325f8de4d6134d10fea92b3ee45",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []

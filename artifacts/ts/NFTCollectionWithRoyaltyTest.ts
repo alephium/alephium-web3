@@ -136,13 +136,13 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "payRoyalty", params);
     },
-    withdraw: async (
+    withdrawRoyalty: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
         { recipient: Address; amount: bigint }
       >
     ): Promise<TestContractResult<null>> => {
-      return testMethod(this, "withdraw", params);
+      return testMethod(this, "withdrawRoyalty", params);
     },
     mint: async (
       params: TestContractParams<

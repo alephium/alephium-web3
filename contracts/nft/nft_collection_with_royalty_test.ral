@@ -22,7 +22,7 @@ Contract NFTCollectionWithRoyaltyTest(
     }
 
     @using(assetsInContract = true, checkExternalCaller = false)
-    pub fn withdraw(recipient: Address, amount: U256) -> () {
+    pub fn withdrawRoyalty(recipient: Address, amount: U256) -> () {
         checkCaller!(callerAddress!() == collectionOwner, ErrorCodes.CollectionOwnerAllowedOnly)
         transferTokenFromSelf!(recipient, ALPH, amount)
     }

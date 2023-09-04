@@ -114,7 +114,7 @@
       "returnTypes": []
     },
     {
-      "name": "withdraw",
+      "name": "withdrawRoyalty",
       "usePreapprovedAssets": false,
       "useAssetsInContract": true,
       "isPublic": true,
