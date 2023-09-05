@@ -1,0 +1,6 @@
+TxScript WithdrawNFTCollectionTest(
+    collection: INFTCollectionWithRoyalty,
+    amount: U256
+) {
+    collection.withdrawRoyalty(callerAddress!(), amount)
+}

@@ -3,10 +3,15 @@ import "std/nft_collection_with_royalty_interface"
 Contract NFTCollectionWithRoyaltyTest(
   nftTemplateId: ByteVec,
   collectionUri: ByteVec,
+  collectionOwner: Address,
   royaltyRate: U256,         // basis point. e.g. 2.5% == 250 basis point
   mut totalSupply: U256
 ) extends NFTCollectionTestBase(nftTemplateId, collectionUri, totalSupply)
     implements INFTCollectionWithRoyalty {
+    enum ErrorCodes {
+        CollectionOwnerAllowedOnly = 1
+    }
+
     pub fn royaltyAmount(@unused tokenId: ByteVec, salePrice: U256) -> (U256) {
         return salePrice * royaltyRate / 10000
     }
@@ -14,5 +19,11 @@ Contract NFTCollectionWithRoyaltyTest(
     @using(assetsInContract = true, preapprovedAssets = true, checkExternalCaller = false)
     pub fn payRoyalty(payer: Address, amount: U256) -> () {
         transferTokenToSelf!(payer, ALPH, amount)
+    }
+
+    @using(assetsInContract = true, checkExternalCaller = false)
+    pub fn withdrawRoyalty(recipient: Address, amount: U256) -> () {
+        checkCaller!(callerAddress!() == collectionOwner, ErrorCodes.CollectionOwnerAllowedOnly)
+        transferTokenFromSelf!(recipient, ALPH, amount)
     }
 }

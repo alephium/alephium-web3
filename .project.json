@@ -100,7 +100,7 @@
     },
     "INFTCollectionWithRoyalty": {
       "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
-      "sourceCodeHash": "8d84c2a902d9fa920dc8081d2941b1e85d1dfcbfd669528692abbba306cf4efd",
+      "sourceCodeHash": "6407fb10136b21e191c5cf1f695be89f9e427ce2b01c039dd525dac587f3fc05",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -148,9 +148,9 @@
     },
     "NFTCollectionWithRoyaltyTest": {
       "sourceFile": "nft/nft_collection_with_royalty_test.ral",
-      "sourceCodeHash": "e9c4833032bda16191297075bec86ba4979546be85d9902d54658475c14bb253",
+      "sourceCodeHash": "797c82a70c622eb1c8b06a1aade4e44050e9f198afd0496231b61c7cb7c4b1c7",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "39b53db551e311226739b920b44e9f7423d047de6d2a1fd0f83352466ddce4fb",
+      "codeHashDebug": "20a954c393c53be16870624398a07c18985c0495f0ccb37848ec920bbea742cc",
       "warnings": [
         "No external caller check for function \"NFTCollectionWithRoyaltyTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
@@ -186,6 +186,13 @@
         "Found unused constants in Warnings: C",
         "Found unused fields in Warnings: b"
       ]
+    },
+    "WithdrawNFTCollectionTest": {
+      "sourceFile": "nft/withdraw_nft_collection_test.ral",
+      "sourceCodeHash": "b06eed2252a147738da24c9098452123c444d325f8de4d6134d10fea92b3ee45",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
     }
   }
 }

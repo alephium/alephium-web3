@@ -1,20 +1,17 @@
 {
   "version": "v2.5.3",
-  "name": "MintNFTTest",
-  "bytecodeTemplate": "01010300000015{2}4c0ab413c40de0b6b3a7640000a2{1}0d0d{0}0106184a09b413c40de0b6b3a7640000a2{1}0d0d{0}010318",
+  "name": "WithdrawNFTCollectionTest",
+  "bytecodeTemplate": "01010300000006b4{1}0e0c{0}0105",
   "fieldsSig": {
     "names": [
-      "nftCollectionContractId",
-      "uri",
-      "royalty"
+      "collection",
+      "amount"
     ],
     "types": [
       "ByteVec",
-      "ByteVec",
-      "Bool"
+      "U256"
     ],
     "isMutable": [
-      false,
       false,
       false
     ]

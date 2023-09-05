@@ -29,7 +29,7 @@ import {
 } from '@alephium/web3'
 import { NFTTest } from '../artifacts/ts/NFTTest'
 import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NFTCollectionTest'
-import { MintNFTTest } from '../artifacts/ts/scripts'
+import { MintNFTTest, WithdrawNFTCollectionTest } from '../artifacts/ts/scripts'
 import { getSigner } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
@@ -71,9 +71,11 @@ describe('nft collection', function () {
           initialFields: {
             nftTemplateId: nftContractId,
             collectionUri: collectionUri,
+            collectionOwner: signer.address,
             royaltyRate,
             totalSupply: 0n
-          }
+          },
+          initialAttoAlphAmount: 2n * ONE_ALPH
         })
       ).contractInstance
 
@@ -112,6 +114,19 @@ describe('nft collection', function () {
     })
     for (let i = 0n; i < 10n; i++) {
       await mintAndVerify(nftCollectionInstance, nftUri, i)
+    }
+
+    if (royalty) {
+      const balanceBefore = await nodeProvider.addresses.getAddressesAddressBalance(nftCollectionInstance.address)
+      expect(balanceBefore.balanceHint).toEqual('2 ALPH')
+      await WithdrawNFTCollectionTest.execute(signer, {
+        initialFields: {
+          collection: nftCollectionInstance.contractId,
+          amount: ONE_ALPH
+        }
+      })
+      const balanceAfter = await nodeProvider.addresses.getAddressesAddressBalance(nftCollectionInstance.address)
+      expect(balanceAfter.balanceHint).toEqual('1 ALPH')
     }
   }
 

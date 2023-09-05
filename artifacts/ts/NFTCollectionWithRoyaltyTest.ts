@@ -32,6 +32,7 @@ export namespace NFTCollectionWithRoyaltyTestTypes {
   export type Fields = {
     nftTemplateId: HexString;
     collectionUri: HexString;
+    collectionOwner: Address;
     royaltyRate: bigint;
     totalSupply: bigint;
   };
@@ -83,7 +84,11 @@ class Factory extends ContractFactory<
   }
 
   consts = {
-    ErrorCodes: { IncorrectTokenIndex: BigInt(0), NFTNotFound: BigInt(1) },
+    ErrorCodes: {
+      IncorrectTokenIndex: BigInt(0),
+      NFTNotFound: BigInt(1),
+      CollectionOwnerAllowedOnly: BigInt(1),
+    },
   };
 
   at(address: string): NFTCollectionWithRoyaltyTestInstance {
@@ -131,6 +136,14 @@ class Factory extends ContractFactory<
     ): Promise<TestContractResult<null>> => {
       return testMethod(this, "payRoyalty", params);
     },
+    withdrawRoyalty: async (
+      params: TestContractParams<
+        NFTCollectionWithRoyaltyTestTypes.Fields,
+        { recipient: Address; amount: bigint }
+      >
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "withdrawRoyalty", params);
+    },
     mint: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
@@ -147,7 +160,7 @@ export const NFTCollectionWithRoyaltyTest = new Factory(
   Contract.fromJson(
     NFTCollectionWithRoyaltyTestContractJson,
     "",
-    "39b53db551e311226739b920b44e9f7423d047de6d2a1fd0f83352466ddce4fb"
+    "20a954c393c53be16870624398a07c18985c0495f0ccb37848ec920bbea742cc"
   )
 );
 
