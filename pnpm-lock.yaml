@@ -277,6 +277,7 @@ importers:
       elliptic: 6.5.4
       eventemitter3: 4.0.7
       path-browserify: 1.0.1
+      stream-browserify: 3.0.0
     devDependencies:
       '@babel/eslint-parser': 7.21.3_dtd6rkspnt3zaaagnahnh6ljcu
       '@types/elliptic': 6.4.14
@@ -304,7 +305,6 @@ importers:
       process: 0.11.10
       rewire: 6.0.0
       shelljs: 0.8.5
-      stream-browserify: 3.0.0
       swagger-typescript-api: 12.0.3
       terser-webpack-plugin: 5.3.7_webpack@5.80.0
       ts-jest: 28.0.8_ejqimy5yndtjcnvibc2goex5tu
@@ -10113,7 +10113,6 @@ packages:
     dependencies:
       inherits: 2.0.4
       readable-stream: 3.6.2
-    dev: true
 
   /stream-shift/1.0.1:
     resolution: {integrity: sha512-AiisoFqQ0vbGcZgQPY1cdP2I76glaVA/RauYR4G4thNFgkTqr90yXTo4LYX60Jl+sIlPNHHdGSwo01AvbKUSVQ==}
