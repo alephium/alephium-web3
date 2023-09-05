@@ -28,7 +28,7 @@ export type ConnectedAccount = {
 }
 
 function getStorage() {
-  return window === undefined ? undefined : window.localStorage
+  return globalThis.window?.localStorage
 }
 
 export function getLastConnectedAccount(): ConnectedAccount | undefined {
