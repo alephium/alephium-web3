@@ -83,7 +83,7 @@ export class WalletConnectProvider extends SignerProvider {
   public account: Account | undefined = undefined
 
   public client!: SignClient
-  public session!: SessionTypes.Struct
+  public session: SessionTypes.Struct | undefined
 
   static async init(opts: ProviderOptions): Promise<WalletConnectProvider> {
     const provider = new WalletConnectProvider(opts)
@@ -113,26 +113,28 @@ export class WalletConnectProvider extends SignerProvider {
   }
 
   public async connect(): Promise<void> {
-    const { uri, approval } = await this.client.connect({
-      requiredNamespaces: {
-        alephium: {
-          chains: [this.permittedChain],
-          methods: this.methods,
-          events: ['accountChanged']
+    if (!this.session) {
+      const { uri, approval } = await this.client.connect({
+        requiredNamespaces: {
+          alephium: {
+            chains: [this.permittedChain],
+            methods: this.methods,
+            events: ['accountChanged']
+          }
         }
+      })
+
+      if (uri) {
+        this.emitEvents('displayUri', uri)
       }
-    })
 
-    if (uri) {
-      this.emitEvents('displayUri', uri)
+      this.session = await approval()
     }
-
-    this.session = await approval()
     this.updateNamespace(this.session.namespaces)
   }
 
   public async disconnect(): Promise<void> {
-    if (!this.client) {
+    if (!this.client || !this.session) {
       throw new Error('Sign Client not initialized')
     }
 
@@ -142,6 +144,8 @@ export class WalletConnectProvider extends SignerProvider {
       topic: this.session.topic,
       reason: getSdkError('USER_DISCONNECTED')
     })
+    this.session = undefined
+    this.account = undefined
   }
 
   public on<E extends ProviderEvent>(event: E, listener: (args: ProviderEventArgument<E>) => any): void {
@@ -258,6 +262,10 @@ export class WalletConnectProvider extends SignerProvider {
 
   // The provider only supports signer methods. The other requests should use Alephium Rest API.
   private async request<T = unknown>(args: { method: string; params: any }): Promise<T> {
+    if (!this.session) {
+      throw new Error('Sign Client not initialized')
+    }
+
     if (!(this.methods as string[]).includes(args.method)) {
       return Promise.reject(new Error(`Invalid method was passed: ${args.method}`))
     }
@@ -328,6 +336,19 @@ export class WalletConnectProvider extends SignerProvider {
     }
   }
 
+  isPreauthorized(): boolean {
+    if (!this.session) return false
+    const accounts = getAccountsFromNamespaces(this.session.namespaces, [PROVIDER_NAMESPACE])
+    const parsedAccounts = accounts.map(parseAccount)
+    const { networkId, addressGroup, keyType } = this.providerOpts
+    return !!parsedAccounts.find(
+      (account) =>
+        networkId === account.networkId &&
+        (addressGroup === undefined || account.group === addressGroup) &&
+        (keyType === undefined || account.keyType === keyType)
+    )
+  }
+
   private lastSetAccounts?: Account[]
   private setAccounts(accounts: string[]) {
     const parsedAccounts = accounts.map(parseAccount)
@@ -387,12 +408,12 @@ export function formatAccount(permittedChain: string, account: Account): string 
   return `${permittedChain}:${account.publicKey}/${account.keyType}`
 }
 
-export function parseAccount(account: string): Account {
-  const [_namespace, _networkId, _group, publicKey, keyType] = account.replace(/\//g, ':').split(':')
+export function parseAccount(account: string): Account & { networkId: NetworkId } {
+  const [_namespace, networkId, _group, publicKey, keyType] = account.replace(/\//g, ':').split(':')
   const address = addressFromPublicKey(publicKey)
   const group = groupOfAddress(address)
   if (keyType !== 'default' && keyType !== 'bip340-schnorr') {
     throw Error(`Invalid key type: ${keyType}`)
   }
-  return { address, group, publicKey, keyType }
+  return { address, group, publicKey, keyType, networkId: networkId as NetworkId }
 }
