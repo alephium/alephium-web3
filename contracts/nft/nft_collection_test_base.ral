@@ -30,7 +30,7 @@ Abstract Contract NFTCollectionTestBase(
 
   pub fn validateNFT(nftId: ByteVec, nftIndex: U256) -> () {
       let expectedTokenContract =  nftByIndex(nftIndex)
-      assert!(selfContractId!() == contractId!(expectedTokenContract), ErrorCodes.NFTNotPartOfCollection)
+      assert!(nftId == contractId!(expectedTokenContract), ErrorCodes.NFTNotPartOfCollection)
   }
 
   @using(preapprovedAssets = true, updateFields = true)

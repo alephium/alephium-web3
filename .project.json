@@ -134,15 +134,14 @@
       "sourceFile": "nft/nft_collection_test.ral",
       "sourceCodeHash": "ac1d8da86e8cb3e5c412c463d7cf0376db563d9cbc459eb034d3067dcaa2045e",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "de412a656d7c46fef2f4824b03d907696d67c6dfe9aad91e6f7171e63289f114",
+      "codeHashDebug": "c84f4fd5d3fdee90b3421174c85011437a10c6f440e0c261b1f69ff77bc5ab70",
       "warnings": [
-        "Found unused variables in NFTCollectionTest: validateNFT.nftId",
         "No external caller check for function \"NFTCollectionTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "NFTCollectionTestBase": {
       "sourceFile": "nft/nft_collection_test_base.ral",
-      "sourceCodeHash": "458818e02699d2ce2ed94d0aacd38e2b7f92e58b467c8ab917135b3e42c69248",
+      "sourceCodeHash": "60406d258606a398d4fd9b8e233fa2ddf08dc111fae040be0f43c60a4cd77dcc",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -151,9 +150,8 @@
       "sourceFile": "nft/nft_collection_with_royalty_test.ral",
       "sourceCodeHash": "797c82a70c622eb1c8b06a1aade4e44050e9f198afd0496231b61c7cb7c4b1c7",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "8b04f7b832828424328ece4253ccc6f9fd2e39c7fda8f6c6c45b3b6233299861",
+      "codeHashDebug": "1c162da87d31289c9b392bd48767386336bb1d208101a8680d92b7dc74098ce0",
       "warnings": [
-        "Found unused variables in NFTCollectionWithRoyaltyTest: validateNFT.nftId",
         "No external caller check for function \"NFTCollectionWithRoyaltyTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
