@@ -26,4 +26,6 @@ Interface INFTCollection {
    pub fn totalSupply() -> U256
 
    pub fn nftByIndex(index: U256) -> INFT
+
+   pub fn validateNFT(nftId: ByteVec, nftIndex: U256) -> ()
 }

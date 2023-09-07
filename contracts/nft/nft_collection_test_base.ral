@@ -8,6 +8,7 @@ Abstract Contract NFTCollectionTestBase(
   enum ErrorCodes {
     IncorrectTokenIndex = 0
     NFTNotFound = 1
+    NFTNotPartOfCollection = 2
   }
 
   pub fn getCollectionUri() -> ByteVec {
@@ -27,11 +28,16 @@ Abstract Contract NFTCollectionTestBase(
     return INFT(nftTokenId)
   }
 
+  pub fn validateNFT(nftId: ByteVec, nftIndex: U256) -> () {
+      let expectedTokenContract =  nftByIndex(nftIndex)
+      assert!(selfContractId!() == contractId!(expectedTokenContract), ErrorCodes.NFTNotPartOfCollection)
+  }
+
   @using(preapprovedAssets = true, updateFields = true)
    pub fn mint(nftUri: ByteVec) -> (ByteVec) {
      let minter = callerAddress!()
 
-     let (initialImmState, initialMutState) = NFTTest.encodeFields!(nftUri)
+     let (initialImmState, initialMutState) = NFTTest.encodeFields!(selfContractId!(), totalSupply, nftUri)
 
      let contractId = copyCreateSubContractWithToken!{minter -> ALPH: 1 alph}(
          toByteVec!(totalSupply),

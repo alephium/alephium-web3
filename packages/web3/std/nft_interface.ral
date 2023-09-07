@@ -22,4 +22,7 @@ Interface INFT {
    //     }
    // }
    pub fn getTokenUri() -> ByteVec
+
+   // Returns collection id and index of the NFT in the collection.
+   pub fn getCollectionIndex() -> (ByteVec, U256)
 }

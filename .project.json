@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.5.3",
+  "fullNodeVersion": "v2.5.5",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -86,14 +86,14 @@
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
-      "sourceCodeHash": "1fefa4eb581554fa2b7b083b0eb232c787c101e67e2eeedd6d518bb0c8b93a2d",
+      "sourceCodeHash": "7f7514adf9fee057049d1c162701725b3377c01a0a102e6f0f5cf747039926b6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
-      "sourceCodeHash": "b0a6daba940a30282122145d56ebed0ba133ad885f5c6339ebdb8f35fe7c53e5",
+      "sourceCodeHash": "d1d7478e168ffd99524fc347cd93350c666fe4cac20056af354318085737e21f",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -134,14 +134,15 @@
       "sourceFile": "nft/nft_collection_test.ral",
       "sourceCodeHash": "ac1d8da86e8cb3e5c412c463d7cf0376db563d9cbc459eb034d3067dcaa2045e",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "62a74b8496ee1693de16f2d67d5b3ba3273e3a04cb59aec3a24c1ae5a51c2e0c",
+      "codeHashDebug": "de412a656d7c46fef2f4824b03d907696d67c6dfe9aad91e6f7171e63289f114",
       "warnings": [
+        "Found unused variables in NFTCollectionTest: validateNFT.nftId",
         "No external caller check for function \"NFTCollectionTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "NFTCollectionTestBase": {
       "sourceFile": "nft/nft_collection_test_base.ral",
-      "sourceCodeHash": "bd7e9ef029b957c87b096c22075318ce9a5eb299fc178e60717163cef555d438",
+      "sourceCodeHash": "458818e02699d2ce2ed94d0aacd38e2b7f92e58b467c8ab917135b3e42c69248",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -150,16 +151,17 @@
       "sourceFile": "nft/nft_collection_with_royalty_test.ral",
       "sourceCodeHash": "797c82a70c622eb1c8b06a1aade4e44050e9f198afd0496231b61c7cb7c4b1c7",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "20a954c393c53be16870624398a07c18985c0495f0ccb37848ec920bbea742cc",
+      "codeHashDebug": "8b04f7b832828424328ece4253ccc6f9fd2e39c7fda8f6c6c45b3b6233299861",
       "warnings": [
+        "Found unused variables in NFTCollectionWithRoyaltyTest: validateNFT.nftId",
         "No external caller check for function \"NFTCollectionWithRoyaltyTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "NFTTest": {
       "sourceFile": "nft/nft_test.ral",
-      "sourceCodeHash": "f1918b2d68dd1c03ed42738c0a7b91d93cfa9c50b4e44b5bd80b333ee4635bde",
+      "sourceCodeHash": "ddcc7fedd2dcbce030a9428f5560deb53124688f9cee396433192700131ed73f",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "c654f89a813259b6e270c8cf609200907f0824755bb394b00d8b151c3fddf95f",
+      "codeHashDebug": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
       "warnings": []
     },
     "Sub": {
