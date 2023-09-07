@@ -298,6 +298,7 @@ export interface FungibleTokenMetaData {
 }
 
 export interface NFTMetaData {
+  collectionId: string
   tokenUri: string
 }
 

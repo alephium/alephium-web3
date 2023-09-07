@@ -162,7 +162,8 @@ describe('nft collection', function () {
     expect(index).toEqual(tokenIndex)
     const nftMetadata = await web3.getCurrentNodeProvider().fetchNFTMetaData(nftInstance.contractId)
     expect(nftMetadata).toEqual({
-      tokenUri: hexToString(nftUri)
+      tokenUri: hexToString(nftUri),
+      collectionId: nftCollectionTest.contractId
     })
   }
 
