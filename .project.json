@@ -93,7 +93,7 @@
     },
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
-      "sourceCodeHash": "d1d7478e168ffd99524fc347cd93350c666fe4cac20056af354318085737e21f",
+      "sourceCodeHash": "738a3440b686d94c9f7db58f23e22b7512d229540392b426ecb190b82db3fb4f",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
