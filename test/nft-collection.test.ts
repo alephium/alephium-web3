@@ -29,13 +29,14 @@ import {
 } from '@alephium/web3'
 import { NFTTest } from '../artifacts/ts/NFTTest'
 import { DeprecatedNFTTest } from '../artifacts/ts/DeprecatedNFTTest'
+import { WrongNFTTest } from '../artifacts/ts/WrongNFTTest'
 import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NFTCollectionTest'
 import { MintNFTTest, WithdrawNFTCollectionTest } from '../artifacts/ts/scripts'
 import { getSigner, randomContractId } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
 
-describe('nft collection', function () {
+describe('nft collection', function() {
   let signer: PrivateKeyWallet
 
   beforeAll(async () => {
@@ -60,21 +61,36 @@ describe('nft collection', function () {
 
     await testNFTCollection(nftTest.contractId, nftUri, false)
     await testNFTCollection(nftTest.contractId, nftUri, true)
-  }, 10000)
+  }, 20000)
 
-  it('should throw exception for deprecated NFT contract when fetching its Metadata', async () => {
+  it('should throw appropriate exception for deprecated and wrong NFT contract when fetching its Metadata', async () => {
     const uri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
-    const nftTest = (
+    const deprecatedNFTTest = (
       await DeprecatedNFTTest.deploy(signer, {
         initialFields: { uri }
       })
     ).contractInstance
 
-    expect((await nftTest.methods.getTokenUri()).returns).toEqual(uri)
-    await expect(signer.nodeProvider.fetchNFTMetaData(nftTest.contractId)).rejects.toThrowError(
+    expect((await deprecatedNFTTest.methods.getTokenUri()).returns).toEqual(uri)
+    await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest.contractId)).rejects.toThrowError(
       'Deprecated NFT contract'
     )
-  }, 10000)
+
+    const wrongNFTTest = (
+      await WrongNFTTest.deploy(signer, {
+        initialFields: {
+          uri,
+          nftIndex: 0n,
+          collectionId: randomContractId()
+        }
+      })
+    ).contractInstance
+
+    expect((await wrongNFTTest.methods.getTokenUri()).returns).toEqual(uri)
+    await expect(signer.nodeProvider.fetchNFTMetaData(wrongNFTTest.contractId)).rejects.toThrowError(
+      'Failed to call contract, error: VM execution error'
+    )
+  })
 
   async function testNFTCollection(nftTemplateId: string, nftUri: string, royalty: boolean) {
     const rawCollectionUri = 'https://cryptopunks.app/cryptopunks'

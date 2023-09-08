@@ -8,6 +8,7 @@ export * from "./DeprecatedNFTTest";
 export * from "./NFTCollectionTest";
 export * from "./NFTCollectionWithRoyaltyTest";
 export * from "./NFTTest";
+export * from "./WrongNFTTest";
 export * from "./Sub";
 export * from "./Assert";
 export * from "./Debug";
