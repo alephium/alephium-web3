@@ -36,7 +36,7 @@ import { getSigner, randomContractId } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
 
-describe('nft collection', function() {
+describe('nft collection', function () {
   let signer: PrivateKeyWallet
 
   beforeAll(async () => {
