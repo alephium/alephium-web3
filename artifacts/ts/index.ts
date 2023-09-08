@@ -4,6 +4,7 @@
 
 export * from "./Add";
 export * from "./Greeter";
+export * from "./DeprecatedNFTTest";
 export * from "./NFTCollectionTest";
 export * from "./NFTCollectionWithRoyaltyTest";
 export * from "./NFTTest";

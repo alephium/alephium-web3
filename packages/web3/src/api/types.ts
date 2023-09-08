@@ -299,6 +299,7 @@ export interface FungibleTokenMetaData {
 
 export interface NFTMetaData {
   collectionId: string
+  nftIndex: Number256
   tokenUri: string
 }
 

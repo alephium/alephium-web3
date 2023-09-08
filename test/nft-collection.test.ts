@@ -28,9 +28,10 @@ import {
   hexToString
 } from '@alephium/web3'
 import { NFTTest } from '../artifacts/ts/NFTTest'
+import { DeprecatedNFTTest } from '../artifacts/ts/DeprecatedNFTTest'
 import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NFTCollectionTest'
 import { MintNFTTest, WithdrawNFTCollectionTest } from '../artifacts/ts/scripts'
-import { getSigner } from '@alephium/web3-test'
+import { getSigner, randomContractId } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
 
@@ -59,6 +60,20 @@ describe('nft collection', function () {
 
     await testNFTCollection(nftTest.contractId, nftUri, false)
     await testNFTCollection(nftTest.contractId, nftUri, true)
+  }, 10000)
+
+  it('should throw exception for deprecated NFT contract when fetching its Metadata', async () => {
+    const uri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
+    const nftTest = (
+      await DeprecatedNFTTest.deploy(signer, {
+        initialFields: { uri }
+      })
+    ).contractInstance
+
+    expect((await nftTest.methods.getTokenUri()).returns).toEqual(uri)
+    await expect(signer.nodeProvider.fetchNFTMetaData(nftTest.contractId)).rejects.toThrowError(
+      'Deprecated NFT contract'
+    )
   }, 10000)
 
   async function testNFTCollection(nftTemplateId: string, nftUri: string, royalty: boolean) {
@@ -163,6 +178,7 @@ describe('nft collection', function () {
     const nftMetadata = await web3.getCurrentNodeProvider().fetchNFTMetaData(nftInstance.contractId)
     expect(nftMetadata).toEqual({
       tokenUri: hexToString(nftUri),
+      nftIndex: tokenIndex,
       collectionId: nftCollectionTest.contractId
     })
   }

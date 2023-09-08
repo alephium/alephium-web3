@@ -26,7 +26,7 @@ import {
   NFTCollectionMetaData,
   StdInterfaceIds
 } from './types'
-import { Api as NodeApi } from './api-alephium'
+import { Api as NodeApi, CallContractFailed, CallContractSucceeded } from './api-alephium'
 import { HexString, tryGetCallResult } from '../contract'
 import { addressFromContractId, addressFromTokenId, groupOfAddress, hexToString } from '../utils'
 
@@ -133,10 +133,20 @@ export class NodeProvider implements NodeProviderApis {
     const result = await this.contracts.postContractsMulticallContract({
       calls: calls
     })
-    const callResults = result.results.map((r) => tryGetCallResult(r))
-    return {
-      tokenUri: hexToString(callResults[0].returns[0].value as any as string),
-      collectionId: callResults[1].returns[0].value as any as string
+    const tokenUri = hexToString(tryGetCallResult(result.results[0]).returns[0].value as any as string)
+    const collectionIndexResult = result.results[1]
+    if (collectionIndexResult.type === 'CallContractSucceeded') {
+      const successfulCollectionIndexResult = result.results[1] as CallContractSucceeded
+      const collectionId = successfulCollectionIndexResult.returns[0].value as any as string
+      const nftIndex = BigInt(successfulCollectionIndexResult.returns[1].value as any as string)
+      return { tokenUri, collectionId, nftIndex }
+    } else {
+      const failedCollectionIndexResult = result.results[1] as CallContractFailed
+      if (failedCollectionIndexResult.error.startsWith('VM execution error: InvalidMethodIndex')) {
+        throw new Error('Deprecated NFT contract')
+      } else {
+        throw new Error(`Failed to call contract, error: ${failedCollectionIndexResult.error}`)
+      }
     }
   }
 

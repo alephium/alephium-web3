@@ -1,0 +1,7 @@
+Contract DeprecatedNFTTest(
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+}

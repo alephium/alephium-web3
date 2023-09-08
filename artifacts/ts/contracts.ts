@@ -6,6 +6,7 @@ import { Contract, ContractFactory } from "@alephium/web3";
 import {
   Add,
   Greeter,
+  DeprecatedNFTTest,
   NFTCollectionTest,
   NFTCollectionWithRoyaltyTest,
   NFTTest,
@@ -24,6 +25,7 @@ export function getContractByCodeHash(codeHash: string): Contract {
     contracts = [
       Add,
       Greeter,
+      DeprecatedNFTTest,
       NFTCollectionTest,
       NFTCollectionWithRoyaltyTest,
       NFTTest,
