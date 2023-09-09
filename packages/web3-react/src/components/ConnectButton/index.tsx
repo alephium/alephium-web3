@@ -274,3 +274,5 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
 }
 
 AlephiumConnectButton.Custom = ConnectButtonRenderer
+
+export const AlephiumConnectButtonCustom = ConnectButtonRenderer
