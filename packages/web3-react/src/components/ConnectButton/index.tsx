@@ -242,7 +242,7 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
     context.setRoute(isConnected ? routes.PROFILE : routes.CONNECTORS)
   }
 
-  if (!isMounted) return null
+  if (!context.csrModeOnly && !isMounted) return null
 
   return (
     <ResetContainer $useTheme={context.theme} $useMode={context.mode} $customTheme={context.customTheme}>
