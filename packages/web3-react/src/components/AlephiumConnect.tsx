@@ -51,8 +51,9 @@ export const ConnectSettingProvider: React.FC<{
   theme?: Theme
   mode?: Mode
   customTheme?: CustomTheme
+  csrModeOnly?: boolean // whether to show the connect button only in CSR mode
   children?: React.ReactNode
-}> = ({ theme = 'auto', mode = 'auto', customTheme, children }) => {
+}> = ({ theme = 'auto', mode = 'auto', customTheme, csrModeOnly, children }) => {
   // Only allow for mounting ConnectSettingProvider once, so we avoid weird global
   // state collisions.
   const context = useContext(ConnectSettingContext)
@@ -88,6 +89,7 @@ export const ConnectSettingProvider: React.FC<{
     setMode,
     customTheme: _customTheme,
     setCustomTheme,
+    csrModeOnly: csrModeOnly ?? false,
     // Other configuration
     errorMessage
   }
@@ -298,6 +300,7 @@ type AlephiumWalletProviderProps = {
   network: NetworkId
   addressGroup?: number
   keyType?: KeyType
+  csrModeOnly?: boolean // whether to show the connect button only in CSR mode
   children?: React.ReactNode
 }
 
@@ -307,6 +310,7 @@ export const AlephiumWalletProvider = ({
   network,
   addressGroup,
   keyType,
+  csrModeOnly,
   children
 }: AlephiumWalletProviderProps) => {
   return (
@@ -315,6 +319,7 @@ export const AlephiumWalletProvider = ({
         theme={theme === 'simple-light' || theme === 'simple-dark' ? 'auto' : theme}
         mode={theme === 'simple-light' ? 'light' : theme === 'simple-dark' ? 'dark' : 'auto'}
         customTheme={customTheme}
+        csrModeOnly={csrModeOnly}
       >
         <AlephiumBalanceProvider>{children}</AlephiumBalanceProvider>
       </ConnectSettingProvider>

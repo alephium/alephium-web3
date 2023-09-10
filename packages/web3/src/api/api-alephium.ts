@@ -1256,7 +1256,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.5.3
+ * @version 2.5.5
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -1955,6 +1955,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getBlockflowIsBlockInMainChain: (
       query: {
+        /** @format block-hash */
         blockHash: string
       },
       params: RequestParams = {}
@@ -2209,6 +2210,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     getTransactionsStatus: (
       query: {
+        /** @format 32-byte-hash */
         txId: string
         /** @format int32 */
         fromGroup?: number
@@ -2270,6 +2272,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     putMempoolTransactionsRebroadcast: (
       query: {
+        /** @format 32-byte-hash */
         txId: string
       },
       params: RequestParams = {}

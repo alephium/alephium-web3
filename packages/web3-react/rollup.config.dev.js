@@ -26,6 +26,7 @@ export default [
     external: ['react', 'react-dom', 'framer-motion'],
     output: [
       {
+        banner: `'use client';`,
         file: packageJson.exports['.'].import,
         format: 'esm',
         sourcemap: false

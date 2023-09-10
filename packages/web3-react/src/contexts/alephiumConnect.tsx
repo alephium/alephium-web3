@@ -38,6 +38,7 @@ export type ConnectSettingValue = {
   setMode: React.Dispatch<React.SetStateAction<Mode>>
   customTheme: CustomTheme
   setCustomTheme: React.Dispatch<React.SetStateAction<CustomTheme>>
+  csrModeOnly: boolean // whether to show the connect button only in CSR mode
 }
 
 export const ConnectSettingContext = createContext<ConnectSettingValue | null>(null)

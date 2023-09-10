@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import React from 'react'
+import useIsMounted from '../../hooks/useIsMounted'
 
 import { TextContainer } from './styles'
 import { useAlephiumConnectContext, useConnectSettingContext } from '../../contexts/alephiumConnect'
@@ -118,6 +119,7 @@ type ConnectButtonRendererProps = {
 }
 
 const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAccount, children }) => {
+  const isMounted = useIsMounted()
   const context = useConnectSettingContext()
 
   const { account } = useAlephiumConnectContext()
@@ -133,6 +135,7 @@ const ConnectButtonRenderer: React.FC<ConnectButtonRendererProps> = ({ displayAc
   }
 
   if (!children) return null
+  if (!isMounted) return null
 
   const displayAddress = account ? (displayAccount ?? defaultDisplayAccount)(account) : undefined
 
@@ -228,6 +231,8 @@ type AlephiumConnectButtonProps = {
 }
 
 export function AlephiumConnectButton({ label, onClick, displayAccount }: AlephiumConnectButtonProps) {
+  const isMounted = useIsMounted()
+
   const context = useConnectSettingContext()
   const { account } = useAlephiumConnectContext()
   const isConnected = !!account
@@ -236,6 +241,8 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
     context.setOpen(true)
     context.setRoute(isConnected ? routes.PROFILE : routes.CONNECTORS)
   }
+
+  if (!context.csrModeOnly && !isMounted) return null
 
   return (
     <ResetContainer $useTheme={context.theme} $useMode={context.mode} $customTheme={context.customTheme}>
@@ -267,3 +274,5 @@ export function AlephiumConnectButton({ label, onClick, displayAccount }: Alephi
 }
 
 AlephiumConnectButton.Custom = ConnectButtonRenderer
+
+export const AlephiumConnectButtonCustom = ConnectButtonRenderer
