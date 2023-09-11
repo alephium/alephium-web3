@@ -11,6 +11,7 @@ export * from "./DeprecatedNFTTest3";
 export * from "./DeprecatedNFTTest4";
 export * from "./DeprecatedNFTTest5";
 export * from "./DeprecatedNFTTest6";
+export * from "./DeprecatedNFTTest7";
 export * from "./FakeTokenTest";
 export * from "./Greeter";
 export * from "./MetaData";

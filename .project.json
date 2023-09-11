@@ -79,6 +79,13 @@
       "codeHashDebug": "88822622be55e862a1759c4e0c02300da75fe9e3dbe73c8fbe0fa8714996629e",
       "warnings": []
     },
+    "DeprecatedNFTTest7": {
+      "sourceFile": "nft/deprecated_nft/deprecated_nft_test_7.ral",
+      "sourceCodeHash": "2fa450267bed74d6390042b7a054f614893c3704d04745bdd2aa845e36368da8",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "33ddc42a153c6b9940924d989dcd107d7ff234ecbe9c494ece35ed06bd24450d",
+      "warnings": []
+    },
     "DestroyAdd": {
       "sourceFile": "add/destroy_add.ral",
       "sourceCodeHash": "dbddae3cd53736478c299026ac67683909fcc04d036f98ce6dc72af7d92a4835",

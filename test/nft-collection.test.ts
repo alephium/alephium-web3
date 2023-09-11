@@ -53,6 +53,9 @@ import {
   DeprecatedNFTTest6,
   DeprecatedNFTTest6Instance,
   DeprecatedNFTTest6Types,
+  DeprecatedNFTTest7,
+  DeprecatedNFTTest7Instance,
+  DeprecatedNFTTest7Types,
   NFTCollectionWithRoyaltyTest,
   NFTCollectionWithRoyaltyTestInstance
 } from '../artifacts/ts/'
@@ -93,6 +96,7 @@ describe('nft collection', function () {
     await testDeprecatedNFT(uri, DeprecatedNFTTest4)
     await testDeprecatedNFT(uri, DeprecatedNFTTest5)
     await testDeprecatedNFT(uri, DeprecatedNFTTest6)
+    await testDeprecatedNFT(uri, DeprecatedNFTTest7)
 
     const wrongNFTTest = (
       await WrongNFTTest.deploy(signer, {
@@ -119,6 +123,7 @@ describe('nft collection', function () {
       | ContractFactory<DeprecatedNFTTest4Instance, DeprecatedNFTTest4Types.Fields>
       | ContractFactory<DeprecatedNFTTest5Instance, DeprecatedNFTTest5Types.Fields>
       | ContractFactory<DeprecatedNFTTest6Instance, DeprecatedNFTTest6Types.Fields>
+      | ContractFactory<DeprecatedNFTTest7Instance, DeprecatedNFTTest7Types.Fields>
   ) {
     const deprecatedNFTTest = (
       await deprecatedNFTContract.deploy(signer, {
