@@ -24,12 +24,13 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as DeprecatedNFTTest1ContractJson } from "../nft/DeprecatedNFTTest1.ral.json";
+import { default as DeprecatedNFTTest1ContractJson } from "../nft/deprecated_nft/DeprecatedNFTTest1.ral.json";
 import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest1Types {
   export type Fields = {
+    collectionId: HexString;
     uri: HexString;
   };
 
@@ -84,7 +85,7 @@ export const DeprecatedNFTTest1 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest1ContractJson,
     "",
-    "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3"
+    "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b"
   )
 );
 

@@ -75,6 +75,15 @@ export function isHexString(input: string): boolean {
   return input.length % 2 === 0 && /^[0-9a-fA-F]*$/.test(input)
 }
 
+export function toNonNegativeBigInt(input: string): bigint | undefined {
+  try {
+    const bigIntValue = BigInt(input)
+    return bigIntValue < 0n ? undefined : bigIntValue
+  } catch {
+    return undefined
+  }
+}
+
 enum AddressType {
   P2PKH = 0x00,
   P2MPKH = 0x01,

@@ -1,0 +1,11 @@
+Contract DeprecatedNFTTest3(
+  collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn returnNothing() -> () {
+  }
+}

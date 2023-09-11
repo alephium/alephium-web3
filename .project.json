@@ -36,17 +36,47 @@
       "warnings": []
     },
     "DeprecatedNFTTest1": {
-      "sourceFile": "nft/deprecated_nft_test_1.ral",
-      "sourceCodeHash": "c02c9f02591314947988b152d57c271a6b932f99e119bd3306d3c904db9d9803",
+      "sourceFile": "nft/deprecated_nft/deprecated_nft_test_1.ral",
+      "sourceCodeHash": "04d63ce9bbad0466cd5bd872b8a27ce9ca6d48c013c39416027ba2e3c5ace182",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3",
+      "codeHashDebug": "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b",
       "warnings": []
     },
     "DeprecatedNFTTest2": {
-      "sourceFile": "nft/deprecated_nft_test_2.ral",
+      "sourceFile": "nft/deprecated_nft/deprecated_nft_test_2.ral",
       "sourceCodeHash": "c3ab11d91e1bab292844392f1effbf70eabbcd00c11a71a8d686a08d735c0a81",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "c3e8a33252664e2f79903788d8abd79ee2c6785c580fa6911a0868436c59f59e",
+      "warnings": []
+    },
+    "DeprecatedNFTTest3": {
+      "sourceFile": "nft/deprecated_nft/deprecated_nft_test_3.ral",
+      "sourceCodeHash": "3f89f883b1b86bbedade8aa6c209e4ebbeb6837817670010d7d8680083ed8c0c",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "75181639c8575ce108d1ecb0b1b73a373a8652ffe6f5f6621d9f9eee5a0b2eb4",
+      "warnings": [
+        "Found unused fields in DeprecatedNFTTest3: collectionId"
+      ]
+    },
+    "DeprecatedNFTTest4": {
+      "sourceFile": "nft/deprecated_nft/deprecated_nft_test_4.ral",
+      "sourceCodeHash": "1611d2da0f5873f6e0150b899c7ea11e73865267f1f55c1a1761bfad8720a05c",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "d8f8650c15cc96211608a52ae7d43a15d7b28306ac13acec672c0f1ed02a0538",
+      "warnings": []
+    },
+    "DeprecatedNFTTest5": {
+      "sourceFile": "nft/deprecated_nft/deprecated_nft_test_5.ral",
+      "sourceCodeHash": "b930a68480efc1aed0c1bc3a87cde7def8f7713a2791767bc4a86b1615e8f357",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "65c9d8a07f42939e84b4ae2fdc94dbbe3545c8ddb0832df08ef69b3cab50ebe3",
+      "warnings": []
+    },
+    "DeprecatedNFTTest6": {
+      "sourceFile": "nft/deprecated_nft/deprecated_nft_test_6.ral",
+      "sourceCodeHash": "35bacdb8beeec7b92abaed91f396d49daff15515bdb883733515bfe0d12b8d3b",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "88822622be55e862a1759c4e0c02300da75fe9e3dbe73c8fbe0fa8714996629e",
       "warnings": []
     },
     "DestroyAdd": {

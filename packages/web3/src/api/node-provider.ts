@@ -28,7 +28,14 @@ import {
 } from './types'
 import { Api as NodeApi, CallContractFailed, CallContractSucceeded } from './api-alephium'
 import { HexString, tryGetCallResult } from '../contract'
-import { addressFromContractId, addressFromTokenId, groupOfAddress, hexToString } from '../utils'
+import {
+  addressFromContractId,
+  addressFromTokenId,
+  groupOfAddress,
+  hexToString,
+  isHexString,
+  toNonNegativeBigInt
+} from '../utils'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
@@ -137,12 +144,30 @@ export class NodeProvider implements NodeProviderApis {
     const collectionIndexResult = result.results[1]
     if (collectionIndexResult.type === 'CallContractSucceeded') {
       const successfulCollectionIndexResult = result.results[1] as CallContractSucceeded
+      const contractIdReturnResult = successfulCollectionIndexResult.returns[0]
+      if (contractIdReturnResult === undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
       const collectionId = successfulCollectionIndexResult.returns[0].value as any as string
+      if (collectionId === undefined || !isHexString(collectionId) || collectionId.length !== 64) {
+        throw new Error('Deprecated NFT contract')
+      }
+
       const nftIndexReturnResult = successfulCollectionIndexResult.returns[1]
       if (nftIndexReturnResult === undefined) {
         throw new Error('Deprecated NFT contract')
       }
-      const nftIndex = BigInt(nftIndexReturnResult.value as any as string)
+      const nftIndex = toNonNegativeBigInt(nftIndexReturnResult.value as any as string)
+      if (nftIndex === undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
+
+      // If there are more return values, it is also a deprecated NFT contract
+      const thirdResult = successfulCollectionIndexResult.returns[2]
+      if (thirdResult !== undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
+
       return { tokenUri, collectionId, nftIndex }
     } else {
       const failedCollectionIndexResult = result.results[1] as CallContractFailed

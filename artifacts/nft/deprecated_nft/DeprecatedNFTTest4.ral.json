@@ -1,16 +1,19 @@
 {
   "version": "v2.5.5",
-  "name": "DeprecatedNFTTest1",
-  "bytecode": "010109010000000102ce0002",
-  "codeHash": "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3",
+  "name": "DeprecatedNFTTest4",
+  "bytecode": "02020911010000000102ce01020100000001020402",
+  "codeHash": "d8f8650c15cc96211608a52ae7d43a15d7b28306ac13acec672c0f1ed02a0538",
   "fieldsSig": {
     "names": [
+      "collectionId",
       "uri"
     ],
     "types": [
+      "ByteVec",
       "ByteVec"
     ],
     "isMutable": [
+      false,
       false
     ]
   },
@@ -26,6 +29,18 @@
       "paramIsMutable": [],
       "returnTypes": [
         "ByteVec"
+      ]
+    },
+    {
+      "name": "getBool",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "Bool"
       ]
     }
   ],

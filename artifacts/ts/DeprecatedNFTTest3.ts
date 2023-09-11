@@ -24,11 +24,11 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as DeprecatedNFTTest2ContractJson } from "../nft/deprecated_nft/DeprecatedNFTTest2.ral.json";
+import { default as DeprecatedNFTTest3ContractJson } from "../nft/deprecated_nft/DeprecatedNFTTest3.ral.json";
 import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
-export namespace DeprecatedNFTTest2Types {
+export namespace DeprecatedNFTTest3Types {
   export type Fields = {
     collectionId: HexString;
     uri: HexString;
@@ -38,10 +38,6 @@ export namespace DeprecatedNFTTest2Types {
 
   export interface CallMethodTable {
     getTokenUri: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<HexString>;
-    };
-    getCollectionId: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<HexString>;
     };
@@ -61,89 +57,78 @@ export namespace DeprecatedNFTTest2Types {
 }
 
 class Factory extends ContractFactory<
-  DeprecatedNFTTest2Instance,
-  DeprecatedNFTTest2Types.Fields
+  DeprecatedNFTTest3Instance,
+  DeprecatedNFTTest3Types.Fields
 > {
   getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTest2Types.Fields;
+    return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTest3Types.Fields;
   }
 
-  at(address: string): DeprecatedNFTTest2Instance {
-    return new DeprecatedNFTTest2Instance(address);
+  at(address: string): DeprecatedNFTTest3Instance {
+    return new DeprecatedNFTTest3Instance(address);
   }
 
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest2Types.Fields, never>,
+        TestContractParams<DeprecatedNFTTest3Types.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResult<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
-    getCollectionId: async (
+    returnNothing: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest2Types.Fields, never>,
+        TestContractParams<DeprecatedNFTTest3Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
-      return testMethod(this, "getCollectionId", params);
+    ): Promise<TestContractResult<null>> => {
+      return testMethod(this, "returnNothing", params);
     },
   };
 }
 
 // Use this object to test and deploy the contract
-export const DeprecatedNFTTest2 = new Factory(
+export const DeprecatedNFTTest3 = new Factory(
   Contract.fromJson(
-    DeprecatedNFTTest2ContractJson,
+    DeprecatedNFTTest3ContractJson,
     "",
-    "c3e8a33252664e2f79903788d8abd79ee2c6785c580fa6911a0868436c59f59e"
+    "75181639c8575ce108d1ecb0b1b73a373a8652ffe6f5f6621d9f9eee5a0b2eb4"
   )
 );
 
 // Use this class to interact with the blockchain
-export class DeprecatedNFTTest2Instance extends ContractInstance {
+export class DeprecatedNFTTest3Instance extends ContractInstance {
   constructor(address: Address) {
     super(address);
   }
 
-  async fetchState(): Promise<DeprecatedNFTTest2Types.State> {
-    return fetchContractState(DeprecatedNFTTest2, this);
+  async fetchState(): Promise<DeprecatedNFTTest3Types.State> {
+    return fetchContractState(DeprecatedNFTTest3, this);
   }
 
   methods = {
     getTokenUri: async (
-      params?: DeprecatedNFTTest2Types.CallMethodParams<"getTokenUri">
-    ): Promise<DeprecatedNFTTest2Types.CallMethodResult<"getTokenUri">> => {
+      params?: DeprecatedNFTTest3Types.CallMethodParams<"getTokenUri">
+    ): Promise<DeprecatedNFTTest3Types.CallMethodResult<"getTokenUri">> => {
       return callMethod(
-        DeprecatedNFTTest2,
+        DeprecatedNFTTest3,
         this,
         "getTokenUri",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
     },
-    getCollectionId: async (
-      params?: DeprecatedNFTTest2Types.CallMethodParams<"getCollectionId">
-    ): Promise<DeprecatedNFTTest2Types.CallMethodResult<"getCollectionId">> => {
-      return callMethod(
-        DeprecatedNFTTest2,
-        this,
-        "getCollectionId",
-        params === undefined ? {} : params,
-        getContractByCodeHash
-      );
-    },
   };
 
-  async multicall<Calls extends DeprecatedNFTTest2Types.MultiCallParams>(
+  async multicall<Calls extends DeprecatedNFTTest3Types.MultiCallParams>(
     calls: Calls
-  ): Promise<DeprecatedNFTTest2Types.MultiCallResults<Calls>> {
+  ): Promise<DeprecatedNFTTest3Types.MultiCallResults<Calls>> {
     return (await multicallMethods(
-      DeprecatedNFTTest2,
+      DeprecatedNFTTest3,
       this,
       calls,
       getContractByCodeHash
-    )) as DeprecatedNFTTest2Types.MultiCallResults<Calls>;
+    )) as DeprecatedNFTTest3Types.MultiCallResults<Calls>;
   }
 }

@@ -1,0 +1,12 @@
+Contract DeprecatedNFTTest4(
+  @unused collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn getBool() -> Bool {
+    return false
+  }
+}

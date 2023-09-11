@@ -1,0 +1,12 @@
+Contract DeprecatedNFTTest5(
+  collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn returnMoreValues() -> (ByteVec, U256, U256) {
+    return collectionId, 0, 0
+  }
+}

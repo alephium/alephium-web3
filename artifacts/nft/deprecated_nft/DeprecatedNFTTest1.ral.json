@@ -1,0 +1,37 @@
+{
+  "version": "v2.5.5",
+  "name": "DeprecatedNFTTest1",
+  "bytecode": "020109010000000102ce0102",
+  "codeHash": "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b",
+  "fieldsSig": {
+    "names": [
+      "collectionId",
+      "uri"
+    ],
+    "types": [
+      "ByteVec",
+      "ByteVec"
+    ],
+    "isMutable": [
+      false,
+      false
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "getTokenUri",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "ByteVec"
+      ]
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

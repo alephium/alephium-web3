@@ -1,0 +1,12 @@
+Contract DeprecatedNFTTest6(
+  @unused collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn getArray() -> ([U256; 2]) {
+    return [0, 1]
+  }
+}

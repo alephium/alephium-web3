@@ -5,20 +5,24 @@
 import { Contract, ContractFactory } from "@alephium/web3";
 import {
   Add,
-  Greeter,
+  Assert,
+  Debug,
   DeprecatedNFTTest1,
   DeprecatedNFTTest2,
+  DeprecatedNFTTest3,
+  DeprecatedNFTTest4,
+  DeprecatedNFTTest5,
+  DeprecatedNFTTest6,
+  FakeTokenTest,
+  Greeter,
+  MetaData,
   NFTCollectionTest,
   NFTCollectionWithRoyaltyTest,
   NFTTest,
-  WrongNFTTest,
   Sub,
-  Assert,
-  Debug,
-  MetaData,
-  Warnings,
-  FakeTokenTest,
   TokenTest,
+  Warnings,
+  WrongNFTTest,
 } from ".";
 
 let contracts: ContractFactory<any>[] | undefined = undefined;
@@ -26,20 +30,24 @@ export function getContractByCodeHash(codeHash: string): Contract {
   if (contracts === undefined) {
     contracts = [
       Add,
-      Greeter,
+      Assert,
+      Debug,
       DeprecatedNFTTest1,
       DeprecatedNFTTest2,
+      DeprecatedNFTTest3,
+      DeprecatedNFTTest4,
+      DeprecatedNFTTest5,
+      DeprecatedNFTTest6,
+      FakeTokenTest,
+      Greeter,
+      MetaData,
       NFTCollectionTest,
       NFTCollectionWithRoyaltyTest,
       NFTTest,
-      WrongNFTTest,
       Sub,
-      Assert,
-      Debug,
-      MetaData,
-      Warnings,
-      FakeTokenTest,
       TokenTest,
+      Warnings,
+      WrongNFTTest,
     ];
   }
   const c = contracts.find(

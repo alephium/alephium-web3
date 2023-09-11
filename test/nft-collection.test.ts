@@ -25,16 +25,37 @@ import {
   encodeU256,
   ONE_ALPH,
   addressFromContractId,
-  hexToString
+  hexToString,
+  ContractFactory
 } from '@alephium/web3'
 import { NFTTest } from '../artifacts/ts/NFTTest'
-import { DeprecatedNFTTest1 } from '../artifacts/ts/DeprecatedNFTTest1'
 import { WrongNFTTest } from '../artifacts/ts/WrongNFTTest'
 import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NFTCollectionTest'
 import { MintNFTTest, WithdrawNFTCollectionTest } from '../artifacts/ts/scripts'
 import { getSigner, randomContractId } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { DeprecatedNFTTest2, NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
+import {
+  DeprecatedNFTTest1,
+  DeprecatedNFTTest1Instance,
+  DeprecatedNFTTest1Types,
+  DeprecatedNFTTest2,
+  DeprecatedNFTTest2Instance,
+  DeprecatedNFTTest2Types,
+  DeprecatedNFTTest3,
+  DeprecatedNFTTest3Instance,
+  DeprecatedNFTTest3Types,
+  DeprecatedNFTTest4,
+  DeprecatedNFTTest4Instance,
+  DeprecatedNFTTest4Types,
+  DeprecatedNFTTest5,
+  DeprecatedNFTTest5Instance,
+  DeprecatedNFTTest5Types,
+  DeprecatedNFTTest6,
+  DeprecatedNFTTest6Instance,
+  DeprecatedNFTTest6Types,
+  NFTCollectionWithRoyaltyTest,
+  NFTCollectionWithRoyaltyTestInstance
+} from '../artifacts/ts/'
 
 describe('nft collection', function () {
   let signer: PrivateKeyWallet
@@ -66,27 +87,12 @@ describe('nft collection', function () {
   it('should throw appropriate exception for deprecated and wrong NFT contract when fetching its Metadata', async () => {
     const uri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
 
-    const deprecatedNFTTest1 = (
-      await DeprecatedNFTTest1.deploy(signer, {
-        initialFields: { uri }
-      })
-    ).contractInstance
-
-    expect((await deprecatedNFTTest1.methods.getTokenUri()).returns).toEqual(uri)
-    await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest1.contractId)).rejects.toThrowError(
-      'Deprecated NFT contract'
-    )
-
-    const deprecatedNFTTest2 = (
-      await DeprecatedNFTTest2.deploy(signer, {
-        initialFields: { uri, collectionId: randomContractId() }
-      })
-    ).contractInstance
-
-    expect((await deprecatedNFTTest2.methods.getTokenUri()).returns).toEqual(uri)
-    await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest2.contractId)).rejects.toThrowError(
-      'Deprecated NFT contract'
-    )
+    await testDeprecatedNFT(uri, DeprecatedNFTTest1)
+    await testDeprecatedNFT(uri, DeprecatedNFTTest2)
+    await testDeprecatedNFT(uri, DeprecatedNFTTest3)
+    await testDeprecatedNFT(uri, DeprecatedNFTTest4)
+    await testDeprecatedNFT(uri, DeprecatedNFTTest5)
+    await testDeprecatedNFT(uri, DeprecatedNFTTest6)
 
     const wrongNFTTest = (
       await WrongNFTTest.deploy(signer, {
@@ -103,6 +109,28 @@ describe('nft collection', function () {
       'Failed to call contract, error: VM execution error'
     )
   })
+
+  async function testDeprecatedNFT(
+    uri: string,
+    deprecatedNFTContract:
+      | ContractFactory<DeprecatedNFTTest1Instance, DeprecatedNFTTest1Types.Fields>
+      | ContractFactory<DeprecatedNFTTest2Instance, DeprecatedNFTTest2Types.Fields>
+      | ContractFactory<DeprecatedNFTTest3Instance, DeprecatedNFTTest3Types.Fields>
+      | ContractFactory<DeprecatedNFTTest4Instance, DeprecatedNFTTest4Types.Fields>
+      | ContractFactory<DeprecatedNFTTest5Instance, DeprecatedNFTTest5Types.Fields>
+      | ContractFactory<DeprecatedNFTTest6Instance, DeprecatedNFTTest6Types.Fields>
+  ) {
+    const deprecatedNFTTest = (
+      await deprecatedNFTContract.deploy(signer, {
+        initialFields: { uri, collectionId: randomContractId() }
+      })
+    ).contractInstance
+
+    expect((await deprecatedNFTTest.methods.getTokenUri()).returns).toEqual(uri)
+    await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest.contractId)).rejects.toThrowError(
+      'Deprecated NFT contract'
+    )
+  }
 
   async function testNFTCollection(nftTemplateId: string, nftUri: string, royalty: boolean) {
     const rawCollectionUri = 'https://cryptopunks.app/cryptopunks'
