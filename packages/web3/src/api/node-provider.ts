@@ -138,7 +138,11 @@ export class NodeProvider implements NodeProviderApis {
     if (collectionIndexResult.type === 'CallContractSucceeded') {
       const successfulCollectionIndexResult = result.results[1] as CallContractSucceeded
       const collectionId = successfulCollectionIndexResult.returns[0].value as any as string
-      const nftIndex = BigInt(successfulCollectionIndexResult.returns[1].value as any as string)
+      const nftIndexReturnResult = successfulCollectionIndexResult.returns[1]
+      if (nftIndexReturnResult === undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
+      const nftIndex = BigInt(nftIndexReturnResult.value as any as string)
       return { tokenUri, collectionId, nftIndex }
     } else {
       const failedCollectionIndexResult = result.results[1] as CallContractFailed

@@ -28,13 +28,13 @@ import {
   hexToString
 } from '@alephium/web3'
 import { NFTTest } from '../artifacts/ts/NFTTest'
-import { DeprecatedNFTTest } from '../artifacts/ts/DeprecatedNFTTest'
+import { DeprecatedNFTTest1 } from '../artifacts/ts/DeprecatedNFTTest1'
 import { WrongNFTTest } from '../artifacts/ts/WrongNFTTest'
 import { NFTCollectionTest, NFTCollectionTestInstance } from '../artifacts/ts/NFTCollectionTest'
 import { MintNFTTest, WithdrawNFTCollectionTest } from '../artifacts/ts/scripts'
 import { getSigner, randomContractId } from '@alephium/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
+import { DeprecatedNFTTest2, NFTCollectionWithRoyaltyTest, NFTCollectionWithRoyaltyTestInstance } from '../artifacts/ts'
 
 describe('nft collection', function () {
   let signer: PrivateKeyWallet
@@ -65,14 +65,26 @@ describe('nft collection', function () {
 
   it('should throw appropriate exception for deprecated and wrong NFT contract when fetching its Metadata', async () => {
     const uri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
-    const deprecatedNFTTest = (
-      await DeprecatedNFTTest.deploy(signer, {
+
+    const deprecatedNFTTest1 = (
+      await DeprecatedNFTTest1.deploy(signer, {
         initialFields: { uri }
       })
     ).contractInstance
 
-    expect((await deprecatedNFTTest.methods.getTokenUri()).returns).toEqual(uri)
-    await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest.contractId)).rejects.toThrowError(
+    expect((await deprecatedNFTTest1.methods.getTokenUri()).returns).toEqual(uri)
+    await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest1.contractId)).rejects.toThrowError(
+      'Deprecated NFT contract'
+    )
+
+    const deprecatedNFTTest2 = (
+      await DeprecatedNFTTest2.deploy(signer, {
+        initialFields: { uri, collectionId: randomContractId() }
+      })
+    ).contractInstance
+
+    expect((await deprecatedNFTTest2.methods.getTokenUri()).returns).toEqual(uri)
+    await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest2.contractId)).rejects.toThrowError(
       'Deprecated NFT contract'
     )
 
