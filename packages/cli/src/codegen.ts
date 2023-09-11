@@ -429,7 +429,7 @@ function genScript(script: Script): string {
 function genScripts(outDir: string, artifactDir: string, exports: string[]) {
   exports.push('./scripts')
   const scriptPath = path.join(outDir, 'scripts.ts')
-  const scripts = Array.from(Project.currentProject.scripts.values())
+  const scripts = sortByName(Array.from(Project.currentProject.scripts.values()))
   const importArtifacts = Array.from(scripts)
     .map((s) => {
       const artifactPath = s.sourceInfo.getArtifactPath(artifactDir)
@@ -489,7 +489,7 @@ function genContractByCodeHash(outDir: string, contractNames: string[]) {
 }
 
 function genContracts(outDir: string, artifactDir: string, exports: string[]) {
-  Array.from(Project.currentProject.contracts.values()).forEach((c) => {
+  sortByName(Array.from(Project.currentProject.contracts.values())).forEach((c) => {
     console.log(`Generating code for contract ${c.artifact.name}`)
     exports.push(`./${c.artifact.name}`)
     const filename = `${c.artifact.name}.ts`
@@ -680,6 +680,10 @@ export async function genLoadDeployments(config: Configuration) {
 function formatAndSaveToFile(filepath: string, code: string) {
   const source = prettier.format(code, { parser: 'typescript' })
   fs.writeFileSync(path.resolve(filepath), source, 'utf8')
+}
+
+export function sortByName<T extends { artifact: { name: string } }>(artifacts: T[]): T[] {
+  return artifacts.sort((a, b) => (a.artifact.name > b.artifact.name ? 1 : -1))
 }
 
 export function codegen(artifactDir: string) {
