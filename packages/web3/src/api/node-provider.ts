@@ -26,9 +26,16 @@ import {
   NFTCollectionMetaData,
   StdInterfaceIds
 } from './types'
-import { Api as NodeApi } from './api-alephium'
+import { Api as NodeApi, CallContractFailed, CallContractSucceeded } from './api-alephium'
 import { HexString, tryGetCallResult } from '../contract'
-import { addressFromContractId, addressFromTokenId, groupOfAddress, hexToString } from '../utils'
+import {
+  addressFromContractId,
+  addressFromTokenId,
+  groupOfAddress,
+  hexToString,
+  isHexString,
+  toNonNegativeBigInt
+} from '../utils'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
@@ -129,9 +136,46 @@ export class NodeProvider implements NodeProviderApis {
   fetchNFTMetaData = async (tokenId: HexString): Promise<NFTMetaData> => {
     const address = addressFromTokenId(tokenId)
     const group = groupOfAddress(address)
-    const result = await this.contracts.postContractsCallContract({ methodIndex: 0, group, address })
-    return {
-      tokenUri: hexToString(tryGetCallResult(result).returns[0].value as any as string)
+    const calls = Array.from([0, 1], (index) => ({ methodIndex: index, group: group, address: address }))
+    const result = await this.contracts.postContractsMulticallContract({
+      calls: calls
+    })
+    const tokenUri = hexToString(tryGetCallResult(result.results[0]).returns[0].value as any as string)
+    const collectionIndexResult = result.results[1]
+    if (collectionIndexResult.type === 'CallContractSucceeded') {
+      const successfulCollectionIndexResult = result.results[1] as CallContractSucceeded
+      const contractIdReturnResult = successfulCollectionIndexResult.returns[0]
+      if (contractIdReturnResult === undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
+      const collectionId = successfulCollectionIndexResult.returns[0].value as any as string
+      if (collectionId === undefined || !isHexString(collectionId) || collectionId.length !== 64) {
+        throw new Error('Deprecated NFT contract')
+      }
+
+      const nftIndexReturnResult = successfulCollectionIndexResult.returns[1]
+      if (nftIndexReturnResult === undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
+      const nftIndex = toNonNegativeBigInt(nftIndexReturnResult.value as any as string)
+      if (nftIndex === undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
+
+      // If there are more return values, it is also a deprecated NFT contract
+      const thirdResult = successfulCollectionIndexResult.returns[2]
+      if (thirdResult !== undefined) {
+        throw new Error('Deprecated NFT contract')
+      }
+
+      return { tokenUri, collectionId, nftIndex }
+    } else {
+      const failedCollectionIndexResult = result.results[1] as CallContractFailed
+      if (failedCollectionIndexResult.error.startsWith('VM execution error: InvalidMethodIndex')) {
+        throw new Error('Deprecated NFT contract')
+      } else {
+        throw new Error(`Failed to call contract, error: ${failedCollectionIndexResult.error}`)
+      }
     }
   }
 

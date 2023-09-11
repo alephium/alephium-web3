@@ -7,6 +7,13 @@ import {
   Add,
   Assert,
   Debug,
+  DeprecatedNFTTest1,
+  DeprecatedNFTTest2,
+  DeprecatedNFTTest3,
+  DeprecatedNFTTest4,
+  DeprecatedNFTTest5,
+  DeprecatedNFTTest6,
+  DeprecatedNFTTest7,
   FakeTokenTest,
   Greeter,
   MetaData,
@@ -16,6 +23,7 @@ import {
   Sub,
   TokenTest,
   Warnings,
+  WrongNFTTest,
 } from ".";
 
 let contracts: ContractFactory<any>[] | undefined = undefined;
@@ -25,6 +33,13 @@ export function getContractByCodeHash(codeHash: string): Contract {
       Add,
       Assert,
       Debug,
+      DeprecatedNFTTest1,
+      DeprecatedNFTTest2,
+      DeprecatedNFTTest3,
+      DeprecatedNFTTest4,
+      DeprecatedNFTTest5,
+      DeprecatedNFTTest6,
+      DeprecatedNFTTest7,
       FakeTokenTest,
       Greeter,
       MetaData,
@@ -34,6 +49,7 @@ export function getContractByCodeHash(codeHash: string): Contract {
       Sub,
       TokenTest,
       Warnings,
+      WrongNFTTest,
     ];
   }
   const c = contracts.find(

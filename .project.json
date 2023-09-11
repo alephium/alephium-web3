@@ -35,6 +35,57 @@
       "codeHashDebug": "0ffc72054e3668c8933e53c892947dea1963c0c24cc006a4fb0aa028c13a7e13",
       "warnings": []
     },
+    "DeprecatedNFTTest1": {
+      "sourceFile": "nft/deprecated_nft.ral",
+      "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b",
+      "warnings": []
+    },
+    "DeprecatedNFTTest2": {
+      "sourceFile": "nft/deprecated_nft.ral",
+      "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "c3e8a33252664e2f79903788d8abd79ee2c6785c580fa6911a0868436c59f59e",
+      "warnings": []
+    },
+    "DeprecatedNFTTest3": {
+      "sourceFile": "nft/deprecated_nft.ral",
+      "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "75181639c8575ce108d1ecb0b1b73a373a8652ffe6f5f6621d9f9eee5a0b2eb4",
+      "warnings": [
+        "Found unused fields in DeprecatedNFTTest3: collectionId"
+      ]
+    },
+    "DeprecatedNFTTest4": {
+      "sourceFile": "nft/deprecated_nft.ral",
+      "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "d8f8650c15cc96211608a52ae7d43a15d7b28306ac13acec672c0f1ed02a0538",
+      "warnings": []
+    },
+    "DeprecatedNFTTest5": {
+      "sourceFile": "nft/deprecated_nft.ral",
+      "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "65c9d8a07f42939e84b4ae2fdc94dbbe3545c8ddb0832df08ef69b3cab50ebe3",
+      "warnings": []
+    },
+    "DeprecatedNFTTest6": {
+      "sourceFile": "nft/deprecated_nft.ral",
+      "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "88822622be55e862a1759c4e0c02300da75fe9e3dbe73c8fbe0fa8714996629e",
+      "warnings": []
+    },
+    "DeprecatedNFTTest7": {
+      "sourceFile": "nft/deprecated_nft.ral",
+      "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "33ddc42a153c6b9940924d989dcd107d7ff234ecbe9c494ece35ed06bd24450d",
+      "warnings": []
+    },
     "DestroyAdd": {
       "sourceFile": "add/destroy_add.ral",
       "sourceCodeHash": "dbddae3cd53736478c299026ac67683909fcc04d036f98ce6dc72af7d92a4835",
@@ -86,14 +137,14 @@
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
-      "sourceCodeHash": "1fefa4eb581554fa2b7b083b0eb232c787c101e67e2eeedd6d518bb0c8b93a2d",
+      "sourceCodeHash": "7f7514adf9fee057049d1c162701725b3377c01a0a102e6f0f5cf747039926b6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
-      "sourceCodeHash": "b0a6daba940a30282122145d56ebed0ba133ad885f5c6339ebdb8f35fe7c53e5",
+      "sourceCodeHash": "738a3440b686d94c9f7db58f23e22b7512d229540392b426ecb190b82db3fb4f",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -134,14 +185,14 @@
       "sourceFile": "nft/nft_collection_test.ral",
       "sourceCodeHash": "ac1d8da86e8cb3e5c412c463d7cf0376db563d9cbc459eb034d3067dcaa2045e",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "62a74b8496ee1693de16f2d67d5b3ba3273e3a04cb59aec3a24c1ae5a51c2e0c",
+      "codeHashDebug": "c84f4fd5d3fdee90b3421174c85011437a10c6f440e0c261b1f69ff77bc5ab70",
       "warnings": [
         "No external caller check for function \"NFTCollectionTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "NFTCollectionTestBase": {
       "sourceFile": "nft/nft_collection_test_base.ral",
-      "sourceCodeHash": "bd7e9ef029b957c87b096c22075318ce9a5eb299fc178e60717163cef555d438",
+      "sourceCodeHash": "60406d258606a398d4fd9b8e233fa2ddf08dc111fae040be0f43c60a4cd77dcc",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -150,16 +201,16 @@
       "sourceFile": "nft/nft_collection_with_royalty_test.ral",
       "sourceCodeHash": "797c82a70c622eb1c8b06a1aade4e44050e9f198afd0496231b61c7cb7c4b1c7",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "20a954c393c53be16870624398a07c18985c0495f0ccb37848ec920bbea742cc",
+      "codeHashDebug": "1c162da87d31289c9b392bd48767386336bb1d208101a8680d92b7dc74098ce0",
       "warnings": [
         "No external caller check for function \"NFTCollectionWithRoyaltyTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "NFTTest": {
       "sourceFile": "nft/nft_test.ral",
-      "sourceCodeHash": "f1918b2d68dd1c03ed42738c0a7b91d93cfa9c50b4e44b5bd80b333ee4635bde",
+      "sourceCodeHash": "ddcc7fedd2dcbce030a9428f5560deb53124688f9cee396433192700131ed73f",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "c654f89a813259b6e270c8cf609200907f0824755bb394b00d8b151c3fddf95f",
+      "codeHashDebug": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
       "warnings": []
     },
     "Sub": {
@@ -192,6 +243,13 @@
       "sourceCodeHash": "b06eed2252a147738da24c9098452123c444d325f8de4d6134d10fea92b3ee45",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
+      "warnings": []
+    },
+    "WrongNFTTest": {
+      "sourceFile": "nft/wrong_nft_test.ral",
+      "sourceCodeHash": "7d7c2d3ba4c523554010c80d06c1d3a4213546d450838e6a0effc50a31b6599c",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "7dd2ed643a98b2a1a52a9b9e536fcdae60d961b583b8109f777d846bfdfcae8d",
       "warnings": []
     }
   }

@@ -1,6 +1,6 @@
 import "std/nft_interface"
 
-Contract NFTTest(
+Contract WrongNFTTest(
   collectionId: ByteVec,
   nftIndex: U256,
   uri: ByteVec
@@ -10,6 +10,7 @@ Contract NFTTest(
   }
 
   pub fn getCollectionIndex() -> (ByteVec, U256) {
+    assert!(false, 0)
     return collectionId, nftIndex
   }
 }

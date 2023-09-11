@@ -24,14 +24,12 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
+import { default as DeprecatedNFTTestContractJson } from "../nft/DeprecatedNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
-export namespace NFTTestTypes {
+export namespace DeprecatedNFTTestTypes {
   export type Fields = {
-    collectionId: HexString;
-    nftIndex: bigint;
     uri: HexString;
   };
 
@@ -41,10 +39,6 @@ export namespace NFTTestTypes {
     getTokenUri: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<HexString>;
-    };
-    getCollectionIndex: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<[HexString, bigint]>;
     };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
@@ -61,81 +55,71 @@ export namespace NFTTestTypes {
   };
 }
 
-class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
+class Factory extends ContractFactory<
+  DeprecatedNFTTestInstance,
+  DeprecatedNFTTestTypes.Fields
+> {
   getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as NFTTestTypes.Fields;
+    return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTestTypes.Fields;
   }
 
-  at(address: string): NFTTestInstance {
-    return new NFTTestInstance(address);
+  at(address: string): DeprecatedNFTTestInstance {
+    return new DeprecatedNFTTestInstance(address);
   }
 
   tests = {
     getTokenUri: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<DeprecatedNFTTestTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<HexString>> => {
       return testMethod(this, "getTokenUri", params);
-    },
-    getCollectionIndex: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<[HexString, bigint]>> => {
-      return testMethod(this, "getCollectionIndex", params);
     },
   };
 }
 
 // Use this object to test and deploy the contract
-export const NFTTest = new Factory(
+export const DeprecatedNFTTest = new Factory(
   Contract.fromJson(
-    NFTTestContractJson,
+    DeprecatedNFTTestContractJson,
     "",
-    "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1"
+    "e4ac1069a1aea968d177741c290e109285ba3771c8df9c94e07d80d328a4c0c3"
   )
 );
 
 // Use this class to interact with the blockchain
-export class NFTTestInstance extends ContractInstance {
+export class DeprecatedNFTTestInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
   }
 
-  async fetchState(): Promise<NFTTestTypes.State> {
-    return fetchContractState(NFTTest, this);
+  async fetchState(): Promise<DeprecatedNFTTestTypes.State> {
+    return fetchContractState(DeprecatedNFTTest, this);
   }
 
   methods = {
     getTokenUri: async (
-      params?: NFTTestTypes.CallMethodParams<"getTokenUri">
-    ): Promise<NFTTestTypes.CallMethodResult<"getTokenUri">> => {
+      params?: DeprecatedNFTTestTypes.CallMethodParams<"getTokenUri">
+    ): Promise<DeprecatedNFTTestTypes.CallMethodResult<"getTokenUri">> => {
       return callMethod(
-        NFTTest,
+        DeprecatedNFTTest,
         this,
         "getTokenUri",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
     },
-    getCollectionIndex: async (
-      params?: NFTTestTypes.CallMethodParams<"getCollectionIndex">
-    ): Promise<NFTTestTypes.CallMethodResult<"getCollectionIndex">> => {
-      return callMethod(
-        NFTTest,
-        this,
-        "getCollectionIndex",
-        params === undefined ? {} : params,
-        getContractByCodeHash
-      );
-    },
   };
 
-  async multicall<Calls extends NFTTestTypes.MultiCallParams>(
+  async multicall<Calls extends DeprecatedNFTTestTypes.MultiCallParams>(
     calls: Calls
-  ): Promise<NFTTestTypes.MultiCallResults<Calls>> {
+  ): Promise<DeprecatedNFTTestTypes.MultiCallResults<Calls>> {
     return (await multicallMethods(
-      NFTTest,
+      DeprecatedNFTTest,
       this,
       calls,
       getContractByCodeHash
-    )) as NFTTestTypes.MultiCallResults<Calls>;
+    )) as DeprecatedNFTTestTypes.MultiCallResults<Calls>;
   }
 }

@@ -24,11 +24,11 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
+import { default as WrongNFTTestContractJson } from "../nft/WrongNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
-export namespace NFTTestTypes {
+export namespace WrongNFTTestTypes {
   export type Fields = {
     collectionId: HexString;
     nftIndex: bigint;
@@ -61,23 +61,32 @@ export namespace NFTTestTypes {
   };
 }
 
-class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
+class Factory extends ContractFactory<
+  WrongNFTTestInstance,
+  WrongNFTTestTypes.Fields
+> {
   getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as NFTTestTypes.Fields;
+    return this.contract.getInitialFieldsWithDefaultValues() as WrongNFTTestTypes.Fields;
   }
 
-  at(address: string): NFTTestInstance {
-    return new NFTTestInstance(address);
+  at(address: string): WrongNFTTestInstance {
+    return new WrongNFTTestInstance(address);
   }
 
   tests = {
     getTokenUri: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<WrongNFTTestTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
     getCollectionIndex: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<WrongNFTTestTypes.Fields, never>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<[HexString, bigint]>> => {
       return testMethod(this, "getCollectionIndex", params);
     },
@@ -85,30 +94,30 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
 }
 
 // Use this object to test and deploy the contract
-export const NFTTest = new Factory(
+export const WrongNFTTest = new Factory(
   Contract.fromJson(
-    NFTTestContractJson,
+    WrongNFTTestContractJson,
     "",
-    "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1"
+    "7dd2ed643a98b2a1a52a9b9e536fcdae60d961b583b8109f777d846bfdfcae8d"
   )
 );
 
 // Use this class to interact with the blockchain
-export class NFTTestInstance extends ContractInstance {
+export class WrongNFTTestInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
   }
 
-  async fetchState(): Promise<NFTTestTypes.State> {
-    return fetchContractState(NFTTest, this);
+  async fetchState(): Promise<WrongNFTTestTypes.State> {
+    return fetchContractState(WrongNFTTest, this);
   }
 
   methods = {
     getTokenUri: async (
-      params?: NFTTestTypes.CallMethodParams<"getTokenUri">
-    ): Promise<NFTTestTypes.CallMethodResult<"getTokenUri">> => {
+      params?: WrongNFTTestTypes.CallMethodParams<"getTokenUri">
+    ): Promise<WrongNFTTestTypes.CallMethodResult<"getTokenUri">> => {
       return callMethod(
-        NFTTest,
+        WrongNFTTest,
         this,
         "getTokenUri",
         params === undefined ? {} : params,
@@ -116,10 +125,10 @@ export class NFTTestInstance extends ContractInstance {
       );
     },
     getCollectionIndex: async (
-      params?: NFTTestTypes.CallMethodParams<"getCollectionIndex">
-    ): Promise<NFTTestTypes.CallMethodResult<"getCollectionIndex">> => {
+      params?: WrongNFTTestTypes.CallMethodParams<"getCollectionIndex">
+    ): Promise<WrongNFTTestTypes.CallMethodResult<"getCollectionIndex">> => {
       return callMethod(
-        NFTTest,
+        WrongNFTTest,
         this,
         "getCollectionIndex",
         params === undefined ? {} : params,
@@ -128,14 +137,14 @@ export class NFTTestInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends NFTTestTypes.MultiCallParams>(
+  async multicall<Calls extends WrongNFTTestTypes.MultiCallParams>(
     calls: Calls
-  ): Promise<NFTTestTypes.MultiCallResults<Calls>> {
+  ): Promise<WrongNFTTestTypes.MultiCallResults<Calls>> {
     return (await multicallMethods(
-      NFTTest,
+      WrongNFTTest,
       this,
       calls,
       getContractByCodeHash
-    )) as NFTTestTypes.MultiCallResults<Calls>;
+    )) as WrongNFTTestTypes.MultiCallResults<Calls>;
   }
 }

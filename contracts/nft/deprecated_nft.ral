@@ -1,0 +1,85 @@
+Contract DeprecatedNFTTest1(
+  @unused collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+}
+
+Contract DeprecatedNFTTest2(
+  collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn getCollectionId() -> ByteVec {
+    return collectionId
+  }
+}
+
+Contract DeprecatedNFTTest3(
+  collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn returnNothing() -> () {
+  }
+}
+
+Contract DeprecatedNFTTest4(
+  @unused collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn getBool() -> Bool {
+    return false
+  }
+}
+
+Contract DeprecatedNFTTest5(
+  collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn returnMoreValues() -> (ByteVec, U256, U256) {
+    return collectionId, 0, 0
+  }
+}
+
+Contract DeprecatedNFTTest6(
+  @unused collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn getArray() -> ([U256; 2]) {
+    return [0, 1]
+  }
+}
+
+Contract DeprecatedNFTTest7(
+  collectionId: ByteVec,
+  uri: ByteVec
+) {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn returnNegativeIndex() -> (ByteVec, I256) {
+    return collectionId, -1
+  }
+}

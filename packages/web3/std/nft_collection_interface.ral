@@ -26,4 +26,7 @@ Interface INFTCollection {
    pub fn totalSupply() -> U256
 
    pub fn nftByIndex(index: U256) -> INFT
+
+   // Validates that the NFT is part of the collection, otherwise throws exception.
+   pub fn validateNFT(nftId: ByteVec, nftIndex: U256) -> ()
 }

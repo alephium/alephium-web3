@@ -1,24 +1,18 @@
 {
   "version": "v2.5.5",
-  "name": "NFTTest",
-  "bytecode": "04020914010000000102ce0202010000000203ce00ce0102",
-  "codeHash": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
+  "name": "DeprecatedNFTTest2",
+  "bytecode": "02020912010000000102ce0102010000000102ce0002",
+  "codeHash": "c3e8a33252664e2f79903788d8abd79ee2c6785c580fa6911a0868436c59f59e",
   "fieldsSig": {
     "names": [
       "collectionId",
-      "nftIndex",
-      "uri",
-      "__stdInterfaceId"
+      "uri"
     ],
     "types": [
-      "ByteVec",
-      "U256",
       "ByteVec",
       "ByteVec"
     ],
     "isMutable": [
-      false,
-      false,
       false,
       false
     ]
@@ -38,7 +32,7 @@
       ]
     },
     {
-      "name": "getCollectionIndex",
+      "name": "getCollectionId",
       "usePreapprovedAssets": false,
       "useAssetsInContract": false,
       "isPublic": true,
@@ -46,12 +40,10 @@
       "paramTypes": [],
       "paramIsMutable": [],
       "returnTypes": [
-        "ByteVec",
-        "U256"
+        "ByteVec"
       ]
     }
   ],
   "constants": [],
-  "enums": [],
-  "stdInterfaceId": "0003"
+  "enums": []
 }
