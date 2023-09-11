@@ -1,8 +1,0 @@
-Contract DeprecatedNFTTest1(
-  @unused collectionId: ByteVec,
-  uri: ByteVec
-) {
-  pub fn getTokenUri() -> ByteVec {
-    return uri
-  }
-}

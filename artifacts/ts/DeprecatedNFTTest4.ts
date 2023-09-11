@@ -24,7 +24,7 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { default as DeprecatedNFTTest4ContractJson } from "../nft/deprecated_nft/DeprecatedNFTTest4.ral.json";
+import { default as DeprecatedNFTTest4ContractJson } from "../nft/DeprecatedNFTTest4.ral.json";
 import { getContractByCodeHash } from "./contracts";
 
 // Custom types for the contract
