@@ -132,24 +132,8 @@ export class WalletConnectProvider extends SignerProvider {
       this.updateNamespace(this.session.namespaces)
     } else {
       this.updateNamespace(this.session.namespaces)
-      await this.ping(this.session.topic)
+      await this.client.ping({ topic: this.session.topic })
     }
-  }
-
-  private async ping(topic: string) {
-    return await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Timeout')), 5 * 1000)
-      this.client
-        .ping({ topic })
-        .then((result) => {
-          clearTimeout(timeout)
-          resolve(result)
-        })
-        .catch((err) => {
-          clearTimeout(timeout)
-          reject(err)
-        })
-    })
   }
 
   public async disconnect(): Promise<void> {
