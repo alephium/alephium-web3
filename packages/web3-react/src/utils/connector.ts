@@ -20,11 +20,10 @@ import { Account, NetworkId, SignerProvider, KeyType } from '@alephium/web3'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
 import QRCodeModal from '@walletconnect/qrcode-modal'
 import { AlephiumWindowObject, getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { setLastConnectedAccount } from './storage'
+import { getLastConnectedAccount, setLastConnectedAccount } from './storage'
 import { ConnectorId } from '../types'
 
 const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
-const AUTO_CONNECT_TIMEOUT = 5 * 1000
 
 export type ConnectResult = {
   account: Account
@@ -88,7 +87,7 @@ const wcAutoConnect = async (options: ConnectOptions, connectorId: ConnectorId):
     if (!isPreauthorized) {
       return undefined
     }
-    await timeout(wcProvider.connect(), AUTO_CONNECT_TIMEOUT)
+    await wcProvider.connect()
     if (wcProvider.account) {
       await options.onConnected({ account: wcProvider.account, signerProvider: wcProvider })
       setLastConnectedAccount(connectorId, wcProvider.account, options.network)
@@ -143,13 +142,7 @@ const injectedDisconnect = async (signerProvider: SignerProvider): Promise<void>
 const injectedAutoConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
   try {
     const windowAlephium = await getDefaultAlephiumWallet()
-    if (windowAlephium === undefined) {
-      throw new Error('Extension wallet not found')
-    }
-    const enabledAccount = await timeout(
-      windowAlephium.enableIfConnected({ ...options, networkId: options.network }),
-      AUTO_CONNECT_TIMEOUT
-    )
+    const enabledAccount = await windowAlephium?.enableIfConnected({ ...options, networkId: options.network })
 
     if (windowAlephium && enabledAccount) {
       await options.onConnected({ account: enabledAccount, signerProvider: windowAlephium })
@@ -184,19 +177,4 @@ const connectors: Record<ConnectorId, Connector> = {
 
 export function getConnectorById(connectorId: ConnectorId) {
   return connectors[`${connectorId}`]
-}
-
-function timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Timeout')), ms)
-    promise
-      .then((account) => {
-        clearTimeout(timer)
-        resolve(account)
-      })
-      .catch((err) => {
-        clearTimeout(timer)
-        reject(err)
-      })
-  })
 }
