@@ -291,16 +291,16 @@ export enum StdInterfaceIds {
 }
 
 export interface FungibleTokenMetaData {
-  name: string
   symbol: string
+  name: string
   decimals: number
   totalSupply: Number256
 }
 
 export interface NFTMetaData {
+  tokenUri: string
   collectionId: string
   nftIndex: Number256
-  tokenUri: string
 }
 
 export interface NFTCollectionMetaData {
