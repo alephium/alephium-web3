@@ -214,6 +214,9 @@ describe('contract', function () {
     const result = await Greeter.deploy(signer, { initialFields })
     const state = await result.contractInstance.fetchState()
     expect(state.fields).toEqual(initialFields)
+
+    const tokenInitialFields = TokenTest.getInitialFieldsWithDefaultValues()
+    expect(tokenInitialFields).toEqual({ symbol: '', name: '', decimals: 0n, totalSupply: 0n })
   })
 
   function loadJson(fileName: string) {

@@ -850,9 +850,9 @@ export class Contract extends Artifact {
       this.stdInterfaceId === undefined
         ? this.fieldsSig
         : {
-            names: this.fieldsSig.names.slice(-1),
-            types: this.fieldsSig.types.slice(-1),
-            isMutable: this.fieldsSig.isMutable.slice(-1)
+            names: this.fieldsSig.names.slice(0, -1),
+            types: this.fieldsSig.types.slice(0, -1),
+            isMutable: this.fieldsSig.isMutable.slice(0, -1)
           }
     return fields.names.reduce((acc, key, index) => {
       acc[`${key}`] = getDefaultValue(fields.types[`${index}`])
