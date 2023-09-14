@@ -147,6 +147,8 @@ export interface Deployer {
 
   getDeployContractResult(name: string): DeployContractExecutionResult
   getRunScriptResult(name: string): RunScriptResult
+
+  getDeployContractResultFromGroup(name: string, group: number): DeployContractExecutionResult
 }
 
 export interface DeployFunction<Settings = unknown> {

@@ -298,6 +298,7 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
 function createDeployer<Settings = unknown>(
   network: Network<Settings>,
   signer: PrivateKeyWallet,
+  allDeployments: Deployments,
   deployContractResults: Map<string, DeployContractExecutionResult>,
   runScriptResults: Map<string, RunScriptResult>,
   requestInterval: number
@@ -424,13 +425,26 @@ function createDeployer<Settings = unknown>(
     return result
   }
 
+  const getDeployContractResultFromGroup = (name: string, group: number): DeployContractExecutionResult => {
+    const deployments = allDeployments.deployments.find((d) => groupOfAddress(d.deployerAddress) === group)
+    if (deployments === undefined) {
+      throw new Error(`Deployment result of contract "${name}" does not exist in group ${group}`)
+    }
+    const result = deployments.contracts.get(name)
+    if (result === undefined) {
+      throw new Error(`Deployment result of contract "${name}" does not exist in group ${group}`)
+    }
+    return result
+  }
+
   return {
     provider: web3.getCurrentNodeProvider(),
     account: account,
     deployContract: deployContract,
     runScript: runScript,
     getDeployContractResult: getDeployContractResult,
-    getRunScriptResult: getRunScriptResult
+    getRunScriptResult: getRunScriptResult,
+    getDeployContractResultFromGroup
   }
 }
 
@@ -568,7 +582,7 @@ export async function deploy<Settings = unknown>(
     const deploymentsPerAddress =
       deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
     deployments.add(deploymentsPerAddress)
-    await deployToGroup(networkId, configuration, deploymentsPerAddress, signer, network, scripts)
+    await deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, network, scripts)
   }
   return true
 }
@@ -583,13 +597,21 @@ export async function deployToDevnet(): Promise<Deployments> {
 async function deployToGroup<Settings = unknown>(
   networkId: NetworkId,
   configuration: Configuration<Settings>,
+  allDeployments: Deployments,
   deployments: DeploymentsPerAddress,
   signer: PrivateKeyWallet,
   network: Network<Settings>,
   scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
 ) {
   const requestInterval = networkId === 'devnet' ? 1000 : 10000
-  const deployer = createDeployer(network, signer, deployments.contracts, deployments.scripts, requestInterval)
+  const deployer = createDeployer(
+    network,
+    signer,
+    allDeployments,
+    deployments.contracts,
+    deployments.scripts,
+    requestInterval
+  )
 
   for (const script of scripts) {
     try {
