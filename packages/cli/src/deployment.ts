@@ -35,7 +35,8 @@ import {
   NetworkId,
   ContractInstance,
   ExecutableScript,
-  ProjectArtifact
+  ProjectArtifact,
+  isHexString
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -484,11 +485,17 @@ async function validateChainParams(networkId: number, groups: number[]): Promise
   }
 }
 
-export function validatePrivateKeys(privateKeys: string[]): PrivateKeyWallet[] {
-  if (privateKeys.length === 0) {
+export function validatePrivateKeys(privateKeys: string[] | string): PrivateKeyWallet[] {
+  const pks = typeof privateKeys === 'string' ? privateKeys.split(',') : privateKeys
+  if (pks.length === 0 || privateKeys === '') {
     throw new Error('No private key specified')
   }
-  const signers = privateKeys.map((privateKey) => new PrivateKeyWallet({ privateKey }))
+  const signers = pks.map((privateKey, index) => {
+    if (isHexString(privateKey) && privateKey.length === 64) {
+      return new PrivateKeyWallet({ privateKey })
+    }
+    throw new Error(`Invalid private key at index ${index}, expected a hex-string of length 64`)
+  })
   const groups = signers.map((signer) => signer.group)
   const sameGroups = groups.filter((group, index) => groups.indexOf(group) !== index)
   if (sameGroups.length > 0) {
