@@ -578,18 +578,25 @@ export async function deploy<Settings = unknown>(
     signers.map((signer) => signer.group)
   )
 
-  for (const signer of signers) {
+  const promises = signers.map((signer) => {
     const deploymentsPerAddress =
       deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
     deployments.add(deploymentsPerAddress)
-    await deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, network, scripts)
-  }
+    return deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, network, scripts)
+  })
+  const results = await Promise.allSettled(promises)
+  results.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      const group = signers[`${index}`].group
+      throw new Error(`failed to deploy to group ${group}, error: ${result.reason}`)
+    }
+  })
   return true
 }
 
 export async function deployToDevnet(): Promise<Deployments> {
   const deployments = Deployments.empty()
-  const configuration = await loadConfig(getConfigFile())
+  const configuration = loadConfig(getConfigFile())
   await deploy(configuration, 'devnet', deployments)
   return deployments
 }
