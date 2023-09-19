@@ -578,20 +578,59 @@ export async function deploy<Settings = unknown>(
     signers.map((signer) => signer.group)
   )
 
+  const inParallel =
+    configuration.deployToMultipleGroupsInParallel ?? DEFAULT_CONFIGURATION_VALUES.deployToMultipleGroupsInParallel
+  if (inParallel && signers.length > 1) {
+    await deployInParallel(signers, deployments, networkId, configuration, network, scripts)
+  } else {
+    await deployInSequential(signers, deployments, networkId, configuration, network, scripts)
+  }
+  return true
+}
+
+async function deployInSequential<Settings = unknown>(
+  signers: PrivateKeyWallet[],
+  deployments: Deployments,
+  networkId: NetworkId,
+  configuration: Configuration<Settings>,
+  networkSettings: Network<Settings>,
+  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
+) {
+  for (const signer of signers) {
+    const deploymentsPerAddress =
+      deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
+    deployments.add(deploymentsPerAddress)
+    await deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, networkSettings, scripts)
+  }
+}
+
+async function deployInParallel<Settings = unknown>(
+  signers: PrivateKeyWallet[],
+  deployments: Deployments,
+  networkId: NetworkId,
+  configuration: Configuration<Settings>,
+  networkSettings: Network<Settings>,
+  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
+) {
   const promises = signers.map((signer) => {
     const deploymentsPerAddress =
       deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
     deployments.add(deploymentsPerAddress)
-    return deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, network, scripts)
+    return deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, networkSettings, scripts)
   })
   const results = await Promise.allSettled(promises)
-  results.forEach((result, index) => {
-    if (result.status === 'rejected') {
-      const group = signers[`${index}`].group
-      throw new Error(`failed to deploy to group ${group}, error: ${result.reason}`)
-    }
-  })
-  return true
+  const rejected = results
+    .map((result, index) => ({ result, index }))
+    .filter((v) => v.result.status === 'rejected') as { result: PromiseRejectedResult; index: number }[]
+  if (rejected.length !== 0) {
+    const errorMsg = rejected
+      .map((v) => {
+        const group = signers[v.index].group
+        return `failed to deploy to group ${group}, reason: ${v.result.reason}`
+      })
+      .join('\n')
+    throw new Error(errorMsg)
+  }
 }
 
 export async function deployToDevnet(): Promise<Deployments> {
