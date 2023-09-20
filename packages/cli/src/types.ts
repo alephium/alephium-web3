@@ -54,6 +54,7 @@ export interface Configuration<Settings = unknown> {
   sourceDir?: string
   artifactDir?: string
 
+  deployToMultipleGroupsInParallel?: boolean
   deploymentScriptDir?: string
   compilerOptions?: CompilerOptions
 
@@ -66,6 +67,7 @@ export const DEFAULT_CONFIGURATION_VALUES = {
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
   compilerOptions: DEFAULT_COMPILER_OPTIONS,
+  deployToMultipleGroupsInParallel: true,
   deploymentScriptDir: 'scripts',
   networkId: 'devnet' as const,
   networks: {
