@@ -30,8 +30,6 @@ import {
   web3,
   Project,
   DEFAULT_COMPILER_OPTIONS,
-  SignerProvider,
-  Script,
   NetworkId,
   ContractInstance
 } from '@alephium/web3'
@@ -41,7 +39,7 @@ import path from 'path'
 export interface Network<Settings = unknown> {
   networkId?: number
   nodeUrl: string
-  privateKeys: string[]
+  privateKeys: string[] | string
   deploymentStatusFile?: string
   confirmations?: number
   settings: Settings

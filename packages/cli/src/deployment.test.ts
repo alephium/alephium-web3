@@ -18,7 +18,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Deployments, DeploymentsPerAddress, recordEqual, validatePrivateKeys } from './deployment'
-import { NodeProvider } from '@alephium/web3'
 import { web3 } from '@alephium/web3'
 
 describe('deployments', () => {
@@ -65,14 +64,25 @@ describe('deployments', () => {
   it('should validate private keys', () => {
     web3.setCurrentNodeProvider('http://127.0.0.1')
     const privateKeys = [0, 1, 2, 3].map((group) => PrivateKeyWallet.Random(group).privateKey)
+    privateKeys.forEach((pk) => expect(validatePrivateKeys(pk).length).toEqual(1))
+
+    expect(() => validatePrivateKeys(`${privateKeys[0]},${privateKeys[1].slice(0, 63) + 'z'}`)).toThrowError(
+      'Invalid private key at index 1, expected a hex-string of length 64'
+    )
+    expect(() => validatePrivateKeys(`${privateKeys[0].slice(0, 62)},${privateKeys[1]}`)).toThrowError(
+      'Invalid private key at index 0, expected a hex-string of length 64'
+    )
 
     expect(() => validatePrivateKeys([])).toThrowError('No private key specified')
+    expect(() => validatePrivateKeys('')).toThrowError('No private key specified')
     Array.from([1, 2, 3, 4]).forEach((size) => {
       const keys = privateKeys.slice(0, size).sort((a, b) => (a > b ? 1 : -1))
       expect(validatePrivateKeys(keys).length).toEqual(size)
+      expect(validatePrivateKeys(keys.join(',')).length).toEqual(size)
 
       keys.push(privateKeys[size - 1])
       expect(() => validatePrivateKeys(keys)).toThrowError(`Duplicated private keys on group ${size - 1}`)
+      expect(() => validatePrivateKeys(keys.join(','))).toThrowError(`Duplicated private keys on group ${size - 1}`)
     })
   })
 })
