@@ -208,9 +208,9 @@ export class InstrCodec implements Codec<any> {
       let result = [instr.code]
       const instrsWithIndex = [0x00, 0x01, 0x16, 0x17, 0xa0, 0xa1, 0xce]
          if (instr.code === 0x12 || instr.code === 0x13) {
-        result.push(...compactIntCodec.encode(instrValue.value.mode))
+        result.push(...compactIntCodec.encode(instrValue.value))
       } else if (instr.code === 0x4a) {
-        result.push(...compactIntCodec.encode(instrValue.offset.mode))
+        result.push(...compactIntCodec.encode(instrValue.offset))
       } else if (instr.code === 0x14) {
         result.push(...byteStringCodec.encode(instrValue.value))
       } else if (instr.code === 0x15) {

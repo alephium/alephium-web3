@@ -16,9 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode, Fields, FieldsSig } from "@alephium/web3"
+import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode, Fields, FieldsSig, addressFromPublicKey } from "@alephium/web3"
 import { getSigners } from "@alephium/web3-test"
 import { UnsignedTransactionCodec } from './transaction-codec'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('Encode & decode transactions', function() {
 
@@ -94,8 +95,9 @@ describe('Encode & decode transactions', function() {
     const [signer1] = await getSigners(1)
     const contractCode = `
       Contract Test() {
-        pub fn test() -> U256 {
-          return 1
+        @using(preapprovedAssets = true, assetsInContract = true)
+        pub fn test() -> () {
+          transferTokenToSelf!(callerAddress!(), ALPH, 3 alph)
         }
       }
     `
@@ -108,7 +110,7 @@ describe('Encode & decode transactions', function() {
 
     const scriptCode = `
        TxScript CallTest(testContract: Test) {
-          testContract.test()
+          testContract.test{callerAddress!() -> ALPH: 3 alph}()
        }
 
        ${contractCode}
@@ -132,11 +134,43 @@ describe('Encode & decode transactions', function() {
     checkUnsignedTxCodec(buildExecuteScriptTxResult.unsignedTx)
   })
 
+  it('should encode and decode p2sh transactions (schnorr address)', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const [signer1] = await getSigners(2)
+    const schnorrSigner = PrivateKeyWallet.Random(undefined, nodeProvider, 'bip340-schnorr')
+    const fromAccount = await signer1.getSelectedAccount()
+
+    const toSchnorrAddressResult = await signer1.signAndSubmitTransferTx({
+      signerAddress: fromAccount.address,
+      destinations: [{ address: schnorrSigner.address, attoAlphAmount: ONE_ALPH }]
+    })
+
+    const toSchnorrUnsignedTx = toSchnorrAddressResult.unsignedTx
+
+    const serverToSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: toSchnorrUnsignedTx })
+    const clientToSchnorrParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(toSchnorrUnsignedTx)
+    expect(clientToSchnorrParsedResult).toEqual(serverToSchnorrParsedResult.unsignedTx)
+
+    checkUnsignedTxCodec(toSchnorrUnsignedTx)
+
+    const fromSchnorrAddressResult = await schnorrSigner.signAndSubmitTransferTx({
+      signerAddress: schnorrSigner.address,
+      signerKeyType: 'bip340-schnorr',
+      destinations: [{ address: signer1.address, attoAlphAmount: ONE_ALPH / 2n }]
+    })
+
+    const fromSchnorrUnsignedTx = fromSchnorrAddressResult.unsignedTx
+    const serverFromSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: fromSchnorrUnsignedTx })
+    const clientFromSchnorrParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(fromSchnorrUnsignedTx)
+    expect(clientFromSchnorrParsedResult).toEqual(serverFromSchnorrParsedResult.unsignedTx)
+
+    checkUnsignedTxCodec(fromSchnorrUnsignedTx)
+  })
+
   function checkUnsignedTxCodec(unsignedTx: string) {
     const decoded = UnsignedTransactionCodec.new().decode(Buffer.from(unsignedTx, 'hex'))
     const encoded = UnsignedTransactionCodec.new().encode(decoded).toString('hex')
     expect(unsignedTx).toEqual(encoded)
   }
-
   // Tokens, P2C, Script
 })

@@ -53,29 +53,29 @@ export class OutputCodec implements Codec<any> {
       const message = output.additionalData.value.toString("hex")
       const scriptType = output.lockupScript.scriptType
       const key = binToHex(blakeHash(Buffer.concat([txIdBytes, intCodec.encode(index)])))
+      const outputLockupScript = output.lockupScript.script
+      const address = utils.bs58.encode(lockupScriptCodec.encode(output.lockupScript))
+
+      let hint: number | undefined = undefined
       if (scriptType === 0) { // P2PKH
-          const outputLockupScript = output.lockupScript.script
-          const outputLockupScriptType = Buffer.from([output.lockupScript.scriptType])
-          const address = utils.bs58.encode(Buffer.concat([outputLockupScriptType, outputLockupScript.publicKeyHash]))
-          const hint = djbIntHash(outputLockupScript.publicKeyHash) | 1
-          return {hint, key, attoAlphAmount, lockTime, tokens, address, message}
+        hint = createHint(outputLockupScript.publicKeyHash)
       } else if (scriptType === 1) { // P2MPKH
-          const outputLockupScript = output.lockupScript.script
-          const outputLockupScriptType = Buffer.from([output.lockupScript.scriptType])
-          const address = utils.bs58.encode(Buffer.concat([
-              outputLockupScriptType,
-              Buffer.from(compactIntCodec.encode(outputLockupScript.publicKeyHashes.length)),
-              ...outputLockupScript.publicKeyHashes.value.map((v) => v.publicKeyHash),
-              Buffer.from(compactIntCodec.encode(outputLockupScript['m']))
-          ]))
-          const hint = djbIntHash(outputLockupScript.publicKeyHashes.value[0].publicKeyHash) | 1
-          return {hint, key, attoAlphAmount, lockTime, tokens, address, message}
+        hint = createHint(outputLockupScript.publicKeyHashes.value[0].publicKeyHash)
+      } else if (scriptType === 2) { // P2SH
+        hint = createHint(outputLockupScript.scriptHash)
+      } else if (scriptType === 3) { // P2C
+        hint = createHint(outputLockupScript.contractId)
       } else {
-          throw new Error(`TODO: decode output script type: ${scriptType}`)
+        throw new Error(`TODO: decode output script type: ${scriptType}`)
       }
+
+      return {hint, key, attoAlphAmount, lockTime, tokens, address, message}
     })
   }
+}
 
+function createHint(input: Buffer): number {
+  return djbIntHash(input) | 1
 }
 
 export const outputCodec = new OutputCodec()

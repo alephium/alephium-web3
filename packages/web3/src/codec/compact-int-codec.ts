@@ -51,7 +51,7 @@ export class CompactIntCodec implements Codec<DecodedInt>{
   }
 
   toInt(value: DecodedInt): number {
-    const body = Buffer.concat([Buffer.from([value.mode]), value.rest])
+    const body = Buffer.from([value.mode, ...value.rest])
     const mode = value.mode & maskRest
     if (mode === CompactInt.oneBytePrefix || mode === CompactInt.twoBytePrefix || mode === CompactInt.fourBytePrefix) {
       const isPositive = (value.mode & signFlag) == 0
