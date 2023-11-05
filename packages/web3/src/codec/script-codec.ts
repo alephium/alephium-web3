@@ -26,3 +26,5 @@ export class StatefulScriptCodec implements Codec<any> {
     return this.parser.parse(input)
   }
 }
+
+export const statefulScriptCodec = StatefulScriptCodec.new()

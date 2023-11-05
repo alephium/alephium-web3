@@ -89,9 +89,9 @@ describe('Encode & decode transactions', function() {
     checkUnsignedTxCodec(fromMultiSig.unsignedTx)
   })
 
-  it('invoke contract method', async () => {
+  it('should encode and decode transactions that invoke contract method', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
-    const [signer1, signer2, signer3] = await getSigners(3)
+    const [signer1] = await getSigners(1)
     const contractCode = `
       Contract Test() {
         pub fn test() -> U256 {
