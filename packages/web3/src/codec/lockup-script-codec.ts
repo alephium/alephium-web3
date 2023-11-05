@@ -1,10 +1,27 @@
-import { Parser } from "binary-parser"
-import { compactIntCodec } from "./compact-int-codec"
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
+import { Parser } from 'binary-parser'
+import { compactIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
-import { ArrayCodec } from "./array-codec"
+import { ArrayCodec } from './array-codec'
 
 class PublicKeyHashCodec implements Codec<any> {
-  parser = Parser.start().buffer("publicKeyHash", { length: 32 })
+  parser = Parser.start().buffer('publicKeyHash', { length: 32 })
 
   static new(): PublicKeyHashCodec {
     return new PublicKeyHashCodec()
@@ -21,24 +38,24 @@ class PublicKeyHashCodec implements Codec<any> {
 
 const publicKeyHashCodec = PublicKeyHashCodec.new()
 const multiSigParser = Parser.start()
-  .nest("publicKeyHashes", { type: new ArrayCodec(publicKeyHashCodec).parser })
-  .nest("m", { type: compactIntCodec.parser })
+  .nest('publicKeyHashes', { type: new ArrayCodec(publicKeyHashCodec).parser })
+  .nest('m', { type: compactIntCodec.parser })
 
 export class LockupScriptCodec implements Codec<any> {
   parser = Parser.start()
-    .uint8("scriptType")
-    .choice("script", {
-      tag: "scriptType",
+    .uint8('scriptType')
+    .choice('script', {
+      tag: 'scriptType',
       choices: {
         0: publicKeyHashCodec.parser,
         1: multiSigParser,
-        2: Parser.start().buffer("scriptHash", { length: 32 }),
-        3: Parser.start().buffer("contractId", { length: 32 })
+        2: Parser.start().buffer('scriptHash', { length: 32 }),
+        3: Parser.start().buffer('contractId', { length: 32 })
       }
-  })
+    })
 
   encode(input: any): Buffer {
-    let result: number[] = [input.scriptType]
+    const result: number[] = [input.scriptType]
     if (input.scriptType === 0) {
       result.push(...input.script.publicKeyHash)
     } else if (input.scriptType === 1) {

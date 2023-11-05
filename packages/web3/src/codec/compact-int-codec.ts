@@ -1,6 +1,23 @@
+/*
+Copyright 2018 - 2022 The Alephium Authors
+This file is part of the alephium project.
+
+The library is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+The library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with the library. If not, see <http://www.gnu.org/licenses/>.
+*/
 import { Parser } from 'binary-parser'
 import { assert } from 'console'
-import { binToHex } from "@alephium/web3"
+import { binToHex } from '@alephium/web3'
 import { Codec } from './codec'
 
 export class CompactInt {
@@ -23,23 +40,21 @@ export interface DecodedInt {
   rest: Uint8Array
 }
 
-export class CompactIntCodec implements Codec<DecodedInt>{
-  parser = new Parser()
-    .uint8("mode")
-    .buffer("rest", {
-      length: function(ctx) {
-        const rawMode = this["mode"]
-        const mode = rawMode & maskRest
-        if (mode === CompactInt.oneBytePrefix) {
-          return 0
-        } else if (mode === CompactInt.twoBytePrefix) {
-          return 1
-        } else if (mode === CompactInt.fourBytePrefix) {
-          return 3
-        } else {
-          return (rawMode & maskMode) + 4
-        }
+export class CompactIntCodec implements Codec<DecodedInt> {
+  parser = new Parser().uint8('mode').buffer('rest', {
+    length: function (ctx) {
+      const rawMode = this['mode']
+      const mode = rawMode & maskRest
+      if (mode === CompactInt.oneBytePrefix) {
+        return 0
+      } else if (mode === CompactInt.twoBytePrefix) {
+        return 1
+      } else if (mode === CompactInt.fourBytePrefix) {
+        return 3
+      } else {
+        return (rawMode & maskMode) + 4
       }
+    }
   })
 
   encode(input: DecodedInt): Buffer {
@@ -61,7 +76,7 @@ export class CompactIntCodec implements Codec<DecodedInt>{
         return this.decodeNegativeInt(value.mode, body)
       }
     } else {
-      return parseInt(binToHex(value.rest), 16)  // Revisit, might not work for large number
+      return parseInt(binToHex(value.rest), 16) // Revisit, might not work for large number
     }
   }
 
@@ -70,10 +85,10 @@ export class CompactIntCodec implements Codec<DecodedInt>{
     if (mode === CompactInt.oneBytePrefix) {
       return rawMode
     } else if (mode === CompactInt.twoBytePrefix) {
-      assert(body.length === 2, "Length should be 2")
+      assert(body.length === 2, 'Length should be 2')
       return ((body[0] & maskMode) << 8) | (body[1] & 0xff)
     } else if (mode === CompactInt.fourBytePrefix) {
-      assert(body.length === 4, "Length should be 4")
+      assert(body.length === 4, 'Length should be 4')
       return ((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
     } else {
       throw new Error(`TODO: decodePositiveInt unsupported mode: ${mode}`)
@@ -85,10 +100,10 @@ export class CompactIntCodec implements Codec<DecodedInt>{
     if (mode === CompactInt.oneByteNegPrefix) {
       return body[0] | maskModeNeg
     } else if (mode === CompactInt.twoByteNegPrefix) {
-      assert(body.length === 2, "Length should be 2")
+      assert(body.length === 2, 'Length should be 2')
       return ((body[0] & maskModeNeg) << 8) | (body[1] & 0xff)
     } else if (mode === CompactInt.fourByteNegPrefix) {
-      assert(body.length === 4, "Length should be 4")
+      assert(body.length === 4, 'Length should be 4')
       return ((body[0] & maskModeNeg) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
     } else {
       throw new Error(`TODO: decodeNegativeInt unsupported mode: ${mode}`)

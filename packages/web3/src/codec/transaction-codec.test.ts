@@ -16,16 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode, Fields, FieldsSig, addressFromPublicKey } from "@alephium/web3"
-import { getSigners, transfer } from "@alephium/web3-test"
+import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode } from '@alephium/web3'
+import { getSigners } from '@alephium/web3-test'
 import { UnsignedTransactionCodec } from './transaction-codec'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { waitTxConfirmed } from "@alephium/cli"
-import { DUST_AMOUNT } from "../../dist/src/constants"
+import { DUST_AMOUNT } from '../../dist/src/constants'
 
-describe('Encode & decode unsigned transactions', function() {
-
-  beforeAll(async () => {
+describe('Encode & decode unsigned transactions', function () {
+  beforeAll(() => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
   })
 
@@ -41,7 +39,9 @@ describe('Encode & decode unsigned transactions', function() {
     })
 
     const unsignedTx = tx.unsignedTx
-    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: unsignedTx })
+    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx: unsignedTx
+    })
     const clientParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(unsignedTx)
     expect(clientParsedResult).toEqual(serverParsedResult.unsignedTx)
 
@@ -66,7 +66,9 @@ describe('Encode & decode unsigned transactions', function() {
       destinations: [{ address: multisigAddress, attoAlphAmount: ONE_ALPH * 10n }]
     })
 
-    const serverToMultisigParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: toMultiSig.unsignedTx })
+    const serverToMultisigParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx: toMultiSig.unsignedTx
+    })
     const clientToMultisigParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(toMultiSig.unsignedTx)
     expect(clientToMultisigParsedResult).toEqual(serverToMultisigParsedResult.unsignedTx)
 
@@ -85,7 +87,9 @@ describe('Encode & decode unsigned transactions', function() {
       destinations: [{ address: signer1.address, attoAlphAmount: ONE_ALPH.toString() }]
     })
 
-    const serverFromMultisigParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: fromMultiSig.unsignedTx })
+    const serverFromMultisigParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx: fromMultiSig.unsignedTx
+    })
     const clientFromMultisigParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(fromMultiSig.unsignedTx)
     expect(clientFromMultisigParsedResult).toEqual(serverFromMultisigParsedResult.unsignedTx)
 
@@ -104,7 +108,11 @@ describe('Encode & decode unsigned transactions', function() {
       }
     `
     const compileContractResult = await nodeProvider.contracts.postContractsCompileContract({ code: contractCode })
-    const contractByteCode = buildContractByteCode(compileContractResult.bytecode, {}, { names: [], types: [], isMutable: [] })
+    const contractByteCode = buildContractByteCode(
+      compileContractResult.bytecode,
+      {},
+      { names: [], types: [], isMutable: [] }
+    )
     const deployContractResult = await signer1.signAndSubmitDeployContractTx({
       signerAddress: signer1.address,
       bytecode: contractByteCode
@@ -129,7 +137,9 @@ describe('Encode & decode unsigned transactions', function() {
       bytecode: scriptBytecode
     })
 
-    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: buildExecuteScriptTxResult.unsignedTx })
+    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx: buildExecuteScriptTxResult.unsignedTx
+    })
     const clientParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(buildExecuteScriptTxResult.unsignedTx)
     expect(clientParsedResult).toEqual(serverParsedResult.unsignedTx)
 
@@ -149,7 +159,9 @@ describe('Encode & decode unsigned transactions', function() {
 
     const toSchnorrUnsignedTx = toSchnorrAddressResult.unsignedTx
 
-    const serverToSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: toSchnorrUnsignedTx })
+    const serverToSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx: toSchnorrUnsignedTx
+    })
     const clientToSchnorrParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(toSchnorrUnsignedTx)
     expect(clientToSchnorrParsedResult).toEqual(serverToSchnorrParsedResult.unsignedTx)
 
@@ -162,7 +174,9 @@ describe('Encode & decode unsigned transactions', function() {
     })
 
     const fromSchnorrUnsignedTx = fromSchnorrAddressResult.unsignedTx
-    const serverFromSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: fromSchnorrUnsignedTx })
+    const serverFromSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx: fromSchnorrUnsignedTx
+    })
     const clientFromSchnorrParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(fromSchnorrUnsignedTx)
     expect(clientFromSchnorrParsedResult).toEqual(serverFromSchnorrParsedResult.unsignedTx)
 
@@ -182,7 +196,11 @@ describe('Encode & decode unsigned transactions', function() {
       }
     `
     const compileContractResult = await nodeProvider.contracts.postContractsCompileContract({ code: contractCode })
-    const contractByteCode = buildContractByteCode(compileContractResult.bytecode, {}, { names: [], types: [], isMutable: [] })
+    const contractByteCode = buildContractByteCode(
+      compileContractResult.bytecode,
+      {},
+      { names: [], types: [], isMutable: [] }
+    )
     const deployContractResult = await signer1.signAndSubmitDeployContractTx({
       signerAddress: signer1.address,
       bytecode: contractByteCode,
@@ -213,14 +231,18 @@ describe('Encode & decode unsigned transactions', function() {
     // Transfer token from signer1 to signer2
     const transferTokenResult = await signer1.buildTransferTx({
       signerAddress: signer1.address,
-      destinations: [{
-        address: signer2.address,
-        attoAlphAmount: DUST_AMOUNT,
-         tokens: [{ id: deployContractResult.contractId, amount: 1n }]
-      }]
+      destinations: [
+        {
+          address: signer2.address,
+          attoAlphAmount: DUST_AMOUNT,
+          tokens: [{ id: deployContractResult.contractId, amount: 1n }]
+        }
+      ]
     })
 
-    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: transferTokenResult.unsignedTx })
+    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx: transferTokenResult.unsignedTx
+    })
     const clientParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(transferTokenResult.unsignedTx)
     expect(clientParsedResult).toEqual(serverParsedResult.unsignedTx)
 
