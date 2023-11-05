@@ -17,11 +17,13 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode, Fields, FieldsSig, addressFromPublicKey } from "@alephium/web3"
-import { getSigners } from "@alephium/web3-test"
+import { getSigners, transfer } from "@alephium/web3-test"
 import { UnsignedTransactionCodec } from './transaction-codec'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { waitTxConfirmed } from "@alephium/cli"
+import { DUST_AMOUNT } from "../../dist/src/constants"
 
-describe('Encode & decode transactions', function() {
+describe('Encode & decode unsigned transactions', function() {
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
@@ -167,10 +169,67 @@ describe('Encode & decode transactions', function() {
     checkUnsignedTxCodec(fromSchnorrUnsignedTx)
   })
 
+  it('should encode and decode transactions that transfer tokens', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const [signer1, signer2] = await getSigners(2)
+    const contractCode = `
+      Contract Faucet() {
+        @using(assetsInContract = true)
+        pub fn withdraw() -> () {
+          transferTokenFromSelf!(callerAddress!(), ALPH, dustAmount!())
+          transferTokenFromSelf!(callerAddress!(), selfTokenId!(), 10)
+        }
+      }
+    `
+    const compileContractResult = await nodeProvider.contracts.postContractsCompileContract({ code: contractCode })
+    const contractByteCode = buildContractByteCode(compileContractResult.bytecode, {}, { names: [], types: [], isMutable: [] })
+    const deployContractResult = await signer1.signAndSubmitDeployContractTx({
+      signerAddress: signer1.address,
+      bytecode: contractByteCode,
+      issueTokenAmount: 10000n,
+      initialAttoAlphAmount: ONE_ALPH * 10n
+    })
+
+    const scriptCode = `
+       TxScript Withdraw(faucetContract: Faucet) {
+          faucetContract.withdraw()
+       }
+
+       ${contractCode}
+    `
+    const compileScriptResult = await nodeProvider.contracts.postContractsCompileScript({ code: scriptCode })
+    const scriptBytecode = buildScriptByteCode(
+      compileScriptResult.bytecodeTemplate,
+      { faucetContract: deployContractResult.contractId },
+      { names: ['faucetContract'], types: ['ByteVec'], isMutable: [false] }
+    )
+
+    // Get the token to signer1
+    await signer1.signAndSubmitExecuteScriptTx({
+      signerAddress: signer1.address,
+      bytecode: scriptBytecode
+    })
+
+    // Transfer token from signer1 to signer2
+    const transferTokenResult = await signer1.buildTransferTx({
+      signerAddress: signer1.address,
+      destinations: [{
+        address: signer2.address,
+        attoAlphAmount: DUST_AMOUNT,
+         tokens: [{ id: deployContractResult.contractId, amount: 1n }]
+      }]
+    })
+
+    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx: transferTokenResult.unsignedTx })
+    const clientParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(transferTokenResult.unsignedTx)
+    expect(clientParsedResult).toEqual(serverParsedResult.unsignedTx)
+
+    checkUnsignedTxCodec(transferTokenResult.unsignedTx)
+  })
+
   function checkUnsignedTxCodec(unsignedTx: string) {
     const decoded = UnsignedTransactionCodec.new().decode(Buffer.from(unsignedTx, 'hex'))
     const encoded = UnsignedTransactionCodec.new().encode(decoded).toString('hex')
     expect(unsignedTx).toEqual(encoded)
   }
-  // Tokens, P2C, Script
 })
