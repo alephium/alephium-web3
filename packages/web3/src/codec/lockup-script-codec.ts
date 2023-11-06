@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { ArrayCodec } from './array-codec'
 
@@ -39,7 +39,7 @@ class PublicKeyHashCodec implements Codec<any> {
 const publicKeyHashCodec = PublicKeyHashCodec.new()
 const multiSigParser = Parser.start()
   .nest('publicKeyHashes', { type: new ArrayCodec(publicKeyHashCodec).parser })
-  .nest('m', { type: compactIntCodec.parser })
+  .nest('m', { type: compactUnsignedIntCodec.parser })
 
 export class LockupScriptCodec implements Codec<any> {
   parser = Parser.start()
@@ -59,11 +59,11 @@ export class LockupScriptCodec implements Codec<any> {
     if (input.scriptType === 0) {
       result.push(...input.script.publicKeyHash)
     } else if (input.scriptType === 1) {
-      result.push(...compactIntCodec.encode(input.script.publicKeyHashes.length))
+      result.push(...compactUnsignedIntCodec.encode(input.script.publicKeyHashes.length))
       for (const publicKeyHash of input.script.publicKeyHashes.value) {
         result.push(...publicKeyHash.publicKeyHash)
       }
-      result.push(...compactIntCodec.encode(input.script.m))
+      result.push(...compactUnsignedIntCodec.encode(input.script.m))
     } else if (input.scriptType === 2) {
       result.push(...input.script.scriptHash)
     } else if (input.scriptType === 3) {

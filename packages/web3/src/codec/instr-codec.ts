@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec, compactSignedIntCodec } from './compact-int-codec'
 import { byteStringCodec } from './bytestring-codec'
 import { lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
@@ -46,8 +46,8 @@ export class InstrCodec implements Codec<any> {
         0x0f: Parser.start(), // U256Const3
         0x10: Parser.start(), // U256Const4
         0x11: Parser.start(), // U256Const5
-        0x12: Parser.start().nest('value', { type: compactIntCodec.parser }), // I256Const    FIXME: parse signed int
-        0x13: Parser.start().nest('value', { type: compactIntCodec.parser }), // U256Const
+        0x12: Parser.start().nest('value', { type: compactSignedIntCodec.parser }), // I256Const
+        0x13: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // U256Const
         0x14: Parser.start().nest('value', { type: byteStringCodec.parser }), // ByteConst
         0x15: Parser.start().nest('value', { type: lockupScriptCodec.parser }), // AddressConst
         0x16: Parser.start().uint8('index'), // LoadLocal
@@ -102,7 +102,7 @@ export class InstrCodec implements Codec<any> {
         0x47: Parser.start(), // AddressToByteVec
         0x48: Parser.start(), // IsAssetAddress
         0x49: Parser.start(), // IsContractAddress
-        0x4a: Parser.start().nest('offset', { type: compactIntCodec.parser }), // Jump
+        0x4a: Parser.start().nest('offset', { type: compactUnsignedIntCodec.parser }), // Jump
         0x4b: Parser.start(), // IfTrue
         0x4c: Parser.start(), // IfFalse
         0x4d: Parser.start(), // Assert
@@ -225,15 +225,15 @@ export class InstrCodec implements Codec<any> {
     const result = [instr.code]
     const instrsWithIndex = [0x00, 0x01, 0x16, 0x17, 0xa0, 0xa1, 0xce]
     if (instr.code === 0x12 || instr.code === 0x13) {
-      result.push(...compactIntCodec.encode(instrValue.value))
+      result.push(...compactUnsignedIntCodec.encode(instrValue.value))
     } else if (instr.code === 0x4a) {
-      result.push(...compactIntCodec.encode(instrValue.offset))
+      result.push(...compactUnsignedIntCodec.encode(instrValue.offset))
     } else if (instr.code === 0x14) {
       result.push(...byteStringCodec.encode(instrValue.value))
     } else if (instr.code === 0x15) {
       result.push(...lockupScriptCodec.encode(instrValue))
     } else if (instr.code === 0x7e) {
-      result.push(...compactIntCodec.encode(instrValue.stringParts.length))
+      result.push(...compactUnsignedIntCodec.encode(instrValue.stringParts.length))
       for (const stringPart of instrValue.stringParts.value) {
         result.push(...byteStringCodec.encode(stringPart.value))
       }

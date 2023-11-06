@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 import { intCodec } from './int-codec'
 import { longCodec } from './long-codec'
 import { byteStringCodec } from './bytestring-codec'
@@ -33,12 +33,12 @@ export class TokenCodec implements Codec<any> {
       length: 32
     })
     .nest('amount', {
-      type: compactIntCodec.parser
+      type: compactUnsignedIntCodec.parser
     })
 
   encode(input: any): Buffer {
     const tokenId = input.tokenId
-    const amount = Buffer.from(compactIntCodec.encode(input.amount))
+    const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
     return Buffer.concat([tokenId, amount])
   }
 
@@ -52,7 +52,7 @@ const tokenCodec = new TokenCodec()
 export class OutputCodec implements Codec<any> {
   parser = Parser.start()
     .nest('amount', {
-      type: compactIntCodec.parser
+      type: compactUnsignedIntCodec.parser
     })
     .nest('lockupScript', {
       type: lockupScriptCodec.parser
@@ -68,7 +68,7 @@ export class OutputCodec implements Codec<any> {
     })
 
   encode(input: any): Buffer {
-    const amount = Buffer.from(compactIntCodec.encode(input.amount))
+    const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
     const lockupScript = lockupScriptCodec.encode(input.lockupScript)
     const lockTime = Buffer.from(input.lockTime)
     const tokens = Buffer.from(new ArrayCodec(tokenCodec).encode(input.tokens))
@@ -83,12 +83,12 @@ export class OutputCodec implements Codec<any> {
 
   static convertToFixedAssetOutputs(txIdBytes: Uint8Array, outputs: any[]): FixedAssetOutput[] {
     return outputs.map((output, index) => {
-      const attoAlphAmount = compactIntCodec.toInt(output.amount).toString()
+      const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
       const lockTime = longCodec.decode(output.lockTime)
       const tokens = output.tokens.value.map((token) => {
         return {
           id: token.tokenId.toString('hex'),
-          amount: compactIntCodec.toInt(token.amount).toString()
+          amount: compactUnsignedIntCodec.toInt(token.amount).toString()
         }
       })
       const message = output.additionalData.value.toString('hex')

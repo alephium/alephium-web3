@@ -16,22 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 
 export class ByteStringCodec implements Codec<any> {
   parser = new Parser()
     .nest('length', {
-      type: compactIntCodec.parser
+      type: compactUnsignedIntCodec.parser
     })
     .buffer('value', {
       length: function (ctx) {
-        return compactIntCodec.toInt(this['length']! as any as { mode: number; rest: Uint8Array })
+        return compactUnsignedIntCodec.toInt(this['length']! as any as { mode: number; rest: Uint8Array })
       }
     })
 
   encode(input: any): Buffer {
-    return Buffer.from([...compactIntCodec.encode(input.length), ...input.value])
+    return Buffer.from([...compactUnsignedIntCodec.encode(input.length), ...input.value])
   }
 
   decode(input: Buffer): any {

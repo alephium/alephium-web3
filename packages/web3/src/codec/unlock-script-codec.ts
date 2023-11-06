@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec, compactSignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { statefulScriptCodec } from './script-codec'
 import { byteStringCodec } from './bytestring-codec'
@@ -39,15 +39,15 @@ const p2pkhCodec = new P2PKHCodec()
 class P2MPKHCodec implements Codec<any> {
   parser = Parser.start().nest('publicKeys', {
     type: ArrayCodec.arrayParser(
-      Parser.start().nest('publicKey', { type: p2pkhCodec.parser }).nest('index', { type: compactIntCodec.parser })
+      Parser.start().nest('publicKey', { type: p2pkhCodec.parser }).nest('index', { type: compactUnsignedIntCodec.parser })
     )
   })
 
   encode(input: any): Buffer {
     return Buffer.concat([
-      Buffer.from(compactIntCodec.encode(input.publicKeys.length)),
+      Buffer.from(compactUnsignedIntCodec.encode(input.publicKeys.length)),
       ...input.publicKeys.value.map((v) => {
-        return Buffer.concat([v.publicKey.publicKey, Buffer.from(compactIntCodec.encode(v.index))])
+        return Buffer.concat([v.publicKey.publicKey, Buffer.from(compactUnsignedIntCodec.encode(v.index))])
       })
     ])
   }
@@ -65,8 +65,8 @@ class ValCodec implements Codec<any> {
       tag: 'type',
       choices: {
         0x00: new Parser().uint8('value'), // Boolean
-        0x01: compactIntCodec.parser, // I256  - TODO: FIXME
-        0x02: compactIntCodec.parser, // U256
+        0x01: compactSignedIntCodec.parser, // I256
+        0x02: compactUnsignedIntCodec.parser, // U256
         0x03: byteStringCodec.parser, // ByteVec
         0x04: lockupScriptCodec.parser // Address
       }
@@ -80,10 +80,10 @@ class ValCodec implements Codec<any> {
       return Buffer.from([valType, input.val])
     } else if (valType === 0x01) {
       // I256
-      return Buffer.from([valType, ...compactIntCodec.encode(input.val)])
+      return Buffer.from([valType, ...compactUnsignedIntCodec.encode(input.val)])
     } else if (valType === 0x02) {
       // U256
-      return Buffer.from([valType, ...compactIntCodec.encode(input.val)])
+      return Buffer.from([valType, ...compactUnsignedIntCodec.encode(input.val)])
     } else if (valType === 0x03) {
       // ByteVec
       return Buffer.from([valType, ...byteStringCodec.encode(input.val)])

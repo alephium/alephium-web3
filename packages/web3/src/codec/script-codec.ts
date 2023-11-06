@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { methodCodec } from './method-codec'
 
@@ -31,7 +31,7 @@ export class StatefulScriptCodec implements Codec<any> {
   }
 
   encode(input: any): Buffer {
-    const script = [...compactIntCodec.encode(input.methods.length)]
+    const script = [...compactUnsignedIntCodec.encode(input.methods.length)]
     for (const method of input.methods.value) {
       script.push(...methodCodec.encode(method))
     }

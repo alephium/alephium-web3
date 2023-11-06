@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { instrCodec } from './instr-codec'
 
@@ -26,13 +26,13 @@ export class MethodCodec implements Codec<any> {
     .uint8('isPublic')
     .uint8('assetModifier')
     .nest('argsLength', {
-      type: compactIntCodec.parser
+      type: compactUnsignedIntCodec.parser
     })
     .nest('localsLength', {
-      type: compactIntCodec.parser
+      type: compactUnsignedIntCodec.parser
     })
     .nest('returnLength', {
-      type: compactIntCodec.parser
+      type: compactUnsignedIntCodec.parser
     })
     .nest('instrs', {
       type: new ArrayCodec(instrCodec).parser
@@ -40,10 +40,10 @@ export class MethodCodec implements Codec<any> {
 
   encode(input: any): Buffer {
     const result = [input.isPublic, input.assetModifier]
-    result.push(...compactIntCodec.encode(input.argsLength))
-    result.push(...compactIntCodec.encode(input.localsLength))
-    result.push(...compactIntCodec.encode(input.returnLength))
-    result.push(...compactIntCodec.encode(input.instrs.length))
+    result.push(...compactUnsignedIntCodec.encode(input.argsLength))
+    result.push(...compactUnsignedIntCodec.encode(input.localsLength))
+    result.push(...compactUnsignedIntCodec.encode(input.returnLength))
+    result.push(...compactUnsignedIntCodec.encode(input.instrs.length))
     for (const instr of input.instrs.value) {
       result.push(...Array.from(instrCodec.encode(instr)))
     }

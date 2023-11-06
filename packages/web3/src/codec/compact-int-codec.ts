@@ -40,22 +40,52 @@ export interface DecodedInt {
   rest: Uint8Array
 }
 
-export class CompactIntCodec implements Codec<DecodedInt> {
-  parser = new Parser().uint8('mode').buffer('rest', {
-    length: function (ctx) {
-      const rawMode = this['mode']
-      const mode = rawMode & maskRest
-      if (mode === CompactInt.oneBytePrefix) {
-        return 0
-      } else if (mode === CompactInt.twoBytePrefix) {
-        return 1
-      } else if (mode === CompactInt.fourBytePrefix) {
-        return 3
-      } else {
-        return (rawMode & maskMode) + 4
-      }
+const compactIntParser = new Parser().uint8('mode').buffer('rest', {
+  length: function (ctx) {
+    const rawMode = this['mode']
+    const mode = rawMode & maskRest
+    if (mode === CompactInt.oneBytePrefix) {
+      return 0
+    } else if (mode === CompactInt.twoBytePrefix) {
+      return 1
+    } else if (mode === CompactInt.fourBytePrefix) {
+      return 3
+    } else {
+      return (rawMode & maskMode) + 4
     }
-  })
+  }
+})
+
+export class CompactUnsignedIntCodec implements Codec<DecodedInt> {
+  parser = compactIntParser
+
+  encode(input: DecodedInt): Buffer {
+    return Buffer.from([input.mode, ...input.rest])
+  }
+
+  decode(input: Buffer): DecodedInt {
+    return this.parser.parse(input)
+  }
+
+  toInt(value: DecodedInt): number {
+    const body = Buffer.from([value.mode, ...value.rest])
+    return decodePositiveInt(value.mode, body)
+  }
+
+  toU256(value: DecodedInt): bigint {
+    const mode = value.mode & maskRest
+    if (mode === CompactInt.oneBytePrefix || mode === CompactInt.twoBytePrefix || mode === CompactInt.fourBytePrefix) {
+      return BigInt(this.toInt(value))
+    } else {
+      return BigInt('0x' + Buffer.from(value.rest).toString('hex'))
+    }
+  }
+}
+
+export const compactUnsignedIntCodec = new CompactUnsignedIntCodec()
+
+export class CompactSignedIntCodec implements Codec<DecodedInt> {
+  parser = compactIntParser
 
   encode(input: DecodedInt): Buffer {
     return Buffer.from([input.mode, ...input.rest])
@@ -71,44 +101,72 @@ export class CompactIntCodec implements Codec<DecodedInt> {
     if (mode === CompactInt.oneBytePrefix || mode === CompactInt.twoBytePrefix || mode === CompactInt.fourBytePrefix) {
       const isPositive = (value.mode & signFlag) == 0
       if (isPositive) {
-        return this.decodePositiveInt(value.mode, body)
+        return decodePositiveInt(value.mode, body)
       } else {
-        return this.decodeNegativeInt(value.mode, body)
+        return decodeNegativeInt(value.mode, body)
       }
     } else {
-      return parseInt(binToHex(value.rest), 16) // Revisit, might not work for large number
+      if (body.length === 5) {
+        return ((body[1] & maskMode) << 24) | ((body[2] & 0xff) << 16) | ((body[3] & 0xff) << 8) | (body[4] & 0xff)
+      } else {
+        throw new Error(`Expect 4 bytes int, but get ${body.length - 1} bytes int`)
+      }
     }
   }
 
-  private decodePositiveInt(rawMode: number, body: Buffer): number {
-    const mode = rawMode & maskRest
-    if (mode === CompactInt.oneBytePrefix) {
-      return rawMode
-    } else if (mode === CompactInt.twoBytePrefix) {
-      assert(body.length === 2, 'Length should be 2')
-      return ((body[0] & maskMode) << 8) | (body[1] & 0xff)
-    } else if (mode === CompactInt.fourBytePrefix) {
-      assert(body.length === 4, 'Length should be 4')
-      return ((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
-    } else {
-      throw new Error(`TODO: decodePositiveInt unsupported mode: ${mode}`)
-    }
-  }
+  toLong(value: DecodedInt): number {
+    const body = Buffer.from([value.mode, ...value.rest])
+    const mode = value.mode & maskRest
 
-  private decodeNegativeInt(rawMode: number, body: Buffer) {
-    const mode = rawMode & maskRest
-    if (mode === CompactInt.oneByteNegPrefix) {
-      return body[0] | maskModeNeg
-    } else if (mode === CompactInt.twoByteNegPrefix) {
-      assert(body.length === 2, 'Length should be 2')
-      return ((body[0] & maskModeNeg) << 8) | (body[1] & 0xff)
-    } else if (mode === CompactInt.fourByteNegPrefix) {
-      assert(body.length === 4, 'Length should be 4')
-      return ((body[0] & maskModeNeg) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
+    if (mode === CompactInt.oneBytePrefix || mode === CompactInt.twoBytePrefix || mode === CompactInt.fourBytePrefix) {
+      return this.toInt(value)
     } else {
-      throw new Error(`TODO: decodeNegativeInt unsupported mode: ${mode}`)
+      if (body.length === 9) {
+        return (
+          ((body[1] & maskMode) << 56) |
+          ((body[2] & 0xff) << 48) |
+          ((body[3] & 0xff) << 40) |
+          ((body[4] & 0xff) << 32) |
+          ((body[5] & 0xff) << 24) |
+          ((body[6] & 0xff) << 16) |
+          ((body[7] & 0xff) << 8) |
+          (body[8] & 0xff)
+        )
+      } else {
+        throw new Error(`Expect 8 bytes int, but get ${body.length - 1} bytes int`)
+      }
     }
   }
 }
 
-export const compactIntCodec = new CompactIntCodec()
+export const compactSignedIntCodec = new CompactSignedIntCodec()
+
+function decodePositiveInt(rawMode: number, body: Buffer): number {
+  const mode = rawMode & maskRest
+  if (mode === CompactInt.oneBytePrefix) {
+    return rawMode
+  } else if (mode === CompactInt.twoBytePrefix) {
+    assert(body.length === 2, 'Length should be 2')
+    return ((body[0] & maskMode) << 8) | (body[1] & 0xff)
+  } else if (mode === CompactInt.fourBytePrefix) {
+    assert(body.length === 4, 'Length should be 4')
+    return ((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
+  } else {
+    throw new Error(`decodePositiveInt: Expect 4 bytes int, but get ${body.length - 1} bytes int`)
+  }
+}
+
+function decodeNegativeInt(rawMode: number, body: Buffer) {
+  const mode = rawMode & maskRest
+  if (mode === CompactInt.oneByteNegPrefix) {
+    return body[0] | maskModeNeg
+  } else if (mode === CompactInt.twoByteNegPrefix) {
+    assert(body.length === 2, 'Length should be 2')
+    return ((body[0] & maskModeNeg) << 8) | (body[1] & 0xff)
+  } else if (mode === CompactInt.fourByteNegPrefix) {
+    assert(body.length === 4, 'Length should be 4')
+    return ((body[0] & maskModeNeg) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
+  } else {
+    throw new Error(`decodeNegativeInt: Expect 4 bytes int, but get ${body.length - 1} bytes int`)
+  }
+}

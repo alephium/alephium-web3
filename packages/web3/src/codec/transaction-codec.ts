@@ -19,7 +19,7 @@ import { Parser } from 'binary-parser'
 import { UnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '@alephium/web3'
 import { StatefulScriptCodec } from './script-codec'
-import { compactIntCodec } from './compact-int-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 import { InputCodec, inputCodec } from './input-codec'
 import { OutputCodec, outputCodec } from './output-codec'
 import { ArrayCodec } from './array-codec'
@@ -38,10 +38,10 @@ export const unsignedTransactionParser = new Parser()
     }
   })
   .nest('gasAmount', {
-    type: compactIntCodec.parser
+    type: compactUnsignedIntCodec.parser
   })
   .nest('gasPrice', {
-    type: compactIntCodec.parser
+    type: compactUnsignedIntCodec.parser
   })
   .nest('inputs', {
     type: new ArrayCodec(inputCodec).parser
@@ -63,8 +63,8 @@ export class UnsignedTransactionCodec implements Codec<any> {
       result.push(...Array.from(StatefulScriptCodec.new().encode(input.statefulScript)))
     }
 
-    result.push(...Array.from(compactIntCodec.encode(input.gasAmount)))
-    result.push(...Array.from(compactIntCodec.encode(input.gasPrice)))
+    result.push(...Array.from(compactUnsignedIntCodec.encode(input.gasAmount)))
+    result.push(...Array.from(compactUnsignedIntCodec.encode(input.gasPrice)))
     result.push(...Array.from(new ArrayCodec(inputCodec).encode(input.inputs)))
     result.push(...Array.from(new ArrayCodec(outputCodec).encode(input.fixedOutputs)))
     return Buffer.from(result)
@@ -80,8 +80,8 @@ export class UnsignedTransactionCodec implements Codec<any> {
     const txId = binToHex(txIdBytes)
     const version = parsedResult.version
     const networkId = parsedResult.networkId
-    const gasAmount = compactIntCodec.toInt(parsedResult.gasAmount)
-    const gasPrice = compactIntCodec.toInt(parsedResult.gasPrice).toString()
+    const gasAmount = compactUnsignedIntCodec.toInt(parsedResult.gasAmount)
+    const gasPrice = compactUnsignedIntCodec.toU256(parsedResult.gasPrice).toString()
     const inputs = InputCodec.convertToAssetInputs(parsedResult.inputs.value)
     const fixedOutputs = OutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
     let scriptOpt: string | undefined = undefined
