@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
 import { compactUnsignedIntCodec } from './compact-int-codec'
-import { intCodec } from './int-codec'
+import { signedIntCodec } from './signed-int-codec'
 import { longCodec } from './long-codec'
 import { byteStringCodec } from './bytestring-codec'
 import { lockupScriptCodec } from './lockup-script-codec'
@@ -93,7 +93,7 @@ export class OutputCodec implements Codec<any> {
       })
       const message = output.additionalData.value.toString('hex')
       const scriptType = output.lockupScript.scriptType
-      const key = binToHex(blakeHash(Buffer.concat([txIdBytes, intCodec.encode(index)])))
+      const key = binToHex(blakeHash(Buffer.concat([txIdBytes, signedIntCodec.encode(index)])))
       const outputLockupScript = output.lockupScript.script
       const address = utils.bs58.encode(lockupScriptCodec.encode(output.lockupScript))
 

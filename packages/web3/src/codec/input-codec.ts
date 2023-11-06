@@ -20,7 +20,7 @@ import { AssetInput } from '../api/api-alephium'
 import { binToHex } from '@alephium/web3'
 import { unlockScriptCodec } from './unlock-script-codec'
 import { Codec } from './codec'
-import { intCodec } from './int-codec'
+import { signedIntCodec } from './signed-int-codec'
 
 export class InputCodec implements Codec<any> {
   parser = Parser.start()
@@ -33,7 +33,7 @@ export class InputCodec implements Codec<any> {
 
   encode(input: any): Buffer {
     return Buffer.concat([
-      Buffer.from([...intCodec.encode(input.outputRef.hint), ...input.outputRef.key]),
+      Buffer.from([...signedIntCodec.encode(input.outputRef.hint), ...input.outputRef.key]),
       unlockScriptCodec.encode(input.unlockScript)
     ])
   }

@@ -39,7 +39,9 @@ const p2pkhCodec = new P2PKHCodec()
 class P2MPKHCodec implements Codec<any> {
   parser = Parser.start().nest('publicKeys', {
     type: ArrayCodec.arrayParser(
-      Parser.start().nest('publicKey', { type: p2pkhCodec.parser }).nest('index', { type: compactUnsignedIntCodec.parser })
+      Parser.start()
+        .nest('publicKey', { type: p2pkhCodec.parser })
+        .nest('index', { type: compactUnsignedIntCodec.parser })
     )
   })
 

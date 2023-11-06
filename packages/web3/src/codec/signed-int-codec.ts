@@ -19,7 +19,7 @@ import { Parser } from 'binary-parser'
 import { Codec } from './codec'
 import { assert } from 'console'
 
-export class IntCodec implements Codec<number> {
+export class SignedIntCodec implements Codec<number> {
   parser = Parser.start().buffer('value', {
     length: 4
   })
@@ -34,4 +34,4 @@ export class IntCodec implements Codec<number> {
   }
 }
 
-export const intCodec = new IntCodec()
+export const signedIntCodec = new SignedIntCodec()
