@@ -88,7 +88,7 @@ export class OutputCodec implements Codec<any> {
       const tokens = output.tokens.value.map((token) => {
         return {
           id: token.tokenId.toString('hex'),
-          amount: compactUnsignedIntCodec.toInt(token.amount).toString()
+          amount: compactUnsignedIntCodec.toU32(token.amount).toString()
         }
       })
       const message = output.additionalData.value.toString('hex')

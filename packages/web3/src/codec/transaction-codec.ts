@@ -80,7 +80,7 @@ export class UnsignedTransactionCodec implements Codec<any> {
     const txId = binToHex(txIdBytes)
     const version = parsedResult.version
     const networkId = parsedResult.networkId
-    const gasAmount = compactUnsignedIntCodec.toInt(parsedResult.gasAmount)
+    const gasAmount = compactUnsignedIntCodec.toU32(parsedResult.gasAmount)
     const gasPrice = compactUnsignedIntCodec.toU256(parsedResult.gasPrice).toString()
     const inputs = InputCodec.convertToAssetInputs(parsedResult.inputs.value)
     const fixedOutputs = OutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
