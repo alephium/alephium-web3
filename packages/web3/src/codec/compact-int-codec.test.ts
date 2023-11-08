@@ -19,36 +19,36 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { compactSignedIntCodec } from './compact-int-codec'
 
 describe('Encode & decode compact int', function () {
-    it('should encode & decode i32', function () {
-      const min = -(2 ** 31)
-      const max = 2 ** 31 - 1
+  it('should encode & decode i32', function () {
+    const min = -(2 ** 31)
+    const max = 2 ** 31 - 1
 
-      for (let i = 0; i < 10; i++) {
-        successI32(getRandomInt32())
-      }
-
-      successI32(0)
-      successI32(max)
-      successI32(min)
-      successI32(-371166845)
-      failI32(max + 1)
-      failI32(min - 1)
-      failI32(2 ** 50)
-    })
-
-    function successI32(value: number) {
-      const encoded = compactSignedIntCodec.encodeI32(value)
-      const decoded = compactSignedIntCodec.decodeI32(encoded)
-      expect(decoded).toEqual(value)
+    for (let i = 0; i < 10; i++) {
+      successI32(getRandomInt32())
     }
 
-    function failI32(value: number) {
-      const encoded = compactSignedIntCodec.encodeI32(value)
-      const decoded = compactSignedIntCodec.decodeI32(encoded)
-      expect(decoded).not.toEqual(value)
-    }
-
-    function getRandomInt32(): number {
-      return (Math.random() * 0xffffffff) | 0
-    }
+    successI32(0)
+    successI32(max)
+    successI32(min)
+    successI32(-371166845)
+    failI32(max + 1)
+    failI32(min - 1)
+    failI32(2 ** 50)
   })
+
+  function successI32(value: number) {
+    const encoded = compactSignedIntCodec.encodeI32(value)
+    const decoded = compactSignedIntCodec.decodeI32(encoded)
+    expect(decoded).toEqual(value)
+  }
+
+  function failI32(value: number) {
+    const encoded = compactSignedIntCodec.encodeI32(value)
+    const decoded = compactSignedIntCodec.decodeI32(encoded)
+    expect(decoded).not.toEqual(value)
+  }
+
+  function getRandomInt32(): number {
+    return (Math.random() * 0xffffffff) | 0
+  }
+})

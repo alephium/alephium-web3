@@ -16,39 +16,41 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { Codec } from './codec'
-import { assert } from 'console'
+import { Codec, assert } from './codec'
 
-export class LongCodec implements Codec<number> {
+export class LongCodec implements Codec<bigint> {
   parser = Parser.start().buffer('value', {
     length: 8
   })
 
-  encode(value: number): Buffer {
-    return Buffer.from([
-      (value >> 56) & 0xff,
-      (value >> 48) & 0xff,
-      (value >> 40) & 0xff,
-      (value >> 32) & 0xff,
-      (value >> 24) & 0xff,
-      (value >> 16) & 0xff,
-      (value >> 8) & 0xff,
-      value & 0xff
-    ])
+  encode(int64: bigint): Buffer {
+    const byteArray = new Uint8Array(8)
+
+    for (let index = 0; index < byteArray.length; index++) {
+      const byte = int64 & BigInt(0xff)
+      byteArray[byteArray.length - index - 1] = Number(byte)
+      int64 >>= BigInt(8)
+    }
+
+    return Buffer.from(byteArray)
   }
 
-  decode(bytes: Buffer): number {
-    assert(bytes.length === 8, 'Length should be 8')
-    return (
-      ((bytes[0] & 0xff) << 56) |
-      ((bytes[1] & 0xff) << 48) |
-      ((bytes[2] & 0xff) << 40) |
-      ((bytes[3] & 0xff) << 32) |
-      ((bytes[4] & 0xff) << 24) |
-      ((bytes[5] & 0xff) << 16) |
-      ((bytes[6] & 0xff) << 8) |
-      (bytes[7] & 0xff)
-    )
+  decode(bytes: Buffer): bigint {
+    assert(bytes.length == 8, 'Length should be 8')
+    let int64 = BigInt(0)
+    let pow = BigInt(1)
+
+    for (let i = bytes.length - 1; i >= 0; i--) {
+      int64 += BigInt(bytes[i]) * pow
+      pow *= BigInt(256)
+    }
+
+    // Determine if the number is negative (check the sign bit of the first byte)
+    if (bytes[0] & 0x80) {
+      int64 -= BigInt(1) << BigInt(64)
+    }
+
+    return int64
   }
 }
 

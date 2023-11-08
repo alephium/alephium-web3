@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { assert } from 'console'
-import { Codec } from './codec'
+import { Codec, assert } from './codec'
 
 export class CompactInt {
   static readonly oneBytePrefix = 0x00
@@ -58,8 +57,8 @@ const compactIntParser = new Parser().uint8('mode').buffer('rest', {
 })
 
 export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
-  private oneByteBound  = 0x40
-  private twoByteBound  = this.oneByteBound << 8
+  private oneByteBound = 0x40
+  private twoByteBound = this.oneByteBound << 8
   private fourByteBound = this.oneByteBound << (8 * 3)
 
   parser = compactIntParser
@@ -83,7 +82,7 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     } else {
       return Buffer.from([
         CompactInt.multiBytePrefix,
-        value >> 24 & 0xff,
+        (value >> 24) & 0xff,
         (value >> 16) & 0xff,
         (value >> 8) & 0xff,
         value & 0xff
@@ -113,9 +112,9 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
 export const compactUnsignedIntCodec = new CompactUnsignedIntCodec()
 
 export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
-  private signFlag      = 0x20 // 0b00100000
-  private oneByteBound  = 0x20 // 0b00100000
-  private twoByteBound  = this.oneByteBound << 8
+  private signFlag = 0x20 // 0b00100000
+  private oneByteBound = 0x20 // 0b00100000
+  private twoByteBound = this.oneByteBound << 8
   private fourByteBound = this.oneByteBound << (8 * 3)
 
   parser = compactIntParser
@@ -149,7 +148,7 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
       } else {
         return Buffer.from([
           CompactInt.multiBytePrefix,
-          value >> 24 & 0xff,
+          (value >> 24) & 0xff,
           (value >> 16) & 0xff,
           (value >> 8) & 0xff,
           value & 0xff
@@ -165,12 +164,12 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
           ((value >> 24) ^ CompactInt.fourByteNegPrefix) & 0xff,
           (value >> 16) & 0xff,
           (value >> 8) & 0xff,
-          value & 0xff,
+          value & 0xff
         ])
       } else {
         return Buffer.from([
           CompactInt.multiBytePrefix,
-          value >> 24 & 0xff,
+          (value >> 24) & 0xff,
           (value >> 16) & 0xff,
           (value >> 8) & 0xff,
           value & 0xff

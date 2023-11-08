@@ -22,3 +22,9 @@ export interface Codec<T> {
   encode(input: T): Buffer
   decode(input: Buffer): T
 }
+
+export function assert(value: boolean, message: string) {
+  if (!value) {
+    throw new Error(message)
+  }
+}

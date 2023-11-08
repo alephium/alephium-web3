@@ -84,7 +84,7 @@ export class OutputCodec implements Codec<any> {
   static convertToFixedAssetOutputs(txIdBytes: Uint8Array, outputs: any[]): FixedAssetOutput[] {
     return outputs.map((output, index) => {
       const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
-      const lockTime = longCodec.decode(output.lockTime)
+      const lockTime = Number(longCodec.decode(output.lockTime))
       const tokens = output.tokens.value.map((token) => {
         return {
           id: token.tokenId.toString('hex'),
