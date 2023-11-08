@@ -90,6 +90,11 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
+  decodeU32(input: Buffer): number {
+    const decoded = this.decode(input)
+    return this.toU32(decoded)
+  }
+
   decode(input: Buffer): DecodedCompactInt {
     return this.parser.parse(input)
   }
@@ -228,7 +233,7 @@ function decodePositiveInt(rawMode: number, body: Buffer): number {
       return ((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
     default:
       if (body.length === 5) {
-        return ((body[1] & maskMode) << 24) | ((body[2] & 0xff) << 16) | ((body[3] & 0xff) << 8) | (body[4] & 0xff)
+        return Number(BigInt('0x' + body.slice(1).toString('hex')))
       } else {
         throw new Error(`decodePositiveInt: Expect 4 bytes int, but get ${body.length - 1} bytes int`)
       }

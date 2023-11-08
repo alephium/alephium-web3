@@ -16,39 +16,71 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { compactSignedIntCodec } from './compact-int-codec'
+import { compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
 
 describe('Encode & decode compact int', function () {
   it('should encode & decode i32', function () {
+    const testCodec = new TestCodec(
+      (number) => compactSignedIntCodec.encodeI32(number),
+      (buffer) => compactSignedIntCodec.decodeI32(buffer),
+      () => (Math.random() * 0xffffffff) | 0
+    )
+
     const min = -(2 ** 31)
     const max = 2 ** 31 - 1
 
     for (let i = 0; i < 10; i++) {
-      successI32(getRandomInt32())
+      testCodec.success(testCodec.generateRandom())
     }
 
-    successI32(0)
-    successI32(max)
-    successI32(min)
-    successI32(-371166845)
-    failI32(max + 1)
-    failI32(min - 1)
-    failI32(2 ** 50)
+    testCodec.success(0)
+    testCodec.success(max)
+    testCodec.success(min)
+    testCodec.success(-371166845)
+    testCodec.fail(max + 1)
+    testCodec.fail(min - 1)
+    testCodec.fail(2 ** 50)
   })
 
-  function successI32(value: number) {
-    const encoded = compactSignedIntCodec.encodeI32(value)
-    const decoded = compactSignedIntCodec.decodeI32(encoded)
-    expect(decoded).toEqual(value)
-  }
+  it('should encode & decode u32', function () {
+    const testCodec = new TestCodec(
+      (number) => compactUnsignedIntCodec.encodeU32(number),
+      (buffer) => compactUnsignedIntCodec.decodeU32(buffer),
+      () => (Math.random() * 0xffffffff) >>> 0
+    )
 
-  function failI32(value: number) {
-    const encoded = compactSignedIntCodec.encodeI32(value)
-    const decoded = compactSignedIntCodec.decodeI32(encoded)
-    expect(decoded).not.toEqual(value)
-  }
+    const min = 0
+    const max = 2 ** 32 - 1
 
-  function getRandomInt32(): number {
-    return (Math.random() * 0xffffffff) | 0
+    for (let i = 0; i < 10; i++) {
+      testCodec.success(testCodec.generateRandom())
+    }
+
+    testCodec.success(3186864367)
+    testCodec.success(0)
+    testCodec.success(max)
+    testCodec.success(min)
+    testCodec.fail(max + 1)
+    testCodec.fail(2 ** 50)
+  })
+
+  class TestCodec {
+    constructor(private encode: (number) => Buffer, private decode: (Buffer) => number, private random: () => number) {}
+
+    success(value: number) {
+      const encoded = this.encode(value)
+      const decoded = this.decode(encoded)
+      expect(decoded).toEqual(value)
+    }
+
+    fail(value: number) {
+      const encoded = this.encode(value)
+      const decoded = this.decode(encoded)
+      expect(decoded).not.toEqual(value)
+    }
+
+    generateRandom(): number {
+      return this.random()
+    }
   }
 })
