@@ -16,28 +16,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
-import { methodCodec } from './method-codec'
 
-export class StatefulScriptCodec implements Codec<any> {
-  parser = Parser.start().nest('methods', {
-    type: new ArrayCodec(methodCodec).parser
-  })
+export class OptionCodec implements Codec<any> {
+  parser = Parser.start()
+
+  constructor(private childCodec: Codec<any>) {
+    this.parser = OptionCodec.optionParser(childCodec.parser)
+  }
 
   encode(input: any): Buffer {
-    const script = [...compactUnsignedIntCodec.encode(input.methods.length)]
-    for (const method of input.methods.value) {
-      script.push(...methodCodec.encode(method))
+    const result = [input.option]
+    if (input.option === 1) {
+      result.push(...Array.from(this.childCodec.encode(input.value)))
     }
-
-    return Buffer.from(script)
+    return Buffer.from(result)
   }
 
   decode(input: Buffer): any {
-    return this.parser.parse(input)
+    const result = this.parser.parse(input)
+    return {
+      ...result,
+      value: result.option ? this.childCodec.decode(result.value.value) : result.value
+    }
+  }
+
+  static optionParser(parser: Parser) {
+    return new Parser().uint8('option').choice('value', {
+      tag: 'option',
+      choices: {
+        0: new Parser(),
+        1: parser
+      }
+    })
   }
 }
-
-export const statefulScriptCodec = new StatefulScriptCodec()

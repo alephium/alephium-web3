@@ -18,24 +18,24 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { UnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '@alephium/web3'
-import { StatefulScriptCodec } from './script-codec'
+import { statefulScriptCodec } from './script-codec'
 import { compactUnsignedIntCodec } from './compact-int-codec'
 import { InputCodec, inputCodec } from './input-codec'
 import { OutputCodec, outputCodec } from './output-codec'
 import { ArrayCodec } from './array-codec'
 import { blakeHash } from './hash'
 import { Codec } from './codec'
+import { OptionCodec } from './option-codec'
+
+const optionalStatefulScriptCodec = new OptionCodec(statefulScriptCodec)
+const inputsCodec = new ArrayCodec(inputCodec)
+const outputsCodec = new ArrayCodec(outputCodec)
 
 export const unsignedTransactionParser = new Parser()
   .uint8('version')
   .uint8('networkId')
-  .uint8('statefulScriptOption')
-  .choice('statefulScript', {
-    tag: 'statefulScriptOption',
-    choices: {
-      0: new Parser(),
-      1: StatefulScriptCodec.new().parser
-    }
+  .nest('statefulScript', {
+    type: optionalStatefulScriptCodec.parser
   })
   .nest('gasAmount', {
     type: compactUnsignedIntCodec.parser
@@ -44,10 +44,10 @@ export const unsignedTransactionParser = new Parser()
     type: compactUnsignedIntCodec.parser
   })
   .nest('inputs', {
-    type: new ArrayCodec(inputCodec).parser
+    type: inputsCodec.parser
   })
   .nest('fixedOutputs', {
-    type: new ArrayCodec(outputCodec).parser
+    type: outputsCodec.parser
   })
 
 export class UnsignedTransactionCodec implements Codec<any> {
@@ -58,16 +58,14 @@ export class UnsignedTransactionCodec implements Codec<any> {
   }
 
   encode(input: any): Buffer {
-    const result = [input.version, input.networkId, input.statefulScriptOption]
-    if (input.statefulScriptOption === 1) {
-      result.push(...Array.from(StatefulScriptCodec.new().encode(input.statefulScript)))
-    }
-
-    result.push(...Array.from(compactUnsignedIntCodec.encode(input.gasAmount)))
-    result.push(...Array.from(compactUnsignedIntCodec.encode(input.gasPrice)))
-    result.push(...Array.from(new ArrayCodec(inputCodec).encode(input.inputs)))
-    result.push(...Array.from(new ArrayCodec(outputCodec).encode(input.fixedOutputs)))
-    return Buffer.from(result)
+    return Buffer.concat([
+      Buffer.from([input.version, input.networkId]),
+      optionalStatefulScriptCodec.encode(input.statefulScript),
+      compactUnsignedIntCodec.encode(input.gasAmount),
+      compactUnsignedIntCodec.encode(input.gasPrice),
+      inputsCodec.encode(input.inputs),
+      outputsCodec.encode(input.fixedOutputs)
+    ])
   }
 
   decode(input: Buffer): any {
@@ -85,8 +83,8 @@ export class UnsignedTransactionCodec implements Codec<any> {
     const inputs = InputCodec.convertToAssetInputs(parsedResult.inputs.value)
     const fixedOutputs = OutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
     let scriptOpt: string | undefined = undefined
-    if (parsedResult.statefulScriptOption === 1) {
-      scriptOpt = StatefulScriptCodec.new().encode(parsedResult.statefulScript).toString('hex')
+    if (parsedResult.statefulScript.option === 1) {
+      scriptOpt = statefulScriptCodec.encode(parsedResult.statefulScript.value).toString('hex')
     }
 
     return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }

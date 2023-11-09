@@ -212,7 +212,7 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
     if (value >= -0x20000000 && value < 0x20000000) {
       return this.encodeI32(Number(value))
     } else {
-      let bytes = BigIntCodec.encode(value)
+      const bytes = BigIntCodec.encode(value)
       const header = (bytes.length - 4 + CompactInt.multiBytePrefix) & 0xff
       return Buffer.concat([Buffer.from([header]), bytes])
     }

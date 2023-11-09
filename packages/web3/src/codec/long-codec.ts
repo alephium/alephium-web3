@@ -23,13 +23,14 @@ export class LongCodec implements Codec<bigint> {
     length: 8
   })
 
-  encode(int64: bigint): Buffer {
+  encode(input: bigint): Buffer {
     const byteArray = new Uint8Array(8)
 
+    assert(byteArray.length <= 8, 'Length should be less than or equal to 8')
     for (let index = 0; index < byteArray.length; index++) {
-      const byte = int64 & BigInt(0xff)
+      const byte = input & BigInt(0xff)
       byteArray[byteArray.length - index - 1] = Number(byte)
-      int64 >>= BigInt(8)
+      input >>= BigInt(8)
     }
 
     return Buffer.from(byteArray)
