@@ -41,6 +41,7 @@ describe('Encode & decode compact int', function () {
     testCodec.fail(max + 1)
     testCodec.fail(min - 1)
     testCodec.fail(2 ** 50)
+    testCodec.success(-129)
   })
 
   it('should encode & decode u32', function () {
@@ -69,7 +70,7 @@ describe('Encode & decode compact int', function () {
     const testCodec = new TestCodec(
       (number) => compactUnsignedIntCodec.encodeU256(number),
       (buffer) => compactUnsignedIntCodec.decodeU256(buffer),
-      () => BigInt('0x' + randomBytes(32).toString('hex'))
+      () => BigInt('0x' + randomBytes(31).toString('hex'))
     )
 
     for (let i = 0; i < 10; i++) {
@@ -82,6 +83,24 @@ describe('Encode & decode compact int', function () {
     testCodec.throws(-14134776518227075000000000000000000000000000000000000000000000000000000000n)
     testCodec.throws(2n ** 256n)
     testCodec.throws(2n ** 300n)
+    testCodec.success(450911304396683459691502945063840306066104971563684320703822762651916827512n)
+  })
+
+  it('should encode & decode i256', function () {
+    const testCodec = new TestCodec(
+      (number) => compactSignedIntCodec.encodeI256(number),
+      (buffer) => compactSignedIntCodec.decodeI256(buffer),
+      () => BigInt('0x' + randomBytes(30).toString('hex'))
+    )
+
+    for (let i = 0; i < 10; i++) {
+      testCodec.success(testCodec.generateRandom())
+    }
+    testCodec.success(9520219607152041471n)
+    testCodec.success(-9520219607152041471n)
+    testCodec.success(2n ** 255n - 1n)
+    testCodec.success(0n)
+    testCodec.success(-129n)
   })
 
   class TestCodec {

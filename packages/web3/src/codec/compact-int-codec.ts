@@ -133,7 +133,8 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     if (fixedSize(mode)) {
       return BigInt(this.toU32(value))
     } else {
-      return BigIntCodec.decode(Buffer.from(value.rest))
+      assert(value.rest.length <= 32, 'Expect <= 32 bytes for U256')
+      return BigIntCodec.decode(Buffer.from(value.rest), false)
     }
   }
 }
@@ -207,6 +208,21 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
+  encodeI256(value: bigint): Buffer {
+    if (value >= -0x20000000 && value < 0x20000000) {
+      return this.encodeI32(Number(value))
+    } else {
+      let bytes = BigIntCodec.encode(value)
+      const header = (bytes.length - 4 + CompactInt.multiBytePrefix) & 0xff
+      return Buffer.concat([Buffer.from([header]), bytes])
+    }
+  }
+
+  decodeI256(input: Buffer): bigint {
+    const decoded = this.decode(input)
+    return this.toI256(decoded)
+  }
+
   toI32(value: DecodedCompactInt): number {
     const body = Buffer.from([value.mode, ...value.rest])
     const mode = value.mode & maskRest
@@ -232,11 +248,8 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
     if (fixedSize(mode)) {
       return BigInt(this.toI32(value))
     } else {
-      if (value.rest.length <= 32) {
-        return BigInt('0x' + Buffer.from(value.rest).toString('hex'))
-      } else {
-        throw new Error(`Expect <= 32 bytes for I256, but get ${value.rest.length} bytes instead`)
-      }
+      assert(value.rest.length <= 32, 'Expect <= 32 bytes for I256')
+      return BigIntCodec.decode(Buffer.from(value.rest), true)
     }
   }
 }
@@ -271,7 +284,7 @@ function decodeNegativeInt(rawMode: number, body: Buffer) {
       return rawMode | maskModeNeg
     case CompactInt.twoBytePrefix:
       assert(body.length === 2, 'Length should be 2')
-      return ((body[0] & maskModeNeg) << 8) | (body[1] & 0xff)
+      return ((body[0] | maskModeNeg) << 8) | (body[1] & 0xff)
     case CompactInt.fourBytePrefix:
       assert(body.length === 4, 'Length should be 4')
       return ((body[0] | maskModeNeg) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
