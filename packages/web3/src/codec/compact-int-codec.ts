@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
+import { BigIntCodec } from './bigint-codec'
 
 export class CompactInt {
   static readonly oneBytePrefix = 0x00
@@ -90,9 +91,32 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
+  encodeU256(value: bigint): Buffer {
+    assert(value >= 0n, 'Value should be positive')
+
+    if (value < this.fourByteBound) {
+      return this.encodeU32(Number(value))
+    } else {
+      let bytes = BigIntCodec.encode(value)
+      if (bytes[0] === 0) {
+        bytes = bytes.slice(1)
+      }
+
+      assert(bytes.length <= 32, 'Expect <= 32 bytes for U256')
+
+      const header = (bytes.length - 4 + CompactInt.multiBytePrefix) & 0xff
+      return Buffer.concat([Buffer.from([header]), bytes])
+    }
+  }
+
   decodeU32(input: Buffer): number {
     const decoded = this.decode(input)
     return this.toU32(decoded)
+  }
+
+  decodeU256(input: Buffer): bigint {
+    const decoded = this.decode(input)
+    return this.toU256(decoded)
   }
 
   decode(input: Buffer): DecodedCompactInt {
@@ -109,7 +133,7 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     if (fixedSize(mode)) {
       return BigInt(this.toU32(value))
     } else {
-      return BigInt('0x' + Buffer.from(value.rest).toString('hex'))
+      return BigIntCodec.decode(Buffer.from(value.rest))
     }
   }
 }

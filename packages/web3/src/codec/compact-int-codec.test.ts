@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
+import { randomBytes } from 'crypto'
 
 describe('Encode & decode compact int', function () {
   it('should encode & decode i32', function () {
@@ -64,22 +65,49 @@ describe('Encode & decode compact int', function () {
     testCodec.fail(2 ** 50)
   })
 
-  class TestCodec {
-    constructor(private encode: (number) => Buffer, private decode: (Buffer) => number, private random: () => number) {}
+  it('should encode & decode u256', function () {
+    const testCodec = new TestCodec(
+      (number) => compactUnsignedIntCodec.encodeU256(number),
+      (buffer) => compactUnsignedIntCodec.decodeU256(buffer),
+      () => BigInt('0x' + randomBytes(32).toString('hex'))
+    )
 
-    success(value: number) {
+    for (let i = 0; i < 10; i++) {
+      testCodec.success(testCodec.generateRandom())
+    }
+
+    testCodec.success(9520219607152041471n)
+    testCodec.success(2n ** 255n - 1n)
+    testCodec.success(0n)
+    testCodec.throws(-14134776518227075000000000000000000000000000000000000000000000000000000000n)
+    testCodec.throws(2n ** 256n)
+    testCodec.throws(2n ** 300n)
+  })
+
+  class TestCodec {
+    constructor(
+      private encode: (number) => Buffer,
+      private decode: (Buffer) => number | bigint,
+      private random: () => number | bigint
+    ) {}
+
+    success(value: number | bigint) {
       const encoded = this.encode(value)
       const decoded = this.decode(encoded)
       expect(decoded).toEqual(value)
     }
 
-    fail(value: number) {
+    fail(value: number | bigint) {
       const encoded = this.encode(value)
       const decoded = this.decode(encoded)
       expect(decoded).not.toEqual(value)
     }
 
-    generateRandom(): number {
+    throws(value: number | bigint) {
+      expect(() => this.encode(value)).toThrow(Error)
+    }
+
+    generateRandom(): number | bigint {
       return this.random()
     }
   }
