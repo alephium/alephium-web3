@@ -21,6 +21,7 @@ import { compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { instrCodec } from './instr-codec'
 
+const instrsCodec = new ArrayCodec(instrCodec)
 export class MethodCodec implements Codec<any> {
   parser = Parser.start()
     .uint8('isPublic')
@@ -35,7 +36,7 @@ export class MethodCodec implements Codec<any> {
       type: compactUnsignedIntCodec.parser
     })
     .nest('instrs', {
-      type: new ArrayCodec(instrCodec).parser
+      type: instrsCodec.parser
     })
 
   encode(input: any): Buffer {
@@ -43,11 +44,7 @@ export class MethodCodec implements Codec<any> {
     result.push(...compactUnsignedIntCodec.encode(input.argsLength))
     result.push(...compactUnsignedIntCodec.encode(input.localsLength))
     result.push(...compactUnsignedIntCodec.encode(input.returnLength))
-    result.push(...compactUnsignedIntCodec.encode(input.instrs.length))
-    for (const instr of input.instrs.value) {
-      result.push(...Array.from(instrCodec.encode(instr)))
-    }
-
+    result.push(...instrsCodec.encode(input.instrs.value))
     return Buffer.from(result)
   }
 

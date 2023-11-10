@@ -103,18 +103,18 @@ class ValCodec implements Codec<any> {
 }
 
 const valCodec = new ValCodec()
-
+const valsCodec = new ArrayCodec(valCodec)
 export class P2SHCodec implements Codec<any> {
   parser = Parser.start()
     .nest('script', {
       type: statefulScriptCodec.parser
     })
     .nest('params', {
-      type: ArrayCodec.arrayParser(valCodec.parser)
+      type: valsCodec.parser
     })
 
   encode(input: any): Buffer {
-    return Buffer.concat([statefulScriptCodec.encode(input.script), new ArrayCodec(valCodec).encode(input.params)])
+    return Buffer.concat([statefulScriptCodec.encode(input.script), valsCodec.encode(input.params.value)])
   }
 
   decode(input: Buffer): any {

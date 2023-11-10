@@ -19,23 +19,24 @@ import { Parser } from 'binary-parser'
 import { compactUnsignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Codec } from './codec'
 
-export class ArrayCodec implements Codec<any> {
+export class ArrayCodec<T> implements Codec<T[]> {
   parser = Parser.start()
 
-  constructor(private childCodec: Codec<any>) {
+  constructor(private childCodec: Codec<T>) {
     this.parser = ArrayCodec.arrayParser(childCodec.parser)
   }
 
-  encode(input: any): Buffer {
-    const result = [...compactUnsignedIntCodec.encode(input.length)]
-    for (const value of input.value) {
-      result.push(...Array.from(this.childCodec.encode(value)))
+  encode(input: T[]): Buffer {
+    const result = [...compactUnsignedIntCodec.encodeU256(BigInt(input.length))]
+    for (const element of input) {
+      result.push(...Array.from(this.childCodec.encode(element)))
     }
     return Buffer.from(result)
   }
 
-  decode(input: Buffer): any {
-    return this.parser.parse(input)
+  decode(input: Buffer): T[] {
+    const result = this.parser.parse(input)
+    return result.value.map((v) => this.childCodec.decode(v.value))
   }
 
   static arrayParser(parser: Parser) {

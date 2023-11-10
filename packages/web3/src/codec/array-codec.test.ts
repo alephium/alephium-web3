@@ -15,26 +15,22 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
 import { compactUnsignedIntCodec } from './compact-int-codec'
-import { Codec } from './codec'
-import { methodCodec } from './method-codec'
+import { signedIntCodec } from './signed-int-codec'
 
-const methodsCodec = new ArrayCodec(methodCodec)
-export class StatefulScriptCodec implements Codec<any> {
-  parser = Parser.start().nest('methods', {
-    type: methodsCodec.parser
+describe('Encode & decode arrays', function () {
+  it('should encode and decode arrays', function () {
+    const arraySignedIntCodec = new ArrayCodec(signedIntCodec)
+
+    const arrayOfSignedInts = [1, 2, 3, 4, 5]
+    const encoded = arraySignedIntCodec.encode(arrayOfSignedInts)
+    const decoded = arraySignedIntCodec.decode(encoded)
+    expect(arrayOfSignedInts).toEqual(decoded)
+
+    const empty = []
+    const encodedEmpty = arraySignedIntCodec.encode(empty)
+    const decodedEmpty = arraySignedIntCodec.decode(encodedEmpty)
+    expect(empty).toEqual(decodedEmpty)
   })
-
-  encode(input: any): Buffer {
-    const script = methodsCodec.encode(input.methods.value)
-    return Buffer.from(script)
-  }
-
-  decode(input: Buffer): any {
-    return this.parser.parse(input)
-  }
-}
-
-export const statefulScriptCodec = new StatefulScriptCodec()
+})

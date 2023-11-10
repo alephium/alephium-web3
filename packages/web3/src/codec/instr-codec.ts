@@ -22,6 +22,7 @@ import { byteStringCodec } from './bytestring-codec'
 import { lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
 
+const byteStringArrayCodec = new ArrayCodec(byteStringCodec)
 export class InstrCodec implements Codec<any> {
   parser = Parser.start()
     .uint8('code')
@@ -154,7 +155,7 @@ export class InstrCodec implements Codec<any> {
         0x7b: Parser.start(), // AssertWithErrorCode
         0x7c: Parser.start(), // Swap
         0x7d: Parser.start(), // BlockHash
-        0x7e: Parser.start().nest('stringParts', { type: new ArrayCodec(byteStringCodec).parser }), // DEBUG
+        0x7e: Parser.start().nest('stringParts', { type: byteStringArrayCodec.parser }), // DEBUG
         0x7f: Parser.start(), // TxGasPrice
         0x80: Parser.start(), // TxGasAmount
         0x81: Parser.start(), // TxGasFee
@@ -233,10 +234,7 @@ export class InstrCodec implements Codec<any> {
     } else if (instr.code === 0x15) {
       result.push(...lockupScriptCodec.encode(instrValue))
     } else if (instr.code === 0x7e) {
-      result.push(...compactUnsignedIntCodec.encode(instrValue.stringParts.length))
-      for (const stringPart of instrValue.stringParts.value) {
-        result.push(...byteStringCodec.encode(stringPart.value))
-      }
+      result.push(...byteStringArrayCodec.encode(instrValue.stringParts.value))
     } else if (instrsWithIndex.includes(instr.code)) {
       result.push(instrValue.index)
     }

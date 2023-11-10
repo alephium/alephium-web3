@@ -48,7 +48,7 @@ export class TokenCodec implements Codec<any> {
 }
 
 const tokenCodec = new TokenCodec()
-
+const tokensCodec = new ArrayCodec(tokenCodec)
 export class OutputCodec implements Codec<any> {
   parser = Parser.start()
     .nest('amount', {
@@ -61,17 +61,18 @@ export class OutputCodec implements Codec<any> {
       length: 8
     })
     .nest('tokens', {
-      type: ArrayCodec.arrayParser(tokenCodec.parser)
+      type: tokensCodec.parser
     })
     .nest('additionalData', {
       type: byteStringCodec.parser
     })
 
   encode(input: any): Buffer {
+    console.log('outputCodec.encode', input)
     const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
     const lockupScript = lockupScriptCodec.encode(input.lockupScript)
     const lockTime = Buffer.from(input.lockTime)
-    const tokens = Buffer.from(new ArrayCodec(tokenCodec).encode(input.tokens))
+    const tokens = Buffer.from(tokensCodec.encode(input.tokens.value))
     const additionalData = Buffer.from(byteStringCodec.encode(input.additionalData))
 
     return Buffer.concat([amount, lockupScript, lockTime, tokens, additionalData])

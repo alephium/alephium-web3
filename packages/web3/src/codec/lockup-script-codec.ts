@@ -37,8 +37,9 @@ class PublicKeyHashCodec implements Codec<any> {
 }
 
 const publicKeyHashCodec = PublicKeyHashCodec.new()
+const publicKeyHashesCodec = new ArrayCodec(publicKeyHashCodec)
 const multiSigParser = Parser.start()
-  .nest('publicKeyHashes', { type: new ArrayCodec(publicKeyHashCodec).parser })
+  .nest('publicKeyHashes', { type: publicKeyHashesCodec.parser })
   .nest('m', { type: compactUnsignedIntCodec.parser })
 
 export class LockupScriptCodec implements Codec<any> {
@@ -59,10 +60,7 @@ export class LockupScriptCodec implements Codec<any> {
     if (input.scriptType === 0) {
       result.push(...input.script.publicKeyHash)
     } else if (input.scriptType === 1) {
-      result.push(...compactUnsignedIntCodec.encode(input.script.publicKeyHashes.length))
-      for (const publicKeyHash of input.script.publicKeyHashes.value) {
-        result.push(...publicKeyHash.publicKeyHash)
-      }
+      result.push(...publicKeyHashesCodec.encode(input.script.publicKeyHashes.value))
       result.push(...compactUnsignedIntCodec.encode(input.script.m))
     } else if (input.scriptType === 2) {
       result.push(...input.script.scriptHash)

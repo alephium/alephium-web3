@@ -63,8 +63,8 @@ export class UnsignedTransactionCodec implements Codec<any> {
       optionalStatefulScriptCodec.encode(input.statefulScript),
       compactUnsignedIntCodec.encode(input.gasAmount),
       compactUnsignedIntCodec.encode(input.gasPrice),
-      inputsCodec.encode(input.inputs),
-      outputsCodec.encode(input.fixedOutputs)
+      inputsCodec.encode(input.inputs.value),
+      outputsCodec.encode(input.fixedOutputs.value)
     ])
   }
 
