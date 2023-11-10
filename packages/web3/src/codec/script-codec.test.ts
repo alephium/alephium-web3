@@ -26,8 +26,12 @@ describe('Encode & decode scripts', function () {
   })
 
   it('should encode and decode scripts', async () => {
-    const contractCode = `
-          Contract Faucet() {
+    const externalCallScript = `
+           TxScript Withdraw(faucetContract: Faucet) {
+              faucetContract.withdraw()
+           }
+
+           Contract Faucet() {
             @using(assetsInContract = true)
             pub fn withdraw() -> () {
               transferTokenFromSelf!(callerAddress!(), ALPH, dustAmount!())
@@ -35,16 +39,8 @@ describe('Encode & decode scripts', function () {
             }
           }
         `
-    const scriptCode = `
-           TxScript Withdraw(faucetContract: Faucet) {
-              faucetContract.withdraw()
-           }
-
-           ${contractCode}
-        `
-
     await testScriptCode(
-      scriptCode,
+      externalCallScript,
       { faucetContract: randomContractId() },
       { names: ['faucetContract'], types: ['ByteVec'], isMutable: [false] }
     )

@@ -15,27 +15,22 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { ArrayCodec } from './array-codec'
+import { byteStringCodec } from './bytestring-codec'
 import { compactUnsignedIntCodec } from './compact-int-codec'
-import { Codec } from './codec'
-import { methodCodec } from './method-codec'
 
-const methodsCodec = new ArrayCodec(methodCodec)
-
-export class ScriptCodec implements Codec<any> {
-  parser = Parser.start().nest('methods', {
-    type: methodsCodec.parser
+describe('Encode & decode bytestring', function () {
+  it('should encode & decode bytestring', function () {
+    success(Buffer.from(''))
+    success(Buffer.from('Alephium is great!'))
   })
 
-  encode(input: any): Buffer {
-    const script = methodsCodec.encode(input.methods.value)
-    return Buffer.from(script)
+  function success(value: Buffer) {
+    const encodedOne = byteStringCodec.encodeBuffer(value)
+    const decodedOne = byteStringCodec.decode(encodedOne)
+    const encodedTwo = byteStringCodec.encode(decodedOne)
+    const decodedTwo = byteStringCodec.decodeBuffer(encodedTwo)
+    expect(compactUnsignedIntCodec.toU32(decodedOne.length)).toEqual(decodedOne.value.length)
+    expect(decodedOne.value).toEqual(value)
+    expect(decodedTwo).toEqual(value)
   }
-
-  decode(input: Buffer): any {
-    return this.parser.parse(input)
-  }
-}
-
-export const scriptCodec = new ScriptCodec()
+})

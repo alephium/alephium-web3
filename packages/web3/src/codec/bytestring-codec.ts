@@ -19,7 +19,12 @@ import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 
-export class ByteStringCodec implements Codec<any> {
+interface ByteString {
+  length: DecodedCompactInt
+  value: Buffer
+}
+
+export class ByteStringCodec implements Codec<ByteString> {
   parser = new Parser()
     .nest('length', {
       type: compactUnsignedIntCodec.parser
@@ -30,12 +35,20 @@ export class ByteStringCodec implements Codec<any> {
       }
     })
 
-  encode(input: any): Buffer {
+  encode(input: ByteString): Buffer {
     return Buffer.from([...compactUnsignedIntCodec.encode(input.length), ...input.value])
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): ByteString {
     return this.parser.parse(input)
+  }
+
+  encodeBuffer(input: Buffer): Buffer {
+    return Buffer.from([...compactUnsignedIntCodec.encodeU32(input.length), ...input])
+  }
+
+  decodeBuffer(input: Buffer): Buffer {
+    return this.decode(input).value
   }
 }
 
