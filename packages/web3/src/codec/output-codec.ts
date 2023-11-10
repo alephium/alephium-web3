@@ -68,7 +68,6 @@ export class OutputCodec implements Codec<any> {
     })
 
   encode(input: any): Buffer {
-    console.log('outputCodec.encode', input)
     const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
     const lockupScript = lockupScriptCodec.encode(input.lockupScript)
     const lockTime = Buffer.from(input.lockTime)

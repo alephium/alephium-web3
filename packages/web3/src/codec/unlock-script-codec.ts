@@ -19,7 +19,7 @@ import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
-import { statefulScriptCodec } from './script-codec'
+import { scriptCodec } from './script-codec'
 import { byteStringCodec } from './bytestring-codec'
 import { lockupScriptCodec } from './lockup-script-codec'
 
@@ -107,14 +107,14 @@ const valsCodec = new ArrayCodec(valCodec)
 export class P2SHCodec implements Codec<any> {
   parser = Parser.start()
     .nest('script', {
-      type: statefulScriptCodec.parser
+      type: scriptCodec.parser
     })
     .nest('params', {
       type: valsCodec.parser
     })
 
   encode(input: any): Buffer {
-    return Buffer.concat([statefulScriptCodec.encode(input.script), valsCodec.encode(input.params.value)])
+    return Buffer.concat([scriptCodec.encode(input.script), valsCodec.encode(input.params.value)])
   }
 
   decode(input: Buffer): any {

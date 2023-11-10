@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { UnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '@alephium/web3'
-import { statefulScriptCodec } from './script-codec'
+import { scriptCodec } from './script-codec'
 import { compactUnsignedIntCodec } from './compact-int-codec'
 import { InputCodec, inputCodec } from './input-codec'
 import { OutputCodec, outputCodec } from './output-codec'
@@ -27,7 +27,7 @@ import { blakeHash } from './hash'
 import { Codec } from './codec'
 import { OptionCodec } from './option-codec'
 
-const optionalStatefulScriptCodec = new OptionCodec(statefulScriptCodec)
+const optionalStatefulScriptCodec = new OptionCodec(scriptCodec)
 const inputsCodec = new ArrayCodec(inputCodec)
 const outputsCodec = new ArrayCodec(outputCodec)
 
@@ -84,7 +84,7 @@ export class UnsignedTransactionCodec implements Codec<any> {
     const fixedOutputs = OutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
     let scriptOpt: string | undefined = undefined
     if (parsedResult.statefulScript.option === 1) {
-      scriptOpt = statefulScriptCodec.encode(parsedResult.statefulScript.value).toString('hex')
+      scriptOpt = scriptCodec.encode(parsedResult.statefulScript.value).toString('hex')
     }
 
     return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }

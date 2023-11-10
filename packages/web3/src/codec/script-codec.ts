@@ -22,7 +22,7 @@ import { Codec } from './codec'
 import { methodCodec } from './method-codec'
 
 const methodsCodec = new ArrayCodec(methodCodec)
-export class StatefulScriptCodec implements Codec<any> {
+export class ScriptCodec implements Codec<any> {
   parser = Parser.start().nest('methods', {
     type: methodsCodec.parser
   })
@@ -37,4 +37,4 @@ export class StatefulScriptCodec implements Codec<any> {
   }
 }
 
-export const statefulScriptCodec = new StatefulScriptCodec()
+export const scriptCodec = new ScriptCodec()
