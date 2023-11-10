@@ -16,14 +16,49 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec, compactSignedIntCodec } from './compact-int-codec'
-import { byteStringCodec } from './bytestring-codec'
-import { lockupScriptCodec } from './lockup-script-codec'
+import { ArrayCodec, DecodedArray } from './array-codec'
+import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
+import { ByteString, byteStringCodec } from './bytestring-codec'
+import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
 
 const byteStringArrayCodec = new ArrayCodec(byteStringCodec)
-export class InstrCodec implements Codec<any> {
+
+// eslint-disable-next-line
+export interface InstrValue {}
+export interface InstrValueWithIndex extends InstrValue {
+  index: number
+}
+export interface InstrValueWithCompactInt extends InstrValue {
+  value: DecodedCompactInt
+}
+
+export type CallLocal = InstrValueWithIndex
+export type CallExternal = InstrValue
+export type U256Const = InstrValueWithCompactInt
+export type I256Const = InstrValueWithCompactInt
+export interface ByteStringConst extends InstrValue {
+  value: ByteString
+}
+export interface AddressConst extends InstrValue {
+  value: LockupScript
+}
+export type LoadLocal = InstrValueWithIndex
+export type StoreLocal = InstrValueWithIndex
+export type Jump = InstrValueWithCompactInt
+export interface Debug extends InstrValue {
+  stringParts: DecodedArray<ByteString>
+}
+export type LoadMutField = InstrValueWithIndex
+export type StoreMutField = InstrValueWithIndex
+export type LoadImmField = InstrValueWithIndex
+
+export interface Instr {
+  code: number
+  value?: InstrValue
+}
+
+export class InstrCodec implements Codec<Instr> {
   parser = Parser.start()
     .uint8('code')
     .choice('value', {
@@ -103,7 +138,7 @@ export class InstrCodec implements Codec<any> {
         0x47: Parser.start(), // AddressToByteVec
         0x48: Parser.start(), // IsAssetAddress
         0x49: Parser.start(), // IsContractAddress
-        0x4a: Parser.start().nest('offset', { type: compactUnsignedIntCodec.parser }), // Jump
+        0x4a: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // Jump
         0x4b: Parser.start(), // IfTrue
         0x4c: Parser.start(), // IfFalse
         0x4d: Parser.start(), // Assert
@@ -221,28 +256,27 @@ export class InstrCodec implements Codec<any> {
       }
     })
 
-  encode(instr: any): Buffer {
+  encode(instr: Instr): Buffer {
     const instrValue = instr.value
     const result = [instr.code]
     const instrsWithIndex = [0x00, 0x01, 0x16, 0x17, 0xa0, 0xa1, 0xce]
-    if (instr.code === 0x12 || instr.code === 0x13) {
-      result.push(...compactUnsignedIntCodec.encode(instrValue.value))
-    } else if (instr.code === 0x4a) {
-      result.push(...compactUnsignedIntCodec.encode(instrValue.offset))
-    } else if (instr.code === 0x14) {
-      result.push(...byteStringCodec.encode(instrValue.value))
+    const instrsWithCompactInt = [0x12, 0x13, 0x14]
+    if (instr.code === 0x14) {
+      result.push(...byteStringCodec.encode((instrValue as ByteStringConst).value))
     } else if (instr.code === 0x15) {
-      result.push(...lockupScriptCodec.encode(instrValue))
+      result.push(...lockupScriptCodec.encode((instrValue as AddressConst).value))
     } else if (instr.code === 0x7e) {
-      result.push(...byteStringArrayCodec.encode(instrValue.stringParts.value))
+      result.push(...byteStringArrayCodec.encode((instrValue as Debug).stringParts.value))
+    } else if (instrsWithCompactInt.includes(instr.code)) {
+      result.push(...compactUnsignedIntCodec.encode((instrValue as InstrValueWithCompactInt).value))
     } else if (instrsWithIndex.includes(instr.code)) {
-      result.push(instrValue.index)
+      result.push((instrValue as InstrValueWithIndex).index)
     }
 
     return Buffer.from(result)
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): Instr {
     return this.parser.parse(input)
   }
 }

@@ -19,7 +19,7 @@ import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 
-interface ByteString {
+export interface ByteString {
   length: DecodedCompactInt
   value: Buffer
 }

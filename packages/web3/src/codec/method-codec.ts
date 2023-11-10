@@ -16,13 +16,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
+import { ArrayCodec, DecodedArray } from './array-codec'
+import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
-import { instrCodec } from './instr-codec'
+import { instrCodec, Instr } from './instr-codec'
 
-const instrsCodec = new ArrayCodec(instrCodec)
-export class MethodCodec implements Codec<any> {
+const instrsCodec = new ArrayCodec<Instr>(instrCodec)
+
+export interface Method {
+  isPublic: number
+  assetModifier: number
+  argsLength: DecodedCompactInt
+  localsLength: DecodedCompactInt
+  returnLength: DecodedCompactInt
+  instrs: DecodedArray<Instr>
+}
+
+export class MethodCodec implements Codec<Method> {
   parser = Parser.start()
     .uint8('isPublic')
     .uint8('assetModifier')
@@ -39,7 +49,7 @@ export class MethodCodec implements Codec<any> {
       type: instrsCodec.parser
     })
 
-  encode(input: any): Buffer {
+  encode(input: Method): Buffer {
     const result = [input.isPublic, input.assetModifier]
     result.push(...compactUnsignedIntCodec.encode(input.argsLength))
     result.push(...compactUnsignedIntCodec.encode(input.localsLength))
@@ -48,7 +58,7 @@ export class MethodCodec implements Codec<any> {
     return Buffer.from(result)
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): Method {
     return this.parser.parse(input)
   }
 }

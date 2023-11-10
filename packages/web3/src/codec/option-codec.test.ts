@@ -22,7 +22,7 @@ describe('Encode & decode options', function () {
   it('should encode and decode options', function () {
     const optionalStringCodec = new OptionCodec(signedIntCodec)
 
-    const none = { option: 0, value: {} }
+    const none = { option: 0 }
     const encodedNone = optionalStringCodec.encode(none)
     const decodedNone = optionalStringCodec.decode(encodedNone)
     expect(none).toEqual(decodedNone)

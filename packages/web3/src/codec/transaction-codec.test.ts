@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode } from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
-import { UnsignedTransactionCodec } from './transaction-codec'
+import { UnsignedTransactionCodec, unsignedTransactionCodec } from './transaction-codec'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { DUST_AMOUNT } from '../../dist/src/constants'
 
@@ -250,8 +250,8 @@ describe('Encode & decode unsigned transactions', function () {
   })
 
   function checkUnsignedTxCodec(unsignedTx: string) {
-    const decoded = UnsignedTransactionCodec.new().decode(Buffer.from(unsignedTx, 'hex'))
-    const encoded = UnsignedTransactionCodec.new().encode(decoded).toString('hex')
+    const decoded = unsignedTransactionCodec.decode(Buffer.from(unsignedTx, 'hex'))
+    const encoded = unsignedTransactionCodec.encode(decoded).toString('hex')
     expect(unsignedTx).toEqual(encoded)
   }
 })

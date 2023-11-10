@@ -16,24 +16,28 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
+import { ArrayCodec, DecodedArray } from './array-codec'
 import { Codec } from './codec'
-import { methodCodec } from './method-codec'
+import { Method, methodCodec } from './method-codec'
+import { DecodedCompactInt } from './compact-int-codec'
 
 const methodsCodec = new ArrayCodec(methodCodec)
 
-export class ScriptCodec implements Codec<any> {
+export interface Script {
+  methods: DecodedArray<Method>
+}
+
+export class ScriptCodec implements Codec<Script> {
   parser = Parser.start().nest('methods', {
     type: methodsCodec.parser
   })
 
-  encode(input: any): Buffer {
+  encode(input: Script): Buffer {
     const script = methodsCodec.encode(input.methods.value)
     return Buffer.from(script)
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): Script {
     return this.parser.parse(input)
   }
 }

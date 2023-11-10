@@ -19,6 +19,11 @@ import { Parser } from 'binary-parser'
 import { compactUnsignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Codec } from './codec'
 
+export interface DecodedArray<T> {
+  length: DecodedCompactInt
+  value: T[]
+}
+
 export class ArrayCodec<T> implements Codec<T[]> {
   parser = Parser.start()
 

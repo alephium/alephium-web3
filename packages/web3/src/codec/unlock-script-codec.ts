@@ -16,27 +16,38 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec, compactSignedIntCodec } from './compact-int-codec'
+import { ArrayCodec, DecodedArray } from './array-codec'
+import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Codec } from './codec'
-import { scriptCodec } from './script-codec'
-import { byteStringCodec } from './bytestring-codec'
-import { lockupScriptCodec } from './lockup-script-codec'
+import { Script, scriptCodec } from './script-codec'
+import { ByteString, byteStringCodec } from './bytestring-codec'
+import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 
-class P2PKHCodec implements Codec<any> {
+export interface P2PKH {
+  publicKey: Buffer
+}
+
+class P2PKHCodec implements Codec<P2PKH> {
   parser = Parser.start().buffer('publicKey', { length: 33 })
 
-  encode(input: any): Buffer {
+  encode(input: P2PKH): Buffer {
     return input.publicKey
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): P2PKH {
     return this.parser.parse(input)
   }
 }
 const p2pkhCodec = new P2PKHCodec()
 
-class P2MPKHCodec implements Codec<any> {
+export interface P2MPKH {
+  publicKeys: DecodedArray<{
+    publicKey: P2PKH
+    index: DecodedCompactInt
+  }>
+}
+
+class P2MPKHCodec implements Codec<P2MPKH> {
   parser = Parser.start().nest('publicKeys', {
     type: ArrayCodec.arrayParser(
       Parser.start()
@@ -45,7 +56,7 @@ class P2MPKHCodec implements Codec<any> {
     )
   })
 
-  encode(input: any): Buffer {
+  encode(input: P2MPKH): Buffer {
     return Buffer.concat([
       Buffer.from(compactUnsignedIntCodec.encode(input.publicKeys.length)),
       ...input.publicKeys.value.map((v) => {
@@ -60,7 +71,11 @@ class P2MPKHCodec implements Codec<any> {
 }
 const p2mpkhCodec = new P2MPKHCodec()
 
-class ValCodec implements Codec<any> {
+export interface Val {
+  type: number
+  val: number | DecodedCompactInt | ByteString | LockupScript
+}
+class ValCodec implements Codec<Val> {
   parser = Parser.start()
     .int8('type')
     .choice('val', {
@@ -74,37 +89,43 @@ class ValCodec implements Codec<any> {
       }
     })
 
-  encode(input: any): Buffer {
+  encode(input: Val): Buffer {
     const valType = input.type
 
     if (valType === 0x00) {
       // Boolean
-      return Buffer.from([valType, input.val])
+      return Buffer.from([valType, input.val as number])
     } else if (valType === 0x01) {
       // I256
-      return Buffer.from([valType, ...compactUnsignedIntCodec.encode(input.val)])
+      return Buffer.from([valType, ...compactUnsignedIntCodec.encode(input.val as DecodedCompactInt)])
     } else if (valType === 0x02) {
       // U256
-      return Buffer.from([valType, ...compactUnsignedIntCodec.encode(input.val)])
+      return Buffer.from([valType, ...compactUnsignedIntCodec.encode(input.val as DecodedCompactInt)])
     } else if (valType === 0x03) {
       // ByteVec
-      return Buffer.from([valType, ...byteStringCodec.encode(input.val)])
+      return Buffer.from([valType, ...byteStringCodec.encode(input.val as ByteString)])
     } else if (valType === 0x04) {
       // Address
-      return Buffer.from([valType, ...lockupScriptCodec.encode(input.val)])
+      return Buffer.from([valType, ...lockupScriptCodec.encode(input.val as LockupScript)])
     } else {
       throw new Error(`ValCodec: unsupported val type: ${valType}`)
     }
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): Val {
     return this.parser.parse(input)
   }
 }
 
 const valCodec = new ValCodec()
 const valsCodec = new ArrayCodec(valCodec)
-export class P2SHCodec implements Codec<any> {
+
+interface P2SH {
+  script: Script
+  params: DecodedArray<Val>
+}
+
+export class P2SHCodec implements Codec<P2SH> {
   parser = Parser.start()
     .nest('script', {
       type: scriptCodec.parser
@@ -113,18 +134,23 @@ export class P2SHCodec implements Codec<any> {
       type: valsCodec.parser
     })
 
-  encode(input: any): Buffer {
+  encode(input: P2SH): Buffer {
     return Buffer.concat([scriptCodec.encode(input.script), valsCodec.encode(input.params.value)])
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): P2SH {
     return this.parser.parse(input)
   }
 }
 
 const p2shCodec = new P2SHCodec()
 
-export class UnlockScriptCodec implements Codec<any> {
+export interface UnlockScript {
+  scriptType: number
+  script: P2PKH | P2MPKH | P2SH
+}
+
+export class UnlockScriptCodec implements Codec<UnlockScript> {
   parser = Parser.start()
     .uint8('scriptType')
     .choice('script', {
@@ -137,20 +163,20 @@ export class UnlockScriptCodec implements Codec<any> {
       }
     })
 
-  encode(input: any): Buffer {
+  encode(input: UnlockScript): Buffer {
     const scriptType = input.scriptType
     const inputUnLockScript = input.script
     const inputUnLockScriptType = Buffer.from([scriptType])
 
     if (scriptType === 0) {
       // P2PKH
-      return Buffer.concat([inputUnLockScriptType, p2pkhCodec.encode(inputUnLockScript)])
+      return Buffer.concat([inputUnLockScriptType, p2pkhCodec.encode(inputUnLockScript as P2PKH)])
     } else if (scriptType === 1) {
       // P2MPKH
-      return Buffer.concat([inputUnLockScriptType, p2mpkhCodec.encode(inputUnLockScript)])
+      return Buffer.concat([inputUnLockScriptType, p2mpkhCodec.encode(inputUnLockScript as P2MPKH)])
     } else if (scriptType === 2) {
       // P2SH
-      return Buffer.concat([inputUnLockScriptType, p2shCodec.encode(input.script)])
+      return Buffer.concat([inputUnLockScriptType, p2shCodec.encode(input.script as P2SH)])
     } else if (scriptType === 3) {
       // SameAsPrevious
       return inputUnLockScriptType
@@ -159,7 +185,7 @@ export class UnlockScriptCodec implements Codec<any> {
     }
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): UnlockScript {
     return this.parser.parse(input)
   }
 }

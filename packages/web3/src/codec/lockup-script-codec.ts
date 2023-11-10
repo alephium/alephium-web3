@@ -16,33 +16,51 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { compactUnsignedIntCodec } from './compact-int-codec'
+import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
-import { ArrayCodec } from './array-codec'
+import { ArrayCodec, DecodedArray } from './array-codec'
 
-class PublicKeyHashCodec implements Codec<any> {
+export interface PublicKeyHash {
+  publicKeyHash: Buffer
+}
+
+class PublicKeyHashCodec implements Codec<PublicKeyHash> {
   parser = Parser.start().buffer('publicKeyHash', { length: 32 })
 
-  static new(): PublicKeyHashCodec {
-    return new PublicKeyHashCodec()
-  }
-
-  encode(input: any): Buffer {
+  encode(input: PublicKeyHash): Buffer {
     return input.publicKeyHash
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): PublicKeyHash {
     return this.parser.parse(input)
   }
 }
 
-const publicKeyHashCodec = PublicKeyHashCodec.new()
+const publicKeyHashCodec = new PublicKeyHashCodec()
 const publicKeyHashesCodec = new ArrayCodec(publicKeyHashCodec)
 const multiSigParser = Parser.start()
   .nest('publicKeyHashes', { type: publicKeyHashesCodec.parser })
   .nest('m', { type: compactUnsignedIntCodec.parser })
 
-export class LockupScriptCodec implements Codec<any> {
+export interface MultiSig {
+  publicKeyHashes: DecodedArray<PublicKeyHash>
+  m: DecodedCompactInt
+}
+
+export interface P2SH {
+  scriptHash: Buffer
+}
+
+export interface P2C {
+  contractId: Buffer
+}
+
+export interface LockupScript {
+  scriptType: number
+  script: PublicKeyHash | MultiSig | P2SH | P2C
+}
+
+export class LockupScriptCodec implements Codec<LockupScript> {
   parser = Parser.start()
     .uint8('scriptType')
     .choice('script', {
@@ -55,17 +73,17 @@ export class LockupScriptCodec implements Codec<any> {
       }
     })
 
-  encode(input: any): Buffer {
+  encode(input: LockupScript): Buffer {
     const result: number[] = [input.scriptType]
     if (input.scriptType === 0) {
-      result.push(...input.script.publicKeyHash)
+      result.push(...(input.script as PublicKeyHash).publicKeyHash)
     } else if (input.scriptType === 1) {
-      result.push(...publicKeyHashesCodec.encode(input.script.publicKeyHashes.value))
-      result.push(...compactUnsignedIntCodec.encode(input.script.m))
+      result.push(...publicKeyHashesCodec.encode((input.script as MultiSig).publicKeyHashes.value))
+      result.push(...compactUnsignedIntCodec.encode((input.script as MultiSig).m))
     } else if (input.scriptType === 2) {
-      result.push(...input.script.scriptHash)
+      result.push(...(input.script as P2SH).scriptHash)
     } else if (input.scriptType === 3) {
-      result.push(...input.script.contractId)
+      result.push(...(input.script as P2C).contractId)
     } else {
       throw new Error(`Unsupported script type: ${input.scriptType}`)
     }
@@ -73,7 +91,7 @@ export class LockupScriptCodec implements Codec<any> {
     return Buffer.from(result)
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): LockupScript {
     return this.parser.parse(input)
   }
 }

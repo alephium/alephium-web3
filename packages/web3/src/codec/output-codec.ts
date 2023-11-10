@@ -16,18 +16,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
+import { ArrayCodec, DecodedArray } from './array-codec'
+import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { signedIntCodec } from './signed-int-codec'
 import { longCodec } from './long-codec'
-import { byteStringCodec } from './bytestring-codec'
-import { lockupScriptCodec } from './lockup-script-codec'
+import { ByteString, byteStringCodec } from './bytestring-codec'
+import { LockupScript, MultiSig, P2C, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
 import { blakeHash, djbIntHash } from './hash'
 import { utils, binToHex } from '@alephium/web3'
 import { Codec } from './codec'
+import { PublicKeyHash } from './lockup-script-codec'
 
-export class TokenCodec implements Codec<any> {
+export interface Token {
+  tokenId: Buffer
+  amount: DecodedCompactInt
+}
+
+export class TokenCodec implements Codec<Token> {
   parser = Parser.start()
     .buffer('tokenId', {
       length: 32
@@ -36,20 +42,29 @@ export class TokenCodec implements Codec<any> {
       type: compactUnsignedIntCodec.parser
     })
 
-  encode(input: any): Buffer {
+  encode(input: Token): Buffer {
     const tokenId = input.tokenId
     const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
     return Buffer.concat([tokenId, amount])
   }
 
-  decode(input: Buffer) {
+  decode(input: Buffer): Token {
     return this.parser.parse(input)
   }
 }
 
 const tokenCodec = new TokenCodec()
 const tokensCodec = new ArrayCodec(tokenCodec)
-export class OutputCodec implements Codec<any> {
+
+export interface Output {
+  amount: DecodedCompactInt
+  lockupScript: LockupScript
+  lockTime: Buffer
+  tokens: DecodedArray<Token>
+  additionalData: ByteString
+}
+
+export class OutputCodec implements Codec<Output> {
   parser = Parser.start()
     .nest('amount', {
       type: compactUnsignedIntCodec.parser
@@ -67,7 +82,7 @@ export class OutputCodec implements Codec<any> {
       type: byteStringCodec.parser
     })
 
-  encode(input: any): Buffer {
+  encode(input: Output): Buffer {
     const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
     const lockupScript = lockupScriptCodec.encode(input.lockupScript)
     const lockTime = Buffer.from(input.lockTime)
@@ -77,11 +92,11 @@ export class OutputCodec implements Codec<any> {
     return Buffer.concat([amount, lockupScript, lockTime, tokens, additionalData])
   }
 
-  decode(input: Buffer) {
+  decode(input: Buffer): Output {
     return this.parser.parse(input)
   }
 
-  static convertToFixedAssetOutputs(txIdBytes: Uint8Array, outputs: any[]): FixedAssetOutput[] {
+  static convertToFixedAssetOutputs(txIdBytes: Uint8Array, outputs: Output[]): FixedAssetOutput[] {
     return outputs.map((output, index) => {
       const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
       const lockTime = Number(longCodec.decode(output.lockTime))
@@ -100,16 +115,16 @@ export class OutputCodec implements Codec<any> {
       let hint: number | undefined = undefined
       if (scriptType === 0) {
         // P2PKH
-        hint = createHint(outputLockupScript.publicKeyHash)
+        hint = createHint((outputLockupScript as PublicKeyHash).publicKeyHash)
       } else if (scriptType === 1) {
         // P2MPKH
-        hint = createHint(outputLockupScript.publicKeyHashes.value[0].publicKeyHash)
+        hint = createHint((outputLockupScript as MultiSig).publicKeyHashes.value[0].publicKeyHash)
       } else if (scriptType === 2) {
         // P2SH
-        hint = createHint(outputLockupScript.scriptHash)
+        hint = createHint((outputLockupScript as P2SH).scriptHash)
       } else if (scriptType === 3) {
         // P2C
-        hint = createHint(outputLockupScript.contractId)
+        hint = createHint((outputLockupScript as P2C).contractId)
       } else {
         throw new Error(`TODO: decode output script type: ${scriptType}`)
       }

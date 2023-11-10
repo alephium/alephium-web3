@@ -18,26 +18,30 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { Codec } from './codec'
 
-export class OptionCodec implements Codec<any> {
+export interface Option<T> {
+  option: number
+  value?: T
+}
+export class OptionCodec<T> implements Codec<Option<T>> {
   parser = Parser.start()
 
-  constructor(private childCodec: Codec<any>) {
+  constructor(private childCodec: Codec<T>) {
     this.parser = OptionCodec.optionParser(childCodec.parser)
   }
 
-  encode(input: any): Buffer {
+  encode(input: Option<T>): Buffer {
     const result = [input.option]
     if (input.option === 1) {
-      result.push(...Array.from(this.childCodec.encode(input.value)))
+      result.push(...Array.from(this.childCodec.encode(input.value!)))
     }
     return Buffer.from(result)
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): Option<T> {
     const result = this.parser.parse(input)
     return {
       ...result,
-      value: result.option ? this.childCodec.decode(result.value.value) : result.value
+      value: result.option ? this.childCodec.decode(result.value.value) : undefined
     }
   }
 

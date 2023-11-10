@@ -18,11 +18,20 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { AssetInput } from '../api/api-alephium'
 import { binToHex } from '@alephium/web3'
-import { unlockScriptCodec } from './unlock-script-codec'
+import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
 import { Codec } from './codec'
 import { signedIntCodec } from './signed-int-codec'
+import { DecodedCompactInt } from './compact-int-codec'
 
-export class InputCodec implements Codec<any> {
+export interface Input {
+  outputRef: {
+    hint: number
+    key: Buffer
+  }
+  unlockScript: UnlockScript
+}
+
+export class InputCodec implements Codec<Input> {
   parser = Parser.start()
     .nest('outputRef', {
       type: Parser.start().int32('hint').buffer('key', { length: 32 })
@@ -31,18 +40,18 @@ export class InputCodec implements Codec<any> {
       type: unlockScriptCodec.parser
     })
 
-  encode(input: any): Buffer {
+  encode(input: Input): Buffer {
     return Buffer.concat([
       Buffer.from([...signedIntCodec.encode(input.outputRef.hint), ...input.outputRef.key]),
       unlockScriptCodec.encode(input.unlockScript)
     ])
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): Input {
     return this.parser.parse(input)
   }
 
-  static convertToAssetInputs(inputs: any[]): AssetInput[] {
+  static convertToAssetInputs(inputs: Input[]): AssetInput[] {
     return inputs.map((input) => {
       const hint = input.outputRef.hint
       const key = binToHex(input.outputRef.key)

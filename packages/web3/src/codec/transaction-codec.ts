@@ -18,11 +18,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { UnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '@alephium/web3'
-import { scriptCodec } from './script-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
-import { InputCodec, inputCodec } from './input-codec'
-import { OutputCodec, outputCodec } from './output-codec'
-import { ArrayCodec } from './array-codec'
+import { Script, scriptCodec } from './script-codec'
+import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { Input, InputCodec, inputCodec } from './input-codec'
+import { Output, OutputCodec, outputCodec } from './output-codec'
+import { ArrayCodec, DecodedArray } from './array-codec'
 import { blakeHash } from './hash'
 import { Codec } from './codec'
 import { OptionCodec } from './option-codec'
@@ -31,33 +31,42 @@ const optionalStatefulScriptCodec = new OptionCodec(scriptCodec)
 const inputsCodec = new ArrayCodec(inputCodec)
 const outputsCodec = new ArrayCodec(outputCodec)
 
-export const unsignedTransactionParser = new Parser()
-  .uint8('version')
-  .uint8('networkId')
-  .nest('statefulScript', {
-    type: optionalStatefulScriptCodec.parser
-  })
-  .nest('gasAmount', {
-    type: compactUnsignedIntCodec.parser
-  })
-  .nest('gasPrice', {
-    type: compactUnsignedIntCodec.parser
-  })
-  .nest('inputs', {
-    type: inputsCodec.parser
-  })
-  .nest('fixedOutputs', {
-    type: outputsCodec.parser
-  })
-
-export class UnsignedTransactionCodec implements Codec<any> {
-  parser = unsignedTransactionParser
-
-  static new(): UnsignedTransactionCodec {
-    return new UnsignedTransactionCodec()
+export interface UnsignedTransaction {
+  version: number
+  networkId: number
+  statefulScript: {
+    option: number
+    value: Script
   }
+  gasAmount: DecodedCompactInt
+  gasPrice: DecodedCompactInt
+  inputs: DecodedArray<Input>
+  fixedOutputs: DecodedArray<Output>
+}
 
-  encode(input: any): Buffer {
+export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
+  static parser = new Parser()
+    .uint8('version')
+    .uint8('networkId')
+    .nest('statefulScript', {
+      type: optionalStatefulScriptCodec.parser
+    })
+    .nest('gasAmount', {
+      type: compactUnsignedIntCodec.parser
+    })
+    .nest('gasPrice', {
+      type: compactUnsignedIntCodec.parser
+    })
+    .nest('inputs', {
+      type: inputsCodec.parser
+    })
+    .nest('fixedOutputs', {
+      type: outputsCodec.parser
+    })
+
+  parser = UnsignedTransactionCodec.parser
+
+  encode(input: UnsignedTransaction): Buffer {
     return Buffer.concat([
       Buffer.from([input.version, input.networkId]),
       optionalStatefulScriptCodec.encode(input.statefulScript),
@@ -68,12 +77,12 @@ export class UnsignedTransactionCodec implements Codec<any> {
     ])
   }
 
-  decode(input: Buffer): any {
+  decode(input: Buffer): UnsignedTransaction {
     return this.parser.parse(input)
   }
 
   static parseToUnsignedTx(rawUnsignedTx: string): UnsignedTx {
-    const parsedResult = unsignedTransactionParser.parse(Buffer.from(rawUnsignedTx, 'hex'))
+    const parsedResult = UnsignedTransactionCodec.parser.parse(Buffer.from(rawUnsignedTx, 'hex'))
     const txIdBytes = blakeHash(hexToBinUnsafe(rawUnsignedTx))
     const txId = binToHex(txIdBytes)
     const version = parsedResult.version
@@ -90,3 +99,5 @@ export class UnsignedTransactionCodec implements Codec<any> {
     return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }
   }
 }
+
+export const unsignedTransactionCodec = new UnsignedTransactionCodec()
