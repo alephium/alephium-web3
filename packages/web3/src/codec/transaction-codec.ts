@@ -80,56 +80,58 @@ export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
   decode(input: Buffer): UnsignedTransaction {
     return this.parser.parse(input)
   }
-}
 
-export function decodeToUnsignedTx(rawUnsignedTx: string): UnsignedTx {
-  const parsedResult = UnsignedTransactionCodec.parser.parse(Buffer.from(rawUnsignedTx, 'hex'))
-  const txIdBytes = blakeHash(hexToBinUnsafe(rawUnsignedTx))
-  const txId = binToHex(txIdBytes)
-  const version = parsedResult.version
-  const networkId = parsedResult.networkId
-  const gasAmount = compactSignedIntCodec.toI32(parsedResult.gasAmount)
-  const gasPrice = compactUnsignedIntCodec.toU256(parsedResult.gasPrice).toString()
-  const inputs = InputCodec.convertToAssetInputs(parsedResult.inputs.value)
-  const fixedOutputs = OutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
-  let scriptOpt: string | undefined = undefined
-  if (parsedResult.statefulScript.option === 1) {
-    scriptOpt = scriptCodec.encode(parsedResult.statefulScript.value).toString('hex')
+  static decodeToUnsignedTx(rawUnsignedTx: string): UnsignedTx {
+    const parsedResult = this.parser.parse(Buffer.from(rawUnsignedTx, 'hex'))
+    const txIdBytes = blakeHash(hexToBinUnsafe(rawUnsignedTx))
+    const txId = binToHex(txIdBytes)
+    const version = parsedResult.version
+    const networkId = parsedResult.networkId
+    const gasAmount = compactSignedIntCodec.toI32(parsedResult.gasAmount)
+    const gasPrice = compactUnsignedIntCodec.toU256(parsedResult.gasPrice).toString()
+    const inputs = InputCodec.convertToAssetInputs(parsedResult.inputs.value)
+    const fixedOutputs = OutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
+    let scriptOpt: string | undefined = undefined
+    if (parsedResult.statefulScript.option === 1) {
+      scriptOpt = scriptCodec.encode(parsedResult.statefulScript.value).toString('hex')
+    }
+
+    return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }
   }
 
-  return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }
-}
+  static encodeUnsignedTx(unsignedTx: UnsignedTx): string {
+    const version = unsignedTx.version
+    const networkId = unsignedTx.networkId
+    const gasAmount = compactSignedIntCodec.decode(compactSignedIntCodec.encodeI32(unsignedTx.gasAmount))
+    const gasPrice = compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(unsignedTx.gasPrice)))
+    const inputsValue = InputCodec.convertToInputs(unsignedTx.inputs)
+    const inputs = {
+      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(inputsValue.length)),
+      value: inputsValue
+    }
+    const fixedOutputsValue = OutputCodec.convertToOutputs(unsignedTx.fixedOutputs)
+    const fixedOutputs = {
+      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(fixedOutputsValue.length)),
+      value: fixedOutputsValue
+    }
 
-export function encodeUnsignedTx(unsignedTx: UnsignedTx): Buffer {
-  const version = unsignedTx.version
-  const networkId = unsignedTx.networkId
-  const gasAmount = compactSignedIntCodec.decode(compactSignedIntCodec.encodeI32(unsignedTx.gasAmount))
-  const gasPrice = compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(unsignedTx.gasPrice)))
-  const inputsValue = InputCodec.convertToInputs(unsignedTx.inputs)
-  const inputs = {
-    length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(inputsValue.length)),
-    value: inputsValue
-  }
-  const fixedOutputsValue = OutputCodec.convertToOutputs(unsignedTx.fixedOutputs)
-  const fixedOutputs = {
-    length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(fixedOutputsValue.length)),
-    value: fixedOutputsValue
-  }
+    const statefulScript = {
+      option: unsignedTx.scriptOpt ? 1 : 0,
+      value: unsignedTx.scriptOpt ? scriptCodec.decode(Buffer.from(unsignedTx.scriptOpt, 'hex')) : undefined
+    }
 
-  const statefulScript = {
-    option: unsignedTx.scriptOpt ? 1 : 0,
-    value: unsignedTx.scriptOpt ? scriptCodec.decode(Buffer.from(unsignedTx.scriptOpt, 'hex')) : undefined
+    return unsignedTransactionCodec
+      .encode({
+        version,
+        networkId,
+        gasAmount,
+        gasPrice,
+        inputs,
+        fixedOutputs,
+        statefulScript
+      })
+      .toString('hex')
   }
-
-  return unsignedTransactionCodec.encode({
-    version,
-    networkId,
-    gasAmount,
-    gasPrice,
-    inputs,
-    fixedOutputs,
-    statefulScript
-  })
 }
 
 export const unsignedTransactionCodec = new UnsignedTransactionCodec()
