@@ -23,11 +23,7 @@ export interface Option<T> {
   value?: T
 }
 export class OptionCodec<T> implements Codec<Option<T>> {
-  parser = Parser.start()
-
-  constructor(private childCodec: Codec<T>) {
-    this.parser = OptionCodec.optionParser(childCodec.parser)
-  }
+  constructor(private childCodec: Codec<T>, public parser = OptionCodec.optionParser(childCodec.parser)) {}
 
   encode(input: Option<T>): Buffer {
     const result = [input.option]

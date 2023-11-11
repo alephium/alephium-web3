@@ -25,11 +25,7 @@ export interface DecodedArray<T> {
 }
 
 export class ArrayCodec<T> implements Codec<T[]> {
-  parser = Parser.start()
-
-  constructor(private childCodec: Codec<T>) {
-    this.parser = ArrayCodec.arrayParser(childCodec.parser)
-  }
+  constructor(private childCodec: Codec<T>, public parser = ArrayCodec.arrayParser(childCodec.parser)) {}
 
   encode(input: T[]): Buffer {
     const result = [...compactSignedIntCodec.encodeI256(BigInt(input.length))]
