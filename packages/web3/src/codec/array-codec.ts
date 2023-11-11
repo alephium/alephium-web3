@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { compactUnsignedIntCodec, DecodedCompactInt } from './compact-int-codec'
+import { compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Codec } from './codec'
 
 export interface DecodedArray<T> {
@@ -32,9 +32,9 @@ export class ArrayCodec<T> implements Codec<T[]> {
   }
 
   encode(input: T[]): Buffer {
-    const result = [...compactUnsignedIntCodec.encodeU256(BigInt(input.length))]
+    const result = [...compactSignedIntCodec.encodeI256(BigInt(input.length))]
     for (const element of input) {
-      result.push(...Array.from(this.childCodec.encode(element)))
+      result.push(...this.childCodec.encode(element))
     }
     return Buffer.from(result)
   }
@@ -47,11 +47,11 @@ export class ArrayCodec<T> implements Codec<T[]> {
   static arrayParser(parser: Parser) {
     return new Parser()
       .nest('length', {
-        type: compactUnsignedIntCodec.parser
+        type: compactSignedIntCodec.parser
       })
       .array('value', {
-        length: function (ctx) {
-          return compactUnsignedIntCodec.toU32(this['length']! as any as DecodedCompactInt)
+        length: function(ctx) {
+          return compactSignedIntCodec.toI32(this['length']! as any as DecodedCompactInt)
         },
         type: parser
       })

@@ -19,8 +19,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { web3, Fields, FieldsSig, buildScriptByteCode } from '@alephium/web3'
 import { randomContractId } from '@alephium/web3-test'
 import { scriptCodec } from './script-codec'
+import util from 'node:util'
 
-describe('Encode & decode scripts', function () {
+describe('Encode & decode scripts', function() {
   beforeAll(() => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
   })
@@ -44,9 +45,33 @@ describe('Encode & decode scripts', function () {
       { faucetContract: randomContractId() },
       { names: ['faucetContract'], types: ['ByteVec'], isMutable: [false] }
     )
+
+    const calculationTxScript = `
+        TxScript Main {
+          let mut c = 0u
+          let mut d = 0u
+          let mut e = 0u
+          let mut f = 0u
+
+          let mut i = 0u
+          while (i <= 100) {
+            c = 50 + 60
+            d = 60 - 50
+            e = c + d
+            f = c * d
+
+            i = i + 1
+          }
+        }
+    `
+    await testScriptCode(calculationTxScript)
   })
 
-  async function testScriptCode(scriptCode: string, fields: Fields, fieldsSig: FieldsSig) {
+  async function testScriptCode(
+    scriptCode: string,
+    fields: Fields = {},
+    fieldsSig: FieldsSig = { names: [], types: [], isMutable: [] }
+  ) {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileScriptResult = await nodeProvider.contracts.postContractsCompileScript({ code: scriptCode })
     const scriptBytecode = buildScriptByteCode(compileScriptResult.bytecodeTemplate, fields, fieldsSig)

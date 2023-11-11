@@ -139,8 +139,8 @@ export class InstrCodec implements Codec<Instr> {
         0x48: Parser.start(), // IsAssetAddress
         0x49: Parser.start(), // IsContractAddress
         0x4a: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // Jump
-        0x4b: Parser.start(), // IfTrue
-        0x4c: Parser.start(), // IfFalse
+        0x4b: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // IfTrue
+        0x4c: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // IfFalse
         0x4d: Parser.start(), // Assert
         0x4e: Parser.start(), // Blake2b
         0x4f: Parser.start(), // Keccak256
@@ -260,7 +260,7 @@ export class InstrCodec implements Codec<Instr> {
     const instrValue = instr.value
     const result = [instr.code]
     const instrsWithIndex = [0x00, 0x01, 0x16, 0x17, 0xa0, 0xa1, 0xce]
-    const instrsWithCompactInt = [0x12, 0x13, 0x14]
+    const instrsWithCompactInt = [0x12, 0x13, 0x4a, 0x4b, 0x4c]
     if (instr.code === 0x14) {
       result.push(...byteStringCodec.encode((instrValue as ByteStringConst).value))
     } else if (instr.code === 0x15) {
