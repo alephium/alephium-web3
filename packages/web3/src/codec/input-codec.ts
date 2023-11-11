@@ -21,7 +21,6 @@ import { binToHex } from '@alephium/web3'
 import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
 import { Codec } from './codec'
 import { signedIntCodec } from './signed-int-codec'
-import { DecodedCompactInt } from './compact-int-codec'
 
 export interface Input {
   outputRef: {
@@ -59,6 +58,18 @@ export class InputCodec implements Codec<Input> {
       return {
         outputRef: { hint, key },
         unlockScript: unlockScript.toString('hex')
+      }
+    })
+  }
+
+  static convertToInputs(inputs: AssetInput[]): Input[] {
+    return inputs.map((input) => {
+      const hint = input.outputRef.hint
+      const key = Buffer.from(input.outputRef.key, 'hex')
+      const unlockScript = unlockScriptCodec.decode(Buffer.from(input.unlockScript, 'hex'))
+      return {
+        outputRef: { hint, key },
+        unlockScript
       }
     })
   }

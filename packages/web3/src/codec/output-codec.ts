@@ -132,6 +132,39 @@ export class OutputCodec implements Codec<Output> {
       return { hint, key, attoAlphAmount, lockTime, tokens, address, message }
     })
   }
+
+  static convertToOutputs(fixedOutputs: FixedAssetOutput[]): Output[] {
+    return fixedOutputs.map((output) => {
+      const amount: DecodedCompactInt = compactUnsignedIntCodec.decode(
+        compactUnsignedIntCodec.encodeU256(BigInt(output.attoAlphAmount))
+      )
+      const lockTime: Buffer = longCodec.encode(BigInt(output.lockTime))
+      const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(utils.bs58.decode(output.address)))
+      const tokensValue = output.tokens.map((token) => {
+        return {
+          tokenId: Buffer.from(token.id, 'hex'),
+          amount: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(Number(token.amount))) // Is it Signed?
+        }
+      })
+      const tokens: DecodedArray<Token> = {
+        length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(tokensValue.length)),
+        value: tokensValue
+      }
+      const additionalDataValue = Buffer.from(output.message, 'hex')
+      const additionalData: ByteString = {
+        length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(additionalDataValue.length)),
+        value: additionalDataValue
+      }
+
+      return {
+        amount,
+        lockupScript,
+        lockTime,
+        tokens,
+        additionalData
+      }
+    })
+  }
 }
 
 function createHint(input: Buffer): number {

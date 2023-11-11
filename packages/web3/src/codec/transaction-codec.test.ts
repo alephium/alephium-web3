@@ -18,9 +18,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode } from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
-import { UnsignedTransactionCodec, unsignedTransactionCodec } from './transaction-codec'
+import {
+  unsignedTransactionCodec,
+  encodeUnsignedTx,
+  decodeToUnsignedTx,
+  UnsignedTransaction
+} from './transaction-codec'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { DUST_AMOUNT } from '../../dist/src/constants'
+import { UnsignedTx } from '../api/api-alephium'
 
 describe('Encode & decode unsigned transactions', function () {
   beforeAll(() => {
@@ -28,7 +34,6 @@ describe('Encode & decode unsigned transactions', function () {
   })
 
   it('should encode and decode normal transfer transactions', async () => {
-    const nodeProvider = web3.getCurrentNodeProvider()
     const [signer1, signer2] = await getSigners(2)
     const fromAccount = await signer1.getSelectedAccount()
     const toAccount = await signer2.getSelectedAccount()
@@ -38,14 +43,7 @@ describe('Encode & decode unsigned transactions', function () {
       destinations: [{ address: toAccount.address, attoAlphAmount: ONE_ALPH }]
     })
 
-    const unsignedTx = tx.unsignedTx
-    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
-      unsignedTx: unsignedTx
-    })
-    const clientParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(unsignedTx)
-    expect(clientParsedResult).toEqual(serverParsedResult.unsignedTx)
-
-    checkUnsignedTxCodec(unsignedTx)
+    await checkUnsignedTxCodec(tx.unsignedTx)
   })
 
   it('should encode and decode multisig transfer transactions', async () => {
@@ -66,13 +64,7 @@ describe('Encode & decode unsigned transactions', function () {
       destinations: [{ address: multisigAddress, attoAlphAmount: ONE_ALPH * 10n }]
     })
 
-    const serverToMultisigParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
-      unsignedTx: toMultiSig.unsignedTx
-    })
-    const clientToMultisigParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(toMultiSig.unsignedTx)
-    expect(clientToMultisigParsedResult).toEqual(serverToMultisigParsedResult.unsignedTx)
-
-    checkUnsignedTxCodec(toMultiSig.unsignedTx)
+    await checkUnsignedTxCodec(toMultiSig.unsignedTx)
 
     // Finish the transfer so multisig address has some balance
     await signer1.signAndSubmitTransferTx({
@@ -87,14 +79,8 @@ describe('Encode & decode unsigned transactions', function () {
       destinations: [{ address: signer1.address, attoAlphAmount: ONE_ALPH.toString() }]
     })
 
-    const serverFromMultisigParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
-      unsignedTx: fromMultiSig.unsignedTx
-    })
-    const clientFromMultisigParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(fromMultiSig.unsignedTx)
-    expect(clientFromMultisigParsedResult).toEqual(serverFromMultisigParsedResult.unsignedTx)
-
-    checkUnsignedTxCodec(fromMultiSig.unsignedTx)
-  })
+    await checkUnsignedTxCodec(fromMultiSig.unsignedTx)
+  }, 100000)
 
   it('should encode and decode transactions that invoke contract method', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
@@ -137,13 +123,7 @@ describe('Encode & decode unsigned transactions', function () {
       bytecode: scriptBytecode
     })
 
-    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
-      unsignedTx: buildExecuteScriptTxResult.unsignedTx
-    })
-    const clientParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(buildExecuteScriptTxResult.unsignedTx)
-    expect(clientParsedResult).toEqual(serverParsedResult.unsignedTx)
-
-    checkUnsignedTxCodec(buildExecuteScriptTxResult.unsignedTx)
+    await checkUnsignedTxCodec(buildExecuteScriptTxResult.unsignedTx)
   })
 
   it('should encode and decode p2sh transactions (schnorr address)', async () => {
@@ -157,15 +137,7 @@ describe('Encode & decode unsigned transactions', function () {
       destinations: [{ address: schnorrSigner.address, attoAlphAmount: ONE_ALPH }]
     })
 
-    const toSchnorrUnsignedTx = toSchnorrAddressResult.unsignedTx
-
-    const serverToSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
-      unsignedTx: toSchnorrUnsignedTx
-    })
-    const clientToSchnorrParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(toSchnorrUnsignedTx)
-    expect(clientToSchnorrParsedResult).toEqual(serverToSchnorrParsedResult.unsignedTx)
-
-    checkUnsignedTxCodec(toSchnorrUnsignedTx)
+    await checkUnsignedTxCodec(toSchnorrAddressResult.unsignedTx)
 
     const fromSchnorrAddressResult = await schnorrSigner.signAndSubmitTransferTx({
       signerAddress: schnorrSigner.address,
@@ -173,15 +145,8 @@ describe('Encode & decode unsigned transactions', function () {
       destinations: [{ address: signer1.address, attoAlphAmount: ONE_ALPH / 2n }]
     })
 
-    const fromSchnorrUnsignedTx = fromSchnorrAddressResult.unsignedTx
-    const serverFromSchnorrParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
-      unsignedTx: fromSchnorrUnsignedTx
-    })
-    const clientFromSchnorrParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(fromSchnorrUnsignedTx)
-    expect(clientFromSchnorrParsedResult).toEqual(serverFromSchnorrParsedResult.unsignedTx)
-
-    checkUnsignedTxCodec(fromSchnorrUnsignedTx)
-  })
+    await checkUnsignedTxCodec(fromSchnorrAddressResult.unsignedTx)
+  }, 100000)
 
   it('should encode and decode transactions that transfer tokens', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
@@ -240,18 +205,25 @@ describe('Encode & decode unsigned transactions', function () {
       ]
     })
 
-    const serverParsedResult = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
-      unsignedTx: transferTokenResult.unsignedTx
+    await checkUnsignedTxCodec(transferTokenResult.unsignedTx)
+  }, 100000)
+
+  async function checkUnsignedTxCodec(unsignedTx: string) {
+    checkUnsignedTransactionCodecRoundtrip(unsignedTx)
+
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const { unsignedTx: serverDecodedUnsignedTx } = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
+      unsignedTx
     })
-    const clientParsedResult = UnsignedTransactionCodec.parseToUnsignedTx(transferTokenResult.unsignedTx)
-    expect(clientParsedResult).toEqual(serverParsedResult.unsignedTx)
+    const clientEncodedUnsignedTx = encodeUnsignedTx(serverDecodedUnsignedTx).toString('hex')
+    expect(unsignedTx).toEqual(clientEncodedUnsignedTx)
+    const clientDecodedUnsignedTx: UnsignedTx = decodeToUnsignedTx(unsignedTx)
+    expect(clientDecodedUnsignedTx).toEqual(serverDecodedUnsignedTx)
+  }
 
-    checkUnsignedTxCodec(transferTokenResult.unsignedTx)
-  })
-
-  function checkUnsignedTxCodec(unsignedTx: string) {
-    const decoded = unsignedTransactionCodec.decode(Buffer.from(unsignedTx, 'hex'))
-    const encoded = unsignedTransactionCodec.encode(decoded).toString('hex')
+  function checkUnsignedTransactionCodecRoundtrip(unsignedTx: string) {
+    const decoded: UnsignedTransaction = unsignedTransactionCodec.decode(Buffer.from(unsignedTx, 'hex'))
+    const encoded: string = unsignedTransactionCodec.encode(decoded).toString('hex')
     expect(unsignedTx).toEqual(encoded)
   }
 })
