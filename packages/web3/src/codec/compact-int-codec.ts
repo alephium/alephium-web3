@@ -40,7 +40,7 @@ export interface DecodedCompactInt {
 }
 
 const compactIntParser = new Parser().uint8('mode').buffer('rest', {
-  length: function(ctx) {
+  length: function (ctx) {
     const rawMode = this['mode']
     const mode = rawMode & maskRest
 

@@ -50,7 +50,7 @@ export class ArrayCodec<T> implements Codec<T[]> {
         type: compactSignedIntCodec.parser
       })
       .array('value', {
-        length: function(ctx) {
+        length: function (ctx) {
           return compactSignedIntCodec.toI32(this['length']! as any as DecodedCompactInt)
         },
         type: parser
