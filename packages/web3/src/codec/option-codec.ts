@@ -32,7 +32,7 @@ export class OptionCodec<T> implements Codec<Option<T>> {
   encode(input: Option<T>): Buffer {
     const result = [input.option]
     if (input.option === 1) {
-      result.push(...Array.from(this.childCodec.encode(input.value!)))
+      result.push(...this.childCodec.encode(input.value!))
     }
     return Buffer.from(result)
   }
