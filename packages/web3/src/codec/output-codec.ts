@@ -24,7 +24,7 @@ import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, MultiSig, P2C, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
 import { blakeHash, djbIntHash } from './hash'
-import { utils, binToHex } from '@alephium/web3'
+import { bs58, binToHex } from '../utils'
 import { Codec } from './codec'
 import { PublicKeyHash } from './lockup-script-codec'
 
@@ -110,7 +110,7 @@ export class OutputCodec implements Codec<Output> {
       const scriptType = output.lockupScript.scriptType
       const key = binToHex(blakeHash(Buffer.concat([txIdBytes, signedIntCodec.encode(index)])))
       const outputLockupScript = output.lockupScript.script
-      const address = utils.bs58.encode(lockupScriptCodec.encode(output.lockupScript))
+      const address = bs58.encode(lockupScriptCodec.encode(output.lockupScript))
 
       let hint: number | undefined = undefined
       if (scriptType === 0) {
@@ -139,7 +139,7 @@ export class OutputCodec implements Codec<Output> {
         compactUnsignedIntCodec.encodeU256(BigInt(output.attoAlphAmount))
       )
       const lockTime: Buffer = longCodec.encode(BigInt(output.lockTime))
-      const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(utils.bs58.decode(output.address)))
+      const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(bs58.decode(output.address)))
       const tokensValue = output.tokens.map((token) => {
         return {
           tokenId: Buffer.from(token.id, 'hex'),

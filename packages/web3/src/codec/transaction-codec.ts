@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { UnsignedTx } from '../api/api-alephium'
-import { binToHex, hexToBinUnsafe } from '@alephium/web3'
+import { binToHex, hexToBinUnsafe } from '../utils'
 import { Script, scriptCodec } from './script-codec'
 import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
 import { Input, InputCodec, inputCodec } from './input-codec'
@@ -130,6 +130,7 @@ export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
         fixedOutputs,
         statefulScript
       })
+
       .toString('hex')
   }
 }
