@@ -19,10 +19,14 @@ import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { Codec } from './codec'
 import { UnsignedTransactionCodec, UnsignedTransaction, unsignedTransactionCodec } from './unsigned-transaction-codec'
-import { Output, outputCodec } from './output-codec'
 import { Signature, signatureCodec } from './signature-codec'
 import { ContractOutputRef, contractOutputRefCodec } from './contract-output-ref-codec'
+import { Either, EitherCodec } from './either-codec'
+import { AssetOutput, assetOutputCodec } from './asset-output-codec'
+import { ContractOutput, contractOutputCodec } from './contract-output-codec'
 
+type Output = Either<AssetOutput, ContractOutput>
+const outputCodec = new EitherCodec<AssetOutput, ContractOutput>(assetOutputCodec, contractOutputCodec)
 const outputsCodec = new ArrayCodec(outputCodec)
 const signaturesCodec = new ArrayCodec(signatureCodec)
 const contractOutputRefsCodec = new ArrayCodec(contractOutputRefCodec)
