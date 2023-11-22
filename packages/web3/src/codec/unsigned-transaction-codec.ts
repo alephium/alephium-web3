@@ -83,17 +83,22 @@ export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
 
   static decodeToUnsignedTx(rawUnsignedTx: string): UnsignedTx {
     const parsedResult = this.parser.parse(Buffer.from(rawUnsignedTx, 'hex'))
-    const txIdBytes = blakeHash(hexToBinUnsafe(rawUnsignedTx))
-    const txId = binToHex(txIdBytes)
-    const version = parsedResult.version
-    const networkId = parsedResult.networkId
-    const gasAmount = compactSignedIntCodec.toI32(parsedResult.gasAmount)
-    const gasPrice = compactUnsignedIntCodec.toU256(parsedResult.gasPrice).toString()
-    const inputs = InputCodec.convertToAssetInputs(parsedResult.inputs.value)
-    const fixedOutputs = AssetOutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
+    const txId = binToHex(blakeHash(hexToBinUnsafe(rawUnsignedTx)))
+    return UnsignedTransactionCodec.convertToUnsignedTx(parsedResult, txId)
+  }
+
+  static convertToUnsignedTx(unsigned: UnsignedTransaction, txId: string): UnsignedTx {
+    const txIdBytes = hexToBinUnsafe(txId)
+
+    const version = unsigned.version
+    const networkId = unsigned.networkId
+    const gasAmount = compactSignedIntCodec.toI32(unsigned.gasAmount)
+    const gasPrice = compactUnsignedIntCodec.toU256(unsigned.gasPrice).toString()
+    const inputs = InputCodec.convertToAssetInputs(unsigned.inputs.value)
+    const fixedOutputs = AssetOutputCodec.convertToFixedAssetOutputs(txIdBytes, unsigned.fixedOutputs.value)
     let scriptOpt: string | undefined = undefined
-    if (parsedResult.statefulScript.option === 1) {
-      scriptOpt = scriptCodec.encode(parsedResult.statefulScript.value).toString('hex')
+    if (unsigned.statefulScript.option === 1) {
+      scriptOpt = scriptCodec.encode(unsigned.statefulScript.value!).toString('hex')
     }
 
     return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }
