@@ -16,123 +16,61 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { UnsignedTx } from '../api/api-alephium'
-import { binToHex, hexToBinUnsafe } from '../utils'
-import { Script, scriptCodec } from './script-codec'
-import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
-import { Input, InputCodec, inputCodec } from './input-codec'
-import { Output, OutputCodec, outputCodec } from './output-codec'
 import { ArrayCodec, DecodedArray } from './array-codec'
-import { blakeHash } from './hash'
 import { Codec } from './codec'
-import { OptionCodec } from './option-codec'
+import { UnsignedTransactionCodec, UnsignedTransaction, unsignedTransactionCodec } from './unsigned-transaction-codec'
+import { Output, outputCodec } from './output-codec'
+import { Signature, signatureCodec } from './signature-codec'
+import { ContractOutputRef, contractOutputRefCodec } from './contract-output-ref-codec'
 
-const optionalStatefulScriptCodec = new OptionCodec(scriptCodec)
-const inputsCodec = new ArrayCodec(inputCodec)
 const outputsCodec = new ArrayCodec(outputCodec)
+const signaturesCodec = new ArrayCodec(signatureCodec)
+const contractOutputRefsCodec = new ArrayCodec(contractOutputRefCodec)
 
-export interface UnsignedTransaction {
-  version: number
-  networkId: number
-  statefulScript: {
-    option: number
-    value?: Script
-  }
-  gasAmount: DecodedCompactInt
-  gasPrice: DecodedCompactInt
-  inputs: DecodedArray<Input>
-  fixedOutputs: DecodedArray<Output>
+export interface Transaction {
+  unsigned: UnsignedTransaction
+  scriptExecutionOk: number
+  contratInputs: DecodedArray<ContractOutputRef>
+  generatedOutputs: DecodedArray<Output>
+  inputSignatures: DecodedArray<Signature>
+  scriptSignatures: DecodedArray<Signature>
 }
 
-export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
+export class TransactionCodec implements Codec<Transaction> {
   static parser = new Parser()
-    .uint8('version')
-    .uint8('networkId')
-    .nest('statefulScript', {
-      type: optionalStatefulScriptCodec.parser
+    .nest('unsigned', {
+      type: UnsignedTransactionCodec.parser
     })
-    .nest('gasAmount', {
-      type: compactSignedIntCodec.parser
+    .uint8('scriptExecutionOk')
+    .nest('contractInputs', {
+      type: contractOutputRefsCodec.parser
     })
-    .nest('gasPrice', {
-      type: compactUnsignedIntCodec.parser
-    })
-    .nest('inputs', {
-      type: inputsCodec.parser
-    })
-    .nest('fixedOutputs', {
+    .nest('generatedOutputs', {
       type: outputsCodec.parser
     })
+    .nest('inputSignatures', {
+      type: signaturesCodec.parser
+    })
+    .nest('scriptSignatures', {
+      type: signaturesCodec.parser
+    })
 
-  parser = UnsignedTransactionCodec.parser
+  parser = TransactionCodec.parser
 
-  encode(input: UnsignedTransaction): Buffer {
+  encode(input: Transaction): Buffer {
     return Buffer.concat([
-      Buffer.from([input.version, input.networkId]),
-      optionalStatefulScriptCodec.encode(input.statefulScript),
-      compactSignedIntCodec.encode(input.gasAmount),
-      compactUnsignedIntCodec.encode(input.gasPrice),
-      inputsCodec.encode(input.inputs.value),
-      outputsCodec.encode(input.fixedOutputs.value)
+      unsignedTransactionCodec.encode(input.unsigned),
+      Buffer.from([input.scriptExecutionOk]),
+      Buffer.from([...contractOutputRefsCodec.encode(input.contratInputs.value)]),
+      Buffer.from([...outputsCodec.encode(input.generatedOutputs.value)]),
+      Buffer.from([...signaturesCodec.encode(input.inputSignatures.value)]),
+      Buffer.from([...signaturesCodec.encode(input.scriptSignatures.value)])
     ])
   }
 
-  decode(input: Buffer): UnsignedTransaction {
+  decode(input: Buffer): Transaction {
     return this.parser.parse(input)
-  }
-
-  static decodeToUnsignedTx(rawUnsignedTx: string): UnsignedTx {
-    const parsedResult = this.parser.parse(Buffer.from(rawUnsignedTx, 'hex'))
-    const txIdBytes = blakeHash(hexToBinUnsafe(rawUnsignedTx))
-    const txId = binToHex(txIdBytes)
-    const version = parsedResult.version
-    const networkId = parsedResult.networkId
-    const gasAmount = compactSignedIntCodec.toI32(parsedResult.gasAmount)
-    const gasPrice = compactUnsignedIntCodec.toU256(parsedResult.gasPrice).toString()
-    const inputs = InputCodec.convertToAssetInputs(parsedResult.inputs.value)
-    const fixedOutputs = OutputCodec.convertToFixedAssetOutputs(txIdBytes, parsedResult.fixedOutputs.value)
-    let scriptOpt: string | undefined = undefined
-    if (parsedResult.statefulScript.option === 1) {
-      scriptOpt = scriptCodec.encode(parsedResult.statefulScript.value).toString('hex')
-    }
-
-    return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }
-  }
-
-  static encodeUnsignedTx(unsignedTx: UnsignedTx): string {
-    const version = unsignedTx.version
-    const networkId = unsignedTx.networkId
-    const gasAmount = compactSignedIntCodec.decode(compactSignedIntCodec.encodeI32(unsignedTx.gasAmount))
-    const gasPrice = compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(unsignedTx.gasPrice)))
-    const inputsValue = InputCodec.convertToInputs(unsignedTx.inputs)
-    const inputs = {
-      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(inputsValue.length)),
-      value: inputsValue
-    }
-    const fixedOutputsValue = OutputCodec.convertToOutputs(unsignedTx.fixedOutputs)
-    const fixedOutputs = {
-      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(fixedOutputsValue.length)),
-      value: fixedOutputsValue
-    }
-
-    const statefulScript = {
-      option: unsignedTx.scriptOpt ? 1 : 0,
-      value: unsignedTx.scriptOpt ? scriptCodec.decode(Buffer.from(unsignedTx.scriptOpt, 'hex')) : undefined
-    }
-
-    return unsignedTransactionCodec
-      .encode({
-        version,
-        networkId,
-        gasAmount,
-        gasPrice,
-        inputs,
-        fixedOutputs,
-        statefulScript
-      })
-
-      .toString('hex')
   }
 }
 
-export const unsignedTransactionCodec = new UnsignedTransactionCodec()
+export const transactionCodec = new TransactionCodec()

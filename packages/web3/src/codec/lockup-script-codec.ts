@@ -41,7 +41,6 @@ const publicKeyHashesCodec = new ArrayCodec(publicKeyHashCodec)
 const multiSigParser = Parser.start()
   .nest('publicKeyHashes', { type: publicKeyHashesCodec.parser })
   .nest('m', { type: compactUnsignedIntCodec.parser })
-
 export interface MultiSig {
   publicKeyHashes: DecodedArray<PublicKeyHash>
   m: DecodedCompactInt

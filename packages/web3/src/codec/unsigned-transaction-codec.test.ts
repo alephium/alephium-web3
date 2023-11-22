@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode } from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
-import { unsignedTransactionCodec, UnsignedTransaction, UnsignedTransactionCodec } from './transaction-codec'
+import { unsignedTransactionCodec, UnsignedTransaction, UnsignedTransactionCodec } from './unsigned-transaction-codec'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { DUST_AMOUNT } from '../../dist/src/constants'
 import { UnsignedTx } from '../api/api-alephium'

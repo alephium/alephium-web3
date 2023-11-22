@@ -15,5 +15,27 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { Parser } from 'binary-parser'
+import { Codec } from './codec'
+import { signedIntCodec } from './signed-int-codec'
 
-export * from './unsigned-transaction-codec'
+export interface ContractOutputRef {
+  hint: number
+  key: Buffer
+}
+
+export class ContractOutputRefCodec implements Codec<ContractOutputRef> {
+  parser = Parser.start().nest('outputRef', {
+    type: Parser.start().int32('hint').buffer('key', { length: 32 })
+  })
+
+  encode(input: ContractOutputRef): Buffer {
+    return Buffer.concat([Buffer.from([...signedIntCodec.encode(input.hint), ...input.key])])
+  }
+
+  decode(input: Buffer): ContractOutputRef {
+    return this.parser.parse(input)
+  }
+}
+
+export const contractOutputRefCodec = new ContractOutputRefCodec()

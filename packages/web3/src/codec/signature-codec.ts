@@ -15,5 +15,23 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { Parser } from 'binary-parser'
+import { Codec } from './codec'
 
-export * from './unsigned-transaction-codec'
+export interface Signature {
+  value: Buffer
+}
+
+export class SignatureCodec implements Codec<Signature> {
+  parser = Parser.start().buffer('value', { length: 64 })
+
+  encode(input: Signature): Buffer {
+    return input.value
+  }
+
+  decode(input: Buffer): Signature {
+    return this.parser.parse(input)
+  }
+}
+
+export const signatureCodec = new SignatureCodec()

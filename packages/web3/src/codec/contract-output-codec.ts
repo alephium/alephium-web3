@@ -20,42 +20,37 @@ import { DecodedArray } from './array-codec'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { P2C } from './lockup-script-codec'
 import { Codec } from './codec'
-import { AssetOutput, assetOutputCodec, tokensCodec } from './asset-output-codec'
-import { ContractOutput, contractOutputCodec } from './contract-output-codec'
+import { Token, tokensCodec } from './asset-output-codec'
 
-export interface Either<L, R> {
-  either: number
-  value: L | R
+export interface ContractOutput {
+  amount: DecodedCompactInt
+  lockupScript: P2C
+  tokens: DecodedArray<Token>
 }
 
-export interface Output {
-  value: Either<AssetOutput, ContractOutput>
-}
-
-export class OutputCodec implements Codec<Output> {
+export class ContractOutputCodec implements Codec<ContractOutput> {
   parser = Parser.start()
-    .uint8('either')
-    .choice('value', {
-      tag: 'either',
-      choices: {
-        0: assetOutputCodec.parser,
-        1: contractOutputCodec.parser
-      }
+    .nest('amount', {
+      type: compactUnsignedIntCodec.parser
+    })
+    .nest('lockupScript', {
+      type: Parser.start().buffer('contractId', { length: 32 })
+    })
+    .nest('tokens', {
+      type: tokensCodec.parser
     })
 
-  encode(input: Output): Buffer {
-    const result = [input.value.either]
-    if (input.value.either === 0) {
-      result.push(...assetOutputCodec.encode(input.value.value as AssetOutput))
-    } else if (input.value.either === 1) {
-      result.push(...contractOutputCodec.encode(input.value.value as ContractOutput))
-    }
-    return Buffer.from(result)
+  encode(input: ContractOutput): Buffer {
+    const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
+    const lockupScript = (input.lockupScript as P2C).contractId
+    const tokens = Buffer.from(tokensCodec.encode(input.tokens.value))
+
+    return Buffer.concat([amount, lockupScript, tokens])
   }
 
-  decode(input: Buffer): Output {
+  decode(input: Buffer): ContractOutput {
     return this.parser.parse(input)
   }
 }
 
-export const outputCodec = new OutputCodec()
+export const contractOutputCodec = new ContractOutputCodec()
