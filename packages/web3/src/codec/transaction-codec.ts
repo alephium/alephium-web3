@@ -100,12 +100,8 @@ export class TransactionCodec implements Codec<Transaction> {
       }
     })
 
-    const inputSignatures = transaction.inputSignatures.value.map((signature) => {
-      return signature.value.toString('hex')
-    })
-    const scriptSignatures = transaction.scriptSignatures.value.map((signature) => {
-      return signature.value.toString('hex')
-    })
+    const inputSignatures = transaction.inputSignatures.value.map((signature) => signature.value.toString('hex'))
+    const scriptSignatures = transaction.scriptSignatures.value.map((signature) => signature.value.toString('hex'))
 
     return { unsigned, scriptExecutionOk, contractInputs, generatedOutputs, inputSignatures, scriptSignatures }
   }

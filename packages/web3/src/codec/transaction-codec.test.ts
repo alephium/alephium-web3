@@ -121,4 +121,131 @@ describe('Encode & decode transactions', function () {
     expect(tx.scriptExecutionOk).toEqual(true)
     expect(encoded).toEqual(transactionCodec.encode(decoded).toString('hex'))
   })
+
+  it('should encode and decode transaction with txscript', () => {
+    const txId = '8bb784ef69bca0246dcf2bc465dc09693b86d72ed68167011626afb73583498e'
+    const encoded =
+      '0000010101030001000e0c0d1440205bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd0001131700b4160013c40de0b6b3a7640000a313c40de0b6b3a76400000d0c1440205bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00010d8000d935c1174876e80004162de2c13e1ad7c84e697cc65c97a4a5161515ed7dcf91630ab73f49fa2145e9e606f6ab00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca162de2c189995088e0355cb2771d63e76a3b9d7f7cac5f1301e29194b6f8dad5d22916b900034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca162de2c1e9411abed460ec64a3ef04c44351de07135f951a6ea72fe6281d72c0e394922c00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca162de2c1cb32af059f198eb97a987ef0401c60a72b3bde65f2eba6db4206cf020859cdf400034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca02c3038d7ea4c680000017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae0000000000000000011a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800c4080e49bae139a68600c507f9f8dfaa1c0e11350017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae000000000000000000000101261dc7384d0c7ac9b94e6f7a9d6f1dc169dedcf91ac5562193430a96345a84cdc75d25770301c40de0b6b3a76400005bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00021a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800c63659cb228509c819a6895bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00dc7fffffffffffffffffffffffffffffffffffffffffffe496703b41203ebd87fc00c3038d7ea4c680000017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae0000000000000000015bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00c409bc9816fba6feaa0000c3071afd498d00000017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae00000000000000000000010658195be6597135402809b0cf8982ebe1ff9b25f9c3a79cc8b1a67d7d095fd771e8c08dac911469355abb121e7980a9eb23d300f1d41131abafea0ebaecdc0e00'
+    const decoded = transactionCodec.decode(Buffer.from(encoded, 'hex'))
+    const tx = TransactionCodec.convertToTx(decoded, txId)
+    const unsignedTx = tx.unsigned
+
+    expect(unsignedTx.inputs).toEqual([
+      {
+        outputRef: {
+          hint: 372105921,
+          key: '3e1ad7c84e697cc65c97a4a5161515ed7dcf91630ab73f49fa2145e9e606f6ab'
+        },
+        unlockScript: '00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca'
+      },
+      {
+        outputRef: {
+          hint: 372105921,
+          key: '89995088e0355cb2771d63e76a3b9d7f7cac5f1301e29194b6f8dad5d22916b9'
+        },
+        unlockScript: '00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca'
+      },
+      {
+        outputRef: {
+          hint: 372105921,
+          key: 'e9411abed460ec64a3ef04c44351de07135f951a6ea72fe6281d72c0e394922c'
+        },
+        unlockScript: '00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca'
+      },
+      {
+        outputRef: {
+          hint: 372105921,
+          key: 'cb32af059f198eb97a987ef0401c60a72b3bde65f2eba6db4206cf020859cdf4'
+        },
+        unlockScript: '00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca'
+      }
+    ])
+    expect(unsignedTx.gasAmount).toEqual(55605)
+    expect(unsignedTx.gasPrice).toEqual('100000000000')
+    expect(unsignedTx.scriptOpt).toEqual(
+      '0101030001000e0c0d1440205bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd0001131700b4160013c40de0b6b3a7640000a313c40de0b6b3a76400000d0c1440205bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00010d'
+    )
+    expect(unsignedTx.fixedOutputs).toEqual([
+      {
+        hint: 372105921,
+        key: '75aca42781ac293b8ffcd3d241085a5bedf519df6bafa847f5d613c97fa48ef0',
+        attoAlphAmount: '1000000000000000',
+        address: '12aH6to1JQxDFsvJ89jtFCnKEcub5ew8x2EABGEDMTYyK',
+        tokens: [
+          {
+            id: '1a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800',
+            amount: '580482468968769158'
+          }
+        ],
+        lockTime: 0,
+        message: ''
+      },
+      {
+        hint: 372105921,
+        key: 'e0f425509fb1bd1209dc67dc150e3173f03954a27838f04b751a79a8dc63858b',
+        attoAlphAmount: '147139601147343278389',
+        address: '12aH6to1JQxDFsvJ89jtFCnKEcub5ew8x2EABGEDMTYyK',
+        tokens: [],
+        lockTime: 0,
+        message: ''
+      }
+    ])
+
+    expect(tx.generatedOutputs).toEqual([
+      {
+        type: 'ContractOutput',
+        hint: 639485753, // note me
+        key: '75aca42781ac293b8ffcd3d241085a5bedf519df6bafa847f5d613c97fa48ef0',
+        attoAlphAmount: '1000000000000000000',
+        address: 'zst5zMzizEeFYFis6DNSknY5GCYTpM85D3yXeRLe2ug3',
+        tokens: [
+          {
+            id: '1a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800',
+            amount: '256664187705536957490825'
+          },
+          {
+            id: '5bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00',
+            amount: '57896044618658097711785492504343953926634992332820281890277629223825552803836'
+          }
+        ]
+      },
+      {
+        type: 'AssetOutput',
+        hint: 372105921,
+        key: 'e0f425509fb1bd1209dc67dc150e3173f03954a27838f04b751a79a8dc63858b',
+        attoAlphAmount: '1000000000000000',
+        address: '12aH6to1JQxDFsvJ89jtFCnKEcub5ew8x2EABGEDMTYyK',
+        tokens: [
+          {
+            id: '5bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00',
+            amount: '701602866441682602'
+          }
+        ],
+        lockTime: 0,
+        message: ''
+      },
+      {
+        type: 'AssetOutput',
+        hint: 372105921,
+        key: 'f677e5e6611f1c8ced9cffd0f2a972689d6058dbbd368963d215cf4ea7afffea',
+        attoAlphAmount: '2000000000000000',
+        address: '12aH6to1JQxDFsvJ89jtFCnKEcub5ew8x2EABGEDMTYyK',
+        tokens: [],
+        lockTime: 0,
+        message: ''
+      }
+    ])
+    expect(tx.contractInputs).toEqual([
+      {
+        hint: 639485752,
+        key: '4d0c7ac9b94e6f7a9d6f1dc169dedcf91ac5562193430a96345a84cdc75d2577'
+      }
+    ])
+    expect(tx.inputSignatures).toEqual([
+      '0658195be6597135402809b0cf8982ebe1ff9b25f9c3a79cc8b1a67d7d095fd771e8c08dac911469355abb121e7980a9eb23d300f1d41131abafea0ebaecdc0e'
+    ])
+    expect(tx.scriptSignatures).toEqual([])
+    expect(tx.scriptExecutionOk).toEqual(true)
+    expect(encoded).toEqual(transactionCodec.encode(decoded).toString('hex'))
+  })
 })

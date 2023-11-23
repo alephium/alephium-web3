@@ -106,7 +106,7 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
     const tokens = output.tokens.value.map((token) => {
       return {
         id: token.tokenId.toString('hex'),
-        amount: compactUnsignedIntCodec.toU32(token.amount).toString()
+        amount: compactUnsignedIntCodec.toU256(token.amount).toString()
       }
     })
     const message = output.additionalData.value.toString('hex')

@@ -25,9 +25,7 @@ export interface ContractOutputRef {
 }
 
 export class ContractOutputRefCodec implements Codec<ContractOutputRef> {
-  parser = Parser.start().nest('outputRef', {
-    type: Parser.start().int32('hint').buffer('key', { length: 32 })
-  })
+  parser = Parser.start().int32('hint').buffer('key', { length: 32 })
 
   encode(input: ContractOutputRef): Buffer {
     return Buffer.concat([Buffer.from([...signedIntCodec.encode(input.hint), ...input.key])])

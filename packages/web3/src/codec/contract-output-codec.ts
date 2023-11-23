@@ -63,7 +63,7 @@ export class ContractOutputCodec implements Codec<ContractOutput> {
     const tokens = output.tokens.value.map((token) => {
       return {
         id: token.tokenId.toString('hex'),
-        amount: compactUnsignedIntCodec.toU32(token.amount).toString()
+        amount: compactUnsignedIntCodec.toU256(token.amount).toString()
       }
     })
     return { hint, key, attoAlphAmount, address, tokens, type: 'ContractOutput' }
