@@ -28,3 +28,7 @@ export function djbIntHash(bytes: Buffer): number {
   })
   return hash
 }
+
+export function createHint(input: Buffer): number {
+  return djbIntHash(input) | 1
+}

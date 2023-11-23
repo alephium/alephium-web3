@@ -18,10 +18,13 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { DecodedArray } from './array-codec'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
-import { P2C } from './lockup-script-codec'
+import { P2C, lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
 import { Token, tokensCodec } from './asset-output-codec'
-
+import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
+import { blakeHash, createHint } from './hash'
+import { binToHex, bs58 } from '..'
+import { signedIntCodec } from './signed-int-codec'
 export interface ContractOutput {
   amount: DecodedCompactInt
   lockupScript: P2C
@@ -50,6 +53,20 @@ export class ContractOutputCodec implements Codec<ContractOutput> {
 
   decode(input: Buffer): ContractOutput {
     return this.parser.parse(input)
+  }
+
+  static convertToApiContractOutput(txIdBytes: Uint8Array, output: ContractOutput, index: number): ApiContractOutput {
+    const hint = createHint(output.lockupScript.contractId)
+    const key = binToHex(blakeHash(Buffer.concat([txIdBytes, signedIntCodec.encode(index)])))
+    const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
+    const address = bs58.encode(Buffer.concat([Buffer.from([0x03]), output.lockupScript.contractId]))
+    const tokens = output.tokens.value.map((token) => {
+      return {
+        id: token.tokenId.toString('hex'),
+        amount: compactUnsignedIntCodec.toU32(token.amount).toString()
+      }
+    })
+    return { hint, key, attoAlphAmount, address, tokens, type: 'ContractOutput' }
   }
 }
 

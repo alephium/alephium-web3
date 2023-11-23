@@ -23,7 +23,7 @@ import { longCodec } from './long-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, MultiSig, P2C, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
-import { blakeHash, djbIntHash } from './hash'
+import { blakeHash, createHint, djbIntHash } from './hash'
 import { bs58, binToHex } from '../utils'
 import { Codec } from './codec'
 import { PublicKeyHash } from './lockup-script-codec'
@@ -97,40 +97,42 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
   }
 
   static convertToFixedAssetOutputs(txIdBytes: Uint8Array, outputs: AssetOutput[]): FixedAssetOutput[] {
-    return outputs.map((output, index) => {
-      const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
-      const lockTime = Number(longCodec.decode(output.lockTime))
-      const tokens = output.tokens.value.map((token) => {
-        return {
-          id: token.tokenId.toString('hex'),
-          amount: compactUnsignedIntCodec.toU32(token.amount).toString()
-        }
-      })
-      const message = output.additionalData.value.toString('hex')
-      const scriptType = output.lockupScript.scriptType
-      const key = binToHex(blakeHash(Buffer.concat([txIdBytes, signedIntCodec.encode(index)])))
-      const outputLockupScript = output.lockupScript.script
-      const address = bs58.encode(lockupScriptCodec.encode(output.lockupScript))
+    return outputs.map((output, index) => AssetOutputCodec.convertToFixedAssetOutput(txIdBytes, output, index))
+  }
 
-      let hint: number | undefined = undefined
-      if (scriptType === 0) {
-        // P2PKH
-        hint = createHint((outputLockupScript as PublicKeyHash).publicKeyHash)
-      } else if (scriptType === 1) {
-        // P2MPKH
-        hint = createHint((outputLockupScript as MultiSig).publicKeyHashes.value[0].publicKeyHash)
-      } else if (scriptType === 2) {
-        // P2SH
-        hint = createHint((outputLockupScript as P2SH).scriptHash)
-      } else if (scriptType === 3) {
-        // P2C
-        hint = createHint((outputLockupScript as P2C).contractId)
-      } else {
-        throw new Error(`TODO: decode output script type: ${scriptType}`)
+  static convertToFixedAssetOutput(txIdBytes: Uint8Array, output: AssetOutput, index: number): FixedAssetOutput {
+    const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
+    const lockTime = Number(longCodec.decode(output.lockTime))
+    const tokens = output.tokens.value.map((token) => {
+      return {
+        id: token.tokenId.toString('hex'),
+        amount: compactUnsignedIntCodec.toU32(token.amount).toString()
       }
-
-      return { hint, key, attoAlphAmount, lockTime, tokens, address, message }
     })
+    const message = output.additionalData.value.toString('hex')
+    const scriptType = output.lockupScript.scriptType
+    const key = binToHex(blakeHash(Buffer.concat([txIdBytes, signedIntCodec.encode(index)])))
+    const outputLockupScript = output.lockupScript.script
+    const address = bs58.encode(lockupScriptCodec.encode(output.lockupScript))
+
+    let hint: number | undefined = undefined
+    if (scriptType === 0) {
+      // P2PKH
+      hint = createHint((outputLockupScript as PublicKeyHash).publicKeyHash)
+    } else if (scriptType === 1) {
+      // P2MPKH
+      hint = createHint((outputLockupScript as MultiSig).publicKeyHashes.value[0].publicKeyHash)
+    } else if (scriptType === 2) {
+      // P2SH
+      hint = createHint((outputLockupScript as P2SH).scriptHash)
+    } else if (scriptType === 3) {
+      // P2C
+      hint = createHint((outputLockupScript as P2C).contractId)
+    } else {
+      throw new Error(`TODO: decode output script type: ${scriptType}`)
+    }
+
+    return { hint, key, attoAlphAmount, lockTime, tokens, address, message }
   }
 
   static convertToOutputs(fixedOutputs: FixedAssetOutput[]): AssetOutput[] {
@@ -165,10 +167,6 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
       }
     })
   }
-}
-
-function createHint(input: Buffer): number {
-  return djbIntHash(input) | 1
 }
 
 export const assetOutputCodec = new AssetOutputCodec()
