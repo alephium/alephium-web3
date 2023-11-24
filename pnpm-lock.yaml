@@ -323,6 +323,9 @@ importers:
       bignumber.js:
         specifier: ^9.1.1
         version: 9.1.1
+      binary-parser:
+        specifier: 2.2.1
+        version: 2.2.1
       blakejs:
         specifier: 1.2.1
         version: 1.2.1
@@ -381,9 +384,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^5.57.0
         version: 5.59.0(eslint@8.38.0)(typescript@4.9.5)
-      binary-parser:
-        specifier: 2.2.1
-        version: 2.2.1
       clean-webpack-plugin:
         specifier: 4.0.0
         version: 4.0.0(webpack@5.80.0)
@@ -637,6 +637,7 @@ packages:
   /@babel/cli@7.21.0(@babel/core@7.21.4):
     resolution: {integrity: sha512-xi7CxyS8XjSyiwUGCfwf+brtJxjW1/ZTcBUkP10xawIEXLX5HzLn+3aXkgxozcP2UhRhtKTmQurw9Uaes7jZrA==}
     engines: {node: '>=6.9.0'}
+    hasBin: true
     peerDependencies:
       '@babel/core': ^7.0.0-0
     dependencies:
@@ -943,6 +944,7 @@ packages:
   /@babel/node@7.20.7(@babel/core@7.21.4):
     resolution: {integrity: sha512-AQt3gVcP+fpFuoFn4FmIW/+5JovvEoA9og4Y1LrRw0pv3jkl4tujZMMy3X/3ugjLrEy3k1aNywo3JIl3g+jVXQ==}
     engines: {node: '>=6.9.0'}
+    hasBin: true
     peerDependencies:
       '@babel/core': ^7.0.0-0
     dependencies:
@@ -4448,7 +4450,7 @@ packages:
   /binary-parser@2.2.1:
     resolution: {integrity: sha512-5ATpz/uPDgq5GgEDxTB4ouXCde7q2lqAQlSdBRQVl/AJnxmQmhIfyxJx+0MGu//D5rHQifkfGbWWlaysG0o9NA==}
     engines: {node: '>=12'}
-    dev: true
+    dev: false
 
   /bip32@3.1.0:
     resolution: {integrity: sha512-eoeajYEzJ4d6yyVtby8C+XkCeKItiC4Mx56a0M9VaqTMC73SWOm4xVZG7SaR8e/yp4eSyky2XcBpH3DApPdu7Q==}
@@ -5791,6 +5793,7 @@ packages:
 
   /eslint-config-prettier@8.8.0(eslint@8.38.0):
     resolution: {integrity: sha512-wLbQiFre3tdGgpDv67NQKnJuTlcUVYHas3k+DZCc2U2BadthoEY4B7hLPvAxaqdyOGCzuLfii2fqGph10va7oA==}
+    hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
     dependencies:
@@ -7497,6 +7500,7 @@ packages:
   /jest-cli@28.1.3(@types/node@16.18.24)(ts-node@10.9.1):
     resolution: {integrity: sha512-roY3kvrv57Azn1yPgdTebPAXvdR2xfezaKKYzVxZ6It/5NCxzJym6tUI5P1zkdWhfUYkxEI9uZWcQdaFLo8mJQ==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -7523,6 +7527,7 @@ packages:
   /jest-cli@29.5.0(@types/node@16.18.24)(ts-node@10.9.1):
     resolution: {integrity: sha512-L1KcP1l4HtfwdxXNFCL5bmUbLQiKrakMUriBEcc1Vfz6gx31ORKdreuWvmQVBit+1ss9NNR3yxjwfwzZNdQXJw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -8233,6 +8238,7 @@ packages:
   /jest@28.1.3(@types/node@16.18.24)(ts-node@10.9.1):
     resolution: {integrity: sha512-N4GT5on8UkZgH0O5LUavMRV1EDEhNTL0KEfRmDIeZHSV7p2XgLoY9t9VDUgL6o+yfdgYHVxuz81G8oB9VG5uyA==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -8251,6 +8257,7 @@ packages:
   /jest@29.5.0(@types/node@16.18.24)(ts-node@10.9.1):
     resolution: {integrity: sha512-juMg3he2uru1QoXX078zTa7pO85QyB9xajZc6bU+d9yEGwrKX6+vGmJQ3UdVZsvTEUARIdObzH68QItim6OSSQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -9910,6 +9917,7 @@ packages:
   /rollup-plugin-visualizer@5.9.0(rollup@2.79.1):
     resolution: {integrity: sha512-bbDOv47+Bw4C/cgs0czZqfm8L82xOZssk4ayZjG40y9zbXclNk7YikrZTDao6p7+HDiGxrN0b65SgZiVm9k1Cg==}
     engines: {node: '>=14'}
+    hasBin: true
     peerDependencies:
       rollup: 2.x || 3.x
     peerDependenciesMeta:
@@ -10614,6 +10622,7 @@ packages:
   /ts-jest@28.0.8(@babel/core@7.21.4)(jest@28.1.3)(typescript@4.9.5):
     resolution: {integrity: sha512-5FaG0lXmRPzApix8oFG8RKjAz4ehtm8yMKOTy5HX3fY6W8kmvOrmcY0hKDElW52FJov+clhUbrKAqofnj4mXTg==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    hasBin: true
     peerDependencies:
       '@babel/core': '>=7.0.0-beta.0 <8'
       '@jest/types': ^28.0.0
@@ -10647,6 +10656,7 @@ packages:
   /ts-jest@29.1.0(@babel/core@7.21.4)(jest@29.5.0)(typescript@4.9.5):
     resolution: {integrity: sha512-ZhNr7Z4PcYa+JjMl62ir+zPiNJfXJN6E8hSLnaUKhOgqcn8vb3e537cpkd0FuAfRK3sR1LSqM1MOhliXNgOFPA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    hasBin: true
     peerDependencies:
       '@babel/core': '>=7.0.0-beta.0 <8'
       '@jest/types': ^29.0.0
@@ -10679,6 +10689,7 @@ packages:
 
   /ts-node@10.9.1(@types/node@16.18.24)(typescript@4.7.4):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -10708,6 +10719,7 @@ packages:
 
   /ts-node@10.9.1(@types/node@16.18.24)(typescript@4.9.5):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -10737,6 +10749,7 @@ packages:
 
   /ts-node@10.9.1(@types/node@18.15.13)(typescript@4.9.5):
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -10894,6 +10907,7 @@ packages:
 
   /update-browserslist-db@1.0.11(browserslist@4.21.5):
     resolution: {integrity: sha512-dCwEFf0/oT85M1fHBg4F0jtLwJrutGoHSQXCh7u4o2t1drG+c0a9Flnqww6XUKSfQMPpJBRjU8d4RXB09qtvaA==}
+    hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
     dependencies:
@@ -10970,6 +10984,7 @@ packages:
   /webpack-cli@4.10.0(webpack@5.77.0):
     resolution: {integrity: sha512-NLhDfH/h4O6UOy+0LSso42xvYypClINuMNBVVzX4vX98TmTaTUxwRbXdhucbFMd2qLaCTcLq/PdYrvi8onw90w==}
     engines: {node: '>=10.13.0'}
+    hasBin: true
     peerDependencies:
       '@webpack-cli/generators': '*'
       '@webpack-cli/migrate': '*'
@@ -11004,6 +11019,7 @@ packages:
   /webpack-cli@4.10.0(webpack@5.80.0):
     resolution: {integrity: sha512-NLhDfH/h4O6UOy+0LSso42xvYypClINuMNBVVzX4vX98TmTaTUxwRbXdhucbFMd2qLaCTcLq/PdYrvi8onw90w==}
     engines: {node: '>=10.13.0'}
+    hasBin: true
     peerDependencies:
       '@webpack-cli/generators': '*'
       '@webpack-cli/migrate': '*'
@@ -11051,6 +11067,7 @@ packages:
   /webpack@5.77.0(webpack-cli@4.10.0):
     resolution: {integrity: sha512-sbGNjBr5Ya5ss91yzjeJTLKyfiwo5C628AFjEa6WSXcZa4E+F57om3Cc8xLb1Jh0b243AWuSYRf3dn7HVeFQ9Q==}
     engines: {node: '>=10.13.0'}
+    hasBin: true
     peerDependencies:
       webpack-cli: '*'
     peerDependenciesMeta:
@@ -11091,6 +11108,7 @@ packages:
   /webpack@5.80.0(webpack-cli@4.10.0):
     resolution: {integrity: sha512-OIMiq37XK1rWO8mH9ssfFKZsXg4n6klTEDL7S8/HqbAOBBaiy8ABvXvz0dDCXeEF9gqwxSvVk611zFPjS8hJxA==}
     engines: {node: '>=10.13.0'}
+    hasBin: true
     peerDependencies:
       webpack-cli: '*'
     peerDependenciesMeta:
