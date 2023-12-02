@@ -84,7 +84,7 @@ export function toNonNegativeBigInt(input: string): bigint | undefined {
   }
 }
 
-enum AddressType {
+export enum AddressType {
   P2PKH = 0x00,
   P2MPKH = 0x01,
   P2SH = 0x02,
@@ -196,10 +196,14 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
     return bs58.encode(bytes)
   } else {
     const lockupScript = Buffer.from(`0101000000000458144020${publicKey}8685`, 'hex')
-    const lockupScriptHash = blake.blake2b(lockupScript, undefined, 32)
-    const addressType = Buffer.from([AddressType.P2SH])
-    return bs58.encode(Buffer.concat([addressType, lockupScriptHash]))
+    return addressFromScript(lockupScript)
   }
+}
+
+export function addressFromScript(script: Uint8Array): string {
+  const scriptHash = blake.blake2b(script, undefined, 32)
+  const addressType = Buffer.from([AddressType.P2SH])
+  return bs58.encode(Buffer.concat([addressType, scriptHash]))
 }
 
 export function addressFromContractId(contractId: string): string {
