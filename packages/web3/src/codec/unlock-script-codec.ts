@@ -120,7 +120,7 @@ class ValCodec implements Codec<Val> {
 const valCodec = new ValCodec()
 const valsCodec = new ArrayCodec(valCodec)
 
-interface P2SH {
+export interface P2SH {
   script: Script
   params: DecodedArray<Val>
 }

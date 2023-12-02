@@ -43,9 +43,9 @@ export interface Transaction {
 }
 
 export class TransactionCodec implements Codec<Transaction> {
-  static parser = new Parser()
+  parser = new Parser()
     .nest('unsigned', {
-      type: UnsignedTransactionCodec.parser
+      type: unsignedTransactionCodec.parser
     })
     .uint8('scriptExecutionOk')
     .nest('contractInputs', {
@@ -60,8 +60,6 @@ export class TransactionCodec implements Codec<Transaction> {
     .nest('scriptSignatures', {
       type: signaturesCodec.parser
     })
-
-  parser = TransactionCodec.parser
 
   encode(input: Transaction): Buffer {
     return Buffer.concat([

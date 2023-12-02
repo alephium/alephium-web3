@@ -29,5 +29,5 @@ export * from './token'
 
 export * from './constants'
 export * as web3 from './global'
-export * from './codec'
+export * as codec from './codec'
 export * as utils from './utils'

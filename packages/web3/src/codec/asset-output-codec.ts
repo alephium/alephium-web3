@@ -27,34 +27,7 @@ import { blakeHash, createHint, djbIntHash } from './hash'
 import { bs58, binToHex } from '../utils'
 import { Codec } from './codec'
 import { PublicKeyHash } from './lockup-script-codec'
-
-export interface Token {
-  tokenId: Buffer
-  amount: DecodedCompactInt
-}
-
-export class TokenCodec implements Codec<Token> {
-  parser = Parser.start()
-    .buffer('tokenId', {
-      length: 32
-    })
-    .nest('amount', {
-      type: compactUnsignedIntCodec.parser
-    })
-
-  encode(input: Token): Buffer {
-    const tokenId = input.tokenId
-    const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
-    return Buffer.concat([tokenId, amount])
-  }
-
-  decode(input: Buffer): Token {
-    return this.parser.parse(input)
-  }
-}
-
-export const tokenCodec = new TokenCodec()
-export const tokensCodec = new ArrayCodec(tokenCodec)
+import { Token, tokensCodec } from './token-codec'
 
 export interface AssetOutput {
   amount: DecodedCompactInt

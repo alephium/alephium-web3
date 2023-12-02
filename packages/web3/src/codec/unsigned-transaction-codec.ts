@@ -45,7 +45,7 @@ export interface UnsignedTransaction {
 }
 
 export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
-  static parser = new Parser()
+  parser = new Parser()
     .uint8('version')
     .uint8('networkId')
     .nest('statefulScript', {
@@ -64,7 +64,9 @@ export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
       type: outputsCodec.parser
     })
 
-  parser = UnsignedTransactionCodec.parser
+  static new() {
+    return new UnsignedTransactionCodec()
+  }
 
   encode(input: UnsignedTransaction): Buffer {
     return Buffer.concat([
@@ -82,7 +84,7 @@ export class UnsignedTransactionCodec implements Codec<UnsignedTransaction> {
   }
 
   static decodeToUnsignedTx(rawUnsignedTx: string): UnsignedTx {
-    const parsedResult = this.parser.parse(Buffer.from(rawUnsignedTx, 'hex'))
+    const parsedResult = new UnsignedTransactionCodec().parser.parse(Buffer.from(rawUnsignedTx, 'hex'))
     const txId = binToHex(blakeHash(hexToBinUnsafe(rawUnsignedTx)))
     return UnsignedTransactionCodec.convertToUnsignedTx(parsedResult, txId)
   }
