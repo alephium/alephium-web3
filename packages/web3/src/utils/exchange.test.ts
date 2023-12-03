@@ -41,7 +41,7 @@ describe('exchange', function () {
       getAddressFromUnlockScript(
         '01024437e4e935b8c50558c361ec99255bf393bf9862af7a3c24a813ae155284211f4a01c3c6f3f8614f159e7373f4837ef95432c82dc47a5489df50046e7e7e3dcb227db403'
       )
-    ).toThrow('Multisig address is not supported')
+    ).toThrow('Naive multi-sig address is not supported for exchanges as it will be replaced by P2SH')
 
     expect(() => getAddressFromUnlockScript('')).toThrow('UnlockScript is empty')
     expect(() => getAddressFromUnlockScript('030011223344')).toThrow('Invalid unlock script type')
@@ -56,6 +56,9 @@ describe('exchange', function () {
         'X3RMnvb8h3RFrrbBraEouAWU9Ufu4s2WTXUQfLCvDtcmqCWRwkVLc69q2NnwYW2EMwg4QBN2UopkEmYLLLgHP9TQ38FK15RnhhEwguRyY6qCuAoRfyjHRnqYnTvfypPgD7w1ku'
       )
     ).toEqual(false)
+    expect(() => isExchangeAddress('')).toThrow('Address is empty')
+    expect(() => isExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Non-base58 character')
+    expect(() => isExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow('Non-base58 character')
   })
 
   const exchangeAddress = '13ausZBtpjsZ87zB3iUZajSwX9CdcVUariz1Q8K2j7tNV'

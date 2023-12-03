@@ -26,6 +26,26 @@ enum UnlockScriptType {
   P2SH = 0x02
 }
 
+export function isDepositALPHTransaction(tx: Transaction, exchangeAddress: string): boolean {
+  return isDepositTransaction(tx, exchangeAddress) && checkALPHOutput(tx)
+}
+
+export function isDepositTokenTransaction(tx: Transaction, exchangeAddress: string): boolean {
+  return isDepositTransaction(tx, exchangeAddress) && checkTokenOutput(tx, exchangeAddress)
+}
+
+// we assume that the tx is deposit transaction
+export function getDepositAddress(tx: Transaction): Address {
+  return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
+}
+
+export function isExchangeAddress(address: string): boolean {
+  const decoded = bs58.decode(address)
+  if (decoded.length === 0) throw new Error('Address is empty')
+  const addressType = decoded[0]
+  return addressType === AddressType.P2PKH || addressType === AddressType.P2SH
+}
+
 export function getAddressFromUnlockScript(unlockScript: string): Address {
   const decoded = hexToBinUnsafe(unlockScript)
   if (decoded.length === 0) throw new Error('UnlockScript is empty')
@@ -35,7 +55,7 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
   if (unlockScriptType === UnlockScriptType.P2PKH) {
     return addressFromPublicKey(binToHex(unlockScriptBody))
   } else if (unlockScriptType === UnlockScriptType.P2MPKH) {
-    throw new Error('Multisig address is not supported')
+    throw new Error('Naive multi-sig address is not supported for exchanges as it will be replaced by P2SH')
   } else if (unlockScriptType === UnlockScriptType.P2SH) {
     // FIXEME: for now we assume that the params is empty, so we need to
     // remove the last byte from the `unlockScriptBody`, we can decode
@@ -45,13 +65,6 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
   } else {
     throw new Error('Invalid unlock script type')
   }
-}
-
-export function isExchangeAddress(address: string): boolean {
-  const decoded = bs58.decode(address)
-  if (decoded.length === 0) throw new Error('Address is empty')
-  const addressType = decoded[0]
-  return addressType === AddressType.P2PKH || addressType === AddressType.P2SH
 }
 
 function getFromAddress(tx: Transaction): Address | undefined {
@@ -104,17 +117,4 @@ function isDepositTransaction(tx: Transaction, exchangeAddress: string): boolean
     return false
   }
   return checkOutputAddress(tx, from, exchangeAddress)
-}
-
-export function isDepositALPHTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  return isDepositTransaction(tx, exchangeAddress) && checkALPHOutput(tx)
-}
-
-export function isDepositTokenTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  return isDepositTransaction(tx, exchangeAddress) && checkTokenOutput(tx, exchangeAddress)
-}
-
-// we assume that the tx is deposit transaction
-export function getDepositAddress(tx: Transaction): Address {
-  return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
 }
