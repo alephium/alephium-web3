@@ -22,7 +22,7 @@ import {
   getAddressFromUnlockScript,
   isDepositALPHTransaction,
   isDepositTokenTransaction,
-  isExchangeAddress
+  validateExchangeAddress
 } from './exchange'
 
 describe('exchange', function () {
@@ -48,22 +48,31 @@ describe('exchange', function () {
   })
 
   it('should validate exchange address', () => {
-    expect(isExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toEqual(true)
-    expect(isExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1QFFT')).toEqual(true)
-    expect(isExchangeAddress('22sTaM5xer7h81LzaGA2JiajRwHwECpAv9bBuFUH5rrnr')).toEqual(false)
-    expect(
-      isExchangeAddress(
+    expect(() => validateExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).not.toThrow()
+    expect(() => validateExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1QFFT')).not.toThrow()
+    expect(() => validateExchangeAddress('22sTaM5xer7h81LzaGA2JiajRwHwECpAv9bBuFUH5rrnr')).toThrow(
+      'Invalid address type'
+    )
+    expect(() =>
+      validateExchangeAddress(
         'X3RMnvb8h3RFrrbBraEouAWU9Ufu4s2WTXUQfLCvDtcmqCWRwkVLc69q2NnwYW2EMwg4QBN2UopkEmYLLLgHP9TQ38FK15RnhhEwguRyY6qCuAoRfyjHRnqYnTvfypPgD7w1ku'
       )
-    ).toEqual(false)
-    expect(isExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBw')).toEqual(false)
-    expect(isExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1Q')).toEqual(false)
-    expect(() => isExchangeAddress('')).toThrow('Address is empty')
-    expect(() => isExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Non-base58 character')
-    expect(() => isExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow('Non-base58 character')
+    ).toThrow('Invalid address type')
+    expect(() => validateExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBw')).toThrow(
+      'Invalid address length'
+    )
+    expect(() => validateExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1Q')).toThrow('Invalid address type')
+    expect(() => validateExchangeAddress('')).toThrow('Address is empty')
+    expect(() => validateExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Invalid base58 string')
+    expect(() => validateExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow(
+      'Invalid base58 string'
+    )
   })
 
-  const exchangeAddress = '13ausZBtpjsZ87zB3iUZajSwX9CdcVUariz1Q8K2j7tNV'
+  const exchangeAddress = '1khyjTYdKEyCSyg6SqyDf97Vq3EmSJF9zPugb3KYERP8'
+  const exchangeUnlockScript = '000266eb23454a04cf86e7a86a494a79d347ee27bffde4b44d1feeb8de146ddb2f48'
+  expect(getAddressFromUnlockScript(exchangeUnlockScript)).toEqual(exchangeAddress)
+
   const fromAddress = '1BPp69hdr78Fm6Qsh5N5FTmbgw5jEgg4P1K5oyvUBK8fw'
   const fromUnlockScript = '00023d7d9b04c6729c1e7ca27e08c295e3f45bdb5de9adcf2598b29c717595e7b1bf'
   const invalidUnlockupScript = '0003498dc83e77e9b5c82b88e2bba7c737fd5aee041dc6bbb4402fefa3e7460a95bb'
@@ -136,7 +145,15 @@ describe('exchange', function () {
         fixedOutputs: [...unsignedTxTemplate.fixedOutputs.slice(0, -1), invalidOutput2]
       }
     }
-    const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7]
+    const tx8: Transaction = {
+      ...txTemplate,
+      unsigned: {
+        ...unsignedTxTemplate,
+        inputs: [{ outputRef, unlockScript: exchangeUnlockScript }],
+        fixedOutputs: unsignedTxTemplate.fixedOutputs.slice(2)
+      }
+    }
+    const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8]
     invalidTxs.forEach((tx) => expect(isDepositALPHTransaction(tx, exchangeAddress)).toEqual(false))
   })
 
