@@ -56,6 +56,8 @@ describe('exchange', function () {
         'X3RMnvb8h3RFrrbBraEouAWU9Ufu4s2WTXUQfLCvDtcmqCWRwkVLc69q2NnwYW2EMwg4QBN2UopkEmYLLLgHP9TQ38FK15RnhhEwguRyY6qCuAoRfyjHRnqYnTvfypPgD7w1ku'
       )
     ).toEqual(false)
+    expect(isExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBw')).toEqual(false)
+    expect(isExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1Q')).toEqual(false)
     expect(() => isExchangeAddress('')).toThrow('Address is empty')
     expect(() => isExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Non-base58 character')
     expect(() => isExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow('Non-base58 character')

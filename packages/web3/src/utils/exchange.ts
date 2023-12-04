@@ -20,10 +20,11 @@ import { AddressType, DUST_AMOUNT, addressFromPublicKey, addressFromScript, binT
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 
-enum UnlockScriptType {
-  P2PKH = 0x00,
-  P2MPKH = 0x01,
-  P2SH = 0x02
+export function isExchangeAddress(address: string): boolean {
+  const decoded = bs58.decode(address)
+  if (decoded.length === 0) throw new Error('Address is empty')
+  const addressType = decoded[0]
+  return (addressType === AddressType.P2PKH || addressType === AddressType.P2SH) && decoded.length === 33
 }
 
 export function isDepositALPHTransaction(tx: Transaction, exchangeAddress: string): boolean {
@@ -39,11 +40,10 @@ export function getDepositAddress(tx: Transaction): Address {
   return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
 }
 
-export function isExchangeAddress(address: string): boolean {
-  const decoded = bs58.decode(address)
-  if (decoded.length === 0) throw new Error('Address is empty')
-  const addressType = decoded[0]
-  return addressType === AddressType.P2PKH || addressType === AddressType.P2SH
+enum UnlockScriptType {
+  P2PKH = 0x00,
+  P2MPKH = 0x01,
+  P2SH = 0x02
 }
 
 export function getAddressFromUnlockScript(unlockScript: string): Address {
