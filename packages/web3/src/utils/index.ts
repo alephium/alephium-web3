@@ -24,4 +24,9 @@ export * from './utils'
 export * from './subscription'
 export * from './sign'
 export * from './number'
-export { isExchangeAddress, isDepositALPHTransaction, isDepositTokenTransaction, getDepositAddress } from './exchange'
+export {
+  validateExchangeAddress,
+  isDepositALPHTransaction,
+  isDepositTokenTransaction,
+  getDepositAddress
+} from './exchange'

@@ -22,7 +22,7 @@ import {
   getAddressFromUnlockScript,
   isDepositALPHTransaction,
   isDepositTokenTransaction,
-  isExchangeAddress
+  validateExchangeAddress
 } from './exchange'
 
 describe('exchange', function () {
@@ -48,19 +48,25 @@ describe('exchange', function () {
   })
 
   it('should validate exchange address', () => {
-    expect(isExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toEqual(true)
-    expect(isExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1QFFT')).toEqual(true)
-    expect(isExchangeAddress('22sTaM5xer7h81LzaGA2JiajRwHwECpAv9bBuFUH5rrnr')).toEqual(false)
-    expect(
-      isExchangeAddress(
+    expect(() => validateExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).not.toThrow()
+    expect(() => validateExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1QFFT')).not.toThrow()
+    expect(() => validateExchangeAddress('22sTaM5xer7h81LzaGA2JiajRwHwECpAv9bBuFUH5rrnr')).toThrow(
+      'Invalid address type'
+    )
+    expect(() =>
+      validateExchangeAddress(
         'X3RMnvb8h3RFrrbBraEouAWU9Ufu4s2WTXUQfLCvDtcmqCWRwkVLc69q2NnwYW2EMwg4QBN2UopkEmYLLLgHP9TQ38FK15RnhhEwguRyY6qCuAoRfyjHRnqYnTvfypPgD7w1ku'
       )
-    ).toEqual(false)
-    expect(isExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBw')).toEqual(false)
-    expect(isExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1Q')).toEqual(false)
-    expect(() => isExchangeAddress('')).toThrow('Address is empty')
-    expect(() => isExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Non-base58 character')
-    expect(() => isExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow('Non-base58 character')
+    ).toThrow('Invalid address type')
+    expect(() => validateExchangeAddress('18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBw')).toThrow(
+      'Invalid address length'
+    )
+    expect(() => validateExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1Q')).toThrow('Invalid address type')
+    expect(() => validateExchangeAddress('')).toThrow('Address is empty')
+    expect(() => validateExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Non-base58 character')
+    expect(() => validateExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow(
+      'Non-base58 character'
+    )
   })
 
   const exchangeAddress = '13ausZBtpjsZ87zB3iUZajSwX9CdcVUariz1Q8K2j7tNV'

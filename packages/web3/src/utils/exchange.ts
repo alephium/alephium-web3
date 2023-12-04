@@ -20,11 +20,16 @@ import { AddressType, DUST_AMOUNT, addressFromPublicKey, addressFromScript, binT
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 
-export function isExchangeAddress(address: string): boolean {
+export function validateExchangeAddress(address: string) {
   const decoded = bs58.decode(address)
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
-  return (addressType === AddressType.P2PKH || addressType === AddressType.P2SH) && decoded.length === 33
+  if (addressType !== AddressType.P2PKH && addressType !== AddressType.P2SH) {
+    throw new Error('Invalid address type')
+  }
+  if (decoded.length !== 33) {
+    throw new Error('Invalid address length')
+  }
 }
 
 export function isDepositALPHTransaction(tx: Transaction, exchangeAddress: string): boolean {
