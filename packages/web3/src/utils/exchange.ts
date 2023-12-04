@@ -21,7 +21,12 @@ import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 
 export function validateExchangeAddress(address: string) {
-  const decoded = bs58.decode(address)
+  let decoded: Uint8Array
+  try {
+    decoded = bs58.decode(address)
+  } catch (_) {
+    throw new Error('Invalid base58 string')
+  }
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType !== AddressType.P2PKH && addressType !== AddressType.P2SH) {

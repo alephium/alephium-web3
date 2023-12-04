@@ -63,9 +63,9 @@ describe('exchange', function () {
     )
     expect(() => validateExchangeAddress('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1Q')).toThrow('Invalid address type')
     expect(() => validateExchangeAddress('')).toThrow('Address is empty')
-    expect(() => validateExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Non-base58 character')
+    expect(() => validateExchangeAddress('6aac0693404223ed9c492bc61fd3cbf9')).toThrow('Invalid base58 string')
     expect(() => validateExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow(
-      'Non-base58 character'
+      'Invalid base58 string'
     )
   })
 
