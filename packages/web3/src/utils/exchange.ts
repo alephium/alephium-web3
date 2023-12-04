@@ -118,7 +118,7 @@ function isDepositTransaction(tx: Transaction, exchangeAddress: string): boolean
     return false
   }
   const from = getFromAddress(tx)
-  if (from === undefined) {
+  if (from === undefined || from === exchangeAddress) {
     return false
   }
   return checkOutputAddress(tx, from, exchangeAddress)
