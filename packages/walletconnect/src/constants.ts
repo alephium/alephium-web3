@@ -34,3 +34,5 @@ export const RELAY_METHODS = [
 export const LOGGER = 'error'
 
 export const RELAY_URL = 'wss://relay.walletconnect.com'
+
+export const ALEPHIUM_DEEP_LINK = 'alephium://'
