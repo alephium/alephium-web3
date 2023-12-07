@@ -32,13 +32,13 @@ class TippingBot {
     this.userPathIndexes = new Map()
   }
 
-  addUser(userAddress: string) {
-    if (this.userPathIndexes.has(userAddress)) {
-      throw new Error(`User ${userAddress} already exists`)
+  addUser(userId: string) {
+    if (this.userPathIndexes.has(userId)) {
+      throw new Error(`User ${userId} already exists`)
     }
 
     const pathIndex = this.userPathIndexes.size
-    this.userPathIndexes.set(userAddress, pathIndex)
+    this.userPathIndexes.set(userId, pathIndex)
   }
 
   getUserWallet(userId: string): PrivateKeyWallet {
