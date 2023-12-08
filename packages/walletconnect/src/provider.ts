@@ -138,18 +138,13 @@ export class WalletConnectProvider extends SignerProvider {
   }
 
   private async ping(topic: string) {
-    return await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Timeout')), 5 * 1000)
-      this.client
-        .ping({ topic })
-        .then((result) => {
-          clearTimeout(timeout)
-          resolve(result)
-        })
-        .catch((err) => {
-          clearTimeout(timeout)
-          reject(err)
-        })
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Auto connect timeout')), 5 * 1000)
+    })
+    await Promise.race([this.client.ping({ topic }), timeout]).catch((err) => {
+      this.client.session.delete(topic, { code: 0, message: `Error: ${err}` })
+      this.session = undefined
+      this.account = undefined
     })
   }
 
