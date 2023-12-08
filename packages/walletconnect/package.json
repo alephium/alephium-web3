@@ -34,9 +34,9 @@
   "dependencies": {
     "@alephium/web3": "workspace:^",
     "@alephium/web3-wallet": "workspace:^",
-    "@walletconnect/sign-client": "2.5.2",
-    "@walletconnect/types": "2.5.2",
-    "@walletconnect/utils": "2.5.2",
+    "@walletconnect/sign-client": "2.10.6",
+    "@walletconnect/types": "2.10.6",
+    "@walletconnect/utils": "2.10.6",
     "eventemitter3": "^4.0.7"
   },
   "devDependencies": {

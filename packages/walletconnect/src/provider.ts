@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import EventEmitter from 'eventemitter3'
 import { SessionTypes } from '@walletconnect/types'
 import SignClient from '@walletconnect/sign-client'
+import { isBrowser } from '@walletconnect/utils'
 import { getChainsFromNamespaces, getAccountsFromNamespaces, getSdkError } from '@walletconnect/utils'
 import {
   SignerProvider,
@@ -42,7 +43,7 @@ import {
   EnableOptionsBase
 } from '@alephium/web3'
 
-import { LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
+import { ALEPHIUM_DEEP_LINK, LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
 import {
   AddressGroup,
   RelayMethodParams,
@@ -137,18 +138,13 @@ export class WalletConnectProvider extends SignerProvider {
   }
 
   private async ping(topic: string) {
-    return await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Timeout')), 5 * 1000)
-      this.client
-        .ping({ topic })
-        .then((result) => {
-          clearTimeout(timeout)
-          resolve(result)
-        })
-        .catch((err) => {
-          clearTimeout(timeout)
-          reject(err)
-        })
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Auto connect timeout')), 5 * 1000)
+    })
+    await Promise.race([this.client.ping({ topic }), timeout]).catch((err) => {
+      this.client.session.delete(topic, { code: 0, message: `Error: ${err}` })
+      this.session = undefined
+      this.account = undefined
     })
   }
 
@@ -301,6 +297,9 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     try {
+      if (args.method.startsWith('alph_sign')) {
+        redirectToDeepLink()
+      }
       const response = await this.client.request<T>({
         request: {
           method: args.method,
@@ -435,4 +434,10 @@ export function parseAccount(account: string): Account & { networkId: NetworkId 
     throw Error(`Invalid key type: ${keyType}`)
   }
   return { address, group, publicKey, keyType, networkId: networkId as NetworkId }
+}
+
+function redirectToDeepLink() {
+  if (isBrowser()) {
+    window.open(ALEPHIUM_DEEP_LINK, '_self', 'noreferrer noopener')
+  }
 }

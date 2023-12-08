@@ -136,6 +136,7 @@ export class WalletClient {
       reason: getSdkError('USER_DISCONNECTED')
     })
     this.disconnected = true
+    this.topic = undefined
   }
 
   private setNetworkId(networkId: NetworkId, rpcUrl: string) {
