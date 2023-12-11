@@ -111,7 +111,7 @@ const wcConnect = async (options: ConnectOptions): Promise<Account | undefined> 
 }
 
 const desktopWalletConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
-  return await _wcConnect((uri) => window.open(`alephium://wc?uri=${uri}`), options, 'desktopWallet')
+  return await _wcConnect((uri) => window.open(`alephium-desktop://wc?uri=${uri}`), options, 'desktopWallet')
 }
 
 const wcDisconnect = async (signerProvider: SignerProvider): Promise<void> => {
