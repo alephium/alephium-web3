@@ -54,6 +54,7 @@ import {
   ProjectMetaData,
   ChainInfo
 } from './types'
+import { isMobile } from './utils'
 
 export interface ProviderOptions extends EnableOptionsBase {
   // Alephium options
@@ -442,7 +443,7 @@ export function parseAccount(account: string): Account & { networkId: NetworkId 
 }
 
 function redirectToDeepLink() {
-  if (isBrowser()) {
+  if (isMobile() && isBrowser()) {
     window.open(ALEPHIUM_DEEP_LINK, '_self', 'noreferrer noopener')
   }
 }

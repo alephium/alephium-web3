@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Account, NetworkId, SignerProvider, KeyType } from '@alephium/web3'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
-import QRCodeModal from '@walletconnect/qrcode-modal'
+import QRCodeModal from '@alephium/walletconnect-qrcode-modal'
 import { AlephiumWindowObject, getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import { getLastConnectedAccount, setLastConnectedAccount } from './storage'
 import { ConnectorId } from '../types'
