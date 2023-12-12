@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { PrivateKeyWallet } from '@alephium/web3-wallet'
+import { PrivateKeyWallet, deriveHDWalletPrivateKey } from '@alephium/web3-wallet'
 import { getSigners, getSigner } from '@alephium/web3-test'
 import {
   Address,
@@ -33,23 +33,26 @@ import {
   TOTAL_NUMBER_OF_GROUPS
 } from '@alephium/web3'
 import { waitTxConfirmed } from '@alephium/cli'
-import { randomInt } from 'crypto'
 import { EventEmitter } from 'stream'
+import * as bip39 from 'bip39'
 
 class User {
   private readonly wallet: PrivateKeyWallet
   readonly address: Address
+  readonly userId: string
   private depositTxs: string[]
   private depositAmount: bigint
 
-  constructor(wallet: PrivateKeyWallet) {
+  constructor(userId: string, wallet: PrivateKeyWallet) {
+    this.userId = userId
     this.wallet = wallet
     this.address = wallet.address
     this.depositTxs = []
     this.depositAmount = 0n
   }
 
-  async deposit(toAddress: Address, amount: bigint) {
+  async deposit(exchange: Exchange, amount: bigint) {
+    const toAddress = exchange.getDepositAddress(this.userId)
     console.log(`deposit ${prettifyAttoAlphAmount(amount)} to ${toAddress}`)
     return this.wallet
       .signAndSubmitTransferTx({
@@ -139,6 +142,8 @@ class Exchange {
   private depositTxs: { txId: string; from: Address }[]
   private withdrawTxs: { txId: string; to: Address }[]
   private eventEmitter: EventEmitter
+  private hotAddressMnemonic: string
+  private hotAddressPathIndexes: Map<string, number>
 
   constructor(nodeProvider: NodeProvider, wallet: PrivateKeyWallet) {
     this.nodeProvider = nodeProvider
@@ -146,6 +151,8 @@ class Exchange {
     this.depositTxs = []
     this.withdrawTxs = []
     this.eventEmitter = new EventEmitter()
+    this.hotAddressMnemonic = bip39.generateMnemonic()
+    this.hotAddressPathIndexes = new Map()
   }
 
   handleBlock(block: node.BlockEntry) {
@@ -181,6 +188,25 @@ class Exchange {
 
   getDepositTxs(): { txId: string; from: Address }[] {
     return this.depositTxs
+  }
+
+  registerUser(userId: string) {
+    if (this.hotAddressPathIndexes.has(userId)) {
+      throw new Error(`User ${userId} already exists`)
+    }
+
+    const pathIndex = this.hotAddressPathIndexes.size
+    this.hotAddressPathIndexes.set(userId, pathIndex)
+  }
+
+  getDepositAddress(userId: string): string {
+    const pathIndex = this.hotAddressPathIndexes.get(userId)
+    if (pathIndex === undefined) {
+      throw new Error(`User ${userId} does not exist`)
+    }
+    const privateKey = deriveHDWalletPrivateKey(this.hotAddressMnemonic, 'default', pathIndex)
+    const wallet = new PrivateKeyWallet({ privateKey, nodeProvider: this.nodeProvider })
+    return wallet.address
   }
 
   async withdraw(to: Address, amount: bigint) {
