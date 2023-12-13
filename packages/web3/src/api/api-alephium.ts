@@ -268,6 +268,23 @@ export interface BuildMultisigAddressResult {
   address: string
 }
 
+export interface BuildMultisigExecuteScriptTx {
+  /** @format address */
+  fromAddress: string
+  fromPublicKeys: string[]
+  /** @format hex-string */
+  bytecode: string
+  /** @format uint256 */
+  attoAlphAmount?: string
+  tokens?: Token[]
+  /** @format gas */
+  gasAmount?: number
+  /** @format uint256 */
+  gasPrice?: string
+  /** @format block-hash */
+  targetBlockHash?: string
+}
+
 export interface BuildSweepAddressTransactions {
   /** @format public-key */
   fromPublicKey: string
@@ -1256,7 +1273,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.5.5
+ * @version 2.5.8
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2335,6 +2352,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/contracts/unsigned-tx/execute-script`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
+     * @name PostContractsUnsignedTxMultisigExecuteScript
+     * @summary Build an unsigned script
+     * @request POST:/contracts/unsigned-tx/multisig-execute-script
+     */
+    postContractsUnsignedTxMultisigExecuteScript: (data: BuildMultisigExecuteScriptTx, params: RequestParams = {}) =>
+      this.request<
+        BuildExecuteScriptTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/contracts/unsigned-tx/multisig-execute-script`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
