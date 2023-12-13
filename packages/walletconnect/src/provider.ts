@@ -434,11 +434,11 @@ export function formatAccount(permittedChain: string, account: Account): string 
 
 export function parseAccount(account: string): Account & { networkId: NetworkId } {
   const [_namespace, networkId, _group, publicKey, keyType] = account.replace(/\//g, ':').split(':')
-  const address = addressFromPublicKey(publicKey)
-  const group = groupOfAddress(address)
-  if (keyType !== 'default' && keyType !== 'bip340-schnorr') {
+  if (keyType !== 'default' && keyType !== 'bip340-schnorr' && keyType !== 'address') {
     throw Error(`Invalid key type: ${keyType}`)
   }
+  const address = keyType === 'address' ? publicKey : addressFromPublicKey(publicKey)
+  const group = groupOfAddress(address)
   return { address, group, publicKey, keyType, networkId: networkId as NetworkId }
 }
 
