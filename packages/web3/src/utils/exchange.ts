@@ -37,16 +37,35 @@ export function validateExchangeAddress(address: string) {
   }
 }
 
-export function isDepositALPHTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  return isDepositTransaction(tx, exchangeAddress) && checkALPHOutput(tx)
+export function isSimpleALPHTransferTx(tx: Transaction): boolean {
+  return isSimpleTransferTx(tx) && checkALPHOutput(tx)
 }
 
-export function isDepositTokenTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  return isDepositTransaction(tx, exchangeAddress) && checkTokenOutput(tx, exchangeAddress)
+export function isSimpleTransferTokenTx(tx: Transaction): boolean {
+  const isTransferTx = isSimpleTransferTx(tx)
+  if (isTransferTx) {
+    const senderAddress = getSenderAddress(tx)
+    const targetAddress = tx.unsigned.fixedOutputs.find((o) => o.address !== senderAddress)!.address
+    return checkTokenOutput(tx, targetAddress)
+  }
+  return false
 }
 
-// we assume that the tx is deposit transaction
-export function getDepositAddress(tx: Transaction): Address {
+// we assume that the tx is a simple transfer tx, i.e. isSimpleTransferALPHTx(tx) == true
+export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint } {
+  const senderAddress = getSenderAddress(tx)
+  const targetAddress = tx.unsigned.fixedOutputs.find((o) => o.address !== senderAddress)!.address
+  let depositAmount = 0n
+  tx.unsigned.fixedOutputs.forEach((o) => {
+    if (o.address === targetAddress) {
+      depositAmount += BigInt(o.attoAlphAmount)
+    }
+  })
+  return { targetAddress, depositAmount }
+}
+
+// we assume that the tx is a simple transfer tx, i.e. isSimpleTransferALPHTx(tx) == true
+export function getSenderAddress(tx: Transaction): Address {
   return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
 }
 
@@ -77,29 +96,15 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
   }
 }
 
-function getFromAddress(tx: Transaction): Address | undefined {
+function getSenderAddressAnyTx(tx: Transaction): Address | undefined {
   try {
     const inputAddresses = tx.unsigned.inputs.map((i) => getAddressFromUnlockScript(i.unlockScript))
     // we have checked that the inputs is not empty
-    const from = inputAddresses[0]
-    return inputAddresses.slice(1).every((addr) => addr === from) ? from : undefined
+    const sender = inputAddresses[0]
+    return inputAddresses.slice(1).every((addr) => addr === sender) ? sender : undefined
   } catch (_) {
     return undefined
   }
-}
-
-function checkOutputAddress(tx: Transaction, from: Address, to: Address): boolean {
-  let fromCount = 0
-  let toCount = 0
-  tx.unsigned.fixedOutputs.forEach((o) => {
-    if (o.address === from) {
-      fromCount += 1
-    } else if (o.address === to) {
-      toCount += 1
-    }
-  })
-  const outputCount = tx.unsigned.fixedOutputs.length
-  return toCount === 1 && fromCount === outputCount - 1
 }
 
 function checkALPHOutput(tx: Transaction): boolean {
@@ -109,11 +114,17 @@ function checkALPHOutput(tx: Transaction): boolean {
 
 function checkTokenOutput(tx: Transaction, to: Address): boolean {
   // we have checked the output address
-  const output = tx.unsigned.fixedOutputs.find((o) => o.address === to)!
-  return output.attoAlphAmount === DUST_AMOUNT.toString() && output.tokens.length === 1
+  const outputs = tx.unsigned.fixedOutputs.filter((o) => o.address === to)
+  if (outputs[0].tokens.length === 0) {
+    return false
+  }
+  const tokenId = outputs[0].tokens[0].id
+  return outputs.every(
+    (o) => BigInt(o.attoAlphAmount) === DUST_AMOUNT && o.tokens.length === 1 && o.tokens[0].id === tokenId
+  )
 }
 
-function isDepositTransaction(tx: Transaction, exchangeAddress: string): boolean {
+function isSimpleTransferTx(tx: Transaction): boolean {
   if (
     tx.contractInputs.length !== 0 ||
     tx.generatedOutputs.length !== 0 ||
@@ -122,9 +133,18 @@ function isDepositTransaction(tx: Transaction, exchangeAddress: string): boolean
   ) {
     return false
   }
-  const from = getFromAddress(tx)
-  if (from === undefined || from === exchangeAddress) {
+  const sender = getSenderAddressAnyTx(tx)
+  if (sender === undefined) {
     return false
   }
-  return checkOutputAddress(tx, from, exchangeAddress)
+  const outputAddresses: Address[] = []
+  tx.unsigned.fixedOutputs.forEach((o) => {
+    if (!outputAddresses.includes(o.address)) {
+      outputAddresses.push(o.address)
+    }
+  })
+  return (
+    (outputAddresses.length === 1 && outputAddresses[0] !== sender) ||
+    (outputAddresses.length === 2 && outputAddresses.includes(sender))
+  )
 }
