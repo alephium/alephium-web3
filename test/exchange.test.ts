@@ -23,7 +23,7 @@ import {
   web3,
   ONE_ALPH,
   NodeProvider,
-  isSimpleTransferALPHTx,
+  isSimpleALPHTransferTx,
   prettifyAttoAlphAmount,
   Subscription,
   node,
@@ -33,7 +33,7 @@ import {
   DEFAULT_GAS_AMOUNT,
   DEFAULT_GAS_PRICE,
   getSenderAddress,
-  getDepositALPHInfo
+  getALPHDepositInfo
 } from '@alephium/web3'
 import { waitTxConfirmed } from '@alephium/cli'
 import { EventEmitter } from 'stream'
@@ -169,8 +169,8 @@ class Exchange {
 
   async handleBlock(block: node.BlockEntry) {
     for (const tx of block.transactions) {
-      if (isSimpleTransferALPHTx(tx)) {
-        const { targetAddress, depositAmount } = getDepositALPHInfo(tx)
+      if (isSimpleALPHTransferTx(tx)) {
+        const { targetAddress, depositAmount } = getALPHDepositInfo(tx)
         if (this.hotAddresses.includes(targetAddress)) {
           await this.handleDepositTx(tx, depositAmount)
         }

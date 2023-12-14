@@ -37,7 +37,7 @@ export function validateExchangeAddress(address: string) {
   }
 }
 
-export function isSimpleTransferALPHTx(tx: Transaction): boolean {
+export function isSimpleALPHTransferTx(tx: Transaction): boolean {
   return isSimpleTransferTx(tx) && checkALPHOutput(tx)
 }
 
@@ -52,7 +52,7 @@ export function isSimpleTransferTokenTx(tx: Transaction): boolean {
 }
 
 // we assume that the tx is a simple transfer tx
-export function getDepositALPHInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint } {
+export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint } {
   const senderAddress = getSenderAddress(tx)
   const targetAddress = tx.unsigned.fixedOutputs.find((o) => o.address !== senderAddress)!.address
   let depositAmount = 0n
@@ -96,7 +96,7 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
   }
 }
 
-function getTransferTxSenderAddress(tx: Transaction): Address | undefined {
+function getSenderAddressAnyTx(tx: Transaction): Address | undefined {
   try {
     const inputAddresses = tx.unsigned.inputs.map((i) => getAddressFromUnlockScript(i.unlockScript))
     // we have checked that the inputs is not empty
@@ -133,7 +133,7 @@ function isSimpleTransferTx(tx: Transaction): boolean {
   ) {
     return false
   }
-  const sender = getTransferTxSenderAddress(tx)
+  const sender = getSenderAddressAnyTx(tx)
   if (sender === undefined) {
     return false
   }

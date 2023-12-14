@@ -21,8 +21,8 @@ import { DUST_AMOUNT, ONE_ALPH } from '../constants'
 import {
   getAddressFromUnlockScript,
   getSenderAddress,
-  getDepositALPHInfo,
-  isSimpleTransferALPHTx,
+  getALPHDepositInfo,
+  isSimpleALPHTransferTx,
   isSimpleTransferTokenTx,
   validateExchangeAddress
 } from './exchange'
@@ -117,9 +117,9 @@ describe('exchange', function () {
   }
 
   it('should validate deposit ALPH transaction', () => {
-    expect(isSimpleTransferALPHTx(txTemplate)).toEqual(true)
+    expect(isSimpleALPHTransferTx(txTemplate)).toEqual(true)
     expect(getSenderAddress(txTemplate)).toEqual(fromAddress)
-    expect(getDepositALPHInfo(txTemplate)).toEqual({ targetAddress: exchangeAddress, depositAmount: 10n })
+    expect(getALPHDepositInfo(txTemplate)).toEqual({ targetAddress: exchangeAddress, depositAmount: 10n })
 
     const tx0: Transaction = { ...txTemplate, unsigned: { ...unsignedTxTemplate, scriptOpt: '00112233' } }
     const tx1: Transaction = { ...txTemplate, contractInputs: [outputRef] }
@@ -166,7 +166,7 @@ describe('exchange', function () {
       }
     }
     const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9]
-    invalidTxs.forEach((tx) => expect(isSimpleTransferALPHTx(tx)).toEqual(false))
+    invalidTxs.forEach((tx) => expect(isSimpleALPHTransferTx(tx)).toEqual(false))
 
     const multipleTargetAddressOutputTx: Transaction = {
       ...txTemplate,
@@ -175,8 +175,8 @@ describe('exchange', function () {
         fixedOutputs: [...unsignedTxTemplate.fixedOutputs, { ...outputTemplate, address: exchangeAddress }]
       }
     }
-    expect(isSimpleTransferALPHTx(multipleTargetAddressOutputTx)).toEqual(true)
-    expect(getDepositALPHInfo(multipleTargetAddressOutputTx)).toEqual({
+    expect(isSimpleALPHTransferTx(multipleTargetAddressOutputTx)).toEqual(true)
+    expect(getALPHDepositInfo(multipleTargetAddressOutputTx)).toEqual({
       targetAddress: exchangeAddress,
       depositAmount: 20n
     })
@@ -188,8 +188,8 @@ describe('exchange', function () {
         fixedOutputs: [unsignedTxTemplate.fixedOutputs[2], { ...outputTemplate, address: exchangeAddress }]
       }
     }
-    expect(isSimpleTransferALPHTx(sweepTx)).toEqual(true)
-    expect(getDepositALPHInfo(sweepTx)).toEqual({
+    expect(isSimpleALPHTransferTx(sweepTx)).toEqual(true)
+    expect(getALPHDepositInfo(sweepTx)).toEqual({
       targetAddress: exchangeAddress,
       depositAmount: 20n
     })

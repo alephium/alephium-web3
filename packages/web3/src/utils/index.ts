@@ -26,8 +26,8 @@ export * from './sign'
 export * from './number'
 export {
   validateExchangeAddress,
-  isSimpleTransferALPHTx,
+  isSimpleALPHTransferTx,
   isSimpleTransferTokenTx,
   getSenderAddress,
-  getDepositALPHInfo
+  getALPHDepositInfo
 } from './exchange'
