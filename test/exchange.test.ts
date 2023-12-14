@@ -310,12 +310,6 @@ describe('exchange', function () {
     const userNum = userNumPerGroup * TOTAL_NUMBER_OF_GROUPS
 
     const exchange = new Exchange(nodeProvider)
-    await transfer(
-      new PrivateKeyWallet({ privateKey: testPrivateKey }),
-      exchange.wallet.address,
-      ALPH_TOKEN_ID,
-      initialBalance
-    )
 
     const users: User[] = []
     for (let group = 0; group < TOTAL_NUMBER_OF_GROUPS; group++) {
@@ -367,7 +361,7 @@ describe('exchange', function () {
     }
     const sweepTxFee = await getGasFee(exchange.getSweepTxs())
     const exchangeBalance0 = await nodeProvider.addresses.getAddressesAddressBalance(exchange.wallet.address)
-    expect(BigInt(exchangeBalance0.balance)).toEqual(initialBalance + totalDepositAmount - sweepTxFee)
+    expect(BigInt(exchangeBalance0.balance)).toEqual(totalDepositAmount - sweepTxFee)
 
     // withdraw
     console.log(`withdrawing...`)
@@ -393,9 +387,9 @@ describe('exchange', function () {
       expect(BigInt(userBalance.balance)).toEqual(initialBalance - gasFee - WithdrawFee * BigInt(withdrawTimes))
     }
 
-    const gasFee = await getGasFee(exchange.getWithdrawTxs())
+    const withdrawGasFee = await getGasFee(exchange.getWithdrawTxs())
     const exchangeBalance1 = await nodeProvider.addresses.getAddressesAddressBalance(exchange.wallet.address)
     const withdrawFee = BigInt(withdrawTimes) * WithdrawFee * BigInt(userNum)
-    expect(BigInt(exchangeBalance1.balance)).toEqual(initialBalance - gasFee + withdrawFee - sweepTxFee)
+    expect(BigInt(exchangeBalance1.balance)).toEqual(withdrawFee - withdrawGasFee - sweepTxFee)
   }, 300000)
 })
