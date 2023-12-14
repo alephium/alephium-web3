@@ -20,9 +20,8 @@ import { FixedAssetOutput, OutputRef, Transaction, UnsignedTx } from '../api/api
 import { DUST_AMOUNT, ONE_ALPH } from '../constants'
 import {
   getAddressFromUnlockScript,
-  getSimpleTransferTxTargetAddress,
-  isDepositALPHTransaction,
-  isDepositTokenTransaction,
+  getSenderAddress,
+  getDepositALPHInfo,
   isSimpleTransferALPHTx,
   isSimpleTransferTokenTx,
   validateExchangeAddress
@@ -86,7 +85,7 @@ describe('exchange', function () {
     key: '',
     lockTime: 0,
     message: '',
-    attoAlphAmount: '0',
+    attoAlphAmount: '10',
     address: '',
     tokens: []
   }
@@ -118,10 +117,9 @@ describe('exchange', function () {
   }
 
   it('should validate deposit ALPH transaction', () => {
-    expect(isDepositALPHTransaction(txTemplate, exchangeAddress)).toEqual(true)
-    expect(isDepositALPHTransaction(txTemplate, invalidToAddress)).toEqual(false)
     expect(isSimpleTransferALPHTx(txTemplate)).toEqual(true)
-    expect(getSimpleTransferTxTargetAddress(txTemplate)).toEqual(exchangeAddress)
+    expect(getSenderAddress(txTemplate)).toEqual(fromAddress)
+    expect(getDepositALPHInfo(txTemplate)).toEqual({ targetAddress: exchangeAddress, depositAmount: 10n })
 
     const tx0: Transaction = { ...txTemplate, unsigned: { ...unsignedTxTemplate, scriptOpt: '00112233' } }
     const tx1: Transaction = { ...txTemplate, contractInputs: [outputRef] }
@@ -132,25 +130,20 @@ describe('exchange', function () {
       ...txTemplate,
       unsigned: { ...unsignedTxTemplate, inputs: [...unsignedTxTemplate.inputs, invalidInput] }
     }
-    const invalidOutput0 = { ...outputTemplate, address: exchangeAddress }
-    const tx5: Transaction = {
-      ...txTemplate,
-      unsigned: { ...unsignedTxTemplate, fixedOutputs: [...unsignedTxTemplate.fixedOutputs, invalidOutput0] }
-    }
     const invalidOutput1 = { ...outputTemplate, address: invalidToAddress }
-    const tx6: Transaction = {
+    const tx5: Transaction = {
       ...txTemplate,
       unsigned: { ...unsignedTxTemplate, fixedOutputs: [...unsignedTxTemplate.fixedOutputs, invalidOutput1] }
     }
     const invalidOutput2 = { ...outputTemplate, address: exchangeAddress, tokens: [{ id: '', amount: '10' }] }
-    const tx7: Transaction = {
+    const tx6: Transaction = {
       ...txTemplate,
       unsigned: {
         ...unsignedTxTemplate,
         fixedOutputs: [...unsignedTxTemplate.fixedOutputs.slice(0, -1), invalidOutput2]
       }
     }
-    const tx8: Transaction = {
+    const tx7: Transaction = {
       ...txTemplate,
       unsigned: {
         ...unsignedTxTemplate,
@@ -158,27 +151,52 @@ describe('exchange', function () {
         fixedOutputs: unsignedTxTemplate.fixedOutputs.slice(2)
       }
     }
-    const tx9: Transaction = {
+    const tx8: Transaction = {
       ...txTemplate,
       unsigned: {
         ...unsignedTxTemplate,
         fixedOutputs: [...unsignedTxTemplate.fixedOutputs.slice(2), invalidOutput1]
       }
     }
-    const tx10: Transaction = {
+    const tx9: Transaction = {
       ...txTemplate,
       unsigned: {
         ...unsignedTxTemplate,
         fixedOutputs: [...unsignedTxTemplate.fixedOutputs.slice(0, 2)]
       }
     }
-    const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10]
-    invalidTxs.forEach((tx) => expect(isDepositALPHTransaction(tx, exchangeAddress)).toEqual(false))
+    const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9]
     invalidTxs.forEach((tx) => expect(isSimpleTransferALPHTx(tx)).toEqual(false))
+
+    const multipleTargetAddressOutputTx: Transaction = {
+      ...txTemplate,
+      unsigned: {
+        ...unsignedTxTemplate,
+        fixedOutputs: [...unsignedTxTemplate.fixedOutputs, { ...outputTemplate, address: exchangeAddress }]
+      }
+    }
+    expect(isSimpleTransferALPHTx(multipleTargetAddressOutputTx)).toEqual(true)
+    expect(getDepositALPHInfo(multipleTargetAddressOutputTx)).toEqual({
+      targetAddress: exchangeAddress,
+      depositAmount: 20n
+    })
+
+    const sweepTx: Transaction = {
+      ...txTemplate,
+      unsigned: {
+        ...unsignedTxTemplate,
+        fixedOutputs: [unsignedTxTemplate.fixedOutputs[2], { ...outputTemplate, address: exchangeAddress }]
+      }
+    }
+    expect(isSimpleTransferALPHTx(sweepTx)).toEqual(true)
+    expect(getDepositALPHInfo(sweepTx)).toEqual({
+      targetAddress: exchangeAddress,
+      depositAmount: 20n
+    })
   })
 
   it('should validate deposit token transaction', () => {
-    expect(isDepositTokenTransaction(txTemplate, exchangeAddress)).toEqual(false)
+    expect(isSimpleTransferTokenTx(txTemplate)).toEqual(false)
 
     const tokenId = '1a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800'
     const exchangeTokenOutput: FixedAssetOutput = {
@@ -192,8 +210,6 @@ describe('exchange', function () {
       fixedOutputs: [...unsignedTxTemplate.fixedOutputs.slice(0, -1), exchangeTokenOutput]
     }
     const tokenTxTemplate: Transaction = { ...txTemplate, unsigned: tokenUnsignedTxTemplate }
-    expect(isDepositTokenTransaction(tokenTxTemplate, exchangeAddress)).toEqual(true)
-    expect(isDepositTokenTransaction(tokenTxTemplate, invalidToAddress)).toEqual(false)
     expect(isSimpleTransferTokenTx(tokenTxTemplate)).toEqual(true)
 
     const tx0: Transaction = { ...tokenTxTemplate, unsigned: { ...tokenUnsignedTxTemplate, scriptOpt: '00112233' } }
@@ -205,25 +221,20 @@ describe('exchange', function () {
       ...txTemplate,
       unsigned: { ...tokenUnsignedTxTemplate, inputs: [...tokenUnsignedTxTemplate.inputs, invalidInput] }
     }
-    const invalidOutput0 = { ...outputTemplate, address: exchangeAddress }
-    const tx5: Transaction = {
-      ...txTemplate,
-      unsigned: { ...tokenUnsignedTxTemplate, fixedOutputs: [...tokenUnsignedTxTemplate.fixedOutputs, invalidOutput0] }
-    }
     const invalidOutput1 = { ...tokenUnsignedTxTemplate.fixedOutputs[2], address: invalidToAddress }
-    const tx6: Transaction = {
+    const tx5: Transaction = {
       ...txTemplate,
       unsigned: { ...tokenUnsignedTxTemplate, fixedOutputs: [...tokenUnsignedTxTemplate.fixedOutputs, invalidOutput1] }
     }
     const invalidOutput2 = { ...tokenUnsignedTxTemplate.fixedOutputs[2], attoAlphAmount: ONE_ALPH.toString() }
-    const tx7: Transaction = {
+    const tx6: Transaction = {
       ...txTemplate,
       unsigned: {
         ...tokenUnsignedTxTemplate,
         fixedOutputs: [...tokenUnsignedTxTemplate.fixedOutputs.slice(0, -1), invalidOutput2]
       }
     }
-    const tx8: Transaction = {
+    const tx7: Transaction = {
       ...txTemplate,
       unsigned: {
         ...tokenUnsignedTxTemplate,
@@ -231,14 +242,14 @@ describe('exchange', function () {
         fixedOutputs: tokenUnsignedTxTemplate.fixedOutputs.slice(2)
       }
     }
-    const tx9: Transaction = {
+    const tx8: Transaction = {
       ...txTemplate,
       unsigned: {
         ...tokenUnsignedTxTemplate,
         fixedOutputs: [...tokenUnsignedTxTemplate.fixedOutputs.slice(2), invalidOutput1]
       }
     }
-    const tx10: Transaction = {
+    const tx9: Transaction = {
       ...txTemplate,
       unsigned: {
         ...tokenUnsignedTxTemplate,
@@ -246,8 +257,7 @@ describe('exchange', function () {
       }
     }
 
-    const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9, tx10]
-    invalidTxs.forEach((tx) => expect(isDepositTokenTransaction(tx, exchangeAddress)).toEqual(false))
+    const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9]
     invalidTxs.forEach((tx) => expect(isSimpleTransferTokenTx(tx)).toEqual(false))
   })
 })

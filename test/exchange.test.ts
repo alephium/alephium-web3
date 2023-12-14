@@ -17,15 +17,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { PrivateKeyWallet, deriveHDWalletPrivateKey } from '@alephium/web3-wallet'
-import { getSigners, transfer } from '@alephium/web3-test'
+import { getSigners, transfer, testPrivateKey } from '@alephium/web3-test'
 import {
   Address,
   web3,
   ONE_ALPH,
   NodeProvider,
-  isDepositALPHTransaction,
-  getDepositAddress,
-  getSimpleTransferTxTargetAddress,
   isSimpleTransferALPHTx,
   prettifyAttoAlphAmount,
   Subscription,
@@ -34,12 +31,13 @@ import {
   TOTAL_NUMBER_OF_GROUPS,
   ALPH_TOKEN_ID,
   DEFAULT_GAS_AMOUNT,
-  DEFAULT_GAS_PRICE
+  DEFAULT_GAS_PRICE,
+  getSenderAddress,
+  getDepositALPHInfo
 } from '@alephium/web3'
 import { waitTxConfirmed } from '@alephium/cli'
 import { EventEmitter } from 'stream'
 import * as bip39 from 'bip39'
-import { testPrivateKey } from '@alephium/web3-test'
 
 const WithdrawFee = ONE_ALPH
 const DefaultTransferFee = BigInt(DEFAULT_GAS_AMOUNT) * DEFAULT_GAS_PRICE
@@ -160,8 +158,8 @@ class Exchange {
     this.hotAddresses = []
   }
 
-  async handleDepositTx(from: Address, tx: node.Transaction) {
-    const depositAmount = tx.unsigned.fixedOutputs.find((o) => o.address !== from)!.attoAlphAmount
+  async handleDepositTx(tx: node.Transaction, depositAmount: bigint) {
+    const from = getSenderAddress(tx)
     const pathIndex = this.getPathIndex(from)
     const wallet = this.getWalletByPathIndex(pathIndex)
     const result = await transfer(wallet, this.wallet.address, ALPH_TOKEN_ID, BigInt(depositAmount))
@@ -172,11 +170,9 @@ class Exchange {
   async handleBlock(block: node.BlockEntry) {
     for (const tx of block.transactions) {
       if (isSimpleTransferALPHTx(tx)) {
-        const targetAddress = getSimpleTransferTxTargetAddress(tx)
+        const { targetAddress, depositAmount } = getDepositALPHInfo(tx)
         if (this.hotAddresses.includes(targetAddress)) {
-          const from = getDepositAddress(tx)
-          await this.handleDepositTx(from, tx)
-          expect(isDepositALPHTransaction(tx, targetAddress)).toEqual(true)
+          await this.handleDepositTx(tx, depositAmount)
         }
       }
     }

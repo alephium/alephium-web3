@@ -37,19 +37,6 @@ export function validateExchangeAddress(address: string) {
   }
 }
 
-export function isDepositALPHTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  return isDepositTransaction(tx, exchangeAddress) && checkALPHOutput(tx)
-}
-
-export function isDepositTokenTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  return isDepositTransaction(tx, exchangeAddress) && checkTokenOutput(tx, exchangeAddress)
-}
-
-// we assume that the tx is deposit transaction
-export function getDepositAddress(tx: Transaction): Address {
-  return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
-}
-
 export function isSimpleTransferALPHTx(tx: Transaction): boolean {
   return isSimpleTransferTx(tx) && checkALPHOutput(tx)
 }
@@ -57,16 +44,29 @@ export function isSimpleTransferALPHTx(tx: Transaction): boolean {
 export function isSimpleTransferTokenTx(tx: Transaction): boolean {
   const isTransferTx = isSimpleTransferTx(tx)
   if (isTransferTx) {
-    const targetAddress = getSimpleTransferTxTargetAddress(tx)
+    const senderAddress = getSenderAddress(tx)
+    const targetAddress = tx.unsigned.fixedOutputs.find((o) => o.address !== senderAddress)!.address
     return checkTokenOutput(tx, targetAddress)
   }
   return false
 }
 
 // we assume that the tx is a simple transfer tx
-export function getSimpleTransferTxTargetAddress(tx: Transaction): Address {
-  const from = getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
-  return tx.unsigned.fixedOutputs.find((output) => output.address !== from)!.address
+export function getDepositALPHInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint } {
+  const senderAddress = getSenderAddress(tx)
+  const targetAddress = tx.unsigned.fixedOutputs.find((o) => o.address !== senderAddress)!.address
+  let depositAmount = 0n
+  tx.unsigned.fixedOutputs.forEach((o) => {
+    if (o.address === targetAddress) {
+      depositAmount += BigInt(o.attoAlphAmount)
+    }
+  })
+  return { targetAddress, depositAmount }
+}
+
+// we assume that the tx is a simple transfer tx
+export function getSenderAddress(tx: Transaction): Address {
+  return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
 }
 
 enum UnlockScriptType {
@@ -96,37 +96,15 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
   }
 }
 
-function getTransferTxFromAddress(tx: Transaction): Address | undefined {
+function getTransferTxSenderAddress(tx: Transaction): Address | undefined {
   try {
-    if (
-      tx.contractInputs.length !== 0 ||
-      tx.generatedOutputs.length !== 0 ||
-      tx.unsigned.inputs.length === 0 ||
-      tx.unsigned.scriptOpt !== undefined
-    ) {
-      return undefined
-    }
     const inputAddresses = tx.unsigned.inputs.map((i) => getAddressFromUnlockScript(i.unlockScript))
     // we have checked that the inputs is not empty
-    const from = inputAddresses[0]
-    return inputAddresses.slice(1).every((addr) => addr === from) ? from : undefined
+    const sender = inputAddresses[0]
+    return inputAddresses.slice(1).every((addr) => addr === sender) ? sender : undefined
   } catch (_) {
     return undefined
   }
-}
-
-function getGroupedOutputs(tx: Transaction): { address: Address; count: number }[] {
-  const result: { address: Address; count: number }[] = []
-  tx.unsigned.fixedOutputs.forEach((o) => {
-    const index = result.findIndex((r) => r.address === o.address)
-    if (index === -1) {
-      result.push({ address: o.address, count: 1 })
-    } else {
-      const currentCount = result[`${index}`].count
-      result[`${index}`] = { address: o.address, count: currentCount + 1 }
-    }
-  })
-  return result
 }
 
 function checkALPHOutput(tx: Transaction): boolean {
@@ -136,39 +114,37 @@ function checkALPHOutput(tx: Transaction): boolean {
 
 function checkTokenOutput(tx: Transaction, to: Address): boolean {
   // we have checked the output address
-  const output = tx.unsigned.fixedOutputs.find((o) => o.address === to)!
-  return output.attoAlphAmount === DUST_AMOUNT.toString() && output.tokens.length === 1
-}
-
-function isDepositTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  const from = getTransferTxFromAddress(tx)
-  if (from === undefined || from === exchangeAddress) {
+  const outputs = tx.unsigned.fixedOutputs.filter((o) => o.address === to)
+  if (outputs[0].tokens.length === 0) {
     return false
   }
-  const txOutputs = getGroupedOutputs(tx)
-  const hasChangeOutput = txOutputs.find((o) => o.address === from) !== undefined
-  const exchangeAddressOutput = txOutputs.find((o) => o.address === exchangeAddress)
-  return (
-    txOutputs.length === 2 &&
-    hasChangeOutput &&
-    exchangeAddressOutput !== undefined &&
-    exchangeAddressOutput.count === 1
+  const tokenId = outputs[0].tokens[0].id
+  return outputs.every(
+    (o) => BigInt(o.attoAlphAmount) === DUST_AMOUNT && o.tokens.length === 1 && o.tokens[0].id === tokenId
   )
 }
 
 function isSimpleTransferTx(tx: Transaction): boolean {
-  const from = getTransferTxFromAddress(tx)
-  if (from === undefined) {
+  if (
+    tx.contractInputs.length !== 0 ||
+    tx.generatedOutputs.length !== 0 ||
+    tx.unsigned.inputs.length === 0 ||
+    tx.unsigned.scriptOpt !== undefined
+  ) {
     return false
   }
-  const txOutputs = getGroupedOutputs(tx)
-  if (txOutputs.length > 2 || txOutputs.length === 0) {
+  const sender = getTransferTxSenderAddress(tx)
+  if (sender === undefined) {
     return false
   }
-  if (txOutputs.length === 2) {
-    const hasChangeOutput = txOutputs.find((o) => o.address === from) !== undefined
-    const targetOutput = txOutputs.find((o) => o.address !== from)
-    return hasChangeOutput && targetOutput !== undefined && targetOutput.count === 1
-  }
-  return false
+  const outputAddresses: Address[] = []
+  tx.unsigned.fixedOutputs.forEach((o) => {
+    if (!outputAddresses.includes(o.address)) {
+      outputAddresses.push(o.address)
+    }
+  })
+  return (
+    (outputAddresses.length === 1 && outputAddresses[0] !== sender) ||
+    (outputAddresses.length === 2 && outputAddresses.includes(sender))
+  )
 }
