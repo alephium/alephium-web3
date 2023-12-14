@@ -26,6 +26,8 @@ import {
   NodeProvider,
   isDepositALPHTransaction,
   getDepositAddress,
+  getSimpleTransferTxTargetAddress,
+  isSimpleTransferALPHTx,
   prettifyAttoAlphAmount,
   Subscription,
   node,
@@ -159,11 +161,12 @@ class Exchange {
 
   handleBlock(block: node.BlockEntry) {
     block.transactions.forEach((tx) => {
-      for (const address of this.hotAddresses) {
-        if (isDepositALPHTransaction(tx, address)) {
+      if (isSimpleTransferALPHTx(tx)) {
+        const targetAddress = getSimpleTransferTxTargetAddress(tx)
+        if (this.hotAddresses.includes(targetAddress)) {
           const from = getDepositAddress(tx)
           this.depositTxs.push({ txId: tx.unsigned.txId, from })
-          break
+          expect(isDepositALPHTransaction(tx, targetAddress)).toEqual(true)
         }
       }
     })

@@ -50,6 +50,25 @@ export function getDepositAddress(tx: Transaction): Address {
   return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
 }
 
+export function isSimpleTransferALPHTx(tx: Transaction): boolean {
+  return isSimpleTransferTx(tx) && checkALPHOutput(tx)
+}
+
+export function isSimpleTransferTokenTx(tx: Transaction): boolean {
+  const isTransferTx = isSimpleTransferTx(tx)
+  if (isTransferTx) {
+    const targetAddress = getSimpleTransferTxTargetAddress(tx)
+    return checkTokenOutput(tx, targetAddress)
+  }
+  return false
+}
+
+// we assume that the tx is a simple transfer tx
+export function getSimpleTransferTxTargetAddress(tx: Transaction): Address {
+  const from = getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
+  return tx.unsigned.fixedOutputs.find((output) => output.address !== from)!.address
+}
+
 enum UnlockScriptType {
   P2PKH = 0x00,
   P2MPKH = 0x01,
@@ -77,8 +96,16 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
   }
 }
 
-function getFromAddress(tx: Transaction): Address | undefined {
+function getTransferTxFromAddress(tx: Transaction): Address | undefined {
   try {
+    if (
+      tx.contractInputs.length !== 0 ||
+      tx.generatedOutputs.length !== 0 ||
+      tx.unsigned.inputs.length === 0 ||
+      tx.unsigned.scriptOpt !== undefined
+    ) {
+      return undefined
+    }
     const inputAddresses = tx.unsigned.inputs.map((i) => getAddressFromUnlockScript(i.unlockScript))
     // we have checked that the inputs is not empty
     const from = inputAddresses[0]
@@ -88,18 +115,18 @@ function getFromAddress(tx: Transaction): Address | undefined {
   }
 }
 
-function checkOutputAddress(tx: Transaction, from: Address, to: Address): boolean {
-  let fromCount = 0
-  let toCount = 0
+function getGroupedOutputs(tx: Transaction): { address: Address; count: number }[] {
+  const result: { address: Address; count: number }[] = []
   tx.unsigned.fixedOutputs.forEach((o) => {
-    if (o.address === from) {
-      fromCount += 1
-    } else if (o.address === to) {
-      toCount += 1
+    const index = result.findIndex((r) => r.address === o.address)
+    if (index === -1) {
+      result.push({ address: o.address, count: 1 })
+    } else {
+      const currentCount = result[`${index}`].count
+      result[`${index}`] = { address: o.address, count: currentCount + 1 }
     }
   })
-  const outputCount = tx.unsigned.fixedOutputs.length
-  return toCount === 1 && fromCount === outputCount - 1
+  return result
 }
 
 function checkALPHOutput(tx: Transaction): boolean {
@@ -114,17 +141,34 @@ function checkTokenOutput(tx: Transaction, to: Address): boolean {
 }
 
 function isDepositTransaction(tx: Transaction, exchangeAddress: string): boolean {
-  if (
-    tx.contractInputs.length !== 0 ||
-    tx.generatedOutputs.length !== 0 ||
-    tx.unsigned.inputs.length === 0 ||
-    tx.unsigned.scriptOpt !== undefined
-  ) {
-    return false
-  }
-  const from = getFromAddress(tx)
+  const from = getTransferTxFromAddress(tx)
   if (from === undefined || from === exchangeAddress) {
     return false
   }
-  return checkOutputAddress(tx, from, exchangeAddress)
+  const txOutputs = getGroupedOutputs(tx)
+  const hasChangeOutput = txOutputs.find((o) => o.address === from) !== undefined
+  const exchangeAddressOutput = txOutputs.find((o) => o.address === exchangeAddress)
+  return (
+    txOutputs.length === 2 &&
+    hasChangeOutput &&
+    exchangeAddressOutput !== undefined &&
+    exchangeAddressOutput.count === 1
+  )
+}
+
+function isSimpleTransferTx(tx: Transaction): boolean {
+  const from = getTransferTxFromAddress(tx)
+  if (from === undefined) {
+    return false
+  }
+  const txOutputs = getGroupedOutputs(tx)
+  if (txOutputs.length > 2 || txOutputs.length === 0) {
+    return false
+  }
+  if (txOutputs.length === 2) {
+    const hasChangeOutput = txOutputs.find((o) => o.address === from) !== undefined
+    const targetOutput = txOutputs.find((o) => o.address !== from)
+    return hasChangeOutput && targetOutput !== undefined && targetOutput.count === 1
+  }
+  return false
 }
