@@ -253,23 +253,31 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     this.client.on('session_ping', (args) => {
-      this.emitEvents('session_ping', args)
+      if (args.topic === this.session?.topic) {
+        this.emitEvents('session_ping', args)
+      }
     })
 
     this.client.on('session_event', (args) => {
-      this.emitEvents('session_event', args)
+      if (args.topic === this.session?.topic) {
+        this.emitEvents('session_event', args)
+      }
     })
 
     this.client.on('session_update', ({ topic, params }) => {
-      const { namespaces } = params
-      const _session = this.client?.session.get(topic)
-      this.session = { ..._session, namespaces } as SessionTypes.Struct
-      this.updateNamespace(this.session.namespaces)
-      this.emitEvents('session_update', { topic, params })
+      if (topic === this.session?.topic) {
+        const { namespaces } = params
+        const _session = this.client?.session.get(topic)
+        this.session = { ..._session, namespaces } as SessionTypes.Struct
+        this.updateNamespace(this.session.namespaces)
+        this.emitEvents('session_update', { topic, params })
+      }
     })
 
-    this.client.on('session_delete', () => {
-      this.emitEvents('session_delete')
+    this.client.on('session_delete', (args) => {
+      if (args.topic === this.session?.topic) {
+        this.emitEvents('session_delete')
+      }
     })
   }
 
