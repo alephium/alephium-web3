@@ -143,9 +143,9 @@ export class WalletConnectProvider extends SignerProvider {
       setTimeout(() => reject(new Error('Auto connect timeout')), 5 * 1000)
     })
     await Promise.race([this.client.ping({ topic }), timeout]).catch((err) => {
-      this.client.session.delete(topic, { code: 0, message: `Error: ${err}` })
       this.session = undefined
       this.account = undefined
+      return this.client.disconnect({ topic, reason: { code: 0, message: `Error: ${err}` } })
     })
   }
 
