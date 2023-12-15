@@ -218,8 +218,23 @@ export class WalletConnectProvider extends SignerProvider {
 
   // ---------- Private ----------------------------------------------- //
 
+  private cleanHistory() {
+    const records = this.client.core.history.records
+    for (const [id, record] of records) {
+      const request = record.request
+      if (request.method !== 'wc_sessionRequest') {
+        continue
+      }
+      const alphRequestMethod = request.params?.request?.method
+      if (alphRequestMethod === 'alph_requestNodeApi' || alphRequestMethod === 'alph_requestExplorerApi') {
+        this.client.core.history.delete(record.topic, id)
+      }
+    }
+  }
+
   private async initialize() {
     await this.createClient()
+    this.cleanHistory()
     this.checkStorage()
     this.registerEventListeners()
   }
@@ -311,7 +326,8 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     try {
-      if (args.method.startsWith('alph_sign')) {
+      const isSignRequest = args.method.startsWith('alph_sign')
+      if (isSignRequest) {
         redirectToDeepLink()
       }
       const response = await this.client.request<T>({
@@ -322,6 +338,9 @@ export class WalletConnectProvider extends SignerProvider {
         chainId: this.permittedChain,
         topic: this.session?.topic
       })
+      if (!isSignRequest) {
+        this.cleanHistory()
+      }
       return response
     } catch (error: any) {
       if (error.message) {
