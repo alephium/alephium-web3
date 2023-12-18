@@ -135,6 +135,7 @@ export class WalletConnectProvider extends SignerProvider {
     } else {
       this.updateNamespace(this.session.namespaces)
     }
+    await this.client.core.relayer.messages.del(this.session.topic)
   }
 
   public async disconnect(): Promise<void> {
