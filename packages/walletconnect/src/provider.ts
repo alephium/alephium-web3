@@ -218,9 +218,12 @@ export class WalletConnectProvider extends SignerProvider {
 
   // ---------- Private ----------------------------------------------- //
 
-  private cleanHistory() {
+  private cleanHistory(checkResponse: boolean) {
     const records = this.client.core.history.records
     for (const [id, record] of records) {
+      if (checkResponse && record.response === undefined) {
+        continue
+      }
       const request = record.request
       if (request.method !== 'wc_sessionRequest') {
         continue
@@ -234,7 +237,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   private async initialize() {
     await this.createClient()
-    this.cleanHistory()
+    this.cleanHistory(false)
     this.checkStorage()
     this.registerEventListeners()
   }
@@ -339,7 +342,7 @@ export class WalletConnectProvider extends SignerProvider {
         topic: this.session?.topic
       })
       if (!isSignRequest) {
-        this.cleanHistory()
+        this.cleanHistory(true)
       }
       return response
     } catch (error: any) {
