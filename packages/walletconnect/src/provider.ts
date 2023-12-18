@@ -134,19 +134,8 @@ export class WalletConnectProvider extends SignerProvider {
       this.updateNamespace(this.session.namespaces)
     } else {
       this.updateNamespace(this.session.namespaces)
-      await this.ping(this.session.topic)
     }
-  }
-
-  private async ping(topic: string) {
-    const timeout = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Auto connect timeout')), 5 * 1000)
-    })
-    await Promise.race([this.client.ping({ topic }), timeout]).catch((err) => {
-      this.session = undefined
-      this.account = undefined
-      return this.client.disconnect({ topic, reason: { code: 0, message: `Error: ${err}` } })
-    })
+    await this.client.core.relayer.messages.del(this.session.topic)
   }
 
   public async disconnect(): Promise<void> {
@@ -218,9 +207,12 @@ export class WalletConnectProvider extends SignerProvider {
 
   // ---------- Private ----------------------------------------------- //
 
-  private cleanHistory() {
+  private cleanHistory(checkResponse: boolean) {
     const records = this.client.core.history.records
     for (const [id, record] of records) {
+      if (checkResponse && record.response === undefined) {
+        continue
+      }
       const request = record.request
       if (request.method !== 'wc_sessionRequest') {
         continue
@@ -234,7 +226,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   private async initialize() {
     await this.createClient()
-    this.cleanHistory()
+    this.cleanHistory(false)
     this.checkStorage()
     this.registerEventListeners()
   }
@@ -339,7 +331,7 @@ export class WalletConnectProvider extends SignerProvider {
         topic: this.session?.topic
       })
       if (!isSignRequest) {
-        this.cleanHistory()
+        this.cleanHistory(true)
       }
       return response
     } catch (error: any) {
