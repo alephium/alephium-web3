@@ -23,7 +23,6 @@ import {
   web3,
   ONE_ALPH,
   NodeProvider,
-  isSimpleALPHTransferTx,
   prettifyAttoAlphAmount,
   Subscription,
   node,
@@ -33,6 +32,7 @@ import {
   getSenderAddress,
   getALPHDepositInfo
 } from '@alephium/web3'
+import { isSimpleALPHTransferTx } from '@alephium/web3/src/utils/exchange'
 import { waitTxConfirmed } from '@alephium/cli'
 import { EventEmitter } from 'stream'
 import * as bip39 from 'bip39'

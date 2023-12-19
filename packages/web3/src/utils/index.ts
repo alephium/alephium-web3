@@ -24,10 +24,4 @@ export * from './utils'
 export * from './subscription'
 export * from './sign'
 export * from './number'
-export {
-  validateExchangeAddress,
-  isSimpleALPHTransferTx,
-  isSimpleTransferTokenTx,
-  getSenderAddress,
-  getALPHDepositInfo
-} from './exchange'
+export { validateExchangeAddress, isSimpleTransferTokenTx, getSenderAddress, getALPHDepositInfo } from './exchange'
