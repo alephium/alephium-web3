@@ -250,7 +250,8 @@ export class WalletConnectProvider extends SignerProvider {
     const historyStorageKey = this.getWCStorageKey(CORE_STORAGE_PREFIX, HISTORY_STORAGE_VERSION, HISTORY_CONTEXT)
     const historyRecords = await storage.getItem<JsonRpcRecord[]>(historyStorageKey)
     if (historyRecords !== undefined) {
-      this.cleanHistory(new Map(historyRecords.map((r) => [r.id, r])), false)
+      const remainRecords = historyRecords.filter((record) => !this.needToDeleteHistory(record))
+      await storage.setItem<JsonRpcRecord[]>(historyStorageKey, remainRecords)
     }
 
     const topics = await this.getSessionTopics(storage)
@@ -268,18 +269,23 @@ export class WalletConnectProvider extends SignerProvider {
     }
   }
 
-  private cleanHistory(records: Map<number, JsonRpcRecord>, checkResponse: boolean) {
+  private needToDeleteHistory(record: JsonRpcRecord): boolean {
+    const request = record.request
+    if (request.method !== 'wc_sessionRequest') {
+      return false
+    }
+    const alphRequestMethod = request.params?.request?.method
+    return alphRequestMethod === 'alph_requestNodeApi' || alphRequestMethod === 'alph_requestExplorerApi'
+  }
+
+  private cleanHistory(checkResponse: boolean) {
     try {
+      const records = this.client.core.history.records
       for (const [id, record] of records) {
         if (checkResponse && record.response === undefined) {
           continue
         }
-        const request = record.request
-        if (request.method !== 'wc_sessionRequest') {
-          continue
-        }
-        const alphRequestMethod = request.params?.request?.method
-        if (alphRequestMethod === 'alph_requestNodeApi' || alphRequestMethod === 'alph_requestExplorerApi') {
+        if (this.needToDeleteHistory(record)) {
           this.client.core.history.delete(record.topic, id)
         }
       }
@@ -305,7 +311,7 @@ export class WalletConnectProvider extends SignerProvider {
       console.error(`Failed to clean storage, error: ${error}`)
     }
     await this.createClient()
-    this.cleanHistory(this.client.core.history.records, false)
+    this.cleanHistory(false)
     this.checkStorage()
     this.registerEventListeners()
   }
@@ -410,7 +416,7 @@ export class WalletConnectProvider extends SignerProvider {
         topic: this.session?.topic
       })
       if (!isSignRequest) {
-        this.cleanHistory(this.client.core.history.records, true)
+        this.cleanHistory(true)
       }
       await this.cleanMessages()
       return response
