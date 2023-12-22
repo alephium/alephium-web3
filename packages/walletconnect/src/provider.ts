@@ -18,8 +18,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import EventEmitter from 'eventemitter3'
 import { SessionTypes } from '@walletconnect/types'
 import SignClient from '@walletconnect/sign-client'
+import { SESSION_CONTEXT, SIGN_CLIENT_STORAGE_PREFIX } from '@walletconnect/sign-client'
 import { isBrowser } from '@walletconnect/utils'
-import { getChainsFromNamespaces, getAccountsFromNamespaces, getSdkError } from '@walletconnect/utils'
+import {
+  getChainsFromNamespaces,
+  getAccountsFromNamespaces,
+  getSdkError,
+  mapToObj,
+  objToMap
+} from '@walletconnect/utils'
 import {
   SignerProvider,
   Account,
@@ -55,6 +62,17 @@ import {
   ChainInfo
 } from './types'
 import { isMobile } from './utils'
+import {
+  CORE_STORAGE_PREFIX,
+  CORE_STORAGE_OPTIONS,
+  HISTORY_STORAGE_VERSION,
+  HISTORY_CONTEXT,
+  STORE_STORAGE_VERSION,
+  MESSAGES_STORAGE_VERSION,
+  MESSAGES_CONTEXT
+} from '@walletconnect/core'
+import { KeyValueStorage } from '@walletconnect/keyvaluestorage'
+import { JsonRpcRecord, MessageRecord } from '@walletconnect/types'
 
 export interface ProviderOptions extends EnableOptionsBase {
   // Alephium options
@@ -207,8 +225,50 @@ export class WalletConnectProvider extends SignerProvider {
 
   // ---------- Private ----------------------------------------------- //
 
-  private cleanHistory(checkResponse: boolean) {
-    const records = this.client.core.history.records
+  private getWCStorageKey(prefix: string, version: string, name: string): string {
+    return prefix + version + '//' + name
+  }
+
+  private async getSessionTopics(storage: KeyValueStorage): Promise<string[]> {
+    const sessionKey = this.getWCStorageKey(SIGN_CLIENT_STORAGE_PREFIX, STORE_STORAGE_VERSION, SESSION_CONTEXT)
+    const sessions = await storage.getItem<SessionTypes.Struct[]>(sessionKey)
+    if (sessions === undefined) {
+      return []
+    }
+    return sessions
+      .filter((session) => {
+        const chains = getChainsFromNamespaces(session.namespaces, [PROVIDER_NAMESPACE])
+        return chains.length > 0 && chains.every((c) => c.startsWith(PROVIDER_NAMESPACE))
+      })
+      .map((session) => session.topic)
+  }
+
+  // clean the `history` and `messages` storage before `SignClient` init
+  private async cleanBeforeInit() {
+    console.log('Clean storage before SignClient init')
+    const storage = new KeyValueStorage({ ...CORE_STORAGE_OPTIONS })
+    const historyStorageKey = this.getWCStorageKey(CORE_STORAGE_PREFIX, HISTORY_STORAGE_VERSION, HISTORY_CONTEXT)
+    const historyRecords = await storage.getItem<JsonRpcRecord[]>(historyStorageKey)
+    if (historyRecords !== undefined) {
+      this.cleanHistory(new Map(historyRecords.map((r) => [r.id, r])), false)
+    }
+
+    const topics = await this.getSessionTopics(storage)
+    if (topics.length > 0) {
+      const messageStorageKey = this.getWCStorageKey(CORE_STORAGE_PREFIX, MESSAGES_STORAGE_VERSION, MESSAGES_CONTEXT)
+      const messages = await storage.getItem<Record<string, MessageRecord>>(messageStorageKey)
+      if (messages === undefined) {
+        return
+      }
+
+      const messagesMap = objToMap(messages)
+      topics.forEach((topic) => messagesMap.delete(topic))
+      await storage.setItem<Record<string, MessageRecord>>(messageStorageKey, mapToObj(messagesMap))
+      console.log(`Clean topics from messages storage: ${topics.join(',')}`)
+    }
+  }
+
+  private cleanHistory(records: Map<number, JsonRpcRecord>, checkResponse: boolean) {
     for (const [id, record] of records) {
       if (checkResponse && record.response === undefined) {
         continue
@@ -225,8 +285,9 @@ export class WalletConnectProvider extends SignerProvider {
   }
 
   private async initialize() {
+    await this.cleanBeforeInit()
     await this.createClient()
-    this.cleanHistory(false)
+    this.cleanHistory(this.client.core.history.records, false)
     this.checkStorage()
     this.registerEventListeners()
   }
@@ -331,7 +392,7 @@ export class WalletConnectProvider extends SignerProvider {
         topic: this.session?.topic
       })
       if (!isSignRequest) {
-        this.cleanHistory(true)
+        this.cleanHistory(this.client.core.history.records, true)
       }
       return response
     } catch (error: any) {
