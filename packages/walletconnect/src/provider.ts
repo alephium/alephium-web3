@@ -394,6 +394,7 @@ export class WalletConnectProvider extends SignerProvider {
       if (!isSignRequest) {
         this.cleanHistory(this.client.core.history.records, true)
       }
+      await this.client.core.relayer.messages.del(this.session.topic)
       return response
     } catch (error: any) {
       if (error.message) {
