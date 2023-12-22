@@ -153,7 +153,7 @@ export class WalletConnectProvider extends SignerProvider {
     } else {
       this.updateNamespace(this.session.namespaces)
     }
-    await this.client.core.relayer.messages.del(this.session.topic)
+    await this.cleanMessages()
   }
 
   public async disconnect(): Promise<void> {
@@ -269,23 +269,41 @@ export class WalletConnectProvider extends SignerProvider {
   }
 
   private cleanHistory(records: Map<number, JsonRpcRecord>, checkResponse: boolean) {
-    for (const [id, record] of records) {
-      if (checkResponse && record.response === undefined) {
-        continue
+    try {
+      for (const [id, record] of records) {
+        if (checkResponse && record.response === undefined) {
+          continue
+        }
+        const request = record.request
+        if (request.method !== 'wc_sessionRequest') {
+          continue
+        }
+        const alphRequestMethod = request.params?.request?.method
+        if (alphRequestMethod === 'alph_requestNodeApi' || alphRequestMethod === 'alph_requestExplorerApi') {
+          this.client.core.history.delete(record.topic, id)
+        }
       }
-      const request = record.request
-      if (request.method !== 'wc_sessionRequest') {
-        continue
-      }
-      const alphRequestMethod = request.params?.request?.method
-      if (alphRequestMethod === 'alph_requestNodeApi' || alphRequestMethod === 'alph_requestExplorerApi') {
-        this.client.core.history.delete(record.topic, id)
+    } catch (error) {
+      console.error(`Failed to clean history, error: ${error}`)
+    }
+  }
+
+  private async cleanMessages() {
+    if (this.session !== undefined) {
+      try {
+        await this.client.core.relayer.messages.del(this.session.topic)
+      } catch (error) {
+        console.error(`Failed to clean messages, error: ${error}, topic: ${this.session.topic}`)
       }
     }
   }
 
   private async initialize() {
-    await this.cleanBeforeInit()
+    try {
+      await this.cleanBeforeInit()
+    } catch (error) {
+      console.error(`Failed to clean storage, error: ${error}`)
+    }
     await this.createClient()
     this.cleanHistory(this.client.core.history.records, false)
     this.checkStorage()
@@ -394,7 +412,7 @@ export class WalletConnectProvider extends SignerProvider {
       if (!isSignRequest) {
         this.cleanHistory(this.client.core.history.records, true)
       }
-      await this.client.core.relayer.messages.del(this.session.topic)
+      await this.cleanMessages()
       return response
     } catch (error: any) {
       if (error.message) {
