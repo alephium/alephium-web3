@@ -57,8 +57,10 @@ export function verifySignature(hash: string, publicKey: string, signature: stri
     if (keyType === 'default') {
       const key = ec.keyFromPublic(publicKey, 'hex')
       return key.verify(hash, signatureDecode(ec, signature))
-    } else {
+    } else if (keyType === 'bip340-schnorr') {
       return necc.schnorr.verifySync(hexToBinUnsafe(signature), hexToBinUnsafe(hash), hexToBinUnsafe(publicKey))
+    } else {
+      throw new Error(`Not supported`)
     }
   } catch (error) {
     return false

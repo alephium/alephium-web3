@@ -181,8 +181,10 @@ export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType):
   if (keyType === 'default') {
     const key = ec.keyFromPrivate(privateKey)
     return key.getPublic(true, 'hex')
-  } else {
+  } else if (keyType === 'bip340-schnorr') {
     return ec.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
+  } else {
+    throw new Error(`Not supported`)
   }
 }
 
@@ -194,8 +196,14 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
     const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
     const bytes = Buffer.concat([addressType, hash])
     return bs58.encode(bytes)
-  } else {
+  } else if (keyType === 'bip340-schnorr') {
     const lockupScript = Buffer.from(`0101000000000458144020${publicKey}8685`, 'hex')
+    return addressFromScript(lockupScript)
+  } else {
+    const lockupScript = Buffer.from(
+      `020100000000048618144021${publicKey}180100010d0140901440404142434445464748494a4b4c4d4e4f505152535455565758595a6162636465666768696a6b6c6d6e6f707172737475767778797a303132333435363738392d5f17011600431702140017030c170416041602314c406f1600160416040d2a626c170516050e3c170616031601160616060d2a6244170316040d2a1602314c0a160016040d2a16040e2a626c4a010c170716050f38103b1607103c39170816031601160816080d2a6244170316040e2a1602314c0a160016040e2a16040f2a626c4a010c17091607130f380e3b160913063c39170a1609133f38170b16031601160a160a0d2a62441601160b160b0d2a6244170316040f2a17044a7f8d16020f2e170c160c0c2f4c0216034a0916030c1603430f2b160c2a6202`,
+      'hex'
+    )
     return addressFromScript(lockupScript)
   }
 }
