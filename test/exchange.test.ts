@@ -205,7 +205,7 @@ class Exchange {
     this.depositTxs.push(tx.unsigned.txId)
   }
 
-  async handleBlock(block: node.BlockEntry) {
+  async handleBlock(block: node.BlockEntry, resolver: () => void) {
     for (const tx of block.transactions) {
       if (isSimpleALPHTransferTx(tx)) {
         const { targetAddress, depositAmount } = getALPHDepositInfo(tx)
@@ -214,13 +214,16 @@ class Exchange {
         }
       }
     }
+    resolver()
   }
 
   async startPolling(): Promise<void> {
-    this.eventEmitter.on('block', (block) => this.handleBlock(block))
-    const callback = (block: node.BlockEntry) => {
-      this.eventEmitter.emit('block', block)
-      return Promise.resolve()
+    this.eventEmitter.on('block', ([block, resolver]) => this.handleBlock(block, resolver))
+    const callback = async (block: node.BlockEntry) => {
+      let resolver: any
+      const promise = new Promise<void>((r) => (resolver = r))
+      this.eventEmitter.emit('block', [block, resolver])
+      return await promise
     }
     for (let fromGroup = 0; fromGroup < TOTAL_NUMBER_OF_GROUPS; fromGroup++) {
       for (let toGroup = 0; toGroup < TOTAL_NUMBER_OF_GROUPS; toGroup++) {

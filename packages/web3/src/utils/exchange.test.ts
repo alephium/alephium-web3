@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { FixedAssetOutput, OutputRef, Transaction, UnsignedTx } from '../api/api-alephium'
 import { DUST_AMOUNT, ONE_ALPH } from '../constants'
 import {
@@ -26,6 +27,7 @@ import {
   isSimpleTransferTokenTx,
   validateExchangeAddress
 } from './exchange'
+import { NodeProvider } from '../api'
 
 describe('exchange', function () {
   it('should get address from unlock script', () => {
@@ -69,6 +71,15 @@ describe('exchange', function () {
     expect(() => validateExchangeAddress('I8Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN')).toThrow(
       'Invalid base58 string'
     )
+    expect(() => validateExchangeAddress('1GKWggDapVjTdU2vyna3YjVgdpnwHkKzx8FHA9gU7uoeY')).not.toThrow()
+    expect(() => validateExchangeAddress('1fvbFEFML2F2GZmNDHd9uafFALMG8QSwbCJHfQipw6sz')).not.toThrow()
+    const nodeProvider = new NodeProvider('http://127.0.0.1:22973')
+    for (let i = 0; i < 20; i++) {
+      const wallet0 = PrivateKeyWallet.Random(undefined, nodeProvider, 'default')
+      expect(() => validateExchangeAddress(wallet0.address)).not.toThrow()
+      const wallet1 = PrivateKeyWallet.Random(undefined, nodeProvider, 'bip340-schnorr')
+      expect(() => validateExchangeAddress(wallet1.address)).not.toThrow()
+    }
   })
 
   const exchangeAddress = '1khyjTYdKEyCSyg6SqyDf97Vq3EmSJF9zPugb3KYERP8'
