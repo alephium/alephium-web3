@@ -72,6 +72,7 @@ describe('exchange', function () {
       'Invalid base58 string'
     )
     expect(() => validateExchangeAddress('1GKWggDapVjTdU2vyna3YjVgdpnwHkKzx8FHA9gU7uoeY')).not.toThrow()
+    expect(() => validateExchangeAddress('1fvbFEFML2F2GZmNDHd9uafFALMG8QSwbCJHfQipw6sz')).not.toThrow()
     const nodeProvider = new NodeProvider('http://127.0.0.1:22973')
     for (let i = 0; i < 20; i++) {
       const wallet0 = PrivateKeyWallet.Random(undefined, nodeProvider, 'default')
