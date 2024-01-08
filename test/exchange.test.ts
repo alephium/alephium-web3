@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { PrivateKeyWallet, deriveHDWalletPrivateKey } from '@alephium/web3-wallet'
-import { getSigners, transfer, testPrivateKey } from '@alephium/web3-test'
+import { getSigners, transfer } from '@alephium/web3-test'
 import {
   Address,
   web3,
@@ -208,8 +208,8 @@ class Exchange {
   async handleBlock(block: node.BlockEntry, resolver: () => void) {
     for (const tx of block.transactions) {
       if (isSimpleALPHTransferTx(tx)) {
-        const { targetAddress, depositAmount } = getALPHDepositInfo(tx)
-        if (this.hotAddresses.includes(targetAddress)) {
+        const infos = getALPHDepositInfo(tx).filter((v) => this.hotAddresses.includes(v.targetAddress))
+        for (const { targetAddress, depositAmount } of infos) {
           await this.handleDepositTx(tx, targetAddress, depositAmount)
         }
       }

@@ -25,7 +25,8 @@ import {
   getALPHDepositInfo,
   isSimpleALPHTransferTx,
   isSimpleTransferTokenTx,
-  validateExchangeAddress
+  validateExchangeAddress,
+  isALPHTransferTx
 } from './exchange'
 import { NodeProvider } from '../api'
 
@@ -129,13 +130,15 @@ describe('exchange', function () {
 
   it('should validate deposit ALPH transaction', () => {
     expect(isSimpleALPHTransferTx(txTemplate)).toEqual(true)
+    expect(isALPHTransferTx(txTemplate)).toEqual(true)
     expect(getSenderAddress(txTemplate)).toEqual(fromAddress)
-    expect(getALPHDepositInfo(txTemplate)).toEqual({ targetAddress: exchangeAddress, depositAmount: 10n })
+    expect(getALPHDepositInfo(txTemplate)).toEqual([{ targetAddress: exchangeAddress, depositAmount: 10n }])
 
     const tx0: Transaction = { ...txTemplate, unsigned: { ...unsignedTxTemplate, scriptOpt: '00112233' } }
     const tx1: Transaction = { ...txTemplate, contractInputs: [outputRef] }
     const tx2: Transaction = { ...txTemplate, generatedOutputs: [{ ...outputTemplate, type: 'AssetOutput' }] }
     const tx3: Transaction = { ...txTemplate, unsigned: { ...unsignedTxTemplate, inputs: [] } }
+    ;[tx0, tx1, tx2, tx3].forEach((tx) => expect(isALPHTransferTx(tx)).toEqual(false))
     const invalidInput = { outputRef, unlockScript: invalidUnlockupScript }
     const tx4: Transaction = {
       ...txTemplate,
@@ -187,10 +190,12 @@ describe('exchange', function () {
       }
     }
     expect(isSimpleALPHTransferTx(multipleTargetAddressOutputTx)).toEqual(true)
-    expect(getALPHDepositInfo(multipleTargetAddressOutputTx)).toEqual({
-      targetAddress: exchangeAddress,
-      depositAmount: 20n
-    })
+    expect(getALPHDepositInfo(multipleTargetAddressOutputTx)).toEqual([
+      {
+        targetAddress: exchangeAddress,
+        depositAmount: 20n
+      }
+    ])
 
     const sweepTx: Transaction = {
       ...txTemplate,
@@ -200,10 +205,37 @@ describe('exchange', function () {
       }
     }
     expect(isSimpleALPHTransferTx(sweepTx)).toEqual(true)
-    expect(getALPHDepositInfo(sweepTx)).toEqual({
-      targetAddress: exchangeAddress,
-      depositAmount: 20n
-    })
+    expect(getALPHDepositInfo(sweepTx)).toEqual([
+      {
+        targetAddress: exchangeAddress,
+        depositAmount: 20n
+      }
+    ])
+
+    const newAddress = PrivateKeyWallet.Random(undefined, new NodeProvider(''), 'default').address
+    const poolRewardTx: Transaction = {
+      ...txTemplate,
+      unsigned: {
+        ...unsignedTxTemplate,
+        fixedOutputs: [
+          ...unsignedTxTemplate.fixedOutputs,
+          { ...outputTemplate, address: exchangeAddress },
+          { ...outputTemplate, address: newAddress },
+          { ...outputTemplate, address: newAddress },
+          { ...outputTemplate, address: newAddress }
+        ]
+      }
+    }
+    expect(getALPHDepositInfo(poolRewardTx)).toEqual([
+      {
+        targetAddress: exchangeAddress,
+        depositAmount: 20n
+      },
+      {
+        targetAddress: newAddress,
+        depositAmount: 30n
+      }
+    ])
   })
 
   it('should validate deposit token transaction', () => {

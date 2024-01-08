@@ -41,6 +41,10 @@ export function isSimpleALPHTransferTx(tx: Transaction): boolean {
   return isSimpleTransferTx(tx) && checkALPHOutput(tx)
 }
 
+export function isALPHTransferTx(tx: Transaction): boolean {
+  return isTransferTx(tx) && checkALPHOutput(tx)
+}
+
 export function isSimpleTransferTokenTx(tx: Transaction): boolean {
   const isTransferTx = isSimpleTransferTx(tx)
   if (isTransferTx) {
@@ -51,17 +55,29 @@ export function isSimpleTransferTokenTx(tx: Transaction): boolean {
   return false
 }
 
-// we assume that the tx is a simple transfer tx, i.e. isSimpleTransferALPHTx(tx) == true
-export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint } {
-  const senderAddress = getSenderAddress(tx)
-  const targetAddress = tx.unsigned.fixedOutputs.find((o) => o.address !== senderAddress)!.address
-  let depositAmount = 0n
+export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint }[] {
+  if (!isALPHTransferTx(tx)) {
+    return []
+  }
+  const inputAddresses: Address[] = []
+  for (const input of tx.unsigned.inputs) {
+    try {
+      const address = getAddressFromUnlockScript(input.unlockScript)
+      inputAddresses.push(address)
+    } catch (_) {}
+  }
+  const result = new Map<Address, bigint>()
   tx.unsigned.fixedOutputs.forEach((o) => {
-    if (o.address === targetAddress) {
-      depositAmount += BigInt(o.attoAlphAmount)
+    if (!inputAddresses.includes(o.address)) {
+      const amount = result.get(o.address)
+      if (amount === undefined) {
+        result.set(o.address, BigInt(o.attoAlphAmount))
+      } else {
+        result.set(o.address, BigInt(o.attoAlphAmount) + amount)
+      }
     }
   })
-  return { targetAddress, depositAmount }
+  return Array.from(result.entries()).map(([key, value]) => ({ targetAddress: key, depositAmount: value }))
 }
 
 // we assume that the tx is a simple transfer tx, i.e. isSimpleTransferALPHTx(tx) == true
@@ -125,12 +141,7 @@ function checkTokenOutput(tx: Transaction, to: Address): boolean {
 }
 
 function isSimpleTransferTx(tx: Transaction): boolean {
-  if (
-    tx.contractInputs.length !== 0 ||
-    tx.generatedOutputs.length !== 0 ||
-    tx.unsigned.inputs.length === 0 ||
-    tx.unsigned.scriptOpt !== undefined
-  ) {
+  if (!isTransferTx(tx)) {
     return false
   }
   const sender = getSenderAddressAnyTx(tx)
@@ -147,4 +158,16 @@ function isSimpleTransferTx(tx: Transaction): boolean {
     (outputAddresses.length === 1 && outputAddresses[0] !== sender) ||
     (outputAddresses.length === 2 && outputAddresses.includes(sender))
   )
+}
+
+function isTransferTx(tx: Transaction): boolean {
+  if (
+    tx.contractInputs.length !== 0 ||
+    tx.generatedOutputs.length !== 0 ||
+    tx.unsigned.inputs.length === 0 ||
+    tx.unsigned.scriptOpt !== undefined
+  ) {
+    return false
+  }
+  return true
 }
