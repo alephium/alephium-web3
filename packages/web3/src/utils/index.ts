@@ -28,7 +28,7 @@ export {
   validateExchangeAddress,
   isALPHTransferTx,
   isSimpleALPHTransferTx,
-  isSimpleTransferTokenTx,
+  isSimpleTokenTransferTx,
   getSenderAddress,
   getALPHDepositInfo
 } from './exchange'

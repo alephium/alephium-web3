@@ -45,7 +45,7 @@ export function isALPHTransferTx(tx: Transaction): boolean {
   return isTransferTx(tx) && checkALPHOutput(tx)
 }
 
-export function isSimpleTransferTokenTx(tx: Transaction): boolean {
+export function isSimpleTokenTransferTx(tx: Transaction): boolean {
   const isTransferTx = isSimpleTransferTx(tx)
   if (isTransferTx) {
     const senderAddress = getSenderAddress(tx)
@@ -80,7 +80,7 @@ export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; d
   return Array.from(result.entries()).map(([key, value]) => ({ targetAddress: key, depositAmount: value }))
 }
 
-// we assume that the tx is a simple transfer tx, i.e. isSimpleTransferALPHTx(tx) == true
+// we assume that the tx is a simple transfer tx, i.e. isSimpleALPHTransferTx(tx) == true
 export function getSenderAddress(tx: Transaction): Address {
   return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
 }

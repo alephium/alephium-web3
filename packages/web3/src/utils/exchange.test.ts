@@ -24,7 +24,7 @@ import {
   getSenderAddress,
   getALPHDepositInfo,
   isSimpleALPHTransferTx,
-  isSimpleTransferTokenTx,
+  isSimpleTokenTransferTx,
   validateExchangeAddress,
   isALPHTransferTx
 } from './exchange'
@@ -239,7 +239,7 @@ describe('exchange', function () {
   })
 
   it('should validate deposit token transaction', () => {
-    expect(isSimpleTransferTokenTx(txTemplate)).toEqual(false)
+    expect(isSimpleTokenTransferTx(txTemplate)).toEqual(false)
 
     const tokenId = '1a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800'
     const exchangeTokenOutput: FixedAssetOutput = {
@@ -253,7 +253,7 @@ describe('exchange', function () {
       fixedOutputs: [...unsignedTxTemplate.fixedOutputs.slice(0, -1), exchangeTokenOutput]
     }
     const tokenTxTemplate: Transaction = { ...txTemplate, unsigned: tokenUnsignedTxTemplate }
-    expect(isSimpleTransferTokenTx(tokenTxTemplate)).toEqual(true)
+    expect(isSimpleTokenTransferTx(tokenTxTemplate)).toEqual(true)
 
     const tx0: Transaction = { ...tokenTxTemplate, unsigned: { ...tokenUnsignedTxTemplate, scriptOpt: '00112233' } }
     const tx1: Transaction = { ...tokenTxTemplate, contractInputs: [outputRef] }
@@ -301,6 +301,6 @@ describe('exchange', function () {
     }
 
     const invalidTxs = [tx0, tx1, tx2, tx3, tx4, tx5, tx6, tx7, tx8, tx9]
-    invalidTxs.forEach((tx) => expect(isSimpleTransferTokenTx(tx)).toEqual(false))
+    invalidTxs.forEach((tx) => expect(isSimpleTokenTransferTx(tx)).toEqual(false))
   })
 })
