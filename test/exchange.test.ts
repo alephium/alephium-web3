@@ -23,19 +23,19 @@ import {
   web3,
   ONE_ALPH,
   NodeProvider,
-  isSimpleALPHTransferTx,
   prettifyAttoAlphAmount,
   Subscription,
   node,
   sleep,
   TOTAL_NUMBER_OF_GROUPS,
   ALPH_TOKEN_ID,
-  getSenderAddress,
-  getALPHDepositInfo
+  getALPHDepositInfo,
+  groupOfAddress
 } from '@alephium/web3'
 import { waitTxConfirmed } from '@alephium/cli'
 import { EventEmitter } from 'stream'
 import * as bip39 from 'bip39'
+import { testPrivateKey } from '@alephium/web3-test'
 
 const WithdrawFee = ONE_ALPH
 
@@ -188,30 +188,29 @@ class Exchange {
     this.balances = new Map()
   }
 
-  async handleDepositTx(tx: node.Transaction, depositAddress: Address, depositAmount: bigint) {
+  async handleDepositInfo(depositAddress: Address, depositAmount: bigint) {
     const pathIndex = this.getPathIndex(depositAddress)
     const wallet = this.getWalletByPathIndex(pathIndex)
     const sweepTxIds = await sweep(wallet, this.wallet.address)
     await waitTxsConfirmed(sweepTxIds)
     this.sweepTxs.push(...sweepTxIds)
 
-    const sender = getSenderAddress(tx)
-    const userBalance = this.balances.get(sender)
+    const userBalance = this.balances.get(depositAddress)
     if (userBalance === undefined) {
-      this.balances.set(sender, depositAmount)
+      this.balances.set(depositAddress, depositAmount)
     } else {
-      this.balances.set(sender, userBalance + depositAmount)
+      this.balances.set(depositAddress, userBalance + depositAmount)
     }
-    this.depositTxs.push(tx.unsigned.txId)
   }
 
   async handleBlock(block: node.BlockEntry, resolver: () => void) {
     for (const tx of block.transactions) {
-      if (isSimpleALPHTransferTx(tx)) {
-        const infos = getALPHDepositInfo(tx).filter((v) => this.hotAddresses.includes(v.targetAddress))
+      const infos = getALPHDepositInfo(tx).filter((v) => this.hotAddresses.includes(v.targetAddress))
+      if (infos.length > 0) {
         for (const { targetAddress, depositAmount } of infos) {
-          await this.handleDepositTx(tx, targetAddress, depositAmount)
+          await this.handleDepositInfo(targetAddress, depositAmount)
         }
+        this.depositTxs.push(tx.unsigned.txId)
       }
     }
     resolver()
@@ -264,7 +263,7 @@ class Exchange {
 
   async withdraw(user: User, amount: bigint) {
     console.log(`withdraw ${prettifyAttoAlphAmount(amount)} to ${user.address}`)
-    const balance = this.getBalance(user.address)
+    const balance = this.getBalance(user.depositAddress)
     if (balance < amount + WithdrawFee) {
       throw new Error('Not enough balance')
     }
@@ -273,9 +272,9 @@ class Exchange {
     this.withdrawTxs.push(result.txId)
     const remain = balance - (amount + WithdrawFee)
     if (remain === 0n) {
-      this.balances.delete(user.address)
+      this.balances.delete(user.depositAddress)
     } else {
-      this.balances.set(user.address, remain)
+      this.balances.set(user.depositAddress, remain)
     }
   }
 
@@ -336,31 +335,58 @@ describe('exchange', function () {
       await waitTxsConfirmed(results0.map((result) => result.txId))
     }
 
-    const totalTxNumber = depositTimes * userNumPerGroup * TOTAL_NUMBER_OF_GROUPS
-    async function waitForCollectTxs() {
+    const depositTxNumber = depositTimes * userNumPerGroup * TOTAL_NUMBER_OF_GROUPS
+    async function waitForCollectTxs(txNumber: number) {
       const depositTxs = exchange.getDepositTxs()
-      if (depositTxs.length < totalTxNumber) {
+      if (depositTxs.length < txNumber) {
         await sleep(1000)
-        await waitForCollectTxs()
+        await waitForCollectTxs(txNumber)
       }
       return
     }
-    await waitForCollectTxs()
 
     // check deposit txs
+    await waitForCollectTxs(depositTxNumber)
     console.log(`checking deposit txs...`)
-    const depositTxs = exchange.getDepositTxs()
-    expect(depositTxs.length).toEqual(totalTxNumber)
+    const depositTxs0 = exchange.getDepositTxs()
+    expect(depositTxs0.length).toEqual(depositTxNumber)
+
+    const testWallet = new PrivateKeyWallet({ privateKey: testPrivateKey })
+    const poolReward = ONE_ALPH
+    let poolRewardTxNumber = 0
+    for (let i = 0; i < TOTAL_NUMBER_OF_GROUPS; i++) {
+      console.log(`pool reward tx, group: ${i}`)
+      const destinations = users
+        .filter((u) => groupOfAddress(u.depositAddress) === i)
+        .map((u) => ({
+          address: u.depositAddress,
+          attoAlphAmount: ONE_ALPH.toString()
+        }))
+      if (destinations.length > 0) {
+        const result = await testWallet.signAndSubmitTransferTx({
+          signerAddress: testWallet.address,
+          destinations
+        })
+        await waitTxConfirmed(nodeProvider, result.txId, 1, 1000)
+        poolRewardTxNumber += 1
+      }
+    }
+
+    // check pool reward txs
+    console.log(`checking pool reward txs...`)
+    await waitForCollectTxs(depositTxNumber + poolRewardTxNumber)
+    const depositTxs1 = exchange.getDepositTxs()
+    expect(depositTxs1.length).toEqual(depositTxNumber + poolRewardTxNumber)
 
     // check balances
     console.log(`checking balances...`)
     let totalDepositAmount = 0n
     for (const user of users) {
-      const depositAmount = exchange.getBalance(user.address)
+      const depositAmount = exchange.getBalance(user.depositAddress)
       totalDepositAmount += depositAmount
       const gasFee = await user.getDepositGasFee()
       const userBalance = await nodeProvider.addresses.getAddressesAddressBalance(user.address)
-      expect(BigInt(userBalance.balance)).toEqual(initialBalance - depositAmount - gasFee)
+      expect(BigInt(userBalance.balance)).toEqual(initialBalance - depositAmount - gasFee + poolReward)
     }
     const sweepTxFee = await getGasFee(exchange.getSweepTxs())
     const exchangeBalance0 = await nodeProvider.addresses.getAddressesAddressBalance(exchange.wallet.address)
@@ -372,22 +398,24 @@ describe('exchange', function () {
     for (let index = 0; index < withdrawTimes - 1; index++) {
       for (const user of users) {
         await exchange.withdraw(user, ONE_ALPH)
-        const balanceInExchange = exchange.getBalance(user.address)
+        const balanceInExchange = exchange.getBalance(user.depositAddress)
         const gasFee = await user.getDepositGasFee()
         const userBalance = await nodeProvider.addresses.getAddressesAddressBalance(user.address)
         expect(BigInt(userBalance.balance)).toEqual(
-          initialBalance - balanceInExchange - gasFee - WithdrawFee * BigInt(index + 1)
+          initialBalance - balanceInExchange - gasFee - WithdrawFee * BigInt(index + 1) + poolReward
         )
       }
     }
 
     // withdraw remain balances
     for (const user of users) {
-      const balance = exchange.getBalance(user.address)
+      const balance = exchange.getBalance(user.depositAddress)
       await exchange.withdraw(user, balance - WithdrawFee)
       const userBalance = await nodeProvider.addresses.getAddressesAddressBalance(user.address)
       const gasFee = await user.getDepositGasFee()
-      expect(BigInt(userBalance.balance)).toEqual(initialBalance - gasFee - WithdrawFee * BigInt(withdrawTimes))
+      expect(BigInt(userBalance.balance)).toEqual(
+        initialBalance - gasFee - WithdrawFee * BigInt(withdrawTimes) + poolReward
+      )
     }
 
     const withdrawGasFee = await getGasFee(exchange.getWithdrawTxs())
