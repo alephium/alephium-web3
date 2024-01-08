@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { AddressType, DUST_AMOUNT, addressFromPublicKey, addressFromScript, binToHex, bs58, hexToBinUnsafe } from '..'
+import { AddressType, addressFromPublicKey, addressFromScript, binToHex, bs58, hexToBinUnsafe } from '..'
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 
@@ -37,22 +37,8 @@ export function validateExchangeAddress(address: string) {
   }
 }
 
-export function isSimpleALPHTransferTx(tx: Transaction): boolean {
-  return isSimpleTransferTx(tx) && checkALPHOutput(tx)
-}
-
 export function isALPHTransferTx(tx: Transaction): boolean {
   return isTransferTx(tx) && checkALPHOutput(tx)
-}
-
-export function isSimpleTokenTransferTx(tx: Transaction): boolean {
-  const isTransferTx = isSimpleTransferTx(tx)
-  if (isTransferTx) {
-    const senderAddress = getSenderAddress(tx)
-    const targetAddress = tx.unsigned.fixedOutputs.find((o) => o.address !== senderAddress)!.address
-    return checkTokenOutput(tx, targetAddress)
-  }
-  return false
 }
 
 export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint }[] {
@@ -63,7 +49,9 @@ export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; d
   for (const input of tx.unsigned.inputs) {
     try {
       const address = getAddressFromUnlockScript(input.unlockScript)
-      inputAddresses.push(address)
+      if (!inputAddresses.includes(address)) {
+        inputAddresses.push(address)
+      }
     } catch (_) {}
   }
   const result = new Map<Address, bigint>()
@@ -112,52 +100,9 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
   }
 }
 
-function getSenderAddressAnyTx(tx: Transaction): Address | undefined {
-  try {
-    const inputAddresses = tx.unsigned.inputs.map((i) => getAddressFromUnlockScript(i.unlockScript))
-    // we have checked that the inputs is not empty
-    const sender = inputAddresses[0]
-    return inputAddresses.slice(1).every((addr) => addr === sender) ? sender : undefined
-  } catch (_) {
-    return undefined
-  }
-}
-
 function checkALPHOutput(tx: Transaction): boolean {
   const outputs = tx.unsigned.fixedOutputs
   return outputs.every((o) => o.tokens.length === 0)
-}
-
-function checkTokenOutput(tx: Transaction, to: Address): boolean {
-  // we have checked the output address
-  const outputs = tx.unsigned.fixedOutputs.filter((o) => o.address === to)
-  if (outputs[0].tokens.length === 0) {
-    return false
-  }
-  const tokenId = outputs[0].tokens[0].id
-  return outputs.every(
-    (o) => BigInt(o.attoAlphAmount) === DUST_AMOUNT && o.tokens.length === 1 && o.tokens[0].id === tokenId
-  )
-}
-
-function isSimpleTransferTx(tx: Transaction): boolean {
-  if (!isTransferTx(tx)) {
-    return false
-  }
-  const sender = getSenderAddressAnyTx(tx)
-  if (sender === undefined) {
-    return false
-  }
-  const outputAddresses: Address[] = []
-  tx.unsigned.fixedOutputs.forEach((o) => {
-    if (!outputAddresses.includes(o.address)) {
-      outputAddresses.push(o.address)
-    }
-  })
-  return (
-    (outputAddresses.length === 1 && outputAddresses[0] !== sender) ||
-    (outputAddresses.length === 2 && outputAddresses.includes(sender))
-  )
 }
 
 function isTransferTx(tx: Transaction): boolean {
