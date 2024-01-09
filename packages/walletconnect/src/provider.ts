@@ -163,10 +163,13 @@ export class WalletConnectProvider extends SignerProvider {
 
     await this.providerOpts.onDisconnected()
 
-    await this.client.disconnect({
-      topic: this.session.topic,
-      reason: getSdkError('USER_DISCONNECTED')
-    })
+    const reason = getSdkError('USER_DISCONNECTED')
+    try {
+      await this.client.disconnect({ topic: this.session.topic, reason })
+    } catch (error) {
+      await this.client.session.delete(this.session.topic, reason)
+      await this.client.core.crypto.deleteSymKey(this.session.topic)
+    }
     this.session = undefined
     this.account = undefined
   }
@@ -331,8 +334,9 @@ export class WalletConnectProvider extends SignerProvider {
     const sessionKeys = this.client.session.keys
     for (let i = sessionKeys.length - 1; i >= 0; i--) {
       const session = this.client.session.get(sessionKeys[`${i}`])
+      const hasKeyChain = this.client.core.crypto.keychain.has(session.topic)
       const chains = getChainsFromNamespaces(session.namespaces, [PROVIDER_NAMESPACE])
-      if (this.sameChains(chains, [this.permittedChain])) {
+      if (this.sameChains(chains, [this.permittedChain]) && hasKeyChain) {
         this.session = session
         return
       }
