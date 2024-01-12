@@ -268,16 +268,17 @@ export interface ApiRequestArguments {
 }
 export type ApiRequestHandler = (args: ApiRequestArguments) => Promise<any>
 
-function logRequest(path: string, method: string, params: any[]) {
-  if (isDebugModeEnabled()) {
+async function call(args: ApiRequestArguments, handler: ApiRequestHandler): Promise<any> {
+  const debugModeEnabled = isDebugModeEnabled()
+  const { path, method, params } = args
+  if (debugModeEnabled) {
     console.log(`[REQUEST] ${path} ${method} ${JSON.stringify(params)}`)
   }
-}
-
-function logResponse(path: string, method: string, response: any) {
-  if (isDebugModeEnabled()) {
+  const response = await handler(args)
+  if (debugModeEnabled) {
     console.log(`[RESPONSE] ${path} ${method} ${JSON.stringify(response)}`)
   }
+  return response
 }
 
 export function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): void {
@@ -285,10 +286,7 @@ export function forwardRequests(api: Record<string, any>, handler: ApiRequestHan
   for (const [path, pathObject] of Object.entries(api)) {
     for (const method of Object.keys(pathObject)) {
       pathObject[`${method}`] = async (...params: any): Promise<any> => {
-        logRequest(path, method, params)
-        const response = await handler({ path, method, params })
-        logResponse(path, method, response)
-        return response
+        return call({ path, method, params }, handler)
       }
     }
   }
@@ -298,10 +296,7 @@ export function requestWithLog(api: Record<string, any>) {
   for (const [path, pathObject] of Object.entries(api)) {
     for (const [method, handler] of Object.entries(pathObject)) {
       pathObject[`${method}`] = async (...params: any): Promise<any> => {
-        logRequest(path, method, params)
-        const response = await (handler as (...any) => Promise<any>)(...params)
-        logResponse(path, method, response)
-        return response
+        return call({ path, method, params }, () => (handler as (...any) => Promise<any>)(...params))
       }
     }
   }
@@ -309,10 +304,7 @@ export function requestWithLog(api: Record<string, any>) {
 
 export async function request(provider: Record<string, any>, args: ApiRequestArguments): Promise<any> {
   const call = provider[`${args.path}`][`${args.method}`] as (...any) => Promise<any>
-  logRequest(args.path, args.method, args.params)
-  const response = await call(...args.params)
-  logResponse(args.path, args.method, response)
-  return response
+  return call(...args.params)
 }
 
 export enum StdInterfaceIds {
