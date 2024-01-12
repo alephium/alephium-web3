@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3, NetworkId, networkIds, validateNFTBaseUri } from '@alephium/web3'
+import { Project, web3, NetworkId, networkIds, validateNFTBaseUri, enableDebugMode } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -29,7 +29,9 @@ import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
-  return loadConfig(configFile)
+  const config = loadConfig(configFile)
+  if (config.enableDebugMode) enableDebugMode()
+  return config
 }
 
 function checkAndGetNetworkId(networkId?: string): NetworkId {
