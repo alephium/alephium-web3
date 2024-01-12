@@ -282,7 +282,7 @@ async function call(args: ApiRequestArguments, handler: ApiRequestHandler): Prom
     return response
   } catch (error) {
     if (debugModeEnabled) {
-      console.error(`[ERROR] ${path} ${method} ${error}`)
+      console.error(`[ERROR] ${path} ${method} `, error)
     }
     throw error
   }
