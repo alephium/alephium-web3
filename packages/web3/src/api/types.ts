@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ZERO_ADDRESS } from '../constants'
+import { isDebugModeEnabled } from '../debug'
 import { assertType, bs58, Eq, isBase58, isHexString } from '../utils'
 import * as node from './api-alephium'
 
@@ -267,12 +268,40 @@ export interface ApiRequestArguments {
 }
 export type ApiRequestHandler = (args: ApiRequestArguments) => Promise<any>
 
+function logRequest(path: string, method: string, params: any[]) {
+  if (isDebugModeEnabled()) {
+    console.log(`[REQUEST] ${path} ${method} ${JSON.stringify(params)}`)
+  }
+}
+
+function logResponse(path: string, method: string, response: any) {
+  if (isDebugModeEnabled()) {
+    console.log(`[RESPONSE] ${path} ${method} ${JSON.stringify(response)}`)
+  }
+}
+
 export function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): void {
   // Update class properties to forward requests
   for (const [path, pathObject] of Object.entries(api)) {
     for (const method of Object.keys(pathObject)) {
       pathObject[`${method}`] = async (...params: any): Promise<any> => {
-        return handler({ path, method, params })
+        logRequest(path, method, params)
+        const response = await handler({ path, method, params })
+        logResponse(path, method, response)
+        return response
+      }
+    }
+  }
+}
+
+export function requestWithLog(api: Record<string, any>) {
+  for (const [path, pathObject] of Object.entries(api)) {
+    for (const [method, handler] of Object.entries(pathObject)) {
+      pathObject[`${method}`] = async (...params: any): Promise<any> => {
+        logRequest(path, method, params)
+        const response = await (handler as (...any) => Promise<any>)(...params)
+        logResponse(path, method, response)
+        return response
       }
     }
   }
@@ -280,7 +309,10 @@ export function forwardRequests(api: Record<string, any>, handler: ApiRequestHan
 
 export async function request(provider: Record<string, any>, args: ApiRequestArguments): Promise<any> {
   const call = provider[`${args.path}`][`${args.method}`] as (...any) => Promise<any>
-  return call(...args.params)
+  logRequest(args.path, args.method, args.params)
+  const response = await call(...args.params)
+  logResponse(args.path, args.method, response)
+  return response
 }
 
 export enum StdInterfaceIds {
