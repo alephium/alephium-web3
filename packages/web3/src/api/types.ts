@@ -274,11 +274,18 @@ async function call(args: ApiRequestArguments, handler: ApiRequestHandler): Prom
   if (debugModeEnabled) {
     console.log(`[REQUEST] ${path} ${method} ${JSON.stringify(params)}`)
   }
-  const response = await handler(args)
-  if (debugModeEnabled) {
-    console.log(`[RESPONSE] ${path} ${method} ${JSON.stringify(response)}`)
+  try {
+    const response = await handler(args)
+    if (debugModeEnabled) {
+      console.log(`[RESPONSE] ${path} ${method} ${JSON.stringify(response)}`)
+    }
+    return response
+  } catch (error) {
+    if (debugModeEnabled) {
+      console.error(`[ERROR] ${path} ${method} ${error}`)
+    }
+    throw error
   }
-  return response
 }
 
 export function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): void {
