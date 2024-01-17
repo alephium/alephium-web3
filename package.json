@@ -47,7 +47,11 @@
     "overrides": {
       "semver@<7.5.2": ">=7.5.2",
       "protobufjs@>=6.10.0 <7.2.4": ">=7.2.4",
-      "semver@>=7.0.0 <7.5.2": ">=7.5.2"
+      "@babel/traverse": ">=7.23.2",
+      "browserify-sign": ">=4.2.2",
+      "axios": ">=1.6.0",
+      "word-wrap": ">=1.2.4",
+      "follow-redirects": ">=1.15.4"
     }
   }
 }
