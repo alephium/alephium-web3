@@ -30,7 +30,7 @@ function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   const config = loadConfig(configFile)
-  if (config.enableDebugMode) enableDebugMode()
+  if (config.enableDebugMode || options.debug) enableDebugMode()
   return config
 }
 
