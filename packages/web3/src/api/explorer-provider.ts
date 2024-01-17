@@ -40,6 +40,7 @@ export class ExplorerProvider {
   readonly charts: ExplorerApi<string>['charts']
   readonly contractEvents: ExplorerApi<string>['contractEvents']
   readonly contracts: ExplorerApi<string>['contracts']
+  readonly market: ExplorerApi<string>['market']
   readonly utils: ExplorerApi<string>['utils']
 
   constructor(baseUrl: string, apiKey?: string, customFetch?: typeof fetch)
@@ -65,6 +66,7 @@ export class ExplorerProvider {
     this.charts = { ...explorerApi.charts }
     this.utils = { ...explorerApi.utils }
     this.contracts = { ...explorerApi.contracts }
+    this.market = { ...explorerApi.market }
     this.contractEvents = { ...explorerApi.contractEvents }
   }
 

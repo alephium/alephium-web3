@@ -52,6 +52,10 @@ export interface AddressTokenBalance {
   lockedBalance: string
 }
 
+export interface AmountHistory {
+  amountHistory?: TimedAmount[]
+}
+
 export interface AssetOutput {
   /** @format int32 */
   hint: number
@@ -171,7 +175,8 @@ export interface InternalServerError {
 
 export enum IntervalType {
   Daily = 'daily',
-  Hourly = 'hourly'
+  Hourly = 'hourly',
+  Weekly = 'weekly'
 }
 
 export interface ListBlocks {
@@ -295,11 +300,23 @@ export interface SubContracts {
   subContracts?: string[]
 }
 
+export interface TimedAmount {
+  /** @format int64 */
+  timestamp: number
+  /** @format bigint */
+  amount: string
+}
+
 export interface TimedCount {
   /** @format int64 */
   timestamp: number
   /** @format int64 */
   totalCountAllChains: number
+}
+
+export interface TimedPrices {
+  timestamps?: number[]
+  prices?: number[]
 }
 
 export interface Token {
@@ -1053,6 +1070,39 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Addresses
+     * @name GetAddressesAddressAmountHistoryDeprecated
+     * @request GET:/addresses/{address}/amount-history-DEPRECATED
+     * @deprecated
+     */
+    getAddressesAddressAmountHistoryDeprecated: (
+      address: string,
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+        'interval-type': IntervalType
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/amount-history-DEPRECATED`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Addresses
      * @name GetAddressesAddressAmountHistory
      * @request GET:/addresses/{address}/amount-history
      */
@@ -1073,7 +1123,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<AmountHistory, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/amount-history`,
         method: 'GET',
         query: query,
@@ -1629,6 +1679,53 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<SubContracts, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/contracts/${contractAddress}/sub-contracts`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  market = {
+    /**
+     * No description
+     *
+     * @tags Market
+     * @name PostMarketPrices
+     * @request POST:/market/prices
+     */
+    postMarketPrices: (
+      query: {
+        currency: string
+      },
+      data?: string[],
+      params: RequestParams = {}
+    ) =>
+      this.request<number[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/market/prices`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Market
+     * @name GetMarketPricesSymbolCharts
+     * @request GET:/market/prices/{symbol}/charts
+     */
+    getMarketPricesSymbolCharts: (
+      symbol: string,
+      query: {
+        currency: string
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TimedPrices, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/market/prices/${symbol}/charts`,
         method: 'GET',
         query: query,
         format: 'json',
