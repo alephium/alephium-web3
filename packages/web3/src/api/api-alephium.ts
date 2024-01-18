@@ -185,6 +185,8 @@ export interface BuildDeployContractTx {
   initialTokenAmounts?: Token[]
   /** @format uint256 */
   issueTokenAmount?: string
+  /** @format address */
+  issueTokenTo?: string
   /** @format gas */
   gasAmount?: number
   /** @format uint256 */
@@ -1256,7 +1258,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.5.5
+ * @version 2.7.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
