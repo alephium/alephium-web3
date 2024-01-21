@@ -16,7 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3, NetworkId, networkIds, validateNFTBaseUri, enableDebugMode } from '@alephium/web3'
+import {
+  Project,
+  web3,
+  NetworkId,
+  networkIds,
+  validateNFTBaseUri,
+  enableDebugMode,
+  isDebugModeEnabled
+} from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -100,7 +108,7 @@ program
       codegen(artifactDir)
       console.log('✅ Codegen completed!')
     } catch (error) {
-      program.error(`✘ Failed to compile, error: ${buildErrorOutput(error, options.debug)}`)
+      program.error(`✘ Failed to compile, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -174,7 +182,7 @@ program
       const toIndex = tryGetScriptIndex(options.to)
       await deployAndSaveProgress(config, networkId, fromIndex, toIndex)
     } catch (error) {
-      program.error(`✘ Failed to deploy contracts, error: ${buildErrorOutput(error, options.debug)}`)
+      program.error(`✘ Failed to deploy contracts, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -204,7 +212,7 @@ nftCommand
 
       await generateImagesWithOpenAI(openaiAPIKey, prompt, numberOfImages, imageSize, storedDir)
     } catch (error) {
-      program.error(`✘ Failed to generate images, error: ${buildErrorOutput(error, options.debug)}`)
+      program.error(`✘ Failed to generate images, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -235,7 +243,7 @@ nftCommand
       console.log('NFTBaseUri:')
       console.log(result)
     } catch (error) {
-      program.error(`✘ Failed to upload images, error: ${buildErrorOutput(error, options.debug)}`)
+      program.error(`✘ Failed to upload images, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -253,7 +261,7 @@ nftCommand
       console.log('Token Metadataz:')
       console.log(result)
     } catch (error) {
-      program.error(`✘ Failed to upload images metadata, error: ${buildErrorOutput(error, options.debug)}`)
+      program.error(`✘ Failed to upload images metadata, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
