@@ -1410,6 +1410,7 @@ export interface DeployContractParams<P extends Fields = Fields> {
   initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
   issueTokenAmount?: Number256
+  issueTokenTo?: string
   gasAmount?: number
   gasPrice?: Number256
 }
