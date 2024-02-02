@@ -31,6 +31,8 @@ export const networkIds = ['mainnet', 'testnet', 'devnet'] as const
 export type NetworkId = (typeof networkIds)[number]
 
 const ec = new EC('secp256k1')
+const PublicKeyBytesLength = 33
+const MaxKeySize = 32
 
 export function encodeSignature(signature: EC.Signature | { r: BN; s: BN }): string {
   let sNormalized = signature.s
@@ -194,10 +196,62 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
     const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
     const bytes = Buffer.concat([addressType, hash])
     return bs58.encode(bytes)
-  } else {
+  } else if (keyType === 'bip340-schnorr') {
     const lockupScript = Buffer.from(`0101000000000458144020${publicKey}8685`, 'hex')
     return addressFromScript(lockupScript)
+  } else {
+    return multisigAddressFromPublicKey(publicKey)
   }
+}
+
+function multisigAddressFromPublicKey(publicKey: string): string {
+  try {
+    const bytes = hexToBinUnsafe(publicKey)
+    const m = bytes[0]
+    const n = bytes[1]
+    if (n <= 0 || n >= MaxKeySize) {
+      throw new Error(`Invalid n in m-of-n multisig, m: ${m}, n: ${n}`)
+    }
+    if (m <= 0 || m > n) {
+      throw new Error(`Invalid m in m-of-n multisig, m: ${m}, n: ${n}`)
+    }
+    if (bytes.length !== PublicKeyBytesLength * n + 2) {
+      throw new Error('Invalid public key size')
+    }
+
+    const publicKeyHashes: Uint8Array[] = []
+    for (let i = 2; i < bytes.length; i += 33) {
+      const publicKey = bytes.slice(i, i + 33)
+      publicKeyHashes.push(blake.blake2b(publicKey, undefined, 32))
+    }
+    const encoded = Buffer.concat([
+      Buffer.from([AddressType.P2MPKH]),
+      Buffer.from([n]),
+      ...publicKeyHashes,
+      Buffer.from([m])
+    ])
+    return bs58.encode(encoded)
+  } catch (err) {
+    throw new Error(`Invalid multisig public key, error: ${err}`)
+  }
+}
+
+export function encodeMultisigPublicKeys(publicKeys: string[], m: number): string {
+  if (publicKeys.length === 0) {
+    throw new Error('Public key array is empty')
+  }
+  if (publicKeys.length >= MaxKeySize) {
+    throw new Error('The length of public key array exceeds maximum limit')
+  }
+  if (m <= 0 || m > publicKeys.length) {
+    throw new Error(`Invalid m in m-of-n multisig, m: ${m}, n: ${publicKeys.length}`)
+  }
+  publicKeys.forEach((publicKey) => {
+    if (!isHexString(publicKey) || publicKey.length !== PublicKeyBytesLength * 2) {
+      throw new Error(`Invalid public key: ${publicKey}`)
+    }
+  })
+  return Buffer.from([m, publicKeys.length]).toString('hex') + publicKeys.join('')
 }
 
 export function addressFromScript(script: Uint8Array): string {

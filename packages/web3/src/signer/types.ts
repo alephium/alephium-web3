@@ -31,9 +31,10 @@ export interface Destination {
   lockTime?: number
   message?: string
 }
-assertType<Eq<keyof Destination, keyof node.Destination>>
+assertType<Eq<keyof Destination, keyof node.Destination>>()
 
-export type KeyType = 'default' | 'bip340-schnorr'
+export const keyTypes = ['default', 'bip340-schnorr', 'multisig'] as const
+export type KeyType = (typeof keyTypes)[number]
 
 export interface Account {
   keyType: KeyType
