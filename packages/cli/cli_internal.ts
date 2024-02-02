@@ -16,7 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3, NetworkId, networkIds, validateNFTBaseUri } from '@alephium/web3'
+import {
+  Project,
+  web3,
+  NetworkId,
+  networkIds,
+  validateNFTBaseUri,
+  enableDebugMode,
+  isDebugModeEnabled
+} from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -29,7 +37,9 @@ import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
-  return loadConfig(configFile)
+  const config = loadConfig(configFile)
+  if (config.enableDebugMode || options.debug) enableDebugMode()
+  return config
 }
 
 function checkAndGetNetworkId(networkId?: string): NetworkId {
@@ -40,6 +50,11 @@ function checkAndGetNetworkId(networkId?: string): NetworkId {
     throw Error(`Invalid network id, expect one of ${networkIds}`)
   }
   return networkId as NetworkId
+}
+
+function buildErrorOutput(error: Error, isDebug: boolean): string {
+  const debugMsg = error.stack ?? error.toString()
+  return isDebug ? debugMsg : error.message
 }
 
 const templateTypes = ['base', 'react', 'nextjs']
@@ -71,14 +86,14 @@ program
   .option('-c, --config <config-file>', 'project config file (default: alephium.config.{ts|js})')
   .option('-n, --network <network-type>', 'network type')
   .option('--skipGenerate', 'skip generate typescript code by contract artifacts')
+  .option('--debug', 'show detailed debug information such as error stack traces')
   .action(async (options) => {
     try {
       const config = getConfig(options)
       const networkId = checkAndGetNetworkId(options.network)
       const nodeUrl = config.networks[networkId].nodeUrl
       if (!(await isNetworkLive(nodeUrl))) {
-        console.log(`${networkId} is not live`)
-        process.exit(1)
+        throw new Error(`${networkId} is not live`)
       }
       web3.setCurrentNodeProvider(nodeUrl)
       const fullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
@@ -93,7 +108,7 @@ program
       codegen(artifactDir)
       console.log('✅ Codegen completed!')
     } catch (error) {
-      program.error(`Failed to compile, error: ${(error as Error).stack}`)
+      program.error(`✘ Failed to compile, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -158,6 +173,7 @@ program
     '-t, --to <number>',
     'run scripts to a specific index(inclusive), the number refers to the prefix of the script file'
   )
+  .option('--debug', 'show detailed debug information such as error stack traces')
   .action(async (options) => {
     try {
       const config = getConfig(options)
@@ -166,7 +182,7 @@ program
       const toIndex = tryGetScriptIndex(options.to)
       await deployAndSaveProgress(config, networkId, fromIndex, toIndex)
     } catch (error) {
-      program.error(`Failed to deploy contracts, error: ${(error as Error).stack}`)
+      program.error(`✘ Failed to deploy contracts, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -180,13 +196,14 @@ nftCommand
   .option('-d, --dir <directory-of-stored-images>', 'directory where to store the images')
   .option('-n, --number <number-of-images>', 'number of images to generate', '1')
   .option('-s, --size <size-of-image>', 'size of the image to generate', '512x512')
+  .option('--debug', 'show detailed debug information such as error stack traces')
   .action(async (options, args) => {
     try {
       const config = getConfig(options)
       const networkId = checkAndGetNetworkId(options.network)
       const openaiAPIKey = config.networks[networkId].settings.openaiAPIKey
       if (!openaiAPIKey) {
-        program.error('OpenAI API key not specified')
+        throw new Error('OpenAI API key not specified')
       }
       const numberOfImages = Number(options.number)
       const imageSize = options.size as CreateImageRequestSizeEnum
@@ -195,7 +212,7 @@ nftCommand
 
       await generateImagesWithOpenAI(openaiAPIKey, prompt, numberOfImages, imageSize, storedDir)
     } catch (error) {
-      program.error(`Failed to generate images, error: ${(error as Error).stack}`)
+      program.error(`✘ Failed to generate images, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -207,6 +224,7 @@ nftCommand
   .option('-d, --localDir <directory-of-local-images>', 'directory of local images to be uploaded')
   .option('-i, --ipfsDir <ipfs-directory-of-uploaded-images>', 'IPFS directory to upload the images')
   .option('-m, --metadataFile <metadata-file>', 'file to store the metadata of the uploaded images')
+  .option('--debug', 'show detailed debug information such as error stack traces')
   .action(async (options) => {
     try {
       const localDir = options.localDir as string
@@ -218,14 +236,14 @@ nftCommand
       const projectId = settings.ipfs.infura.projectId
       const projectSecret = settings.ipfs.infura.projectSecret
       if (!projectId || !projectSecret) {
-        program.error('Infura project id or secret not specified')
+        throw new Error('Infura project id or secret not specified')
       }
 
       const result = await uploadImagesAndMetadataToIPFS(localDir, ipfsDir, metadataFile, projectId, projectSecret)
       console.log('NFTBaseUri:')
       console.log(result)
     } catch (error) {
-      program.error(`Failed to upload images, error: ${(error as Error).stack}`)
+      program.error(`✘ Failed to upload images, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 
@@ -234,6 +252,7 @@ nftCommand
   .description('validate nft base uri for pre-designed collection')
   .option('-n, --nftBaseUri <nft-base-uri>', 'NFT base uri')
   .option('-m, --maxSupply <max-supply-of-the-pre-designed-collection>', 'max supply of the NFT collection')
+  .option('--debug', 'show detailed debug information such as error stack traces')
   .action(async (options) => {
     try {
       const nftBaseUri = options.nftBaseUri as string
@@ -242,7 +261,7 @@ nftCommand
       console.log('Token Metadataz:')
       console.log(result)
     } catch (error) {
-      program.error(`Failed to upload images metadata, error: ${(error as Error).stack} `)
+      program.error(`✘ Failed to upload images metadata, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
   })
 

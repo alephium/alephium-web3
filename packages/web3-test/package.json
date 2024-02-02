@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-test",
-  "version": "0.22.0",
+  "version": "0.29.1",
   "description": "Utility functions for Alephium test",
   "keywords": [
     "alephium",
@@ -42,7 +42,7 @@
     "crypto-browserify": "^3.12.0"
   },
   "engines": {
-    "node": ">=16.0.0",
+    "node": ">=14.0.0",
     "npm": ">=7.0.0"
   }
 }

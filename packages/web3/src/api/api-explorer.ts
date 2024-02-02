@@ -52,6 +52,10 @@ export interface AddressTokenBalance {
   lockedBalance: string
 }
 
+export interface AmountHistory {
+  amountHistory?: TimedAmount[]
+}
+
 export interface AssetOutput {
   /** @format int32 */
   hint: number
@@ -136,6 +140,15 @@ export interface ExplorerInfo {
   lastFinalizedInputTime: number
 }
 
+export interface FungibleTokenMetadata {
+  /** @format 32-byte-hash */
+  id: string
+  symbol: string
+  name: string
+  /** @format uint256 */
+  decimals: string
+}
+
 export interface Hashrate {
   /** @format int64 */
   timestamp: number
@@ -162,7 +175,8 @@ export interface InternalServerError {
 
 export enum IntervalType {
   Daily = 'daily',
-  Hourly = 'hourly'
+  Hourly = 'hourly',
+  Weekly = 'weekly'
 }
 
 export interface ListBlocks {
@@ -191,6 +205,22 @@ export interface MempoolTransaction {
   gasPrice: string
   /** @format int64 */
   lastSeen: number
+}
+
+export interface NFTCollectionMetadata {
+  /** @format address */
+  address: string
+  collectionUri: string
+}
+
+export interface NFTMetadata {
+  /** @format 32-byte-hash */
+  id: string
+  tokenUri: string
+  /** @format 32-byte-hash */
+  collectionId: string
+  /** @format uint256 */
+  nftIndex: string
 }
 
 export interface NotFound {
@@ -270,6 +300,13 @@ export interface SubContracts {
   subContracts?: string[]
 }
 
+export interface TimedAmount {
+  /** @format int64 */
+  timestamp: number
+  /** @format bigint */
+  amount: string
+}
+
 export interface TimedCount {
   /** @format int64 */
   timestamp: number
@@ -277,11 +314,29 @@ export interface TimedCount {
   totalCountAllChains: number
 }
 
+export interface TimedPrices {
+  timestamps?: number[]
+  prices?: number[]
+}
+
 export interface Token {
   /** @format 32-byte-hash */
   id: string
   /** @format uint256 */
   amount: string
+}
+
+export interface TokenInfo {
+  /** @format 32-byte-hash */
+  token: string
+  /** Raw interface id, e.g. 0001 */
+  stdInterfaceId?: TokenStdInterfaceId | string
+}
+
+export enum TokenStdInterfaceId {
+  Fungible = 'fungible',
+  NonFungible = 'non-fungible',
+  NonStandard = 'non-standard'
 }
 
 export interface TokenSupply {
@@ -356,6 +411,14 @@ export interface ValU256 {
   /** @format uint256 */
   value: string
   type: string
+}
+
+export enum MaxSizeTokens {
+  Value80 = 80
+}
+
+export enum MaxSizeAddresses {
+  Value80 = 80
 }
 
 import 'cross-fetch/polyfill'
@@ -845,6 +908,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @tags Addresses
      * @name GetAddressesAddressTokens
      * @request GET:/addresses/{address}/tokens
+     * @deprecated
      */
     getAddressesAddressTokens: (
       address: string,
@@ -1006,6 +1070,39 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Addresses
+     * @name GetAddressesAddressAmountHistoryDeprecated
+     * @request GET:/addresses/{address}/amount-history-DEPRECATED
+     * @deprecated
+     */
+    getAddressesAddressAmountHistoryDeprecated: (
+      address: string,
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs: number
+        'interval-type': IntervalType
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/amount-history-DEPRECATED`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Addresses
      * @name GetAddressesAddressAmountHistory
      * @request GET:/addresses/{address}/amount-history
      */
@@ -1026,7 +1123,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<AmountHistory, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/addresses/${address}/amount-history`,
         method: 'GET',
         query: query,
@@ -1223,7 +1320,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   }
   tokens = {
     /**
-     * @description List tokens
+     * @description List token information
      *
      * @tags Tokens
      * @name GetTokens
@@ -1241,13 +1338,35 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @format int32
          */
         limit?: number
+        /**
+         * fungible, non-fungible, non-standard or any interface id in hex-string format, e.g: 0001
+         * @format string
+         */
+        'interface-id'?: TokenStdInterfaceId | string
       },
       params: RequestParams = {}
     ) =>
-      this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<TokenInfo[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/tokens`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description list given tokens information
+     *
+     * @tags Tokens
+     * @name PostTokens
+     * @request POST:/tokens
+     */
+    postTokens: (data?: string[], params: RequestParams = {}) =>
+      this.request<TokenInfo[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/tokens`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params
       }).then(convertHttpResponse),
@@ -1279,6 +1398,63 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/tokens/${tokenId}/transactions`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Return metadata for the given fungible tokens, if metadata doesn't exist or token isn't a fungible, it won't be in the output list
+     *
+     * @tags Tokens
+     * @name PostTokensFungibleMetadata
+     * @request POST:/tokens/fungible-metadata
+     */
+    postTokensFungibleMetadata: (data?: string[], params: RequestParams = {}) =>
+      this.request<
+        FungibleTokenMetadata[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/tokens/fungible-metadata`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Return metadata for the given nft tokens, if metadata doesn't exist or token isn't a nft, it won't be in the output list
+     *
+     * @tags Tokens
+     * @name PostTokensNftMetadata
+     * @request POST:/tokens/nft-metadata
+     */
+    postTokensNftMetadata: (data?: string[], params: RequestParams = {}) =>
+      this.request<NFTMetadata[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/tokens/nft-metadata`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Return metadata for the given nft collection addresses, if metadata doesn't exist or address isn't a nft collection, it won't be in the output list
+     *
+     * @tags Tokens
+     * @name PostTokensNftCollectionMetadata
+     * @request POST:/tokens/nft-collection-metadata
+     */
+    postTokensNftCollectionMetadata: (data?: string[], params: RequestParams = {}) =>
+      this.request<
+        NFTCollectionMetadata[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/tokens/nft-collection-metadata`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params
       }).then(convertHttpResponse)
@@ -1467,12 +1643,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @description Get contract parent address if exist
      *
      * @tags Contracts
-     * @name GetContractsContractParent
-     * @request GET:/contracts/{contract}/parent
+     * @name GetContractsContractAddressParent
+     * @request GET:/contracts/{contract_address}/parent
      */
-    getContractsContractParent: (contract: string, params: RequestParams = {}) =>
+    getContractsContractAddressParent: (contractAddress: string, params: RequestParams = {}) =>
       this.request<ContractParent, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/contracts/${contract}/parent`,
+        path: `/contracts/${contractAddress}/parent`,
         method: 'GET',
         format: 'json',
         ...params
@@ -1482,11 +1658,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @description Get sub contract addresses
      *
      * @tags Contracts
-     * @name GetContractsContractSubContracts
-     * @request GET:/contracts/{contract}/sub-contracts
+     * @name GetContractsContractAddressSubContracts
+     * @request GET:/contracts/{contract_address}/sub-contracts
      */
-    getContractsContractSubContracts: (
-      contract: string,
+    getContractsContractAddressSubContracts: (
+      contractAddress: string,
       query?: {
         /**
          * Page number
@@ -1502,7 +1678,54 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       params: RequestParams = {}
     ) =>
       this.request<SubContracts, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/contracts/${contract}/sub-contracts`,
+        path: `/contracts/${contractAddress}/sub-contracts`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  market = {
+    /**
+     * No description
+     *
+     * @tags Market
+     * @name PostMarketPrices
+     * @request POST:/market/prices
+     */
+    postMarketPrices: (
+      query: {
+        currency: string
+      },
+      data?: string[],
+      params: RequestParams = {}
+    ) =>
+      this.request<number[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/market/prices`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Market
+     * @name GetMarketPricesSymbolCharts
+     * @request GET:/market/prices/{symbol}/charts
+     */
+    getMarketPricesSymbolCharts: (
+      symbol: string,
+      query: {
+        currency: string
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<TimedPrices, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/market/prices/${symbol}/charts`,
         method: 'GET',
         query: query,
         format: 'json',

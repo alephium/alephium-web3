@@ -185,6 +185,8 @@ export interface BuildDeployContractTx {
   initialTokenAmounts?: Token[]
   /** @format uint256 */
   issueTokenAmount?: string
+  /** @format address */
+  issueTokenTo?: string
   /** @format gas */
   gasAmount?: number
   /** @format uint256 */
@@ -244,6 +246,14 @@ export interface BuildExecuteScriptTxResult {
 export interface BuildInfo {
   releaseVersion: string
   commit: string
+}
+
+export interface BuildMultiAddressesTransaction {
+  from: Source[]
+  /** @format uint256 */
+  gasPrice?: string
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 export interface BuildMultisig {
@@ -773,6 +783,17 @@ export interface SignResult {
   signature: string
 }
 
+export interface Source {
+  /** @format hex-string */
+  fromPublicKey: string
+  destinations: Destination[]
+  /** @format hex-string */
+  fromPublicKeyType?: string
+  /** @format gas */
+  gasAmount?: number
+  utxos?: OutputRef[]
+}
+
 export interface SubmitMultisig {
   unsignedTx: string
   signatures: string[]
@@ -1256,7 +1277,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.5.5
+ * @version 2.8.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2107,6 +2128,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/transactions/build`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
+     * @name PostTransactionsBuildMultiAddresses
+     * @summary Build an unsigned transaction with multiple addresses to a number of recipients
+     * @request POST:/transactions/build-multi-addresses
+     */
+    postTransactionsBuildMultiAddresses: (data: BuildMultiAddressesTransaction, params: RequestParams = {}) =>
+      this.request<
+        BuildTransactionResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/transactions/build-multi-addresses`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

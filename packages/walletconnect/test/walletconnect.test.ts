@@ -21,6 +21,7 @@ import { web3, node, NodeProvider, verifySignedMessage, Project, groupOfAddress,
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
+import { sleep } from '@alephium/web3'
 
 const NETWORK_ID = 'devnet'
 const ADDRESS_GROUP = 0
@@ -132,6 +133,13 @@ describe('Unit tests', function () {
   })
 })
 
+async function waitWalletConnected(client: WalletClient) {
+  if (client.topic === undefined) {
+    await sleep(500)
+    await waitWalletConnected(client)
+  }
+}
+
 describe('WalletConnectProvider with single addressGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
@@ -148,6 +156,7 @@ describe('WalletConnectProvider with single addressGroup', function () {
     expect(provider.permittedChain).toEqual('alephium:devnet/0')
     const selectetAddress = (await provider.getSelectedAccount()).address
     expect(selectetAddress).toEqual(signerA.address)
+    await waitWalletConnected(walletClient)
   })
 
   afterAll(async () => {
@@ -215,6 +224,7 @@ describe('WalletConnectProvider with arbitrary addressGroup', function () {
     expect(provider.permittedChain).toEqual('alephium:devnet/-1')
     const selectedAddress = (await provider.getSelectedAccount()).address
     expect(selectedAddress).toEqual(signerA.address)
+    await waitWalletConnected(walletClient)
   })
 
   afterAll(async () => {

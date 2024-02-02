@@ -16,19 +16,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
+// from rainbowkit: https://github.com/rainbow-me/rainbowkit/blob/main/packages/rainbowkit/src/utils/isMobile.ts
+function isAndroid(): boolean {
+  return typeof navigator !== 'undefined' && /android/i.test(navigator.userAgent)
 }
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
+function isSmallIOS(): boolean {
+  return typeof navigator !== 'undefined' && /iPhone|iPod/.test(navigator.userAgent)
+}
 
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+function isLargeIOS(): boolean {
+  return (
+    typeof navigator !== 'undefined' &&
+    (/iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1))
+  )
+}
+
+function isIOS(): boolean {
+  return isSmallIOS() || isLargeIOS()
+}
+
+export function isMobile(): boolean {
+  return isAndroid() || isIOS()
+}

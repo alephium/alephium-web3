@@ -57,6 +57,8 @@ export interface Configuration<Settings = unknown> {
   compilerOptions?: CompilerOptions
 
   networks: Record<NetworkId, Network<Settings>>
+
+  enableDebugMode?: boolean
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {

@@ -18,9 +18,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Account, NetworkId, SignerProvider, KeyType } from '@alephium/web3'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
-import QRCodeModal from '@walletconnect/qrcode-modal'
+import QRCodeModal from '@alephium/walletconnect-qrcode-modal'
 import { AlephiumWindowObject, getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { setLastConnectedAccount } from './storage'
+import { getLastConnectedAccount, setLastConnectedAccount } from './storage'
 import { ConnectorId } from '../types'
 
 const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
@@ -47,7 +47,7 @@ export type Connector = {
 }
 
 // TODO: handle error properly
-async function _wcConnect(onDisplayUri: (uri: string) => void, options: ConnectOptions) {
+async function _wcConnect(onDisplayUri: (uri: string) => void, options: ConnectOptions, connectorId: ConnectorId) {
   const wcProvider = await WalletConnectProvider.init({
     projectId: WALLET_CONNECT_PROJECT_ID,
     networkId: options.network,
@@ -63,6 +63,7 @@ async function _wcConnect(onDisplayUri: (uri: string) => void, options: ConnectO
 
     if (wcProvider.account) {
       await options.onConnected({ account: wcProvider.account, signerProvider: wcProvider })
+      setLastConnectedAccount(connectorId, wcProvider.account, options.network)
       return wcProvider.account
     }
   } catch (e) {
@@ -72,14 +73,45 @@ async function _wcConnect(onDisplayUri: (uri: string) => void, options: ConnectO
   return undefined
 }
 
+const wcAutoConnect = async (options: ConnectOptions, connectorId: ConnectorId): Promise<Account | undefined> => {
+  try {
+    const wcProvider = await WalletConnectProvider.init({
+      projectId: WALLET_CONNECT_PROJECT_ID,
+      networkId: options.network,
+      addressGroup: options.addressGroup,
+      onDisconnected: options.onDisconnected
+    })
+    wcProvider.on('session_delete', options.onDisconnected)
+
+    const isPreauthorized = wcProvider.isPreauthorized()
+    if (!isPreauthorized) {
+      return undefined
+    }
+    await wcProvider.connect()
+    if (wcProvider.account) {
+      await options.onConnected({ account: wcProvider.account, signerProvider: wcProvider })
+      setLastConnectedAccount(connectorId, wcProvider.account, options.network)
+      return wcProvider.account
+    }
+  } catch (e) {
+    console.error(`Wallet connect auto-connect error: ${e}`)
+    options.onDisconnected()
+  }
+  return undefined
+}
+
 const wcConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
-  const result = await _wcConnect((uri) => QRCodeModal.open(uri, () => console.log('qr closed')), options)
+  const result = await _wcConnect(
+    (uri) => QRCodeModal.open(uri, () => console.log('qr closed')),
+    options,
+    'walletConnect'
+  )
   QRCodeModal.close()
   return result
 }
 
 const desktopWalletConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
-  return await _wcConnect((uri) => window.open(`alephium://wc?uri=${uri}`), options)
+  return await _wcConnect((uri) => window.open(`alephium://wc?uri=${uri}`), options, 'desktopWallet')
 }
 
 const wcDisconnect = async (signerProvider: SignerProvider): Promise<void> => {
@@ -133,11 +165,13 @@ const connectors: Record<ConnectorId, Connector> = {
   },
   walletConnect: {
     connect: wcConnect,
-    disconnect: wcDisconnect
+    disconnect: wcDisconnect,
+    autoConnect: (options) => wcAutoConnect(options, 'walletConnect')
   },
   desktopWallet: {
     connect: desktopWalletConnect,
-    disconnect: wcDisconnect
+    disconnect: wcDisconnect,
+    autoConnect: (options) => wcAutoConnect(options, 'desktopWallet')
   }
 }
 

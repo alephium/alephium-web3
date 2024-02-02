@@ -24,7 +24,8 @@ import {
   FungibleTokenMetaData,
   NFTMetaData,
   NFTCollectionMetaData,
-  StdInterfaceIds
+  StdInterfaceIds,
+  requestWithLog
 } from './types'
 import { Api as NodeApi, CallContractFailed, CallContractSucceeded } from './api-alephium'
 import { HexString, tryGetCallResult } from '../contract'
@@ -100,6 +101,7 @@ export class NodeProvider implements NodeProviderApis {
     this.utils = { ...nodeApi.utils }
     this.miners = { ...nodeApi.miners }
     this.events = { ...nodeApi.events }
+    requestWithLog(this)
   }
 
   request = (args: ApiRequestArguments): Promise<any> => {

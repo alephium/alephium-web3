@@ -16,19 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
+let debugModeEnabled = false
+
+export function isDebugModeEnabled() {
+  return debugModeEnabled
 }
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
+export function enableDebugMode() {
+  debugModeEnabled = true
+}
 
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+export function disableDebugMode() {
+  debugModeEnabled = false
+}

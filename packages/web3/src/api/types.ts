@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ZERO_ADDRESS } from '../constants'
+import { isDebugModeEnabled } from '../debug'
 import { assertType, bs58, Eq, isBase58, isHexString } from '../utils'
 import * as node from './api-alephium'
 
@@ -267,12 +268,42 @@ export interface ApiRequestArguments {
 }
 export type ApiRequestHandler = (args: ApiRequestArguments) => Promise<any>
 
+async function call(args: ApiRequestArguments, handler: ApiRequestHandler): Promise<any> {
+  const debugModeEnabled = isDebugModeEnabled()
+  const { path, method, params } = args
+  if (debugModeEnabled) {
+    console.log(`[REQUEST] ${path} ${method} ${JSON.stringify(params)}`)
+  }
+  try {
+    const response = await handler(args)
+    if (debugModeEnabled) {
+      console.log(`[RESPONSE] ${path} ${method} ${JSON.stringify(response)}`)
+    }
+    return response
+  } catch (error) {
+    if (debugModeEnabled) {
+      console.error(`[ERROR] ${path} ${method} `, error)
+    }
+    throw error
+  }
+}
+
 export function forwardRequests(api: Record<string, any>, handler: ApiRequestHandler): void {
   // Update class properties to forward requests
   for (const [path, pathObject] of Object.entries(api)) {
     for (const method of Object.keys(pathObject)) {
       pathObject[`${method}`] = async (...params: any): Promise<any> => {
-        return handler({ path, method, params })
+        return call({ path, method, params }, handler)
+      }
+    }
+  }
+}
+
+export function requestWithLog(api: Record<string, any>) {
+  for (const [path, pathObject] of Object.entries(api)) {
+    for (const [method, handler] of Object.entries(pathObject)) {
+      pathObject[`${method}`] = async (...params: any): Promise<any> => {
+        return call({ path, method, params }, () => (handler as (...any) => Promise<any>)(...params))
       }
     }
   }
