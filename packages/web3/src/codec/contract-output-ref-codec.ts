@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
+import { ArrayCodec } from './array-codec'
 import { Codec } from './codec'
 import { signedIntCodec } from './signed-int-codec'
 
@@ -37,3 +38,4 @@ export class ContractOutputRefCodec implements Codec<ContractOutputRef> {
 }
 
 export const contractOutputRefCodec = new ContractOutputRefCodec()
+export const contractOutputRefsCodec = new ArrayCodec(contractOutputRefCodec)

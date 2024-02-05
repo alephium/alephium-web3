@@ -25,6 +25,9 @@ import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
 import { binToHex, bs58 } from '..'
 import { signedIntCodec } from './signed-int-codec'
+import { LockupScript } from './lockup-script-codec'
+import { lockupScriptCodec } from './lockup-script-codec'
+
 export interface ContractOutput {
   amount: DecodedCompactInt
   lockupScript: P2C
@@ -67,6 +70,27 @@ export class ContractOutputCodec implements Codec<ContractOutput> {
       }
     })
     return { hint, key, attoAlphAmount, address, tokens, type: 'ContractOutput' }
+  }
+
+  static convertToOutput(apiContractOutput: ApiContractOutput): ContractOutput {
+    const amount: DecodedCompactInt = compactUnsignedIntCodec.decode(
+      compactUnsignedIntCodec.encodeU256(BigInt(apiContractOutput.attoAlphAmount))
+    )
+    const lockupScript: P2C = lockupScriptCodec.decode(Buffer.from(bs58.decode(apiContractOutput.address)))
+      .script as P2C
+
+    const tokensValue = apiContractOutput.tokens.map((token) => {
+      return {
+        tokenId: Buffer.from(token.id, 'hex'),
+        amount: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(token.amount)))
+      }
+    })
+    const tokens: DecodedArray<Token> = {
+      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(tokensValue.length)),
+      value: tokensValue
+    }
+
+    return { amount, lockupScript, tokens }
   }
 }
 

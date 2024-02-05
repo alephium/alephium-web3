@@ -23,7 +23,7 @@ import { longCodec } from './long-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, MultiSig, P2C, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
-import { blakeHash, createHint, djbIntHash } from './hash'
+import { blakeHash, createHint } from './hash'
 import { bs58, binToHex } from '../utils'
 import { Codec } from './codec'
 import { PublicKeyHash } from './lockup-script-codec'
@@ -69,11 +69,11 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
     return this.parser.parse(input)
   }
 
-  static convertToFixedAssetOutputs(txIdBytes: Uint8Array, outputs: AssetOutput[]): FixedAssetOutput[] {
-    return outputs.map((output, index) => AssetOutputCodec.convertToFixedAssetOutput(txIdBytes, output, index))
+  static toFixedAssetOutputs(txIdBytes: Uint8Array, outputs: AssetOutput[]): FixedAssetOutput[] {
+    return outputs.map((output, index) => AssetOutputCodec.toFixedAssetOutput(txIdBytes, output, index))
   }
 
-  static convertToFixedAssetOutput(txIdBytes: Uint8Array, output: AssetOutput, index: number): FixedAssetOutput {
+  static toFixedAssetOutput(txIdBytes: Uint8Array, output: AssetOutput, index: number): FixedAssetOutput {
     const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
     const lockTime = Number(longCodec.decode(output.lockTime))
     const tokens = output.tokens.value.map((token) => {
@@ -108,38 +108,43 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
     return { hint, key, attoAlphAmount, lockTime, tokens, address, message }
   }
 
-  static convertToOutputs(fixedOutputs: FixedAssetOutput[]): AssetOutput[] {
+  static fromFixedAssetOutputs(fixedOutputs: FixedAssetOutput[]): AssetOutput[] {
     return fixedOutputs.map((output) => {
-      const amount: DecodedCompactInt = compactUnsignedIntCodec.decode(
-        compactUnsignedIntCodec.encodeU256(BigInt(output.attoAlphAmount))
-      )
-      const lockTime: Buffer = longCodec.encode(BigInt(output.lockTime))
-      const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(bs58.decode(output.address)))
-      const tokensValue = output.tokens.map((token) => {
-        return {
-          tokenId: Buffer.from(token.id, 'hex'),
-          amount: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(Number(token.amount))) // Is it Signed?
-        }
-      })
-      const tokens: DecodedArray<Token> = {
-        length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(tokensValue.length)),
-        value: tokensValue
-      }
-      const additionalDataValue = Buffer.from(output.message, 'hex')
-      const additionalData: ByteString = {
-        length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(additionalDataValue.length)),
-        value: additionalDataValue
-      }
+      return AssetOutputCodec.fromFixedAssetOutput(output)
+    })
+  }
 
+  static fromFixedAssetOutput(fixedOutput: FixedAssetOutput): AssetOutput {
+    const amount: DecodedCompactInt = compactUnsignedIntCodec.decode(
+      compactUnsignedIntCodec.encodeU256(BigInt(fixedOutput.attoAlphAmount))
+    )
+    const lockTime: Buffer = longCodec.encode(BigInt(fixedOutput.lockTime))
+    const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(bs58.decode(fixedOutput.address)))
+    const tokensValue = fixedOutput.tokens.map((token) => {
       return {
-        amount,
-        lockupScript,
-        lockTime,
-        tokens,
-        additionalData
+        tokenId: Buffer.from(token.id, 'hex'),
+        amount: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(token.amount)))
       }
     })
+    const tokens: DecodedArray<Token> = {
+      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(tokensValue.length)),
+      value: tokensValue
+    }
+    const additionalDataValue = Buffer.from(fixedOutput.message, 'hex')
+    const additionalData: ByteString = {
+      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(additionalDataValue.length)),
+      value: additionalDataValue
+    }
+
+    return {
+      amount,
+      lockupScript,
+      lockTime,
+      tokens,
+      additionalData
+    }
   }
 }
 
 export const assetOutputCodec = new AssetOutputCodec()
+export const assetOutputsCodec = new ArrayCodec(assetOutputCodec)

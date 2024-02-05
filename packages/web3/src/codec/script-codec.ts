@@ -16,12 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { ArrayCodec, DecodedArray } from './array-codec'
+import { DecodedArray } from './array-codec'
 import { Codec } from './codec'
-import { Method, methodCodec } from './method-codec'
-import { DecodedCompactInt } from './compact-int-codec'
-
-const methodsCodec = new ArrayCodec(methodCodec)
+import { Method, methodsCodec } from './method-codec'
+import { OptionCodec } from './option-codec'
 
 export interface Script {
   methods: DecodedArray<Method>
@@ -43,3 +41,4 @@ export class ScriptCodec implements Codec<Script> {
 }
 
 export const scriptCodec = new ScriptCodec()
+export const statefulScriptCodecOpt = new OptionCodec(scriptCodec)

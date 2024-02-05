@@ -25,7 +25,7 @@ import { Codec } from './codec'
 const byteStringArrayCodec = new ArrayCodec(byteStringCodec)
 
 // eslint-disable-next-line
-export interface InstrValue {}
+export interface InstrValue { }
 export interface InstrValueWithIndex extends InstrValue {
   index: number
 }
@@ -282,3 +282,4 @@ export class InstrCodec implements Codec<Instr> {
 }
 
 export const instrCodec = new InstrCodec()
+export const instrsCodec = new ArrayCodec<Instr>(instrCodec)

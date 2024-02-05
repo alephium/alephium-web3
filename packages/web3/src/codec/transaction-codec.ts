@@ -15,26 +15,24 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { ArrayCodec, DecodedArray } from './array-codec'
-import { Codec } from './codec'
-import { UnsignedTransactionCodec, UnsignedTransaction, unsignedTransactionCodec } from './unsigned-transaction-codec'
-import { Signature, signatureCodec } from './signature-codec'
-import { ContractOutputRef, contractOutputRefCodec } from './contract-output-ref-codec'
-import { Either, EitherCodec } from './either-codec'
-import { AssetOutput, AssetOutputCodec, assetOutputCodec } from './asset-output-codec'
-import { ContractOutput, ContractOutputCodec, contractOutputCodec } from './contract-output-codec'
-import { Transaction as Tx } from '../api/api-alephium'
-import { hexToBinUnsafe } from '..'
 
-type Output = Either<AssetOutput, ContractOutput>
-const outputCodec = new EitherCodec<AssetOutput, ContractOutput>(assetOutputCodec, contractOutputCodec)
-const outputsCodec = new ArrayCodec(outputCodec)
-export const signaturesCodec = new ArrayCodec(signatureCodec)
-const contractOutputRefsCodec = new ArrayCodec(contractOutputRefCodec)
+import { Parser } from 'binary-parser'
+import { DecodedArray } from './array-codec'
+
+import { UnsignedTxCodec, UnsignedTx, unsignedTxCodec } from './unsigned-tx-codec'
+import { Signature, signaturesCodec } from './signature-codec'
+import { ContractOutputRef, contractOutputRefsCodec } from './contract-output-ref-codec'
+import { Either } from './either-codec'
+import { AssetOutput, AssetOutputCodec } from './asset-output-codec'
+import { ContractOutput, ContractOutputCodec } from './contract-output-codec'
+import { FixedAssetOutput, Transaction as ApiTransaction } from '../api/api-alephium'
+import { hexToBinUnsafe } from '..'
+import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
+import { Codec } from './codec'
+import { Output, outputCodec, outputsCodec } from './output-codec'
 
 export interface Transaction {
-  unsigned: UnsignedTransaction
+  unsigned: UnsignedTx
   scriptExecutionOk: number
   contractInputs: DecodedArray<ContractOutputRef>
   generatedOutputs: DecodedArray<Output>
@@ -45,7 +43,7 @@ export interface Transaction {
 export class TransactionCodec implements Codec<Transaction> {
   parser = new Parser()
     .nest('unsigned', {
-      type: unsignedTransactionCodec.parser
+      type: unsignedTxCodec.parser
     })
     .uint8('scriptExecutionOk')
     .nest('contractInputs', {
@@ -61,14 +59,14 @@ export class TransactionCodec implements Codec<Transaction> {
       type: signaturesCodec.parser
     })
 
-  encode(input: Transaction): Buffer {
+  encode(decodedTx: Transaction): Buffer {
     return Buffer.concat([
-      unsignedTransactionCodec.encode(input.unsigned),
-      Buffer.from([input.scriptExecutionOk]),
-      Buffer.from([...contractOutputRefsCodec.encode(input.contractInputs.value)]),
-      Buffer.from([...outputsCodec.encode(input.generatedOutputs.value)]),
-      Buffer.from([...signaturesCodec.encode(input.inputSignatures.value)]),
-      Buffer.from([...signaturesCodec.encode(input.scriptSignatures.value)])
+      unsignedTxCodec.encode(decodedTx.unsigned),
+      Buffer.from([decodedTx.scriptExecutionOk]),
+      Buffer.from([...contractOutputRefsCodec.encode(decodedTx.contractInputs.value)]),
+      Buffer.from([...outputsCodec.encode(decodedTx.generatedOutputs.value)]),
+      Buffer.from([...signaturesCodec.encode(decodedTx.inputSignatures.value)]),
+      Buffer.from([...signaturesCodec.encode(decodedTx.scriptSignatures.value)])
     ])
   }
 
@@ -76,8 +74,19 @@ export class TransactionCodec implements Codec<Transaction> {
     return this.parser.parse(input)
   }
 
-  static convertToTx(transaction: Transaction, txId: string): Tx {
-    const unsigned = UnsignedTransactionCodec.convertToUnsignedTx(transaction.unsigned, txId)
+  encodeApiTransaction(input: ApiTransaction): Buffer {
+    const decodedTx = TransactionCodec.fromApiTransaction(input)
+    return this.encode(decodedTx)
+  }
+
+  decodeApiTransaction(input: Buffer): ApiTransaction {
+    const decodedTx = this.parser.parse(input)
+    return TransactionCodec.toApiTransaction(decodedTx)
+  }
+
+  static toApiTransaction(transaction: Transaction): ApiTransaction {
+    const txId = UnsignedTxCodec.txId(transaction.unsigned)
+    const unsigned = UnsignedTxCodec.toApiUnsignedTx(transaction.unsigned)
     const scriptExecutionOk = !!transaction.scriptExecutionOk
     const contractInputs = transaction.contractInputs.value.map((contractInput) => {
       const hint = contractInput.hint
@@ -87,11 +96,7 @@ export class TransactionCodec implements Codec<Transaction> {
     const txIdBytes = hexToBinUnsafe(txId)
     const generatedOutputs = transaction.generatedOutputs.value.map((output, index) => {
       if (output.either === 0) {
-        const fixedAssetOutput = AssetOutputCodec.convertToFixedAssetOutput(
-          txIdBytes,
-          output.value as AssetOutput,
-          index
-        )
+        const fixedAssetOutput = AssetOutputCodec.toFixedAssetOutput(txIdBytes, output.value as AssetOutput, index)
         return { ...fixedAssetOutput, type: 'AssetOutput' }
       } else {
         return ContractOutputCodec.convertToApiContractOutput(txIdBytes, output.value as ContractOutput, index)
@@ -102,6 +107,39 @@ export class TransactionCodec implements Codec<Transaction> {
     const scriptSignatures = transaction.scriptSignatures.value.map((signature) => signature.value.toString('hex'))
 
     return { unsigned, scriptExecutionOk, contractInputs, generatedOutputs, inputSignatures, scriptSignatures }
+  }
+
+  static fromApiTransaction(tx: ApiTransaction): Transaction {
+    const unsigned = UnsignedTxCodec.fromApiUnsignedTx(tx.unsigned)
+    const scriptExecutionOk = tx.scriptExecutionOk ? 1 : 0
+    const contractInputs: ContractOutputRef[] = tx.contractInputs.map((contractInput) => {
+      return { hint: contractInput.hint, key: Buffer.from(contractInput.key, 'hex') }
+    })
+    const generatedOutputs: Either<AssetOutput, ContractOutput>[] = tx.generatedOutputs.map((output) => {
+      if (output.type === 'AssetOutput') {
+        return outputCodec.fromLeft(AssetOutputCodec.fromFixedAssetOutput(output as FixedAssetOutput))
+      } else if (output.type === 'ContractOutput') {
+        return outputCodec.fromRight(ContractOutputCodec.convertToOutput(output as ApiContractOutput))
+      } else {
+        throw new Error('Invalid output type')
+      }
+    })
+
+    const inputSignatures: Signature[] = tx.inputSignatures.map((signature) => {
+      return { value: Buffer.from(signature, 'hex') }
+    })
+    const scriptSignatures: Signature[] = tx.scriptSignatures.map((signature) => {
+      return { value: Buffer.from(signature, 'hex') }
+    })
+
+    return {
+      unsigned,
+      scriptExecutionOk,
+      contractInputs: contractOutputRefsCodec.fromArray(contractInputs),
+      generatedOutputs: outputsCodec.fromArray(generatedOutputs),
+      inputSignatures: signaturesCodec.fromArray(inputSignatures),
+      scriptSignatures: signaturesCodec.fromArray(scriptSignatures)
+    }
   }
 }
 

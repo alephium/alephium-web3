@@ -20,11 +20,9 @@ import { TransactionCodec, transactionCodec } from './transaction-codec'
 
 describe('Encode & decode transactions', function () {
   it('should encode and decode coinbase transactions', () => {
-    const txId = 'c1b316227dd32b666d03e12d4fefa3726e590fb482c38adbc5394e8bce33fd0a'
     const encoded =
       '00000080004e20bb9aca000001c422b1c8c1227a0000001676f69331afd08536b2878b639f56c268871863817e7a774d8745614d9e28230000018bdfafc0eb000a00020000018bdde5fd6b0100000000'
-    const decoded = transactionCodec.decode(Buffer.from(encoded, 'hex'))
-    const tx = TransactionCodec.convertToTx(decoded, txId)
+    const tx = transactionCodec.decodeApiTransaction(Buffer.from(encoded, 'hex'))
     const unsignedTx = tx.unsigned
     expect(unsignedTx.inputs).toEqual([])
     expect(unsignedTx.gasAmount).toEqual(20000)
@@ -45,15 +43,13 @@ describe('Encode & decode transactions', function () {
     expect(tx.generatedOutputs).toEqual([])
     expect(tx.scriptSignatures).toEqual([])
     expect(tx.scriptExecutionOk).toEqual(true)
-    expect(encoded).toEqual(transactionCodec.encode(decoded).toString('hex'))
+    expect(encoded).toEqual(transactionCodec.encodeApiTransaction(tx).toString('hex'))
   })
 
   it('should encode and decode a normal transfer transaction', () => {
-    const txId = 'c8addc7a19a25e8f4ad5bd988680c5575457368e3ea4d857d70d2435146366c9'
     const encoded =
       '0000008000585cc1174876e80002b92f810be64911de68098dec60272b9724def39fddd10dbe25c6d43da6f0aa598f8bfdbe00030871c7f3b39a4424bcf78002973a5f26620c2d56967e72f0b27964c339bfff58b92f810bdc056a644fa173aeaefeedac3d988fa7545ac0fbcaae0566e9b5c146848d8cd600030871c7f3b39a4424bcf78002973a5f26620c2d56967e72f0b27964c339bfff5803c3038d7ea4c6800000c984ff65f9d30be832bd9d746a434b79ef2a37b2f5dcffea492c0903a81d695e000000000000000001b2d71c116408ae47b931482a440f675dc9ea64453db24ee931dacd578cae90020200c3038d7ea4c6800000efb60170f8e16e32e1b01724a0cdc0fb7a4e233edf54556ea88a441619adbed4000000000000000001b2d71c116408ae47b931482a440f675dc9ea64453db24ee931dacd578cae9002405c00c5011582af43848e200000efb60170f8e16e32e1b01724a0cdc0fb7a4e233edf54556ea88a441619adbed4000000000000000000000100000159b219a49a6ae7e246be193d2b2d7c1ab986fb93830150d559d14de24e2969b163ccb63d56e22973d65fb1c27ab1ed6d611f337a2d82c7aa4fdaec2a8efd027a00'
-    const decoded = transactionCodec.decode(Buffer.from(encoded, 'hex'))
-    const tx = TransactionCodec.convertToTx(decoded, txId)
+    const tx = transactionCodec.decodeApiTransaction(Buffer.from(encoded, 'hex'))
     const unsignedTx = tx.unsigned
     expect(unsignedTx.inputs).toEqual([
       {
@@ -117,15 +113,14 @@ describe('Encode & decode transactions', function () {
     expect(tx.generatedOutputs).toEqual([])
     expect(tx.scriptSignatures).toEqual([])
     expect(tx.scriptExecutionOk).toEqual(true)
-    expect(encoded).toEqual(transactionCodec.encode(decoded).toString('hex'))
+    expect(encoded).toEqual(transactionCodec.encodeApiTransaction(tx).toString('hex'))
   })
 
   it('should encode and decode transaction with txscript', () => {
-    const txId = '8bb784ef69bca0246dcf2bc465dc09693b86d72ed68167011626afb73583498e'
     const encoded =
       '0000010101030001000e0c0d1440205bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd0001131700b4160013c40de0b6b3a7640000a313c40de0b6b3a76400000d0c1440205bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00010d8000d935c1174876e80004162de2c13e1ad7c84e697cc65c97a4a5161515ed7dcf91630ab73f49fa2145e9e606f6ab00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca162de2c189995088e0355cb2771d63e76a3b9d7f7cac5f1301e29194b6f8dad5d22916b900034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca162de2c1e9411abed460ec64a3ef04c44351de07135f951a6ea72fe6281d72c0e394922c00034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca162de2c1cb32af059f198eb97a987ef0401c60a72b3bde65f2eba6db4206cf020859cdf400034e30eb5dd78000bcbe276e1202d0dc5499398321cc160cc8b10f2a71ffdfe7ca02c3038d7ea4c680000017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae0000000000000000011a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800c4080e49bae139a68600c507f9f8dfaa1c0e11350017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae000000000000000000000101261dc7384d0c7ac9b94e6f7a9d6f1dc169dedcf91ac5562193430a96345a84cdc75d25770301c40de0b6b3a76400005bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00021a281053ba8601a658368594da034c2e99a0fb951b86498d05e76aedfe666800c63659cb228509c819a6895bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00dc7fffffffffffffffffffffffffffffffffffffffffffe496703b41203ebd87fc00c3038d7ea4c680000017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae0000000000000000015bf2f559ae714dab83ff36bed4d9e634dfda3ca9ed755d60f00be89e2a20bd00c409bc9816fba6feaa0000c3071afd498d00000017620f4cdd77b8e469a5ec08a6744c6334410684a9ee91835ac27ae27f3be3ae00000000000000000000010658195be6597135402809b0cf8982ebe1ff9b25f9c3a79cc8b1a67d7d095fd771e8c08dac911469355abb121e7980a9eb23d300f1d41131abafea0ebaecdc0e00'
-    const decoded = transactionCodec.decode(Buffer.from(encoded, 'hex'))
-    const tx = TransactionCodec.convertToTx(decoded, txId)
+
+    const tx = transactionCodec.decodeApiTransaction(Buffer.from(encoded, 'hex'))
     const unsignedTx = tx.unsigned
 
     expect(unsignedTx.inputs).toEqual([
@@ -244,15 +239,13 @@ describe('Encode & decode transactions', function () {
     ])
     expect(tx.scriptSignatures).toEqual([])
     expect(tx.scriptExecutionOk).toEqual(true)
-    expect(encoded).toEqual(transactionCodec.encode(decoded).toString('hex'))
+    expect(encoded).toEqual(transactionCodec.encodeApiTransaction(tx).toString('hex'))
   })
 
   it('should encode and decode multi-sig transaction', () => {
-    const txId = '81836be01eb7dc39bce3e53e23866cc16d76ab8295c68b70acb9bb3764b6c2c8'
     const encoded =
       '0000008000508cc1174876e80001780bbd615a8e43e87fd0d5700b4222c9907bf092a02d25507149a725b562c5e8efedaa49010203e4f63855f2ed3c4b9b0a1e36df2ecbe7c0c0b588807ac43b393394b25fdfb2c10102edbee455257d132b0f9d901708b3adcdbfe497198febb4de1f9d125f005457760203c56ee9f42fd3d13800000054ed84c9b26393d8504056bea825065d3effcf40eec54dae423c820d36ba9b2200000000000000000000c60b8c2f865514d19000000039aa6bf6714e367518463c54313bbeb8e4f5b0eca628e5435096dc5ba0e3b09000000000000000000000c611e39c8c70280c69c00001035c323a5546da85d7d6a3e01820b1e61008d92ea9c1077a0f199238b51a9e1d54cb9469272d1f2a2d4584d23deaf90a62fa80df95ca35767a6479706404306788c9aec85e0411115266fbe6a3cf345c24204967d5cde9bdf9d426622df05ab205020000000000000000000001000002af093eb7359d6d50a845a21dbc87da55b9977455d479f4ea99e3b2d4c32d51891b6f7f33f72ad77855c5512df7fc7bb00dbab0438d008bc43fce975bdf9cae34e7bccf25b90d7f79a30a39f030a4f7624dac6680a04ac00d60550bcae4b806f44dffb17502c87165fef2f25d678ce4f1d4e2de39958dc27ab3d94722ee81bece00'
-    const decoded = transactionCodec.decode(Buffer.from(encoded, 'hex'))
-    const tx = TransactionCodec.convertToTx(decoded, txId)
+    const tx = transactionCodec.decodeApiTransaction(Buffer.from(encoded, 'hex'))
     const unsignedTx = tx.unsigned
     expect(unsignedTx.inputs).toEqual([
       {
@@ -304,6 +297,6 @@ describe('Encode & decode transactions', function () {
     expect(tx.generatedOutputs).toEqual([])
     expect(tx.scriptSignatures).toEqual([])
     expect(tx.scriptExecutionOk).toEqual(true)
-    expect(encoded).toEqual(transactionCodec.encode(decoded).toString('hex'))
+    expect(encoded).toEqual(transactionCodec.encodeApiTransaction(tx).toString('hex'))
   })
 })

@@ -21,6 +21,7 @@ import { binToHex } from '../utils'
 import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
 import { Codec } from './codec'
 import { signedIntCodec } from './signed-int-codec'
+import { ArrayCodec } from './array-codec'
 
 export interface Input {
   outputRef: {
@@ -50,7 +51,7 @@ export class InputCodec implements Codec<Input> {
     return this.parser.parse(input)
   }
 
-  static convertToAssetInputs(inputs: Input[]): AssetInput[] {
+  static toAssetInputs(inputs: Input[]): AssetInput[] {
     return inputs.map((input) => {
       const hint = input.outputRef.hint
       const key = binToHex(input.outputRef.key)
@@ -62,7 +63,7 @@ export class InputCodec implements Codec<Input> {
     })
   }
 
-  static convertToInputs(inputs: AssetInput[]): Input[] {
+  static fromAssetInputs(inputs: AssetInput[]): Input[] {
     return inputs.map((input) => {
       const hint = input.outputRef.hint
       const key = Buffer.from(input.outputRef.key, 'hex')
@@ -76,3 +77,4 @@ export class InputCodec implements Codec<Input> {
 }
 
 export const inputCodec = new InputCodec()
+export const inputsCodec = new ArrayCodec(inputCodec)

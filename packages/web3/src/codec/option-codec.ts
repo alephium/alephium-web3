@@ -23,7 +23,16 @@ export interface Option<T> {
   value?: T
 }
 export class OptionCodec<T> implements Codec<Option<T>> {
-  constructor(private childCodec: Codec<T>, public parser = OptionCodec.optionParser(childCodec.parser)) {}
+  constructor(
+    private childCodec: Codec<T>,
+    public parser = new Parser().uint8('option').choice('value', {
+      tag: 'option',
+      choices: {
+        0: new Parser(),
+        1: childCodec.parser
+      }
+    })
+  ) {}
 
   encode(input: Option<T>): Buffer {
     const result = [input.option]
@@ -41,13 +50,10 @@ export class OptionCodec<T> implements Codec<Option<T>> {
     }
   }
 
-  static optionParser(parser: Parser) {
-    return new Parser().uint8('option').choice('value', {
-      tag: 'option',
-      choices: {
-        0: new Parser(),
-        1: parser
-      }
-    })
+  fromBuffer(input?: Buffer): Option<T> {
+    return {
+      option: input ? 1 : 0,
+      value: input ? this.childCodec.decode(input) : undefined
+    }
   }
 }

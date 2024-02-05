@@ -19,9 +19,7 @@ import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
-import { instrCodec, Instr } from './instr-codec'
-
-const instrsCodec = new ArrayCodec<Instr>(instrCodec)
+import { instrsCodec, Instr } from './instr-codec'
 
 export interface Method {
   isPublic: number
@@ -64,3 +62,4 @@ export class MethodCodec implements Codec<Method> {
 }
 
 export const methodCodec = new MethodCodec()
+export const methodsCodec = new ArrayCodec(methodCodec)

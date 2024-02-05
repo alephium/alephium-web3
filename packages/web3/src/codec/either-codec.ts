@@ -27,7 +27,15 @@ export class EitherCodec<L, R> implements Codec<Either<L, R>> {
   constructor(
     private leftCodec: Codec<L>,
     private rightCodec: Codec<R>,
-    public parser = EitherCodec.eitherParser(leftCodec.parser, rightCodec.parser)
+    public parser = Parser.start()
+      .uint8('either')
+      .choice('value', {
+        tag: 'either',
+        choices: {
+          0: leftCodec.parser,
+          1: rightCodec.parser
+        }
+      })
   ) {}
 
   encode(input: Either<L, R>): Buffer {
@@ -49,15 +57,17 @@ export class EitherCodec<L, R> implements Codec<Either<L, R>> {
     }
   }
 
-  static eitherParser(leftParser: Parser, rightParser: Parser) {
-    return Parser.start()
-      .uint8('either')
-      .choice('value', {
-        tag: 'either',
-        choices: {
-          0: leftParser,
-          1: rightParser
-        }
-      })
+  fromLeft(left: L): Either<L, R> {
+    return {
+      either: 0,
+      value: left
+    }
+  }
+
+  fromRight(right: R): Either<L, R> {
+    return {
+      either: 1,
+      value: right
+    }
   }
 }

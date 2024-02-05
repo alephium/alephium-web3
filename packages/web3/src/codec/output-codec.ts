@@ -15,25 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
+
 import { ArrayCodec } from './array-codec'
-import { Codec } from './codec'
+import { Either, EitherCodec } from './either-codec'
+import { AssetOutput, assetOutputCodec } from './asset-output-codec'
+import { ContractOutput, contractOutputCodec } from './contract-output-codec'
 
-export interface Signature {
-  value: Buffer
-}
-
-export class SignatureCodec implements Codec<Signature> {
-  parser = Parser.start().buffer('value', { length: 64 })
-
-  encode(input: Signature): Buffer {
-    return input.value
-  }
-
-  decode(input: Buffer): Signature {
-    return this.parser.parse(input)
-  }
-}
-
-export const signatureCodec = new SignatureCodec()
-export const signaturesCodec = new ArrayCodec(signatureCodec)
+export type Output = Either<AssetOutput, ContractOutput>
+export const outputCodec = new EitherCodec<AssetOutput, ContractOutput>(assetOutputCodec, contractOutputCodec)
+export const outputsCodec = new ArrayCodec(outputCodec)

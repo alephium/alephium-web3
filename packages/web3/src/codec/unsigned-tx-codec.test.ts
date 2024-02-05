@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode } from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
-import { UnsignedTransaction, UnsignedTransactionCodec, unsignedTransactionCodec } from './index'
+import { unsignedTxCodec } from './index'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { DUST_AMOUNT } from '../constants'
 import { UnsignedTx } from '../api/api-alephium'
@@ -204,21 +204,21 @@ describe('Encode & decode unsigned transactions', function () {
   }, 100000)
 
   async function checkUnsignedTxCodec(unsignedTx: string) {
-    checkUnsignedTransactionCodecRoundtrip(unsignedTx)
+    checkUnsignedTxCodecRoundtrip(unsignedTx)
 
     const nodeProvider = web3.getCurrentNodeProvider()
     const { unsignedTx: serverDecodedUnsignedTx } = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
       unsignedTx
     })
-    const clientEncodedUnsignedTx = UnsignedTransactionCodec.encodeUnsignedTx(serverDecodedUnsignedTx)
+    const clientEncodedUnsignedTx = unsignedTxCodec.encodeApiUnsignedTx(serverDecodedUnsignedTx).toString('hex')
     expect(unsignedTx).toEqual(clientEncodedUnsignedTx)
-    const clientDecodedUnsignedTx: UnsignedTx = UnsignedTransactionCodec.decodeToUnsignedTx(unsignedTx)
+    const clientDecodedUnsignedTx: UnsignedTx = unsignedTxCodec.decodeApiUnsignedTx(Buffer.from(unsignedTx, 'hex'))
     expect(clientDecodedUnsignedTx).toEqual(serverDecodedUnsignedTx)
   }
 
-  function checkUnsignedTransactionCodecRoundtrip(unsignedTx: string) {
-    const decoded: UnsignedTransaction = unsignedTransactionCodec.decode(Buffer.from(unsignedTx, 'hex'))
-    const encoded: string = unsignedTransactionCodec.encode(decoded).toString('hex')
+  function checkUnsignedTxCodecRoundtrip(unsignedTx: string) {
+    const decoded: UnsignedTx = unsignedTxCodec.decodeApiUnsignedTx(Buffer.from(unsignedTx, 'hex'))
+    const encoded: string = unsignedTxCodec.encodeApiUnsignedTx(decoded).toString('hex')
     expect(unsignedTx).toEqual(encoded)
   }
 })

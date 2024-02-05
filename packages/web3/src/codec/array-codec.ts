@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
-import { compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
+import { compactSignedIntCodec, compactUnsignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Codec } from './codec'
 
 export interface DecodedArray<T> {
@@ -51,5 +51,12 @@ export class ArrayCodec<T> implements Codec<T[]> {
         },
         type: parser
       })
+  }
+
+  fromArray(inputs: T[]): DecodedArray<T> {
+    return {
+      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(inputs.length)),
+      value: inputs
+    }
   }
 }
