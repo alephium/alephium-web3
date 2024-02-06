@@ -129,6 +129,48 @@ describe('contract', function () {
     expect(bytecode).toEqual('144020b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae')
   })
 
+  it('should flatten script fields', () => {
+    const fields: Fields = {
+      numbers0: [
+        [0n, 1n],
+        [2n, 3n]
+      ],
+      numbers1: [0n, 1n, 2n],
+      address: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
+      bytes: '0011'
+    }
+    const fieldsSig: FieldsSig = {
+      names: ['address', 'numbers0', 'bytes', 'numbers1'],
+      types: ['Address', '[[U256;2];2]', 'ByteVec', '[U256;3]'],
+      isMutable: [false, false, false, false]
+    }
+    const result = ralph.falttenFields(fields, fieldsSig)
+    expect(result).toEqual([
+      {
+        name: 'address',
+        type: 'Address',
+        value: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'
+      },
+      { name: 'numbers0[0][0]', type: 'U256', value: 0n },
+      { name: 'numbers0[0][1]', type: 'U256', value: 1n },
+      { name: 'numbers0[1][0]', type: 'U256', value: 2n },
+      { name: 'numbers0[1][1]', type: 'U256', value: 3n },
+      { name: 'bytes', type: 'ByteVec', value: '0011' },
+      { name: 'numbers1[0]', type: 'U256', value: 0n },
+      { name: 'numbers1[1]', type: 'U256', value: 1n },
+      { name: 'numbers1[2]', type: 'U256', value: 2n }
+    ])
+
+    const invalidFields0 = { ...fields, numbers0: [0n, 1n] }
+    expect(() => ralph.falttenFields(invalidFields0, fieldsSig)).toThrow(
+      'Invalid field, expected type is [U256;2], but value is 0'
+    )
+    const invalidFields1 = { ...fields, numbers1: [[0n], [1n], [2n]] }
+    expect(() => ralph.falttenFields(invalidFields1, fieldsSig)).toThrow(
+      'Invalid field, expected type is U256, but value is [0]'
+    )
+  })
+
   it('should test buildScriptByteCode', () => {
     const variables = { x: true, y: 0x05n, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
     const fieldsSig: FieldsSig = {

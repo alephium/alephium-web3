@@ -1,0 +1,12 @@
+TxScript TemplateArrayVar(address: Address, numbers0: [[U256; 2]; 2], bytes: ByteVec, numbers1: [U256; 3]) {
+  let _ = address
+  let _ = bytes
+
+  assert!(numbers0[1][1] == 3 && numbers0[1][0] == 2 && numbers0[0][1] == 1 && numbers0[0][0] == 0, 0)
+  let array0 = numbers0[0]
+  assert!(array0[0] == 0 && array0[1] == 1, 0)
+  let array1 = numbers0[1]
+  assert!(array1[0] == 2 && array1[1] == 3, 0)
+
+  assert!(numbers1[2] == 2 && numbers1[1] == 1 && numbers1[0] == 0, 0)
+}

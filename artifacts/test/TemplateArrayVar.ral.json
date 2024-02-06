@@ -1,0 +1,37 @@
+{
+  "version": "v2.8.0",
+  "name": "TemplateArrayVar",
+  "bytecodeTemplate": "010103000400403c{0}18{5}18{4}0f2f{3}0e2f1a{2}0d2f1a{1}0c2f1a0c7b{1}{2}1701170016000c2f16010d2f1a0c7b{3}{4}1703170216020e2f16030f2f1a0c7b{8}0e2f{7}0d2f1a{6}0c2f1a0c7b",
+  "fieldsSig": {
+    "names": [
+      "address",
+      "numbers0",
+      "bytes",
+      "numbers1"
+    ],
+    "types": [
+      "Address",
+      "[[U256;2];2]",
+      "ByteVec",
+      "[U256;3]"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

@@ -220,6 +220,13 @@
       "codeHashDebug": "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
       "warnings": []
     },
+    "TemplateArrayVar": {
+      "sourceFile": "test/template_array_var.ral",
+      "sourceCodeHash": "6c74ecf8ff382a6722868c58ccb13a3be1428a298574bfd22e787a85099eeefe",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "TokenTest": {
       "sourceFile": "token/token_test.ral",
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
