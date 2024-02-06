@@ -65,10 +65,10 @@ export const U256Const2: Instr = { code: 0x0e, value: {} }
 export const U256Const3: Instr = { code: 0x0f, value: {} }
 export const U256Const4: Instr = { code: 0x10, value: {} }
 export const U256Const5: Instr = { code: 0x11, value: {} }
-export const I256Const = (value: DecodedCompactInt): Instr => ({ code: 0x12, value })
-export const U256Const = (value: DecodedCompactInt): Instr => ({ code: 0x13, value })
-export const ByteConst = (value: ByteString): Instr => ({ code: 0x14, value })
-export const AddressConst = (value: LockupScript): Instr => ({ code: 0x15, value })
+export const I256Const = (value: DecodedCompactInt): Instr => ({ code: 0x12, value: { value } })
+export const U256Const = (value: DecodedCompactInt): Instr => ({ code: 0x13, value: { value } })
+export const ByteConst = (value: ByteString): Instr => ({ code: 0x14, value: { value } })
+export const AddressConst = (value: LockupScript): Instr => ({ code: 0x15, value: { value } })
 export const LoadLocal = (index: number): Instr => ({ code: 0x16, value: { index } })
 export const StoreLocal = (index: number): Instr => ({ code: 0x17, value: { index } })
 export const Pop: Instr = { code: 0x18, value: {} }
@@ -123,7 +123,7 @@ export const IsAssetAddress: Instr = { code: 0x48, value: {} }
 export const IsContractAddress: Instr = { code: 0x49, value: {} }
 export const Jump = (value: DecodedCompactInt): Instr => ({ code: 0x4a, value })
 export const IfTrue = (value: DecodedCompactInt): Instr => ({ code: 0x4b, value })
-export const IfFalse = (value: DecodedCompactInt): Instr => ({ code: 0x4c, value })
+export const IfFalse = (value: DecodedCompactInt): Instr => ({ code: 0x4c, value: { value } })
 export const Assert: Instr = { code: 0x4d, value: {} }
 export const Blake2b: Instr = { code: 0x4e, value: {} }
 export const Keccak256: Instr = { code: 0x4f, value: {} }
