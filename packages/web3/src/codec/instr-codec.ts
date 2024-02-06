@@ -33,30 +33,208 @@ export interface InstrValueWithCompactInt extends InstrValue {
   value: DecodedCompactInt
 }
 
-export type CallLocal = InstrValueWithIndex
-export type CallExternal = InstrValue
-export type U256Const = InstrValueWithCompactInt
-export type I256Const = InstrValueWithCompactInt
 export interface ByteStringConst extends InstrValue {
   value: ByteString
 }
 export interface AddressConst extends InstrValue {
   value: LockupScript
 }
-export type LoadLocal = InstrValueWithIndex
-export type StoreLocal = InstrValueWithIndex
-export type Jump = InstrValueWithCompactInt
 export interface Debug extends InstrValue {
   stringParts: DecodedArray<ByteString>
 }
-export type LoadMutField = InstrValueWithIndex
-export type StoreMutField = InstrValueWithIndex
-export type LoadImmField = InstrValueWithIndex
-
 export interface Instr {
   code: number
   value?: InstrValue
 }
+
+export const CallLocal = (index: number): Instr => ({ code: 0x00, value: { index } })
+export const CallExternal = (index: number): Instr => ({ code: 0x01, value: { index } })
+export const Return: Instr = { code: 0x02, value: {} }
+export const ConstTrue: Instr = { code: 0x03, value: {} }
+export const ConstFalse: Instr = { code: 0x04, value: {} }
+export const I256Const0: Instr = { code: 0x05, value: {} }
+export const I256Const1: Instr = { code: 0x06, value: {} }
+export const I256Const2: Instr = { code: 0x07, value: {} }
+export const I256Const3: Instr = { code: 0x08, value: {} }
+export const I256Const4: Instr = { code: 0x09, value: {} }
+export const I256Const5: Instr = { code: 0x0a, value: {} }
+export const I256ConstN1: Instr = { code: 0x0b, value: {} }
+export const U256Const0: Instr = { code: 0x0c, value: {} }
+export const U256Const1: Instr = { code: 0x0d, value: {} }
+export const U256Const2: Instr = { code: 0x0e, value: {} }
+export const U256Const3: Instr = { code: 0x0f, value: {} }
+export const U256Const4: Instr = { code: 0x10, value: {} }
+export const U256Const5: Instr = { code: 0x11, value: {} }
+export const I256Const = (value: DecodedCompactInt): Instr => ({ code: 0x12, value })
+export const U256Const = (value: DecodedCompactInt): Instr => ({ code: 0x13, value })
+export const ByteConst = (value: ByteString): Instr => ({ code: 0x14, value })
+export const AddressConst = (value: LockupScript): Instr => ({ code: 0x15, value })
+export const LoadLocal = (index: number): Instr => ({ code: 0x16, value: { index } })
+export const StoreLocal = (index: number): Instr => ({ code: 0x17, value: { index } })
+export const Pop: Instr = { code: 0x18, value: {} }
+export const BoolNot: Instr = { code: 0x19, value: {} }
+export const BoolAnd: Instr = { code: 0x1a, value: {} }
+export const BoolOr: Instr = { code: 0x1b, value: {} }
+export const BoolEq: Instr = { code: 0x1c, value: {} }
+export const BoolNeq: Instr = { code: 0x1d, value: {} }
+export const BoolToByte: Instr = { code: 0x1e, value: {} }
+export const I256Add: Instr = { code: 0x1f, value: {} }
+export const I256Sub: Instr = { code: 0x20, value: {} }
+export const I256Mul: Instr = { code: 0x21, value: {} }
+export const I256Div: Instr = { code: 0x22, value: {} }
+export const I256Mod: Instr = { code: 0x23, value: {} }
+export const I256Eq: Instr = { code: 0x24, value: {} }
+export const I256Neq: Instr = { code: 0x25, value: {} }
+export const I256Lt: Instr = { code: 0x26, value: {} }
+export const I256Le: Instr = { code: 0x27, value: {} }
+export const I256Gt: Instr = { code: 0x28, value: {} }
+export const I256Ge: Instr = { code: 0x29, value: {} }
+export const U256Add: Instr = { code: 0x2a, value: {} }
+export const U256Sub: Instr = { code: 0x2b, value: {} }
+export const U256Mul: Instr = { code: 0x2c, value: {} }
+export const U256Div: Instr = { code: 0x2d, value: {} }
+export const U256Mod: Instr = { code: 0x2e, value: {} }
+export const U256Eq: Instr = { code: 0x2f, value: {} }
+export const U256Neq: Instr = { code: 0x30, value: {} }
+export const U256Lt: Instr = { code: 0x31, value: {} }
+export const U256Le: Instr = { code: 0x32, value: {} }
+export const U256Gt: Instr = { code: 0x33, value: {} }
+export const U256Ge: Instr = { code: 0x34, value: {} }
+export const U256ModAdd: Instr = { code: 0x35, value: {} }
+export const U256ModSub: Instr = { code: 0x36, value: {} }
+export const U256ModMul: Instr = { code: 0x37, value: {} }
+export const U256BitAnd: Instr = { code: 0x38, value: {} }
+export const U256BitOr: Instr = { code: 0x39, value: {} }
+export const U256Xor: Instr = { code: 0x3a, value: {} }
+export const U256SHL: Instr = { code: 0x3b, value: {} }
+export const U256SHR: Instr = { code: 0x3c, value: {} }
+export const I256ToU256: Instr = { code: 0x3d, value: {} }
+export const I256ToByteVec: Instr = { code: 0x3e, value: {} }
+export const U256ToI256: Instr = { code: 0x3f, value: {} }
+export const U256ToByteVec: Instr = { code: 0x40, value: {} }
+export const ByteVecEq: Instr = { code: 0x41, value: {} }
+export const ByteVecNeq: Instr = { code: 0x42, value: {} }
+export const ByteVecSize: Instr = { code: 0x43, value: {} }
+export const ByteVecConcat: Instr = { code: 0x44, value: {} }
+export const AddressEq: Instr = { code: 0x45, value: {} }
+export const AddressNeq: Instr = { code: 0x46, value: {} }
+export const AddressToByteVec: Instr = { code: 0x47, value: {} }
+export const IsAssetAddress: Instr = { code: 0x48, value: {} }
+export const IsContractAddress: Instr = { code: 0x49, value: {} }
+export const Jump = (value: DecodedCompactInt): Instr => ({ code: 0x4a, value })
+export const IfTrue = (value: DecodedCompactInt): Instr => ({ code: 0x4b, value })
+export const IfFalse = (value: DecodedCompactInt): Instr => ({ code: 0x4c, value })
+export const Assert: Instr = { code: 0x4d, value: {} }
+export const Blake2b: Instr = { code: 0x4e, value: {} }
+export const Keccak256: Instr = { code: 0x4f, value: {} }
+export const Sha256: Instr = { code: 0x50, value: {} }
+export const Sha3: Instr = { code: 0x51, value: {} }
+export const VerifyTxSignature: Instr = { code: 0x52, value: {} }
+export const VerifySecP256K1: Instr = { code: 0x53, value: {} }
+export const VerifyEd25519: Instr = { code: 0x54, value: {} }
+export const NetworkId: Instr = { code: 0x55, value: {} }
+export const BlockTimeStamp: Instr = { code: 0x56, value: {} }
+export const BlockTarget: Instr = { code: 0x57, value: {} }
+export const TxId: Instr = { code: 0x58, value: {} }
+export const TxInputAddressAt: Instr = { code: 0x59, value: {} }
+export const TxInputsSize: Instr = { code: 0x5a, value: {} }
+export const VerifyAbsoluteLocktime: Instr = { code: 0x5b, value: {} }
+export const VerifyRelativeLocktime: Instr = { code: 0x5c, value: {} }
+export const Log1: Instr = { code: 0x5d, value: {} }
+export const Log2: Instr = { code: 0x5e, value: {} }
+export const Log3: Instr = { code: 0x5f, value: {} }
+export const Log4: Instr = { code: 0x60, value: {} }
+export const Log5: Instr = { code: 0x61, value: {} }
+export const ByteVecSlice: Instr = { code: 0x62, value: {} }
+export const ByteVecToAddress: Instr = { code: 0x63, value: {} }
+export const Encode: Instr = { code: 0x64, value: {} }
+export const Zeros: Instr = { code: 0x65, value: {} }
+export const U256To1Byte: Instr = { code: 0x66, value: {} }
+export const U256To2Bytes: Instr = { code: 0x67, value: {} }
+export const U256To4Bytes: Instr = { code: 0x68, value: {} }
+export const U256To8Bytes: Instr = { code: 0x69, value: {} }
+export const U256To16Bytes: Instr = { code: 0x6a, value: {} }
+export const U256To32Bytes: Instr = { code: 0x6b, value: {} }
+export const U256From1Byte: Instr = { code: 0x6c, value: {} }
+export const U256From2Bytes: Instr = { code: 0x6d, value: {} }
+export const U256From4Bytes: Instr = { code: 0x6e, value: {} }
+export const U256From8Bytes: Instr = { code: 0x6f, value: {} }
+export const U256From16Bytes: Instr = { code: 0x70, value: {} }
+export const U256From32Bytes: Instr = { code: 0x71, value: {} }
+export const EthEcRecover: Instr = { code: 0x72, value: {} }
+export const Log6: Instr = { code: 0x73, value: {} }
+export const Log7: Instr = { code: 0x74, value: {} }
+export const Log8: Instr = { code: 0x75, value: {} }
+export const Log9: Instr = { code: 0x76, value: {} }
+export const ContractIdToAddress: Instr = { code: 0x77, value: {} }
+export const LoadLocalByIndex: Instr = { code: 0x78, value: {} }
+export const StoreLocalByIndex: Instr = { code: 0x79, value: {} }
+export const Dup: Instr = { code: 0x7a, value: {} }
+export const AssertWithMsg: Instr = { code: 0x7b, value: {} }
+export const Swap: Instr = { code: 0x7c, value: {} }
+export const BlockHash: Instr = { code: 0x7d, value: {} }
+export const DEBUG = (stringParts: DecodedArray<ByteString>): Instr => ({ code: 0x7e, value: { stringParts } })
+export const TxGasPrice: Instr = { code: 0x7f, value: {} }
+export const TxGasAmount: Instr = { code: 0x80, value: {} }
+export const TxGasFee: Instr = { code: 0x81, value: {} }
+export const I256Exp: Instr = { code: 0x82, value: {} }
+export const U256Exp: Instr = { code: 0x83, value: {} }
+export const U256ModExp: Instr = { code: 0x84, value: {} }
+export const VerifyBIP340Schnorr: Instr = { code: 0x85, value: {} }
+export const GetSegragatedSignature: Instr = { code: 0x86, value: {} }
+export const MulModN: Instr = { code: 0x87, value: {} }
+export const AddModN: Instr = { code: 0x88, value: {} }
+export const U256ToString: Instr = { code: 0x89, value: {} }
+export const I256ToString: Instr = { code: 0x8a, value: {} }
+export const BoolToString: Instr = { code: 0x8b, value: {} }
+export const LoadMutField = (index: number): Instr => ({ code: 0xa0, value: { index } })
+export const StoreMutField = (index: number): Instr => ({ code: 0xa1, value: { index } })
+export const ApproveAlph: Instr = { code: 0xa2, value: {} }
+export const ApproveToken: Instr = { code: 0xa3, value: {} }
+export const AlphRemaining: Instr = { code: 0xa4, value: {} }
+export const TokenRemaining: Instr = { code: 0xa5, value: {} }
+export const IsPaying: Instr = { code: 0xa6, value: {} }
+export const TransferAlph: Instr = { code: 0xa7, value: {} }
+export const TransferAlphFromSelf: Instr = { code: 0xa8, value: {} }
+export const TransferAlphToSelf: Instr = { code: 0xa9, value: {} }
+export const TransferToken: Instr = { code: 0xaa, value: {} }
+export const TransferTokenFromSelf: Instr = { code: 0xab, value: {} }
+export const TransferTokenToSelf: Instr = { code: 0xac, value: {} }
+export const CreateContract: Instr = { code: 0xad, value: {} }
+export const CreateContractWithToken: Instr = { code: 0xae, value: {} }
+export const CopyCreateContract: Instr = { code: 0xaf, value: {} }
+export const DestroySelf: Instr = { code: 0xb0, value: {} }
+export const SelfContractId: Instr = { code: 0xb1, value: {} }
+export const SelfAddress: Instr = { code: 0xb2, value: {} }
+export const CallerContractId: Instr = { code: 0xb3, value: {} }
+export const CallerAddress: Instr = { code: 0xb4, value: {} }
+export const IsCallerFromTxScript: Instr = { code: 0xb5, value: {} }
+export const CallerInitialStateHash: Instr = { code: 0xb6, value: {} }
+export const CallCodeHash: Instr = { code: 0xb7, value: {} }
+export const ContractInitialStateHash: Instr = { code: 0xb8, value: {} }
+export const ContractInitialCodeHash: Instr = { code: 0xb9, value: {} }
+export const MigrateSimple: Instr = { code: 0xba, value: {} }
+export const MigrateWithFields: Instr = { code: 0xbb, value: {} }
+export const CopyCreateContractWithToken: Instr = { code: 0xbc, value: {} }
+export const BurnToken: Instr = { code: 0xbd, value: {} }
+export const LockApprovedAssets: Instr = { code: 0xbe, value: {} }
+export const CreateSubContract: Instr = { code: 0xbf, value: {} }
+export const CreateSubContractWithToken: Instr = { code: 0xc0, value: {} }
+export const CopyCreateSubContract: Instr = { code: 0xc1, value: {} }
+export const CopyCreateSubContractWithToken: Instr = { code: 0xc2, value: {} }
+export const LoadMutFieldByIndex: Instr = { code: 0xc3, value: {} }
+export const StoreMutFieldByIndex: Instr = { code: 0xc4, value: {} }
+export const ContractExists: Instr = { code: 0xc5, value: {} }
+export const CreateContractAndTransferToken: Instr = { code: 0xc6, value: {} }
+export const CopyCreateContractAndTransferToken: Instr = { code: 0xc7, value: {} }
+export const CreateSubContractAndTransferToken: Instr = { code: 0xc8, value: {} }
+export const CopyCreateSubContractAndTransferToken: Instr = { code: 0xc9, value: {} }
+export const NullContractAddress: Instr = { code: 0xca, value: {} }
+export const SubContractId: Instr = { code: 0xcb, value: {} }
+export const SubContractOf: Instr = { code: 0xcc, value: {} }
+export const AlphTokenId: Instr = { code: 0xcd, value: {} }
+export const LoadImmField = (index: number): Instr => ({ code: 0xce, value: { index } })
+export const LoadImmFieldByIndex: Instr = { code: 0xcf, value: {} }
 
 export class InstrCodec implements Codec<Instr> {
   parser = Parser.start()
@@ -204,7 +382,6 @@ export class InstrCodec implements Codec<Instr> {
         0x89: Parser.start(), // U256ToString
         0x8a: Parser.start(), // I256ToString
         0x8b: Parser.start(), // BoolToString
-        0x8c: Parser.start(), // BoolToString
         0xa0: Parser.start().uint8('index'), // LoadMutField
         0xa1: Parser.start().uint8('index'), // StoreMutField
         0xa2: Parser.start(), // ApproveAlph

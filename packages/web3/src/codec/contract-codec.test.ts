@@ -19,8 +19,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { web3 } from '@alephium/web3'
 import { Method } from './method-codec'
 import { contractCodec } from './contract-codec'
+import { LoadImmField, Return } from './instr-codec'
 
-describe('Encode & decode contract', function() {
+describe('Encode & decode contract', function () {
   beforeAll(() => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
   })
@@ -42,7 +43,7 @@ describe('Encode & decode contract', function() {
               return symbol
           }
 
-          pub fn getName() -> ByteVec {
+          fn getName() -> ByteVec {
               return name
           }
 
@@ -58,10 +59,7 @@ describe('Encode & decode contract', function() {
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
-          instrs: [
-            { code: 206, value: { index: 3 } },
-            { code: 2, value: {} }
-          ]
+          instrs: [LoadImmField(3), Return]
         },
         {
           isPublic: true,
@@ -69,9 +67,15 @@ describe('Encode & decode contract', function() {
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
-          instrs: [
-            { code: 206, value: { index: 0 } }, { code: 2, value: {} }
-          ]
+          instrs: [LoadImmField(0), Return]
+        },
+        {
+          isPublic: false,
+          assetModifier: 0,
+          argsLength: 0,
+          localsLength: 0,
+          returnLength: 1,
+          instrs: [LoadImmField(1), Return]
         },
         {
           isPublic: true,
@@ -79,19 +83,7 @@ describe('Encode & decode contract', function() {
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
-          instrs: [
-            { code: 206, value: { index: 1 } }, { code: 2, value: {} }
-          ]
-        },
-        {
-          isPublic: true,
-          assetModifier: 0,
-          argsLength: 0,
-          localsLength: 0,
-          returnLength: 1,
-          instrs: [
-            { code: 206, value: { index: 2 } }, { code: 2, value: {} }
-          ]
+          instrs: [LoadImmField(2), Return]
         }
       ]
     )
