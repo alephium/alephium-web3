@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
 import { BigIntCodec } from './bigint-codec'
+import { ArrayCodec } from './array-codec'
 
 export class CompactInt {
   static readonly oneBytePrefix = 0x00

@@ -21,7 +21,7 @@ import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { instrsCodec, Instr } from './instr-codec'
 
-export interface Method {
+export interface DecodedMethod {
   isPublic: number
   assetModifier: number
   argsLength: DecodedCompactInt
@@ -30,7 +30,16 @@ export interface Method {
   instrs: DecodedArray<Instr>
 }
 
-export class MethodCodec implements Codec<Method> {
+export interface Method {
+  isPublic: boolean
+  assetModifier: number
+  argsLength: number
+  localsLength: number
+  returnLength: number
+  instrs: Instr[]
+}
+
+export class MethodCodec implements Codec<DecodedMethod> {
   parser = Parser.start()
     .uint8('isPublic')
     .uint8('assetModifier')
@@ -47,7 +56,7 @@ export class MethodCodec implements Codec<Method> {
       type: instrsCodec.parser
     })
 
-  encode(input: Method): Buffer {
+  encode(input: DecodedMethod): Buffer {
     const result = [input.isPublic, input.assetModifier]
     result.push(...compactUnsignedIntCodec.encode(input.argsLength))
     result.push(...compactUnsignedIntCodec.encode(input.localsLength))
@@ -56,8 +65,19 @@ export class MethodCodec implements Codec<Method> {
     return Buffer.from(result)
   }
 
-  decode(input: Buffer): Method {
+  decode(input: Buffer): DecodedMethod {
     return this.parser.parse(input)
+  }
+
+  static toMethod(decodedMethod: DecodedMethod): Method {
+    return {
+      isPublic: decodedMethod.isPublic === 1,
+      assetModifier: decodedMethod.assetModifier,
+      argsLength: compactUnsignedIntCodec.toU32(decodedMethod.argsLength),
+      localsLength: compactUnsignedIntCodec.toU32(decodedMethod.localsLength),
+      returnLength: compactUnsignedIntCodec.toU32(decodedMethod.returnLength),
+      instrs: decodedMethod.instrs.value
+    }
   }
 }
 
