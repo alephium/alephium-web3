@@ -94,7 +94,7 @@ describe('contract', function () {
     expect(contract0.fields.result).toEqual(1n)
 
     const contract1 = testResult.contracts[1] as AddTypes.State
-    expect(contract1.codeHash).toEqual(Add.contract.codeHash)
+    expect(contract1.codeHash).toEqual(Add.contract.codeHashDebug)
     expect(contract1.fields.sub).toEqual(subState.contractId)
     expect(contract1.fields.result).toEqual(3n)
 
