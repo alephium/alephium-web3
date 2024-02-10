@@ -715,7 +715,7 @@ export abstract class Artifact {
     this.functions = functions
   }
 
-  abstract buildByteCodeToDeploy(initialFields?: Fields): string
+  abstract buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string
 
   publicFunctions(): string[] {
     return this.functions.filter((func) => func.isPublic).map((func) => func.name)
@@ -727,6 +727,14 @@ export abstract class Artifact {
 
   usingAssetsInContractFunctions(): string[] {
     return this.functions.filter((func) => func.useAssetsInContract).map((func) => func.name)
+  }
+
+  async isDevnet(signer: SignerProvider): Promise<boolean> {
+    if (!signer.nodeProvider) {
+      return false
+    }
+    const chainParams = await signer.nodeProvider.infos.getInfosChainParams()
+    return !(chainParams.networkId === 0 || chainParams.networkId === 1)
   }
 }
 
@@ -1039,8 +1047,9 @@ export class Contract extends Artifact {
     signer: SignerProvider,
     params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
+    const isDevnet = await this.isDevnet(signer)
     const initialFields: Fields = params.initialFields ?? {}
-    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields))
+    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields), isDevnet)
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractTxParams = {
       signerAddress: selectedAccount.address,
@@ -1055,9 +1064,9 @@ export class Contract extends Artifact {
     return signerParams
   }
 
-  buildByteCodeToDeploy(initialFields: Fields): string {
+  buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string {
     try {
-      return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
+      return ralph.buildContractByteCode(isDevnet ? this.bytecodeDebug : this.bytecode, initialFields, this.fieldsSig)
     } catch (error) {
       throw new Error(`Failed to build bytecode for contract ${this.name}, error: ${error}`)
     }
@@ -1116,7 +1125,8 @@ export class Contract extends Artifact {
       contracts: callResult.contracts.map((state) => Contract.fromApiContractState(state, getContractByCodeHash)),
       txInputs: callResult.txInputs,
       txOutputs: callResult.txOutputs.map((output) => fromApiOutput(output)),
-      events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash)
+      events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash),
+      debugMessages: callResult['debugMessages']
     }
   }
 }
@@ -1503,6 +1513,7 @@ export interface CallContractResult<R> {
   txInputs: string[]
   txOutputs: Output[]
   events: ContractEvent[]
+  debugMessages: DebugMessage[]
 }
 
 function specialContractAddress(n: number): string {
@@ -1767,6 +1778,7 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
   )
   const result = await getCurrentNodeProvider().contracts.postContractsCallContract(callParams)
   const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex, getContractByCodeHash)
+  contract.contract.printDebugMessages(methodName, callResult.debugMessages)
   return callResult as CallContractResult<R>
 }
 

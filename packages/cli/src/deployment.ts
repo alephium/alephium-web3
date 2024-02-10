@@ -317,8 +317,9 @@ function createDeployer<Settings = unknown>(
     params: DeployContractParams<P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>> => {
+    const isDevnet = network.networkId !== 0 && network.networkId !== 1
     const initialFields = addStdIdToFields(contractFactory.contract, params.initialFields ?? {})
-    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(initialFields)
+    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(initialFields, isDevnet)
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(contractFactory.contract, taskTag)
     const previous = deployContractResults.get(taskId)
