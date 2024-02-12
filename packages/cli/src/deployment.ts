@@ -36,7 +36,8 @@ import {
   ContractInstance,
   ExecutableScript,
   ProjectArtifact,
-  isHexString
+  isHexString,
+  isDevnet
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -317,9 +318,11 @@ function createDeployer<Settings = unknown>(
     params: DeployContractParams<P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>> => {
-    const isDevnet = network.networkId !== 0 && network.networkId !== 1
     const initialFields = addStdIdToFields(contractFactory.contract, params.initialFields ?? {})
-    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(initialFields, isDevnet)
+    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(
+      initialFields,
+      isDevnet(network.networkId)
+    )
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(contractFactory.contract, taskTag)
     const previous = deployContractResults.get(taskId)

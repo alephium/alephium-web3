@@ -55,7 +55,8 @@ import {
   groupOfAddress,
   addressFromContractId,
   WebCrypto,
-  hexToBinUnsafe
+  hexToBinUnsafe,
+  isDevnet
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
@@ -734,7 +735,7 @@ export abstract class Artifact {
       return false
     }
     const chainParams = await signer.nodeProvider.infos.getInfosChainParams()
-    return !(chainParams.networkId === 0 || chainParams.networkId === 1)
+    return isDevnet(chainParams.networkId)
   }
 }
 
