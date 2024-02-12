@@ -1127,7 +1127,7 @@ export class Contract extends Artifact {
       txInputs: callResult.txInputs,
       txOutputs: callResult.txOutputs.map((output) => fromApiOutput(output)),
       events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash),
-      debugMessages: callResult['debugMessages']
+      debugMessages: callResult.debugMessages
     }
   }
 }
