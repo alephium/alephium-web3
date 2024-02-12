@@ -893,7 +893,7 @@ export class Contract extends Artifact {
   printDebugMessages(funcName: string, messages: DebugMessage[]) {
     if (messages.length != 0) {
       console.log(`Testing ${this.name}.${funcName}:`)
-      messages.forEach((m) => console.log(`Debug - ${m.contractAddress} - ${m.message}`))
+      messages.forEach((m) => console.log(`> Contract @ ${m.contractAddress} - ${m.message}`))
     }
   }
 
