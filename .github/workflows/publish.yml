@@ -27,8 +27,8 @@ jobs:
         run: |
           tag=$(echo ${GITHUB_REF/refs\/tags\//} | cut -c 2-)
           dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo latest || echo "")
-          dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] && echo $tag || echo $dist_tag)
-          dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]] && echo $tag || echo $dist_tag)
+          dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] && echo rc || echo $dist_tag)
+          dist_tag=$([[ $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]] && echo beta || echo $dist_tag)
           [ -z "$dist_tag" ] && echo "Distribution tag is not set to latest nor to rc or beta" && exit 1
           echo ::set-output name=DIST_TAG::$dist_tag
         shell: bash
