@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-test",
-  "version": "0.30.0-beta.0",
+  "version": "0.30.0-beta.1",
   "description": "Utility functions for Alephium test",
   "keywords": [
     "alephium",
