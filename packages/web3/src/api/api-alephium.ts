@@ -361,6 +361,8 @@ export interface CallContract {
   txId?: string
   /** @format address */
   address: string
+  /** @format address */
+  callerAddress?: string
   /** @format int32 */
   methodIndex: number
   args?: Val[]
@@ -851,6 +853,8 @@ export interface TestContract {
   txId?: string
   /** @format address */
   address?: string
+  /** @format address */
+  callerAddress?: string
   /** @format contract */
   bytecode: string
   initialImmFields?: Val[]
@@ -1278,7 +1282,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.8.2
+ * @version 2.8.4
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
