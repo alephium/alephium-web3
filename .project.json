@@ -213,6 +213,13 @@
       "codeHashDebug": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
       "warnings": []
     },
+    "OwnerOnly": {
+      "sourceFile": "test/owner.ral",
+      "sourceCodeHash": "fcf5f080df9ad62ec723c6127c3d9b153feff9669af0ecc46470526d46db1209",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
+      "warnings": []
+    },
     "Sub": {
       "sourceFile": "sub/sub.ral",
       "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",

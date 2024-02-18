@@ -937,6 +937,7 @@ export class Contract extends Artifact {
       blockTimeStamp: params.blockTimeStamp,
       txId: params.txId,
       address: params.address,
+      callerAddress: params.callerAddress,
       bytecode: this.bytecodeDebug,
       initialImmFields: immFields,
       initialMutFields: mutFields,
@@ -1341,6 +1342,7 @@ function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | u
 export interface TestContractParams<F extends Fields = Fields, A extends Arguments = Arguments> {
   group?: number // default 0
   address?: string
+  callerAddress?: string
   blockHash?: string
   blockTimeStamp?: number
   txId?: string
