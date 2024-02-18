@@ -8,6 +8,7 @@
     "@alephium/web3-wallet": "workspace:*"
   },
   "devDependencies": {
+    "@swc/core": "^1.4.1",
     "@types/jest": "^28.1.8",
     "@types/node": "^16.18.23",
     "eslint": "^8.37.0",
