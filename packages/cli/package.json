@@ -24,6 +24,7 @@
   "dependencies": {
     "@alephium/web3": "workspace:^",
     "@alephium/web3-wallet": "workspace:^",
+    "@swc/core": "^1.4.1",
     "commander": "^9.5.0",
     "cross-fetch": "^3.1.5",
     "crypto-js": "^4.2.0",
