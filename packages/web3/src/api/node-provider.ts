@@ -220,8 +220,7 @@ export class NodeProvider implements NodeProviderApis {
 
   guessStdInterfaceId = async (tokenId: HexString): Promise<HexString | undefined> => {
     const address = addressFromTokenId(tokenId)
-    const group = groupOfAddress(address)
-    const rawState = await this.contracts.getContractsAddressState(addressFromTokenId(tokenId), { group })
+    const rawState = await this.contracts.getContractsAddressState(address)
     const lastImmField = rawState.immFields.slice(-1).pop()?.value
     const interfaceIdPrefix = '414c5048' // the hex of 'ALPH'
     if (typeof lastImmField === 'string' && lastImmField.startsWith(interfaceIdPrefix)) {
