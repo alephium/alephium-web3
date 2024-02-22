@@ -53,10 +53,10 @@ import {
   Eq,
   Optional,
   groupOfAddress,
-  addressFromContractId,
   WebCrypto,
   hexToBinUnsafe,
-  isDevnet
+  isDevnet,
+  addressFromContractId
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
@@ -1522,6 +1522,7 @@ export interface CallContractResult<R> {
 function specialContractAddress(n: number): string {
   const bytes = new Uint8Array(32).fill(0)
   bytes[31] = n
+  console.log(addressFromContractId)
   return addressFromContractId(binToHex(bytes))
 }
 
