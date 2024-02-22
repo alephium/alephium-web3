@@ -82,7 +82,6 @@ export function binToHex(bin: Uint8Array): string {
   return Buffer.from(bin).toString('hex')
 }
 
-
 export function blockChainIndex(blockHash: HexString): { fromGroup: number; toGroup: number } {
   if (blockHash.length != 64) {
     throw Error(`Invalid block hash: ${blockHash}`)
