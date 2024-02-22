@@ -211,12 +211,9 @@ function findSourceInfoAtLineNumber(sources: SourceInfo[], line: number): Source
     return line >= sourceInfoWithLine.startIndex && line <= sourceInfoWithLine.endIndex
   })
 
-  if (sourceInfo === undefined) {
-    return undefined
-  } else {
-    return sourceInfo
-  }
+  return sourceInfo
 }
+
 export class ProjectArtifact {
   static readonly artifactFileName = '.project.json'
 
