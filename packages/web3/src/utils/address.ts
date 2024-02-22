@@ -34,27 +34,31 @@ export enum AddressType {
   P2C = 0x03
 }
 
-export function validateExchangeAddress(address: string) {
+export function validateAddress(address: string) {
   let decoded: Uint8Array
   try {
     decoded = bs58.decode(address)
   } catch (_) {
     throw new Error('Invalid base58 string')
   }
+
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
-  if (addressType !== AddressType.P2PKH && addressType !== AddressType.P2SH) {
-    throw new Error('Invalid address type')
+  if (addressType === AddressType.P2MPKH) {
+    // [1, n, ...hashes, m]
+    if ((decoded.length - 3) % 32 === 0) return
+  } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
+    // [type, ...hash]
+    if (decoded.length === 33) return
   }
-  if (decoded.length !== 33) {
-    throw new Error('Invalid address length')
-  }
+
+  throw new Error(`Invalid address: ${address}`)
 }
 
 export function groupOfAddress(address: string): number {
-  const decoded = bs58.decode(address)
+  validateAddress(address)
 
-  if (decoded.length == 0) throw new Error('Address string is empty')
+  const decoded = bs58.decode(address)
   const addressType = decoded[0]
   const addressBody = decoded.slice(1)
 
@@ -80,19 +84,11 @@ function groupOfAddressBytes(bytes: Uint8Array): number {
 
 // Pay to public key hash address
 function groupOfP2pkhAddress(address: Uint8Array): number {
-  if (address.length != 32) {
-    throw new Error(`Invalid p2pkh address length: ${address.length}`)
-  }
-
   return groupOfAddressBytes(address)
 }
 
 // Pay to multiple public key hash address
 function groupOfP2mpkhAddress(address: Uint8Array): number {
-  if ((address.length - 2) % 32 != 0) {
-    throw new Error(`Invalid p2mpkh address length: ${address.length}`)
-  }
-
   return groupOfAddressBytes(address.slice(1, 33))
 }
 
