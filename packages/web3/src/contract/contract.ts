@@ -1652,9 +1652,7 @@ export async function fetchContractState<F extends Fields, I extends ContractIns
   contract: ContractFactory<I, F>,
   instance: ContractInstance
 ): Promise<ContractState<F>> {
-  const contractState = await getCurrentNodeProvider().contracts.getContractsAddressState(instance.address, {
-    group: instance.groupIndex
-  })
+  const contractState = await getCurrentNodeProvider().contracts.getContractsAddressState(instance.address)
   const state = contract.contract.fromApiContractState(contractState)
   return {
     ...state,
