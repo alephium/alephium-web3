@@ -309,6 +309,23 @@ export class ProjectArtifact {
   }
 }
 
+function removeOldArtifacts(dir: string) {
+  const files = fs.readdirSync(dir)
+  files.forEach((file) => {
+    const filePath = path.join(dir, file)
+    const stat = fs.statSync(filePath)
+    if (stat.isDirectory()) {
+      removeOldArtifacts(filePath)
+    } else if (filePath.endsWith('.ral.json') || filePath.endsWith('.ral')) {
+      fs.unlinkSync(filePath)
+    }
+  })
+
+  if (fs.readdirSync(dir).length === 0) {
+    fs.rmdirSync(dir)
+  }
+}
+
 export class Project {
   sourceInfos: SourceInfo[]
   contracts: Map<string, Compiled<Contract>>
@@ -731,6 +748,9 @@ export class Project {
       projectArtifact === undefined ||
       projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles, fullNodeVersion)
     ) {
+      if (fs.existsSync(artifactsRootDir)) {
+        removeOldArtifacts(artifactsRootDir)
+      }
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
       Project.currentProject = await Project.compile(
         fullNodeVersion,
