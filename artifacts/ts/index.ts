@@ -18,6 +18,7 @@ export * from "./MetaData";
 export * from "./NFTCollectionTest";
 export * from "./NFTCollectionWithRoyaltyTest";
 export * from "./NFTTest";
+export * from "./OwnerOnly";
 export * from "./Sub";
 export * from "./TokenTest";
 export * from "./Warnings";

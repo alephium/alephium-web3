@@ -8,6 +8,7 @@
     "@alephium/web3-wallet": "workspace:*"
   },
   "devDependencies": {
+    "@swc/core": "^1.4.1",
     "@types/jest": "^28.1.8",
     "@types/node": "^16.18.23",
     "eslint": "^8.37.0",
@@ -20,7 +21,7 @@
   "scripts": {
     "clean": "rm -rf .parcel-cache && pnpm -r run clean",
     "build": "pnpm --stream -r run build",
-    "codegen": "ts-node gen.ts",
+    "codegen": "ts-node --swc gen.ts",
     "test": "jest -i --config ./jest-config.json --forceExit",
     "lint": "eslint . --ext ts,.tsx",
     "lint:fix": "eslint . --fix --ext .ts,.tsx",
