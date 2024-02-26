@@ -18,11 +18,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { DecodedArray } from './array-codec'
 import { Codec } from './codec'
-import { Method, methodsCodec } from './method-codec'
+import { DecodedMethod, methodsCodec } from './method-codec'
 import { OptionCodec } from './option-codec'
 
 export interface Script {
-  methods: DecodedArray<Method>
+  methods: DecodedArray<DecodedMethod>
 }
 
 export class ScriptCodec implements Codec<Script> {

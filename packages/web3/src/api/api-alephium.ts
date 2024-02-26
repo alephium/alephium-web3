@@ -383,6 +383,7 @@ export interface CallContractSucceeded {
   txInputs: string[]
   txOutputs: Output[]
   events: ContractEventByTxId[]
+  debugMessages: DebugMessage[]
   type: string
 }
 
@@ -1277,7 +1278,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.8.0
+ * @version 2.8.3
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
