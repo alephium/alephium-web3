@@ -53,7 +53,7 @@ export function getConfigFile(): string {
 
 export async function isNetworkLive(url: string): Promise<boolean> {
   try {
-    const res = await fetch(`${url}/infos/node`, { method: 'Get' })
+    const res = await fetch(`${url}/infos/version`, { method: 'Get' })
     return res.status === 200
   } catch (e) {
     console.error(`Error when checking if network is live: ${e}`)

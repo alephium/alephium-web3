@@ -1,0 +1,5 @@
+Contract OwnerOnly(owner: Address) {
+    pub fn testOwner() -> () {
+        checkCaller!(callerAddress!() == owner, 0)
+    }
+}
