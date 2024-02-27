@@ -197,7 +197,6 @@ export function encodeScriptFieldAsString(tpe: string, value: Val): string {
   return Buffer.from(encodeScriptField(tpe, value)).toString('hex')
 }
 
-// TODO: support array type
 export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   switch (tpe) {
     case 'Bool':
@@ -220,18 +219,50 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   throw invalidScriptField(tpe, value)
 }
 
+function flattenArray(name: string, type: string, val: Val[], acc: { name: string; type: string; value: Val }[]) {
+  const semiColonIndex = type.lastIndexOf(';')
+  if (semiColonIndex == -1) {
+    throw new Error(`Invalid array type: ${type}`)
+  }
+  const subType = type.slice(1, semiColonIndex)
+  val.forEach((v, index) => {
+    const isArrayType = subType.includes(';')
+    const isArrayValue = Array.isArray(v)
+    if (isArrayType && isArrayValue) {
+      flattenArray(`${name}[${index}]`, subType, v, acc)
+    } else if (!isArrayType && !isArrayValue) {
+      acc.push({ name: `${name}[${index}]`, type: subType, value: v })
+    } else {
+      const value = isArrayValue ? `[` + v.join(', ') + `]` : v.toString()
+      throw new Error(`Invalid field, expected type is ${subType}, but value is ${value}`)
+    }
+  })
+}
+
+export function falttenFields(fields: Fields, fieldsSig: FieldsSig): { name: string; type: string; value: Val }[] {
+  const allFields: { name: string; type: string; value: Val }[] = []
+  fieldsSig.names.forEach((name, index) => {
+    const field = fields[`${name}`]
+    if (!(name in fields)) {
+      throw new Error(`The value of field ${name} is not provided`)
+    }
+    const type = fieldsSig.types[`${index}`]
+    if (Array.isArray(field)) {
+      flattenArray(name, type, field, allFields)
+    } else {
+      allFields.push({ name, type, value: field })
+    }
+  })
+  return allFields
+}
+
 const scriptFieldRegex = /\{([0-9]*)\}/g
 
 export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fieldsSig: FieldsSig): string {
+  const allFields = falttenFields(fields, fieldsSig)
   return bytecodeTemplate.replace(scriptFieldRegex, (_, fieldIndex: string) => {
-    const fieldName = fieldsSig.names[`${fieldIndex}`]
-    const fieldType = fieldsSig.types[`${fieldIndex}`]
-    if (fieldName in fields) {
-      const fieldValue = fields[`${fieldName}`]
-      return _encodeField(fieldName, () => encodeScriptFieldAsString(fieldType, fieldValue))
-    } else {
-      throw new Error(`The value of field ${fieldName} is not provided`)
-    }
+    const field = allFields[`${fieldIndex}`]
+    return _encodeField(field.name, () => encodeScriptFieldAsString(field.type, field.value))
   })
 }
 

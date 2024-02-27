@@ -173,7 +173,7 @@ export class NodeProvider implements NodeProviderApis {
       return { tokenUri, collectionId, nftIndex }
     } else {
       const failedCollectionIndexResult = result.results[1] as CallContractFailed
-      if (failedCollectionIndexResult.error.startsWith('VM execution error: InvalidMethodIndex')) {
+      if (failedCollectionIndexResult.error.startsWith('VM execution error: Invalid method index')) {
         throw new Error('Deprecated NFT contract')
       } else {
         throw new Error(`Failed to call contract, error: ${failedCollectionIndexResult.error}`)

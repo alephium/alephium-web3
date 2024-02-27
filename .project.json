@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.8.5",
+  "fullNodeVersion": "v2.9.0",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -225,6 +225,13 @@
       "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
+      "warnings": []
+    },
+    "TemplateArrayVar": {
+      "sourceFile": "test/template_array_var.ral",
+      "sourceCodeHash": "9d4585b01c450c8602f797f63995d1a734a260ea5579d68b81ba84272c9de235",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
       "warnings": []
     },
     "TokenTest": {

@@ -38,7 +38,7 @@ import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packa
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
-import { GreeterMain, Main } from '../artifacts/ts/scripts'
+import { GreeterMain, Main, TemplateArrayVar } from '../artifacts/ts/scripts'
 import { Sub, SubTypes } from '../artifacts/ts/Sub'
 import { Add, AddTypes } from '../artifacts/ts/Add'
 import { MetaData } from '../artifacts/ts/MetaData'
@@ -235,11 +235,11 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(33)
+    expect(sourceFiles.length).toEqual(34)
     sourceFiles.slice(0, 20).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(21, 25).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(26, 27).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(28).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(21, 26).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(27, 28).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(29).forEach((i) => expect(i.type).toEqual(3)) // interfaces
   })
 
   it('should load contract from json', () => {
@@ -364,6 +364,20 @@ describe('contract', function () {
     expect(balances.balance).toEqual((alphAmount + DUST_AMOUNT).toString())
     const tokenBalance = balances.tokenBalances?.find((t) => t.id === contractId)
     expect(tokenBalance?.amount).toEqual(tokenAmount.toString())
+  })
+
+  it('should support template array variables in script', async () => {
+    await TemplateArrayVar.execute(signer, {
+      initialFields: {
+        address: testAddress,
+        numbers0: [
+          [0n, 1n],
+          [2n, 3n]
+        ],
+        bytes: '0011',
+        numbers1: [0n, 1n, 2n]
+      }
+    })
   })
 
   it('should test contract with parent', async () => {

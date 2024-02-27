@@ -15,6 +15,7 @@ import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as MainScriptJson } from "../add/Main.ral.json";
 import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
+import { default as TemplateArrayVarScriptJson } from "../test/TemplateArrayVar.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
 
 export const DestroyAdd = new ExecutableScript<{
@@ -32,6 +33,12 @@ export const MintNFTTest = new ExecutableScript<{
   uri: HexString;
   royalty: boolean;
 }>(Script.fromJson(MintNFTTestScriptJson));
+export const TemplateArrayVar = new ExecutableScript<{
+  address: Address;
+  numbers0: [[bigint, bigint], [bigint, bigint]];
+  bytes: HexString;
+  numbers1: [bigint, bigint, bigint];
+}>(Script.fromJson(TemplateArrayVarScriptJson));
 export const WithdrawNFTCollectionTest = new ExecutableScript<{
   collection: HexString;
   amount: bigint;
