@@ -25,7 +25,7 @@ import {
   SignUnsignedTxParams,
   SignMessageParams,
   Account,
-  addressToGroup,
+  groupOfAddress,
   ApiRequestArguments,
   NetworkId
 } from '@alephium/web3'
@@ -184,7 +184,7 @@ export class WalletClient {
 
       const accounts = this.accounts
         .filter((account) => {
-          const group = addressToGroup(account.address, 4)
+          const group = groupOfAddress(account.address)
           return addressGroup === undefined || group === (addressGroup as number)
         })
         .map((account) => formatAccount(chain, account))

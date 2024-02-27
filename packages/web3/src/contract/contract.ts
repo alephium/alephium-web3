@@ -36,6 +36,7 @@ import {
   typeLength,
   getDefaultValue
 } from '../api'
+import { CompileProjectResult } from '../api/api-alephium'
 import {
   SignDeployContractTxParams,
   SignDeployContractTxResult,
@@ -53,15 +54,17 @@ import {
   Eq,
   Optional,
   groupOfAddress,
-  addressFromContractId,
   WebCrypto,
-  hexToBinUnsafe
+  hexToBinUnsafe,
+  isDevnet,
+  addressFromContractId
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH } from '../constants'
 import * as blake from 'blakejs'
+import { parseError } from '../utils/error'
 
 const crypto = new WebCrypto()
 
@@ -189,6 +192,28 @@ type CodeInfo = {
   warnings: string[]
 }
 
+type SourceInfoIndexes = {
+  sourceInfo: SourceInfo
+  startIndex: number
+  endIndex: number
+}
+
+function findSourceInfoAtLineNumber(sources: SourceInfo[], line: number): SourceInfoIndexes | undefined {
+  let currentLine = 0
+  const sourceInfosWithLine: SourceInfoIndexes[] = sources.map((source) => {
+    const startIndex = currentLine + 1
+    currentLine += source.sourceCode.split('\n').length
+    const endIndex = currentLine
+    return { sourceInfo: source, startIndex: startIndex, endIndex: endIndex }
+  })
+
+  const sourceInfo = sourceInfosWithLine.find((sourceInfoWithLine) => {
+    return line >= sourceInfoWithLine.startIndex && line <= sourceInfoWithLine.endIndex
+  })
+
+  return sourceInfo
+}
+
 export class ProjectArtifact {
   static readonly artifactFileName = '.project.json'
 
@@ -281,6 +306,23 @@ export class ProjectArtifact {
       console.log(`Failed to load project artifact, error: ${error}`)
       return undefined
     }
+  }
+}
+
+function removeOldArtifacts(dir: string) {
+  const files = fs.readdirSync(dir)
+  files.forEach((file) => {
+    const filePath = path.join(dir, file)
+    const stat = fs.statSync(filePath)
+    if (stat.isDirectory()) {
+      removeOldArtifacts(filePath)
+    } else if (filePath.endsWith('.ral.json') || filePath.endsWith('.ral')) {
+      fs.unlinkSync(filePath)
+    }
+  })
+
+  if (fs.readdirSync(dir).length === 0) {
+    fs.rmdirSync(dir)
   }
 }
 
@@ -430,6 +472,38 @@ export class Project {
     return contract.artifact
   }
 
+  private static async getCompileResult(
+    provider: NodeProvider,
+    compilerOptions: node.CompilerOptions,
+    sources: SourceInfo[]
+  ): Promise<CompileProjectResult> {
+    try {
+      const sourceStr = sources.map((f) => f.sourceCode).join('\n')
+      return await provider.contracts.postContractsCompileProject({
+        code: sourceStr,
+        compilerOptions: compilerOptions
+      })
+    } catch (error) {
+      if (!(error instanceof Error)) {
+        throw error
+      }
+
+      const parsed = parseError(error.message)
+      if (!parsed) {
+        throw error
+      }
+
+      const sourceInfo = findSourceInfoAtLineNumber(sources, parsed.lineStart)
+      if (!sourceInfo) {
+        throw error
+      }
+
+      const shiftIndex = parsed.lineStart - sourceInfo.startIndex + 1
+      const newError = parsed.reformat(shiftIndex, sourceInfo.sourceInfo.contractRelativePath)
+      throw new Error(newError)
+    }
+  }
+
   private static async compile(
     fullNodeVersion: string,
     provider: NodeProvider,
@@ -446,11 +520,8 @@ export class Project {
       }
       return acc
     }, [])
-    const sourceStr = removeDuplicates.map((f) => f.sourceCode).join('\n')
-    const result = await provider.contracts.postContractsCompileProject({
-      code: sourceStr,
-      compilerOptions: compilerOptions
-    })
+
+    const result = await Project.getCompileResult(provider, compilerOptions, removeDuplicates)
     const contracts = new Map<string, Compiled<Contract>>()
     const scripts = new Map<string, Compiled<Script>>()
     result.contracts.forEach((contractResult) => {
@@ -677,6 +748,9 @@ export class Project {
       projectArtifact === undefined ||
       projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles, fullNodeVersion)
     ) {
+      if (fs.existsSync(artifactsRootDir)) {
+        removeOldArtifacts(artifactsRootDir)
+      }
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
       Project.currentProject = await Project.compile(
         fullNodeVersion,
@@ -715,7 +789,7 @@ export abstract class Artifact {
     this.functions = functions
   }
 
-  abstract buildByteCodeToDeploy(initialFields?: Fields): string
+  abstract buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string
 
   publicFunctions(): string[] {
     return this.functions.filter((func) => func.isPublic).map((func) => func.name)
@@ -727,6 +801,14 @@ export abstract class Artifact {
 
   usingAssetsInContractFunctions(): string[] {
     return this.functions.filter((func) => func.useAssetsInContract).map((func) => func.name)
+  }
+
+  async isDevnet(signer: SignerProvider): Promise<boolean> {
+    if (!signer.nodeProvider) {
+      return false
+    }
+    const chainParams = await signer.nodeProvider.infos.getInfosChainParams()
+    return isDevnet(chainParams.networkId)
   }
 }
 
@@ -884,7 +966,7 @@ export class Contract extends Artifact {
   printDebugMessages(funcName: string, messages: DebugMessage[]) {
     if (messages.length != 0) {
       console.log(`Testing ${this.name}.${funcName}:`)
-      messages.forEach((m) => console.log(`Debug - ${m.contractAddress} - ${m.message}`))
+      messages.forEach((m) => console.log(`> Contract @ ${m.contractAddress} - ${m.message}`))
     }
   }
 
@@ -928,6 +1010,7 @@ export class Contract extends Artifact {
       blockTimeStamp: params.blockTimeStamp,
       txId: params.txId,
       address: params.address,
+      callerAddress: params.callerAddress,
       bytecode: this.bytecodeDebug,
       initialImmFields: immFields,
       initialMutFields: mutFields,
@@ -1039,8 +1122,9 @@ export class Contract extends Artifact {
     signer: SignerProvider,
     params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
+    const isDevnet = await this.isDevnet(signer)
     const initialFields: Fields = params.initialFields ?? {}
-    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields))
+    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields), isDevnet)
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractTxParams = {
       signerAddress: selectedAccount.address,
@@ -1055,9 +1139,9 @@ export class Contract extends Artifact {
     return signerParams
   }
 
-  buildByteCodeToDeploy(initialFields: Fields): string {
+  buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string {
     try {
-      return ralph.buildContractByteCode(this.bytecode, initialFields, this.fieldsSig)
+      return ralph.buildContractByteCode(isDevnet ? this.bytecodeDebug : this.bytecode, initialFields, this.fieldsSig)
     } catch (error) {
       throw new Error(`Failed to build bytecode for contract ${this.name}, error: ${error}`)
     }
@@ -1116,7 +1200,8 @@ export class Contract extends Artifact {
       contracts: callResult.contracts.map((state) => Contract.fromApiContractState(state, getContractByCodeHash)),
       txInputs: callResult.txInputs,
       txOutputs: callResult.txOutputs.map((output) => fromApiOutput(output)),
-      events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash)
+      events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash),
+      debugMessages: callResult.debugMessages
     }
   }
 }
@@ -1330,6 +1415,7 @@ function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | u
 export interface TestContractParams<F extends Fields = Fields, A extends Arguments = Arguments> {
   group?: number // default 0
   address?: string
+  callerAddress?: string
   blockHash?: string
   blockTimeStamp?: number
   txId?: string
@@ -1503,6 +1589,7 @@ export interface CallContractResult<R> {
   txInputs: string[]
   txOutputs: Output[]
   events: ContractEvent[]
+  debugMessages: DebugMessage[]
 }
 
 function specialContractAddress(n: number): string {
@@ -1637,9 +1724,7 @@ export async function fetchContractState<F extends Fields, I extends ContractIns
   contract: ContractFactory<I, F>,
   instance: ContractInstance
 ): Promise<ContractState<F>> {
-  const contractState = await getCurrentNodeProvider().contracts.getContractsAddressState(instance.address, {
-    group: instance.groupIndex
-  })
+  const contractState = await getCurrentNodeProvider().contracts.getContractsAddressState(instance.address)
   const state = contract.contract.fromApiContractState(contractState)
   return {
     ...state,
@@ -1767,6 +1852,7 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
   )
   const result = await getCurrentNodeProvider().contracts.postContractsCallContract(callParams)
   const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex, getContractByCodeHash)
+  contract.contract.printDebugMessages(methodName, callResult.debugMessages)
   return callResult as CallContractResult<R>
 }
 

@@ -1,22 +1,24 @@
 {
   "version": "v2.8.5",
-  "name": "GreeterMain",
-  "bytecodeTemplate": "01010300020014{0}17000c0d160001000d2f0c7b{0}17010c0d160101000d2f0c7b",
+  "name": "OwnerOnly",
+  "bytecode": "01010c010000000005b4ce00450c7b",
+  "codeHash": "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
   "fieldsSig": {
     "names": [
-      "greeterContractId"
+      "owner"
     ],
     "types": [
-      "ByteVec"
+      "Address"
     ],
     "isMutable": [
       false
     ]
   },
+  "eventsSig": [],
   "functions": [
     {
-      "name": "main",
-      "usePreapprovedAssets": true,
+      "name": "testOwner",
+      "usePreapprovedAssets": false,
       "useAssetsInContract": false,
       "isPublic": true,
       "paramNames": [],
@@ -24,5 +26,7 @@
       "paramIsMutable": [],
       "returnTypes": []
     }
-  ]
+  ],
+  "constants": [],
+  "enums": []
 }

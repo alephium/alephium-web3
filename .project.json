@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.8.0",
+  "fullNodeVersion": "v2.8.5",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -11,9 +11,9 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "6c08da762c111145d8c876e36bb9f69dcbc86368a546b4c5bfe23f0f4db1975b",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "2b9e382c20b4facf21eb745a46a72447dae221c274518e19c60b5ddfe478cc9c",
+      "sourceCodeHash": "f7d27ecff8f7da7afcfee957842d8629930c9980f87a1c6d17561bb1fbe6dab6",
+      "bytecodeDebugPatch": "=8+4=1-1=2-2+64=3-1+d=37+77e010a=1+1646450726976617465=154",
+      "codeHashDebug": "a49f0624ccbec8df1bf3ad7f628fb47a42cc448fe7369fc0da02071df6787b69",
       "warnings": [
         "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
@@ -158,7 +158,7 @@
     },
     "Main": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "6c08da762c111145d8c876e36bb9f69dcbc86368a546b4c5bfe23f0f4db1975b",
+      "sourceCodeHash": "f7d27ecff8f7da7afcfee957842d8629930c9980f87a1c6d17561bb1fbe6dab6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -211,6 +211,13 @@
       "sourceCodeHash": "ddcc7fedd2dcbce030a9428f5560deb53124688f9cee396433192700131ed73f",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
+      "warnings": []
+    },
+    "OwnerOnly": {
+      "sourceFile": "test/owner.ral",
+      "sourceCodeHash": "fcf5f080df9ad62ec723c6127c3d9b153feff9669af0ecc46470526d46db1209",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
       "warnings": []
     },
     "Sub": {

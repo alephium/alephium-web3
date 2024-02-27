@@ -361,6 +361,8 @@ export interface CallContract {
   txId?: string
   /** @format address */
   address: string
+  /** @format address */
+  callerAddress?: string
   /** @format int32 */
   methodIndex: number
   args?: Val[]
@@ -383,6 +385,7 @@ export interface CallContractSucceeded {
   txInputs: string[]
   txOutputs: Output[]
   events: ContractEventByTxId[]
+  debugMessages: DebugMessage[]
   type: string
 }
 
@@ -749,6 +752,11 @@ export interface Reachable {
   type: string
 }
 
+export interface Result {
+  /** @format bigint */
+  hashrate: string
+}
+
 export interface RevealMnemonic {
   password: string
 }
@@ -839,6 +847,11 @@ export interface SweepAddressTransaction {
   gasPrice: string
 }
 
+export interface TargetToHashrate {
+  /** @format hex-string */
+  target: string
+}
+
 export interface TestContract {
   /** @format int32 */
   group?: number
@@ -850,6 +863,8 @@ export interface TestContract {
   txId?: string
   /** @format address */
   address?: string
+  /** @format address */
+  callerAddress?: string
   /** @format contract */
   bytecode: string
   initialImmFields?: Val[]
@@ -1277,7 +1292,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.8.0
+ * @version 2.8.5
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2455,18 +2470,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get contract state
      * @request GET:/contracts/{address}/state
      */
-    getContractsAddressState: (
-      address: string,
-      query: {
-        /** @format int32 */
-        group: number
-      },
-      params: RequestParams = {}
-    ) =>
+    getContractsAddressState: (address: string, params: RequestParams = {}) =>
       this.request<ContractState, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/contracts/${address}/state`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse),
@@ -2611,40 +2618,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         format: 'json',
-        ...params
-      }).then(convertHttpResponse)
-  }
-  utils = {
-    /**
-     * No description
-     *
-     * @tags Utils
-     * @name PostUtilsVerifySignature
-     * @summary Verify the SecP256K1 signature of some data
-     * @request POST:/utils/verify-signature
-     */
-    postUtilsVerifySignature: (data: VerifySignature, params: RequestParams = {}) =>
-      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/utils/verify-signature`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params
-      }).then(convertHttpResponse),
-
-    /**
-     * No description
-     *
-     * @tags Utils
-     * @name PutUtilsCheckHashIndexing
-     * @summary Check and repair the indexing of block hashes
-     * @request PUT:/utils/check-hash-indexing
-     */
-    putUtilsCheckHashIndexing: (params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/utils/check-hash-indexing`,
-        method: 'PUT',
         ...params
       }).then(convertHttpResponse)
   }
@@ -2825,6 +2798,58 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         query: query,
         format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  utils = {
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name PostUtilsVerifySignature
+     * @summary Verify the SecP256K1 signature of some data
+     * @request POST:/utils/verify-signature
+     */
+    postUtilsVerifySignature: (data: VerifySignature, params: RequestParams = {}) =>
+      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/verify-signature`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name PostUtilsTargetToHashrate
+     * @summary Convert a target to hashrate
+     * @request POST:/utils/target-to-hashrate
+     */
+    postUtilsTargetToHashrate: (data: TargetToHashrate, params: RequestParams = {}) =>
+      this.request<Result, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/target-to-hashrate`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name PutUtilsCheckHashIndexing
+     * @summary Check and repair the indexing of block hashes
+     * @request PUT:/utils/check-hash-indexing
+     */
+    putUtilsCheckHashIndexing: (params: RequestParams = {}) =>
+      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/check-hash-indexing`,
+        method: 'PUT',
         ...params
       }).then(convertHttpResponse)
   }

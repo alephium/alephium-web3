@@ -45,7 +45,7 @@ import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { NFTTest, TokenTest } from '../artifacts/ts'
+import { NFTTest, OwnerOnly, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 
 describe('contract', function () {
@@ -94,7 +94,7 @@ describe('contract', function () {
     expect(contract0.fields.result).toEqual(1n)
 
     const contract1 = testResult.contracts[1] as AddTypes.State
-    expect(contract1.codeHash).toEqual(Add.contract.codeHash)
+    expect(contract1.codeHash).toEqual(Add.contract.codeHashDebug)
     expect(contract1.fields.sub).toEqual(subState.contractId)
     expect(contract1.fields.result).toEqual(3n)
 
@@ -236,8 +236,8 @@ describe('contract', function () {
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
     expect(sourceFiles.length).toEqual(33)
-    sourceFiles.slice(0, 19).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(20, 25).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(0, 20).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(21, 25).forEach((s) => expect(s.type).toEqual(1)) // scripts
     sourceFiles.slice(26, 27).forEach((i) => expect(i.type).toEqual(2)) // abstract class
     sourceFiles.slice(28).forEach((i) => expect(i.type).toEqual(3)) // interfaces
   })
@@ -378,5 +378,25 @@ describe('contract', function () {
         numbers1: [0n, 1n, 2n]
       }
     })
+  })
+
+  it('should test contract with parent', async () => {
+    const address = randomContractAddress()
+    const parentAddress = randomContractAddress()
+
+    const test0 = OwnerOnly.tests.testOwner({
+      initialFields: { owner: parentAddress },
+      address: address,
+      callerAddress: randomContractAddress()
+    })
+    expectAssertionError(test0, address, 0)
+
+    const test1 = await OwnerOnly.tests.testOwner({
+      initialFields: { owner: parentAddress },
+      address: address,
+      callerAddress: parentAddress
+    })
+    // expectAssertionError(test2, address, 0)
+    expect(test1.returns).toEqual(null)
   })
 })

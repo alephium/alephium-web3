@@ -182,8 +182,8 @@ export class NodeProvider implements NodeProviderApis {
   }
 
   // Only use this when the contract follows the NFT collection interface, check `guessFollowsNFTCollectionStd` first
-  fetchNFTCollectionMetaData = async (contractId: HexString): Promise<NFTCollectionMetaData> => {
-    const address = addressFromContractId(contractId)
+  fetchNFTCollectionMetaData = async (collectionId: HexString): Promise<NFTCollectionMetaData> => {
+    const address = addressFromContractId(collectionId)
     const group = groupOfAddress(address)
     const calls = Array.from([0, 1], (index) => ({ methodIndex: index, group: group, address: address }))
     const result = await this.contracts.postContractsMulticallContract({ calls })
@@ -194,10 +194,33 @@ export class NodeProvider implements NodeProviderApis {
     }
   }
 
+  // Only use this when the contract follows the NFT collection with royalty interface, check `guessFollowsNFTCollectionWithRoyaltyStd` first
+  fetchNFTRoyaltyAmount = async (collectionId: HexString, tokenId: HexString, salePrice: bigint): Promise<bigint> => {
+    const address = addressFromContractId(collectionId)
+    const group = groupOfAddress(address)
+    const apiResult = await this.contracts.postContractsCallContract({
+      address: address,
+      group: group,
+      methodIndex: 4,
+      args: [
+        {
+          type: 'ByteVec',
+          value: tokenId
+        },
+        {
+          type: 'U256',
+          value: salePrice.toString()
+        }
+      ]
+    })
+
+    const result = tryGetCallResult(apiResult)
+    return BigInt(result.returns[0].value as any as string)
+  }
+
   guessStdInterfaceId = async (tokenId: HexString): Promise<HexString | undefined> => {
     const address = addressFromTokenId(tokenId)
-    const group = groupOfAddress(address)
-    const rawState = await this.contracts.getContractsAddressState(addressFromTokenId(tokenId), { group })
+    const rawState = await this.contracts.getContractsAddressState(address)
     const lastImmField = rawState.immFields.slice(-1).pop()?.value
     const interfaceIdPrefix = '414c5048' // the hex of 'ALPH'
     if (typeof lastImmField === 'string' && lastImmField.startsWith(interfaceIdPrefix)) {
@@ -210,6 +233,11 @@ export class NodeProvider implements NodeProviderApis {
   guessFollowsNFTCollectionStd = async (contractId: HexString): Promise<boolean> => {
     const interfaceId = await this.guessStdInterfaceId(contractId)
     return !!interfaceId && interfaceId.startsWith(StdInterfaceIds.NFTCollection)
+  }
+
+  guessFollowsNFTCollectionWithRoyaltyStd = async (contractId: HexString): Promise<boolean> => {
+    const interfaceId = await this.guessStdInterfaceId(contractId)
+    return interfaceId === StdInterfaceIds.NFTCollectionWithRoyalty
   }
 
   guessStdTokenType = async (tokenId: HexString): Promise<'fungible' | 'non-fungible' | undefined> => {

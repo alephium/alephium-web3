@@ -689,9 +689,10 @@ export function sortByName<T extends { artifact: { name: string } }>(artifacts: 
 export function codegen(artifactDir: string) {
   const outDirTemp = path.join(artifactDir, 'ts')
   const outDir = path.isAbsolute(outDirTemp) ? outDirTemp : path.resolve(outDirTemp)
-  if (!fs.existsSync(outDir)) {
-    fs.mkdirSync(outDir, { recursive: true })
+  if (fs.existsSync(outDir)) {
+    fs.rmSync(outDir, { recursive: true, force: true })
   }
+  fs.mkdirSync(outDir, { recursive: true })
 
   const exports: string[] = []
   try {
