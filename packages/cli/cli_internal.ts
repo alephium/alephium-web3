@@ -32,7 +32,7 @@ import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { createProject } from './scripts/create-project'
 import { generateImagesWithOpenAI, uploadImagesAndMetadataToIPFS } from './scripts/pre-designed-nft'
-import { codegen, getConfigFile, isNetworkLive, loadConfig } from './src'
+import { checkFullNodeVersion, codegen, getConfigFile, getSdkFullNodeVersion, isNetworkLive, loadConfig } from './src'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -95,11 +95,15 @@ program
       if (!(await isNetworkLive(nodeUrl))) {
         throw new Error(`${networkId} is not live`)
       }
+
       web3.setCurrentNodeProvider(nodeUrl)
-      const fullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
-      console.log(`Full node version: ${fullNodeVersion}`)
+      const connectedFullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
+      const sdkFullNodeVersion = getSdkFullNodeVersion()
+      checkFullNodeVersion(connectedFullNodeVersion.slice(1), sdkFullNodeVersion)
+      console.log(`Full node version: ${connectedFullNodeVersion}`)
+
       const cwd = path.resolve(process.cwd())
-      await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir, fullNodeVersion)
+      await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir, connectedFullNodeVersion)
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
         return
