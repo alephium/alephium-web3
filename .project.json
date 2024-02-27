@@ -229,7 +229,7 @@
     },
     "TemplateArrayVar": {
       "sourceFile": "test/template_array_var.ral",
-      "sourceCodeHash": "6c74ecf8ff382a6722868c58ccb13a3be1428a298574bfd22e787a85099eeefe",
+      "sourceCodeHash": "9d4585b01c450c8602f797f63995d1a734a260ea5579d68b81ba84272c9de235",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
