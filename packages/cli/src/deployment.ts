@@ -59,6 +59,7 @@ import {
   getNetwork,
   loadConfig,
   retryFetch,
+  taskIdToVariable,
   waitTxConfirmed,
   waitUserConfirmation
 } from './utils'
@@ -644,11 +645,21 @@ async function deployInParallel<Settings = unknown>(
   }
 }
 
-export async function deployToDevnet(): Promise<Deployments> {
+export async function deployToDevnet() {
   const deployments = Deployments.empty()
   const configuration = loadConfig(getConfigFile())
   await deploy(configuration, 'devnet', deployments)
-  return deployments
+  return deployments.deployments.map((d) => {
+    const contracts: Record<string, DeployContractExecutionResult> = {}
+    Array.from(d.contracts.entries()).forEach(([taskId, result]) => {
+      contracts[taskIdToVariable(taskId)] = result
+    })
+    const scripts: Record<string, RunScriptResult> = {}
+    Array.from(d.scripts.entries()).forEach(([taskId, result]) => {
+      scripts[taskIdToVariable(taskId)] = result
+    })
+    return { deployerAddress: d.deployerAddress, contracts, scripts }
+  })
 }
 
 async function deployToGroup<Settings = unknown>(

@@ -152,3 +152,7 @@ export function waitUserConfirmation(msg: string): Promise<boolean> {
     })
   })
 }
+
+export function taskIdToVariable(taskId: string): string {
+  return taskId.replace(/[:\-]/g, '_')
+}
