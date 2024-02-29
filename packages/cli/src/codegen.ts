@@ -379,10 +379,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       testMethod, callMethod, multicallMethods, fetchContractState,
       ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
-    import { DeployContractExecutionResult } from '@alephium/cli'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
-    import { loadContractInstanceFromDeployments } from './utils'
 
     // Custom types for the contract
     export namespace ${contract.name}Types {
@@ -410,22 +408,6 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     export class ${contract.name}Instance extends ContractInstance {
       constructor(address: Address) {
         super(address)
-      }
-
-      static in(
-        allDeployments: {
-          deployerAddress: string,
-          contracts: Record<string, DeployContractExecutionResult>
-        }[],
-        group?: number,
-        taskId?: string
-      ): ${contract.name}Instance | undefined {
-        return loadContractInstanceFromDeployments<${contract.name}Instance>(
-          allDeployments,
-          '${contract.name}',
-          group,
-          taskId
-        )
       }
 
       ${genFetchState(contract)}
@@ -700,39 +682,6 @@ export function sortByName<T extends { artifact: { name: string } }>(artifacts: 
   return artifacts.sort((a, b) => (a.artifact.name > b.artifact.name ? 1 : -1))
 }
 
-function genUtils(outDir: string) {
-  const utilsPath = path.join(outDir, 'utils.ts')
-  const source = `
-    import { ContractInstance, groupOfAddress } from '@alephium/web3'
-    import { DeployContractExecutionResult } from '@alephium/cli'
-
-    export function loadContractInstanceFromDeployments<T extends ContractInstance>(
-      allDeployments: {
-        deployerAddress: string
-        contracts: Record<string, DeployContractExecutionResult>
-      }[],
-      contractName: string,
-      group?: number,
-      taskId?: string
-    ): T | undefined {
-      const deployments = group === undefined
-        ? allDeployments[0]
-        : allDeployments.find((d) => groupOfAddress(d.deployerAddress))
-      if (deployments === undefined) {
-        return undefined
-      }
-      const result = taskId === undefined
-        ? deployments.contracts[contractName]
-        : deployments.contracts[taskId.replace(/[:\-]/g, '_')]
-      if (result === undefined) {
-        return undefined
-      }
-      return result.contractInstance as T
-    }
-  `
-  formatAndSaveToFile(utilsPath, header + source)
-}
-
 function cleanCode(outDir: string) {
   const files = fs.readdirSync(outDir)
   files.forEach((file) => {
@@ -754,7 +703,6 @@ export function codegen(artifactDir: string) {
 
   const exports: string[] = []
   try {
-    genUtils(outDir)
     genContracts(outDir, artifactDir, exports)
     const contractNames = exports.map((p) => p.slice(2))
     genContractByCodeHash(outDir, contractNames)

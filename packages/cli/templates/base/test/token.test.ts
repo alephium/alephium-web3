@@ -1,7 +1,7 @@
 import { web3, Project, TestContractParams, addressFromContractId, AssetOutput, DUST_AMOUNT, groupOfAddress } from '@alephium/web3'
 import { expectAssertionError, randomContractId, testAddress, testNodeWallet } from '@alephium/web3-test'
 import { deployToDevnet } from '@alephium/cli'
-import { TokenFaucet, TokenFaucetInstance, TokenFaucetTypes, Withdraw } from '../artifacts/ts'
+import { TokenFaucet, TokenFaucetTypes, Withdraw } from '../artifacts/ts'
 
 describe('unit tests', () => {
   let testContractId: string
@@ -109,7 +109,7 @@ describe('integration tests', () => {
 
   it('should withdraw on devnet', async () => {
     const signer = await testNodeWallet()
-    const allDeployments = await deployToDevnet()
+    const deployments = await deployToDevnet()
 
     // Test with all of the addresses of the wallet
     for (const account of await signer.getAccounts()) {
@@ -117,7 +117,7 @@ describe('integration tests', () => {
       await signer.setSelectedAccount(testAddress)
       const testGroup = account.group
 
-      const faucet = TokenFaucetInstance.in(allDeployments, testGroup)
+      const faucet = deployments.getInstance(TokenFaucet)
       if (faucet === undefined) {
         console.log(`The contract is not deployed on group ${account.group}`)
         continue

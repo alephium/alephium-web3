@@ -158,6 +158,32 @@ export class Deployments {
     const deploymentsFile = getDeploymentFilePath(configuration, networkId)
     return Deployments.from(deploymentsFile)
   }
+
+  private tryGetDeployedContract(
+    contractName: string,
+    group?: number,
+    taskId?: string
+  ): DeployContractExecutionResult | undefined {
+    const deployments = group !== undefined ? this.deploymentsByGroup(group) : this.deployments[0]
+    if (deployments === undefined) {
+      return undefined
+    }
+    return taskId === undefined
+      ? deployments.contracts.get(`${contractName}`)
+      : deployments.contracts.get(`${taskIdToVariable(taskId)}`)
+  }
+
+  getInstance<I extends ContractInstance>(
+    contract: ContractFactory<I, any>,
+    group?: number,
+    taskId?: string
+  ): I | undefined {
+    const result = this.tryGetDeployedContract(contract.contract.name, group, taskId)
+    if (result === undefined) {
+      return undefined
+    }
+    return contract.at(result.contractInstance.address)
+  }
 }
 
 export async function getDeploymentResult(filepath: string): Promise<DeploymentsPerAddress> {
@@ -645,21 +671,11 @@ async function deployInParallel<Settings = unknown>(
   }
 }
 
-export async function deployToDevnet() {
+export async function deployToDevnet(): Promise<Deployments> {
   const deployments = Deployments.empty()
   const configuration = loadConfig(getConfigFile())
   await deploy(configuration, 'devnet', deployments)
-  return deployments.deployments.map((d) => {
-    const contracts: Record<string, DeployContractExecutionResult> = {}
-    Array.from(d.contracts.entries()).forEach(([taskId, result]) => {
-      contracts[taskIdToVariable(taskId)] = result
-    })
-    const scripts: Record<string, RunScriptResult> = {}
-    Array.from(d.scripts.entries()).forEach(([taskId, result]) => {
-      scripts[taskIdToVariable(taskId)] = result
-    })
-    return { deployerAddress: d.deployerAddress, contracts, scripts }
-  })
+  return deployments
 }
 
 async function deployToGroup<Settings = unknown>(
