@@ -59,6 +59,7 @@ import {
   getNetwork,
   loadConfig,
   retryFetch,
+  taskIdToVariable,
   waitTxConfirmed,
   waitUserConfirmation
 } from './utils'
@@ -156,6 +157,32 @@ export class Deployments {
   static async load(configuration: Configuration, networkId: NetworkId): Promise<Deployments> {
     const deploymentsFile = getDeploymentFilePath(configuration, networkId)
     return Deployments.from(deploymentsFile)
+  }
+
+  private tryGetDeployedContract(
+    contractName: string,
+    group?: number,
+    taskId?: string
+  ): DeployContractExecutionResult | undefined {
+    const deployments = group !== undefined ? this.deploymentsByGroup(group) : this.deployments[0]
+    if (deployments === undefined) {
+      return undefined
+    }
+    return taskId === undefined
+      ? deployments.contracts.get(`${contractName}`)
+      : deployments.contracts.get(`${taskIdToVariable(taskId)}`)
+  }
+
+  getInstance<I extends ContractInstance>(
+    contract: ContractFactory<I, any>,
+    group?: number,
+    taskId?: string
+  ): I | undefined {
+    const result = this.tryGetDeployedContract(contract.contract.name, group, taskId)
+    if (result === undefined) {
+      return undefined
+    }
+    return contract.at(result.contractInstance.address)
   }
 }
 
