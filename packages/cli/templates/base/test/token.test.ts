@@ -117,7 +117,7 @@ describe('integration tests', () => {
       await signer.setSelectedAccount(testAddress)
       const testGroup = account.group
 
-      const faucet = deployments.getInstance(TokenFaucet)
+      const faucet = deployments.getInstance(TokenFaucet, testGroup)
       if (faucet === undefined) {
         console.log(`The contract is not deployed on group ${account.group}`)
         continue
