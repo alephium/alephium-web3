@@ -733,11 +733,22 @@ function genUtils(outDir: string) {
   formatAndSaveToFile(utilsPath, header + source)
 }
 
+function cleanCode(outDir: string) {
+  const files = fs.readdirSync(outDir)
+  files.forEach((file) => {
+    const filePath = path.join(outDir, file)
+    const filename = path.basename(file)
+    if (filename !== 'deployments.ts') {
+      fs.unlinkSync(filePath)
+    }
+  })
+}
+
 export function codegen(artifactDir: string) {
   const outDirTemp = path.join(artifactDir, 'ts')
   const outDir = path.isAbsolute(outDirTemp) ? outDirTemp : path.resolve(outDirTemp)
   if (fs.existsSync(outDir)) {
-    fs.rmSync(outDir, { recursive: true, force: true })
+    cleanCode(outDir)
   }
   fs.mkdirSync(outDir, { recursive: true })
 
