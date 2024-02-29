@@ -24,10 +24,8 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace SubTypes {
@@ -92,22 +90,6 @@ export const Sub = new Factory(
 export class SubInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
-  }
-
-  static in(
-    allDeployments: {
-      deployerAddress: string;
-      contracts: Record<string, DeployContractExecutionResult>;
-    }[],
-    group?: number,
-    taskId?: string
-  ): SubInstance | undefined {
-    return loadContractInstanceFromDeployments<SubInstance>(
-      allDeployments,
-      "Sub",
-      group,
-      taskId
-    );
   }
 
   async fetchState(): Promise<SubTypes.State> {

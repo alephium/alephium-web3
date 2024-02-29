@@ -24,10 +24,8 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace FakeTokenTestTypes {
@@ -138,22 +136,6 @@ export const FakeTokenTest = new Factory(
 export class FakeTokenTestInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
-  }
-
-  static in(
-    allDeployments: {
-      deployerAddress: string;
-      contracts: Record<string, DeployContractExecutionResult>;
-    }[],
-    group?: number,
-    taskId?: string
-  ): FakeTokenTestInstance | undefined {
-    return loadContractInstanceFromDeployments<FakeTokenTestInstance>(
-      allDeployments,
-      "FakeTokenTest",
-      group,
-      taskId
-    );
   }
 
   async fetchState(): Promise<FakeTokenTestTypes.State> {

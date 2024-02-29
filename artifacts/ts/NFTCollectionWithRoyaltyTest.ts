@@ -24,10 +24,8 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
-import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as NFTCollectionWithRoyaltyTestContractJson } from "../nft/NFTCollectionWithRoyaltyTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace NFTCollectionWithRoyaltyTestTypes {
@@ -179,22 +177,6 @@ export const NFTCollectionWithRoyaltyTest = new Factory(
 export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
-  }
-
-  static in(
-    allDeployments: {
-      deployerAddress: string;
-      contracts: Record<string, DeployContractExecutionResult>;
-    }[],
-    group?: number,
-    taskId?: string
-  ): NFTCollectionWithRoyaltyTestInstance | undefined {
-    return loadContractInstanceFromDeployments<NFTCollectionWithRoyaltyTestInstance>(
-      allDeployments,
-      "NFTCollectionWithRoyaltyTest",
-      group,
-      taskId
-    );
   }
 
   async fetchState(): Promise<NFTCollectionWithRoyaltyTestTypes.State> {
