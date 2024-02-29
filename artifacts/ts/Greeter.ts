@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace GreeterTypes {
@@ -94,6 +96,22 @@ export const Greeter = new Factory(
 export class GreeterInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): GreeterInstance | undefined {
+    return loadContractInstanceFromDeployments<GreeterInstance>(
+      allDeployments,
+      "Greeter",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<GreeterTypes.State> {

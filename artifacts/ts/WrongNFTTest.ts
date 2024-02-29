@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as WrongNFTTestContractJson } from "../nft/WrongNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace WrongNFTTestTypes {
@@ -106,6 +108,22 @@ export const WrongNFTTest = new Factory(
 export class WrongNFTTestInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): WrongNFTTestInstance | undefined {
+    return loadContractInstanceFromDeployments<WrongNFTTestInstance>(
+      allDeployments,
+      "WrongNFTTest",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<WrongNFTTestTypes.State> {

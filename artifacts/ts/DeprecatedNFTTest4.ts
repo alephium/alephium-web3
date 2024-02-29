@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as DeprecatedNFTTest4ContractJson } from "../nft/DeprecatedNFTTest4.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest4Types {
@@ -105,6 +107,22 @@ export const DeprecatedNFTTest4 = new Factory(
 export class DeprecatedNFTTest4Instance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): DeprecatedNFTTest4Instance | undefined {
+    return loadContractInstanceFromDeployments<DeprecatedNFTTest4Instance>(
+      allDeployments,
+      "DeprecatedNFTTest4",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<DeprecatedNFTTest4Types.State> {

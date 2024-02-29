@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace AddTypes {
@@ -110,6 +112,22 @@ export const Add = new Factory(
 export class AddInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): AddInstance | undefined {
+    return loadContractInstanceFromDeployments<AddInstance>(
+      allDeployments,
+      "Add",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<AddTypes.State> {

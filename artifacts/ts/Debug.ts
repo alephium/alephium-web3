@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as DebugContractJson } from "../test/Debug.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace DebugTypes {
@@ -62,6 +64,22 @@ export const Debug = new Factory(
 export class DebugInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): DebugInstance | undefined {
+    return loadContractInstanceFromDeployments<DebugInstance>(
+      allDeployments,
+      "Debug",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<DebugTypes.State> {

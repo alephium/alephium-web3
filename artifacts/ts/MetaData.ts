@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace MetaDataTypes {
@@ -78,6 +80,22 @@ export const MetaData = new Factory(
 export class MetaDataInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): MetaDataInstance | undefined {
+    return loadContractInstanceFromDeployments<MetaDataInstance>(
+      allDeployments,
+      "MetaData",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<MetaDataTypes.State> {

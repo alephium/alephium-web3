@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace WarningsTypes {
@@ -70,6 +72,22 @@ export const Warnings = new Factory(
 export class WarningsInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): WarningsInstance | undefined {
+    return loadContractInstanceFromDeployments<WarningsInstance>(
+      allDeployments,
+      "Warnings",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<WarningsTypes.State> {

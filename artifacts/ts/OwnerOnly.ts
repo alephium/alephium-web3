@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace OwnerOnlyTypes {
@@ -70,6 +72,22 @@ export const OwnerOnly = new Factory(
 export class OwnerOnlyInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): OwnerOnlyInstance | undefined {
+    return loadContractInstanceFromDeployments<OwnerOnlyInstance>(
+      allDeployments,
+      "OwnerOnly",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<OwnerOnlyTypes.State> {

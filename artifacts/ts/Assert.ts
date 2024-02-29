@@ -24,8 +24,10 @@ import {
   ContractInstance,
   getContractEventsCurrentCount,
 } from "@alephium/web3";
+import { DeployContractExecutionResult } from "@alephium/cli";
 import { default as AssertContractJson } from "../test/Assert.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { loadContractInstanceFromDeployments } from "./utils";
 
 // Custom types for the contract
 export namespace AssertTypes {
@@ -75,6 +77,22 @@ export const Assert = new Factory(
 export class AssertInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
+  }
+
+  static in(
+    allDeployments: {
+      deployerAddress: string;
+      contracts: Record<string, DeployContractExecutionResult>;
+    }[],
+    group?: number,
+    taskId?: string
+  ): AssertInstance | undefined {
+    return loadContractInstanceFromDeployments<AssertInstance>(
+      allDeployments,
+      "Assert",
+      group,
+      taskId
+    );
   }
 
   async fetchState(): Promise<AssertTypes.State> {
