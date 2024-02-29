@@ -117,15 +117,13 @@ describe('integration tests', () => {
       await signer.setSelectedAccount(testAddress)
       const testGroup = account.group
 
-      const deployments = allDeployments.find((d) => groupOfAddress(d.deployerAddress) === testGroup)
-      if (deployments === undefined) {
+      const faucet = TokenFaucetInstance.in(allDeployments, testGroup)
+      if (faucet === undefined) {
         console.log(`The contract is not deployed on group ${account.group}`)
         continue
       }
-      const deployed = deployments.contracts.TokenFaucet
-      expect(deployed.contractInstance.groupIndex).toEqual(testGroup)
 
-      const faucet = deployed.contractInstance as TokenFaucetInstance
+      expect(faucet.groupIndex).toEqual(testGroup)
       const initialState = await faucet.fetchState()
       const initialBalance = initialState.fields.balance
 
