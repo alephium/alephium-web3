@@ -210,6 +210,23 @@ describe('contract', function () {
     )
   })
 
+  it('should encode VM values', () => {
+    const bool = ralph.encodeVmBool(true)
+    expect(utils.binToHex(bool)).toEqual('0001')
+
+    const i256 = ralph.encodeVmI256(1n)
+    expect(utils.binToHex(i256)).toEqual('0101')
+
+    const u256 = ralph.encodeVmU256(1n)
+    expect(utils.binToHex(u256)).toEqual('0201')
+
+    const byteVec = ralph.encodeVmByteVec('ff')
+    expect(utils.binToHex(byteVec)).toEqual('0301ff')
+
+    const address = ralph.encodeVmAddress('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(utils.binToHex(address)).toEqual('0400bee85f379545a2ed9f6cceb331288842f378cf0f04012ad4ac8824aae7d6f80a')
+  })
+
   // it('should test buildByteCode', async () => {
   //   const compiled = {
   //     type: 'TemplateContractByteCode',

@@ -157,6 +157,34 @@ export function encodeAddress(address: string): Uint8Array {
   return bs58.decode(address)
 }
 
+export enum VmValType {
+  Bool = 0,
+  I256 = 1,
+  U256 = 2,
+  ByteVec = 3,
+  Address = 4
+}
+
+export function encodeVmBool(bool: boolean): Uint8Array {
+  return Buffer.concat([encodeU256(BigInt(VmValType.Bool)), encodeBool(bool)])
+}
+
+export function encodeVmI256(i256: bigint): Uint8Array {
+  return Buffer.concat([encodeU256(BigInt(VmValType.I256)), encodeI256(i256)])
+}
+
+export function encodeVmU256(u256: bigint): Uint8Array {
+  return Buffer.concat([encodeU256(BigInt(VmValType.U256)), encodeU256(u256)])
+}
+
+export function encodeVmByteVec(bytes: string): Uint8Array {
+  return Buffer.concat([encodeU256(BigInt(VmValType.ByteVec)), encodeByteVec(bytes)])
+}
+
+export function encodeVmAddress(address: string): Uint8Array {
+  return Buffer.concat([encodeU256(BigInt(VmValType.Address)), encodeAddress(address)])
+}
+
 function invalidScriptField(tpe: string, value: Val): Error {
   return Error(`Invalid script field ${value} for type ${tpe}`)
 }
