@@ -65,6 +65,7 @@ import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './e
 import { ONE_ALPH } from '../constants'
 import * as blake from 'blakejs'
 import { parseError } from '../utils/error'
+import { isContractDebugMessageEnabled } from '../debug'
 
 const crypto = new WebCrypto()
 
@@ -303,7 +304,7 @@ export class ProjectArtifact {
       const files = new Map(Object.entries<CodeInfo>(json.infos))
       return new ProjectArtifact(fullNodeVersion, compilerOptionsUsed, files)
     } catch (error) {
-      console.log(`Failed to load project artifact, error: ${error}`)
+      console.error(`Failed to load project artifact, error: ${error}`)
       return undefined
     }
   }
@@ -964,7 +965,7 @@ export class Contract extends Artifact {
   }
 
   printDebugMessages(funcName: string, messages: DebugMessage[]) {
-    if (messages.length != 0) {
+    if (isContractDebugMessageEnabled() && messages.length != 0) {
       console.log(`Testing ${this.name}.${funcName}:`)
       messages.forEach((m) => console.log(`> Contract @ ${m.contractAddress} - ${m.message}`))
     }

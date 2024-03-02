@@ -29,3 +29,17 @@ export function enableDebugMode() {
 export function disableDebugMode() {
   debugModeEnabled = false
 }
+
+let contractDebugMessageEnabled = !(process.env.CONTRACT_DEBUG_MESSAGE === 'false') // default to true
+
+export function isContractDebugMessageEnabled() {
+  return contractDebugMessageEnabled
+}
+
+export function enableContractDebugMessage() {
+  contractDebugMessageEnabled = true
+}
+
+export function disableContractDebugMessage() {
+  contractDebugMessageEnabled = false
+}
