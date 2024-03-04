@@ -30,7 +30,7 @@ export function disableDebugMode() {
   debugModeEnabled = false
 }
 
-let contractDebugMessageEnabled = !(process.env.ALEPHIUM_CONTRACT_DEBUG_MESSAGE === 'false') // default to true
+let contractDebugMessageEnabled = true
 
 export function isContractDebugMessageEnabled() {
   return contractDebugMessageEnabled
