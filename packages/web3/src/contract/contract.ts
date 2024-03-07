@@ -20,7 +20,6 @@ import { Buffer } from 'buffer/'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import {
-  fromApiArray,
   fromApiNumber256,
   toApiNumber256,
   NamedVals,
@@ -32,9 +31,10 @@ import {
   Token,
   Val,
   fromApiTokens,
-  fromApiVals,
-  typeLength,
-  getDefaultValue
+  getDefaultPrimitiveValue,
+  PrimitiveTypes,
+  decodeArrayType,
+  fromApiPrimitiveVal
 } from '../api'
 import { CompileProjectResult } from '../api/api-alephium'
 import {
@@ -84,7 +84,8 @@ enum SourceKind {
   Contract = 0,
   Script = 1,
   AbstractContract = 2,
-  Interface = 3
+  Interface = 3,
+  Struct = 4
 }
 
 export type CompilerOptions = node.CompilerOptions & {
@@ -327,10 +328,45 @@ function removeOldArtifacts(dir: string) {
   }
 }
 
+export class Struct {
+  name: string
+  fieldNames: string[]
+  fieldTypes: string[]
+  isMutable: boolean[]
+
+  constructor(name: string, fieldNames: string[], fieldTypes: string[], isMutable: boolean[]) {
+    this.name = name
+    this.fieldNames = fieldNames
+    this.fieldTypes = fieldTypes
+    this.isMutable = isMutable
+  }
+
+  static fromJson(json: any): Struct {
+    if (json.name === null || json.fieldNames === null || json.fieldTypes === null || json.isMutable === null) {
+      throw Error('The JSON for struct is incomplete')
+    }
+    return new Struct(json.name, json.fieldNames, json.fieldTypes, json.isMutable)
+  }
+
+  static fromStructSig(sig: node.StructSig): Struct {
+    return new Struct(sig.name, sig.fieldNames, sig.fieldTypes, sig.isMutable)
+  }
+
+  toJson(): any {
+    return {
+      name: this.name,
+      fieldNames: this.fieldNames,
+      fieldTypes: this.fieldTypes,
+      isMutable: this.isMutable
+    }
+  }
+}
+
 export class Project {
   sourceInfos: SourceInfo[]
   contracts: Map<string, Compiled<Contract>>
   scripts: Map<string, Compiled<Script>>
+  structs: Struct[]
   projectArtifact: ProjectArtifact
 
   readonly contractsRootDir: string
@@ -346,11 +382,13 @@ export class Project {
   static readonly contractMatcher = new TypedMatcher('^Contract ([A-Z][a-zA-Z0-9]*)', SourceKind.Contract)
   static readonly interfaceMatcher = new TypedMatcher('^Interface ([A-Z][a-zA-Z0-9]*)', SourceKind.Interface)
   static readonly scriptMatcher = new TypedMatcher('^TxScript ([A-Z][a-zA-Z0-9]*)', SourceKind.Script)
+  static readonly structMatcher = new TypedMatcher('struct ([A-Z][a-zA-Z0-9]*)', SourceKind.Struct)
   static readonly matchers = [
     Project.abstractContractMatcher,
     Project.contractMatcher,
     Project.interfaceMatcher,
-    Project.scriptMatcher
+    Project.scriptMatcher,
+    Project.structMatcher
   ]
 
   static buildProjectArtifact(
@@ -398,6 +436,7 @@ export class Project {
     sourceInfos: SourceInfo[],
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
+    structs: Struct[],
     errorOnWarnings: boolean,
     projectArtifact: ProjectArtifact
   ) {
@@ -406,6 +445,7 @@ export class Project {
     this.sourceInfos = sourceInfos
     this.contracts = contracts
     this.scripts = scripts
+    this.structs = structs
     this.projectArtifact = projectArtifact
 
     if (errorOnWarnings) {
@@ -448,6 +488,24 @@ export class Project {
     return script.artifact
   }
 
+  private static async loadStructs(artifactsRootDir: string): Promise<Struct[]> {
+    const filePath = path.join(artifactsRootDir, 'structs.ral.json')
+    if (!fs.existsSync(filePath)) return []
+    const content = await fsPromises.readFile(filePath)
+    const json = JSON.parse(content.toString())
+    if (!Array.isArray(json)) {
+      throw Error(`Invalid structs JSON: ${content}`)
+    }
+    return Array.from(json).map((item) => Struct.fromJson(item))
+  }
+
+  private async saveStructsToFile(): Promise<void> {
+    if (this.structs.length === 0) return
+    const structs = this.structs.map((s) => s.toJson())
+    const filePath = path.join(this.artifactsRootDir, 'structs.ral.json')
+    return fsPromises.writeFile(filePath, JSON.stringify(structs, null, 2))
+  }
+
   private async saveArtifactsToFile(projectRootDir: string): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
@@ -460,6 +518,7 @@ export class Project {
     }
     this.contracts.forEach((contract) => saveToFile(contract))
     this.scripts.forEach((script) => saveToFile(script))
+    this.saveStructsToFile()
     await this.projectArtifact.saveToFile(projectRootDir)
   }
 
@@ -525,6 +584,7 @@ export class Project {
     const result = await Project.getCompileResult(provider, compilerOptions, removeDuplicates)
     const contracts = new Map<string, Compiled<Contract>>()
     const scripts = new Map<string, Compiled<Script>>()
+    const structs = result.structs === undefined ? [] : result.structs.map((item) => Struct.fromStructSig(item))
     result.contracts.forEach((contractResult) => {
       const sourceInfo = sourceInfos.find(
         (sourceInfo) => sourceInfo.type === SourceKind.Contract && sourceInfo.name === contractResult.name
@@ -533,7 +593,7 @@ export class Project {
         // this should never happen
         throw new Error(`SourceInfo does not exist for contract ${contractResult.name}`)
       }
-      const contract = Contract.fromCompileResult(contractResult)
+      const contract = Contract.fromCompileResult(contractResult, structs)
       contracts.set(contract.name, new Compiled(sourceInfo, contract, contractResult.warnings))
     })
     result.scripts.forEach((scriptResult) => {
@@ -544,7 +604,7 @@ export class Project {
         // this should never happen
         throw new Error(`SourceInfo does not exist for script ${scriptResult.name}`)
       }
-      const script = Script.fromCompileResult(scriptResult)
+      const script = Script.fromCompileResult(scriptResult, structs)
       scripts.set(script.name, new Compiled(sourceInfo, script, scriptResult.warnings))
     })
     const projectArtifact = Project.buildProjectArtifact(
@@ -560,6 +620,7 @@ export class Project {
       sourceInfos,
       contracts,
       scripts,
+      structs,
       errorOnWarnings,
       projectArtifact
     )
@@ -580,6 +641,7 @@ export class Project {
     try {
       const contracts = new Map<string, Compiled<Contract>>()
       const scripts = new Map<string, Compiled<Script>>()
+      const structs = await Project.loadStructs(artifactsRootDir)
       for (const sourceInfo of sourceInfos) {
         const info = projectArtifact.infos.get(sourceInfo.name)
         if (typeof info === 'undefined') {
@@ -588,10 +650,15 @@ export class Project {
         const warnings = info.warnings
         const artifactDir = sourceInfo.getArtifactPath(artifactsRootDir)
         if (sourceInfo.type === SourceKind.Contract) {
-          const artifact = await Contract.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, info.codeHashDebug)
+          const artifact = await Contract.fromArtifactFile(
+            artifactDir,
+            info.bytecodeDebugPatch,
+            info.codeHashDebug,
+            structs
+          )
           contracts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
         } else if (sourceInfo.type === SourceKind.Script) {
-          const artifact = await Script.fromArtifactFile(artifactDir, info.bytecodeDebugPatch)
+          const artifact = await Script.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, structs)
           scripts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
         }
       }
@@ -602,6 +669,7 @@ export class Project {
         sourceInfos,
         contracts,
         scripts,
+        structs,
         errorOnWarnings,
         projectArtifact
       )
@@ -821,6 +889,7 @@ export class Contract extends Artifact {
   readonly eventsSig: EventSig[]
   readonly constants: Constant[]
   readonly enums: Enum[]
+  readonly structs: Struct[]
   readonly stdInterfaceId?: HexString
 
   readonly bytecodeDebug: string
@@ -838,6 +907,7 @@ export class Contract extends Artifact {
     functions: FunctionSig[],
     constants: Constant[],
     enums: Enum[],
+    structs: Struct[],
     stdInterfaceId?: HexString
   ) {
     super(version, name, functions)
@@ -848,6 +918,7 @@ export class Contract extends Artifact {
     this.eventsSig = eventsSig
     this.constants = constants
     this.enums = enums
+    this.structs = structs
     this.stdInterfaceId = stdInterfaceId
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
@@ -855,7 +926,7 @@ export class Contract extends Artifact {
   }
 
   // TODO: safely parse json
-  static fromJson(artifact: any, bytecodeDebugPatch = '', codeHashDebug = ''): Contract {
+  static fromJson(artifact: any, bytecodeDebugPatch = '', codeHashDebug = '', structs: Struct[] = []): Contract {
     if (
       artifact.version == null ||
       artifact.name == null ||
@@ -881,12 +952,13 @@ export class Contract extends Artifact {
       artifact.functions,
       artifact.constants,
       artifact.enums,
+      structs,
       artifact.stdInterfaceId === null ? undefined : artifact.stdInterfaceId
     )
     return contract
   }
 
-  static fromCompileResult(result: node.CompileContractResult): Contract {
+  static fromCompileResult(result: node.CompileContractResult, structs: Struct[] = []): Contract {
     return new Contract(
       result.version,
       result.name,
@@ -899,15 +971,21 @@ export class Contract extends Artifact {
       result.functions,
       result.constants,
       result.enums,
+      structs,
       result.stdInterfaceId
     )
   }
 
   // support both 'code.ral' and 'code.ral.json'
-  static async fromArtifactFile(path: string, bytecodeDebugPatch: string, codeHashDebug: string): Promise<Contract> {
+  static async fromArtifactFile(
+    path: string,
+    bytecodeDebugPatch: string,
+    codeHashDebug: string,
+    structs: Struct[] = []
+  ): Promise<Contract> {
     const content = await fsPromises.readFile(path)
     const artifact = JSON.parse(content.toString())
-    return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug)
+    return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug, structs)
   }
 
   override toString(): string {
@@ -937,10 +1015,7 @@ export class Contract extends Artifact {
             types: this.fieldsSig.types.slice(0, -1),
             isMutable: this.fieldsSig.isMutable.slice(0, -1)
           }
-    return fields.names.reduce((acc, key, index) => {
-      acc[`${key}`] = getDefaultValue(fields.types[`${index}`])
-      return acc
-    }, {})
+    return getDefaultValue(fields, this.structs)
   }
 
   toState<T extends Fields>(fields: T, asset: Asset, address?: string): ContractState<T> {
@@ -975,7 +1050,7 @@ export class Contract extends Artifact {
     if (typeof fields === 'undefined') {
       return []
     } else {
-      return toApiFields(fields, this.fieldsSig)
+      return toApiFields(fields, this.fieldsSig, this.structs)
     }
   }
 
@@ -986,7 +1061,7 @@ export class Contract extends Artifact {
         throw new Error(`Invalid function name: ${funcName}`)
       }
 
-      return toApiArgs(args, func)
+      return toApiArgs(args, func, this.structs)
     } else {
       return []
     }
@@ -997,14 +1072,22 @@ export class Contract extends Artifact {
   }
 
   toApiContractStates(states?: ContractState[]): node.ContractState[] | undefined {
-    return typeof states != 'undefined' ? states.map((state) => toApiContractState(state)) : undefined
+    return typeof states != 'undefined' ? states.map((state) => toApiContractState(state, this.structs)) : undefined
   }
 
   toApiTestContractParams(funcName: string, params: TestContractParams): node.TestContract {
-    const immFields =
-      params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, false)
-    const mutFields =
-      params.initialFields === undefined ? [] : extractFields(params.initialFields, this.fieldsSig, true)
+    const allFields =
+      params.initialFields === undefined
+        ? []
+        : ralph.flattenFields(
+            params.initialFields,
+            this.fieldsSig.names,
+            this.fieldsSig.types,
+            this.fieldsSig.isMutable,
+            this.structs
+          )
+    const immFields = allFields.filter((f) => !f.isMutable).map((f) => toApiVal(f.value, f.type))
+    const mutFields = allFields.filter((f) => f.isMutable).map((f) => toApiVal(f.value, f.type))
     return {
       group: params.group,
       blockHash: params.blockHash,
@@ -1030,7 +1113,7 @@ export class Contract extends Artifact {
       bytecode: state.bytecode,
       initialStateHash: state.initialStateHash,
       codeHash: state.codeHash,
-      fields: fromApiFields(state.immFields, state.mutFields, this.fieldsSig),
+      fields: fromApiFields(state.immFields, state.mutFields, this.fieldsSig, this.structs),
       fieldsSig: this.fieldsSig,
       asset: fromApiAsset(state.asset)
     }
@@ -1101,7 +1184,7 @@ export class Contract extends Artifact {
   ): TestContractResult<unknown> {
     const methodIndex = this.functions.findIndex((sig) => sig.name === methodName)
     const returnTypes = this.functions[`${methodIndex}`].returnTypes
-    const rawReturn = fromApiArray(result.returns, returnTypes)
+    const rawReturn = fromApiArray(result.returns, returnTypes, this.structs)
     const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
 
     const addressToCodeHash = new Map<string, string>()
@@ -1143,7 +1226,12 @@ export class Contract extends Artifact {
 
   buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string {
     try {
-      return ralph.buildContractByteCode(isDevnet ? this.bytecodeDebug : this.bytecode, initialFields, this.fieldsSig)
+      return ralph.buildContractByteCode(
+        isDevnet ? this.bytecodeDebug : this.bytecode,
+        initialFields,
+        this.fieldsSig,
+        this.structs
+      )
     } catch (error) {
       throw new Error(`Failed to build bytecode for contract ${this.name}, error: ${error}`)
     }
@@ -1173,7 +1261,7 @@ export class Contract extends Artifact {
     methodIndex: number
   ): node.CallContract {
     const functionSig = this.functions[`${methodIndex}`]
-    const args = toApiVals(params.args ?? {}, functionSig.paramNames, functionSig.paramTypes)
+    const args = toApiArgs(params.args ?? {}, functionSig, this.structs)
     return {
       ...params,
       group: groupIndex,
@@ -1191,7 +1279,7 @@ export class Contract extends Artifact {
   ): CallContractResult<unknown> {
     const returnTypes = this.functions[`${methodIndex}`].returnTypes
     const callResult = tryGetCallResult(result)
-    const rawReturn = fromApiArray(callResult.returns, returnTypes)
+    const rawReturn = fromApiArray(callResult.returns, returnTypes, this.structs)
     const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
 
     const addressToCodeHash = new Map<string, string>()
@@ -1212,6 +1300,7 @@ export class Script extends Artifact {
   readonly bytecodeTemplate: string
   readonly bytecodeDebugPatch: string
   readonly fieldsSig: FieldsSig
+  readonly structs: Struct[]
 
   constructor(
     version: string,
@@ -1219,27 +1308,30 @@ export class Script extends Artifact {
     bytecodeTemplate: string,
     bytecodeDebugPatch: string,
     fieldsSig: FieldsSig,
-    functions: FunctionSig[]
+    functions: FunctionSig[],
+    structs: Struct[]
   ) {
     super(version, name, functions)
     this.bytecodeTemplate = bytecodeTemplate
     this.bytecodeDebugPatch = bytecodeDebugPatch
     this.fieldsSig = fieldsSig
+    this.structs = structs
   }
 
-  static fromCompileResult(result: node.CompileScriptResult): Script {
+  static fromCompileResult(result: node.CompileScriptResult, structs: Struct[] = []): Script {
     return new Script(
       result.version,
       result.name,
       result.bytecodeTemplate,
       result.bytecodeDebugPatch,
       result.fields,
-      result.functions
+      result.functions,
+      structs
     )
   }
 
   // TODO: safely parse json
-  static fromJson(artifact: any, bytecodeDebugPatch = ''): Script {
+  static fromJson(artifact: any, bytecodeDebugPatch = '', structs: Struct[] = []): Script {
     if (
       artifact.version == null ||
       artifact.name == null ||
@@ -1255,14 +1347,15 @@ export class Script extends Artifact {
       artifact.bytecodeTemplate,
       bytecodeDebugPatch,
       artifact.fieldsSig,
-      artifact.functions
+      artifact.functions,
+      structs
     )
   }
 
-  static async fromArtifactFile(path: string, bytecodeDebugPatch: string): Promise<Script> {
+  static async fromArtifactFile(path: string, bytecodeDebugPatch: string, structs: Struct[] = []): Promise<Script> {
     const content = await fsPromises.readFile(path)
     const artifact = JSON.parse(content.toString())
-    return this.fromJson(artifact, bytecodeDebugPatch)
+    return this.fromJson(artifact, bytecodeDebugPatch, structs)
   }
 
   override toString(): string {
@@ -1295,34 +1388,86 @@ export class Script extends Artifact {
 
   buildByteCodeToDeploy(initialFields: Fields): string {
     try {
-      return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig)
+      return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig, this.structs)
     } catch (error) {
       throw new Error(`Failed to build bytecode for script ${this.name}, error: ${error}`)
     }
   }
 }
 
-function fromApiFields(immFields: node.Val[], mutFields: node.Val[], fieldsSig: node.FieldsSig): Fields {
-  const vals: node.Val[] = []
-  let immIndex = 0
-  let mutIndex = 0
-  const isMutable = fieldsSig.types.flatMap((tpe, index) =>
-    Array(typeLength(tpe)).fill(fieldsSig.isMutable[`${index}`])
-  )
-  isMutable.forEach((mutable) => {
-    if (mutable) {
-      vals.push(mutFields[`${mutIndex}`])
-      mutIndex += 1
-    } else {
-      vals.push(immFields[`${immIndex}`])
-      immIndex += 1
-    }
-  })
-  return fromApiVals(vals, fieldsSig.names, fieldsSig.types)
+function fromApiFields(
+  immFields: node.Val[],
+  mutFields: node.Val[],
+  fieldsSig: FieldsSig,
+  structs: Struct[]
+): NamedVals {
+  let [immIndex, mutIndex] = [0, 0]
+  const func = (type: string, isMutable: boolean): Val => {
+    const nodeVal = isMutable ? mutFields[mutIndex++] : immFields[immIndex++]
+    return fromApiPrimitiveVal(nodeVal, type)
+  }
+
+  return fieldsSig.names.reduce((acc, name, index) => {
+    const fieldType = fieldsSig.types[`${index}`]
+    const isMutable = fieldsSig.isMutable[`${index}`]
+    acc[`${name}`] = buildVal(isMutable, fieldType, structs, func)
+    return acc
+  }, {})
+}
+
+function buildVal(
+  isMutable: boolean,
+  type: string,
+  structs: Struct[],
+  func: (primitiveType: string, isMutable: boolean) => Val
+): Val {
+  if (type.startsWith('[')) {
+    const [baseType, size] = decodeArrayType(type)
+    return Array.from(Array(size).keys()).map(() => buildVal(isMutable, baseType, structs, func))
+  }
+  const struct = structs.find((s) => s.name === type)
+  if (struct !== undefined) {
+    return struct.fieldNames.reduce((acc, name, index) => {
+      const fieldType = struct.fieldTypes[`${index}`]
+      const isFieldMutable = isMutable && struct.isMutable[`${index}`]
+      acc[`${name}`] = buildVal(isFieldMutable, fieldType, structs, func)
+      return acc
+    }, {})
+  }
+  const primitiveType = PrimitiveTypes.includes(type) ? type : 'ByteVec' // contract type
+  return func(primitiveType, isMutable)
+}
+
+function getDefaultValue(fieldsSig: FieldsSig, structs: Struct[]): Fields {
+  return fieldsSig.names.reduce((acc, name, index) => {
+    const type = fieldsSig.types[`${index}`]
+    acc[`${name}`] = buildVal(false, type, structs, getDefaultPrimitiveValue)
+    return acc
+  }, {})
+}
+
+function fromApiVal(iter: IterableIterator<node.Val>, type: string, structs: Struct[], systemEvent = false): Val {
+  const func = (primitiveType: string): Val => {
+    const currentValue = iter.next()
+    if (currentValue.done) throw Error('Not enough vals')
+    return fromApiPrimitiveVal(currentValue.value, primitiveType, systemEvent)
+  }
+  return buildVal(false, type, structs, func)
+}
+
+function fromApiArray(values: node.Val[], types: string[], structs: Struct[]): Val[] {
+  const iter = values.values()
+  return types.map((type) => fromApiVal(iter, type, structs))
 }
 
 function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig, systemEvent = false): Fields {
-  return fromApiVals(vals, eventSig.fieldNames, eventSig.fieldTypes, systemEvent)
+  const iter = vals.values()
+  return eventSig.fieldNames.reduce((acc, name, index) => {
+    const type = eventSig.fieldTypes[`${index}`]
+    // currently event does not support struct type
+    acc[`${name}`] = fromApiVal(iter, type, [], systemEvent)
+    return acc
+  }, {})
 }
 
 export interface Asset {
@@ -1368,42 +1513,33 @@ function getVal(vals: NamedVals, name: string): Val {
   }
 }
 
-function extractFields(fields: NamedVals, fieldsSig: FieldsSig, mutable: boolean) {
-  const fieldIndexes = fieldsSig.names
-    .map((_, index) => index)
-    .filter((index) => fieldsSig.isMutable[`${index}`] === mutable)
-  const fieldNames = fieldIndexes.map((index) => fieldsSig.names[`${index}`])
-  const fieldTypes = fieldIndexes.map((index) => fieldsSig.types[`${index}`])
-  return toApiVals(fields, fieldNames, fieldTypes)
-}
-
-function toApiContractState(state: ContractState): node.ContractState {
+function toApiContractState(state: ContractState, structs: Struct[]): node.ContractState {
   const stateFields = state.fields ?? {}
+  const fieldsSig = state.fieldsSig
+  const allFields = ralph.flattenFields(stateFields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
+  const immFields = allFields.filter((f) => !f.isMutable).map((f) => toApiVal(f.value, f.type))
+  const mutFields = allFields.filter((f) => f.isMutable).map((f) => toApiVal(f.value, f.type))
   return {
     address: state.address,
     bytecode: state.bytecode,
     codeHash: state.codeHash,
     initialStateHash: state.initialStateHash,
-    immFields: extractFields(stateFields, state.fieldsSig, false),
-    mutFields: extractFields(stateFields, state.fieldsSig, true),
+    immFields,
+    mutFields,
     asset: toApiAsset(state.asset)
   }
 }
 
-function toApiFields(fields: Fields, fieldsSig: FieldsSig): node.Val[] {
-  return toApiVals(fields, fieldsSig.names, fieldsSig.types)
+function toApiFields(fields: Fields, fieldsSig: FieldsSig, structs: Struct[]): node.Val[] {
+  return ralph
+    .flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
+    .map((f) => toApiVal(f.value, f.type))
 }
 
-function toApiArgs(args: Arguments, funcSig: FunctionSig): node.Val[] {
-  return toApiVals(args, funcSig.paramNames, funcSig.paramTypes)
-}
-
-export function toApiVals(fields: Fields, names: string[], types: string[]): node.Val[] {
-  return names.map((name, index) => {
-    const val = getVal(fields, name)
-    const tpe = types[`${index}`]
-    return toApiVal(val, tpe)
-  })
+function toApiArgs(args: Arguments, funcSig: FunctionSig, structs: Struct[]): node.Val[] {
+  return ralph
+    .flattenFields(args, funcSig.paramNames, funcSig.paramTypes, funcSig.paramIsMutable, structs)
+    .map((f) => toApiVal(f.value, f.type))
 }
 
 function toApiInputAsset(inputAsset: InputAsset): node.TestInputAsset {
@@ -1783,9 +1919,7 @@ export function decodeEvent<F extends Fields, M extends ContractEvent<F>>(
     throw new Error('Invalid event index: ' + event.eventIndex + ', expected: ' + targetEventIndex)
   }
   const eventSig = contract.eventsSig[`${targetEventIndex}`]
-  const fieldNames = eventSig.fieldNames
-  const fieldTypes = eventSig.fieldTypes
-  const fields = fromApiVals(event.fields, fieldNames, fieldTypes)
+  const fields = fromApiEventFields(event.fields, eventSig)
   return {
     contractAddress: instance.address,
     blockHash: event.blockHash,

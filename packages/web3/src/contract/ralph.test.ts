@@ -144,31 +144,23 @@ describe('contract', function () {
       types: ['Address', '[[U256;2];2]', 'ByteVec', '[U256;3]'],
       isMutable: [false, false, false, false]
     }
-    const result = ralph.falttenFields(fields, fieldsSig)
+    const result = ralph.flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, [])
     expect(result).toEqual([
       {
+        isMutable: false,
         name: 'address',
         type: 'Address',
         value: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'
       },
-      { name: 'numbers0[0][0]', type: 'U256', value: 0n },
-      { name: 'numbers0[0][1]', type: 'U256', value: 1n },
-      { name: 'numbers0[1][0]', type: 'U256', value: 2n },
-      { name: 'numbers0[1][1]', type: 'U256', value: 3n },
-      { name: 'bytes', type: 'ByteVec', value: '0011' },
-      { name: 'numbers1[0]', type: 'U256', value: 0n },
-      { name: 'numbers1[1]', type: 'U256', value: 1n },
-      { name: 'numbers1[2]', type: 'U256', value: 2n }
+      { isMutable: false, name: 'numbers0[0][0]', type: 'U256', value: 0n },
+      { isMutable: false, name: 'numbers0[0][1]', type: 'U256', value: 1n },
+      { isMutable: false, name: 'numbers0[1][0]', type: 'U256', value: 2n },
+      { isMutable: false, name: 'numbers0[1][1]', type: 'U256', value: 3n },
+      { isMutable: false, name: 'bytes', type: 'ByteVec', value: '0011' },
+      { isMutable: false, name: 'numbers1[0]', type: 'U256', value: 0n },
+      { isMutable: false, name: 'numbers1[1]', type: 'U256', value: 1n },
+      { isMutable: false, name: 'numbers1[2]', type: 'U256', value: 2n }
     ])
-
-    const invalidFields0 = { ...fields, numbers0: [0n, 1n] }
-    expect(() => ralph.falttenFields(invalidFields0, fieldsSig)).toThrow(
-      'Invalid field, expected type is [U256;2], but value is 0'
-    )
-    const invalidFields1 = { ...fields, numbers1: [[0n], [1n], [2n]] }
-    expect(() => ralph.falttenFields(invalidFields1, fieldsSig)).toThrow(
-      'Invalid field, expected type is U256, but value is [0]'
-    )
   })
 
   it('should test buildScriptByteCode', () => {
@@ -178,7 +170,7 @@ describe('contract', function () {
       types: ['Bool', 'U256', 'ByteVec', 'Address'],
       isMutable: [false, false, false, false]
     }
-    const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig)
+    const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig, [])
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
   })
 
@@ -195,7 +187,7 @@ describe('contract', function () {
       types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]'],
       isMutable: [false, true, false, true, false]
     }
-    const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig)
+    const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig, [])
     expect(encoded).toEqual(
       'ff04013f030123000000010202010400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec'
     )

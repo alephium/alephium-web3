@@ -430,6 +430,7 @@ export interface CompileContractResult {
 export interface CompileProjectResult {
   contracts: CompileContractResult[]
   scripts: CompileScriptResult[]
+  structs: StructSig[]
 }
 
 export interface CompileScriptResult {
@@ -800,6 +801,13 @@ export interface Source {
   /** @format gas */
   gasAmount?: number
   utxos?: OutputRef[]
+}
+
+export interface StructSig {
+  name: string
+  fieldNames: string[]
+  fieldTypes: string[]
+  isMutable: boolean[]
 }
 
 export interface SubmitMultisig {
