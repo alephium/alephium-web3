@@ -1133,6 +1133,7 @@ export class Contract extends Artifact {
       bytecode: bytecode,
       initialAttoAlphAmount: params?.initialAttoAlphAmount,
       issueTokenAmount: params?.issueTokenAmount,
+      issueTokenTo: params?.issueTokenTo,
       initialTokenAmounts: params?.initialTokenAmounts,
       gasAmount: params?.gasAmount,
       gasPrice: params?.gasPrice
