@@ -1,0 +1,43 @@
+struct TokenBalance {
+  tokenId: ByteVec
+  mut amount: U256
+}
+
+struct Balances {
+  mut totalAmount: U256
+  mut tokens: [TokenBalance; 2]
+}
+
+Contract UserAccount(
+  @unused id: ByteVec,
+  mut address: Address,
+  mut balances: Balances,
+  @unused name: ByteVec
+) {
+  @using(checkExternalCaller = false)
+  pub fn updateBalance(tokens: [TokenBalance; 2]) -> () {
+    assert!(tokens[0].tokenId == balances.tokens[0].tokenId, 0)
+    assert!(tokens[1].tokenId == balances.tokens[1].tokenId, 0)
+    balances.tokens[0].amount = tokens[0].amount
+    balances.tokens[1].amount = tokens[1].amount
+    balances.totalAmount = tokens[0].amount + tokens[1].amount
+  }
+
+  @using(checkExternalCaller = false)
+  pub fn updateAddress(newAddress: Address) -> () {
+    address = newAddress
+  }
+
+  pub fn getBalances() -> Balances {
+    return balances
+  }
+}
+
+TxScript UpdateUserAccount(
+  account: UserAccount,
+  tokens: [TokenBalance; 2],
+  address: Address
+) {
+  account.updateBalance(tokens)
+  account.updateAddress(address)
+}

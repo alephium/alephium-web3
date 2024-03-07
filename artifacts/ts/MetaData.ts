@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace MetaDataTypes {
@@ -70,7 +71,8 @@ export const MetaData = new Factory(
   Contract.fromJson(
     MetaDataContractJson,
     "",
-    "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f"
+    "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f",
+    AllStructs
   )
 );
 

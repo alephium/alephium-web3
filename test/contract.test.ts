@@ -38,15 +38,16 @@ import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packa
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
-import { GreeterMain, Main, TemplateArrayVar } from '../artifacts/ts/scripts'
+import { GreeterMain, Main, TemplateArrayVar, UpdateUserAccount } from '../artifacts/ts/scripts'
 import { Sub, SubTypes } from '../artifacts/ts/Sub'
 import { Add, AddTypes } from '../artifacts/ts/Add'
 import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { NFTTest, OwnerOnly, TokenTest } from '../artifacts/ts'
+import { UserAccount, NFTTest, OwnerOnly, TokenTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
+import { TokenBalance } from '../artifacts/ts/types'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -235,11 +236,12 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(34)
-    sourceFiles.slice(0, 20).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(21, 26).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(27, 28).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(29).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    expect(sourceFiles.length).toEqual(38)
+    sourceFiles.slice(0, 22).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(22, 29).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(29, 31).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(31, 36).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(36).forEach((i) => expect(i.type).toEqual(4)) // structs
   })
 
   it('should load contract from json', () => {
@@ -398,5 +400,40 @@ describe('contract', function () {
     })
     // expectAssertionError(test2, address, 0)
     expect(test1.returns).toEqual(null)
+  })
+
+  it('should test struct', async () => {
+    const initialFields = {
+      ...UserAccount.getInitialFieldsWithDefaultValues(),
+      balances: {
+        totalAmount: 0n,
+        tokens: [
+          { tokenId: '0011', amount: 0n },
+          { tokenId: '0022', amount: 0n }
+        ] as [TokenBalance, TokenBalance]
+      }
+    }
+    const result = await UserAccount.deploy(signer, { initialFields })
+    const state = await result.contractInstance.fetchState()
+    expect(state.fields).toEqual(initialFields)
+
+    const balances0 = await result.contractInstance.methods.getBalances()
+    expect(balances0.returns).toEqual(initialFields.balances)
+
+    await UpdateUserAccount.execute(signer, {
+      initialFields: {
+        address: signer.address,
+        account: result.contractInstance.contractId,
+        tokens: [
+          { tokenId: '0011', amount: 100n },
+          { tokenId: '0022', amount: 101n }
+        ]
+      }
+    })
+
+    const balances1 = await result.contractInstance.methods.getBalances()
+    expect(balances1.returns.totalAmount).toEqual(201n)
+    expect(balances1.returns.tokens[0].amount).toEqual(100n)
+    expect(balances1.returns.tokens[1].amount).toEqual(101n)
   })
 })

@@ -64,7 +64,7 @@
         false
       ],
       "returnTypes": [
-        "ByteVec"
+        "INFT"
       ]
     },
     {

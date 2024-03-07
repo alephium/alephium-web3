@@ -8,7 +8,7 @@
       "caller"
     ],
     "types": [
-      "ByteVec",
+      "Add",
       "Address"
     ],
     "isMutable": [

@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace FakeTokenTestTypes {
@@ -128,7 +129,8 @@ export const FakeTokenTest = new Factory(
   Contract.fromJson(
     FakeTokenTestContractJson,
     "",
-    "88d74dcc19bfd075e97c90ab5f48d374f9ff982133d8257d4efc32305c5885b3"
+    "88d74dcc19bfd075e97c90ab5f48d374f9ff982133d8257d4efc32305c5885b3",
+    AllStructs
   )
 );
 

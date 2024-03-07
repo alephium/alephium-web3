@@ -28,6 +28,13 @@
         "Found unused constants in Assert: A, Addresses.A, Addresses.B, B, ByteVecs.A, ByteVecs.B, C, Numbers.A, Numbers.B"
       ]
     },
+    "Balances": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "Debug": {
       "sourceFile": "test/debug.ral",
       "sourceCodeHash": "0d7cdfad264cf2009dd8907b716ba0d79cc4cf722b35773129645c5415bcb4dc",
@@ -234,12 +241,36 @@
       "codeHashDebug": "",
       "warnings": []
     },
+    "TokenBalance": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "TokenTest": {
       "sourceFile": "token/token_test.ral",
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
       "warnings": []
+    },
+    "UpdateUserAccount": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "UserAccount": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "be41c84b7e99a544bd39df7eb24bc8c221f4ac66b7c0d774dfe96b92745167cc",
+      "warnings": [
+        "Function \"UserAccount.updateBalance\" updates fields. Please use \"@using(updateFields = true)\" for the function.",
+        "Function \"UserAccount.updateAddress\" updates fields. Please use \"@using(updateFields = true)\" for the function."
+      ]
     },
     "Warnings": {
       "sourceFile": "test/warnings.ral",
