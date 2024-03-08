@@ -269,7 +269,7 @@ function flattenField(
   value: Val,
   structs: Struct[]
 ): { name: string; type: string; value: Val; isMutable: boolean }[] {
-  if (Array.isArray(value)) {
+  if (Array.isArray(value) && type.startsWith('[')) {
     const [baseType, size] = decodeArrayType(type)
     if (value.length !== size) {
       throw Error(`Invalid array length, expected ${size}, got ${value.length}`)
@@ -293,8 +293,29 @@ function flattenField(
       return flattenField(isMutable && isFieldMutable, `${name}.${fieldName}`, fieldType, fieldValue, structs)
     })
   }
-  const primitiveType = PrimitiveTypes.includes(type) ? type : 'ByteVec' // contract type
+  const primitiveType = checkPrimitiveValue(name, type, value)
   return [{ name, type: primitiveType, value, isMutable }]
+}
+
+function checkPrimitiveValue(name: string, ralphType: string, value: Val): string {
+  const tsType = typeof value
+  if (ralphType === 'Bool' && tsType === 'boolean') {
+    return ralphType
+  }
+  if (
+    (ralphType === 'U256' || ralphType === 'I256') &&
+    (tsType === 'string' || tsType === 'number' || tsType === 'bigint')
+  ) {
+    return ralphType
+  }
+  if ((ralphType === 'Address' || ralphType === 'ByteVec') && tsType === 'string') {
+    return ralphType
+  }
+  if (!ralphType.startsWith('[') && tsType === 'string') {
+    // contract type
+    return 'ByteVec'
+  }
+  throw Error(`Invalid value ${value} for ${name}, expected a value of type ${ralphType}`)
 }
 
 const scriptFieldRegex = /\{([0-9]*)\}/g

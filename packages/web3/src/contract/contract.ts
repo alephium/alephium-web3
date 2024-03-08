@@ -1395,7 +1395,7 @@ export class Script extends Artifact {
   }
 }
 
-function fromApiFields(
+export function fromApiFields(
   immFields: node.Val[],
   mutFields: node.Val[],
   fieldsSig: FieldsSig,
@@ -1438,7 +1438,7 @@ function buildVal(
   return func(primitiveType, isMutable)
 }
 
-function getDefaultValue(fieldsSig: FieldsSig, structs: Struct[]): Fields {
+export function getDefaultValue(fieldsSig: FieldsSig, structs: Struct[]): Fields {
   return fieldsSig.names.reduce((acc, name, index) => {
     const type = fieldsSig.types[`${index}`]
     acc[`${name}`] = buildVal(false, type, structs, getDefaultPrimitiveValue)
@@ -1455,12 +1455,12 @@ function fromApiVal(iter: IterableIterator<node.Val>, type: string, structs: Str
   return buildVal(false, type, structs, func)
 }
 
-function fromApiArray(values: node.Val[], types: string[], structs: Struct[]): Val[] {
+export function fromApiArray(values: node.Val[], types: string[], structs: Struct[]): Val[] {
   const iter = values.values()
   return types.map((type) => fromApiVal(iter, type, structs))
 }
 
-function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig, systemEvent = false): Fields {
+export function fromApiEventFields(vals: node.Val[], eventSig: node.EventSig, systemEvent = false): Fields {
   const iter = vals.values()
   return eventSig.fieldNames.reduce((acc, name, index) => {
     const type = eventSig.fieldTypes[`${index}`]
@@ -1503,14 +1503,6 @@ export interface ContractState<T extends Fields = Fields> {
   fields: T
   fieldsSig: FieldsSig
   asset: Asset
-}
-
-function getVal(vals: NamedVals, name: string): Val {
-  if (name in vals) {
-    return vals[`${name}`]
-  } else {
-    throw Error(`No Val exists for ${name}`)
-  }
 }
 
 function toApiContractState(state: ContractState, structs: Struct[]): node.ContractState {
