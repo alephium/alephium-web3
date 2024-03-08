@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest1ContractJson } from "../nft/DeprecatedNFTTest1.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest1Types {
@@ -85,7 +86,8 @@ export const DeprecatedNFTTest1 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest1ContractJson,
     "",
-    "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b"
+    "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b",
+    AllStructs
   )
 );
 

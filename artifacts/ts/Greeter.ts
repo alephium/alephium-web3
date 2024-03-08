@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace GreeterTypes {
@@ -86,7 +87,8 @@ export const Greeter = new Factory(
   Contract.fromJson(
     GreeterContractJson,
     "",
-    "3813cf61a6e0f126463190119cd861a14ca9c2f92839e193c4f9934517b02477"
+    "3813cf61a6e0f126463190119cd861a14ca9c2f92839e193c4f9934517b02477",
+    AllStructs
   )
 );
 

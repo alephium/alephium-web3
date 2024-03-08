@@ -430,6 +430,7 @@ export interface CompileContractResult {
 export interface CompileProjectResult {
   contracts: CompileContractResult[]
   scripts: CompileScriptResult[]
+  structs?: StructSig[]
 }
 
 export interface CompileScriptResult {
@@ -800,6 +801,13 @@ export interface Source {
   /** @format gas */
   gasAmount?: number
   utxos?: OutputRef[]
+}
+
+export interface StructSig {
+  name: string
+  fieldNames: string[]
+  fieldTypes: string[]
+  isMutable: boolean[]
 }
 
 export interface SubmitMultisig {
@@ -1292,7 +1300,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.9.0
+ * @version 2.10.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

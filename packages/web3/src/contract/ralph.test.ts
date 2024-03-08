@@ -18,7 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import * as ralph from './ralph'
 import * as utils from '../utils'
-import { Fields, FieldsSig } from './contract'
+import { Fields, FieldsSig, Struct, fromApiArray, fromApiEventFields, fromApiFields, getDefaultValue } from './contract'
+import { node } from '..'
 
 describe('contract', function () {
   it('should encode I256', () => {
@@ -144,31 +145,143 @@ describe('contract', function () {
       types: ['Address', '[[U256;2];2]', 'ByteVec', '[U256;3]'],
       isMutable: [false, false, false, false]
     }
-    const result = ralph.falttenFields(fields, fieldsSig)
+    const result = ralph.flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, [])
     expect(result).toEqual([
       {
+        isMutable: false,
         name: 'address',
         type: 'Address',
         value: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'
       },
-      { name: 'numbers0[0][0]', type: 'U256', value: 0n },
-      { name: 'numbers0[0][1]', type: 'U256', value: 1n },
-      { name: 'numbers0[1][0]', type: 'U256', value: 2n },
-      { name: 'numbers0[1][1]', type: 'U256', value: 3n },
-      { name: 'bytes', type: 'ByteVec', value: '0011' },
-      { name: 'numbers1[0]', type: 'U256', value: 0n },
-      { name: 'numbers1[1]', type: 'U256', value: 1n },
-      { name: 'numbers1[2]', type: 'U256', value: 2n }
+      { isMutable: false, name: 'numbers0[0][0]', type: 'U256', value: 0n },
+      { isMutable: false, name: 'numbers0[0][1]', type: 'U256', value: 1n },
+      { isMutable: false, name: 'numbers0[1][0]', type: 'U256', value: 2n },
+      { isMutable: false, name: 'numbers0[1][1]', type: 'U256', value: 3n },
+      { isMutable: false, name: 'bytes', type: 'ByteVec', value: '0011' },
+      { isMutable: false, name: 'numbers1[0]', type: 'U256', value: 0n },
+      { isMutable: false, name: 'numbers1[1]', type: 'U256', value: 1n },
+      { isMutable: false, name: 'numbers1[2]', type: 'U256', value: 2n }
     ])
 
     const invalidFields0 = { ...fields, numbers0: [0n, 1n] }
-    expect(() => ralph.falttenFields(invalidFields0, fieldsSig)).toThrow(
-      'Invalid field, expected type is [U256;2], but value is 0'
-    )
+    expect(() =>
+      ralph.flattenFields(invalidFields0, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, [])
+    ).toThrow('Invalid value 0 for numbers0[0], expected a value of type [U256;2]')
     const invalidFields1 = { ...fields, numbers1: [[0n], [1n], [2n]] }
-    expect(() => ralph.falttenFields(invalidFields1, fieldsSig)).toThrow(
-      'Invalid field, expected type is U256, but value is [0]'
-    )
+    expect(() =>
+      ralph.flattenFields(invalidFields1, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, [])
+    ).toThrow('Invalid value 0 for numbers1[0], expected a value of type U256')
+  })
+
+  class StructFixture {
+    static foo = new Struct('Foo', ['a', 'b'], ['U256', 'U256'], [false, true])
+    static bar = new Struct('Bar', ['x', 'y'], ['U256', '[Foo;3]'], [true, true])
+    static structs = [StructFixture.foo, StructFixture.bar]
+    static fieldsSig: FieldsSig = {
+      names: ['id', 'bar', 'name'],
+      types: ['ByteVec', 'Bar', 'ByteVec'],
+      isMutable: [false, true, false]
+    }
+    static fields: Fields = {
+      bar: {
+        x: 0n,
+        y: [
+          { a: 1n, b: 2n },
+          { a: 2n, b: 3n },
+          { a: 3n, b: 4n }
+        ]
+      },
+      id: '0011',
+      name: '0022'
+    }
+  }
+  it('should flatten nested structs', () => {
+    const { names, types, isMutable } = StructFixture.fieldsSig
+    const result = ralph.flattenFields(StructFixture.fields, names, types, isMutable, StructFixture.structs)
+    expect(result).toEqual([
+      { name: 'id', type: 'ByteVec', value: '0011', isMutable: false },
+      { name: 'bar.x', type: 'U256', value: 0n, isMutable: true },
+      { name: 'bar.y[0].a', type: 'U256', value: 1n, isMutable: false },
+      { name: 'bar.y[0].b', type: 'U256', value: 2n, isMutable: true },
+      { name: 'bar.y[1].a', type: 'U256', value: 2n, isMutable: false },
+      { name: 'bar.y[1].b', type: 'U256', value: 3n, isMutable: true },
+      { name: 'bar.y[2].a', type: 'U256', value: 3n, isMutable: false },
+      { name: 'bar.y[2].b', type: 'U256', value: 4n, isMutable: true },
+      { name: 'name', type: 'ByteVec', value: '0022', isMutable: false }
+    ])
+  })
+
+  it('should decode contract fields', () => {
+    const immFields: node.Val[] = [
+      { value: '0011', type: 'ByteVec' },
+      { value: '1', type: 'U256' },
+      { value: '2', type: 'U256' },
+      { value: '3', type: 'U256' },
+      { value: '0022', type: 'ByteVec' }
+    ]
+    const mutFields: node.Val[] = [
+      { value: '0', type: 'U256' },
+      { value: '2', type: 'U256' },
+      { value: '3', type: 'U256' },
+      { value: '4', type: 'U256' }
+    ]
+    const result = fromApiFields(immFields, mutFields, StructFixture.fieldsSig, StructFixture.structs)
+    expect(result).toEqual(StructFixture.fields)
+  })
+
+  it('should get default value by fields signature', () => {
+    const result = getDefaultValue(StructFixture.fieldsSig, StructFixture.structs)
+    expect(result).toEqual({
+      id: '',
+      bar: {
+        x: 0n,
+        y: [
+          { a: 0n, b: 0n },
+          { a: 0n, b: 0n },
+          { a: 0n, b: 0n }
+        ]
+      },
+      name: ''
+    })
+  })
+
+  it('should decode function returns', () => {
+    const types = ['U256', StructFixture.bar.name]
+    const values: node.Val[] = Array.from(Array(8).keys()).map((_, index) => ({ value: `${index}`, type: 'U256' }))
+    const result = fromApiArray(values, types, StructFixture.structs)
+    expect(result).toEqual([
+      0n,
+      {
+        x: 1n,
+        y: [
+          { a: 2n, b: 3n },
+          { a: 4n, b: 5n },
+          { a: 6n, b: 7n }
+        ]
+      }
+    ])
+  })
+
+  it('should decode events', () => {
+    // currently events does not support array and struct
+    const eventSig: node.EventSig = {
+      name: 'Foo',
+      fieldTypes: ['U256', 'ByteVec', 'Bool', 'Address'],
+      fieldNames: ['number', 'id', 'flag', 'address']
+    }
+    const values: node.Val[] = [
+      { type: 'U256', value: '1' },
+      { type: 'ByteVec', value: '0022' },
+      { type: 'Bool', value: true },
+      { type: 'Address', value: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
+    ]
+    const result = fromApiEventFields(values, eventSig)
+    expect(result).toEqual({
+      number: 1n,
+      id: '0022',
+      flag: true,
+      address: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'
+    })
   })
 
   it('should test buildScriptByteCode', () => {
@@ -178,7 +291,7 @@ describe('contract', function () {
       types: ['Bool', 'U256', 'ByteVec', 'Address'],
       isMutable: [false, false, false, false]
     }
-    const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig)
+    const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig, [])
     expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
   })
 
@@ -195,7 +308,7 @@ describe('contract', function () {
       types: ['I256', 'U256', 'ByteVec', 'Address', '[Bool;2]'],
       isMutable: [false, true, false, true, false]
     }
-    const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig)
+    const encoded = ralph.buildContractByteCode('ff', fields, fieldsSig, [])
     expect(encoded).toEqual(
       'ff04013f030123000000010202010400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec'
     )
