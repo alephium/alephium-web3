@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.9.0",
+  "fullNodeVersion": "v2.10.0",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -30,7 +30,7 @@
     },
     "Balances": {
       "sourceFile": "test/struct.ral",
-      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -243,7 +243,7 @@
     },
     "TokenBalance": {
       "sourceFile": "test/struct.ral",
-      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -257,14 +257,14 @@
     },
     "UpdateUserAccount": {
       "sourceFile": "test/struct.ral",
-      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "UserAccount": {
       "sourceFile": "test/struct.ral",
-      "sourceCodeHash": "27d3f5af72183460a8cca24218aa2b2610cdca06c3df3111961446e864f1493e",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "be41c84b7e99a544bd39df7eb24bc8c221f4ac66b7c0d774dfe96b92745167cc",
       "warnings": [

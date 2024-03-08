@@ -1,10 +1,10 @@
 struct TokenBalance {
-  tokenId: ByteVec
+  tokenId: ByteVec,
   mut amount: U256
 }
 
 struct Balances {
-  mut totalAmount: U256
+  mut totalAmount: U256,
   mut tokens: [TokenBalance; 2]
 }
 
