@@ -236,12 +236,12 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
     case 'U256':
       const u256 = toApiNumber256(value)
       return encodeScriptFieldU256(BigInt(u256))
-    case 'ByteVec':
-      const hexStr = toApiByteVec(value)
-      return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(hexStr)])
     case 'Address':
       const address = toApiAddress(value)
       return new Uint8Array([Instruction.addressConst, ...encodeAddress(address)])
+    default: // ByteVec or Contract
+      const hexStr = toApiByteVec(value)
+      return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(hexStr)])
   }
 
   throw invalidScriptField(tpe, value)

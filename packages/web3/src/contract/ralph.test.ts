@@ -130,6 +130,12 @@ describe('contract', function () {
     expect(bytecode).toEqual('144020b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae')
   })
 
+  it('should encode Contract Type', () => {
+    const bytes = 'b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae'
+    const bytecode = ralph.encodeScriptFieldAsString('TestToken', bytes)
+    expect(bytecode).toEqual('144020b382fc88aa31d63f4c2f3f8a03715ba2a629552e85431fb1c1d909bab46d1aae')
+  })
+
   it('should flatten script fields', () => {
     const fields: Fields = {
       numbers0: [
