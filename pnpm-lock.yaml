@@ -8,6 +8,7 @@ overrides:
   axios: '>=1.6.0'
   word-wrap: '>=1.2.4'
   follow-redirects: '>=1.15.4'
+  follow-redirects@<=1.15.5: '>=1.15.6'
 
 importers:
 

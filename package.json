@@ -11,12 +11,12 @@
     "@swc/core": "^1.4.1",
     "@types/jest": "^28.1.8",
     "@types/node": "^16.18.23",
+    "bip39": "3.0.4",
     "eslint": "^8.37.0",
     "eslint-plugin-jest": "^27.2.1",
     "jest": "^28.1.3",
     "ts-node": "^10.9.1",
-    "typescript": "^4.9.5",
-    "bip39": "3.0.4"
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "clean": "rm -rf .parcel-cache && pnpm -r run clean",
@@ -52,7 +52,8 @@
       "browserify-sign": ">=4.2.2",
       "axios": ">=1.6.0",
       "word-wrap": ">=1.2.4",
-      "follow-redirects": ">=1.15.4"
+      "follow-redirects": ">=1.15.4",
+      "follow-redirects@<=1.15.5": ">=1.15.6"
     }
   }
 }
