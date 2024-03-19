@@ -1,5 +1,5 @@
 {
-  "version": "v2.10.0",
+  "version": "v2.11.0",
   "name": "UpdateUserAccount",
   "bytecodeTemplate": "01010300040015{1}{2}{3}{4}17031702170117001600160116021603100c{0}0100{5}0d0c{0}0101",
   "fieldsSig": {
