@@ -62,7 +62,7 @@ import {
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
-import { ONE_ALPH } from '../constants'
+import { ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import * as blake from 'blakejs'
 import { parseError } from '../utils/error'
 import { isContractDebugMessageEnabled } from '../debug'
@@ -1722,14 +1722,19 @@ export interface CallContractResult<R> {
   debugMessages: DebugMessage[]
 }
 
-function specialContractAddress(n: number): string {
+function specialContractAddress(eventIndex: number, groupIndex: number): string {
   const bytes = new Uint8Array(32).fill(0)
-  bytes[31] = n
+  bytes[30] = eventIndex
+  bytes[31] = groupIndex
   return addressFromContractId(binToHex(bytes))
 }
 
-export const CreateContractEventAddress = specialContractAddress(-1)
-export const DestroyContractEventAddress = specialContractAddress(-2)
+export const CreateContractEventAddresses = Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).map((groupIndex) =>
+  specialContractAddress(Contract.ContractCreatedEventIndex, groupIndex)
+)
+export const DestroyContractEventAddresses = Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).map((groupIndex) =>
+  specialContractAddress(Contract.ContractDestroyedEventIndex, groupIndex)
+)
 
 export type ContractCreatedEventFields = {
   address: Address
@@ -1862,18 +1867,29 @@ export async function fetchContractState<F extends Fields, I extends ContractIns
   }
 }
 
+function checkGroupIndex(groupIndex: number) {
+  if (groupIndex < 0 || groupIndex >= TOTAL_NUMBER_OF_GROUPS) {
+    throw new Error(
+      `Invalid group index ${groupIndex}, expected a value within the range [0, ${TOTAL_NUMBER_OF_GROUPS})`
+    )
+  }
+}
+
 export function subscribeContractCreatedEvent(
   options: EventSubscribeOptions<ContractCreatedEvent>,
+  fromGroup: number,
   fromCount?: number
 ): EventSubscription {
+  checkGroupIndex(fromGroup)
+  const contractAddress = CreateContractEventAddresses[`${fromGroup}`]
   return subscribeEventsFromContract(
     options,
-    CreateContractEventAddress,
+    contractAddress,
     Contract.ContractCreatedEventIndex,
     (event) => {
       return {
         ...decodeContractCreatedEvent(event),
-        contractAddress: CreateContractEventAddress
+        contractAddress: contractAddress
       }
     },
     fromCount
@@ -1882,16 +1898,19 @@ export function subscribeContractCreatedEvent(
 
 export function subscribeContractDestroyedEvent(
   options: EventSubscribeOptions<ContractDestroyedEvent>,
+  fromGroup: number,
   fromCount?: number
 ): EventSubscription {
+  checkGroupIndex(fromGroup)
+  const contractAddress = DestroyContractEventAddresses[`${fromGroup}`]
   return subscribeEventsFromContract(
     options,
-    DestroyContractEventAddress,
+    contractAddress,
     Contract.ContractDestroyedEventIndex,
     (event) => {
       return {
         ...decodeContractDestroyedEvent(event),
-        contractAddress: DestroyContractEventAddress
+        contractAddress: contractAddress
       }
     },
     fromCount

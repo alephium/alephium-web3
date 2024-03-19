@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.10.0",
+  "fullNodeVersion": "v2.11.0",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -15,6 +15,7 @@
       "bytecodeDebugPatch": "=8+4=1-1=2-2+64=3-1+d=37+77e010a=1+1646450726976617465=154",
       "codeHashDebug": "a49f0624ccbec8df1bf3ad7f628fb47a42cc448fe7369fc0da02071df6787b69",
       "warnings": [
+        "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
         "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
@@ -168,7 +169,9 @@
       "sourceCodeHash": "f7d27ecff8f7da7afcfee957842d8629930c9980f87a1c6d17561bb1fbe6dab6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
-      "warnings": []
+      "warnings": [
+        "The return values of the function \"Add.add\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
+      ]
     },
     "MetaData": {
       "sourceFile": "test/metadata.ral",
@@ -186,7 +189,10 @@
       "sourceCodeHash": "1fb25375808315eddf482b5e6bf58a9e4d6b1ee875c35f72c2b5692f024c8ba8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
-      "warnings": []
+      "warnings": [
+        "The return values of the function \"NFTCollectionWithRoyaltyTest.mint\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
+        "The return values of the function \"NFTCollectionTest.mint\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
+      ]
     },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
