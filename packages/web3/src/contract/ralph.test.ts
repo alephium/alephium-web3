@@ -290,6 +290,29 @@ describe('contract', function () {
     })
   })
 
+  it('should filter out map fields', () => {
+    const fieldsSig0: node.FieldsSig = {
+      names: ['foo', 'number', 'map'],
+      types: ['Foo', 'U256', 'Map[U256, Foo]'],
+      isMutable: [false, true, true]
+    }
+    expect(ralph.fieldsExceptMaps(fieldsSig0)).toEqual({
+      names: ['foo', 'number'],
+      types: ['Foo', 'U256'],
+      isMutable: [false, true]
+    })
+    const fieldsSig1: node.FieldsSig = {
+      names: ['foo', 'number'],
+      types: ['Foo', 'U256'],
+      isMutable: [false, true]
+    }
+    expect(ralph.fieldsExceptMaps(fieldsSig1)).toEqual({
+      names: ['foo', 'number'],
+      types: ['Foo', 'U256'],
+      isMutable: [false, true]
+    })
+  })
+
   it('should test buildScriptByteCode', () => {
     const variables = { x: true, y: 0x05n, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
     const fieldsSig: FieldsSig = {

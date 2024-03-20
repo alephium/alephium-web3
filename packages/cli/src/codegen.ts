@@ -253,12 +253,12 @@ function genGetInitialFieldsWithDefaultValues(contract: Contract): string {
 }
 
 function genContractStateType(contract: Contract): string {
-  if (contract.fieldsSig.names.length === 0) {
+  if (contract.fieldsExceptMaps.names.length === 0) {
     return `export type State = Omit<ContractState<any>, 'fields'>`
   }
   return `
     export type Fields = {
-      ${formatParameters(contract.fieldsSig)}
+      ${formatParameters(contract.fieldsExceptMaps)}
     }
 
     export type State = ContractState<Fields>
@@ -361,14 +361,14 @@ function toUnixPath(p: string): string {
 }
 
 function getContractFields(contract: Contract): node.FieldsSig {
-  const stdIdFieldIndex = contract.fieldsSig.names.findIndex((name) => name === StdIdFieldName)
+  const stdIdFieldIndex = contract.fieldsExceptMaps.names.findIndex((name) => name === StdIdFieldName)
   if (stdIdFieldIndex === -1) {
-    return contract.fieldsSig
+    return contract.fieldsExceptMaps
   }
   return {
-    names: contract.fieldsSig.names.filter((_, index) => index !== stdIdFieldIndex),
-    types: contract.fieldsSig.types.filter((_, index) => index !== stdIdFieldIndex),
-    isMutable: contract.fieldsSig.isMutable.filter((_, index) => index !== stdIdFieldIndex)
+    names: contract.fieldsExceptMaps.names.filter((_, index) => index !== stdIdFieldIndex),
+    types: contract.fieldsExceptMaps.types.filter((_, index) => index !== stdIdFieldIndex),
+    isMutable: contract.fieldsExceptMaps.isMutable.filter((_, index) => index !== stdIdFieldIndex)
   }
 }
 

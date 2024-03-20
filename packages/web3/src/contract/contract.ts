@@ -886,6 +886,7 @@ export class Contract extends Artifact {
   readonly bytecodeDebugPatch: string
   readonly codeHash: string
   readonly fieldsSig: FieldsSig
+  readonly fieldsExceptMaps: FieldsSig
   readonly eventsSig: EventSig[]
   readonly constants: Constant[]
   readonly enums: Enum[]
@@ -915,6 +916,7 @@ export class Contract extends Artifact {
     this.bytecodeDebugPatch = bytecodeDebugPatch
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
+    this.fieldsExceptMaps = ralph.fieldsExceptMaps(fieldsSig)
     this.eventsSig = eventsSig
     this.constants = constants
     this.enums = enums
@@ -1009,11 +1011,11 @@ export class Contract extends Artifact {
   getInitialFieldsWithDefaultValues(): Fields {
     const fields =
       this.stdInterfaceId === undefined
-        ? this.fieldsSig
+        ? this.fieldsExceptMaps
         : {
-            names: this.fieldsSig.names.slice(0, -1),
-            types: this.fieldsSig.types.slice(0, -1),
-            isMutable: this.fieldsSig.isMutable.slice(0, -1)
+            names: this.fieldsExceptMaps.names.slice(0, -1),
+            types: this.fieldsExceptMaps.types.slice(0, -1),
+            isMutable: this.fieldsExceptMaps.isMutable.slice(0, -1)
           }
     return getDefaultValue(fields, this.structs)
   }
@@ -1026,7 +1028,7 @@ export class Contract extends Artifact {
       bytecode: this.bytecode,
       codeHash: this.codeHash,
       fields: fields,
-      fieldsSig: this.fieldsSig,
+      fieldsSig: this.fieldsExceptMaps,
       asset: asset
     }
   }
@@ -1050,7 +1052,7 @@ export class Contract extends Artifact {
     if (typeof fields === 'undefined') {
       return []
     } else {
-      return toApiFields(fields, this.fieldsSig, this.structs)
+      return toApiFields(fields, this.fieldsExceptMaps, this.structs)
     }
   }
 
@@ -1081,9 +1083,9 @@ export class Contract extends Artifact {
         ? []
         : ralph.flattenFields(
             params.initialFields,
-            this.fieldsSig.names,
-            this.fieldsSig.types,
-            this.fieldsSig.isMutable,
+            this.fieldsExceptMaps.names,
+            this.fieldsExceptMaps.types,
+            this.fieldsExceptMaps.isMutable,
             this.structs
           )
     const immFields = allFields.filter((f) => !f.isMutable).map((f) => toApiVal(f.value, f.type))
@@ -1113,8 +1115,8 @@ export class Contract extends Artifact {
       bytecode: state.bytecode,
       initialStateHash: state.initialStateHash,
       codeHash: state.codeHash,
-      fields: fromApiFields(state.immFields, state.mutFields, this.fieldsSig, this.structs),
-      fieldsSig: this.fieldsSig,
+      fields: fromApiFields(state.immFields, state.mutFields, this.fieldsExceptMaps, this.structs),
+      fieldsSig: this.fieldsExceptMaps,
       asset: fromApiAsset(state.asset)
     }
   }
@@ -1229,7 +1231,7 @@ export class Contract extends Artifact {
       return ralph.buildContractByteCode(
         isDevnet ? this.bytecodeDebug : this.bytecode,
         initialFields,
-        this.fieldsSig,
+        this.fieldsExceptMaps,
         this.structs
       )
     } catch (error) {

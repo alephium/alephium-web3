@@ -247,6 +247,21 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   throw invalidScriptField(tpe, value)
 }
 
+export function fieldsExceptMaps(fieldsSig: FieldsSig): FieldsSig {
+  return fieldsSig.types.reduce<FieldsSig>(
+    (acc, type, index) => {
+      if (type.startsWith('Map[')) {
+        return acc
+      }
+      acc.names.push(fieldsSig.names[`${index}`])
+      acc.types.push(type)
+      acc.isMutable.push(fieldsSig.isMutable[`${index}`])
+      return acc
+    },
+    { names: [], types: [], isMutable: [] }
+  )
+}
+
 export function flattenFields(
   fields: Fields,
   names: string[],
