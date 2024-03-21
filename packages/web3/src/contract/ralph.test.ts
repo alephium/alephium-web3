@@ -296,21 +296,66 @@ describe('contract', function () {
       types: ['Foo', 'U256', 'Map[U256, Foo]'],
       isMutable: [false, true, true]
     }
-    expect(ralph.fieldsExceptMaps(fieldsSig0)).toEqual({
-      names: ['foo', 'number'],
-      types: ['Foo', 'U256'],
-      isMutable: [false, true]
-    })
+    expect(ralph.splitFields(fieldsSig0)).toEqual([
+      {
+        names: ['map'],
+        types: ['Map[U256, Foo]'],
+        isMutable: [true]
+      },
+      {
+        names: ['foo', 'number'],
+        types: ['Foo', 'U256'],
+        isMutable: [false, true]
+      }
+    ])
     const fieldsSig1: node.FieldsSig = {
       names: ['foo', 'number'],
       types: ['Foo', 'U256'],
       isMutable: [false, true]
     }
-    expect(ralph.fieldsExceptMaps(fieldsSig1)).toEqual({
-      names: ['foo', 'number'],
-      types: ['Foo', 'U256'],
-      isMutable: [false, true]
-    })
+    expect(ralph.splitFields(fieldsSig1)).toEqual([
+      {
+        names: [],
+        types: [],
+        isMutable: []
+      },
+      {
+        names: ['foo', 'number'],
+        types: ['Foo', 'U256'],
+        isMutable: [false, true]
+      }
+    ])
+    const fieldsSig2: node.FieldsSig = {
+      names: ['map'],
+      types: ['Map[U256, Foo]'],
+      isMutable: [true]
+    }
+    expect(ralph.splitFields(fieldsSig2)).toEqual([
+      {
+        names: ['map'],
+        types: ['Map[U256, Foo]'],
+        isMutable: [true]
+      },
+      {
+        names: [],
+        types: [],
+        isMutable: []
+      }
+    ])
+  })
+
+  it('should parse map type', () => {
+    expect(ralph.parseMapType('Map[U256,U256]')).toEqual(['U256', 'U256'])
+    expect(ralph.parseMapType('Map[ByteVec,Foo]')).toEqual(['ByteVec', 'Foo'])
+    expect(() => ralph.parseMapType('[Foo;2]')).toThrow()
+    expect(() => ralph.parseMapType('U256')).toThrow()
+  })
+
+  it('should decode map debug message', () => {
+    const result = ralph.tryDecodeMapDebugLog(
+      '5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a,true'
+    )
+    console.log(result)
   })
 
   it('should test buildScriptByteCode', () => {

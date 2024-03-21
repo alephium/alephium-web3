@@ -17,9 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { PrimitiveTypes, Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
-import { binToHex, bs58, isHexString } from '../utils'
+import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
+import { binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
+import { compactSignedIntCodec, compactUnsignedIntCodec } from '../codec'
+import { lockupScriptCodec } from '../codec/lockup-script-codec'
 
 const bigIntZero = BigInt(0)
 
@@ -50,6 +52,13 @@ class CompactInt {
 
 export function encodeBool(bool: boolean): Uint8Array {
   return bool ? Uint8Array.from([1]) : Uint8Array.from([0])
+}
+
+export function decodeBool(bytes: Uint8Array): boolean {
+  if (bytes.length !== 1) {
+    throw new Error(`Expected one byte for encoded bool, got ${bytes.length}`)
+  }
+  return bytes[0] === 1 ? true : false
 }
 
 export function encodeI256(i256: bigint): Uint8Array {
@@ -247,19 +256,106 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   throw invalidScriptField(tpe, value)
 }
 
-export function fieldsExceptMaps(fieldsSig: FieldsSig): FieldsSig {
-  return fieldsSig.types.reduce<FieldsSig>(
-    (acc, type, index) => {
-      if (type.startsWith('Map[')) {
-        return acc
-      }
-      acc.names.push(fieldsSig.names[`${index}`])
-      acc.types.push(type)
-      acc.isMutable.push(fieldsSig.isMutable[`${index}`])
-      return acc
+export function splitFields(fieldsSig: FieldsSig): [FieldsSig, FieldsSig] {
+  return fieldsSig.types.reduce<[FieldsSig, FieldsSig]>(
+    ([mapFields, fieldsExceptMaps], type, index) => {
+      const fieldSig = type.startsWith('Map[') ? mapFields : fieldsExceptMaps
+      fieldSig.names.push(fieldsSig.names[`${index}`])
+      fieldSig.types.push(type)
+      fieldSig.isMutable.push(fieldsSig.isMutable[`${index}`])
+      return [mapFields, fieldsExceptMaps]
     },
-    { names: [], types: [], isMutable: [] }
+    [
+      { names: [], types: [], isMutable: [] },
+      { names: [], types: [], isMutable: [] }
+    ]
   )
+}
+
+export function parseMapType(type: string): [string, string] {
+  if (!type.startsWith('Map[')) {
+    throw new Error(`Expected map type, got ${type}`)
+  }
+  const keyStartIndex = type.indexOf('[')
+  const keyEndIndex = type.indexOf(',')
+  return [type.slice(keyStartIndex + 1, keyEndIndex), type.slice(keyEndIndex + 1, type.length - 1)]
+}
+
+export function encodeMapPrefix(mapIndex: number): Uint8Array {
+  const str = `__map__${mapIndex}__`
+  const bytes = new Uint8Array(str.length)
+  for (let i = 0; i < str.length; i += 1) {
+    bytes[i] = str.charCodeAt(i)
+  }
+  return bytes
+}
+
+function fromAscii(str: string): string {
+  let result = ''
+  for (let i = 0; i < str.length; i += 2) {
+    const ascii = parseInt(str.slice(i, i + 2), 16)
+    result += String.fromCharCode(ascii)
+  }
+  return result
+}
+
+export function tryDecodeMapDebugLog(
+  message: string
+): { path: string; mapIndex: number; encodedKey: Uint8Array; isInsert: boolean } | undefined {
+  const prefix = '5f5f6d61705f5f' // __map__
+  const parts = message.split(',')
+  if (!message.startsWith(prefix) || parts.length !== 2) return undefined
+  if (parts[1] !== 'true' && parts[1] !== 'false') return undefined
+
+  if (!isHexString(parts[0])) return undefined
+  const remain = parts[0].slice(prefix.length)
+  const suffixIndex = remain.indexOf('5f5f') // __
+  if (suffixIndex === -1) return undefined
+
+  const encodedMapIndex = remain.slice(0, suffixIndex)
+  const mapIndex = parseInt(fromAscii(encodedMapIndex))
+  const encodedKey = hexToBinUnsafe(remain.slice(suffixIndex + 4))
+  const isInsert = parts[1] === 'true' ? true : false
+  return { path: parts[0], mapIndex, encodedKey, isInsert }
+}
+
+export function decodePrimitive(value: Uint8Array, type: string): Val {
+  switch (type) {
+    case 'Bool':
+      return decodeBool(value)
+    case 'I256':
+      return compactSignedIntCodec.decodeI256(Buffer.from(value))
+    case 'U256':
+      return compactUnsignedIntCodec.decodeU256(Buffer.from(value))
+    case 'ByteVec':
+      return binToHex(value)
+    case 'Address':
+      return bs58.encode(value)
+    default:
+      throw Error(`Expected primitive type, got ${type}`)
+  }
+}
+
+export function primitiveToByteVec(value: Val, type: string): Uint8Array {
+  switch (type) {
+    case 'Bool':
+      const byte = toApiBoolean(value) ? 1 : 0
+      return new Uint8Array([byte])
+    case 'I256':
+      const i256 = toApiNumber256(value)
+      return encodeI256(BigInt(i256))
+    case 'U256':
+      const u256 = toApiNumber256(value)
+      return encodeU256(BigInt(u256))
+    case 'ByteVec':
+      const hexStr = toApiByteVec(value)
+      return encodeByteVec(hexStr)
+    case 'Address':
+      const address = toApiAddress(value)
+      return encodeAddress(address)
+    default:
+      throw Error(`Expected primitive type, got ${type}`)
+  }
 }
 
 export function flattenFields(

@@ -22,7 +22,7 @@ import { assertType, bs58, Eq, isBase58, isHexString } from '../utils'
 import * as node from './api-alephium'
 
 export type Number256 = bigint | string
-export type Val = Number256 | boolean | string | Val[] | ValObject
+export type Val = Number256 | boolean | string | Val[] | ValObject | Map<Val, Val>
 // eslint-disable-next-line
 export interface ValObject extends Record<string, Val> {} // bypassing typescript recursive type limitations
 export type NamedVals = Record<string, Val>
