@@ -23,19 +23,22 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  Val,
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token/TokenTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import { AllGeneratedContracts } from "./types";
 
 // Custom types for the contract
 export namespace TokenTestTypes {
-  export type Fields = {
+  export interface Fields extends Record<string, Val> {
     symbol: HexString;
     name: HexString;
     decimals: bigint;
     totalSupply: bigint;
-  };
+  }
 
   export type State = ContractState<Fields>;
 
@@ -86,22 +89,22 @@ class Factory extends ContractFactory<
   tests = {
     getSymbol: async (
       params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResult<HexString, {}>> => {
       return testMethod(this, "getSymbol", params);
     },
     getName: async (
       params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResult<HexString, {}>> => {
       return testMethod(this, "getName", params);
     },
     getDecimals: async (
       params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResult<bigint, {}>> => {
       return testMethod(this, "getDecimals", params);
     },
     getTotalSupply: async (
       params: Omit<TestContractParams<TokenTestTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResult<bigint, {}>> => {
       return testMethod(this, "getTotalSupply", params);
     },
   };
@@ -113,7 +116,8 @@ export const TokenTest = new Factory(
     TokenTestContractJson,
     "",
     "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
-    AllStructs
+    AllStructs,
+    AllGeneratedContracts
   )
 );
 

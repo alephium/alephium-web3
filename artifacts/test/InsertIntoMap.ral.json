@@ -1,0 +1,34 @@
+{
+  "version": "v2.11.0",
+  "name": "InsertIntoMap",
+  "bytecodeTemplate": "01010300020010{2}{3}17011700{1}d10e2ca2{1}160016010f0c{0}0100",
+  "fieldsSig": {
+    "names": [
+      "mapTest",
+      "from",
+      "value"
+    ],
+    "types": [
+      "MapTest",
+      "Address",
+      "MapValue"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

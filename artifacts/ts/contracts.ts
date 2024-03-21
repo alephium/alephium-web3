@@ -3,6 +3,7 @@
 /* eslint-disable */
 
 import { Contract, ContractFactory } from "@alephium/web3";
+import { AllGeneratedContracts } from "./types";
 import {
   Add,
   Assert,
@@ -16,6 +17,7 @@ import {
   DeprecatedNFTTest7,
   FakeTokenTest,
   Greeter,
+  MapTest,
   MetaData,
   NFTCollectionTest,
   NFTCollectionWithRoyaltyTest,
@@ -28,10 +30,10 @@ import {
   WrongNFTTest,
 } from ".";
 
-let contracts: ContractFactory<any>[] | undefined = undefined;
+let contracts: Contract[] | undefined = undefined;
 export function getContractByCodeHash(codeHash: string): Contract {
   if (contracts === undefined) {
-    contracts = [
+    const factories: ContractFactory<any>[] = [
       Add,
       Assert,
       Debug,
@@ -44,6 +46,7 @@ export function getContractByCodeHash(codeHash: string): Contract {
       DeprecatedNFTTest7,
       FakeTokenTest,
       Greeter,
+      MapTest,
       MetaData,
       NFTCollectionTest,
       NFTCollectionWithRoyaltyTest,
@@ -55,13 +58,14 @@ export function getContractByCodeHash(codeHash: string): Contract {
       Warnings,
       WrongNFTTest,
     ];
+    contracts = factories.map((f) => f.contract);
   }
-  const c = contracts.find(
-    (c) =>
-      c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash
+  const allContracts = contracts.concat(AllGeneratedContracts);
+  const c = allContracts.find(
+    (c) => c.codeHash === codeHash || c.codeHashDebug === codeHash
   );
   if (c === undefined) {
     throw new Error("Unknown code with code hash: " + codeHash);
   }
-  return c.contract;
+  return c;
 }

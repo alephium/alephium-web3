@@ -1,0 +1,118 @@
+{
+  "version": "v2.11.0",
+  "name": "MapTest",
+  "bytecode": "020540cf4121416e418a41a3010303030040211600d1a2140a5f5f6d61705f5f305f5f1600474414404f03060d184021402a403740430000010100051600ce01410c7b010000000203ce00a00002010000000102ce0002010000000102a00002010001010004b300001600a100010201010004b300001600b01601b10e6416020d64bf181600d1a2140a5f5f6d61705f5f315f5f1601404414403702040d164023402f0000010100051600ce00410c7b010000000102a00002010001010004b300001600a100010201010004b300001600b0b10d6416020d64bf18010001030040200c0e140a5f5f6d61705f5f305f5f16004744cb01011702170116020d2a0d0c140a5f5f6d61705f5f305f5f16004744cb010416020d2a0d0c140a5f5f6d61705f5f315f5f16014044cb010201000103001c0c0e140a5f5f6d61705f5f305f5f16004744cb01011702170116000d0c140a5f5f6d61705f5f305f5f16004744cb010516000d0c140a5f5f6d61705f5f315f5f16014044cb01030100010102090c0e140a5f5f6d61705f5f305f5f16004744cb010102010001010107140a5f5f6d61705f5f305f5f16004744cbc502",
+  "codeHash": "e41a3b6b637d7b7c145a6822cf4d382573a2a8f6374c09686bfd0757f07d6839",
+  "fieldsSig": {
+    "names": [
+      "a",
+      "b",
+      "map0",
+      "map1"
+    ],
+    "types": [
+      "U256",
+      "U256",
+      "Map[Address,MapValue]",
+      "Map[U256,U256]"
+    ],
+    "isMutable": [
+      true,
+      false,
+      true,
+      true
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "insert",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "key",
+        "value"
+      ],
+      "paramTypes": [
+        "Address",
+        "MapValue"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "update",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "key"
+      ],
+      "paramTypes": [
+        "Address"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "remove",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "key"
+      ],
+      "paramTypes": [
+        "Address"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "get",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "key"
+      ],
+      "paramTypes": [
+        "Address"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "MapValue"
+      ]
+    },
+    {
+      "name": "contains",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "key"
+      ],
+      "paramTypes": [
+        "Address"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "Bool"
+      ]
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

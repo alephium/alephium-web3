@@ -2,12 +2,20 @@
 /* tslint:disable */
 /* eslint-disable */
 
-import { Address, HexString, Val, Struct } from "@alephium/web3";
+import { Address, HexString, Val, Struct, Contract } from "@alephium/web3";
+import { default as allGeneratedContractsJson } from "../generated_contracts.ral.json";
 import { default as allStructsJson } from "../structs.ral.json";
 export const AllStructs = allStructsJson.map((json) => Struct.fromJson(json));
+export const AllGeneratedContracts = allGeneratedContractsJson.map((json) =>
+  Contract.fromJson(json, "", "", AllStructs)
+);
 export interface Balances extends Record<string, Val> {
   totalAmount: bigint;
   tokens: [TokenBalance, TokenBalance];
+}
+export interface MapValue extends Record<string, Val> {
+  id: bigint;
+  balance: bigint;
 }
 export interface TokenBalance extends Record<string, Val> {
   tokenId: HexString;

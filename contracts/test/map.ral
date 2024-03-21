@@ -1,0 +1,43 @@
+struct MapValue {
+  id: U256,
+  mut balance: U256
+}
+Contract MapTest(@unused mut a: U256, @unused b: U256, mut map0: Map[Address, MapValue], mut map1: Map[U256, U256]) {
+  @using(preapprovedAssets = true)
+  pub fn insert(key: Address, value: MapValue) -> () {
+    map0.insert!{key -> ALPH: minimalContractDeposit!()}(key, value)
+    map1.insert!{key -> ALPH: minimalContractDeposit!()}(value.id, value.balance)
+  }
+
+  pub fn update(key: Address) -> () {
+    let value = map0[key]
+    map0[key].balance = value.balance + 1
+    map1[value.id] = value.balance + 1
+  }
+
+  pub fn remove(key: Address) -> () {
+    let value = map0[key]
+    map0.remove!(key, key)
+    map1.remove!(value.id, key)
+  }
+
+  pub fn get(key: Address) -> MapValue {
+    return map0[key]
+  }
+
+  pub fn contains(key: Address) -> Bool {
+    return map0.contains!(key)
+  }
+}
+
+TxScript InsertIntoMap(mapTest: MapTest, from: Address, value: MapValue) {
+  mapTest.insert{from -> ALPH: minimalContractDeposit!() * 2}(from, value)
+}
+
+TxScript RemoveFromMap(mapTest: MapTest, key: Address) {
+  mapTest.remove(key)
+}
+
+TxScript UpdateMapValue(mapTest: MapTest, key: Address) {
+  mapTest.update(key)
+}

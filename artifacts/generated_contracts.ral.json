@@ -1,0 +1,199 @@
+[
+  {
+    "version": "v2.11.0",
+    "name": "StructWrapperMapValue",
+    "bytecode": "03060d184021402a403740430000010100051600ce01410c7b010000000203ce00a00002010000000102ce0002010000000102a00002010001010004b300001600a100010201010004b300001600b0",
+    "codeHash": "3c92b960989b8044ebc882c2e4fed45f75a50b5936e92baef1c2dfdd820d9a7a",
+    "fieldsSig": {
+      "names": [
+        "id",
+        "balance",
+        "parentContractId"
+      ],
+      "types": [
+        "U256",
+        "U256",
+        "ByteVec"
+      ],
+      "isMutable": [
+        false,
+        true,
+        false
+      ]
+    },
+    "eventsSig": [],
+    "functions": [
+      {
+        "name": "f0",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": false,
+        "paramNames": [
+          "callerContractId"
+        ],
+        "paramTypes": [
+          "ByteVec"
+        ],
+        "paramIsMutable": [
+          false
+        ],
+        "returnTypes": []
+      },
+      {
+        "name": "f1",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": true,
+        "paramNames": [],
+        "paramTypes": [],
+        "paramIsMutable": [],
+        "returnTypes": [
+          "MapValue"
+        ]
+      },
+      {
+        "name": "f2",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": true,
+        "paramNames": [],
+        "paramTypes": [],
+        "paramIsMutable": [],
+        "returnTypes": [
+          "U256"
+        ]
+      },
+      {
+        "name": "f3",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": true,
+        "paramNames": [],
+        "paramTypes": [],
+        "paramIsMutable": [],
+        "returnTypes": [
+          "U256"
+        ]
+      },
+      {
+        "name": "f4",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": true,
+        "paramNames": [
+          "newValue"
+        ],
+        "paramTypes": [
+          "U256"
+        ],
+        "paramIsMutable": [
+          false
+        ],
+        "returnTypes": []
+      },
+      {
+        "name": "destroy",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": true,
+        "isPublic": true,
+        "paramNames": [
+          "address"
+        ],
+        "paramTypes": [
+          "Address"
+        ],
+        "paramIsMutable": [
+          false
+        ],
+        "returnTypes": []
+      }
+    ],
+    "constants": [],
+    "enums": []
+  },
+  {
+    "version": "v2.11.0",
+    "name": "SimpleWrapperU256",
+    "bytecode": "02040d164023402f0000010100051600ce00410c7b010000000102a00002010001010004b300001600a100010201010004b300001600b0",
+    "codeHash": "b8745b5749f063d70978956e10d267e6480b8e94469963042d9c326794f59449",
+    "fieldsSig": {
+      "names": [
+        "value",
+        "parentContractId"
+      ],
+      "types": [
+        "U256",
+        "ByteVec"
+      ],
+      "isMutable": [
+        true,
+        false
+      ]
+    },
+    "eventsSig": [],
+    "functions": [
+      {
+        "name": "f0",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": false,
+        "paramNames": [
+          "callerContractId"
+        ],
+        "paramTypes": [
+          "ByteVec"
+        ],
+        "paramIsMutable": [
+          false
+        ],
+        "returnTypes": []
+      },
+      {
+        "name": "f1",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": true,
+        "paramNames": [],
+        "paramTypes": [],
+        "paramIsMutable": [],
+        "returnTypes": [
+          "U256"
+        ]
+      },
+      {
+        "name": "f2",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": false,
+        "isPublic": true,
+        "paramNames": [
+          "newValue"
+        ],
+        "paramTypes": [
+          "U256"
+        ],
+        "paramIsMutable": [
+          false
+        ],
+        "returnTypes": []
+      },
+      {
+        "name": "destroy",
+        "usePreapprovedAssets": false,
+        "useAssetsInContract": true,
+        "isPublic": true,
+        "paramNames": [
+          "address"
+        ],
+        "paramTypes": [
+          "Address"
+        ],
+        "paramIsMutable": [
+          false
+        ],
+        "returnTypes": []
+      }
+    ],
+    "constants": [],
+    "enums": []
+  }
+]

@@ -23,10 +23,13 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  Val,
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/Assert.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import { AllGeneratedContracts } from "./types";
 
 // Custom types for the contract
 export namespace AssertTypes {
@@ -57,7 +60,7 @@ class Factory extends ContractFactory<AssertInstance, {}> {
         TestContractParams<never, never>,
         "testArgs" | "initialFields"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "test", params === undefined ? {} : params);
     },
   };
@@ -69,7 +72,8 @@ export const Assert = new Factory(
     AssertContractJson,
     "",
     "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
-    AllStructs
+    AllStructs,
+    AllGeneratedContracts
   )
 );
 
