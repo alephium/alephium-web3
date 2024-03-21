@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.8.5",
+  "fullNodeVersion": "v2.11.0",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -15,6 +15,7 @@
       "bytecodeDebugPatch": "=8+4=1-1=2-2+64=3-1+d=37+77e010a=1+1646450726976617465=154",
       "codeHashDebug": "a49f0624ccbec8df1bf3ad7f628fb47a42cc448fe7369fc0da02071df6787b69",
       "warnings": [
+        "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
         "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
@@ -27,6 +28,13 @@
       "warnings": [
         "Found unused constants in Assert: A, Addresses.A, Addresses.B, B, ByteVecs.A, ByteVecs.B, C, Numbers.A, Numbers.B"
       ]
+    },
+    "Balances": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
     },
     "Debug": {
       "sourceFile": "test/debug.ral",
@@ -161,7 +169,9 @@
       "sourceCodeHash": "f7d27ecff8f7da7afcfee957842d8629930c9980f87a1c6d17561bb1fbe6dab6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
-      "warnings": []
+      "warnings": [
+        "The return values of the function \"Add.add\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
+      ]
     },
     "MetaData": {
       "sourceFile": "test/metadata.ral",
@@ -179,7 +189,10 @@
       "sourceCodeHash": "1fb25375808315eddf482b5e6bf58a9e4d6b1ee875c35f72c2b5692f024c8ba8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
-      "warnings": []
+      "warnings": [
+        "The return values of the function \"NFTCollectionWithRoyaltyTest.mint\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
+        "The return values of the function \"NFTCollectionTest.mint\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
+      ]
     },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
@@ -227,12 +240,43 @@
       "codeHashDebug": "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
       "warnings": []
     },
+    "TemplateArrayVar": {
+      "sourceFile": "test/template_array_var.ral",
+      "sourceCodeHash": "9d4585b01c450c8602f797f63995d1a734a260ea5579d68b81ba84272c9de235",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "TokenBalance": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "TokenTest": {
       "sourceFile": "token/token_test.ral",
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
       "warnings": []
+    },
+    "UpdateUserAccount": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "UserAccount": {
+      "sourceFile": "test/struct.ral",
+      "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "be41c84b7e99a544bd39df7eb24bc8c221f4ac66b7c0d774dfe96b92745167cc",
+      "warnings": [
+        "Function \"UserAccount.updateBalance\" updates fields. Please use \"@using(updateFields = true)\" for the function.",
+        "Function \"UserAccount.updateAddress\" updates fields. Please use \"@using(updateFields = true)\" for the function."
+      ]
     },
     "Warnings": {
       "sourceFile": "test/warnings.ral",

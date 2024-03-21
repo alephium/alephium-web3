@@ -61,6 +61,41 @@ export async function isNetworkLive(url: string): Promise<boolean> {
   }
 }
 
+export function getSdkFullNodeVersion() {
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  const web3Path = require.resolve('@alephium/web3')
+  const packageJsonPath = path.join(web3Path, '..', '..', '..', 'package.json')
+  return require(packageJsonPath).config.alephium_version
+  /* eslint-enable @typescript-eslint/no-var-requires */
+}
+
+export function checkFullNodeVersion(connectedFullNodeVersion: string, sdkFullNodeVersion: string) {
+  const connectedVersions = connectedFullNodeVersion.split('.')
+  const sdkVersions = sdkFullNodeVersion.split('.')
+  const connectedMajorVersion = Number(connectedVersions[0])
+  const sdkMajorVersion = Number(sdkVersions[0])
+  if (connectedMajorVersion > sdkMajorVersion) {
+    return
+  }
+  const minimumRequiredVersion = `${sdkVersions[0]}.${sdkVersions[1]}.0`
+  if (connectedMajorVersion < sdkMajorVersion) {
+    throw new Error(
+      `Connected full node version is ${connectedFullNodeVersion}, the minimum required version is ${minimumRequiredVersion}`
+    )
+  }
+
+  const connectedMinorVersion = Number(connectedVersions[1])
+  const sdkMinorVersion = Number(sdkVersions[1])
+  if (connectedMinorVersion > sdkMinorVersion) {
+    return
+  }
+  if (connectedMinorVersion < sdkMinorVersion) {
+    throw new Error(
+      `Connected full node version is ${connectedFullNodeVersion}, the minimum required version is ${minimumRequiredVersion}`
+    )
+  }
+}
+
 export async function isDevnetLive(): Promise<boolean> {
   return await isNetworkLive('http://127.0.0.1:22973')
 }
@@ -116,4 +151,8 @@ export function waitUserConfirmation(msg: string): Promise<boolean> {
       resolve(answer.toLowerCase() === 'y')
     })
   })
+}
+
+export function taskIdToVariable(taskId: string): string {
+  return taskId.replace(/[:\-]/g, '_')
 }

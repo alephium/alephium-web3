@@ -23,6 +23,7 @@ import {
   OwnerOnly,
   Sub,
   TokenTest,
+  UserAccount,
   Warnings,
   WrongNFTTest,
 } from ".";
@@ -50,6 +51,7 @@ export function getContractByCodeHash(codeHash: string): Contract {
       OwnerOnly,
       Sub,
       TokenTest,
+      UserAccount,
       Warnings,
       WrongNFTTest,
     ];

@@ -1,5 +1,5 @@
 {
-  "version": "v2.8.5",
+  "version": "v2.11.0",
   "name": "WithdrawNFTCollectionTest",
   "bytecodeTemplate": "01010300000006b4{1}0e0c{0}0106",
   "fieldsSig": {
@@ -8,7 +8,7 @@
       "amount"
     ],
     "types": [
-      "ByteVec",
+      "INFTCollectionWithRoyalty",
       "U256"
     ],
     "isMutable": [

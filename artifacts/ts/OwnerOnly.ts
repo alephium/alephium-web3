@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace OwnerOnlyTypes {
@@ -62,7 +63,8 @@ export const OwnerOnly = new Factory(
   Contract.fromJson(
     OwnerOnlyContractJson,
     "",
-    "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a"
+    "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
+    AllStructs
   )
 );
 

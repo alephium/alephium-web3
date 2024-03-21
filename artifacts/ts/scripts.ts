@@ -15,24 +15,44 @@ import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as MainScriptJson } from "../add/Main.ral.json";
 import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
+import { default as TemplateArrayVarScriptJson } from "../test/TemplateArrayVar.ral.json";
+import { default as UpdateUserAccountScriptJson } from "../test/UpdateUserAccount.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 export const DestroyAdd = new ExecutableScript<{
   add: HexString;
   caller: Address;
-}>(Script.fromJson(DestroyAddScriptJson));
+}>(Script.fromJson(DestroyAddScriptJson, "", AllStructs));
+
 export const GreeterMain = new ExecutableScript<{
   greeterContractId: HexString;
-}>(Script.fromJson(GreeterMainScriptJson));
+}>(Script.fromJson(GreeterMainScriptJson, "", AllStructs));
+
 export const Main = new ExecutableScript<{ addContractId: HexString }>(
-  Script.fromJson(MainScriptJson)
+  Script.fromJson(MainScriptJson, "", AllStructs)
 );
+
 export const MintNFTTest = new ExecutableScript<{
   nftCollectionContractId: HexString;
   uri: HexString;
   royalty: boolean;
-}>(Script.fromJson(MintNFTTestScriptJson));
+}>(Script.fromJson(MintNFTTestScriptJson, "", AllStructs));
+
+export const TemplateArrayVar = new ExecutableScript<{
+  address: Address;
+  numbers0: [[bigint, bigint], [bigint, bigint]];
+  bytes: HexString;
+  numbers1: [bigint, bigint, bigint];
+}>(Script.fromJson(TemplateArrayVarScriptJson, "", AllStructs));
+
+export const UpdateUserAccount = new ExecutableScript<{
+  account: HexString;
+  tokens: [TokenBalance, TokenBalance];
+  address: Address;
+}>(Script.fromJson(UpdateUserAccountScriptJson, "", AllStructs));
+
 export const WithdrawNFTCollectionTest = new ExecutableScript<{
   collection: HexString;
   amount: bigint;
-}>(Script.fromJson(WithdrawNFTCollectionTestScriptJson));
+}>(Script.fromJson(WithdrawNFTCollectionTestScriptJson, "", AllStructs));

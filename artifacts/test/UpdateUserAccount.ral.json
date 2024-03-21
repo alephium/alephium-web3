@@ -1,24 +1,28 @@
 {
   "version": "v2.11.0",
-  "name": "OwnerOnly",
-  "bytecode": "01010c010000000005b4ce00450c7b",
-  "codeHash": "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
+  "name": "UpdateUserAccount",
+  "bytecodeTemplate": "01010300040015{1}{2}{3}{4}17031702170117001600160116021603100c{0}0100{5}0d0c{0}0101",
   "fieldsSig": {
     "names": [
-      "owner"
+      "account",
+      "tokens",
+      "address"
     ],
     "types": [
+      "UserAccount",
+      "[TokenBalance;2]",
       "Address"
     ],
     "isMutable": [
+      false,
+      false,
       false
     ]
   },
-  "eventsSig": [],
   "functions": [
     {
-      "name": "testOwner",
-      "usePreapprovedAssets": false,
+      "name": "main",
+      "usePreapprovedAssets": true,
       "useAssetsInContract": false,
       "isPublic": true,
       "paramNames": [],
@@ -26,7 +30,5 @@
       "paramIsMutable": [],
       "returnTypes": []
     }
-  ],
-  "constants": [],
-  "enums": []
+  ]
 }

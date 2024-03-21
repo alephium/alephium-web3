@@ -18,7 +18,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Deployments, DeploymentsPerAddress, recordEqual, validatePrivateKeys } from './deployment'
-import { web3 } from '@alephium/web3'
+import { ContractInstance, web3 } from '@alephium/web3'
+import { randomContractAddress, testAddress } from '@alephium/web3-test'
+import { DeployContractExecutionResult } from './types'
 
 describe('deployments', () => {
   it('test record equal', () => {
@@ -84,5 +86,36 @@ describe('deployments', () => {
       expect(() => validatePrivateKeys(keys)).toThrowError(`Duplicated private keys on group ${size - 1}`)
       expect(() => validatePrivateKeys(keys.join(','))).toThrowError(`Duplicated private keys on group ${size - 1}`)
     })
+  })
+
+  it('should get contract instance from deployments', () => {
+    class FakeContractInstance extends ContractInstance {}
+    function fake(): DeployContractExecutionResult {
+      return {
+        contractInstance: new FakeContractInstance(randomContractAddress()),
+        txId: '',
+        unsignedTx: '',
+        signature: '',
+        gasAmount: 0,
+        gasPrice: '',
+        blockHash: '',
+        codeHash: ''
+      }
+    }
+
+    const contracts = new Map<string, DeployContractExecutionResult>()
+    contracts.set('Foo', fake())
+    contracts.set('Bar', fake())
+    contracts.set('Baz_1', fake())
+    const deployments = new Deployments([new DeploymentsPerAddress(testAddress, contracts, new Map(), new Map())])
+
+    expect(deployments['tryGetDeployedContract']('Foo')).toEqual(contracts.get('Foo')!)
+    expect(deployments['tryGetDeployedContract']('Bar')).toEqual(contracts.get('Bar')!)
+    expect(deployments['tryGetDeployedContract']('Foo', 1)).toEqual(undefined)
+    expect(deployments['tryGetDeployedContract']('Bar', 1)).toEqual(undefined)
+    expect(deployments['tryGetDeployedContract']('Baz')).toEqual(undefined)
+    expect(deployments['tryGetDeployedContract']('Foo', undefined, 'Foo:1')).toEqual(undefined)
+    expect(deployments['tryGetDeployedContract']('Baz', undefined, 'Baz:1')).toEqual(contracts.get('Baz_1'))
+    expect(deployments['tryGetDeployedContract']('Baz', undefined, 'Baz:2')).toEqual(undefined)
   })
 })

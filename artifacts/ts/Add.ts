@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace AddTypes {
@@ -102,7 +103,8 @@ export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
     "=8+4=1-1=2-2+64=3-1+d=37+77e010a=1+1646450726976617465=154",
-    "a49f0624ccbec8df1bf3ad7f628fb47a42cc448fe7369fc0da02071df6787b69"
+    "a49f0624ccbec8df1bf3ad7f628fb47a42cc448fe7369fc0da02071df6787b69",
+    AllStructs
   )
 );
 
