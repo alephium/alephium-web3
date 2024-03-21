@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { Buffer } from 'buffer/'
 import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode } from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
 import { unsignedTxCodec } from './index'

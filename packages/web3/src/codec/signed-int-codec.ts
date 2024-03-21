@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
 
+import { Buffer } from 'buffer/'
 export class SignedIntCodec implements Codec<number> {
   parser = Parser.start().buffer('value', {
     length: 4

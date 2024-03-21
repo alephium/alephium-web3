@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { Buffer } from 'buffer/'
 import { web3 } from '@alephium/web3'
 import { Method } from './method-codec'
 import { contractCodec } from './contract-codec'
