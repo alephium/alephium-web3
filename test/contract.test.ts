@@ -243,12 +243,12 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(38)
-    sourceFiles.slice(0, 22).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(22, 29).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(29, 31).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(31, 36).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(36).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles.length).toEqual(43)
+    sourceFiles.slice(0, 23).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(23, 33).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(33, 35).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(35, 40).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(40).forEach((i) => expect(i.type).toEqual(4)) // structs
   })
 
   it('should load contract from json', () => {
@@ -291,7 +291,8 @@ describe('contract', function () {
     const result = await Debug.tests.debug()
     expect(result.debugMessages.length).toEqual(1)
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
-    expect(result.debugMessages[0].message).toEqual(`Hello, ${result.contractAddress}!`)
+    const nullContractAddress = addressFromContractId('0'.repeat(64))
+    expect(result.debugMessages[0].message).toEqual(`Hello, ${nullContractAddress}!`)
   })
 
   it('should test assert!', async () => {

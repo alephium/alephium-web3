@@ -151,7 +151,7 @@ describe('Encode & decode scripts', function () {
   ) {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileScriptResult = await nodeProvider.contracts.postContractsCompileScript({ code: scriptCode })
-    const scriptBytecode = buildScriptByteCode(compileScriptResult.bytecodeTemplate, fields, fieldsSig)
+    const scriptBytecode = buildScriptByteCode(compileScriptResult.bytecodeTemplate, fields, fieldsSig, [])
     const decoded = scriptCodec.decode(Buffer.from(scriptBytecode, 'hex'))
     const encoded = scriptCodec.encode(decoded)
     expect(scriptBytecode).toEqual(encoded.toString('hex'))
