@@ -417,6 +417,10 @@ export enum MaxSizeTokens {
   Value80 = 80
 }
 
+export enum MaxSizeAddressesForTokens {
+  Value80 = 80
+}
+
 export enum MaxSizeAddresses {
   Value80 = 80
 }
@@ -1355,7 +1359,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }).then(convertHttpResponse),
 
     /**
-     * @description list given tokens information
+     * @description List given tokens information
      *
      * @tags Tokens
      * @name PostTokens
@@ -1396,6 +1400,37 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<Transaction[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/tokens/${tokenId}/transactions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description List token addresses
+     *
+     * @tags Tokens
+     * @name GetTokensTokenIdAddresses
+     * @request GET:/tokens/{token_id}/addresses
+     */
+    getTokensTokenIdAddresses: (
+      tokenId: string,
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         */
+        limit?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/tokens/${tokenId}/addresses`,
         method: 'GET',
         query: query,
         format: 'json',

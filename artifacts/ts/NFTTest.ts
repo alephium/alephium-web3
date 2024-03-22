@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace NFTTestTypes {
@@ -89,7 +90,8 @@ export const NFTTest = new Factory(
   Contract.fromJson(
     NFTTestContractJson,
     "",
-    "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1"
+    "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
+    AllStructs
   )
 );
 

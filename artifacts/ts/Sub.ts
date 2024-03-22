@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace SubTypes {
@@ -82,7 +83,8 @@ export const Sub = new Factory(
   Contract.fromJson(
     SubContractJson,
     "",
-    "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1"
+    "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1",
+    AllStructs
   )
 );
 

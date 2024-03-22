@@ -26,6 +26,7 @@ import {
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace WarningsTypes {
@@ -62,7 +63,8 @@ export const Warnings = new Factory(
   Contract.fromJson(
     WarningsContractJson,
     "",
-    "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2"
+    "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2",
+    AllStructs
   )
 );
 

@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "0.31.2",
+  "version": "0.37.0",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "main": "dist/src/index.js",
@@ -27,8 +27,8 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "2.8.5",
-    "explorer_backend_version": "1.16.1"
+    "alephium_version": "2.11.0",
+    "explorer_backend_version": "1.17.0"
   },
   "scripts": {
     "build": "rm -rf dist/* && npx tsc --build . && webpack",

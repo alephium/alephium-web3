@@ -21,6 +21,7 @@ export * from "./NFTTest";
 export * from "./OwnerOnly";
 export * from "./Sub";
 export * from "./TokenTest";
+export * from "./UserAccount";
 export * from "./Warnings";
 export * from "./WrongNFTTest";
 export * from "./scripts";

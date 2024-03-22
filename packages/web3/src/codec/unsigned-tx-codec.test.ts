@@ -92,7 +92,8 @@ describe('Encode & decode unsigned transactions', function () {
     const contractByteCode = buildContractByteCode(
       compileContractResult.bytecode,
       {},
-      { names: [], types: [], isMutable: [] }
+      { names: [], types: [], isMutable: [] },
+      []
     )
     const deployContractResult = await signer1.signAndSubmitDeployContractTx({
       signerAddress: signer1.address,
@@ -110,7 +111,8 @@ describe('Encode & decode unsigned transactions', function () {
     const scriptBytecode = buildScriptByteCode(
       compileScriptResult.bytecodeTemplate,
       { testContract: deployContractResult.contractId },
-      { names: ['testContract'], types: ['ByteVec'], isMutable: [false] }
+      { names: ['testContract'], types: ['ByteVec'], isMutable: [false] },
+      []
     )
 
     const buildExecuteScriptTxResult = await signer1.buildExecuteScriptTx({
@@ -159,7 +161,8 @@ describe('Encode & decode unsigned transactions', function () {
     const contractByteCode = buildContractByteCode(
       compileContractResult.bytecode,
       {},
-      { names: [], types: [], isMutable: [] }
+      { names: [], types: [], isMutable: [] },
+      []
     )
     const deployContractResult = await signer1.signAndSubmitDeployContractTx({
       signerAddress: signer1.address,
@@ -179,7 +182,8 @@ describe('Encode & decode unsigned transactions', function () {
     const scriptBytecode = buildScriptByteCode(
       compileScriptResult.bytecodeTemplate,
       { faucetContract: deployContractResult.contractId },
-      { names: ['faucetContract'], types: ['ByteVec'], isMutable: [false] }
+      { names: ['faucetContract'], types: ['ByteVec'], isMutable: [false] },
+      []
     )
 
     // Get the token to signer1
