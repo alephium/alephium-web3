@@ -26,7 +26,6 @@ import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
 import { binToHex, bs58 } from '..'
 import { signedIntCodec } from './signed-int-codec'
-import { LockupScript } from './lockup-script-codec'
 import { lockupScriptCodec } from './lockup-script-codec'
 
 export interface ContractOutput {
@@ -49,7 +48,7 @@ export class ContractOutputCodec implements Codec<ContractOutput> {
 
   encode(input: ContractOutput): Buffer {
     const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
-    const lockupScript = (input.lockupScript as P2C).contractId
+    const lockupScript = input.lockupScript.contractId
     const tokens = Buffer.from(tokensCodec.encode(input.tokens.value))
 
     return Buffer.concat([amount, lockupScript, tokens])

@@ -100,10 +100,9 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
       // P2SH
       hint = createHint((outputLockupScript as P2SH).scriptHash)
     } else if (scriptType === 3) {
-      // P2C
-      hint = createHint((outputLockupScript as P2C).contractId)
+      throw new Error(`P2C script type not allowed for asset output`)
     } else {
-      throw new Error(`TODO: decode output script type: ${scriptType}`)
+      throw new Error(`Unexpected output script type: ${scriptType}`)
     }
 
     return { hint, key, attoAlphAmount, lockTime, tokens, address, message }
