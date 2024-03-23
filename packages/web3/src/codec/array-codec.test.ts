@@ -24,9 +24,9 @@ describe('Encode & decode arrays', function () {
     const arraySignedIntCodec = new ArrayCodec(signedIntCodec)
 
     const arrayOfSignedInts = [1, 2, 3, 4, 5]
-    const encoded = arraySignedIntCodec.encode(arrayOfSignedInts)
-    const decoded = arraySignedIntCodec.decode(encoded)
-    expect(arrayOfSignedInts).toEqual(decoded)
+    const encodedSignedInts = arraySignedIntCodec.encode(arrayOfSignedInts)
+    const decodedSignedInts = arraySignedIntCodec.decode(encodedSignedInts)
+    expect(arrayOfSignedInts).toEqual(decodedSignedInts)
 
     const empty = []
     const encodedEmpty = arraySignedIntCodec.encode(empty)
