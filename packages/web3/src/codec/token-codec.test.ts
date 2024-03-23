@@ -15,31 +15,27 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { Buffer } from 'buffer/'
-import { ALPH_TOKEN_ID } from '../index'
 import { tokenCodec } from './token-codec'
 import { compactUnsignedIntCodec } from './compact-int-codec'
+import { randomContractId } from '@alephium/web3-test'
+import { randomBytes } from 'crypto'
 
 describe('Encode & decode tokens', function () {
-  it('should encode & decode bytestring', function () {
-    success({
-      id: ALPH_TOKEN_ID,
-      amount: 1000000000000000n
-    })
+  it('should encode & decode tokens', function () {
+    for (let i = 0; i < 100; i++) {
+      const tokenId = randomContractId()
+      const amount = BigInt('0x' + randomBytes(31).toString('hex'))
 
-    success({
-      id: '7e5205529bd11e41dfb96e7de84936a1fe2bb660a401239b05e4ca835a7b5700',
-      amount: 0n
-    })
-  })
+      const token = {
+        tokenId: Buffer.from(tokenId, 'hex'),
+        amount: compactUnsignedIntCodec.fromU256(amount)
+      }
 
-  function success(tokenIn: { id: string; amount: bigint }) {
-    const token = {
-      tokenId: Buffer.from(tokenIn.id, 'hex'),
-      amount: compactUnsignedIntCodec.fromU256(tokenIn.amount)
+      const encoded = tokenCodec.encode(token)
+      const decoded = tokenCodec.decode(encoded)
+      expect(decoded).toEqual(token)
     }
-    const encoded = tokenCodec.encode(token)
-    const decoded = tokenCodec.decode(encoded)
-    expect(decoded).toEqual(token)
-  }
+  })
 })
