@@ -115,24 +115,23 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
   }
 
   static fromFixedAssetOutput(fixedOutput: FixedAssetOutput): AssetOutput {
-    const amount: DecodedCompactInt = compactUnsignedIntCodec.decode(
-      compactUnsignedIntCodec.encodeU256(BigInt(fixedOutput.attoAlphAmount))
-    )
+    const amount: DecodedCompactInt = compactUnsignedIntCodec.fromU256(BigInt(fixedOutput.attoAlphAmount))
+
     const lockTime: Buffer = longCodec.encode(BigInt(fixedOutput.lockTime))
     const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(bs58.decode(fixedOutput.address)))
     const tokensValue = fixedOutput.tokens.map((token) => {
       return {
         tokenId: Buffer.from(token.id, 'hex'),
-        amount: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(token.amount)))
+        amount: compactUnsignedIntCodec.fromU256(BigInt(token.amount))
       }
     })
     const tokens: DecodedArray<Token> = {
-      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(tokensValue.length)),
+      length: compactUnsignedIntCodec.fromU32(tokensValue.length),
       value: tokensValue
     }
     const additionalDataValue = Buffer.from(fixedOutput.message, 'hex')
     const additionalData: ByteString = {
-      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(additionalDataValue.length)),
+      length: compactUnsignedIntCodec.fromU32(additionalDataValue.length),
       value: additionalDataValue
     }
 

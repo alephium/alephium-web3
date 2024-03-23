@@ -56,7 +56,7 @@ export class ArrayCodec<T> implements Codec<T[]> {
 
   fromArray(inputs: T[]): DecodedArray<T> {
     return {
-      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(inputs.length)),
+      length: compactUnsignedIntCodec.fromU32(inputs.length),
       value: inputs
     }
   }

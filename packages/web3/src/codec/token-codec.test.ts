@@ -36,7 +36,7 @@ describe('Encode & decode tokens', function () {
   function success(tokenIn: { id: string; amount: bigint }) {
     const token = {
       tokenId: Buffer.from(tokenIn.id, 'hex'),
-      amount: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(tokenIn.amount))
+      amount: compactUnsignedIntCodec.fromU256(tokenIn.amount)
     }
     const encoded = tokenCodec.encode(token)
     const decoded = tokenCodec.decode(encoded)
