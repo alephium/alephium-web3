@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3 } from '@alephium/web3'
+import { Contract, Project, web3 } from '@alephium/web3'
 import { Method } from './method-codec'
 import { contractCodec } from './contract-codec'
 import {
@@ -47,13 +47,15 @@ import {
   U256Lt,
   U256SHL
 } from './instr-codec'
+import { Assert, Debug, MetaData, NFTTest, OwnerOnly, TokenTest, Warnings } from '../../../../artifacts/ts'
 
 describe('Encode & decode contract', function () {
-  beforeAll(() => {
+  beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
+    await Project.build({ errorOnWarnings: false })
   })
 
-  it('should encode and decode contracts', async () => {
+  it('should encode and decode contract from source code', async () => {
     await testContractCode(
       `
         Contract ShinyToken(
@@ -288,6 +290,16 @@ describe('Encode & decode contract', function () {
     )
   })
 
+  it('should encode and decode contracts from project', () => {
+    testContract(TokenTest.contract)
+    testContract(OwnerOnly.contract)
+    testContract(NFTTest.contract)
+    testContract(Warnings.contract)
+    testContract(MetaData.contract)
+    testContract(Debug.contract)
+    testContract(Assert.contract)
+  })
+
   async function testContractCode(contractCode: string, methods: Method[]) {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileContractResult = await nodeProvider.contracts.postContractsCompileContract({ code: contractCode })
@@ -306,5 +318,37 @@ describe('Encode & decode contract', function () {
       expect(decodedMethod.instrs).toEqual(methods[index].instrs)
     })
     expect(contractBytecode).toEqual(encoded.toString('hex'))
+  }
+
+  function testContract(contract: Contract) {
+    const decoded = contractCodec.decode(Buffer.from(contract.bytecode, 'hex'))
+    const encoded = contractCodec.encode(decoded)
+
+    const decodedContract = contractCodec.decodeContract(Buffer.from(contract.bytecode, 'hex'))
+
+    expect(decodedContract.fieldLength).toEqual(contract.fieldsSig.names.length)
+    decodedContract.methods.map((decodedMethod, index) => {
+      const contractFunction = contract.functions[index]
+      expect(decodedMethod.isPublic).toEqual(contractFunction.isPublic)
+      expect(decodedMethod.assetModifier).toEqual(
+        assetModifier(contractFunction.usePreapprovedAssets, contractFunction.useAssetsInContract)
+      )
+      expect(decodedMethod.argsLength).toEqual(contractFunction.paramNames.length)
+      expect(decodedMethod.returnLength).toEqual(contractFunction.returnTypes.length)
+    })
+
+    expect(contract.bytecode).toEqual(encoded.toString('hex'))
+  }
+
+  function assetModifier(usePreapprovedAssets: boolean, useAssetsInContract: boolean): number {
+    if (!usePreapprovedAssets && !useAssetsInContract) {
+      return 0
+    } else if (usePreapprovedAssets && useAssetsInContract) {
+      return 1
+    } else if (!usePreapprovedAssets && useAssetsInContract) {
+      return 2
+    } else {
+      return 3
+    }
   }
 })
