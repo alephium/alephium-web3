@@ -16,19 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
-}
+import { ArrayCodec } from './array-codec'
+import { Either, EitherCodec } from './either-codec'
+import { AssetOutput, assetOutputCodec } from './asset-output-codec'
+import { ContractOutput, contractOutputCodec } from './contract-output-codec'
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
-
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+export type Output = Either<AssetOutput, ContractOutput>
+export const outputCodec = new EitherCodec<AssetOutput, ContractOutput>(assetOutputCodec, contractOutputCodec)
+export const outputsCodec = new ArrayCodec(outputCodec)

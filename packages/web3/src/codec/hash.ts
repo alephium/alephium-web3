@@ -15,20 +15,21 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { Buffer } from 'buffer/'
+import blake from 'blakejs'
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
+export function blakeHash(raw: Uint8Array) {
+  return blake.blake2b(raw, undefined, 32)
 }
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
+export function djbIntHash(bytes: Buffer): number {
+  let hash = 5381
+  bytes.forEach((byte) => {
+    hash = (hash << 5) + hash + (byte & 0xff)
+  })
+  return hash
+}
 
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+export function createHint(input: Buffer): number {
+  return djbIntHash(input) | 1
+}

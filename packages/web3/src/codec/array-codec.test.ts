@@ -16,19 +16,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
-}
+import { ArrayCodec } from './array-codec'
+import { signedIntCodec } from './signed-int-codec'
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
+describe('Encode & decode arrays', function () {
+  it('should encode and decode arrays', function () {
+    const arraySignedIntCodec = new ArrayCodec(signedIntCodec)
 
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+    const arrayOfSignedInts = [1, 2, 3, 4, 5]
+    const encodedSignedInts = arraySignedIntCodec.encode(arrayOfSignedInts)
+    const decodedSignedInts = arraySignedIntCodec.decode(encodedSignedInts)
+    expect(arrayOfSignedInts).toEqual(decodedSignedInts)
+
+    const empty = []
+    const encodedEmpty = arraySignedIntCodec.encode(empty)
+    const decodedEmpty = arraySignedIntCodec.decode(encodedEmpty)
+    expect(empty).toEqual(decodedEmpty)
+  })
+})

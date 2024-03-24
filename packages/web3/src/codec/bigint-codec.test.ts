@@ -16,19 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
-}
+import { BigIntCodec } from './bigint-codec'
+import { randomBytes } from 'crypto'
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
-
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+describe('Encode & decode bigint', function () {
+  it('should encode and decode bigint', function () {
+    for (let i = 0; i < 1000; i++) {
+      const n = BigInt('0x' + randomBytes(100).toString('hex'))
+      const encoded = BigIntCodec.encode(n)
+      const decoded = BigIntCodec.decode(encoded, i % 2 === 0)
+      expect(n).toEqual(decoded)
+    }
+  })
+})

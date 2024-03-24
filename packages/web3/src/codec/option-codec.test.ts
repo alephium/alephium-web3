@@ -15,20 +15,21 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { OptionCodec } from './option-codec'
+import { signedIntCodec } from './signed-int-codec'
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
-}
+describe('Encode & decode options', function () {
+  it('should encode and decode options', function () {
+    const optionalStringCodec = new OptionCodec(signedIntCodec)
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
+    const none = { option: 0 }
+    const encodedNone = optionalStringCodec.encode(none)
+    const decodedNone = optionalStringCodec.decode(encodedNone)
+    expect(none).toEqual(decodedNone)
 
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+    const option = { option: 1, value: 1000 }
+    const encodedOption = optionalStringCodec.encode(option)
+    const decodedOption = optionalStringCodec.decode(encodedOption)
+    expect(option).toEqual(decodedOption)
+  })
+})

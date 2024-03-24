@@ -15,20 +15,17 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { Buffer } from 'buffer/'
+import { Parser } from 'binary-parser'
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
+export interface Codec<T> {
+  parser: Parser
+  encode(input: T): Buffer
+  decode(input: Buffer): T
 }
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
-
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
+export function assert(value: boolean, message: string) {
+  if (!value) {
+    throw new Error(message)
+  }
+}
