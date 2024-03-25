@@ -100,10 +100,9 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
       // P2SH
       hint = createHint((outputLockupScript as P2SH).scriptHash)
     } else if (scriptType === 3) {
-      // P2C
-      hint = createHint((outputLockupScript as P2C).contractId)
+      throw new Error(`P2C script type not allowed for asset output`)
     } else {
-      throw new Error(`TODO: decode output script type: ${scriptType}`)
+      throw new Error(`Unexpected output script type: ${scriptType}`)
     }
 
     return { hint, key, attoAlphAmount, lockTime, tokens, address, message }
@@ -116,24 +115,23 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
   }
 
   static fromFixedAssetOutput(fixedOutput: FixedAssetOutput): AssetOutput {
-    const amount: DecodedCompactInt = compactUnsignedIntCodec.decode(
-      compactUnsignedIntCodec.encodeU256(BigInt(fixedOutput.attoAlphAmount))
-    )
+    const amount: DecodedCompactInt = compactUnsignedIntCodec.fromU256(BigInt(fixedOutput.attoAlphAmount))
+
     const lockTime: Buffer = longCodec.encode(BigInt(fixedOutput.lockTime))
     const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(bs58.decode(fixedOutput.address)))
     const tokensValue = fixedOutput.tokens.map((token) => {
       return {
         tokenId: Buffer.from(token.id, 'hex'),
-        amount: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(token.amount)))
+        amount: compactUnsignedIntCodec.fromU256(BigInt(token.amount))
       }
     })
     const tokens: DecodedArray<Token> = {
-      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(tokensValue.length)),
+      length: compactUnsignedIntCodec.fromU32(tokensValue.length),
       value: tokensValue
     }
     const additionalDataValue = Buffer.from(fixedOutput.message, 'hex')
     const additionalData: ByteString = {
-      length: compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU32(additionalDataValue.length)),
+      length: compactUnsignedIntCodec.fromU32(additionalDataValue.length),
       value: additionalDataValue
     }
 

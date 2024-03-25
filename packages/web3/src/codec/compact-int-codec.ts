@@ -130,6 +130,10 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     return decodePositiveInt(value.mode, body)
   }
 
+  fromU32(value: number): DecodedCompactInt {
+    return this.decode(this.encodeU32(value))
+  }
+
   toU256(value: DecodedCompactInt): bigint {
     const mode = value.mode & maskRest
     if (fixedSize(mode)) {
@@ -138,6 +142,10 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
       assert(value.rest.length <= 32, 'Expect <= 32 bytes for U256')
       return BigIntCodec.decode(Buffer.from(value.rest), false)
     }
+  }
+
+  fromU256(value: bigint): DecodedCompactInt {
+    return this.decode(this.encodeU256(value))
   }
 }
 
@@ -244,6 +252,10 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
+  fromI32(value: number): DecodedCompactInt {
+    return this.decode(this.encodeI32(value))
+  }
+
   toI256(value: DecodedCompactInt): bigint {
     const mode = value.mode & maskRest
 
@@ -253,6 +265,10 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
       assert(value.rest.length <= 32, 'Expect <= 32 bytes for I256')
       return BigIntCodec.decode(Buffer.from(value.rest), true)
     }
+  }
+
+  fromI256(value: bigint): DecodedCompactInt {
+    return this.decode(this.encodeI256(value))
   }
 }
 

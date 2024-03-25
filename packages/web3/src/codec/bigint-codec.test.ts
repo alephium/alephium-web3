@@ -16,21 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ArrayCodec } from './array-codec'
-import { signedIntCodec } from './signed-int-codec'
+import { BigIntCodec } from './bigint-codec'
+import { randomBytes } from 'crypto'
 
-describe('Encode & decode arrays', function () {
-  it('should encode and decode arrays', function () {
-    const arraySignedIntCodec = new ArrayCodec(signedIntCodec)
-
-    const arrayOfSignedInts = [1, 2, 3, 4, 5]
-    const encodedSignedInts = arraySignedIntCodec.encode(arrayOfSignedInts)
-    const decodedSignedInts = arraySignedIntCodec.decode(encodedSignedInts)
-    expect(arrayOfSignedInts).toEqual(decodedSignedInts)
-
-    const empty = []
-    const encodedEmpty = arraySignedIntCodec.encode(empty)
-    const decodedEmpty = arraySignedIntCodec.decode(encodedEmpty)
-    expect(empty).toEqual(decodedEmpty)
+describe('Encode & decode bigint', function () {
+  it('should encode and decode bigint', function () {
+    for (let i = 0; i < 1000; i++) {
+      const n = BigInt('0x' + randomBytes(100).toString('hex'))
+      const encoded = BigIntCodec.encode(n)
+      const decoded = BigIntCodec.decode(encoded, i % 2 === 0)
+      expect(n).toEqual(decoded)
+    }
   })
 })

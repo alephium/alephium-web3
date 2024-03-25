@@ -236,6 +236,8 @@ export const SubContractIdOf: Instr = { code: 0xcc, value: {} }
 export const AlphTokenId: Instr = { code: 0xcd, value: {} }
 export const LoadImmField = (index: number): Instr => ({ code: 0xce, value: { index } })
 export const LoadImmFieldByIndex: Instr = { code: 0xcf, value: {} }
+export const PayGasFee: Instr = { code: 0xd0, value: {} }
+export const MinimalContractDeposit: Instr = { code: 0xd1, value: {} }
 
 export class InstrCodec implements Codec<Instr> {
   parser = Parser.start()
@@ -430,7 +432,9 @@ export class InstrCodec implements Codec<Instr> {
         [SubContractIdOf.code]: Parser.start(),
         [AlphTokenId.code]: Parser.start(),
         0xce: Parser.start().uint8('index'),
-        [LoadImmFieldByIndex.code]: Parser.start()
+        [LoadImmFieldByIndex.code]: Parser.start(),
+        [PayGasFee.code]: Parser.start(),
+        [MinimalContractDeposit.code]: Parser.start()
       }
     })
 

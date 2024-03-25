@@ -107,8 +107,8 @@ export class UnsignedTxCodec implements Codec<UnsignedTx> {
   static fromApiUnsignedTx(unsignedTx: ApiUnsignedTx): UnsignedTx {
     const version = unsignedTx.version
     const networkId = unsignedTx.networkId
-    const gasAmount = compactSignedIntCodec.decode(compactSignedIntCodec.encodeI32(unsignedTx.gasAmount))
-    const gasPrice = compactUnsignedIntCodec.decode(compactUnsignedIntCodec.encodeU256(BigInt(unsignedTx.gasPrice)))
+    const gasAmount = compactSignedIntCodec.fromI32(unsignedTx.gasAmount)
+    const gasPrice = compactUnsignedIntCodec.fromU256(BigInt(unsignedTx.gasPrice))
     const inputsValue = InputCodec.fromAssetInputs(unsignedTx.inputs)
     const inputs = inputsCodec.fromArray(inputsValue)
     const fixedOutputsValue = AssetOutputCodec.fromFixedAssetOutputs(unsignedTx.fixedOutputs)
