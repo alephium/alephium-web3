@@ -5,8 +5,8 @@ struct MapValue {
 Contract MapTest(@unused mut a: U256, @unused b: U256, mut map0: Map[Address, MapValue], mut map1: Map[U256, U256]) {
   @using(preapprovedAssets = true)
   pub fn insert(key: Address, value: MapValue) -> () {
-    map0.insert!{key -> ALPH: minimalContractDeposit!()}(key, value)
-    map1.insert!{key -> ALPH: minimalContractDeposit!()}(value.id, value.balance)
+    map0.insert!{key -> ALPH: mapEntryDeposit!()}(key, value)
+    map1.insert!{key -> ALPH: mapEntryDeposit!()}(value.id, value.balance)
   }
 
   pub fn update(key: Address) -> () {
@@ -31,7 +31,7 @@ Contract MapTest(@unused mut a: U256, @unused b: U256, mut map0: Map[Address, Ma
 }
 
 TxScript InsertIntoMap(mapTest: MapTest, from: Address, value: MapValue) {
-  mapTest.insert{from -> ALPH: minimalContractDeposit!() * 2}(from, value)
+  mapTest.insert{from -> ALPH: mapEntryDeposit!() * 2}(from, value)
 }
 
 TxScript RemoveFromMap(mapTest: MapTest, key: Address) {

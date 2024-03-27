@@ -352,10 +352,25 @@ describe('contract', function () {
   })
 
   it('should decode map debug message', () => {
-    const result = ralph.tryDecodeMapDebugLog(
+    expect(ralph.tryDecodeMapDebugLog('5f5f6d61705f5f')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('5f5f6d61705f5f,false')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('5f5f6d6170,false')).toEqual(undefined)
+    const result0 = ralph.tryDecodeMapDebugLog(
       '5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a,true'
     )
-    console.log(result)
+    expect(result0).toEqual({
+      path: '5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a',
+      mapIndex: 0,
+      encodedKey: utils.hexToBinUnsafe('00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a'),
+      isInsert: true
+    })
+    const result1 = ralph.tryDecodeMapDebugLog('5f5f6d61705f5f315f5f00ec3d,false')
+    expect(result1).toEqual({
+      path: '5f5f6d61705f5f315f5f00ec3d',
+      mapIndex: 1,
+      encodedKey: utils.hexToBinUnsafe('00ec3d'),
+      isInsert: false
+    })
   })
 
   it('should test buildScriptByteCode', () => {

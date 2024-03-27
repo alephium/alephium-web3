@@ -510,27 +510,23 @@ function genIndexTs(outDir: string, exports: string[]) {
 }
 
 function genContractByCodeHash(outDir: string, contractNames: string[]) {
-  const hasGeneratedContracts = Project.currentProject.generatedContracts.length > 0
   const contracts = contractNames.join(',')
   const source = `
     ${header}
 
     import { Contract, ContractFactory } from '@alephium/web3'
-    ${hasGeneratedContracts ? `import { AllGeneratedContracts } from './types'` : ''}
     ${contracts.length === 0 ? '' : `import { ${contracts} } from '.'`}
 
-    let contracts: Contract[] | undefined = undefined
+    let contracts: ContractFactory<any>[] | undefined = undefined
     export function getContractByCodeHash(codeHash: string): Contract {
       if (contracts === undefined) {
-        const factories: ContractFactory<any>[] = [${contracts}]
-        contracts = factories.map((f) => f.contract)
+        contracts = [${contracts}]
       }
-      const allContracts = ${hasGeneratedContracts ? 'contracts.concat(AllGeneratedContracts)' : 'contracts'}
-      const c = allContracts.find((c) => c.codeHash === codeHash || c.codeHashDebug === codeHash)
+      const c = contracts.find((c) => c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash)
       if (c === undefined) {
         throw new Error("Unknown code with code hash: " + codeHash)
       }
-      return c
+      return c.contract
     }
   `
   const filename = 'contracts.ts'

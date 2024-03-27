@@ -80,6 +80,17 @@ export class MethodCodec implements Codec<DecodedMethod> {
       instrs: decodedMethod.instrs.value
     }
   }
+
+  static fromMethod(method: Method): DecodedMethod {
+    return {
+      isPublic: method.isPublic ? 1 : 0,
+      assetModifier: method.assetModifier,
+      argsLength: compactUnsignedIntCodec.fromU32(method.argsLength),
+      localsLength: compactUnsignedIntCodec.fromU32(method.localsLength),
+      returnLength: compactUnsignedIntCodec.fromU32(method.returnLength),
+      instrs: instrsCodec.fromArray(method.instrs)
+    }
+  }
 }
 
 export const methodCodec = new MethodCodec()

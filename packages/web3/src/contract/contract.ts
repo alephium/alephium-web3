@@ -67,6 +67,19 @@ import { ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import * as blake from 'blakejs'
 import { parseError } from '../utils/error'
 import { isContractDebugMessageEnabled } from '../debug'
+import {
+  contract,
+  Method,
+  LoadLocal,
+  LoadImmFieldByIndex,
+  LoadMutFieldByIndex,
+  CallerContractId,
+  LoadImmField,
+  ByteVecEq,
+  Assert,
+  StoreMutFieldByIndex,
+  DestroySelf
+} from '../codec'
 
 const crypto = new WebCrypto()
 
@@ -524,14 +537,13 @@ export class Project {
   }
 
   contractByCodeHash(codeHash: string): Contract {
-    const allContracts = Array.from(this.contracts.values())
-      .map((c) => c.artifact)
-      .concat(this.generatedContracts)
-    const contract = allContracts.find((c) => c.codeHash === codeHash || c.codeHashDebug == codeHash)
+    const contract = [...this.contracts.values()].find(
+      (c) => c.artifact.codeHash === codeHash || c.artifact.codeHashDebug == codeHash
+    )
     if (typeof contract === 'undefined') {
       throw new Error(`Unknown code with code hash: ${codeHash}`)
     }
-    return contract
+    return contract.artifact
   }
 
   private static async getCompileResult(
@@ -1013,18 +1025,6 @@ export class Contract extends Artifact {
 
   hasMapFields(): boolean {
     return this.fieldsExceptMaps.names.length !== this.fieldsSig.names.length
-  }
-
-  getGeneratedContract(type: string): Contract | undefined {
-    const struct = this.structs.find((s) => s.name === type)
-    if (struct !== undefined) {
-      const name = `StructWrapper${struct.name}`
-      return this.generatedContracts.find((c) => c.name === name)
-    }
-    const suffix = Array.from(type)
-      .filter((c) => !'[;]'.includes(c))
-      .join('')
-    return this.generatedContracts.find((c) => c.name === `SimpleWrapper${suffix}`)
   }
 
   getInitialFieldsWithDefaultValues(): Fields {
@@ -1859,6 +1859,79 @@ function calcWrapperContractId(
   return subContractId(parentContractId, path, group)
 }
 
+function getFieldSize(type: string, isMutable: boolean, structs: Struct[]): { immFields: number; mutFields: number } {
+  const struct = structs.find((s) => s.name === type)
+  if (struct === undefined) {
+    return isMutable ? { immFields: 0, mutFields: 1 } : { immFields: 1, mutFields: 0 }
+  }
+  return struct.fieldTypes.reduce(
+    (acc, fieldType, index) => {
+      const isFieldMutable = isMutable && struct.isMutable[`${index}`]
+      const subFieldSize = getFieldSize(fieldType, isFieldMutable, structs)
+      return {
+        immFields: acc.immFields + subFieldSize.immFields,
+        mutFields: acc.mutFields + subFieldSize.mutFields
+      }
+    },
+    { immFields: 0, mutFields: 0 }
+  )
+}
+
+function genCodeForType(type: string, structs: Struct[]): { bytecode: string; codeHash: string } {
+  const { immFields, mutFields } = getFieldSize(type, true, structs)
+  const loadImmFieldByIndex: Method = {
+    isPublic: true,
+    assetModifier: 0,
+    argsLength: 1,
+    localsLength: 1,
+    returnLength: 1,
+    instrs: [LoadLocal(0), LoadImmFieldByIndex]
+  }
+  const loadMutFieldByIndex: Method = {
+    ...loadImmFieldByIndex,
+    instrs: [LoadLocal(0), LoadMutFieldByIndex]
+  }
+  const parentContractIdIndex = immFields
+  const storeMutFieldByIndex: Method = {
+    ...loadImmFieldByIndex,
+    argsLength: 2,
+    localsLength: 2,
+    returnLength: 0,
+    instrs: [
+      CallerContractId,
+      LoadImmField(parentContractIdIndex),
+      ByteVecEq,
+      Assert,
+      LoadLocal(0), // value
+      LoadLocal(1), // index
+      StoreMutFieldByIndex
+    ]
+  }
+  const destroy: Method = {
+    isPublic: true,
+    assetModifier: 2,
+    argsLength: 1,
+    localsLength: 1,
+    returnLength: 0,
+    instrs: [CallerContractId, LoadImmField(parentContractIdIndex), ByteVecEq, Assert, LoadLocal(0), DestroySelf]
+  }
+  const c = {
+    fieldLength: immFields + mutFields + 1, // parentContractId
+    methods: [loadImmFieldByIndex, loadMutFieldByIndex, storeMutFieldByIndex, destroy]
+  }
+  const bytecode = contract.contractCodec.encode(contract.toHalfDecoded(c))
+  const codeHash = blake.blake2b(bytecode, undefined, 32)
+  return { bytecode: binToHex(bytecode), codeHash: binToHex(codeHash) }
+}
+
+function getContractFieldsSig(mapValueType: string): FieldsSig {
+  return {
+    names: ['value', 'parentContractId'],
+    types: [mapValueType, 'ByteVec'],
+    isMutable: [true, false]
+  }
+}
+
 function mapToExistingContracts(
   contract: Contract,
   parentContractId: string,
@@ -1868,24 +1941,15 @@ function mapToExistingContracts(
   type: string
 ): ContractState[] {
   const [keyType, valueType] = ralph.parseMapType(type)
-  const generatedContract = contract.getGeneratedContract(valueType)
-  if (generatedContract === undefined) {
-    throw new Error(`Contract for type ${valueType} does not exist`)
-  }
+  const generatedContract = genCodeForType(valueType, contract.structs)
   return Array.from(map.entries()).map(([key, value]) => {
-    const fields =
-      generatedContract.fieldsSig.names.length === 2
-        ? { value } // simple wrapper
-        : { ...(value as Fields) } // struct wrapper
-    const parentContractIdName = generatedContract.fieldsSig.names[`${generatedContract.fieldsSig.names.length - 1}`]
-    fields[`${parentContractIdName}`] = parentContractId
+    const fields = { value, parentContractId }
     const contractId = calcWrapperContractId(parentContractId, mapIndex, key, keyType, group)
     return {
+      ...generatedContract,
       address: addressFromContractId(contractId),
       contractId: contractId,
-      bytecode: generatedContract.bytecode,
-      codeHash: generatedContract.codeHash,
-      fieldsSig: generatedContract.fieldsSig,
+      fieldsSig: getContractFieldsSig(valueType),
       fields,
       asset: { alphAmount: ONE_ALPH }
     }
@@ -1938,15 +2002,8 @@ export async function testMethod<
     existingContracts: (params.existingContracts ?? []).concat(contractStates)
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
+  const maps = existingContractsToMaps(contract, address, group, apiResult, initialFields)
   const testResult = contract.fromApiTestContractResult(methodName, apiResult, txId)
-  const maps = existingContractsToMaps(
-    contract,
-    address,
-    group,
-    testResult.contracts,
-    testResult.debugMessages,
-    initialFields
-  )
   contract.printDebugMessages(methodName, testResult.debugMessages)
   return {
     ...testResult,
@@ -1954,23 +2011,33 @@ export async function testMethod<
   } as TestContractResult<R, M>
 }
 
-function existingContractsToMaps(
-  contract: Contract,
-  address: Address,
-  group: number,
-  states: ContractState[],
-  messages: DebugMessage[],
-  fields: Fields
-): Record<string, Map<Val, Val>> {
-  const allMaps = contract.mapFields.types.map((type, index) => {
+interface MapInfo {
+  name: string
+  value: Map<Val, Val>
+  keyType: string
+  valueType: string
+  index: number
+}
+
+function buildMaps(contract: Contract, fields: Fields): MapInfo[] {
+  return contract.mapFields.types.map((type, index) => {
     const name = contract.mapFields.names[`${index}`]
-    const map = (fields[`${name}`] ?? new Map<Val, Val>()) as Map<Val, Val>
+    const value = (fields[`${name}`] ?? new Map<Val, Val>()) as Map<Val, Val>
     const [keyType, valueType] = ralph.parseMapType(type)
-    return { name, map, keyType, valueType, mapIndex: index }
+    return { name, value, keyType, valueType, index }
   })
+}
+
+function extractFromEventLog(
+  contract: Contract,
+  result: node.TestContractResult,
+  allMaps: MapInfo[],
+  address: string,
+  group: number
+): string[] {
   const parentContractId = binToHex(contractIdFromAddress(address))
   const newInserted: string[] = []
-  messages.forEach((message) => {
+  result.debugMessages.forEach((message) => {
     if (message.contractAddress !== address) return
     const decoded = ralph.tryDecodeMapDebugLog(message.message)
     if (decoded === undefined) return
@@ -1978,38 +2045,61 @@ function existingContractsToMaps(
     const decodedKey = ralph.decodePrimitive(decoded.encodedKey, map.keyType)
     const contractId = subContractId(parentContractId, decoded.path, group)
     if (!decoded.isInsert) {
-      map.map.delete(decodedKey)
+      map.value.delete(decodedKey)
       return
     }
-    const state = states.find((s) => s.contractId === contractId)
+    const state = result.contracts.find((s) => s.address === addressFromContractId(contractId))
     if (state === undefined) {
       throw new Error(`Cannot find contract state for map value, map field: ${map.name}, value type: ${map.valueType}`)
     }
-    newInserted.push(contractId)
-    map.map.set(decodedKey, decodeWrapperFields(state.fields))
+    newInserted.push(state.address)
+    const fieldsSig = getContractFieldsSig(map.valueType)
+    const fields = fromApiFields(state.immFields, state.mutFields, fieldsSig, contract.structs)
+    map.value.set(decodedKey, fields['value'])
   })
-  return allMaps.reduce((acc, map) => {
-    Array.from(map.map.keys()).forEach((key) => {
-      const contractId = calcWrapperContractId(parentContractId, map.mapIndex, key, map.keyType, group)
-      if (newInserted.includes(contractId)) return
-      const updatedState = states.find((s) => s.contractId === contractId)
-      if (updatedState !== undefined) map.map.set(key, decodeWrapperFields(updatedState.fields))
-    })
-    acc[`${map.name}`] = map.map
-    return acc
-  }, {})
+  return newInserted
 }
 
-function decodeWrapperFields(fields: Fields): Val {
-  const allFields = Object.entries(fields).map(([name]) => name)
-  delete fields[allFields[`${allFields.length - 1}`]] // remove the `parentContractId` field
-  if (allFields.length === 2) {
-    // simple wrapper
-    return fields[allFields[0]]
-  } else {
-    // struct wrapper
-    return fields
-  }
+function updateMaps(
+  contract: Contract,
+  result: node.TestContractResult,
+  allMaps: MapInfo[],
+  address: Address,
+  group: number
+): string[] {
+  const parentContractId = binToHex(contractIdFromAddress(address))
+  const updated: string[] = []
+  allMaps.forEach((map) => {
+    Array.from(map.value.keys()).forEach((key) => {
+      const contractId = calcWrapperContractId(parentContractId, map.index, key, map.keyType, group)
+      const updatedState = result.contracts.find((s) => s.address === addressFromContractId(contractId))
+      if (updatedState === undefined) return
+      updated.push(updatedState.address)
+      const fieldsSig = getContractFieldsSig(map.valueType)
+      const fields = fromApiFields(updatedState.immFields, updatedState.mutFields, fieldsSig, contract.structs)
+      map.value.set(key, fields['value'])
+    })
+  })
+  return updated
+}
+
+function existingContractsToMaps(
+  contract: Contract,
+  address: Address,
+  group: number,
+  result: node.TestContractResult,
+  fields: Fields
+): Record<string, Map<Val, Val>> {
+  const allMaps = buildMaps(contract, fields)
+  const updated = updateMaps(contract, result, allMaps, address, group)
+  const newInserted = extractFromEventLog(contract, result, allMaps, address, group)
+  const mapEntries = updated.concat(newInserted)
+  const remainContracts = result.contracts.filter((c) => mapEntries.find((addr) => c.address === addr) === undefined)
+  result.contracts = remainContracts
+  return allMaps.reduce((acc, map) => {
+    acc[`${map.name}`] = map.value
+    return acc
+  }, {})
 }
 
 export abstract class ContractInstance {

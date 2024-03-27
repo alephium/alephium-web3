@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Buffer } from 'buffer/'
 import { Contract, Project, web3 } from '@alephium/web3'
 import { Method } from './method-codec'
-import { contractCodec } from './contract-codec'
+import { contractCodec, toHalfDecoded } from './contract-codec'
 import {
   ApproveAlph,
   AssertWithErrorCode,
@@ -310,6 +310,7 @@ describe('Encode & decode contract', function () {
 
     const decodedContract = contractCodec.decodeContract(Buffer.from(contractBytecode, 'hex'))
     expect(decodedContract.fieldLength).toEqual(methods.length)
+    expect(toHalfDecoded(decodedContract)).toEqual(decoded)
     decodedContract.methods.map((decodedMethod, index) => {
       expect(decodedMethod.isPublic).toEqual(methods[index].isPublic)
       expect(decodedMethod.assetModifier).toEqual(methods[index].assetModifier)
@@ -326,8 +327,9 @@ describe('Encode & decode contract', function () {
     const encoded = contractCodec.encode(decoded)
 
     const decodedContract = contractCodec.decodeContract(Buffer.from(contract.bytecode, 'hex'))
+    expect(toHalfDecoded(decodedContract)).toEqual(decoded)
 
-    expect(decodedContract.fieldLength).toEqual(contract.fieldsSig.names.length)
+    expect(decodedContract.fieldLength).toEqual(contract.fieldsExceptMaps.names.length)
     decodedContract.methods.map((decodedMethod, index) => {
       const contractFunction = contract.functions[index]
       expect(decodedMethod.isPublic).toEqual(contractFunction.isPublic)
