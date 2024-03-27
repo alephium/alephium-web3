@@ -389,20 +389,15 @@ function getContractFields(contract: Contract): node.FieldsSig {
   }
 }
 
-function importTypes(): string {
-  const hasGeneratedContracts = Project.currentProject.generatedContracts.length > 0
+function importStructs(): string {
   const structs = Project.currentProject.structs.map((s) => s.name)
-  if (structs.length === 0 && !hasGeneratedContracts) return ''
-  return `
-    ${structs.length === 0 ? '' : `import { ${structs.join(',')}, AllStructs } from './types'`}
-    ${hasGeneratedContracts ? `import { AllGeneratedContracts } from './types'` : ''}
-  `
+  if (structs.length === 0) return ''
+  return `import { ${structs.join(',')}, AllStructs } from './types'`
 }
 
 function genContract(contract: Contract, artifactRelativePath: string): string {
   const fieldsSig = getContractFields(contract)
   const hasStruct = Project.currentProject.structs.length > 0
-  const hasGeneratedContracts = Project.currentProject.generatedContracts.length > 0
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
   if (contractInfo === undefined) {
@@ -420,7 +415,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
-    ${importTypes()}
+    ${importStructs()}
 
     // Custom types for the contract
     export namespace ${contract.name}Types {
@@ -442,8 +437,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.name}ContractJson,
       '${contractInfo.bytecodeDebugPatch}',
       '${contractInfo.codeHashDebug}',
-      ${hasStruct ? 'AllStructs' : []},
-      ${hasGeneratedContracts ? 'AllGeneratedContracts' : []}
+      ${hasStruct ? 'AllStructs' : []}
     ))
 
     // Use this class to interact with the blockchain
@@ -502,7 +496,7 @@ function genScripts(outDir: string, artifactDir: string, exports: string[]) {
       HexString
     } from '@alephium/web3'
     ${importArtifacts}
-    ${importTypes()}
+    ${importStructs()}
 
     ${scriptsSource}
   `
@@ -749,11 +743,9 @@ function cleanCode(outDir: string) {
   })
 }
 
-function genTypes(outDir: string) {
-  const generatedContracts = Project.currentProject.generatedContracts
+function genStructTypes(outDir: string) {
   const structs = Project.currentProject.structs
-  if (generatedContracts.length === 0 && structs.length === 0) return
-
+  if (structs.length === 0) return
   const sorted = structs.sort((a, b) => (a.name > b.name ? 1 : -1))
   const interfaces = sorted.map((struct) => {
     const fields = struct.fieldNames
@@ -763,21 +755,9 @@ function genTypes(outDir: string) {
   })
   const sourceCode = `
     ${header}
-    import { Address, HexString, Val, Struct, Contract } from '@alephium/web3'
-    ${
-      generatedContracts.length === 0
-        ? ''
-        : `import { default as allGeneratedContractsJson } from '../generated_contracts.ral.json'`
-    }
-    ${interfaces.length === 0 ? '' : `import { default as allStructsJson } from '../structs.ral.json'`}
-    ${interfaces.length === 0 ? '' : `export const AllStructs = allStructsJson.map((json) => Struct.fromJson(json))`}
-    ${
-      generatedContracts.length === 0
-        ? ''
-        : interfaces.length !== 0
-        ? `export const AllGeneratedContracts = allGeneratedContractsJson.map((json) => Contract.fromJson(json, '', '', AllStructs))`
-        : `export const AllGeneratedContracts = allGeneratedContractsJson.map((json) => Contract.fromJson(json, '', ''))`
-    }
+    import { Address, HexString, Val, Struct } from '@alephium/web3'
+    import { default as allStructsJson } from '../structs.ral.json'
+    export const AllStructs = allStructsJson.map((json) => Struct.fromJson(json))
     ${interfaces.join('\n')}
   `
   const sourcePath = path.join(outDir, 'types.ts')
@@ -794,7 +774,7 @@ export function codegen(artifactDir: string) {
 
   const exports: string[] = []
   try {
-    genTypes(outDir)
+    genStructTypes(outDir)
     genContracts(outDir, artifactDir, exports)
     const contractNames = exports.map((p) => p.slice(2))
     genContractByCodeHash(outDir, contractNames)

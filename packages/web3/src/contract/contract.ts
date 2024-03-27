@@ -368,7 +368,6 @@ export class Project {
   contracts: Map<string, Compiled<Contract>>
   scripts: Map<string, Compiled<Script>>
   structs: Struct[]
-  generatedContracts: Contract[]
   projectArtifact: ProjectArtifact
 
   readonly contractsRootDir: string
@@ -439,7 +438,6 @@ export class Project {
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
     structs: Struct[],
-    generatedContracts: Contract[],
     errorOnWarnings: boolean,
     projectArtifact: ProjectArtifact
   ) {
@@ -449,7 +447,6 @@ export class Project {
     this.contracts = contracts
     this.scripts = scripts
     this.structs = structs
-    this.generatedContracts = generatedContracts
     this.projectArtifact = projectArtifact
 
     if (errorOnWarnings) {
@@ -510,24 +507,6 @@ export class Project {
     return fsPromises.writeFile(filePath, JSON.stringify(structs, null, 2))
   }
 
-  private static async loadGeneratedContracts(artifactsRootDir: string, structs: Struct[]): Promise<Contract[]> {
-    const filePath = path.join(artifactsRootDir, 'generated_contracts.ral.json')
-    if (!fs.existsSync(filePath)) return []
-    const content = await fsPromises.readFile(filePath)
-    const json = JSON.parse(content.toString())
-    if (!Array.isArray(json)) {
-      throw Error(`Invalid contract JSON: ${content}`)
-    }
-    return Array.from(json).map((item) => Contract.fromJson(item, '', '', structs))
-  }
-
-  private async saveGeneratedContractsToFile(): Promise<void> {
-    if (this.generatedContracts.length === 0) return
-    const contracts = this.generatedContracts.map((c) => c.toJson())
-    const filePath = path.join(this.artifactsRootDir, 'generated_contracts.ral.json')
-    return fsPromises.writeFile(filePath, JSON.stringify(contracts, null, 2))
-  }
-
   private async saveArtifactsToFile(projectRootDir: string): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
@@ -541,7 +520,6 @@ export class Project {
     this.contracts.forEach((contract) => saveToFile(contract))
     this.scripts.forEach((script) => saveToFile(script))
     this.saveStructsToFile()
-    this.saveGeneratedContractsToFile()
     await this.projectArtifact.saveToFile(projectRootDir)
   }
 
@@ -609,17 +587,16 @@ export class Project {
     const contracts = new Map<string, Compiled<Contract>>()
     const scripts = new Map<string, Compiled<Script>>()
     const structs = result.structs === undefined ? [] : result.structs.map((item) => Struct.fromStructSig(item))
-    const generatedContracts = result.contracts
-      .filter((c) => sourceInfos.find((s) => s.type === SourceKind.Contract && s.name === c.name) === undefined)
-      .map((c) => Contract.fromCompileResult(c, structs))
     result.contracts.forEach((contractResult) => {
       const sourceInfo = sourceInfos.find(
         (sourceInfo) => sourceInfo.type === SourceKind.Contract && sourceInfo.name === contractResult.name
       )
-      if (sourceInfo !== undefined) {
-        const contract = Contract.fromCompileResult(contractResult, structs, generatedContracts)
-        contracts.set(contract.name, new Compiled(sourceInfo, contract, contractResult.warnings))
+      if (sourceInfo === undefined) {
+        // this should never happen
+        throw new Error(`SourceInfo does not exist for contract ${contractResult.name}`)
       }
+      const contract = Contract.fromCompileResult(contractResult, structs)
+      contracts.set(contract.name, new Compiled(sourceInfo, contract, contractResult.warnings))
     })
     result.scripts.forEach((scriptResult) => {
       const sourceInfo = sourceInfos.find(
@@ -646,7 +623,6 @@ export class Project {
       contracts,
       scripts,
       structs,
-      generatedContracts,
       errorOnWarnings,
       projectArtifact
     )
@@ -668,7 +644,6 @@ export class Project {
       const contracts = new Map<string, Compiled<Contract>>()
       const scripts = new Map<string, Compiled<Script>>()
       const structs = await Project.loadStructs(artifactsRootDir)
-      const generatedContracts = await Project.loadGeneratedContracts(artifactsRootDir, structs)
       for (const sourceInfo of sourceInfos) {
         const info = projectArtifact.infos.get(sourceInfo.name)
         if (typeof info === 'undefined') {
@@ -681,8 +656,7 @@ export class Project {
             artifactDir,
             info.bytecodeDebugPatch,
             info.codeHashDebug,
-            structs,
-            generatedContracts
+            structs
           )
           contracts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
         } else if (sourceInfo.type === SourceKind.Script) {
@@ -698,7 +672,6 @@ export class Project {
         contracts,
         scripts,
         structs,
-        generatedContracts,
         errorOnWarnings,
         projectArtifact
       )
@@ -921,7 +894,6 @@ export class Contract extends Artifact {
   readonly constants: Constant[]
   readonly enums: Enum[]
   readonly structs: Struct[]
-  readonly generatedContracts: Contract[]
   readonly stdInterfaceId?: HexString
 
   readonly bytecodeDebug: string
@@ -940,7 +912,6 @@ export class Contract extends Artifact {
     constants: Constant[],
     enums: Enum[],
     structs: Struct[],
-    generatedContracts: Contract[],
     stdInterfaceId?: HexString
   ) {
     super(version, name, functions)
@@ -953,7 +924,6 @@ export class Contract extends Artifact {
     this.constants = constants
     this.enums = enums
     this.structs = structs
-    this.generatedContracts = generatedContracts
     this.stdInterfaceId = stdInterfaceId
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
@@ -961,13 +931,7 @@ export class Contract extends Artifact {
   }
 
   // TODO: safely parse json
-  static fromJson(
-    artifact: any,
-    bytecodeDebugPatch = '',
-    codeHashDebug = '',
-    structs: Struct[] = [],
-    generatedContracts: Contract[] = []
-  ): Contract {
+  static fromJson(artifact: any, bytecodeDebugPatch = '', codeHashDebug = '', structs: Struct[] = []): Contract {
     if (
       artifact.version == null ||
       artifact.name == null ||
@@ -994,17 +958,12 @@ export class Contract extends Artifact {
       artifact.constants,
       artifact.enums,
       structs,
-      generatedContracts,
       artifact.stdInterfaceId === null ? undefined : artifact.stdInterfaceId
     )
     return contract
   }
 
-  static fromCompileResult(
-    result: node.CompileContractResult,
-    structs: Struct[] = [],
-    generatedContracts: Contract[] = []
-  ): Contract {
+  static fromCompileResult(result: node.CompileContractResult, structs: Struct[] = []): Contract {
     return new Contract(
       result.version,
       result.name,
@@ -1018,7 +977,6 @@ export class Contract extends Artifact {
       result.constants,
       result.enums,
       structs,
-      generatedContracts,
       result.stdInterfaceId
     )
   }
@@ -1028,15 +986,14 @@ export class Contract extends Artifact {
     path: string,
     bytecodeDebugPatch: string,
     codeHashDebug: string,
-    structs: Struct[] = [],
-    generatedContracts: Contract[] = []
+    structs: Struct[] = []
   ): Promise<Contract> {
     const content = await fsPromises.readFile(path)
     const artifact = JSON.parse(content.toString())
-    return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug, structs, generatedContracts)
+    return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug, structs)
   }
 
-  toJson(): any {
+  override toString(): string {
     const object: any = {
       version: this.version,
       name: this.name,
@@ -1051,11 +1008,6 @@ export class Contract extends Artifact {
     if (this.stdInterfaceId !== undefined) {
       object.stdInterfaceId = this.stdInterfaceId
     }
-    return object
-  }
-
-  override toString(): string {
-    const object = this.toJson()
     return JSON.stringify(object, null, 2)
   }
 
