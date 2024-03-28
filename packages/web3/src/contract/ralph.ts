@@ -299,6 +299,33 @@ function fromAscii(str: string): string {
   return result
 }
 
+export function calcFieldSize(
+  type: string,
+  isMutable: boolean,
+  structs: Struct[]
+): { immFields: number; mutFields: number } {
+  const struct = structs.find((s) => s.name === type)
+  if (struct !== undefined) {
+    return struct.fieldTypes.reduce(
+      (acc, fieldType, index) => {
+        const isFieldMutable = isMutable && struct.isMutable[`${index}`]
+        const subFieldSize = calcFieldSize(fieldType, isFieldMutable, structs)
+        return {
+          immFields: acc.immFields + subFieldSize.immFields,
+          mutFields: acc.mutFields + subFieldSize.mutFields
+        }
+      },
+      { immFields: 0, mutFields: 0 }
+    )
+  }
+  if (type.startsWith('[')) {
+    const [baseType, size] = decodeArrayType(type)
+    const base = calcFieldSize(baseType, isMutable, structs)
+    return { immFields: base.immFields * size, mutFields: base.mutFields * size }
+  }
+  return isMutable ? { immFields: 0, mutFields: 1 } : { immFields: 1, mutFields: 0 }
+}
+
 export function tryDecodeMapDebugLog(
   message: string
 ): { path: string; mapIndex: number; encodedKey: Uint8Array; isInsert: boolean } | undefined {

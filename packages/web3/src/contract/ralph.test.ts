@@ -373,6 +373,20 @@ describe('contract', function () {
     })
   })
 
+  it('should calc field size', () => {
+    const bar = new Struct('Bar', ['a', 'b'], ['U256', '[U256;2]'], [false, true])
+    const foo = new Struct('Foo', ['a', 'c', 'd'], ['U256', 'ByteVec', '[Bar;2]'], [false, false, true])
+    const structs = [bar, foo]
+    expect(ralph.calcFieldSize('Bar', false, structs)).toEqual({ immFields: 3, mutFields: 0 })
+    expect(ralph.calcFieldSize('Bar', true, structs)).toEqual({ immFields: 1, mutFields: 2 })
+    expect(ralph.calcFieldSize('[Bar;2]', false, structs)).toEqual({ immFields: 6, mutFields: 0 })
+    expect(ralph.calcFieldSize('[Bar;2]', true, structs)).toEqual({ immFields: 2, mutFields: 4 })
+    expect(ralph.calcFieldSize('Foo', false, structs)).toEqual({ immFields: 8, mutFields: 0 })
+    expect(ralph.calcFieldSize('Foo', true, structs)).toEqual({ immFields: 4, mutFields: 4 })
+    expect(ralph.calcFieldSize('[Foo; 2]', false, structs)).toEqual({ immFields: 16, mutFields: 0 })
+    expect(ralph.calcFieldSize('[Foo; 2]', true, structs)).toEqual({ immFields: 8, mutFields: 8 })
+  })
+
   it('should test buildScriptByteCode', () => {
     const variables = { x: true, y: 0x05n, z: 'ff', a: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3' }
     const fieldsSig: FieldsSig = {

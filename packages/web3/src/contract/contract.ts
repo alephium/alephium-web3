@@ -1859,26 +1859,8 @@ function calcWrapperContractId(
   return subContractId(parentContractId, path, group)
 }
 
-function getFieldSize(type: string, isMutable: boolean, structs: Struct[]): { immFields: number; mutFields: number } {
-  const struct = structs.find((s) => s.name === type)
-  if (struct === undefined) {
-    return isMutable ? { immFields: 0, mutFields: 1 } : { immFields: 1, mutFields: 0 }
-  }
-  return struct.fieldTypes.reduce(
-    (acc, fieldType, index) => {
-      const isFieldMutable = isMutable && struct.isMutable[`${index}`]
-      const subFieldSize = getFieldSize(fieldType, isFieldMutable, structs)
-      return {
-        immFields: acc.immFields + subFieldSize.immFields,
-        mutFields: acc.mutFields + subFieldSize.mutFields
-      }
-    },
-    { immFields: 0, mutFields: 0 }
-  )
-}
-
 function genCodeForType(type: string, structs: Struct[]): { bytecode: string; codeHash: string } {
-  const { immFields, mutFields } = getFieldSize(type, true, structs)
+  const { immFields, mutFields } = ralph.calcFieldSize(type, true, structs)
   const loadImmFieldByIndex: Method = {
     isPublic: true,
     assetModifier: 0,
