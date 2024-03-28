@@ -23,14 +23,15 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  Val,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace GreeterTypes {
-  export type Fields = {
+  export interface Fields extends Record<string, Val> {
     btcPrice: bigint;
     array0: [[bigint, bigint], [bigint, bigint], [bigint, bigint]];
     array1: [[boolean, boolean], [boolean, boolean], [boolean, boolean]];
@@ -40,7 +41,7 @@ export namespace GreeterTypes {
       [HexString, HexString]
     ];
     array3: [[Address, Address], [Address, Address], [Address, Address]];
-  };
+  }
 
   export type State = ContractState<Fields>;
 
@@ -76,7 +77,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
   tests = {
     greet: async (
       params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResult<bigint, {}>> => {
       return testMethod(this, "greet", params);
     },
   };

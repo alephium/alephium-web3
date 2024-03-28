@@ -1,5 +1,20 @@
 [
   {
+    "name": "MapValue",
+    "fieldNames": [
+      "id",
+      "balance"
+    ],
+    "fieldTypes": [
+      "U256",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      true
+    ]
+  },
+  {
     "name": "TokenBalance",
     "fieldNames": [
       "tokenId",

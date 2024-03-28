@@ -23,19 +23,20 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  Val,
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace UserAccountTypes {
-  export type Fields = {
+  export interface Fields extends Record<string, Val> {
     id: HexString;
     address: Address;
     balances: Balances;
     name: HexString;
-  };
+  }
 
   export type State = ContractState<Fields>;
 
@@ -77,7 +78,7 @@ class Factory extends ContractFactory<
         UserAccountTypes.Fields,
         { tokens: [TokenBalance, TokenBalance] }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "updateBalance", params);
     },
     updateAddress: async (
@@ -85,7 +86,7 @@ class Factory extends ContractFactory<
         UserAccountTypes.Fields,
         { newAddress: Address }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "updateAddress", params);
     },
     getBalances: async (
@@ -93,7 +94,7 @@ class Factory extends ContractFactory<
         TestContractParams<UserAccountTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<Balances>> => {
+    ): Promise<TestContractResult<Balances, {}>> => {
       return testMethod(this, "getBalances", params);
     },
   };

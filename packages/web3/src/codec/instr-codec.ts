@@ -43,6 +43,10 @@ export interface AddressConst extends InstrValue {
 export interface Debug extends InstrValue {
   stringParts: DecodedArray<ByteString>
 }
+export interface CreateMapEntryValue extends InstrValue {
+  immFields: number
+  mutFields: number
+}
 export interface Instr {
   code: number
   value: InstrValue
@@ -238,6 +242,10 @@ export const LoadImmField = (index: number): Instr => ({ code: 0xce, value: { in
 export const LoadImmFieldByIndex: Instr = { code: 0xcf, value: {} }
 export const PayGasFee: Instr = { code: 0xd0, value: {} }
 export const MinimalContractDeposit: Instr = { code: 0xd1, value: {} }
+export const CreateMapEntry: (immFields: number, mutFields: number) => Instr = (
+  immFields: number,
+  mutFields: number
+) => ({ code: 0xd2, value: { immFields, mutFields } })
 
 export class InstrCodec implements Codec<Instr> {
   parser = Parser.start()
@@ -434,7 +442,8 @@ export class InstrCodec implements Codec<Instr> {
         0xce: Parser.start().uint8('index'),
         [LoadImmFieldByIndex.code]: Parser.start(),
         [PayGasFee.code]: Parser.start(),
-        [MinimalContractDeposit.code]: Parser.start()
+        [MinimalContractDeposit.code]: Parser.start(),
+        0xd2: Parser.start().uint8('immFields').uint8('mutFields')
       }
     })
 
@@ -453,6 +462,9 @@ export class InstrCodec implements Codec<Instr> {
       result.push(...compactUnsignedIntCodec.encode((instrValue as InstrValueWithCompactInt).value))
     } else if (instrsWithIndex.includes(instr.code)) {
       result.push((instrValue as InstrValueWithIndex).index)
+    } else if (instr.code === 0xd2) {
+      const value = instrValue as CreateMapEntryValue
+      result.push(value.immFields, value.mutFields)
     }
 
     return Buffer.from(result)

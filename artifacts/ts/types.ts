@@ -9,6 +9,10 @@ export interface Balances extends Record<string, Val> {
   totalAmount: bigint;
   tokens: [TokenBalance, TokenBalance];
 }
+export interface MapValue extends Record<string, Val> {
+  id: bigint;
+  balance: bigint;
+}
 export interface TokenBalance extends Record<string, Val> {
   tokenId: HexString;
   amount: bigint;
