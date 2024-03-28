@@ -3,7 +3,6 @@
 /* eslint-disable */
 
 import { Contract, ContractFactory } from "@alephium/web3";
-import { AllGeneratedContracts } from "./types";
 import {
   Add,
   Assert,
@@ -30,10 +29,10 @@ import {
   WrongNFTTest,
 } from ".";
 
-let contracts: Contract[] | undefined = undefined;
+let contracts: ContractFactory<any>[] | undefined = undefined;
 export function getContractByCodeHash(codeHash: string): Contract {
   if (contracts === undefined) {
-    const factories: ContractFactory<any>[] = [
+    contracts = [
       Add,
       Assert,
       Debug,
@@ -58,14 +57,13 @@ export function getContractByCodeHash(codeHash: string): Contract {
       Warnings,
       WrongNFTTest,
     ];
-    contracts = factories.map((f) => f.contract);
   }
-  const allContracts = contracts.concat(AllGeneratedContracts);
-  const c = allContracts.find(
-    (c) => c.codeHash === codeHash || c.codeHashDebug === codeHash
+  const c = contracts.find(
+    (c) =>
+      c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash
   );
   if (c === undefined) {
     throw new Error("Unknown code with code hash: " + codeHash);
   }
-  return c;
+  return c.contract;
 }

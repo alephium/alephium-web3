@@ -27,9 +27,7 @@ import {
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-
 import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
-import { AllGeneratedContracts } from "./types";
 
 // Custom types for the contract
 export namespace MapTestTypes {
@@ -161,10 +159,9 @@ class Factory extends ContractFactory<MapTestInstance, MapTestTypes.Fields> {
 export const MapTest = new Factory(
   Contract.fromJson(
     MapTestContractJson,
-    "=6-1+d=3-1+3=3-2+8f=2-1=1+b=2-2+c4=13-1+7=40+7a037e0300012c00=226+7a037e0300012c00=308-2+4022=90+7a047e0300012c00=46+7a047e0300012c00=112",
-    "d012c5bf0e7658ee640d58506c576e5fdbcc5c2c7515b1ad9dcf3076f85af881",
-    AllStructs,
-    AllGeneratedContracts
+    "=6-1+4=3-1+a=2-2+11=3-1+3=3-1+5=12-1+b=40+7a037e0300012c00=56+7a037e0300012c00=217-1+a=114+7a047e0300012c00=46+7a047e0300012c00=136",
+    "23c1ab39042b459d30f531ad31f52620ec5c1bd8a9142d2c3c2fd27d72ce1370",
+    AllStructs
   )
 );
 

@@ -27,9 +27,7 @@ import {
 } from "@alephium/web3";
 import { default as WrongNFTTestContractJson } from "../nft/WrongNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-
 import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
-import { AllGeneratedContracts } from "./types";
 
 // Custom types for the contract
 export namespace WrongNFTTestTypes {
@@ -103,8 +101,7 @@ export const WrongNFTTest = new Factory(
     WrongNFTTestContractJson,
     "",
     "7dd2ed643a98b2a1a52a9b9e536fcdae60d961b583b8109f777d846bfdfcae8d",
-    AllStructs,
-    AllGeneratedContracts
+    AllStructs
   )
 );
 

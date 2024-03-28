@@ -21,9 +21,7 @@ import { default as TemplateArrayVarScriptJson } from "../test/TemplateArrayVar.
 import { default as UpdateMapValueScriptJson } from "../test/UpdateMapValue.ral.json";
 import { default as UpdateUserAccountScriptJson } from "../test/UpdateUserAccount.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
-
 import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
-import { AllGeneratedContracts } from "./types";
 
 export const DestroyAdd = new ExecutableScript<{
   add: HexString;
