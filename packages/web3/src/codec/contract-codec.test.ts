@@ -358,7 +358,7 @@ describe('Encode & decode contract', function () {
     const decodedContract = contractCodec.decodeContract(Buffer.from(contract.bytecode, 'hex'))
     expect(toHalfDecoded(decodedContract)).toEqual(decoded)
 
-    expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsExceptMaps.types))
+    expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsSig.types))
     decodedContract.methods.map((decodedMethod, index) => {
       const contractFunction = contract.functions[index]
       expect(decodedMethod.isPublic).toEqual(contractFunction.isPublic)
