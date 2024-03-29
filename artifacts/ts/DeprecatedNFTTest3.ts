@@ -72,7 +72,7 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest3Types.Fields, never>,
+        TestContractParams<DeprecatedNFTTest3Types.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<HexString, {}>> => {
@@ -80,7 +80,7 @@ class Factory extends ContractFactory<
     },
     returnNothing: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest3Types.Fields, never>,
+        TestContractParams<DeprecatedNFTTest3Types.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<null, {}>> => {

@@ -73,12 +73,18 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
 
   tests = {
     getTokenUri: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<NFTTestTypes.Fields, never, {}>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<HexString, {}>> => {
       return testMethod(this, "getTokenUri", params);
     },
     getCollectionIndex: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
+      params: Omit<
+        TestContractParams<NFTTestTypes.Fields, never, {}>,
+        "testArgs"
+      >
     ): Promise<TestContractResult<[HexString, bigint], {}>> => {
       return testMethod(this, "getCollectionIndex", params);
     },

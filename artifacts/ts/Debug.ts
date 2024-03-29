@@ -41,7 +41,7 @@ class Factory extends ContractFactory<DebugInstance, {}> {
   tests = {
     debug: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParams<never, never, {}>,
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResult<null, {}>> => {

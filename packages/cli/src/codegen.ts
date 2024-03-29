@@ -254,12 +254,12 @@ function genGetInitialFieldsWithDefaultValues(contract: Contract): string {
 }
 
 function genContractStateType(contract: Contract): string {
-  if (contract.fieldsExceptMaps.names.length === 0) {
+  if (contract.fieldsSig.names.length === 0) {
     return `export type State = Omit<ContractState<any>, 'fields'>`
   }
   return `
     export type Fields = {
-      ${formatParameters(contract.fieldsExceptMaps)}
+      ${formatParameters(contract.fieldsSig)}
     }
 
     export type State = ContractState<Fields>
@@ -267,43 +267,37 @@ function genContractStateType(contract: Contract): string {
 }
 
 function genMapFields(contract: Contract): string {
-  const mapFields = contract.mapFields.names.map((name, index) => {
-    const type = contract.mapFields.types[`${index}`]
-    const [key, value] = parseMapType(type)
-    return `${name}?: Map<${toTsType(key)}, ${toTsType(value)}>`
+  const mapFields = contract.mapsSig.map((mapSig) => {
+    const [key, value] = parseMapType(mapSig.type)
+    return `${mapSig.name}?: Map<${toTsType(key)}, ${toTsType(value)}>`
   })
   return `{ ${mapFields.join(', ')} }`
 }
 
 function genTestMethod(contract: Contract, functionSig: node.FunctionSig): string {
   const funcHasArgs = functionSig.paramNames.length > 0
-  const fieldsSig = contract.fieldsExceptMaps
+  const fieldsSig = contract.fieldsSig
   const contractHasFields = fieldsSig.names.length > 0
   const argsType = funcHasArgs
     ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
     : 'never'
-  const fieldsType =
-    contractHasFields && contract.hasMapFields()
-      ? `${contractFieldType(contract.name, fieldsSig)} & ${genMapFields(contract)}`
-      : contractHasFields
-      ? `${contractFieldType(contract.name, fieldsSig)}`
-      : 'never'
+  const fieldsType = contractHasFields ? contractFieldType(contract.name, fieldsSig) : 'never'
+  const mapsType = contract.hasMapFields() ? genMapFields(contract) : '{}'
   const params =
     funcHasArgs && contractHasFields
-      ? `params: TestContractParams<${fieldsType}, ${argsType}>`
+      ? `params: TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>`
       : funcHasArgs
-      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'initialFields'>`
+      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>, 'initialFields'>`
       : contractHasFields
-      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'testArgs'>`
-      : `params?: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'testArgs' | 'initialFields'>`
+      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>, 'testArgs'>`
+      : `params?: Omit<TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-  const mapFields = genMapFields(contract)
   const retType =
     tsReturnTypes.length === 0
-      ? `TestContractResult<null, ${mapFields}>`
+      ? `TestContractResult<null, ${mapsType}>`
       : tsReturnTypes.length === 1
-      ? `TestContractResult<${tsReturnTypes[0]}, ${mapFields}>`
-      : `TestContractResult<[${tsReturnTypes.join(', ')}], ${mapFields}>`
+      ? `TestContractResult<${tsReturnTypes[0]}, ${mapsType}>`
+      : `TestContractResult<[${tsReturnTypes.join(', ')}], ${mapsType}>`
   const callParams = funcHasArgs || contractHasFields ? 'params' : 'params === undefined ? {} : params'
   return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
@@ -378,14 +372,14 @@ function toUnixPath(p: string): string {
 }
 
 function getContractFields(contract: Contract): node.FieldsSig {
-  const stdIdFieldIndex = contract.fieldsExceptMaps.names.findIndex((name) => name === StdIdFieldName)
+  const stdIdFieldIndex = contract.fieldsSig.names.findIndex((name) => name === StdIdFieldName)
   if (stdIdFieldIndex === -1) {
-    return contract.fieldsExceptMaps
+    return contract.fieldsSig
   }
   return {
-    names: contract.fieldsExceptMaps.names.filter((_, index) => index !== stdIdFieldIndex),
-    types: contract.fieldsExceptMaps.types.filter((_, index) => index !== stdIdFieldIndex),
-    isMutable: contract.fieldsExceptMaps.isMutable.filter((_, index) => index !== stdIdFieldIndex)
+    names: contract.fieldsSig.names.filter((_, index) => index !== stdIdFieldIndex),
+    types: contract.fieldsSig.types.filter((_, index) => index !== stdIdFieldIndex),
+    isMutable: contract.fieldsSig.isMutable.filter((_, index) => index !== stdIdFieldIndex)
   }
 }
 

@@ -166,7 +166,7 @@
     },
     "InsertIntoMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "1c3c388ac6c847f24971466d6a1385398a8ce7cb8bb6ee5275e3d01e8d69deb5",
+      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -182,16 +182,16 @@
     },
     "MapTest": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "1c3c388ac6c847f24971466d6a1385398a8ce7cb8bb6ee5275e3d01e8d69deb5",
+      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
       "bytecodeDebugPatch": "=6-1+4=3-1+a=2-2+11=3-1+3=3-1+5=12-1+b=40+7a037e0300012c00=56+7a037e0300012c00=217-1+a=114+7a047e0300012c00=46+7a047e0300012c00=136",
-      "codeHashDebug": "23c1ab39042b459d30f531ad31f52620ec5c1bd8a9142d2c3c2fd27d72ce1370",
+      "codeHashDebug": "76d94621028b765345f083b3d7124c355a7fd8ca45e9253fc2661102f5533d11",
       "warnings": [
         "No external caller check for function \"MapTest.insert\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "MapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "1c3c388ac6c847f24971466d6a1385398a8ce7cb8bb6ee5275e3d01e8d69deb5",
+      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -258,7 +258,7 @@
     },
     "RemoveFromMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "1c3c388ac6c847f24971466d6a1385398a8ce7cb8bb6ee5275e3d01e8d69deb5",
+      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -293,7 +293,7 @@
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "1c3c388ac6c847f24971466d6a1385398a8ce7cb8bb6ee5275e3d01e8d69deb5",
+      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []

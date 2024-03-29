@@ -100,7 +100,7 @@ class Factory extends ContractFactory<
   tests = {
     getCollectionUri: async (
       params: Omit<
-        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never>,
+        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<HexString, {}>> => {
@@ -108,7 +108,7 @@ class Factory extends ContractFactory<
     },
     totalSupply: async (
       params: Omit<
-        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never>,
+        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<bigint, {}>> => {
@@ -117,7 +117,8 @@ class Factory extends ContractFactory<
     nftByIndex: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
-        { index: bigint }
+        { index: bigint },
+        {}
       >
     ): Promise<TestContractResult<HexString, {}>> => {
       return testMethod(this, "nftByIndex", params);
@@ -125,7 +126,8 @@ class Factory extends ContractFactory<
     validateNFT: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
-        { nftId: HexString; nftIndex: bigint }
+        { nftId: HexString; nftIndex: bigint },
+        {}
       >
     ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "validateNFT", params);
@@ -133,7 +135,8 @@ class Factory extends ContractFactory<
     royaltyAmount: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
-        { tokenId: HexString; salePrice: bigint }
+        { tokenId: HexString; salePrice: bigint },
+        {}
       >
     ): Promise<TestContractResult<bigint, {}>> => {
       return testMethod(this, "royaltyAmount", params);
@@ -141,7 +144,8 @@ class Factory extends ContractFactory<
     payRoyalty: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
-        { payer: Address; amount: bigint }
+        { payer: Address; amount: bigint },
+        {}
       >
     ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "payRoyalty", params);
@@ -149,7 +153,8 @@ class Factory extends ContractFactory<
     withdrawRoyalty: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
-        { recipient: Address; amount: bigint }
+        { recipient: Address; amount: bigint },
+        {}
       >
     ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "withdrawRoyalty", params);
@@ -157,7 +162,8 @@ class Factory extends ContractFactory<
     mint: async (
       params: TestContractParams<
         NFTCollectionWithRoyaltyTestTypes.Fields,
-        { nftUri: HexString }
+        { nftUri: HexString },
+        {}
       >
     ): Promise<TestContractResult<HexString, {}>> => {
       return testMethod(this, "mint", params);

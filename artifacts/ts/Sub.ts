@@ -71,7 +71,11 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
 
   tests = {
     sub: async (
-      params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
+      params: TestContractParams<
+        SubTypes.Fields,
+        { array: [bigint, bigint] },
+        {}
+      >
     ): Promise<TestContractResult<bigint, {}>> => {
       return testMethod(this, "sub", params);
     },

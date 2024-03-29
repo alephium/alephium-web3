@@ -41,7 +41,7 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
   tests = {
     foo: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParams<never, never, {}>,
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResult<null, {}>> => {
@@ -49,7 +49,7 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
     },
     bar: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParams<never, never, {}>,
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResult<null, {}>> => {
@@ -57,7 +57,7 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
     },
     baz: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParams<never, never, {}>,
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResult<null, {}>> => {

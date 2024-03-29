@@ -445,48 +445,41 @@ describe('contract', function () {
     expect(balances1.returns.tokens[1].amount).toEqual(101n)
   })
 
-  it('should test map(uint test)', async () => {
+  it('should test map(unit test)', async () => {
     const insertResult = await MapTest.tests.insert({
-      initialFields: { a: 0n, b: 0n },
       testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }]
     })
-    expect(insertResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
-    expect(insertResult.maps?.map1?.get(1n)).toEqual(10n)
+    expect(insertResult.resultMaps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
+    expect(insertResult.resultMaps?.map1?.get(1n)).toEqual(10n)
 
     const updateResult = await MapTest.tests.update({
-      initialFields: {
-        a: 0n,
-        b: 0n,
+      initialMaps: {
         map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
         map1: new Map([[1n, 10n]])
       },
       testArgs: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
-    expect(updateResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
-    expect(updateResult.maps?.map1?.get(1n)).toEqual(11n)
+    expect(updateResult.resultMaps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
+    expect(updateResult.resultMaps?.map1?.get(1n)).toEqual(11n)
 
     const removeResult = await MapTest.tests.remove({
-      initialFields: {
-        a: 0n,
-        b: 0n,
+      initialMaps: {
         map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
         map1: new Map([[1n, 10n]])
       },
       testArgs: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
-    expect(removeResult.maps?.map0?.get(signer.address)).toEqual(undefined)
-    expect(removeResult.maps?.map1?.get(1n)).toEqual(undefined)
+    expect(removeResult.resultMaps?.map0?.get(signer.address)).toEqual(undefined)
+    expect(removeResult.resultMaps?.map1?.get(1n)).toEqual(undefined)
   })
 
   it('should test map(integration test)', async () => {
     const result = await MapTest.deploy(signer, {
-      initialFields: { a: 0n, b: 1n }
+      initialFields: {}
     })
-    const state = await result.contractInstance.fetchState()
-    expect(state.fields).toEqual({ a: 0n, b: 1n })
 
     const mapTest = result.contractInstance
     await InsertIntoMap.execute(signer, {

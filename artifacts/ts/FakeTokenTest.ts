@@ -83,7 +83,7 @@ class Factory extends ContractFactory<
   tests = {
     getSymbol: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<HexString, {}>> => {
@@ -91,7 +91,7 @@ class Factory extends ContractFactory<
     },
     getName: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<HexString, {}>> => {
@@ -99,7 +99,7 @@ class Factory extends ContractFactory<
     },
     getDecimals: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<bigint, {}>> => {
@@ -107,7 +107,7 @@ class Factory extends ContractFactory<
     },
     getTotalSupply: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<bigint, {}>> => {
@@ -115,7 +115,7 @@ class Factory extends ContractFactory<
     },
     foo: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never>,
+        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<null, {}>> => {

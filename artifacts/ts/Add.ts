@@ -73,25 +73,39 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 
   tests = {
     add: async (
-      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
+      params: TestContractParams<
+        AddTypes.Fields,
+        { array: [bigint, bigint] },
+        {}
+      >
     ): Promise<TestContractResult<[bigint, bigint], {}>> => {
       return testMethod(this, "add", params);
     },
     addPrivate: async (
-      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
+      params: TestContractParams<
+        AddTypes.Fields,
+        { array: [bigint, bigint] },
+        {}
+      >
     ): Promise<TestContractResult<[bigint, bigint], {}>> => {
       return testMethod(this, "addPrivate", params);
     },
     createSubContract: async (
       params: TestContractParams<
         AddTypes.Fields,
-        { a: bigint; path: HexString; subContractId: HexString; payer: Address }
+        {
+          a: bigint;
+          path: HexString;
+          subContractId: HexString;
+          payer: Address;
+        },
+        {}
       >
     ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "createSubContract", params);
     },
     destroy: async (
-      params: TestContractParams<AddTypes.Fields, { caller: Address }>
+      params: TestContractParams<AddTypes.Fields, { caller: Address }, {}>
     ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "destroy", params);
     },

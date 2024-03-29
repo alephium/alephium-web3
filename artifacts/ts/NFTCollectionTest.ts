@@ -93,7 +93,7 @@ class Factory extends ContractFactory<
   tests = {
     getCollectionUri: async (
       params: Omit<
-        TestContractParams<NFTCollectionTestTypes.Fields, never>,
+        TestContractParams<NFTCollectionTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<HexString, {}>> => {
@@ -101,7 +101,7 @@ class Factory extends ContractFactory<
     },
     totalSupply: async (
       params: Omit<
-        TestContractParams<NFTCollectionTestTypes.Fields, never>,
+        TestContractParams<NFTCollectionTestTypes.Fields, never, {}>,
         "testArgs"
       >
     ): Promise<TestContractResult<bigint, {}>> => {
@@ -110,7 +110,8 @@ class Factory extends ContractFactory<
     nftByIndex: async (
       params: TestContractParams<
         NFTCollectionTestTypes.Fields,
-        { index: bigint }
+        { index: bigint },
+        {}
       >
     ): Promise<TestContractResult<HexString, {}>> => {
       return testMethod(this, "nftByIndex", params);
@@ -118,7 +119,8 @@ class Factory extends ContractFactory<
     validateNFT: async (
       params: TestContractParams<
         NFTCollectionTestTypes.Fields,
-        { nftId: HexString; nftIndex: bigint }
+        { nftId: HexString; nftIndex: bigint },
+        {}
       >
     ): Promise<TestContractResult<null, {}>> => {
       return testMethod(this, "validateNFT", params);
@@ -126,7 +128,8 @@ class Factory extends ContractFactory<
     mint: async (
       params: TestContractParams<
         NFTCollectionTestTypes.Fields,
-        { nftUri: HexString }
+        { nftUri: HexString },
+        {}
       >
     ): Promise<TestContractResult<HexString, {}>> => {
       return testMethod(this, "mint", params);

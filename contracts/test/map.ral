@@ -2,7 +2,10 @@ struct MapValue {
   id: U256,
   mut balance: U256
 }
-Contract MapTest(@unused mut a: U256, @unused b: U256, mut map0: Map[Address, MapValue], mut map1: Map[U256, U256]) {
+Contract MapTest() {
+  map[Address, MapValue] map0
+  map[U256, U256] map1
+
   @using(preapprovedAssets = true)
   pub fn insert(key: Address, value: MapValue) -> () {
     map0.insert!{key -> ALPH: mapEntryDeposit!()}(key, value)

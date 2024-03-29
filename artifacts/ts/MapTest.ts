@@ -30,12 +30,7 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace MapTestTypes {
-  export type Fields = {
-    a: bigint;
-    b: bigint;
-  };
-
-  export type State = ContractState<Fields>;
+  export type State = Omit<ContractState<any>, "fields">;
 
   export interface CallMethodTable {
     get: {
@@ -61,23 +56,20 @@ export namespace MapTestTypes {
   };
 }
 
-class Factory extends ContractFactory<MapTestInstance, MapTestTypes.Fields> {
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as MapTestTypes.Fields;
-  }
-
+class Factory extends ContractFactory<MapTestInstance, {}> {
   at(address: string): MapTestInstance {
     return new MapTestInstance(address);
   }
 
   tests = {
     insert: async (
-      params: TestContractParams<
-        MapTestTypes.Fields & {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-        },
-        { key: Address; value: MapValue }
+      params: Omit<
+        TestContractParams<
+          never,
+          { key: Address; value: MapValue },
+          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        >,
+        "initialFields"
       >
     ): Promise<
       TestContractResult<
@@ -88,12 +80,13 @@ class Factory extends ContractFactory<MapTestInstance, MapTestTypes.Fields> {
       return testMethod(this, "insert", params);
     },
     update: async (
-      params: TestContractParams<
-        MapTestTypes.Fields & {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-        },
-        { key: Address }
+      params: Omit<
+        TestContractParams<
+          never,
+          { key: Address },
+          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        >,
+        "initialFields"
       >
     ): Promise<
       TestContractResult<
@@ -104,12 +97,13 @@ class Factory extends ContractFactory<MapTestInstance, MapTestTypes.Fields> {
       return testMethod(this, "update", params);
     },
     remove: async (
-      params: TestContractParams<
-        MapTestTypes.Fields & {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-        },
-        { key: Address }
+      params: Omit<
+        TestContractParams<
+          never,
+          { key: Address },
+          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        >,
+        "initialFields"
       >
     ): Promise<
       TestContractResult<
@@ -120,12 +114,13 @@ class Factory extends ContractFactory<MapTestInstance, MapTestTypes.Fields> {
       return testMethod(this, "remove", params);
     },
     get: async (
-      params: TestContractParams<
-        MapTestTypes.Fields & {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-        },
-        { key: Address }
+      params: Omit<
+        TestContractParams<
+          never,
+          { key: Address },
+          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        >,
+        "initialFields"
       >
     ): Promise<
       TestContractResult<
@@ -136,12 +131,13 @@ class Factory extends ContractFactory<MapTestInstance, MapTestTypes.Fields> {
       return testMethod(this, "get", params);
     },
     contains: async (
-      params: TestContractParams<
-        MapTestTypes.Fields & {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-        },
-        { key: Address }
+      params: Omit<
+        TestContractParams<
+          never,
+          { key: Address },
+          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        >,
+        "initialFields"
       >
     ): Promise<
       TestContractResult<
@@ -159,7 +155,7 @@ export const MapTest = new Factory(
   Contract.fromJson(
     MapTestContractJson,
     "=6-1+4=3-1+a=2-2+11=3-1+3=3-1+5=12-1+b=40+7a037e0300012c00=56+7a037e0300012c00=217-1+a=114+7a047e0300012c00=46+7a047e0300012c00=136",
-    "23c1ab39042b459d30f531ad31f52620ec5c1bd8a9142d2c3c2fd27d72ce1370",
+    "76d94621028b765345f083b3d7124c355a7fd8ca45e9253fc2661102f5533d11",
     AllStructs
   )
 );

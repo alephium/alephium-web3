@@ -420,6 +420,7 @@ export interface CompileContractResult {
   codeHashDebug: string
   fields: FieldsSig
   functions: FunctionSig[]
+  maps: MapSig[]
   constants: Constant[]
   enums: Enum[]
   events: EventSig[]
@@ -656,6 +657,11 @@ export interface InterCliquePeerInfo {
 
 export interface InternalServerError {
   detail: string
+}
+
+export interface MapSig {
+  name: string
+  type: string
 }
 
 export interface MemPooled {
