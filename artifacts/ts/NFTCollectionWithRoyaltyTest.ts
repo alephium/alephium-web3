@@ -100,72 +100,98 @@ class Factory extends ContractFactory<
   tests = {
     getCollectionUri: async (
       params: Omit<
-        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          never,
+          never
+        >,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "getCollectionUri", params);
     },
     totalSupply: async (
       params: Omit<
-        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          never,
+          never
+        >,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "totalSupply", params);
     },
     nftByIndex: async (
-      params: TestContractParams<
-        NFTCollectionWithRoyaltyTestTypes.Fields,
-        { index: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          { index: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "nftByIndex", params);
     },
     validateNFT: async (
-      params: TestContractParams<
-        NFTCollectionWithRoyaltyTestTypes.Fields,
-        { nftId: HexString; nftIndex: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          { nftId: HexString; nftIndex: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "validateNFT", params);
     },
     royaltyAmount: async (
-      params: TestContractParams<
-        NFTCollectionWithRoyaltyTestTypes.Fields,
-        { tokenId: HexString; salePrice: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          { tokenId: HexString; salePrice: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "royaltyAmount", params);
     },
     payRoyalty: async (
-      params: TestContractParams<
-        NFTCollectionWithRoyaltyTestTypes.Fields,
-        { payer: Address; amount: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          { payer: Address; amount: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "payRoyalty", params);
     },
     withdrawRoyalty: async (
-      params: TestContractParams<
-        NFTCollectionWithRoyaltyTestTypes.Fields,
-        { recipient: Address; amount: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          { recipient: Address; amount: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "withdrawRoyalty", params);
     },
     mint: async (
-      params: TestContractParams<
-        NFTCollectionWithRoyaltyTestTypes.Fields,
-        { nftUri: HexString },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          { nftUri: HexString },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "mint", params);
     },
   };

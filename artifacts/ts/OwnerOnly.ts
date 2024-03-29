@@ -52,10 +52,10 @@ class Factory extends ContractFactory<
   tests = {
     testOwner: async (
       params: Omit<
-        TestContractParams<OwnerOnlyTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<OwnerOnlyTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "testOwner", params);
     },
   };

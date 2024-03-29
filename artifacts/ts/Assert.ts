@@ -54,10 +54,10 @@ class Factory extends ContractFactory<AssertInstance, {}> {
   tests = {
     test: async (
       params?: Omit<
-        TestContractParams<never, never, {}>,
-        "testArgs" | "initialFields"
+        TestContractParams<never, never, never>,
+        "testArgs" | "initialFields" | "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "test", params === undefined ? {} : params);
     },
   };

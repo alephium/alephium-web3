@@ -73,40 +73,48 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 
   tests = {
     add: async (
-      params: TestContractParams<
-        AddTypes.Fields,
-        { array: [bigint, bigint] },
-        {}
+      params: Omit<
+        TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }, never>,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<[bigint, bigint], {}>> => {
+    ): Promise<
+      Omit<TestContractResult<[bigint, bigint], never>, "initialMaps">
+    > => {
       return testMethod(this, "add", params);
     },
     addPrivate: async (
-      params: TestContractParams<
-        AddTypes.Fields,
-        { array: [bigint, bigint] },
-        {}
+      params: Omit<
+        TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }, never>,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<[bigint, bigint], {}>> => {
+    ): Promise<
+      Omit<TestContractResult<[bigint, bigint], never>, "initialMaps">
+    > => {
       return testMethod(this, "addPrivate", params);
     },
     createSubContract: async (
-      params: TestContractParams<
-        AddTypes.Fields,
-        {
-          a: bigint;
-          path: HexString;
-          subContractId: HexString;
-          payer: Address;
-        },
-        {}
+      params: Omit<
+        TestContractParams<
+          AddTypes.Fields,
+          {
+            a: bigint;
+            path: HexString;
+            subContractId: HexString;
+            payer: Address;
+          },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "createSubContract", params);
     },
     destroy: async (
-      params: TestContractParams<AddTypes.Fields, { caller: Address }, {}>
-    ): Promise<TestContractResult<null, {}>> => {
+      params: Omit<
+        TestContractParams<AddTypes.Fields, { caller: Address }, never>,
+        "initialMaps"
+      >
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "destroy", params);
     },
   };

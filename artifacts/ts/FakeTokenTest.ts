@@ -83,42 +83,42 @@ class Factory extends ContractFactory<
   tests = {
     getSymbol: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<FakeTokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "getSymbol", params);
     },
     getName: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<FakeTokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "getName", params);
     },
     getDecimals: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<FakeTokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "getDecimals", params);
     },
     getTotalSupply: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<FakeTokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "getTotalSupply", params);
     },
     foo: async (
       params: Omit<
-        TestContractParams<FakeTokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<FakeTokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "foo", params);
     },
   };

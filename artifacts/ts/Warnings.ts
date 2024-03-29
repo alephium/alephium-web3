@@ -51,12 +51,15 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
 
   tests = {
     foo: async (
-      params: TestContractParams<
-        WarningsTypes.Fields,
-        { x: bigint; y: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          WarningsTypes.Fields,
+          { x: bigint; y: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "foo", params);
     },
   };

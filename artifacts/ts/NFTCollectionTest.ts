@@ -93,45 +93,54 @@ class Factory extends ContractFactory<
   tests = {
     getCollectionUri: async (
       params: Omit<
-        TestContractParams<NFTCollectionTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<NFTCollectionTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "getCollectionUri", params);
     },
     totalSupply: async (
       params: Omit<
-        TestContractParams<NFTCollectionTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<NFTCollectionTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "totalSupply", params);
     },
     nftByIndex: async (
-      params: TestContractParams<
-        NFTCollectionTestTypes.Fields,
-        { index: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionTestTypes.Fields,
+          { index: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "nftByIndex", params);
     },
     validateNFT: async (
-      params: TestContractParams<
-        NFTCollectionTestTypes.Fields,
-        { nftId: HexString; nftIndex: bigint },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionTestTypes.Fields,
+          { nftId: HexString; nftIndex: bigint },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "validateNFT", params);
     },
     mint: async (
-      params: TestContractParams<
-        NFTCollectionTestTypes.Fields,
-        { nftUri: HexString },
-        {}
+      params: Omit<
+        TestContractParams<
+          NFTCollectionTestTypes.Fields,
+          { nftUri: HexString },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "mint", params);
     },
   };

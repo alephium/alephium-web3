@@ -73,29 +73,35 @@ class Factory extends ContractFactory<
 
   tests = {
     updateBalance: async (
-      params: TestContractParams<
-        UserAccountTypes.Fields,
-        { tokens: [TokenBalance, TokenBalance] },
-        {}
+      params: Omit<
+        TestContractParams<
+          UserAccountTypes.Fields,
+          { tokens: [TokenBalance, TokenBalance] },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "updateBalance", params);
     },
     updateAddress: async (
-      params: TestContractParams<
-        UserAccountTypes.Fields,
-        { newAddress: Address },
-        {}
+      params: Omit<
+        TestContractParams<
+          UserAccountTypes.Fields,
+          { newAddress: Address },
+          never
+        >,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "updateAddress", params);
     },
     getBalances: async (
       params: Omit<
-        TestContractParams<UserAccountTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<UserAccountTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<Balances, {}>> => {
+    ): Promise<Omit<TestContractResult<Balances, never>, "initialMaps">> => {
       return testMethod(this, "getBalances", params);
     },
   };

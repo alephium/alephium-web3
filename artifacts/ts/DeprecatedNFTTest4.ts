@@ -76,18 +76,18 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest4Types.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<DeprecatedNFTTest4Types.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "getTokenUri", params);
     },
     getBool: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest4Types.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<DeprecatedNFTTest4Types.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<boolean, {}>> => {
+    ): Promise<Omit<TestContractResult<boolean, never>, "initialMaps">> => {
       return testMethod(this, "getBool", params);
     },
   };

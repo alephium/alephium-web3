@@ -86,34 +86,34 @@ class Factory extends ContractFactory<
   tests = {
     getSymbol: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<TokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "getSymbol", params);
     },
     getName: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<TokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<HexString, {}>> => {
+    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
       return testMethod(this, "getName", params);
     },
     getDecimals: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<TokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "getDecimals", params);
     },
     getTotalSupply: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, {}>,
-        "testArgs"
+        TestContractParams<TokenTestTypes.Fields, never, never>,
+        "testArgs" | "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "getTotalSupply", params);
     },
   };

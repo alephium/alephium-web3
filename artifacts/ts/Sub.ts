@@ -71,12 +71,11 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
 
   tests = {
     sub: async (
-      params: TestContractParams<
-        SubTypes.Fields,
-        { array: [bigint, bigint] },
-        {}
+      params: Omit<
+        TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }, never>,
+        "initialMaps"
       >
-    ): Promise<TestContractResult<bigint, {}>> => {
+    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
       return testMethod(this, "sub", params);
     },
   };

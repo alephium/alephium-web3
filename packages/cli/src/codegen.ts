@@ -266,7 +266,7 @@ function genContractStateType(contract: Contract): string {
   `
 }
 
-function genMapFields(contract: Contract): string {
+function genMapsType(contract: Contract): string {
   const mapFields = contract.mapsSig.map((mapSig) => {
     const [key, value] = parseMapType(mapSig.type)
     return `${mapSig.name}?: Map<${toTsType(key)}, ${toTsType(value)}>`
@@ -282,22 +282,27 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
     ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
     : 'never'
   const fieldsType = contractHasFields ? contractFieldType(contract.name, fieldsSig) : 'never'
-  const mapsType = contract.hasMapFields() ? genMapFields(contract) : '{}'
+  const hasMapVars: boolean = contract.hasMapVars()
+  const mapsType = hasMapVars ? genMapsType(contract) : 'never'
+  const paramsType = `TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>`
+  const omitList: string[] = []
+  if (!funcHasArgs) omitList.push('testArgs')
+  if (!contractHasFields) omitList.push('initialFields')
+  if (!hasMapVars) omitList.push('initialMaps')
   const params =
-    funcHasArgs && contractHasFields
-      ? `params: TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>`
-      : funcHasArgs
-      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>, 'initialFields'>`
-      : contractHasFields
-      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>, 'testArgs'>`
-      : `params?: Omit<TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>, 'testArgs' | 'initialFields'>`
+    omitList.length === 0
+      ? `params: ${paramsType}`
+      : (omitList.length === 2 && !omitList.includes('initialMaps')) || omitList.length === 3
+      ? `params?: Omit<${paramsType}, ${omitList.map((n) => `'${n}'`).join(' | ')}>`
+      : `params: Omit<${paramsType}, ${omitList.map((n) => `'${n}'`).join(' | ')}>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-  const retType =
+  const baseRetType =
     tsReturnTypes.length === 0
       ? `TestContractResult<null, ${mapsType}>`
       : tsReturnTypes.length === 1
       ? `TestContractResult<${tsReturnTypes[0]}, ${mapsType}>`
       : `TestContractResult<[${tsReturnTypes.join(', ')}], ${mapsType}>`
+  const retType = !hasMapVars ? `Omit<${baseRetType}, 'initialMaps'>` : baseRetType
   const callParams = funcHasArgs || contractHasFields ? 'params' : 'params === undefined ? {} : params'
   return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {

@@ -1028,7 +1028,7 @@ export class Contract extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  hasMapFields(): boolean {
+  hasMapVars(): boolean {
     return this.mapsSig.length > 0
   }
 

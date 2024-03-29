@@ -41,26 +41,26 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
   tests = {
     foo: async (
       params?: Omit<
-        TestContractParams<never, never, {}>,
-        "testArgs" | "initialFields"
+        TestContractParams<never, never, never>,
+        "testArgs" | "initialFields" | "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "foo", params === undefined ? {} : params);
     },
     bar: async (
       params?: Omit<
-        TestContractParams<never, never, {}>,
-        "testArgs" | "initialFields"
+        TestContractParams<never, never, never>,
+        "testArgs" | "initialFields" | "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "bar", params === undefined ? {} : params);
     },
     baz: async (
       params?: Omit<
-        TestContractParams<never, never, {}>,
-        "testArgs" | "initialFields"
+        TestContractParams<never, never, never>,
+        "testArgs" | "initialFields" | "initialMaps"
       >
-    ): Promise<TestContractResult<null, {}>> => {
+    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
       return testMethod(this, "baz", params === undefined ? {} : params);
     },
   };
