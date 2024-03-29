@@ -103,8 +103,8 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
-    "=8+4=1-1=2-2+6c=2-2+75=37+77e010a=1+1646450726976617465=170",
-    "da908c46aa94ebe533cdb16d1f5f2ba771def332ae09dda36218bba7efc2de0a",
+    "=8+4=1-1=2-1=1+3=2-2+6c=37+77e010a=1+1646450726976617465=152",
+    "6d87d293224fce4601a8e315e6a384aca46fdd1adab1402ffae8cc454b94a66e",
     AllStructs
   )
 );
