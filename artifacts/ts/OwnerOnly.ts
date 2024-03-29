@@ -23,7 +23,6 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
-  Val,
 } from "@alephium/web3";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -31,9 +30,9 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace OwnerOnlyTypes {
-  export interface Fields extends Record<string, Val> {
+  export type Fields = {
     owner: Address;
-  }
+  };
 
   export type State = ContractState<Fields>;
 }

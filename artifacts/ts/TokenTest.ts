@@ -23,7 +23,6 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
-  Val,
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token/TokenTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -31,12 +30,12 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace TokenTestTypes {
-  export interface Fields extends Record<string, Val> {
+  export type Fields = {
     symbol: HexString;
     name: HexString;
     decimals: bigint;
     totalSupply: bigint;
-  }
+  };
 
   export type State = ContractState<Fields>;
 

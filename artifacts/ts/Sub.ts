@@ -23,7 +23,6 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
-  Val,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -31,9 +30,9 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace SubTypes {
-  export interface Fields extends Record<string, Val> {
+  export type Fields = {
     result: bigint;
-  }
+  };
 
   export type State = ContractState<Fields>;
 

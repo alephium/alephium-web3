@@ -258,7 +258,7 @@ function genContractStateType(contract: Contract): string {
     return `export type State = Omit<ContractState<any>, 'fields'>`
   }
   return `
-    export interface Fields extends Record<string, Val> {
+    export type Fields = {
       ${formatParameters(contract.fieldsExceptMaps)}
     }
 
@@ -411,7 +411,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       EventSubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, multicallMethods, fetchContractState,
-      ContractInstance, getContractEventsCurrentCount, Val
+      ContractInstance, getContractEventsCurrentCount
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'

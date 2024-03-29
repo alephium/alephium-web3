@@ -23,7 +23,6 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
-  Val,
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -31,12 +30,12 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace UserAccountTypes {
-  export interface Fields extends Record<string, Val> {
+  export type Fields = {
     id: HexString;
     address: Address;
     balances: Balances;
     name: HexString;
-  }
+  };
 
   export type State = ContractState<Fields>;
 

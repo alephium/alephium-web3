@@ -23,7 +23,6 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
-  Val,
 } from "@alephium/web3";
 import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -31,11 +30,11 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace NFTTestTypes {
-  export interface Fields extends Record<string, Val> {
+  export type Fields = {
     collectionId: HexString;
     nftIndex: bigint;
     uri: HexString;
-  }
+  };
 
   export type State = ContractState<Fields>;
 
