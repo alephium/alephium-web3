@@ -84,7 +84,7 @@ import {
 const crypto = new WebCrypto()
 
 export type FieldsSig = node.FieldsSig
-export type MapSig = node.MapSig
+export type MapsSig = node.MapsSig
 export type EventSig = node.EventSig
 export type FunctionSig = node.FunctionSig
 export type Fields = NamedVals
@@ -901,11 +901,11 @@ export class Contract extends Artifact {
   readonly bytecodeDebugPatch: string
   readonly codeHash: string
   readonly fieldsSig: FieldsSig
-  readonly mapsSig: MapSig[]
   readonly eventsSig: EventSig[]
   readonly constants: Constant[]
   readonly enums: Enum[]
   readonly structs: Struct[]
+  readonly mapsSig?: MapsSig
   readonly stdInterfaceId?: HexString
 
   readonly bytecodeDebug: string
@@ -919,12 +919,12 @@ export class Contract extends Artifact {
     codeHash: string,
     codeHashDebug: string,
     fieldsSig: FieldsSig,
-    mapsSig: MapSig[],
     eventsSig: EventSig[],
     functions: FunctionSig[],
     constants: Constant[],
     enums: Enum[],
     structs: Struct[],
+    mapsSig?: MapsSig,
     stdInterfaceId?: HexString
   ) {
     super(version, name, functions)
@@ -932,11 +932,11 @@ export class Contract extends Artifact {
     this.bytecodeDebugPatch = bytecodeDebugPatch
     this.codeHash = codeHash
     this.fieldsSig = fieldsSig
-    this.mapsSig = mapsSig
     this.eventsSig = eventsSig
     this.constants = constants
     this.enums = enums
     this.structs = structs
+    this.mapsSig = mapsSig
     this.stdInterfaceId = stdInterfaceId
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
@@ -951,7 +951,6 @@ export class Contract extends Artifact {
       artifact.bytecode == null ||
       artifact.codeHash == null ||
       artifact.fieldsSig == null ||
-      artifact.mapsSig == null ||
       artifact.eventsSig == null ||
       artifact.constants == null ||
       artifact.enums == null ||
@@ -967,12 +966,12 @@ export class Contract extends Artifact {
       artifact.codeHash,
       codeHashDebug ? codeHashDebug : artifact.codeHash,
       artifact.fieldsSig,
-      artifact.mapsSig,
       artifact.eventsSig,
       artifact.functions,
       artifact.constants,
       artifact.enums,
       structs,
+      artifact.mapsSig === null ? undefined : artifact.mapsSig,
       artifact.stdInterfaceId === null ? undefined : artifact.stdInterfaceId
     )
     return contract
@@ -987,12 +986,12 @@ export class Contract extends Artifact {
       result.codeHash,
       result.codeHashDebug,
       result.fields,
-      result.maps,
       result.events,
       result.functions,
       result.constants,
       result.enums,
       structs,
+      result.maps,
       result.stdInterfaceId
     )
   }
@@ -1016,20 +1015,18 @@ export class Contract extends Artifact {
       bytecode: this.bytecode,
       codeHash: this.codeHash,
       fieldsSig: this.fieldsSig,
-      mapsSig: this.mapsSig,
       eventsSig: this.eventsSig,
       functions: this.functions,
       constants: this.constants,
       enums: this.enums
     }
+    if (this.mapsSig !== undefined) {
+      object.mapsSig = this.mapsSig
+    }
     if (this.stdInterfaceId !== undefined) {
       object.stdInterfaceId = this.stdInterfaceId
     }
     return JSON.stringify(object, null, 2)
-  }
-
-  hasMapVars(): boolean {
-    return this.mapsSig.length > 0
   }
 
   getInitialFieldsWithDefaultValues(): Fields {
@@ -1568,6 +1565,11 @@ function toApiInputAssets(inputAssets?: InputAsset[]): node.TestInputAsset[] | u
   return typeof inputAssets !== 'undefined' ? inputAssets.map(toApiInputAsset) : undefined
 }
 
+export type TestContractParamsWithoutMaps<F extends Fields = Fields, A extends Arguments = Arguments> = Omit<
+  TestContractParams<F, A>,
+  'initialMaps'
+>
+
 export interface TestContractParams<
   F extends Fields = Fields,
   A extends Arguments = Arguments,
@@ -1598,12 +1600,14 @@ export interface ContractEvent<T extends Fields = Fields> {
 
 export type DebugMessage = node.DebugMessage
 
+export type TestContractResultWithoutMaps<R> = Omit<TestContractResult<R>, 'maps'>
+
 export interface TestContractResult<R, M extends Record<string, Map<Val, Val>> = Record<string, Map<Val, Val>>> {
   contractId: string
   contractAddress: string
   returns: R
   gasUsed: number
-  resultMaps?: M
+  maps?: M
   contracts: ContractState[]
   txOutputs: Output[]
   events: ContractEvent[]
@@ -1954,12 +1958,14 @@ function mapsToExistingContracts(
   group: number,
   initialMaps: Record<string, Map<Val, Val>>
 ) {
+  const mapsSig = contract.mapsSig
+  if (mapsSig === undefined) return []
   const contractStates: ContractState[] = []
   Object.keys(initialMaps).forEach((name) => {
-    const index = contract.mapsSig.findIndex((m) => m.name === name)
+    const index = mapsSig.names.findIndex((n) => n === name)
     if (index === -1) throw new Error(`Map var ${name} does not exist in contract ${contract.name}`)
-    const mapSig = contract.mapsSig[`${index}`]
-    const states = mapToExistingContracts(contract, parentContractId, group, initialMaps[`${name}`], index, mapSig.type)
+    const mapType = mapsSig.types[`${index}`]
+    const states = mapToExistingContracts(contract, parentContractId, group, initialMaps[`${name}`], index, mapType)
     contractStates.push(...states)
   })
   return contractStates
@@ -1992,12 +1998,12 @@ export async function testMethod<
     existingContracts: (params.existingContracts ?? []).concat(contractStates)
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
-  const resultMaps = existingContractsToMaps(contract, address, group, apiResult, initialMaps)
+  const maps = existingContractsToMaps(contract, address, group, apiResult, initialMaps)
   const testResult = contract.fromApiTestContractResult(methodName, apiResult, txId)
   contract.printDebugMessages(methodName, testResult.debugMessages)
   return {
     ...testResult,
-    resultMaps
+    maps
   } as TestContractResult<R, M>
 }
 
@@ -2010,10 +2016,12 @@ interface MapInfo {
 }
 
 function buildMapInfo(contract: Contract, fields: Fields): MapInfo[] {
-  return contract.mapsSig.map((mapSig, index) => {
-    const name = mapSig.name
+  const mapsSig = contract.mapsSig
+  if (mapsSig === undefined) return []
+  return mapsSig.names.map((name, index) => {
+    const mapType = mapsSig.types[`${index}`]
     const value = (fields[`${name}`] ?? new Map<Val, Val>()) as Map<Val, Val>
-    const [keyType, valueType] = ralph.parseMapType(mapSig.type)
+    const [keyType, valueType] = ralph.parseMapType(mapType)
     return { name, value, keyType, valueType, index }
   })
 }

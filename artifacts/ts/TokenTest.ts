@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token/TokenTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -86,34 +88,34 @@ class Factory extends ContractFactory<
   tests = {
     getSymbol: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getSymbol", params);
     },
     getName: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getName", params);
     },
     getDecimals: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getDecimals", params);
     },
     getTotalSupply: async (
       params: Omit<
-        TestContractParams<TokenTestTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalSupply", params);
     },
   };

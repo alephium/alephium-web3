@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -51,15 +53,11 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
 
   tests = {
     foo: async (
-      params: Omit<
-        TestContractParams<
-          WarningsTypes.Fields,
-          { x: bigint; y: bigint },
-          never
-        >,
-        "initialMaps"
+      params: TestContractParamsWithoutMaps<
+        WarningsTypes.Fields,
+        { x: bigint; y: bigint }
       >
-    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "foo", params);
     },
   };

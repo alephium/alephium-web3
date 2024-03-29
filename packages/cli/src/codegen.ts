@@ -267,9 +267,12 @@ function genContractStateType(contract: Contract): string {
 }
 
 function genMapsType(contract: Contract): string {
-  const mapFields = contract.mapsSig.map((mapSig) => {
-    const [key, value] = parseMapType(mapSig.type)
-    return `${mapSig.name}?: Map<${toTsType(key)}, ${toTsType(value)}>`
+  const mapsSig = contract.mapsSig
+  if (mapsSig === undefined) return ''
+  const mapFields = mapsSig.names.map((name, index) => {
+    const mapType = mapsSig.types[`${index}`]
+    const [key, value] = parseMapType(mapType)
+    return `${name}?: Map<${toTsType(key)}, ${toTsType(value)}>`
   })
   return `{ ${mapFields.join(', ')} }`
 }
@@ -282,27 +285,29 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
     ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
     : 'never'
   const fieldsType = contractHasFields ? contractFieldType(contract.name, fieldsSig) : 'never'
-  const hasMapVars: boolean = contract.hasMapVars()
-  const mapsType = hasMapVars ? genMapsType(contract) : 'never'
-  const paramsType = `TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>`
-  const omitList: string[] = []
-  if (!funcHasArgs) omitList.push('testArgs')
-  if (!contractHasFields) omitList.push('initialFields')
-  if (!hasMapVars) omitList.push('initialMaps')
+  const hasMapVars: boolean = contract.mapsSig !== undefined
+  const mapsType = genMapsType(contract)
+  const baseParamsType = hasMapVars
+    ? `TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>`
+    : `TestContractParamsWithoutMaps<${fieldsType}, ${argsType}>`
   const params =
-    omitList.length === 0
-      ? `params: ${paramsType}`
-      : (omitList.length === 2 && !omitList.includes('initialMaps')) || omitList.length === 3
-      ? `params?: Omit<${paramsType}, ${omitList.map((n) => `'${n}'`).join(' | ')}>`
-      : `params: Omit<${paramsType}, ${omitList.map((n) => `'${n}'`).join(' | ')}>`
+    funcHasArgs && contractHasFields
+      ? `params: ${baseParamsType}`
+      : funcHasArgs
+      ? `params: Omit<${baseParamsType}, 'initialFields'>`
+      : contractHasFields
+      ? `params: Omit<${baseParamsType}, 'testArgs'>`
+      : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const baseRetType =
     tsReturnTypes.length === 0
-      ? `TestContractResult<null, ${mapsType}>`
+      ? 'null'
       : tsReturnTypes.length === 1
-      ? `TestContractResult<${tsReturnTypes[0]}, ${mapsType}>`
-      : `TestContractResult<[${tsReturnTypes.join(', ')}], ${mapsType}>`
-  const retType = !hasMapVars ? `Omit<${baseRetType}, 'initialMaps'>` : baseRetType
+      ? tsReturnTypes[0]
+      : `[${tsReturnTypes.join(', ')}]`
+  const retType = hasMapVars
+    ? `TestContractResult<${baseRetType}, ${mapsType}>`
+    : `TestContractResultWithoutMaps<${baseRetType}>`
   const callParams = funcHasArgs || contractHasFields ? 'params' : 'params === undefined ? {} : params'
   return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
@@ -410,7 +415,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       EventSubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, multicallMethods, fetchContractState,
-      ContractInstance, getContractEventsCurrentCount
+      ContractInstance, getContractEventsCurrentCount,
+      TestContractParamsWithoutMaps, TestContractResultWithoutMaps
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'

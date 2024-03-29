@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash } from "./contracts";

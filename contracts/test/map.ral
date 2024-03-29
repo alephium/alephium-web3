@@ -3,8 +3,8 @@ struct MapValue {
   mut balance: U256
 }
 Contract MapTest() {
-  map[Address, MapValue] map0
-  map[U256, U256] map1
+  mapping[Address, MapValue] map0
+  mapping[U256, U256] map1
 
   @using(preapprovedAssets = true)
   pub fn insert(key: Address, value: MapValue) -> () {

@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -52,10 +54,10 @@ class Factory extends ContractFactory<
   tests = {
     testOwner: async (
       params: Omit<
-        TestContractParams<OwnerOnlyTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<OwnerOnlyTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "testOwner", params);
     },
   };

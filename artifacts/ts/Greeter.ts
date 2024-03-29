@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -76,10 +78,10 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
   tests = {
     greet: async (
       params: Omit<
-        TestContractParams<GreeterTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<GreeterTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<Omit<TestContractResult<bigint, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "greet", params);
     },
   };

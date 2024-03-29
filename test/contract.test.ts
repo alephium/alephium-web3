@@ -450,8 +450,8 @@ describe('contract', function () {
       testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }]
     })
-    expect(insertResult.resultMaps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
-    expect(insertResult.resultMaps?.map1?.get(1n)).toEqual(10n)
+    expect(insertResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
+    expect(insertResult.maps?.map1?.get(1n)).toEqual(10n)
 
     const updateResult = await MapTest.tests.update({
       initialMaps: {
@@ -461,8 +461,8 @@ describe('contract', function () {
       testArgs: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
-    expect(updateResult.resultMaps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
-    expect(updateResult.resultMaps?.map1?.get(1n)).toEqual(11n)
+    expect(updateResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
+    expect(updateResult.maps?.map1?.get(1n)).toEqual(11n)
 
     const removeResult = await MapTest.tests.remove({
       initialMaps: {
@@ -472,8 +472,8 @@ describe('contract', function () {
       testArgs: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
-    expect(removeResult.resultMaps?.map0?.get(signer.address)).toEqual(undefined)
-    expect(removeResult.resultMaps?.map1?.get(1n)).toEqual(undefined)
+    expect(removeResult.maps?.map0?.get(signer.address)).toEqual(undefined)
+    expect(removeResult.maps?.map1?.get(1n)).toEqual(undefined)
   })
 
   it('should test map(integration test)', async () => {

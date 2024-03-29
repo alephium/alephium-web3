@@ -8,16 +8,6 @@
     "types": [],
     "isMutable": []
   },
-  "mapsSig": [
-    {
-      "name": "map0",
-      "type": "Map[Address,MapValue]"
-    },
-    {
-      "name": "map1",
-      "type": "Map[U256,U256]"
-    }
-  ],
   "eventsSig": [],
   "functions": [
     {
@@ -109,5 +99,15 @@
     }
   ],
   "constants": [],
-  "enums": []
+  "enums": [],
+  "mapsSig": {
+    "names": [
+      "map0",
+      "map1"
+    ],
+    "types": [
+      "Map[Address,MapValue]",
+      "Map[U256,U256]"
+    ]
+  }
 }

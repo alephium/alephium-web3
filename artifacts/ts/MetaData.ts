@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -41,26 +43,26 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
   tests = {
     foo: async (
       params?: Omit<
-        TestContractParams<never, never, never>,
-        "testArgs" | "initialFields" | "initialMaps"
+        TestContractParamsWithoutMaps<never, never>,
+        "testArgs" | "initialFields"
       >
-    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "foo", params === undefined ? {} : params);
     },
     bar: async (
       params?: Omit<
-        TestContractParams<never, never, never>,
-        "testArgs" | "initialFields" | "initialMaps"
+        TestContractParamsWithoutMaps<never, never>,
+        "testArgs" | "initialFields"
       >
-    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "bar", params === undefined ? {} : params);
     },
     baz: async (
       params?: Omit<
-        TestContractParams<never, never, never>,
-        "testArgs" | "initialFields" | "initialMaps"
+        TestContractParamsWithoutMaps<never, never>,
+        "testArgs" | "initialFields"
       >
-    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "baz", params === undefined ? {} : params);
     },
   };

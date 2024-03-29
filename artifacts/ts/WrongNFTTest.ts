@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as WrongNFTTestContractJson } from "../nft/WrongNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -77,20 +79,18 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<WrongNFTTestTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<WrongNFTTestTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<Omit<TestContractResult<HexString, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
     getCollectionIndex: async (
       params: Omit<
-        TestContractParams<WrongNFTTestTypes.Fields, never, never>,
-        "testArgs" | "initialMaps"
+        TestContractParamsWithoutMaps<WrongNFTTestTypes.Fields, never>,
+        "testArgs"
       >
-    ): Promise<
-      Omit<TestContractResult<[HexString, bigint], never>, "initialMaps">
-    > => {
+    ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
       return testMethod(this, "getCollectionIndex", params);
     },
   };

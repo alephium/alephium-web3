@@ -166,7 +166,7 @@
     },
     "InsertIntoMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -182,7 +182,7 @@
     },
     "MapTest": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
       "bytecodeDebugPatch": "=6-1+4=3-1+a=2-2+11=3-1+3=3-1+5=12-1+b=40+7a037e0300012c00=56+7a037e0300012c00=217-1+a=114+7a047e0300012c00=46+7a047e0300012c00=136",
       "codeHashDebug": "76d94621028b765345f083b3d7124c355a7fd8ca45e9253fc2661102f5533d11",
       "warnings": [
@@ -191,7 +191,7 @@
     },
     "MapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -258,7 +258,7 @@
     },
     "RemoveFromMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -293,7 +293,7 @@
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "b82412a32b7acab72adc262504937fe2c101f2f74a29a5a61444a2c6b95f0557",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []

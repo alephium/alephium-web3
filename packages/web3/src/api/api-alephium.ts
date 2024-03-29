@@ -420,11 +420,11 @@ export interface CompileContractResult {
   codeHashDebug: string
   fields: FieldsSig
   functions: FunctionSig[]
-  maps: MapSig[]
   constants: Constant[]
   enums: Enum[]
   events: EventSig[]
   warnings: string[]
+  maps?: MapsSig
   stdInterfaceId?: string
 }
 
@@ -659,9 +659,9 @@ export interface InternalServerError {
   detail: string
 }
 
-export interface MapSig {
-  name: string
-  type: string
+export interface MapsSig {
+  names: string[]
+  types: string[]
 }
 
 export interface MemPooled {

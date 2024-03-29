@@ -23,6 +23,8 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -73,48 +75,35 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 
   tests = {
     add: async (
-      params: Omit<
-        TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }, never>,
-        "initialMaps"
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { array: [bigint, bigint] }
       >
-    ): Promise<
-      Omit<TestContractResult<[bigint, bigint], never>, "initialMaps">
-    > => {
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "add", params);
     },
     addPrivate: async (
-      params: Omit<
-        TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }, never>,
-        "initialMaps"
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { array: [bigint, bigint] }
       >
-    ): Promise<
-      Omit<TestContractResult<[bigint, bigint], never>, "initialMaps">
-    > => {
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "addPrivate", params);
     },
     createSubContract: async (
-      params: Omit<
-        TestContractParams<
-          AddTypes.Fields,
-          {
-            a: bigint;
-            path: HexString;
-            subContractId: HexString;
-            payer: Address;
-          },
-          never
-        >,
-        "initialMaps"
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { a: bigint; path: HexString; subContractId: HexString; payer: Address }
       >
-    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "createSubContract", params);
     },
     destroy: async (
-      params: Omit<
-        TestContractParams<AddTypes.Fields, { caller: Address }, never>,
-        "initialMaps"
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { caller: Address }
       >
-    ): Promise<Omit<TestContractResult<null, never>, "initialMaps">> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "destroy", params);
     },
   };
