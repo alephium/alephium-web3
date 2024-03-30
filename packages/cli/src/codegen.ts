@@ -28,7 +28,8 @@ import {
   NetworkId,
   networkIds,
   fromApiPrimitiveVal,
-  Val
+  Val,
+  parseMapType
 } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
@@ -265,28 +266,48 @@ function genContractStateType(contract: Contract): string {
   `
 }
 
-function genTestMethod(contractName: string, fieldsSig: node.FieldsSig, functionSig: node.FunctionSig): string {
+function genMapsType(contract: Contract): string {
+  const mapsSig = contract.mapsSig
+  if (mapsSig === undefined) return ''
+  const mapFields = mapsSig.names.map((name, index) => {
+    const mapType = mapsSig.types[`${index}`]
+    const [key, value] = parseMapType(mapType)
+    return `${name}?: Map<${toTsType(key)}, ${toTsType(value)}>`
+  })
+  return `{ ${mapFields.join(', ')} }`
+}
+
+function genTestMethod(contract: Contract, functionSig: node.FunctionSig): string {
   const funcHasArgs = functionSig.paramNames.length > 0
+  const fieldsSig = contract.fieldsSig
   const contractHasFields = fieldsSig.names.length > 0
   const argsType = funcHasArgs
     ? `{${formatParameters({ names: functionSig.paramNames, types: functionSig.paramTypes })}}`
     : 'never'
-  const fieldsType = contractHasFields ? `${contractFieldType(contractName, fieldsSig)}` : 'never'
+  const fieldsType = contractHasFields ? contractFieldType(contract.name, fieldsSig) : 'never'
+  const hasMapVars: boolean = contract.mapsSig !== undefined
+  const mapsType = genMapsType(contract)
+  const baseParamsType = hasMapVars
+    ? `TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>`
+    : `TestContractParamsWithoutMaps<${fieldsType}, ${argsType}>`
   const params =
     funcHasArgs && contractHasFields
-      ? `params: TestContractParams<${fieldsType}, ${argsType}>`
+      ? `params: ${baseParamsType}`
       : funcHasArgs
-      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'initialFields'>`
+      ? `params: Omit<${baseParamsType}, 'initialFields'>`
       : contractHasFields
-      ? `params: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'testArgs'>`
-      : `params?: Omit<TestContractParams<${fieldsType}, ${argsType}>, 'testArgs' | 'initialFields'>`
+      ? `params: Omit<${baseParamsType}, 'testArgs'>`
+      : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-  const retType =
+  const baseRetType =
     tsReturnTypes.length === 0
-      ? `TestContractResult<null>`
+      ? 'null'
       : tsReturnTypes.length === 1
-      ? `TestContractResult<${tsReturnTypes[0]}>`
-      : `TestContractResult<[${tsReturnTypes.join(', ')}]>`
+      ? tsReturnTypes[0]
+      : `[${tsReturnTypes.join(', ')}]`
+  const retType = hasMapVars
+    ? `TestContractResult<${baseRetType}, ${mapsType}>`
+    : `TestContractResultWithoutMaps<${baseRetType}>`
   const callParams = funcHasArgs || contractHasFields ? 'params' : 'params === undefined ? {} : params'
   return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
@@ -295,10 +316,10 @@ function genTestMethod(contractName: string, fieldsSig: node.FieldsSig, function
   `
 }
 
-function genTestMethods(contract: Contract, fieldsSig: node.FieldsSig): string {
+function genTestMethods(contract: Contract): string {
   return `
     tests = {
-      ${contract.functions.map((f) => genTestMethod(contract.name, fieldsSig, f)).join(',')}
+      ${contract.functions.map((f) => genTestMethod(contract, f)).join(',')}
     }
   `
 }
@@ -394,7 +415,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       EventSubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, multicallMethods, fetchContractState,
-      ContractInstance, getContractEventsCurrentCount
+      ContractInstance, getContractEventsCurrentCount,
+      TestContractParamsWithoutMaps, TestContractResultWithoutMaps
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
@@ -412,7 +434,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genEventIndex(contract)}
       ${genConsts(contract)}
       ${genAttach(getInstanceName(contract))}
-      ${genTestMethods(contract, fieldsSig)}
+      ${genTestMethods(contract)}
     }
 
     // Use this object to test and deploy the contract

@@ -23,10 +23,12 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace SubTypes {
@@ -71,8 +73,11 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
 
   tests = {
     sub: async (
-      params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
-    ): Promise<TestContractResult<bigint>> => {
+      params: TestContractParamsWithoutMaps<
+        SubTypes.Fields,
+        { array: [bigint, bigint] }
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "sub", params);
     },
   };

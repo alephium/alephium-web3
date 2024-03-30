@@ -424,6 +424,7 @@ export interface CompileContractResult {
   enums: Enum[]
   events: EventSig[]
   warnings: string[]
+  maps?: MapsSig
   stdInterfaceId?: string
 }
 
@@ -656,6 +657,11 @@ export interface InterCliquePeerInfo {
 
 export interface InternalServerError {
   detail: string
+}
+
+export interface MapsSig {
+  names: string[]
+  types: string[]
 }
 
 export interface MemPooled {

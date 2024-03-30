@@ -11,9 +11,9 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "f7d27ecff8f7da7afcfee957842d8629930c9980f87a1c6d17561bb1fbe6dab6",
-      "bytecodeDebugPatch": "=8+4=1-1=2-2+64=3-1+d=37+77e010a=1+1646450726976617465=154",
-      "codeHashDebug": "a49f0624ccbec8df1bf3ad7f628fb47a42cc448fe7369fc0da02071df6787b69",
+      "sourceCodeHash": "95b2d5b3755f9a00b616a8beaccf7b42da269ae57a25ec825c333395cd2a23bc",
+      "bytecodeDebugPatch": "=8+4=1-1=2-1=1+3=2-2+6c=37+77e010a=1+1646450726976617465=152",
+      "codeHashDebug": "6d87d293224fce4601a8e315e6a384aca46fdd1adab1402ffae8cc454b94a66e",
       "warnings": [
         "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
         "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
@@ -164,14 +164,37 @@
       "codeHashDebug": "",
       "warnings": []
     },
+    "InsertIntoMap": {
+      "sourceFile": "test/map.ral",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "Main": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "f7d27ecff8f7da7afcfee957842d8629930c9980f87a1c6d17561bb1fbe6dab6",
+      "sourceCodeHash": "95b2d5b3755f9a00b616a8beaccf7b42da269ae57a25ec825c333395cd2a23bc",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": [
         "The return values of the function \"Add.add\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
       ]
+    },
+    "MapTest": {
+      "sourceFile": "test/map.ral",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
+      "bytecodeDebugPatch": "=6-1+4=3-1+a=2-2+11=3-1+3=3-1+5=12-1+b=40+7a037e0300012c00=56+7a037e0300012c00=217-1+a=114+7a047e0300012c00=46+7a047e0300012c00=136",
+      "codeHashDebug": "76d94621028b765345f083b3d7124c355a7fd8ca45e9253fc2661102f5533d11",
+      "warnings": [
+        "No external caller check for function \"MapTest.insert\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
+      ]
+    },
+    "MapValue": {
+      "sourceFile": "test/map.ral",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
     },
     "MetaData": {
       "sourceFile": "test/metadata.ral",
@@ -233,6 +256,13 @@
       "codeHashDebug": "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
       "warnings": []
     },
+    "RemoveFromMap": {
+      "sourceFile": "test/map.ral",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
     "Sub": {
       "sourceFile": "sub/sub.ral",
       "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",
@@ -259,6 +289,13 @@
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
+      "warnings": []
+    },
+    "UpdateMapValue": {
+      "sourceFile": "test/map.ral",
+      "sourceCodeHash": "f035aeb3d53b039a81f497a02e5d3fb6fdd38a09251c55a41c3672b31fdd4182",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
       "warnings": []
     },
     "UpdateUserAccount": {

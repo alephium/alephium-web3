@@ -23,10 +23,12 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace WarningsTypes {
@@ -51,8 +53,11 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
 
   tests = {
     foo: async (
-      params: TestContractParams<WarningsTypes.Fields, { x: bigint; y: bigint }>
-    ): Promise<TestContractResult<null>> => {
+      params: TestContractParamsWithoutMaps<
+        WarningsTypes.Fields,
+        { x: bigint; y: bigint }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "foo", params);
     },
   };

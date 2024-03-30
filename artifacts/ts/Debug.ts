@@ -23,10 +23,12 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as DebugContractJson } from "../test/Debug.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace DebugTypes {
@@ -41,10 +43,10 @@ class Factory extends ContractFactory<DebugInstance, {}> {
   tests = {
     debug: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParamsWithoutMaps<never, never>,
         "testArgs" | "initialFields"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "debug", params === undefined ? {} : params);
     },
   };

@@ -23,10 +23,12 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest6ContractJson } from "../nft/DeprecatedNFTTest6.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest6Types {
@@ -76,18 +78,18 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest6Types.Fields, never>,
+        TestContractParamsWithoutMaps<DeprecatedNFTTest6Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
     getArray: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest6Types.Fields, never>,
+        TestContractParamsWithoutMaps<DeprecatedNFTTest6Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<[bigint, bigint]>> => {
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "getArray", params);
     },
   };
