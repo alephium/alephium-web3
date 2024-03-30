@@ -34,7 +34,7 @@
     "build": "rm -rf dist/* && npx tsc --build . && webpack",
     "test": "jest -i --config ./jest-config.json",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
-    "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
+    "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/rhone-upgrade/api/src/main/resources/openapi.json",
     "update-schema:explorer": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
     "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}"
   },
