@@ -35,6 +35,10 @@ export enum AddressType {
 }
 
 export function validateAddress(address: string) {
+  decodeAndValidateAddress(address)
+}
+
+function decodeAndValidateAddress(address: string): Uint8Array {
   let decoded: Uint8Array
   try {
     decoded = bs58.decode(address)
@@ -46,19 +50,27 @@ export function validateAddress(address: string) {
   const addressType = decoded[0]
   if (addressType === AddressType.P2MPKH) {
     // [1, n, ...hashes, m]
-    if ((decoded.length - 3) % 32 === 0) return
+    if ((decoded.length - 3) % 32 === 0) return decoded
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
-    if (decoded.length === 33) return
+    if (decoded.length === 33) return decoded
   }
 
   throw new Error(`Invalid address: ${address}`)
 }
 
-export function groupOfAddress(address: string): number {
-  validateAddress(address)
+export function isAssetAddress(address: string) {
+  const addressType = decodeAndValidateAddress(address)[0]
+  return addressType === AddressType.P2PKH || addressType === AddressType.P2MPKH || addressType === AddressType.P2SH
+}
 
-  const decoded = bs58.decode(address)
+export function isContractAddress(address: string) {
+  const addressType = decodeAndValidateAddress(address)[0]
+  return addressType === AddressType.P2C
+}
+
+export function groupOfAddress(address: string): number {
+  const decoded = decodeAndValidateAddress(address)
   const addressType = decoded[0]
   const addressBody = decoded.slice(1)
 
