@@ -23,10 +23,12 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace AddTypes {
@@ -73,26 +75,35 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 
   tests = {
     add: async (
-      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-    ): Promise<TestContractResult<[bigint, bigint]>> => {
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { array: [bigint, bigint] }
+      >
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "add", params);
     },
     addPrivate: async (
-      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-    ): Promise<TestContractResult<[bigint, bigint]>> => {
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { array: [bigint, bigint] }
+      >
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "addPrivate", params);
     },
     createSubContract: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         AddTypes.Fields,
         { a: bigint; path: HexString; subContractId: HexString; payer: Address }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "createSubContract", params);
     },
     destroy: async (
-      params: TestContractParams<AddTypes.Fields, { caller: Address }>
-    ): Promise<TestContractResult<null>> => {
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { caller: Address }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "destroy", params);
     },
   };
@@ -102,8 +113,8 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
-    "=8+4=1-1=2-2+64=3-1+d=37+77e010a=1+1646450726976617465=154",
-    "a49f0624ccbec8df1bf3ad7f628fb47a42cc448fe7369fc0da02071df6787b69",
+    "=8+4=1-1=2-1=1+3=2-2+6c=37+77e010a=1+1646450726976617465=152",
+    "6d87d293224fce4601a8e315e6a384aca46fdd1adab1402ffae8cc454b94a66e",
     AllStructs
   )
 );

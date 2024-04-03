@@ -17,9 +17,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { Contract, Project, web3 } from '@alephium/web3'
+import { Contract, Project, web3, Struct, decodeArrayType } from '@alephium/web3'
 import { Method } from './method-codec'
-import { contractCodec } from './contract-codec'
+import { contractCodec, toHalfDecoded } from './contract-codec'
 import {
   ApproveAlph,
   AssertWithErrorCode,
@@ -48,7 +48,17 @@ import {
   U256Lt,
   U256SHL
 } from './instr-codec'
-import { Assert, Debug, MetaData, NFTTest, OwnerOnly, TokenTest, Warnings } from '../../../../artifacts/ts'
+import {
+  Assert,
+  Debug,
+  MapTest,
+  MetaData,
+  NFTTest,
+  OwnerOnly,
+  TokenTest,
+  UserAccount,
+  Warnings
+} from '../../../../artifacts/ts'
 
 describe('Encode & decode contract', function () {
   beforeAll(async () => {
@@ -299,6 +309,8 @@ describe('Encode & decode contract', function () {
     testContract(MetaData.contract)
     testContract(Debug.contract)
     testContract(Assert.contract)
+    testContract(UserAccount.contract)
+    testContract(MapTest.contract)
   })
 
   async function testContractCode(contractCode: string, methods: Method[]) {
@@ -310,6 +322,7 @@ describe('Encode & decode contract', function () {
 
     const decodedContract = contractCodec.decodeContract(Buffer.from(contractBytecode, 'hex'))
     expect(decodedContract.fieldLength).toEqual(methods.length)
+    expect(toHalfDecoded(decodedContract)).toEqual(decoded)
     decodedContract.methods.map((decodedMethod, index) => {
       expect(decodedMethod.isPublic).toEqual(methods[index].isPublic)
       expect(decodedMethod.assetModifier).toEqual(methods[index].assetModifier)
@@ -321,21 +334,39 @@ describe('Encode & decode contract', function () {
     expect(contractBytecode).toEqual(encoded.toString('hex'))
   }
 
+  function getTypeLength(type: string): number {
+    const structs = MapTest.contract.structs
+    const struct = structs.find((s) => s.name === type)
+    if (struct !== undefined) {
+      return struct.fieldTypes.reduce((acc, fieldType) => acc + getTypeLength(fieldType), 0)
+    }
+    if (type.startsWith('[')) {
+      const [baseType, size] = decodeArrayType(type)
+      return size * getTypeLength(baseType)
+    }
+    return 1
+  }
+
+  function getTypesLength(types: string[]): number {
+    return types.reduce((acc, type) => acc + getTypeLength(type), 0)
+  }
+
   function testContract(contract: Contract) {
     const decoded = contractCodec.decode(Buffer.from(contract.bytecode, 'hex'))
     const encoded = contractCodec.encode(decoded)
 
     const decodedContract = contractCodec.decodeContract(Buffer.from(contract.bytecode, 'hex'))
+    expect(toHalfDecoded(decodedContract)).toEqual(decoded)
 
-    expect(decodedContract.fieldLength).toEqual(contract.fieldsSig.names.length)
+    expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsSig.types))
     decodedContract.methods.map((decodedMethod, index) => {
       const contractFunction = contract.functions[index]
       expect(decodedMethod.isPublic).toEqual(contractFunction.isPublic)
       expect(decodedMethod.assetModifier).toEqual(
         assetModifier(contractFunction.usePreapprovedAssets, contractFunction.useAssetsInContract)
       )
-      expect(decodedMethod.argsLength).toEqual(contractFunction.paramNames.length)
-      expect(decodedMethod.returnLength).toEqual(contractFunction.returnTypes.length)
+      expect(decodedMethod.argsLength).toEqual(getTypesLength(contractFunction.paramTypes))
+      expect(decodedMethod.returnLength).toEqual(getTypesLength(contractFunction.returnTypes))
     })
 
     expect(contract.bytecode).toEqual(encoded.toString('hex'))

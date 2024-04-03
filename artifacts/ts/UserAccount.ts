@@ -23,10 +23,12 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, TokenBalance, AllStructs } from "./types";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace UserAccountTypes {
@@ -73,27 +75,27 @@ class Factory extends ContractFactory<
 
   tests = {
     updateBalance: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         UserAccountTypes.Fields,
         { tokens: [TokenBalance, TokenBalance] }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateBalance", params);
     },
     updateAddress: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         UserAccountTypes.Fields,
         { newAddress: Address }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateAddress", params);
     },
     getBalances: async (
       params: Omit<
-        TestContractParams<UserAccountTypes.Fields, never>,
+        TestContractParamsWithoutMaps<UserAccountTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<Balances>> => {
+    ): Promise<TestContractResultWithoutMaps<Balances>> => {
       return testMethod(this, "getBalances", params);
     },
   };
