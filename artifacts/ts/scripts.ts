@@ -18,6 +18,7 @@ import { default as MainScriptJson } from "../add/Main.ral.json";
 import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
 import { default as RemoveFromMapScriptJson } from "../test/RemoveFromMap.ral.json";
 import { default as TemplateArrayVarScriptJson } from "../test/TemplateArrayVar.ral.json";
+import { default as TestAssertScriptJson } from "../test/TestAssert.ral.json";
 import { default as UpdateMapValueScriptJson } from "../test/UpdateMapValue.ral.json";
 import { default as UpdateUserAccountScriptJson } from "../test/UpdateUserAccount.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
@@ -59,6 +60,10 @@ export const TemplateArrayVar = new ExecutableScript<{
   bytes: HexString;
   numbers1: [bigint, bigint, bigint];
 }>(Script.fromJson(TemplateArrayVarScriptJson, "", AllStructs));
+
+export const TestAssert = new ExecutableScript<{ assert: HexString }>(
+  Script.fromJson(TestAssertScriptJson, "", AllStructs)
+);
 
 export const UpdateMapValue = new ExecutableScript<{
   mapTest: HexString;

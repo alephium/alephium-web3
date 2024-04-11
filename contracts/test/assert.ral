@@ -23,3 +23,7 @@ Contract Assert() {
         assert!(1 == 2, Error)
     }
 }
+
+TxScript TestAssert(assert: Assert) {
+    assert.test()
+}

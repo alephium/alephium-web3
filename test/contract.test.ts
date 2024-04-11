@@ -32,7 +32,8 @@ import {
   groupOfAddress,
   ProjectArtifact,
   DEFAULT_NODE_COMPILER_OPTIONS,
-  DUST_AMOUNT
+  DUST_AMOUNT,
+  DEFAULT_GAS_AMOUNT
 } from '../packages/web3'
 import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
@@ -44,6 +45,7 @@ import {
   Main,
   RemoveFromMap,
   TemplateArrayVar,
+  TestAssert,
   UpdateUserAccount
 } from '../artifacts/ts/scripts'
 import { Sub, SubTypes } from '../artifacts/ts/Sub'
@@ -243,12 +245,12 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(43)
+    expect(sourceFiles.length).toEqual(44)
     sourceFiles.slice(0, 23).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(23, 33).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(33, 35).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(35, 40).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(40).forEach((i) => expect(i.type).toEqual(4)) // structs
+    sourceFiles.slice(23, 34).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(34, 36).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(36, 41).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(41).forEach((i) => expect(i.type).toEqual(4)) // structs
   })
 
   it('should load contract from json', () => {
@@ -299,6 +301,20 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
     const contractAddress = randomContractAddress()
     expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, 3)
+
+    const assertDeployResult = await Assert.deploy(signer, { initialFields: {} })
+    const assertAddress = assertDeployResult.contractInstance.address
+
+    expectAssertionError(TestAssert.execute(signer, { initialFields: { assert: assertAddress } }), assertAddress, 3)
+
+    expectAssertionError(
+      TestAssert.execute(signer, {
+        initialFields: { assert: assertAddress },
+        gasAmount: DEFAULT_GAS_AMOUNT
+      }),
+      assertAddress,
+      3
+    )
   })
 
   it('should test enums and constants', async () => {
