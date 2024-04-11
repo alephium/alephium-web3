@@ -134,7 +134,7 @@ export async function transfer(from: PrivateKeyWallet, to: Address, tokenId: str
 export async function expectAssertionError(p: Promise<unknown>, address: string, errorCode: number): Promise<void> {
   expect(isBase58(address)).toEqual(true)
   await expect(p).rejects.toThrowError(
-    new RegExp(`VM execution error: Assertion Failed in Contract @ ${address}, Error Code: ${errorCode}`, 'mg')
+    new RegExp(`Assertion Failed in Contract @ ${address}, Error Code: ${errorCode}`, 'mg')
   )
 }
 

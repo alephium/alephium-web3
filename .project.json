@@ -22,7 +22,7 @@
     },
     "Assert": {
       "sourceFile": "test/assert.ral",
-      "sourceCodeHash": "6e29a32037532fe7c415d6a8076626ee81767ff3162d3d2f34d08f7e0594a914",
+      "sourceCodeHash": "65f8387941a38e88ef555f5d0b4992dab390d97ff97b2473fdea45b8d58a74a5",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
       "warnings": [
@@ -273,6 +273,13 @@
     "TemplateArrayVar": {
       "sourceFile": "test/template_array_var.ral",
       "sourceCodeHash": "9d4585b01c450c8602f797f63995d1a734a260ea5579d68b81ba84272c9de235",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "TestAssert": {
+      "sourceFile": "test/assert.ral",
+      "sourceCodeHash": "65f8387941a38e88ef555f5d0b4992dab390d97ff97b2473fdea45b8d58a74a5",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
