@@ -352,11 +352,14 @@ describe('contract', function () {
   })
 
   it('should decode map debug message', () => {
-    expect(ralph.tryDecodeMapDebugLog('5f5f6d61705f5f')).toEqual(undefined)
-    expect(ralph.tryDecodeMapDebugLog('5f5f6d61705f5f,false')).toEqual(undefined)
-    expect(ralph.tryDecodeMapDebugLog('5f5f6d6170,false')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert: 5f5f6d61705f5f')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('remove: 5f5f6d61705f5f')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert at map path')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert at map path: xxyyzz')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert at map path: 5f5f6d6170')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('remove at map path: 5f5f6d6170')).toEqual(undefined)
     const result0 = ralph.tryDecodeMapDebugLog(
-      '5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a,true'
+      'insert at map path: 5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a'
     )
     expect(result0).toEqual({
       path: '5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a',
@@ -364,7 +367,7 @@ describe('contract', function () {
       encodedKey: utils.hexToBinUnsafe('00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a'),
       isInsert: true
     })
-    const result1 = ralph.tryDecodeMapDebugLog('5f5f6d61705f5f315f5f00ec3d,false')
+    const result1 = ralph.tryDecodeMapDebugLog('remove at map path: 5f5f6d61705f5f315f5f00ec3d')
     expect(result1).toEqual({
       path: '5f5f6d61705f5f315f5f00ec3d',
       mapIndex: 1,

@@ -329,21 +329,25 @@ export function calcFieldSize(
 export function tryDecodeMapDebugLog(
   message: string
 ): { path: string; mapIndex: number; encodedKey: Uint8Array; isInsert: boolean } | undefined {
-  const prefix = '5f5f6d61705f5f' // __map__
-  const parts = message.split(',')
-  if (!message.startsWith(prefix) || parts.length !== 2) return undefined
-  if (parts[1] !== 'true' && parts[1] !== 'false') return undefined
+  if (!message.startsWith('insert at map path: ') && !message.startsWith('remove at map path: ')) {
+    return undefined
+  }
+  const parts = message.split(':')
+  if (parts.length !== 2) return undefined
+  const pathString = parts[1].slice(1)
+  if (!isHexString(pathString)) return undefined
 
-  if (!isHexString(parts[0])) return undefined
-  const remain = parts[0].slice(prefix.length)
-  const suffixIndex = remain.indexOf('5f5f') // __
+  const prefix = '5f5f6d61705f5f' // __map__
+  const remain = pathString.slice(prefix.length)
+  const suffix = '5f5f' // __
+  const suffixIndex = remain.indexOf(suffix)
   if (suffixIndex === -1) return undefined
 
   const encodedMapIndex = remain.slice(0, suffixIndex)
   const mapIndex = parseInt(fromAscii(encodedMapIndex))
-  const encodedKey = hexToBinUnsafe(remain.slice(suffixIndex + 4))
-  const isInsert = parts[1] === 'true' ? true : false
-  return { path: parts[0], mapIndex, encodedKey, isInsert }
+  const encodedKey = hexToBinUnsafe(remain.slice(suffixIndex + suffix.length))
+  const isInsert = message.startsWith('insert')
+  return { path: pathString, mapIndex, encodedKey, isInsert }
 }
 
 export function decodePrimitive(value: Uint8Array, type: string): Val {

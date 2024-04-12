@@ -8,8 +8,8 @@ Contract MapTest() {
 
   @using(preapprovedAssets = true)
   pub fn insert(key: Address, value: MapValue) -> () {
-    map0.insert!{key -> ALPH: mapEntryDeposit!()}(key, value)
-    map1.insert!{key -> ALPH: mapEntryDeposit!()}(value.id, value.balance)
+    map0.insert!(key, key, value)
+    map1.insert!(key, value.id, value.balance)
   }
 
   pub fn update(key: Address) -> () {
@@ -21,7 +21,7 @@ Contract MapTest() {
   pub fn remove(key: Address) -> () {
     let value = map0[key]
     map0.remove!(key, key)
-    map1.remove!(value.id, key)
+    map1.remove!(key, value.id)
   }
 
   pub fn get(key: Address) -> MapValue {
