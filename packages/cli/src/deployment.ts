@@ -563,12 +563,14 @@ export async function deploy<Settings = unknown>(
   const projectRootDir = path.resolve(process.cwd())
   const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
-  await Project.build(
-    configuration.compilerOptions,
-    path.resolve(process.cwd()),
-    configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
-    artifactDir
-  )
+  if (configuration.skipRecompile !== true) {
+    await Project.build(
+      configuration.compilerOptions,
+      path.resolve(process.cwd()),
+      configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
+      artifactDir
+    )
+  }
 
   // When the contract has been deployed previously, and the contract
   // code has changed, ask the user to confirm whether to redeploy the contract
