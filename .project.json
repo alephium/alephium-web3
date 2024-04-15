@@ -110,7 +110,7 @@
     },
     "FungibleTokenUnimplemented": {
       "sourceFile": "../packages/web3/std/fungible_token_unimplemented.ral",
-      "sourceCodeHash": "dc2d6de72bcb5f86cb30e0d3adf57566d8a9c99219843f357674bf71b2830aa4",
+      "sourceCodeHash": "df36ccc9548da207df716192341e864c7a8d0ea22ea9214b9cfad13bf324a0f6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -152,14 +152,14 @@
     },
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
-      "sourceCodeHash": "738a3440b686d94c9f7db58f23e22b7512d229540392b426ecb190b82db3fb4f",
+      "sourceCodeHash": "06648d34b65081500e038a943eb81d66301b43252b447d8cb96e0c8f2095edf8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "INFTCollectionWithRoyalty": {
       "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
-      "sourceCodeHash": "6407fb10136b21e191c5cf1f695be89f9e427ce2b01c039dd525dac587f3fc05",
+      "sourceCodeHash": "9f325c739267074d442f0da4536fd68baeb9571ef220e29cca6bc173af24b232",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
