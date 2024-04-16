@@ -1,3 +1,5 @@
+import "std/nft_interface"
+
 @std(id = #0002)
 Interface INFTCollection {
    // Collection Uri points to a json file containing metadata for the NFT collection.
