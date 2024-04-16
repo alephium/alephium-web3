@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -38,6 +41,17 @@ export namespace WarningsTypes {
   };
 
   export type State = ContractState<Fields>;
+
+  export interface SignExecuteMethodTable {
+    foo: {
+      params: SignExecuteContractMethodParams<{ x: bigint; y: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
@@ -82,4 +96,12 @@ export class WarningsInstance extends ContractInstance {
   async fetchState(): Promise<WarningsTypes.State> {
     return fetchContractState(Warnings, this);
   }
+
+  methods = {
+    foo: async (
+      params: WarningsTypes.SignExecuteMethodParams<"foo">
+    ): Promise<WarningsTypes.SignExecuteMethodResult<"foo">> => {
+      return signExecuteMethod(Warnings, this, "foo", params);
+    },
+  };
 }

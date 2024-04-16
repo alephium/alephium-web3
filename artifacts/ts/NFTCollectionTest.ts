@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as NFTCollectionTestContractJson } from "../nft/NFTCollectionTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -70,6 +73,20 @@ export namespace NFTCollectionTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    validateNFT: {
+      params: SignExecuteContractMethodParams<{
+        nftId: HexString;
+        nftIndex: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -189,6 +206,13 @@ export class NFTCollectionTestInstance extends ContractInstance {
         params,
         getContractByCodeHash
       );
+    },
+    validateNFT: async (
+      params: NFTCollectionTestTypes.SignExecuteMethodParams<"validateNFT">
+    ): Promise<
+      NFTCollectionTestTypes.SignExecuteMethodResult<"validateNFT">
+    > => {
+      return signExecuteMethod(NFTCollectionTest, this, "validateNFT", params);
     },
     mint: async (
       params: NFTCollectionTestTypes.CallMethodParams<"mint">

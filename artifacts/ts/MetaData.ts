@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -33,6 +36,17 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 // Custom types for the contract
 export namespace MetaDataTypes {
   export type State = Omit<ContractState<any>, "fields">;
+
+  export interface SignExecuteMethodTable {
+    foo: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<MetaDataInstance, {}> {
@@ -87,4 +101,12 @@ export class MetaDataInstance extends ContractInstance {
   async fetchState(): Promise<MetaDataTypes.State> {
     return fetchContractState(MetaData, this);
   }
+
+  methods = {
+    foo: async (
+      params: MetaDataTypes.SignExecuteMethodParams<"foo">
+    ): Promise<MetaDataTypes.SignExecuteMethodResult<"foo">> => {
+      return signExecuteMethod(MetaData, this, "foo", params);
+    },
+  };
 }

@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/Assert.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -33,6 +36,17 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 // Custom types for the contract
 export namespace AssertTypes {
   export type State = Omit<ContractState<any>, "fields">;
+
+  export interface SignExecuteMethodTable {
+    test: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<AssertInstance, {}> {
@@ -84,4 +98,12 @@ export class AssertInstance extends ContractInstance {
   async fetchState(): Promise<AssertTypes.State> {
     return fetchContractState(Assert, this);
   }
+
+  methods = {
+    test: async (
+      params: AssertTypes.SignExecuteMethodParams<"test">
+    ): Promise<AssertTypes.SignExecuteMethodResult<"test">> => {
+      return signExecuteMethod(Assert, this, "test", params);
+    },
+  };
 }

@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as DebugContractJson } from "../test/Debug.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -33,6 +36,17 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 // Custom types for the contract
 export namespace DebugTypes {
   export type State = Omit<ContractState<any>, "fields">;
+
+  export interface SignExecuteMethodTable {
+    debug: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<DebugInstance, {}> {
@@ -71,4 +85,12 @@ export class DebugInstance extends ContractInstance {
   async fetchState(): Promise<DebugTypes.State> {
     return fetchContractState(Debug, this);
   }
+
+  methods = {
+    debug: async (
+      params: DebugTypes.SignExecuteMethodParams<"debug">
+    ): Promise<DebugTypes.SignExecuteMethodResult<"debug">> => {
+      return signExecuteMethod(Debug, this, "debug", params);
+    },
+  };
 }

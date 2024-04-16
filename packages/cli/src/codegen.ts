@@ -95,26 +95,36 @@ function formatParameters(fieldsSig: { names: string[]; types: string[] }): stri
     .join(', ')
 }
 
-function genCallMethod(contractName: string, functionSig: node.FunctionSig): string {
-  const funcHasArgs = functionSig.paramNames.length > 0
-  const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
-  const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
-  const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
-  return `
+function genMethod(contractName: string, functionSig: node.FunctionSig): string {
+  if (functionSig.returnTypes.length === 0) {
+    const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
+    const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
+    return `
+    ${functionSig.name}: async (${params}): Promise<${retType}> => {
+      return signExecuteMethod(${contractName}, this, "${functionSig.name}", params)
+    }
+  `
+  } else {
+    const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
+    const funcHasArgs = functionSig.paramNames.length > 0
+    const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
+    const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
+    return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
       return callMethod(${contractName}, this, "${functionSig.name}", ${callParams}, getContractByCodeHash)
     }
   `
+  }
 }
 
-function genCallMethods(contract: Contract): string {
-  const functions = contract.functions.filter((f) => f.isPublic && f.returnTypes.length > 0)
+function genMethods(contract: Contract): string {
+  const functions = contract.functions.filter((f) => f.isPublic)
   if (functions.length === 0) {
     return ''
   }
   return `
     methods = {
-      ${functions.map((f) => genCallMethod(contract.name, f)).join(',')}
+      ${functions.map((f) => genMethod(contract.name, f)).join(',')}
     }
   `
 }
@@ -362,6 +372,36 @@ function genCallMethodTypes(contract: Contract): string {
     : ''
 }
 
+function genSignExecuteMethodTypes(contract: Contract): string {
+  const entities = contract.functions
+    .filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length == 0)
+    .map((functionSig) => {
+      const funcHasArgs = functionSig.paramNames.length > 0
+      const params = funcHasArgs
+        ? `SignExecuteContractMethodParams<{${formatParameters({
+            names: functionSig.paramNames,
+            types: functionSig.paramTypes
+          })}}>`
+        : `Omit<SignExecuteContractMethodParams<{}>, 'args'>`
+
+      return `
+      ${functionSig.name}: {
+        params: ${params}
+        result: SignExecuteScriptTxResult
+      }
+    `
+    })
+  return entities.length > 0
+    ? `
+      export interface SignExecuteMethodTable{
+        ${entities.join(',')}
+      }
+      export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> = SignExecuteMethodTable[T]['params']
+      export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> = SignExecuteMethodTable[T]['result']
+    `
+    : ''
+}
+
 function genMulticall(contract: Contract): string {
   const types = contractTypes(contract.name)
   const supportMulticall =
@@ -416,7 +456,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, multicallMethods, fetchContractState,
       ContractInstance, getContractEventsCurrentCount,
-      TestContractParamsWithoutMaps, TestContractResultWithoutMaps
+      TestContractParamsWithoutMaps, TestContractResultWithoutMaps, SignExecuteContractMethodParams,
+      SignExecuteScriptTxResult, signExecuteMethod
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
@@ -427,6 +468,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genContractStateType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
       ${genCallMethodTypes(contract)}
+      ${genSignExecuteMethodTypes(contract)}
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
@@ -455,7 +497,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genGetContractEventsCurrentCount(contract)}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}
-      ${genCallMethods(contract)}
+      ${genMethods(contract)}
       ${genMulticall(contract)}
     }
 `

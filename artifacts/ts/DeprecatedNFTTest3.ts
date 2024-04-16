@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest3ContractJson } from "../nft/DeprecatedNFTTest3.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -57,6 +60,17 @@ export namespace DeprecatedNFTTest3Types {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    returnNothing: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -121,6 +135,18 @@ export class DeprecatedNFTTest3Instance extends ContractInstance {
         "getTokenUri",
         params === undefined ? {} : params,
         getContractByCodeHash
+      );
+    },
+    returnNothing: async (
+      params: DeprecatedNFTTest3Types.SignExecuteMethodParams<"returnNothing">
+    ): Promise<
+      DeprecatedNFTTest3Types.SignExecuteMethodResult<"returnNothing">
+    > => {
+      return signExecuteMethod(
+        DeprecatedNFTTest3,
+        this,
+        "returnNothing",
+        params
       );
     },
   };

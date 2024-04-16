@@ -523,4 +523,18 @@ describe('contract', function () {
     const exist1 = (await mapTest.methods.contains({ args: { key: signer.address } })).returns
     expect(exist1).toEqual(false)
   })
+
+  it('should test sign execute method', async () => {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const caller = (await signer.getSelectedAccount()).address
+    const provider = web3.getCurrentNodeProvider()
+
+    const state = await provider.contracts.getContractsAddressState(add.address)
+    expect(state).toBeDefined()
+
+    await add.methods.destroy({ args: { caller: caller }, signer })
+    await expect(provider.contracts.getContractsAddressState(add.address)).rejects.toThrow(Error)
+  })
 })

@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -56,6 +59,28 @@ export namespace MapTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    insert: {
+      params: SignExecuteContractMethodParams<{
+        key: Address;
+        value: MapValue;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    update: {
+      params: SignExecuteContractMethodParams<{ key: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    remove: {
+      params: SignExecuteContractMethodParams<{ key: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<MapTestInstance, {}> {
@@ -173,6 +198,21 @@ export class MapTestInstance extends ContractInstance {
   }
 
   methods = {
+    insert: async (
+      params: MapTestTypes.SignExecuteMethodParams<"insert">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"insert">> => {
+      return signExecuteMethod(MapTest, this, "insert", params);
+    },
+    update: async (
+      params: MapTestTypes.SignExecuteMethodParams<"update">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"update">> => {
+      return signExecuteMethod(MapTest, this, "update", params);
+    },
+    remove: async (
+      params: MapTestTypes.SignExecuteMethodParams<"remove">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"remove">> => {
+      return signExecuteMethod(MapTest, this, "remove", params);
+    },
     get: async (
       params: MapTestTypes.CallMethodParams<"get">
     ): Promise<MapTestTypes.CallMethodResult<"get">> => {

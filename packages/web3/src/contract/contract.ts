@@ -42,7 +42,8 @@ import {
   SignDeployContractTxResult,
   SignExecuteScriptTxParams,
   SignerProvider,
-  Address
+  Address,
+  SignExecuteScriptTxResult
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -69,6 +70,7 @@ import { parseError } from '../utils/error'
 import { isContractDebugMessageEnabled } from '../debug'
 import {
   contract,
+  compactUnsignedIntCodec,
   Method,
   LoadLocal,
   LoadImmFieldByIndex,
@@ -1758,6 +1760,15 @@ export interface CallContractResult<R> {
   debugMessages: DebugMessage[]
 }
 
+export interface SignExecuteContractMethodParams<T extends Arguments = Arguments> {
+  args: T
+  signer: SignerProvider
+  attoAlphAmount?: Number256
+  tokens?: Token[]
+  gasAmount?: number
+  gasPrice?: Number256
+}
+
 function specialContractAddress(eventIndex: number, groupIndex: number): string {
   const bytes = new Uint8Array(32).fill(0)
   bytes[30] = eventIndex
@@ -2258,6 +2269,98 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
   const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex, getContractByCodeHash)
   contract.contract.printDebugMessages(methodName, callResult.debugMessages)
   return callResult as CallContractResult<R>
+}
+
+export async function signExecuteMethod<I extends ContractInstance, F extends Fields, A extends Arguments, R>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance,
+  methodName: string,
+  params: Optional<SignExecuteContractMethodParams<A>, 'args'>
+): Promise<SignExecuteScriptTxResult> {
+  const methodIndex = contract.contract.getMethodIndex(methodName)
+  const functionSig = contract.contract.functions[methodIndex]
+  const bytecodeTemplate = encodeBytecodeTemplate(methodIndex, functionSig)
+
+  const fieldsSig = toFieldsSig(contract.contract.name, functionSig)
+  const bytecode = ralph.buildScriptByteCode(
+    bytecodeTemplate,
+    { __contract__: instance.contractId, ...params.args },
+    fieldsSig,
+    contract.contract.structs
+  )
+
+  const signer = params.signer
+  const selectedAccount = await signer.getSelectedAccount()
+  const signerParams: SignExecuteScriptTxParams = {
+    signerAddress: selectedAccount.address,
+    signerKeyType: selectedAccount.keyType,
+    bytecode: bytecode,
+    attoAlphAmount: params.attoAlphAmount,
+    tokens: params.tokens,
+    gasAmount: params.gasAmount,
+    gasPrice: params.gasPrice
+  }
+
+  return await signer.signAndSubmitExecuteScriptTx(signerParams)
+}
+
+function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig): string {
+  const numberOfMethods = '01'
+  const isPublic = functionSig.isPublic ? '01' : '00'
+  const modifier = '03'
+  const argsLength = '00'
+  const localsLength = '00'
+  const returnsLength = '00'
+
+  let functionParamsTemplates = ''
+  functionSig.paramNames.forEach((_, index) => {
+    functionParamsTemplates += '{' + (index + 1) + '}'
+  })
+
+  // These two we need to calculate based on functionSig, it should be
+  // easy
+  const functionArgsNum = encodeU256Const(functionSig.paramNames.length)
+  const functionReturnNum = encodeU256Const(functionSig.returnTypes.length)
+
+  // This is fixed, we need this as contract id
+  const contractTemplate = '{0}' // always the 1st argument
+  const externalCallInstr = '01' + methodIndex.toString(16).padStart(2, '0')
+  const numberOfInstrs = (functionSig.paramNames.length + 4 + 0).toString(16).padStart(2, '0')
+
+  return (
+    numberOfMethods +
+    isPublic +
+    modifier +
+    argsLength +
+    localsLength +
+    returnsLength +
+    numberOfInstrs +
+    functionParamsTemplates +
+    functionArgsNum +
+    functionReturnNum +
+    contractTemplate +
+    externalCallInstr
+  )
+}
+
+function encodeU256Const(value: number): string {
+  if (value < 0) {
+    throw new Error(`value ${value} must be non-negative`)
+  }
+
+  if (value < 6) {
+    return (0x0c + value).toString(16).padStart(2, '0')
+  } else {
+    return '13' + compactUnsignedIntCodec.encodeU256(BigInt(value)).toString('hex')
+  }
+}
+
+function toFieldsSig(contractName: string, functionSig: FunctionSig): FieldsSig {
+  return {
+    names: ['__contract__'].concat(functionSig.paramNames),
+    types: [contractName].concat(functionSig.paramTypes),
+    isMutable: [false].concat(functionSig.paramIsMutable)
+  }
 }
 
 export async function multicallMethods<I extends ContractInstance, F extends Fields>(

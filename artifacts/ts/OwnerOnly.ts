@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -37,6 +40,17 @@ export namespace OwnerOnlyTypes {
   };
 
   export type State = ContractState<Fields>;
+
+  export interface SignExecuteMethodTable {
+    testOwner: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -82,4 +96,12 @@ export class OwnerOnlyInstance extends ContractInstance {
   async fetchState(): Promise<OwnerOnlyTypes.State> {
     return fetchContractState(OwnerOnly, this);
   }
+
+  methods = {
+    testOwner: async (
+      params: OwnerOnlyTypes.SignExecuteMethodParams<"testOwner">
+    ): Promise<OwnerOnlyTypes.SignExecuteMethodResult<"testOwner">> => {
+      return signExecuteMethod(OwnerOnly, this, "testOwner", params);
+    },
+  };
 }

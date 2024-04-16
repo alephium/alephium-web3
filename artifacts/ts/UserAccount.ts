@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -59,6 +62,23 @@ export namespace UserAccountTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    updateBalance: {
+      params: SignExecuteContractMethodParams<{
+        tokens: [TokenBalance, TokenBalance];
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    updateAddress: {
+      params: SignExecuteContractMethodParams<{ newAddress: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -122,6 +142,16 @@ export class UserAccountInstance extends ContractInstance {
   }
 
   methods = {
+    updateBalance: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"updateBalance">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateBalance">> => {
+      return signExecuteMethod(UserAccount, this, "updateBalance", params);
+    },
+    updateAddress: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"updateAddress">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateAddress">> => {
+      return signExecuteMethod(UserAccount, this, "updateAddress", params);
+    },
     getBalances: async (
       params?: UserAccountTypes.CallMethodParams<"getBalances">
     ): Promise<UserAccountTypes.CallMethodResult<"getBalances">> => {

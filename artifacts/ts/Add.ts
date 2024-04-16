@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -60,6 +63,26 @@ export namespace AddTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    createSubContract: {
+      params: SignExecuteContractMethodParams<{
+        a: bigint;
+        path: HexString;
+        subContractId: HexString;
+        payer: Address;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    destroy: {
+      params: SignExecuteContractMethodParams<{ caller: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
@@ -171,6 +194,16 @@ export class AddInstance extends ContractInstance {
       params: AddTypes.CallMethodParams<"add">
     ): Promise<AddTypes.CallMethodResult<"add">> => {
       return callMethod(Add, this, "add", params, getContractByCodeHash);
+    },
+    createSubContract: async (
+      params: AddTypes.SignExecuteMethodParams<"createSubContract">
+    ): Promise<AddTypes.SignExecuteMethodResult<"createSubContract">> => {
+      return signExecuteMethod(Add, this, "createSubContract", params);
+    },
+    destroy: async (
+      params: AddTypes.SignExecuteMethodParams<"destroy">
+    ): Promise<AddTypes.SignExecuteMethodResult<"destroy">> => {
+      return signExecuteMethod(Add, this, "destroy", params);
     },
   };
 

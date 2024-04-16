@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
 } from "@alephium/web3";
 import { default as NFTCollectionWithRoyaltyTestContractJson } from "../nft/NFTCollectionWithRoyaltyTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -76,6 +79,34 @@ export namespace NFTCollectionWithRoyaltyTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    validateNFT: {
+      params: SignExecuteContractMethodParams<{
+        nftId: HexString;
+        nftIndex: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    payRoyalty: {
+      params: SignExecuteContractMethodParams<{
+        payer: Address;
+        amount: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    withdrawRoyalty: {
+      params: SignExecuteContractMethodParams<{
+        recipient: Address;
+        amount: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -233,6 +264,18 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    validateNFT: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"validateNFT">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"validateNFT">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "validateNFT",
+        params
+      );
+    },
     royaltyAmount: async (
       params: NFTCollectionWithRoyaltyTestTypes.CallMethodParams<"royaltyAmount">
     ): Promise<
@@ -244,6 +287,30 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
         "royaltyAmount",
         params,
         getContractByCodeHash
+      );
+    },
+    payRoyalty: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"payRoyalty">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"payRoyalty">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "payRoyalty",
+        params
+      );
+    },
+    withdrawRoyalty: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"withdrawRoyalty">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"withdrawRoyalty">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "withdrawRoyalty",
+        params
       );
     },
     mint: async (
