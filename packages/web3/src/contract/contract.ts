@@ -71,6 +71,7 @@ import { isContractDebugMessageEnabled } from '../debug'
 import {
   contract,
   compactUnsignedIntCodec,
+  compactSignedIntCodec,
   Method,
   LoadLocal,
   LoadImmFieldByIndex,
@@ -2279,7 +2280,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 ): Promise<SignExecuteScriptTxResult> {
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const functionSig = contract.contract.functions[methodIndex]
-  const bytecodeTemplate = encodeBytecodeTemplate(methodIndex, functionSig)
+  const bytecodeTemplate = encodeBytecodeTemplate(methodIndex, functionSig, contract.contract.structs)
 
   const fieldsSig = toFieldsSig(contract.contract.name, functionSig)
   const bytecode = ralph.buildScriptByteCode(
@@ -2304,28 +2305,35 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
   return await signer.signAndSubmitExecuteScriptTx(signerParams)
 }
 
-function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig): string {
+function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig, structs: Struct[]): string {
   const numberOfMethods = '01'
   const isPublic = '01'
   const modifier = '03'
   const argsLength = '00'
-  const localsLength = '00'
   const returnsLength = '00'
 
-  let functionParamsTemplates = ''
-  functionSig.paramNames.forEach((_, index) => {
-    functionParamsTemplates += '{' + (index + 1) + '}'
-  })
+  const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
 
-  // These two we need to calculate based on functionSig, it should be
-  // easy
-  const functionArgsNum = encodeU256Const(functionSig.paramNames.length)
-  const functionReturnNum = encodeU256Const(functionSig.returnTypes.length)
+  // -1 because the first template var is the contract
+  const functionArgsNum = encodeU256Const(templateVarsLength - 1)
+  const localsLength = (templateVarStoreLocalInstrs.length / 2).toString(16).padStart(2, '0')
 
-  // This is fixed, we need this as contract id
-  const contractTemplate = '{0}' // always the 1st argument
+  const templateVarLoadLocalInstrs = getTemplateVarLoadLocalInstrs(functionSig, structs)
+
+  const functionReturnTypesLength: number = functionSig.returnTypes.reduce(
+    (acc, returnType) => acc + ralph.typeLength(returnType, structs),
+    0
+  )
+  const functionReturnPopInstrs = '18'.repeat(functionReturnTypesLength)
+  const functionReturnNum = encodeU256Const(functionReturnTypesLength)
+
+  const contractTemplateVar = '{0}' // always the 1st argument
   const externalCallInstr = '01' + methodIndex.toString(16).padStart(2, '0')
-  const numberOfInstrs = (functionSig.paramNames.length + 4 + 0).toString(16).padStart(2, '0')
+  const numberOfInstrs = compactSignedIntCodec
+    .encodeI32(
+      templateVarStoreLocalInstrs.length + templateVarLoadLocalInstrs.length + functionReturnTypesLength + 4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
+    )
+    .toString('hex')
 
   return (
     numberOfMethods +
@@ -2335,12 +2343,76 @@ function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig): 
     localsLength +
     returnsLength +
     numberOfInstrs +
-    functionParamsTemplates +
+    templateVarStoreLocalInstrs.join('') +
+    templateVarLoadLocalInstrs.join('') +
     functionArgsNum +
     functionReturnNum +
-    contractTemplate +
-    externalCallInstr
+    contractTemplateVar +
+    externalCallInstr +
+    functionReturnPopInstrs
   )
+}
+
+function getTemplateVarStoreLocalInstrs(functionSig: FunctionSig, structs: Struct[]): [string[], number] {
+  let templateVarIndex = 1 // Start from 1 since first one is always the contract id
+  let localsLength = 0
+  const templateVarStoreInstrs: string[] = []
+  functionSig.paramTypes.forEach((paramType) => {
+    const fieldsLength = ralph.typeLength(paramType, structs)
+    if (fieldsLength > 1) {
+      for (let i = 0; i < fieldsLength; i++) {
+        templateVarStoreInstrs.push(`{${templateVarIndex + i}}`)
+      }
+      for (let i = 0; i < fieldsLength; i++) {
+        templateVarStoreInstrs.push(encodeStoreLocalInstr(localsLength + (fieldsLength - i - 1)))
+      }
+
+      localsLength = localsLength + fieldsLength
+    }
+
+    templateVarIndex = templateVarIndex + fieldsLength
+  })
+
+  return [templateVarStoreInstrs, templateVarIndex]
+}
+
+function getTemplateVarLoadLocalInstrs(functionSig: FunctionSig, structs: Struct[]): string[] {
+  let templateVarIndex = 1
+  let loadIndex = 0
+  const templateVarLoadInstrs: string[] = []
+  functionSig.paramTypes.forEach((paramType) => {
+    const fieldsLength = ralph.typeLength(paramType, structs)
+
+    if (fieldsLength === 1) {
+      templateVarLoadInstrs.push(`{${templateVarIndex}}`)
+    }
+
+    if (fieldsLength > 1) {
+      for (let i = 0; i < fieldsLength; i++) {
+        templateVarLoadInstrs.push(encodeLoadLocalInstr(loadIndex + i))
+      }
+
+      loadIndex = loadIndex + fieldsLength
+    }
+
+    templateVarIndex = templateVarIndex + fieldsLength
+  })
+
+  return templateVarLoadInstrs
+}
+
+function encodeStoreLocalInstr(index: number): string {
+  if (index < 0 || index > 0xff) {
+    throw new Error(`StoreLocal index ${index} must be between 0 and 255 inclusive`)
+  }
+  return '17' + index.toString(16).padStart(2, '0')
+}
+
+function encodeLoadLocalInstr(index: number): string {
+  if (index < 0 || index > 0xff) {
+    throw new Error(`LoadLocal index ${index} must be between 0 and 255 inclusive`)
+  }
+  return '16' + index.toString(16).padStart(2, '0')
 }
 
 function encodeU256Const(value: number): string {

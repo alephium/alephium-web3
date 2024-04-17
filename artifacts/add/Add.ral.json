@@ -1,8 +1,8 @@
 {
   "version": "v2.11.0",
   "name": "Add",
-  "bytecode": "02040d40364056405f0100020402041600160100010200000202021605160016015f06160016015fa00016002a16012aa100a000160016010e0dce000100020103040600101300641600130164170517041603d1a21601160216041605c1180102010100021600b0",
-  "codeHash": "97dbb799a710b8cf8dd878e3892333657c26020014bd2f0099850a26bd39668a",
+  "bytecode": "02050d1a40434063406c0100021002041600160100020201000c0c02041600160100020200000202021605160016015f06160016015fa00016002a16012aa100a000160016010e0dce000100020103040600101300641600130164170517041603d1a21601160216041605c1180102010100021600b0",
+  "codeHash": "cb9bcf12cd42167de9cd08cbb974d03263bf8fd12fae62340a72029f35497b04",
   "fieldsSig": {
     "names": [
       "sub",
@@ -54,6 +54,33 @@
         "[U256;2]"
       ],
       "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "[U256;2]"
+      ]
+    },
+    {
+      "name": "add2",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "array1",
+        "address",
+        "array2",
+        "addS"
+      ],
+      "paramTypes": [
+        "[U256;2]",
+        "Address",
+        "[U256;2]",
+        "AddStruct1"
+      ],
+      "paramIsMutable": [
+        false,
+        false,
+        false,
         false
       ],
       "returnTypes": [

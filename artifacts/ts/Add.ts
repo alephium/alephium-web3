@@ -31,7 +31,14 @@ import {
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace AddTypes {
@@ -48,6 +55,15 @@ export namespace AddTypes {
   export interface CallMethodTable {
     add: {
       params: CallContractParams<{ array: [bigint, bigint] }>;
+      result: CallContractResult<[bigint, bigint]>;
+    };
+    add2: {
+      params: CallContractParams<{
+        array1: [bigint, bigint];
+        address: Address;
+        array2: [bigint, bigint];
+        addS: AddStruct1;
+      }>;
       result: CallContractResult<[bigint, bigint]>;
     };
     createSubContract: {
@@ -80,6 +96,15 @@ export namespace AddTypes {
   export interface SignExecuteMethodTable {
     add: {
       params: SignExecuteContractMethodParams<{ array: [bigint, bigint] }>;
+      result: SignExecuteScriptTxResult;
+    };
+    add2: {
+      params: SignExecuteContractMethodParams<{
+        array1: [bigint, bigint];
+        address: Address;
+        array2: [bigint, bigint];
+        addS: AddStruct1;
+      }>;
       result: SignExecuteScriptTxResult;
     };
     createSubContract: {
@@ -122,6 +147,19 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "add", params);
     },
+    add2: async (
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        {
+          array1: [bigint, bigint];
+          address: Address;
+          array2: [bigint, bigint];
+          addS: AddStruct1;
+        }
+      >
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
+      return testMethod(this, "add2", params);
+    },
     addPrivate: async (
       params: TestContractParamsWithoutMaps<
         AddTypes.Fields,
@@ -153,8 +191,8 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
-    "=8+4=1-1=2-1=1+3=2-2+6c=37+77e010a=1+1646450726976617465=152",
-    "6d87d293224fce4601a8e315e6a384aca46fdd1adab1402ffae8cc454b94a66e",
+    "=10-2+50=2-2+70=2-2+79=63+77e010a=1+1646450726976617465=152",
+    "9a4cf22e444db365cc62468b22db303401e6942409e193055e7f5f0318b389ca",
     AllStructs
   )
 );
@@ -212,6 +250,11 @@ export class AddInstance extends ContractInstance {
     ): Promise<AddTypes.CallMethodResult<"add">> => {
       return callMethod(Add, this, "add", params, getContractByCodeHash);
     },
+    add2: async (
+      params: AddTypes.CallMethodParams<"add2">
+    ): Promise<AddTypes.CallMethodResult<"add2">> => {
+      return callMethod(Add, this, "add2", params, getContractByCodeHash);
+    },
     createSubContract: async (
       params: AddTypes.CallMethodParams<"createSubContract">
     ): Promise<AddTypes.CallMethodResult<"createSubContract">> => {
@@ -237,6 +280,11 @@ export class AddInstance extends ContractInstance {
       params: AddTypes.SignExecuteMethodParams<"add">
     ): Promise<AddTypes.SignExecuteMethodResult<"add">> => {
       return signExecuteMethod(Add, this, "add", params);
+    },
+    add2: async (
+      params: AddTypes.SignExecuteMethodParams<"add2">
+    ): Promise<AddTypes.SignExecuteMethodResult<"add2">> => {
+      return signExecuteMethod(Add, this, "add2", params);
     },
     createSubContract: async (
       params: AddTypes.SignExecuteMethodParams<"createSubContract">

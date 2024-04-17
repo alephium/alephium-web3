@@ -245,7 +245,7 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(44)
+    expect(sourceFiles.length).toEqual(46)
     sourceFiles.slice(0, 23).forEach((c) => expect(c.type).toEqual(0)) // contracts
     sourceFiles.slice(23, 34).forEach((s) => expect(s.type).toEqual(1)) // scripts
     sourceFiles.slice(34, 36).forEach((i) => expect(i.type).toEqual(2)) // abstract class
@@ -536,5 +536,43 @@ describe('contract', function () {
 
     await add.transaction.destroy({ args: { caller: caller }, signer })
     await expect(provider.contracts.getContractsAddressState(add.address)).rejects.toThrow(Error)
+  })
+
+  it('should test sign execute method with array arguments', async () => {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const provider = web3.getCurrentNodeProvider()
+
+    const state = await provider.contracts.getContractsAddressState(add.address)
+    expect(state).toBeDefined()
+
+    await add.transaction.add({ args: { array: [2n, 1n] }, signer })
+  })
+
+  it('should test sign execute method with struct arguments', async () => {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const provider = web3.getCurrentNodeProvider()
+
+    const state = await provider.contracts.getContractsAddressState(add.address)
+    expect(state).toBeDefined()
+
+    await add.transaction.add2({
+      args: {
+        array1: [2n, 1n],
+        address: signer.address,
+        array2: [2n, 1n],
+        addS: {
+          a: 1n,
+          b: [
+            { a: 1n, b: [2n, 1n] },
+            { a: 1n, b: [2n, 1n] }
+          ]
+        }
+      },
+      signer
+    })
   })
 })

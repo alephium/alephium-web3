@@ -31,7 +31,14 @@ import {
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace UserAccountTypes {

@@ -31,7 +31,14 @@ import {
 } from "@alephium/web3";
 import { default as NFTCollectionWithRoyaltyTestContractJson } from "../nft/NFTCollectionWithRoyaltyTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace NFTCollectionWithRoyaltyTestTypes {

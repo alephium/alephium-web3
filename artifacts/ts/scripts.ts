@@ -22,7 +22,14 @@ import { default as TestAssertScriptJson } from "../test/TestAssert.ral.json";
 import { default as UpdateMapValueScriptJson } from "../test/UpdateMapValue.ral.json";
 import { default as UpdateUserAccountScriptJson } from "../test/UpdateUserAccount.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 export const AddMain = new ExecutableScript<{
   add: HexString;

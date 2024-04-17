@@ -11,23 +11,39 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "1aefef4f21ebee078768df8158bd43d5008e640e443f9b41f0cdbfc8e43eccdd",
-      "bytecodeDebugPatch": "=8+4=1-1=2-1=1+3=2-2+6c=37+77e010a=1+1646450726976617465=152",
-      "codeHashDebug": "6d87d293224fce4601a8e315e6a384aca46fdd1adab1402ffae8cc454b94a66e",
+      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
+      "bytecodeDebugPatch": "=10-2+50=2-2+70=2-2+79=63+77e010a=1+1646450726976617465=152",
+      "codeHashDebug": "9a4cf22e444db365cc62468b22db303401e6942409e193055e7f5f0318b389ca",
       "warnings": [
+        "Found unused variables in Add: add2.addS, add2.address, add2.array2",
         "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
         "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
+        "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
+        "No external caller check for function \"Add.add2\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "AddMain": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "1aefef4f21ebee078768df8158bd43d5008e640e443f9b41f0cdbfc8e43eccdd",
+      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": [
         "The return values of the function \"Add.add\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
       ]
+    },
+    "AddStruct1": {
+      "sourceFile": "add/add.ral",
+      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "AddStruct2": {
+      "sourceFile": "add/add.ral",
+      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
     },
     "Assert": {
       "sourceFile": "test/assert.ral",

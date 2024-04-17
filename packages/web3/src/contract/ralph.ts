@@ -385,6 +385,28 @@ export function primitiveToByteVec(value: Val, type: string): Uint8Array {
   }
 }
 
+export function typeLength(typ: string, structs: Struct[]): number {
+  if (isPrimitiveType(typ)) {
+    return 1
+  }
+
+  if (typ.startsWith('[')) {
+    const [baseType, size] = decodeArrayType(typ)
+    return size * typeLength(baseType, structs)
+  }
+
+  const struct = structs.find((s) => s.name === typ)
+  if (struct !== undefined) {
+    return struct.fieldTypes.reduce((acc, fieldType) => acc + typeLength(fieldType, structs), 0)
+  }
+
+  throw Error(`Invalid type ${typ}`)
+}
+
+export function isPrimitiveType(typ: string): boolean {
+  return ['Bool', 'I256', 'U256', 'ByteVec', 'Address'].includes(typ)
+}
+
 export function flattenFields(
   fields: Fields,
   names: string[],
@@ -466,7 +488,7 @@ export function buildScriptByteCode(
 ): string {
   const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
   return bytecodeTemplate.replace(scriptFieldRegex, (_, fieldIndex: string) => {
-    const field = allFields[`${fieldIndex}`]
+    const field = allFields[parseInt(fieldIndex)]
     return _encodeField(field.name, () => encodeScriptFieldAsString(field.type, field.value))
   })
 }
@@ -476,7 +498,7 @@ function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
     return encodeFunc()
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Invalid ${fieldName}, error: ${error.message}`)
+      throw new Error(`Invalid ${fieldName}, error: ${error.message} `)
     }
     throw error
   }
@@ -536,7 +558,7 @@ export function encodeContractField(tpe: string, value: Val): Uint8Array {
       const address = toApiAddress(value)
       return new Uint8Array([ApiValType.Address, ...encodeAddress(address)])
     default:
-      throw Error(`Expected primitive type, got ${tpe}`)
+      throw Error(`Expected primitive type, got ${tpe} `)
   }
 }
 
