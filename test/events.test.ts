@@ -27,7 +27,7 @@ import { EventSubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { Sub } from '../artifacts/ts/Sub'
 import { Add, AddTypes, AddInstance } from '../artifacts/ts/Add'
-import { Main, DestroyAdd } from '../artifacts/ts/scripts'
+import { AddMain, DestroyAdd } from '../artifacts/ts/scripts'
 import { CreateContractEventAddresses, DestroyContractEventAddresses } from '../packages/web3'
 import { ContractCreatedEvent, subscribeContractCreatedEvent } from '../packages/web3'
 import { ContractDestroyedEvent, subscribeContractDestroyedEvent } from '../packages/web3'
@@ -80,7 +80,7 @@ describe('events', function () {
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAddEvent(subscribeOptions)
     for (let i = 0; i < 3; i++) {
-      await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+      await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     }
     await sleep(3000)
 
@@ -104,7 +104,7 @@ describe('events', function () {
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAllEvents(subscribeOptions)
     for (let i = 0; i < 3; i++) {
-      await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+      await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     }
     await sleep(3000)
 
@@ -143,7 +143,7 @@ describe('events', function () {
     const addEvents: Array<AddTypes.AddEvent> = []
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAddEvent(subscribeOptions)
-    const scriptTx0 = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+    const scriptTx0 = await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     await sleep(1500)
     expect(eventCount).toEqual(1)
     subscription.unsubscribe()
@@ -154,7 +154,7 @@ describe('events', function () {
     expect(addEvents[0].fields.y).toEqual(1n)
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
-    await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+    await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     await sleep(1500)
     expect(eventCount).toEqual(1)
     expect(addEvents.length).toEqual(1)

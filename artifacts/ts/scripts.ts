@@ -11,10 +11,10 @@ import {
   SignerProvider,
   HexString,
 } from "@alephium/web3";
+import { default as AddMainScriptJson } from "../add/AddMain.ral.json";
 import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as InsertIntoMapScriptJson } from "../test/InsertIntoMap.ral.json";
-import { default as MainScriptJson } from "../add/Main.ral.json";
 import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
 import { default as RemoveFromMapScriptJson } from "../test/RemoveFromMap.ral.json";
 import { default as TemplateArrayVarScriptJson } from "../test/TemplateArrayVar.ral.json";
@@ -23,6 +23,11 @@ import { default as UpdateMapValueScriptJson } from "../test/UpdateMapValue.ral.
 import { default as UpdateUserAccountScriptJson } from "../test/UpdateUserAccount.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
 import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+
+export const AddMain = new ExecutableScript<{
+  add: HexString;
+  array: [bigint, bigint];
+}>(Script.fromJson(AddMainScriptJson, "", AllStructs));
 
 export const DestroyAdd = new ExecutableScript<{
   add: HexString;
@@ -38,10 +43,6 @@ export const InsertIntoMap = new ExecutableScript<{
   from: Address;
   value: MapValue;
 }>(Script.fromJson(InsertIntoMapScriptJson, "", AllStructs));
-
-export const Main = new ExecutableScript<{ addContractId: HexString }>(
-  Script.fromJson(MainScriptJson, "", AllStructs)
-);
 
 export const MintNFTTest = new ExecutableScript<{
   nftCollectionContractId: HexString;

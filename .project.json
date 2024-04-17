@@ -11,13 +11,22 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "95b2d5b3755f9a00b616a8beaccf7b42da269ae57a25ec825c333395cd2a23bc",
+      "sourceCodeHash": "1aefef4f21ebee078768df8158bd43d5008e640e443f9b41f0cdbfc8e43eccdd",
       "bytecodeDebugPatch": "=8+4=1-1=2-1=1+3=2-2+6c=37+77e010a=1+1646450726976617465=152",
       "codeHashDebug": "6d87d293224fce4601a8e315e6a384aca46fdd1adab1402ffae8cc454b94a66e",
       "warnings": [
         "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
         "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
+      ]
+    },
+    "AddMain": {
+      "sourceFile": "add/add.ral",
+      "sourceCodeHash": "1aefef4f21ebee078768df8158bd43d5008e640e443f9b41f0cdbfc8e43eccdd",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": [
+        "The return values of the function \"Add.add\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
       ]
     },
     "Assert": {
@@ -170,15 +179,6 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
-    },
-    "Main": {
-      "sourceFile": "add/add.ral",
-      "sourceCodeHash": "95b2d5b3755f9a00b616a8beaccf7b42da269ae57a25ec825c333395cd2a23bc",
-      "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": [
-        "The return values of the function \"Add.add\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
-      ]
     },
     "MapTest": {
       "sourceFile": "test/map.ral",

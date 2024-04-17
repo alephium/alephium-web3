@@ -42,7 +42,7 @@ import { Greeter } from '../artifacts/ts/Greeter'
 import {
   GreeterMain,
   InsertIntoMap,
-  Main,
+  AddMain,
   RemoveFromMap,
   TemplateArrayVar,
   TestAssert,
@@ -155,7 +155,7 @@ describe('contract', function () {
     expect(addContractState0.address).toEqual(add.address)
     expect(addContractState0.contractId).toEqual(add.contractId)
 
-    const mainScriptTx = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+    const mainScriptTx = await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub after main script is executed
@@ -256,7 +256,7 @@ describe('contract', function () {
   it('should load contract from json', () => {
     loadContract('./artifacts/add/Add.ral.json')
     loadContract('./artifacts/sub/Sub.ral.json')
-    loadScript('./artifacts/add/Main.ral.json')
+    loadScript('./artifacts/add/AddMain.ral.json')
 
     loadContract('./artifacts/greeter/Greeter.ral.json')
     loadScript('./artifacts/greeter/GreeterMain.ral.json')

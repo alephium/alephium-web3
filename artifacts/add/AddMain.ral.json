@@ -1,15 +1,18 @@
 {
   "version": "v2.11.0",
-  "name": "Main",
-  "bytecodeTemplate": "0101030001000a{0}17000e0d0e0e160001001818",
+  "name": "AddMain",
+  "bytecodeTemplate": "0101030002000c{1}{2}17011700160016010e0e{0}01001818",
   "fieldsSig": {
     "names": [
-      "addContractId"
+      "add",
+      "array"
     ],
     "types": [
-      "ByteVec"
+      "Add",
+      "[U256;2]"
     ],
     "isMutable": [
+      false,
       false
     ]
   },

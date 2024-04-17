@@ -2306,7 +2306,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 
 function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig): string {
   const numberOfMethods = '01'
-  const isPublic = functionSig.isPublic ? '01' : '00'
+  const isPublic = '01'
   const modifier = '03'
   const argsLength = '00'
   const localsLength = '00'
