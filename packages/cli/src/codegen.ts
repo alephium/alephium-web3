@@ -95,38 +95,62 @@ function formatParameters(fieldsSig: { names: string[]; types: string[] }): stri
     .join(', ')
 }
 
-function genMethod(contractName: string, functionSig: node.FunctionSig): string {
-  if (functionSig.returnTypes.length === 0) {
-    const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
-    const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
-    return `
-    ${functionSig.name}: async (${params}): Promise<${retType}> => {
-      return signExecuteMethod(${contractName}, this, "${functionSig.name}", params)
-    }
-  `
-  } else {
-    const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
-    const funcHasArgs = functionSig.paramNames.length > 0
-    const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
-    const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
-    return `
+function genCallMethod(contractName: string, functionSig: node.FunctionSig): string {
+  //  if (functionSig.returnTypes.length === 0) {
+  //    const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
+  //    const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
+  //    return `
+  //    ${functionSig.name}: async (${params}): Promise<${retType}> => {
+  //      return signExecuteMethod(${contractName}, this, "${functionSig.name}", params)
+  //    }
+  //  `
+  //  } else {
+  const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
+  const funcHasArgs = functionSig.paramNames.length > 0
+  const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
+  const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
+  return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
       return callMethod(${contractName}, this, "${functionSig.name}", ${callParams}, getContractByCodeHash)
     }
   `
-  }
+  //  }
 }
 
-function genMethods(contract: Contract): string {
+function genCallMethods(contract: Contract): string {
   const functions = contract.functions.filter((f) => f.isPublic)
   if (functions.length === 0) {
     return ''
   }
   return `
     methods = {
-      ${functions.map((f) => genMethod(contract.name, f)).join(',')}
+      ${functions.map((f) => genCallMethod(contract.name, f)).join(',')}
+    }
+
+    call = this.methods
+  `
+}
+
+function genTransactionMethods(contract: Contract): string {
+  const functions = contract.functions.filter((f) => f.isPublic)
+  if (functions.length === 0) {
+    return ''
+  }
+  return `
+    transaction = {
+      ${functions.map((f) => genTransactionMethod(contract.name, f)).join(',')}
     }
   `
+}
+
+function genTransactionMethod(contractName: string, functionSig: node.FunctionSig): string {
+  const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
+  const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
+  return `
+      ${functionSig.name}: async (${params}): Promise<${retType}> => {
+        return signExecuteMethod(${contractName}, this, "${functionSig.name}", params)
+      }
+    `
 }
 
 function getInstanceName(contract: Contract): string {
@@ -336,7 +360,7 @@ function genTestMethods(contract: Contract): string {
 
 function genCallMethodTypes(contract: Contract): string {
   const entities = contract.functions
-    .filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length > 0)
+    .filter((functionSig) => functionSig.isPublic)
     .map((functionSig) => {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
@@ -374,7 +398,7 @@ function genCallMethodTypes(contract: Contract): string {
 
 function genSignExecuteMethodTypes(contract: Contract): string {
   const entities = contract.functions
-    .filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length == 0)
+    .filter((functionSig) => functionSig.isPublic)
     .map((functionSig) => {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
@@ -497,7 +521,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genGetContractEventsCurrentCount(contract)}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}
-      ${genMethods(contract)}
+      ${genCallMethods(contract)}
+      ${genTransactionMethods(contract)}
       ${genMulticall(contract)}
     }
 `

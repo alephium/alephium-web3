@@ -510,7 +510,7 @@ describe('contract', function () {
     const exist0 = (await mapTest.methods.contains({ args: { key: signer.address } })).returns
     expect(exist0).toEqual(true)
 
-    const value = (await mapTest.methods.get({ args: { key: signer.address } })).returns
+    const value = (await mapTest.call.get({ args: { key: signer.address } })).returns
     expect(value).toEqual({ id: 1n, balance: 10n })
 
     await RemoveFromMap.execute(signer, {
@@ -520,11 +520,11 @@ describe('contract', function () {
       }
     })
 
-    const exist1 = (await mapTest.methods.contains({ args: { key: signer.address } })).returns
+    const exist1 = (await mapTest.call.contains({ args: { key: signer.address } })).returns
     expect(exist1).toEqual(false)
   })
 
-  it('should test sign execute method', async () => {
+  it('should test sign execute method with primitive arguments', async () => {
     const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
     const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
       .contractInstance
@@ -534,7 +534,7 @@ describe('contract', function () {
     const state = await provider.contracts.getContractsAddressState(add.address)
     expect(state).toBeDefined()
 
-    await add.methods.destroy({ args: { caller: caller }, signer })
+    await add.transaction.destroy({ args: { caller: caller }, signer })
     await expect(provider.contracts.getContractsAddressState(add.address)).rejects.toThrow(Error)
   })
 })

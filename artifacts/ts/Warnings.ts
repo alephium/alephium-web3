@@ -42,6 +42,25 @@ export namespace WarningsTypes {
 
   export type State = ContractState<Fields>;
 
+  export interface CallMethodTable {
+    foo: {
+      params: CallContractParams<{ x: bigint; y: bigint }>;
+      result: CallContractResult<null>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
+
   export interface SignExecuteMethodTable {
     foo: {
       params: SignExecuteContractMethodParams<{ x: bigint; y: bigint }>;
@@ -98,6 +117,16 @@ export class WarningsInstance extends ContractInstance {
   }
 
   methods = {
+    foo: async (
+      params: WarningsTypes.CallMethodParams<"foo">
+    ): Promise<WarningsTypes.CallMethodResult<"foo">> => {
+      return callMethod(Warnings, this, "foo", params, getContractByCodeHash);
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
     foo: async (
       params: WarningsTypes.SignExecuteMethodParams<"foo">
     ): Promise<WarningsTypes.SignExecuteMethodResult<"foo">> => {

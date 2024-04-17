@@ -56,6 +56,10 @@ export namespace NFTCollectionTestTypes {
       params: CallContractParams<{ index: bigint }>;
       result: CallContractResult<HexString>;
     };
+    validateNFT: {
+      params: CallContractParams<{ nftId: HexString; nftIndex: bigint }>;
+      result: CallContractResult<null>;
+    };
     mint: {
       params: CallContractParams<{ nftUri: HexString }>;
       result: CallContractResult<HexString>;
@@ -75,11 +79,27 @@ export namespace NFTCollectionTestTypes {
   };
 
   export interface SignExecuteMethodTable {
+    getCollectionUri: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    totalSupply: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    nftByIndex: {
+      params: SignExecuteContractMethodParams<{ index: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
     validateNFT: {
       params: SignExecuteContractMethodParams<{
         nftId: HexString;
         nftIndex: bigint;
       }>;
+      result: SignExecuteScriptTxResult;
+    };
+    mint: {
+      params: SignExecuteContractMethodParams<{ nftUri: HexString }>;
       result: SignExecuteScriptTxResult;
     };
   }
@@ -208,11 +228,15 @@ export class NFTCollectionTestInstance extends ContractInstance {
       );
     },
     validateNFT: async (
-      params: NFTCollectionTestTypes.SignExecuteMethodParams<"validateNFT">
-    ): Promise<
-      NFTCollectionTestTypes.SignExecuteMethodResult<"validateNFT">
-    > => {
-      return signExecuteMethod(NFTCollectionTest, this, "validateNFT", params);
+      params: NFTCollectionTestTypes.CallMethodParams<"validateNFT">
+    ): Promise<NFTCollectionTestTypes.CallMethodResult<"validateNFT">> => {
+      return callMethod(
+        NFTCollectionTest,
+        this,
+        "validateNFT",
+        params,
+        getContractByCodeHash
+      );
     },
     mint: async (
       params: NFTCollectionTestTypes.CallMethodParams<"mint">
@@ -224,6 +248,49 @@ export class NFTCollectionTestInstance extends ContractInstance {
         params,
         getContractByCodeHash
       );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    getCollectionUri: async (
+      params: NFTCollectionTestTypes.SignExecuteMethodParams<"getCollectionUri">
+    ): Promise<
+      NFTCollectionTestTypes.SignExecuteMethodResult<"getCollectionUri">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionTest,
+        this,
+        "getCollectionUri",
+        params
+      );
+    },
+    totalSupply: async (
+      params: NFTCollectionTestTypes.SignExecuteMethodParams<"totalSupply">
+    ): Promise<
+      NFTCollectionTestTypes.SignExecuteMethodResult<"totalSupply">
+    > => {
+      return signExecuteMethod(NFTCollectionTest, this, "totalSupply", params);
+    },
+    nftByIndex: async (
+      params: NFTCollectionTestTypes.SignExecuteMethodParams<"nftByIndex">
+    ): Promise<
+      NFTCollectionTestTypes.SignExecuteMethodResult<"nftByIndex">
+    > => {
+      return signExecuteMethod(NFTCollectionTest, this, "nftByIndex", params);
+    },
+    validateNFT: async (
+      params: NFTCollectionTestTypes.SignExecuteMethodParams<"validateNFT">
+    ): Promise<
+      NFTCollectionTestTypes.SignExecuteMethodResult<"validateNFT">
+    > => {
+      return signExecuteMethod(NFTCollectionTest, this, "validateNFT", params);
+    },
+    mint: async (
+      params: NFTCollectionTestTypes.SignExecuteMethodParams<"mint">
+    ): Promise<NFTCollectionTestTypes.SignExecuteMethodResult<"mint">> => {
+      return signExecuteMethod(NFTCollectionTest, this, "mint", params);
     },
   };
 

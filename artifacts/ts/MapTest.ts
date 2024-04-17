@@ -38,6 +38,18 @@ export namespace MapTestTypes {
   export type State = Omit<ContractState<any>, "fields">;
 
   export interface CallMethodTable {
+    insert: {
+      params: CallContractParams<{ key: Address; value: MapValue }>;
+      result: CallContractResult<null>;
+    };
+    update: {
+      params: CallContractParams<{ key: Address }>;
+      result: CallContractResult<null>;
+    };
+    remove: {
+      params: CallContractParams<{ key: Address }>;
+      result: CallContractResult<null>;
+    };
     get: {
       params: CallContractParams<{ key: Address }>;
       result: CallContractResult<MapValue>;
@@ -73,6 +85,14 @@ export namespace MapTestTypes {
       result: SignExecuteScriptTxResult;
     };
     remove: {
+      params: SignExecuteContractMethodParams<{ key: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    get: {
+      params: SignExecuteContractMethodParams<{ key: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    contains: {
       params: SignExecuteContractMethodParams<{ key: Address }>;
       result: SignExecuteScriptTxResult;
     };
@@ -199,19 +219,19 @@ export class MapTestInstance extends ContractInstance {
 
   methods = {
     insert: async (
-      params: MapTestTypes.SignExecuteMethodParams<"insert">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"insert">> => {
-      return signExecuteMethod(MapTest, this, "insert", params);
+      params: MapTestTypes.CallMethodParams<"insert">
+    ): Promise<MapTestTypes.CallMethodResult<"insert">> => {
+      return callMethod(MapTest, this, "insert", params, getContractByCodeHash);
     },
     update: async (
-      params: MapTestTypes.SignExecuteMethodParams<"update">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"update">> => {
-      return signExecuteMethod(MapTest, this, "update", params);
+      params: MapTestTypes.CallMethodParams<"update">
+    ): Promise<MapTestTypes.CallMethodResult<"update">> => {
+      return callMethod(MapTest, this, "update", params, getContractByCodeHash);
     },
     remove: async (
-      params: MapTestTypes.SignExecuteMethodParams<"remove">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"remove">> => {
-      return signExecuteMethod(MapTest, this, "remove", params);
+      params: MapTestTypes.CallMethodParams<"remove">
+    ): Promise<MapTestTypes.CallMethodResult<"remove">> => {
+      return callMethod(MapTest, this, "remove", params, getContractByCodeHash);
     },
     get: async (
       params: MapTestTypes.CallMethodParams<"get">
@@ -228,6 +248,36 @@ export class MapTestInstance extends ContractInstance {
         params,
         getContractByCodeHash
       );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    insert: async (
+      params: MapTestTypes.SignExecuteMethodParams<"insert">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"insert">> => {
+      return signExecuteMethod(MapTest, this, "insert", params);
+    },
+    update: async (
+      params: MapTestTypes.SignExecuteMethodParams<"update">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"update">> => {
+      return signExecuteMethod(MapTest, this, "update", params);
+    },
+    remove: async (
+      params: MapTestTypes.SignExecuteMethodParams<"remove">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"remove">> => {
+      return signExecuteMethod(MapTest, this, "remove", params);
+    },
+    get: async (
+      params: MapTestTypes.SignExecuteMethodParams<"get">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"get">> => {
+      return signExecuteMethod(MapTest, this, "get", params);
+    },
+    contains: async (
+      params: MapTestTypes.SignExecuteMethodParams<"contains">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"contains">> => {
+      return signExecuteMethod(MapTest, this, "contains", params);
     },
   };
 

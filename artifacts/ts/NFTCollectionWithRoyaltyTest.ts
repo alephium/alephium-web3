@@ -58,9 +58,21 @@ export namespace NFTCollectionWithRoyaltyTestTypes {
       params: CallContractParams<{ index: bigint }>;
       result: CallContractResult<HexString>;
     };
+    validateNFT: {
+      params: CallContractParams<{ nftId: HexString; nftIndex: bigint }>;
+      result: CallContractResult<null>;
+    };
     royaltyAmount: {
       params: CallContractParams<{ tokenId: HexString; salePrice: bigint }>;
       result: CallContractResult<bigint>;
+    };
+    payRoyalty: {
+      params: CallContractParams<{ payer: Address; amount: bigint }>;
+      result: CallContractResult<null>;
+    };
+    withdrawRoyalty: {
+      params: CallContractParams<{ recipient: Address; amount: bigint }>;
+      result: CallContractResult<null>;
     };
     mint: {
       params: CallContractParams<{ nftUri: HexString }>;
@@ -81,10 +93,29 @@ export namespace NFTCollectionWithRoyaltyTestTypes {
   };
 
   export interface SignExecuteMethodTable {
+    getCollectionUri: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    totalSupply: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    nftByIndex: {
+      params: SignExecuteContractMethodParams<{ index: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
     validateNFT: {
       params: SignExecuteContractMethodParams<{
         nftId: HexString;
         nftIndex: bigint;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    royaltyAmount: {
+      params: SignExecuteContractMethodParams<{
+        tokenId: HexString;
+        salePrice: bigint;
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -100,6 +131,10 @@ export namespace NFTCollectionWithRoyaltyTestTypes {
         recipient: Address;
         amount: bigint;
       }>;
+      result: SignExecuteScriptTxResult;
+    };
+    mint: {
+      params: SignExecuteContractMethodParams<{ nftUri: HexString }>;
       result: SignExecuteScriptTxResult;
     };
   }
@@ -265,15 +300,16 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
       );
     },
     validateNFT: async (
-      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"validateNFT">
+      params: NFTCollectionWithRoyaltyTestTypes.CallMethodParams<"validateNFT">
     ): Promise<
-      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"validateNFT">
+      NFTCollectionWithRoyaltyTestTypes.CallMethodResult<"validateNFT">
     > => {
-      return signExecuteMethod(
+      return callMethod(
         NFTCollectionWithRoyaltyTest,
         this,
         "validateNFT",
-        params
+        params,
+        getContractByCodeHash
       );
     },
     royaltyAmount: async (
@@ -287,6 +323,108 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
         "royaltyAmount",
         params,
         getContractByCodeHash
+      );
+    },
+    payRoyalty: async (
+      params: NFTCollectionWithRoyaltyTestTypes.CallMethodParams<"payRoyalty">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.CallMethodResult<"payRoyalty">
+    > => {
+      return callMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "payRoyalty",
+        params,
+        getContractByCodeHash
+      );
+    },
+    withdrawRoyalty: async (
+      params: NFTCollectionWithRoyaltyTestTypes.CallMethodParams<"withdrawRoyalty">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.CallMethodResult<"withdrawRoyalty">
+    > => {
+      return callMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "withdrawRoyalty",
+        params,
+        getContractByCodeHash
+      );
+    },
+    mint: async (
+      params: NFTCollectionWithRoyaltyTestTypes.CallMethodParams<"mint">
+    ): Promise<NFTCollectionWithRoyaltyTestTypes.CallMethodResult<"mint">> => {
+      return callMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "mint",
+        params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    getCollectionUri: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"getCollectionUri">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"getCollectionUri">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "getCollectionUri",
+        params
+      );
+    },
+    totalSupply: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"totalSupply">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"totalSupply">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "totalSupply",
+        params
+      );
+    },
+    nftByIndex: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"nftByIndex">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"nftByIndex">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "nftByIndex",
+        params
+      );
+    },
+    validateNFT: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"validateNFT">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"validateNFT">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "validateNFT",
+        params
+      );
+    },
+    royaltyAmount: async (
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"royaltyAmount">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"royaltyAmount">
+    > => {
+      return signExecuteMethod(
+        NFTCollectionWithRoyaltyTest,
+        this,
+        "royaltyAmount",
+        params
       );
     },
     payRoyalty: async (
@@ -314,14 +452,15 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
       );
     },
     mint: async (
-      params: NFTCollectionWithRoyaltyTestTypes.CallMethodParams<"mint">
-    ): Promise<NFTCollectionWithRoyaltyTestTypes.CallMethodResult<"mint">> => {
-      return callMethod(
+      params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"mint">
+    ): Promise<
+      NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodResult<"mint">
+    > => {
+      return signExecuteMethod(
         NFTCollectionWithRoyaltyTest,
         this,
         "mint",
-        params,
-        getContractByCodeHash
+        params
       );
     },
   };

@@ -37,6 +37,25 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 export namespace AssertTypes {
   export type State = Omit<ContractState<any>, "fields">;
 
+  export interface CallMethodTable {
+    test: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
+
   export interface SignExecuteMethodTable {
     test: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
@@ -100,6 +119,22 @@ export class AssertInstance extends ContractInstance {
   }
 
   methods = {
+    test: async (
+      params?: AssertTypes.CallMethodParams<"test">
+    ): Promise<AssertTypes.CallMethodResult<"test">> => {
+      return callMethod(
+        Assert,
+        this,
+        "test",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
     test: async (
       params: AssertTypes.SignExecuteMethodParams<"test">
     ): Promise<AssertTypes.SignExecuteMethodResult<"test">> => {

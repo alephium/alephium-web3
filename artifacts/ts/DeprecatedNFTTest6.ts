@@ -64,6 +64,21 @@ export namespace DeprecatedNFTTest6Types {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    getTokenUri: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getArray: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -140,6 +155,23 @@ export class DeprecatedNFTTest6Instance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    getTokenUri: async (
+      params: DeprecatedNFTTest6Types.SignExecuteMethodParams<"getTokenUri">
+    ): Promise<
+      DeprecatedNFTTest6Types.SignExecuteMethodResult<"getTokenUri">
+    > => {
+      return signExecuteMethod(DeprecatedNFTTest6, this, "getTokenUri", params);
+    },
+    getArray: async (
+      params: DeprecatedNFTTest6Types.SignExecuteMethodParams<"getArray">
+    ): Promise<DeprecatedNFTTest6Types.SignExecuteMethodResult<"getArray">> => {
+      return signExecuteMethod(DeprecatedNFTTest6, this, "getArray", params);
     },
   };
 

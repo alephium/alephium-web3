@@ -37,6 +37,25 @@ import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 export namespace MetaDataTypes {
   export type State = Omit<ContractState<any>, "fields">;
 
+  export interface CallMethodTable {
+    foo: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
+
   export interface SignExecuteMethodTable {
     foo: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
@@ -103,6 +122,22 @@ export class MetaDataInstance extends ContractInstance {
   }
 
   methods = {
+    foo: async (
+      params?: MetaDataTypes.CallMethodParams<"foo">
+    ): Promise<MetaDataTypes.CallMethodResult<"foo">> => {
+      return callMethod(
+        MetaData,
+        this,
+        "foo",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
     foo: async (
       params: MetaDataTypes.SignExecuteMethodParams<"foo">
     ): Promise<MetaDataTypes.SignExecuteMethodResult<"foo">> => {

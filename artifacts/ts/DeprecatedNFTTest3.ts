@@ -47,6 +47,10 @@ export namespace DeprecatedNFTTest3Types {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<HexString>;
     };
+    returnNothing: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -62,6 +66,10 @@ export namespace DeprecatedNFTTest3Types {
   };
 
   export interface SignExecuteMethodTable {
+    getTokenUri: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
     returnNothing: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
@@ -136,6 +144,29 @@ export class DeprecatedNFTTest3Instance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+    returnNothing: async (
+      params?: DeprecatedNFTTest3Types.CallMethodParams<"returnNothing">
+    ): Promise<DeprecatedNFTTest3Types.CallMethodResult<"returnNothing">> => {
+      return callMethod(
+        DeprecatedNFTTest3,
+        this,
+        "returnNothing",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    getTokenUri: async (
+      params: DeprecatedNFTTest3Types.SignExecuteMethodParams<"getTokenUri">
+    ): Promise<
+      DeprecatedNFTTest3Types.SignExecuteMethodResult<"getTokenUri">
+    > => {
+      return signExecuteMethod(DeprecatedNFTTest3, this, "getTokenUri", params);
     },
     returnNothing: async (
       params: DeprecatedNFTTest3Types.SignExecuteMethodParams<"returnNothing">

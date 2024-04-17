@@ -50,6 +50,19 @@ export namespace AddTypes {
       params: CallContractParams<{ array: [bigint, bigint] }>;
       result: CallContractResult<[bigint, bigint]>;
     };
+    createSubContract: {
+      params: CallContractParams<{
+        a: bigint;
+        path: HexString;
+        subContractId: HexString;
+        payer: Address;
+      }>;
+      result: CallContractResult<null>;
+    };
+    destroy: {
+      params: CallContractParams<{ caller: Address }>;
+      result: CallContractResult<null>;
+    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -65,6 +78,10 @@ export namespace AddTypes {
   };
 
   export interface SignExecuteMethodTable {
+    add: {
+      params: SignExecuteContractMethodParams<{ array: [bigint, bigint] }>;
+      result: SignExecuteScriptTxResult;
+    };
     createSubContract: {
       params: SignExecuteContractMethodParams<{
         a: bigint;
@@ -194,6 +211,32 @@ export class AddInstance extends ContractInstance {
       params: AddTypes.CallMethodParams<"add">
     ): Promise<AddTypes.CallMethodResult<"add">> => {
       return callMethod(Add, this, "add", params, getContractByCodeHash);
+    },
+    createSubContract: async (
+      params: AddTypes.CallMethodParams<"createSubContract">
+    ): Promise<AddTypes.CallMethodResult<"createSubContract">> => {
+      return callMethod(
+        Add,
+        this,
+        "createSubContract",
+        params,
+        getContractByCodeHash
+      );
+    },
+    destroy: async (
+      params: AddTypes.CallMethodParams<"destroy">
+    ): Promise<AddTypes.CallMethodResult<"destroy">> => {
+      return callMethod(Add, this, "destroy", params, getContractByCodeHash);
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    add: async (
+      params: AddTypes.SignExecuteMethodParams<"add">
+    ): Promise<AddTypes.SignExecuteMethodResult<"add">> => {
+      return signExecuteMethod(Add, this, "add", params);
     },
     createSubContract: async (
       params: AddTypes.SignExecuteMethodParams<"createSubContract">

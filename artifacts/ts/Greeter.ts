@@ -67,6 +67,17 @@ export namespace GreeterTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    greet: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
@@ -121,6 +132,16 @@ export class GreeterInstance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    greet: async (
+      params: GreeterTypes.SignExecuteMethodParams<"greet">
+    ): Promise<GreeterTypes.SignExecuteMethodResult<"greet">> => {
+      return signExecuteMethod(Greeter, this, "greet", params);
     },
   };
 

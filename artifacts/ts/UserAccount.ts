@@ -45,6 +45,14 @@ export namespace UserAccountTypes {
   export type State = ContractState<Fields>;
 
   export interface CallMethodTable {
+    updateBalance: {
+      params: CallContractParams<{ tokens: [TokenBalance, TokenBalance] }>;
+      result: CallContractResult<null>;
+    };
+    updateAddress: {
+      params: CallContractParams<{ newAddress: Address }>;
+      result: CallContractResult<null>;
+    };
     getBalances: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<Balances>;
@@ -72,6 +80,10 @@ export namespace UserAccountTypes {
     };
     updateAddress: {
       params: SignExecuteContractMethodParams<{ newAddress: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    getBalances: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
   }
@@ -143,14 +155,26 @@ export class UserAccountInstance extends ContractInstance {
 
   methods = {
     updateBalance: async (
-      params: UserAccountTypes.SignExecuteMethodParams<"updateBalance">
-    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateBalance">> => {
-      return signExecuteMethod(UserAccount, this, "updateBalance", params);
+      params: UserAccountTypes.CallMethodParams<"updateBalance">
+    ): Promise<UserAccountTypes.CallMethodResult<"updateBalance">> => {
+      return callMethod(
+        UserAccount,
+        this,
+        "updateBalance",
+        params,
+        getContractByCodeHash
+      );
     },
     updateAddress: async (
-      params: UserAccountTypes.SignExecuteMethodParams<"updateAddress">
-    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateAddress">> => {
-      return signExecuteMethod(UserAccount, this, "updateAddress", params);
+      params: UserAccountTypes.CallMethodParams<"updateAddress">
+    ): Promise<UserAccountTypes.CallMethodResult<"updateAddress">> => {
+      return callMethod(
+        UserAccount,
+        this,
+        "updateAddress",
+        params,
+        getContractByCodeHash
+      );
     },
     getBalances: async (
       params?: UserAccountTypes.CallMethodParams<"getBalances">
@@ -162,6 +186,26 @@ export class UserAccountInstance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    updateBalance: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"updateBalance">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateBalance">> => {
+      return signExecuteMethod(UserAccount, this, "updateBalance", params);
+    },
+    updateAddress: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"updateAddress">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateAddress">> => {
+      return signExecuteMethod(UserAccount, this, "updateAddress", params);
+    },
+    getBalances: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"getBalances">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"getBalances">> => {
+      return signExecuteMethod(UserAccount, this, "getBalances", params);
     },
   };
 
