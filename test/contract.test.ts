@@ -545,10 +545,13 @@ describe('contract', function () {
       .contractInstance
     const provider = web3.getCurrentNodeProvider()
 
-    const state = await provider.contracts.getContractsAddressState(add.address)
-    expect(state).toBeDefined()
+    const stateBefore = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateBefore.mutFields[0].value).toEqual('0')
 
     await add.transaction.add({ args: { array: [2n, 1n] }, signer })
+
+    const stateAfter = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateAfter.mutFields[0].value).toEqual('3')
   })
 
   it('should test sign execute method with struct arguments', async () => {
@@ -557,8 +560,8 @@ describe('contract', function () {
       .contractInstance
     const provider = web3.getCurrentNodeProvider()
 
-    const state = await provider.contracts.getContractsAddressState(add.address)
-    expect(state).toBeDefined()
+    const stateBefore = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateBefore.mutFields[0].value).toEqual('0')
 
     await add.transaction.add2({
       args: {
@@ -575,6 +578,9 @@ describe('contract', function () {
       },
       signer
     })
+
+    const stateAfter = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateAfter.mutFields[0].value).toEqual('3')
   })
 
   it('should test sign execute method with approved assets', async () => {
@@ -590,7 +596,11 @@ describe('contract', function () {
 
     const state = await provider.contracts.getContractsAddressState(add.address)
     expect(state).toBeDefined()
-    await add.transaction.createSubContractAndTransfer({
+
+    const beforeBalances = await signer.nodeProvider.addresses.getAddressesAddressBalance(signerAddress)
+    expect(beforeBalances.tokenBalances?.find((t) => t.id === sub.contractInstance.contractId)!.amount).toEqual('300')
+
+    const txResult = await add.transaction.createSubContractAndTransfer({
       args: {
         a: 1n,
         path: stringToHex('test-path'),
@@ -605,5 +615,10 @@ describe('contract', function () {
         tokens: [{ id: sub.contractInstance.contractId, amount: 200n }]
       }
     })
+
+    const afterBalances = await signer.nodeProvider.addresses.getAddressesAddressBalance(signerAddress)
+    const gasFee = BigInt(txResult.gasAmount) * BigInt(txResult.gasPrice)
+    expect(BigInt(beforeBalances.balance)).toEqual(BigInt(afterBalances.balance) + ONE_ALPH / 10n + gasFee)
+    expect(afterBalances.tokenBalances?.find((t) => t.id === sub.contractInstance.contractId)!.amount).toEqual('100')
   })
 })

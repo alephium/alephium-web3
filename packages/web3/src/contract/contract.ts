@@ -82,7 +82,18 @@ import {
   Assert,
   StoreMutFieldByIndex,
   DestroySelf,
-  byteStringCodec
+  Pop,
+  byteStringCodec,
+  StoreLocal,
+  instrCodec,
+  U256Const,
+  Instr,
+  ApproveToken,
+  ApproveAlph,
+  CallExternal,
+  Dup,
+  CallerAddress,
+  ByteConst
 } from '../codec'
 
 const crypto = new WebCrypto()
@@ -2286,7 +2297,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const functionSig = contract.contract.functions[methodIndex]
 
-  const bytecodeTemplate = encodeBytecodeTemplate(methodIndex, functionSig, contract.contract.structs, params.approve)
+  const bytecodeTemplate = getBytecodeTemplate(methodIndex, functionSig, contract.contract.structs, params.approve)
 
   const fieldsSig = toFieldsSig(contract.contract.name, functionSig)
   const bytecode = ralph.buildScriptByteCode(
@@ -2311,7 +2322,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
   return await signer.signAndSubmitExecuteScriptTx(signerParams)
 }
 
-function encodeBytecodeTemplate(
+function getBytecodeTemplate(
   methodIndex: number,
   functionSig: FunctionSig,
   structs: Struct[],
@@ -2320,9 +2331,10 @@ function encodeBytecodeTemplate(
     tokens?: Token[]
   }
 ): string {
+  // For the default TxScript main function
   const numberOfMethods = '01'
   const isPublic = '01'
-  const modifier = '03'
+  const modifier = functionSig.usePreapprovedAssets ? '03' : '00'
   const argsLength = '00'
   const returnsLength = '00'
 
@@ -2332,7 +2344,7 @@ function encodeBytecodeTemplate(
   const approveTokensInstrs: string[] = getApproveTokensInstrs(approve?.tokens)
   const callerInstrs: string[] = getCallAddressInstrs(approveAlphInstrs.length / 2 + approveTokensInstrs.length / 3)
 
-  // -1 because the first template var is the contract
+  // First template var is the contract
   const functionArgsNum = encodeU256Const(BigInt(templateVarsLength - 1))
   const localsLength = (templateVarStoreLocalInstrs.length / 2).toString(16).padStart(2, '0')
 
@@ -2342,11 +2354,11 @@ function encodeBytecodeTemplate(
     (acc, returnType) => acc + ralph.typeLength(returnType, structs),
     0
   )
-  const functionReturnPopInstrs = '18'.repeat(functionReturnTypesLength)
+  const functionReturnPopInstrs = encodeInstr(Pop).repeat(functionReturnTypesLength)
   const functionReturnNum = encodeU256Const(BigInt(functionReturnTypesLength))
 
   const contractTemplateVar = '{0}' // always the 1st argument
-  const externalCallInstr = '01' + methodIndex.toString(16).padStart(2, '0')
+  const externalCallInstr = encodeInstr(CallExternal(methodIndex))
   const numberOfInstrs = compactSignedIntCodec
     .encodeI32(
       callerInstrs.length +
@@ -2385,7 +2397,7 @@ function getApproveAlphInstrs(attoAlphAmount?: Number256): string[] {
   if (attoAlphAmount) {
     const approvedAttoAlphAmount = encodeU256Const(BigInt(attoAlphAmount))
     approveAlphInstrs.push(approvedAttoAlphAmount)
-    approveAlphInstrs.push('a2') // ApproveAlph
+    approveAlphInstrs.push(encodeInstr(ApproveAlph))
   }
 
   return approveAlphInstrs
@@ -2399,7 +2411,7 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
       const tokenAmount = encodeU256Const(BigInt(token.amount))
       approveTokensInstrs.push('1440' + tokenId.toString('hex'))
       approveTokensInstrs.push(tokenAmount)
-      approveTokensInstrs.push('a3') // ApproveToken
+      approveTokensInstrs.push(encodeInstr(ApproveToken))
     })
   }
 
@@ -2409,10 +2421,11 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
 function getCallAddressInstrs(approveAssetsNum: number): string[] {
   const callerInstrs: string[] = []
   if (approveAssetsNum > 0) {
-    callerInstrs.push('b4') // callerAddress
+    callerInstrs.push(encodeInstr(CallerAddress))
 
+    const dup = encodeInstr(Dup)
     if (approveAssetsNum > 1) {
-      callerInstrs.push(...new Array(approveAssetsNum - 1).fill('7a')) // dup
+      callerInstrs.push(...new Array(approveAssetsNum - 1).fill(dup))
     }
   }
 
@@ -2471,14 +2484,15 @@ function encodeStoreLocalInstr(index: number): string {
   if (index < 0 || index > 0xff) {
     throw new Error(`StoreLocal index ${index} must be between 0 and 255 inclusive`)
   }
-  return '17' + index.toString(16).padStart(2, '0')
+  return encodeInstr(StoreLocal(index))
 }
 
 function encodeLoadLocalInstr(index: number): string {
   if (index < 0 || index > 0xff) {
     throw new Error(`LoadLocal index ${index} must be between 0 and 255 inclusive`)
   }
-  return '16' + index.toString(16).padStart(2, '0')
+
+  return encodeInstr(LoadLocal(index))
 }
 
 function encodeU256Const(value: bigint): string {
@@ -2489,8 +2503,12 @@ function encodeU256Const(value: bigint): string {
   if (value < 6) {
     return (BigInt(0x0c) + value).toString(16).padStart(2, '0')
   } else {
-    return '13' + compactUnsignedIntCodec.encodeU256(BigInt(value)).toString('hex')
+    return encodeInstr(U256Const(compactUnsignedIntCodec.fromU256(BigInt(value))))
   }
+}
+
+function encodeInstr(instr: Instr): string {
+  return instrCodec.encode(instr).toString('hex')
 }
 
 function toFieldsSig(contractName: string, functionSig: FunctionSig): FieldsSig {

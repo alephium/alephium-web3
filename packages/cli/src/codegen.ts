@@ -96,15 +96,6 @@ function formatParameters(fieldsSig: { names: string[]; types: string[] }): stri
 }
 
 function genCallMethod(contractName: string, functionSig: node.FunctionSig): string {
-  //  if (functionSig.returnTypes.length === 0) {
-  //    const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
-  //    const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
-  //    return `
-  //    ${functionSig.name}: async (${params}): Promise<${retType}> => {
-  //      return signExecuteMethod(${contractName}, this, "${functionSig.name}", params)
-  //    }
-  //  `
-  //  } else {
   const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
   const funcHasArgs = functionSig.paramNames.length > 0
   const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
@@ -114,7 +105,6 @@ function genCallMethod(contractName: string, functionSig: node.FunctionSig): str
       return callMethod(${contractName}, this, "${functionSig.name}", ${callParams}, getContractByCodeHash)
     }
   `
-  //  }
 }
 
 function genCallMethods(contract: Contract): string {
