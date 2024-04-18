@@ -33,7 +33,8 @@ import {
   ProjectArtifact,
   DEFAULT_NODE_COMPILER_OPTIONS,
   DUST_AMOUNT,
-  DEFAULT_GAS_AMOUNT
+  DEFAULT_GAS_AMOUNT,
+  stringToHex
 } from '../packages/web3'
 import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
@@ -573,6 +574,28 @@ describe('contract', function () {
         }
       },
       signer
+    })
+  })
+
+  it('should test sign execute method with approved assets', async () => {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const signerAddress = (await signer.getSelectedAccount()).address
+    const provider = web3.getCurrentNodeProvider()
+
+    const state = await provider.contracts.getContractsAddressState(add.address)
+    expect(state).toBeDefined()
+    await add.transaction.createSubContract({
+      args: {
+        a: 1n,
+        path: stringToHex('test-path'),
+        subContractId: sub.contractInstance.contractId,
+        payer: signerAddress
+      },
+      signer,
+      attoAlphAmount: ONE_ALPH * 2n,
+      approve: { attoAlphAmount: ONE_ALPH }
     })
   })
 })

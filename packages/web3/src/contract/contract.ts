@@ -1766,6 +1766,10 @@ export interface SignExecuteContractMethodParams<T extends Arguments = Arguments
   signer: SignerProvider
   attoAlphAmount?: Number256
   tokens?: Token[]
+  approve?: {
+    attoAlphAmount?: Number256
+    tokens?: Token[]
+  }
   gasAmount?: number
   gasPrice?: Number256
 }
@@ -2280,7 +2284,8 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 ): Promise<SignExecuteScriptTxResult> {
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const functionSig = contract.contract.functions[methodIndex]
-  const bytecodeTemplate = encodeBytecodeTemplate(methodIndex, functionSig, contract.contract.structs)
+
+  const bytecodeTemplate = encodeBytecodeTemplate(methodIndex, functionSig, contract.contract.structs, params.approve)
 
   const fieldsSig = toFieldsSig(contract.contract.name, functionSig)
   const bytecode = ralph.buildScriptByteCode(
@@ -2305,7 +2310,15 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
   return await signer.signAndSubmitExecuteScriptTx(signerParams)
 }
 
-function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig, structs: Struct[]): string {
+function encodeBytecodeTemplate(
+  methodIndex: number,
+  functionSig: FunctionSig,
+  structs: Struct[],
+  approve?: {
+    attoAlphAmount?: Number256
+    tokens?: Token[]
+  }
+): string {
   const numberOfMethods = '01'
   const isPublic = '01'
   const modifier = '03'
@@ -2314,8 +2327,16 @@ function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig, s
 
   const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
 
+  const approveInstrs: string[] = []
+  if (approve?.attoAlphAmount) {
+    const approvedAttoAlphAmount = encodeU256Const(BigInt(approve.attoAlphAmount))
+    approveInstrs.push('b4') // callerAddress
+    approveInstrs.push(approvedAttoAlphAmount)
+    approveInstrs.push('a2') // ApproveAlph
+  }
+
   // -1 because the first template var is the contract
-  const functionArgsNum = encodeU256Const(templateVarsLength - 1)
+  const functionArgsNum = encodeU256Const(BigInt(templateVarsLength - 1))
   const localsLength = (templateVarStoreLocalInstrs.length / 2).toString(16).padStart(2, '0')
 
   const templateVarLoadLocalInstrs = getTemplateVarLoadLocalInstrs(functionSig, structs)
@@ -2325,13 +2346,17 @@ function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig, s
     0
   )
   const functionReturnPopInstrs = '18'.repeat(functionReturnTypesLength)
-  const functionReturnNum = encodeU256Const(functionReturnTypesLength)
+  const functionReturnNum = encodeU256Const(BigInt(functionReturnTypesLength))
 
   const contractTemplateVar = '{0}' // always the 1st argument
   const externalCallInstr = '01' + methodIndex.toString(16).padStart(2, '0')
   const numberOfInstrs = compactSignedIntCodec
     .encodeI32(
-      templateVarStoreLocalInstrs.length + templateVarLoadLocalInstrs.length + functionReturnTypesLength + 4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
+      approveInstrs.length +
+        templateVarStoreLocalInstrs.length +
+        templateVarLoadLocalInstrs.length +
+        functionReturnTypesLength +
+        4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
     )
     .toString('hex')
 
@@ -2343,6 +2368,7 @@ function encodeBytecodeTemplate(methodIndex: number, functionSig: FunctionSig, s
     localsLength +
     returnsLength +
     numberOfInstrs +
+    approveInstrs.join('') +
     templateVarStoreLocalInstrs.join('') +
     templateVarLoadLocalInstrs.join('') +
     functionArgsNum +
@@ -2415,13 +2441,13 @@ function encodeLoadLocalInstr(index: number): string {
   return '16' + index.toString(16).padStart(2, '0')
 }
 
-function encodeU256Const(value: number): string {
+function encodeU256Const(value: bigint): string {
   if (value < 0) {
     throw new Error(`value ${value} must be non-negative`)
   }
 
   if (value < 6) {
-    return (0x0c + value).toString(16).padStart(2, '0')
+    return (BigInt(0x0c) + value).toString(16).padStart(2, '0')
   } else {
     return '13' + compactUnsignedIntCodec.encodeU256(BigInt(value)).toString('hex')
   }
