@@ -578,15 +578,19 @@ describe('contract', function () {
   })
 
   it('should test sign execute method with approved assets', async () => {
-    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const signerAddress = (await signer.getSelectedAccount()).address
+    const sub = await Sub.deploy(signer, {
+      initialFields: { result: 0n },
+      issueTokenAmount: 300n,
+      issueTokenTo: signerAddress
+    })
     const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
       .contractInstance
-    const signerAddress = (await signer.getSelectedAccount()).address
     const provider = web3.getCurrentNodeProvider()
 
     const state = await provider.contracts.getContractsAddressState(add.address)
     expect(state).toBeDefined()
-    await add.transaction.createSubContract({
+    await add.transaction.createSubContractAndTransfer({
       args: {
         a: 1n,
         path: stringToHex('test-path'),
@@ -595,7 +599,11 @@ describe('contract', function () {
       },
       signer,
       attoAlphAmount: ONE_ALPH * 2n,
-      approve: { attoAlphAmount: ONE_ALPH }
+      tokens: [{ id: sub.contractInstance.contractId, amount: 200n }],
+      approve: {
+        attoAlphAmount: ONE_ALPH,
+        tokens: [{ id: sub.contractInstance.contractId, amount: 200n }]
+      }
     })
   })
 })

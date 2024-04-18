@@ -75,6 +75,15 @@ export namespace AddTypes {
       }>;
       result: CallContractResult<null>;
     };
+    createSubContractAndTransfer: {
+      params: CallContractParams<{
+        a: bigint;
+        path: HexString;
+        subContractId: HexString;
+        payer: Address;
+      }>;
+      result: CallContractResult<null>;
+    };
     destroy: {
       params: CallContractParams<{ caller: Address }>;
       result: CallContractResult<null>;
@@ -108,6 +117,15 @@ export namespace AddTypes {
       result: SignExecuteScriptTxResult;
     };
     createSubContract: {
+      params: SignExecuteContractMethodParams<{
+        a: bigint;
+        path: HexString;
+        subContractId: HexString;
+        payer: Address;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    createSubContractAndTransfer: {
       params: SignExecuteContractMethodParams<{
         a: bigint;
         path: HexString;
@@ -176,6 +194,14 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "createSubContract", params);
     },
+    createSubContractAndTransfer: async (
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { a: bigint; path: HexString; subContractId: HexString; payer: Address }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
+      return testMethod(this, "createSubContractAndTransfer", params);
+    },
     destroy: async (
       params: TestContractParamsWithoutMaps<
         AddTypes.Fields,
@@ -191,8 +217,8 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
-    "=10-2+50=2-2+70=2-2+79=63+77e010a=1+1646450726976617465=152",
-    "9a4cf22e444db365cc62468b22db303401e6942409e193055e7f5f0318b389ca",
+    "=10-3+5=1-2=2-2+70=3+8=1+0a1=63+77e010a=1+1646450726976617465=232",
+    "d43cf958572ed347683a41906781126fa8f76e9890a96a3d607d2ecff91b25ce",
     AllStructs
   )
 );
@@ -266,6 +292,17 @@ export class AddInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    createSubContractAndTransfer: async (
+      params: AddTypes.CallMethodParams<"createSubContractAndTransfer">
+    ): Promise<AddTypes.CallMethodResult<"createSubContractAndTransfer">> => {
+      return callMethod(
+        Add,
+        this,
+        "createSubContractAndTransfer",
+        params,
+        getContractByCodeHash
+      );
+    },
     destroy: async (
       params: AddTypes.CallMethodParams<"destroy">
     ): Promise<AddTypes.CallMethodResult<"destroy">> => {
@@ -290,6 +327,18 @@ export class AddInstance extends ContractInstance {
       params: AddTypes.SignExecuteMethodParams<"createSubContract">
     ): Promise<AddTypes.SignExecuteMethodResult<"createSubContract">> => {
       return signExecuteMethod(Add, this, "createSubContract", params);
+    },
+    createSubContractAndTransfer: async (
+      params: AddTypes.SignExecuteMethodParams<"createSubContractAndTransfer">
+    ): Promise<
+      AddTypes.SignExecuteMethodResult<"createSubContractAndTransfer">
+    > => {
+      return signExecuteMethod(
+        Add,
+        this,
+        "createSubContractAndTransfer",
+        params
+      );
     },
     destroy: async (
       params: AddTypes.SignExecuteMethodParams<"destroy">

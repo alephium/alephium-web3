@@ -81,7 +81,8 @@ import {
   ByteVecEq,
   Assert,
   StoreMutFieldByIndex,
-  DestroySelf
+  DestroySelf,
+  byteStringCodec
 } from '../codec'
 
 const crypto = new WebCrypto()
@@ -2327,13 +2328,9 @@ function encodeBytecodeTemplate(
 
   const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
 
-  const approveInstrs: string[] = []
-  if (approve?.attoAlphAmount) {
-    const approvedAttoAlphAmount = encodeU256Const(BigInt(approve.attoAlphAmount))
-    approveInstrs.push('b4') // callerAddress
-    approveInstrs.push(approvedAttoAlphAmount)
-    approveInstrs.push('a2') // ApproveAlph
-  }
+  const approveAlphInstrs: string[] = getApproveAlphInstrs(approve?.attoAlphAmount)
+  const approveTokensInstrs: string[] = getApproveTokensInstrs(approve?.tokens)
+  const callerInstrs: string[] = getCallAddressInstrs(approveAlphInstrs.length / 2 + approveTokensInstrs.length / 3)
 
   // -1 because the first template var is the contract
   const functionArgsNum = encodeU256Const(BigInt(templateVarsLength - 1))
@@ -2352,7 +2349,9 @@ function encodeBytecodeTemplate(
   const externalCallInstr = '01' + methodIndex.toString(16).padStart(2, '0')
   const numberOfInstrs = compactSignedIntCodec
     .encodeI32(
-      approveInstrs.length +
+      callerInstrs.length +
+        approveAlphInstrs.length +
+        approveTokensInstrs.length +
         templateVarStoreLocalInstrs.length +
         templateVarLoadLocalInstrs.length +
         functionReturnTypesLength +
@@ -2368,7 +2367,9 @@ function encodeBytecodeTemplate(
     localsLength +
     returnsLength +
     numberOfInstrs +
-    approveInstrs.join('') +
+    callerInstrs.join('') +
+    approveAlphInstrs.join('') +
+    approveTokensInstrs.join('') +
     templateVarStoreLocalInstrs.join('') +
     templateVarLoadLocalInstrs.join('') +
     functionArgsNum +
@@ -2377,6 +2378,45 @@ function encodeBytecodeTemplate(
     externalCallInstr +
     functionReturnPopInstrs
   )
+}
+
+function getApproveAlphInstrs(attoAlphAmount?: Number256): string[] {
+  const approveAlphInstrs: string[] = []
+  if (attoAlphAmount) {
+    const approvedAttoAlphAmount = encodeU256Const(BigInt(attoAlphAmount))
+    approveAlphInstrs.push(approvedAttoAlphAmount)
+    approveAlphInstrs.push('a2') // ApproveAlph
+  }
+
+  return approveAlphInstrs
+}
+
+function getApproveTokensInstrs(tokens?: Token[]): string[] {
+  const approveTokensInstrs: string[] = []
+  if (tokens) {
+    tokens.forEach((token) => {
+      const tokenId = byteStringCodec.encodeBuffer(Buffer.from(token.id, 'hex'))
+      const tokenAmount = encodeU256Const(BigInt(token.amount))
+      approveTokensInstrs.push('1440' + tokenId.toString('hex'))
+      approveTokensInstrs.push(tokenAmount)
+      approveTokensInstrs.push('a3') // ApproveToken
+    })
+  }
+
+  return approveTokensInstrs
+}
+
+function getCallAddressInstrs(approveAssetsNum: number): string[] {
+  const callerInstrs: string[] = []
+  if (approveAssetsNum > 0) {
+    callerInstrs.push('b4') // callerAddress
+
+    if (approveAssetsNum > 1) {
+      callerInstrs.push(...new Array(approveAssetsNum - 1).fill('7a')) // dup
+    }
+  }
+
+  return callerInstrs
 }
 
 function getTemplateVarStoreLocalInstrs(functionSig: FunctionSig, structs: Struct[]): [string[], number] {

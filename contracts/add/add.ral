@@ -35,6 +35,13 @@ Contract Add(sub: Sub, mut result : U256) {
         copyCreateSubContract!{payer -> ALPH: minimalContractDeposit!()}(path, subContractId, immFields, mutFields)
     }
 
+    @using(preapprovedAssets = true, assetsInContract = true)
+    pub fn createSubContractAndTransfer(a: U256, path: ByteVec, subContractId: ByteVec, payer: Address) -> () {
+        let (immFields, mutFields) = Sub.encodeFields!(a)
+        transferTokenToSelf!(payer, subContractId, 200)
+        copyCreateSubContract!{payer -> ALPH: minimalContractDeposit!()}(path, subContractId, immFields, mutFields)
+    }
+
     @using(checkExternalCaller = false, assetsInContract = true)
     pub fn destroy(caller: Address) -> () {
         destroySelf!(caller)

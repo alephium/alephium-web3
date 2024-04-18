@@ -11,20 +11,22 @@
   "infos": {
     "Add": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
-      "bytecodeDebugPatch": "=10-2+50=2-2+70=2-2+79=63+77e010a=1+1646450726976617465=152",
-      "codeHashDebug": "9a4cf22e444db365cc62468b22db303401e6942409e193055e7f5f0318b389ca",
+      "sourceCodeHash": "b3a4696a12e8cbb2cb5fb1ebe18000beb0e67e9ff7194300b01f9cff8862701c",
+      "bytecodeDebugPatch": "=10-3+5=1-2=2-2+70=3+8=1+0a1=63+77e010a=1+1646450726976617465=232",
+      "codeHashDebug": "d43cf958572ed347683a41906781126fa8f76e9890a96a3d607d2ecff91b25ce",
       "warnings": [
         "Found unused variables in Add: add2.addS, add2.address, add2.array2",
         "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
+        "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
         "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "No external caller check for function \"Add.add2\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
+        "No external caller check for function \"Add.add2\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
+        "No external caller check for function \"Add.createSubContractAndTransfer\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
     "AddMain": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
+      "sourceCodeHash": "b3a4696a12e8cbb2cb5fb1ebe18000beb0e67e9ff7194300b01f9cff8862701c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": [
@@ -33,14 +35,14 @@
     },
     "AddStruct1": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
+      "sourceCodeHash": "b3a4696a12e8cbb2cb5fb1ebe18000beb0e67e9ff7194300b01f9cff8862701c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "AddStruct2": {
       "sourceFile": "add/add.ral",
-      "sourceCodeHash": "ff387b4feef2fd71654165255dd2eb872b8e7366f976419693f9124ed60a7ab2",
+      "sourceCodeHash": "b3a4696a12e8cbb2cb5fb1ebe18000beb0e67e9ff7194300b01f9cff8862701c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
