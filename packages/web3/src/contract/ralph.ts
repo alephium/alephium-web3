@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
+import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256, PrimitiveTypes } from '../api'
 import { binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
 import { compactSignedIntCodec, compactUnsignedIntCodec } from '../codec'
@@ -386,7 +386,7 @@ export function primitiveToByteVec(value: Val, type: string): Uint8Array {
 }
 
 export function typeLength(typ: string, structs: Struct[]): number {
-  if (isPrimitiveType(typ)) {
+  if (PrimitiveTypes.includes(typ)) {
     return 1
   }
 
@@ -400,11 +400,7 @@ export function typeLength(typ: string, structs: Struct[]): number {
     return struct.fieldTypes.reduce((acc, fieldType) => acc + typeLength(fieldType, structs), 0)
   }
 
-  throw Error(`Invalid type ${typ}`)
-}
-
-export function isPrimitiveType(typ: string): boolean {
-  return ['Bool', 'I256', 'U256', 'ByteVec', 'Address'].includes(typ)
+  return 1
 }
 
 export function flattenFields(
@@ -488,7 +484,7 @@ export function buildScriptByteCode(
 ): string {
   const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
   return bytecodeTemplate.replace(scriptFieldRegex, (_, fieldIndex: string) => {
-    const field = allFields[parseInt(fieldIndex)]
+    const field = allFields[`${fieldIndex}`]
     return _encodeField(field.name, () => encodeScriptFieldAsString(field.type, field.value))
   })
 }

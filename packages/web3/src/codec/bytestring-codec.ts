@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 
 export interface ByteString {
@@ -28,16 +28,16 @@ export interface ByteString {
 export class ByteStringCodec implements Codec<ByteString> {
   parser = new Parser()
     .nest('length', {
-      type: compactUnsignedIntCodec.parser
+      type: compactSignedIntCodec.parser
     })
     .buffer('value', {
       length: function (ctx) {
-        return compactUnsignedIntCodec.toU32(this['length']! as any as DecodedCompactInt)
+        return compactSignedIntCodec.toI32(this['length']! as any as DecodedCompactInt)
       }
     })
 
   encode(input: ByteString): Buffer {
-    return Buffer.from([...compactUnsignedIntCodec.encode(input.length), ...input.value])
+    return Buffer.from([...compactSignedIntCodec.encode(input.length), ...input.value])
   }
 
   decode(input: Buffer): ByteString {
@@ -45,7 +45,7 @@ export class ByteStringCodec implements Codec<ByteString> {
   }
 
   encodeBuffer(input: Buffer): Buffer {
-    return Buffer.from([...compactUnsignedIntCodec.encodeU32(input.length), ...input])
+    return Buffer.from([...compactSignedIntCodec.encodeI32(input.length), ...input])
   }
 
   decodeBuffer(input: Buffer): Buffer {

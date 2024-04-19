@@ -2346,7 +2346,7 @@ function getBytecodeTemplate(
 
   // First template var is the contract
   const functionArgsNum = encodeU256Const(BigInt(templateVarsLength - 1))
-  const localsLength = (templateVarStoreLocalInstrs.length / 2).toString(16).padStart(2, '0')
+  const localsLength = compactSignedIntCodec.encodeI32(templateVarStoreLocalInstrs.length / 2).toString('hex')
 
   const templateVarLoadLocalInstrs = getTemplateVarLoadLocalInstrs(functionSig, structs)
 
@@ -2409,7 +2409,7 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
     tokens.forEach((token) => {
       const tokenId = byteStringCodec.encodeBuffer(Buffer.from(token.id, 'hex'))
       const tokenAmount = encodeU256Const(BigInt(token.amount))
-      approveTokensInstrs.push('1440' + tokenId.toString('hex'))
+      approveTokensInstrs.push('14' + tokenId.toString('hex'))
       approveTokensInstrs.push(tokenAmount)
       approveTokensInstrs.push(encodeInstr(ApproveToken))
     })
