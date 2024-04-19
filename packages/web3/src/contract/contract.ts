@@ -1778,10 +1778,6 @@ export interface SignExecuteContractMethodParams<T extends Arguments = Arguments
   signer: SignerProvider
   attoAlphAmount?: Number256
   tokens?: Token[]
-  approve?: {
-    attoAlphAmount?: Number256
-    tokens?: Token[]
-  }
   gasAmount?: number
   gasPrice?: Number256
 }
@@ -2297,7 +2293,13 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const functionSig = contract.contract.functions[methodIndex]
 
-  const bytecodeTemplate = getBytecodeTemplate(methodIndex, functionSig, contract.contract.structs, params.approve)
+  const bytecodeTemplate = getBytecodeTemplate(
+    methodIndex,
+    functionSig,
+    contract.contract.structs,
+    params.attoAlphAmount,
+    params.tokens
+  )
 
   const fieldsSig = toFieldsSig(contract.contract.name, functionSig)
   const bytecode = ralph.buildScriptByteCode(
@@ -2326,10 +2328,8 @@ function getBytecodeTemplate(
   methodIndex: number,
   functionSig: FunctionSig,
   structs: Struct[],
-  approve?: {
-    attoAlphAmount?: Number256
-    tokens?: Token[]
-  }
+  attoAlphAmount?: Number256,
+  tokens?: Token[]
 ): string {
   // For the default TxScript main function
   const numberOfMethods = '01'
@@ -2340,8 +2340,10 @@ function getBytecodeTemplate(
 
   const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
 
-  const approveAlphInstrs: string[] = getApproveAlphInstrs(approve?.attoAlphAmount)
-  const approveTokensInstrs: string[] = getApproveTokensInstrs(approve?.tokens)
+  const approveAlphInstrs: string[] = getApproveAlphInstrs(
+    functionSig.usePreapprovedAssets ? attoAlphAmount : undefined
+  )
+  const approveTokensInstrs: string[] = getApproveTokensInstrs(functionSig.usePreapprovedAssets ? tokens : undefined)
   const callerInstrs: string[] = getCallAddressInstrs(approveAlphInstrs.length / 2 + approveTokensInstrs.length / 3)
 
   // First template var is the contract
@@ -2407,10 +2409,8 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
   const approveTokensInstrs: string[] = []
   if (tokens) {
     tokens.forEach((token) => {
-      const tokenId = byteStringCodec.encodeBuffer(Buffer.from(token.id, 'hex'))
-      const tokenAmount = encodeU256Const(BigInt(token.amount))
-      approveTokensInstrs.push('14' + tokenId.toString('hex'))
-      approveTokensInstrs.push(tokenAmount)
+      approveTokensInstrs.push('14' + byteStringCodec.encodeBuffer(Buffer.from(token.id, 'hex')).toString('hex'))
+      approveTokensInstrs.push(encodeU256Const(BigInt(token.amount)))
       approveTokensInstrs.push(encodeInstr(ApproveToken))
     })
   }

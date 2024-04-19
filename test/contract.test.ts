@@ -609,11 +609,7 @@ describe('contract', function () {
       },
       signer,
       attoAlphAmount: ONE_ALPH * 2n,
-      tokens: [{ id: sub.contractInstance.contractId, amount: 200n }],
-      approve: {
-        attoAlphAmount: ONE_ALPH,
-        tokens: [{ id: sub.contractInstance.contractId, amount: 200n }]
-      }
+      tokens: [{ id: sub.contractInstance.contractId, amount: 200n }]
     })
 
     const afterBalances = await signer.nodeProvider.addresses.getAddressesAddressBalance(signerAddress)
