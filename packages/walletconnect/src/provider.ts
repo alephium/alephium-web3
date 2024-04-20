@@ -73,6 +73,9 @@ import {
 } from '@walletconnect/core'
 import { KeyValueStorage } from '@walletconnect/keyvaluestorage'
 import { JsonRpcRecord, MessageRecord } from '@walletconnect/types'
+import { Sema } from 'async-sema'
+
+const REQUESTS_PER_SECOND_LIMIT = 5
 
 export interface ProviderOptions extends EnableOptionsBase {
   // Alephium options
@@ -104,6 +107,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   public client!: SignClient
   public session: SessionTypes.Struct | undefined
+  private rateLimit = RateLimit(REQUESTS_PER_SECOND_LIMIT)
 
   static async init(opts: ProviderOptions): Promise<WalletConnectProvider> {
     const provider = new WalletConnectProvider(opts)
@@ -387,6 +391,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   // The provider only supports signer methods. The other requests should use Alephium Rest API.
   private async request<T = unknown>(args: { method: string; params: any }): Promise<T> {
+    await this.rateLimit()
     if (!this.session) {
       throw new Error('Sign Client not initialized')
     }
@@ -554,5 +559,21 @@ export function parseAccount(account: string): Account & { networkId: NetworkId 
 function redirectToDeepLink() {
   if (isMobile() && isBrowser()) {
     window.open(ALEPHIUM_DEEP_LINK, '_self', 'noreferrer noopener')
+  }
+}
+
+function RateLimit(rps: number) {
+  const sema = new Sema(rps)
+  const delay = 1000 // 1 second
+
+  return async () => {
+    const waitingLength = sema.nrWaiting()
+    if (waitingLength > 0) {
+      console.warn(
+        `There are currently ${waitingLength} requests in the waiting queue. Please reduce the number of WalletConnect requests.`
+      )
+    }
+    await sema.acquire()
+    setTimeout(() => sema.release(), delay)
   }
 }
