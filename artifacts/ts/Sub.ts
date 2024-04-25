@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -61,6 +63,14 @@ export namespace SubTypes {
 }
 
 class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
+  encodeFields(fields: SubTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as SubTypes.Fields;
   }

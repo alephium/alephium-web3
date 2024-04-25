@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -59,6 +61,10 @@ export namespace MapTestTypes {
 }
 
 class Factory extends ContractFactory<MapTestInstance, {}> {
+  encodeFields() {
+    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+  }
+
   at(address: string): MapTestInstance {
     return new MapTestInstance(address);
   }

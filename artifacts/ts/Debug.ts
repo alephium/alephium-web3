@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as DebugContractJson } from "../test/Debug.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -36,6 +38,10 @@ export namespace DebugTypes {
 }
 
 class Factory extends ContractFactory<DebugInstance, {}> {
+  encodeFields() {
+    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+  }
+
   at(address: string): DebugInstance {
     return new DebugInstance(address);
   }

@@ -214,14 +214,7 @@ export function addressVal(value: string): { type: 'Address'; value: Val } {
 }
 
 export function encodePrimitiveValues(values: { type: string; value: Val }[]): Uint8Array {
-  const prefix = encodeI256(BigInt(values.length))
-  return values.reduce((acc, item) => {
-    const encoded = encodeContractField(item.type, item.value)
-    const bytes = new Uint8Array(acc.byteLength + encoded.byteLength)
-    bytes.set(acc, 0)
-    bytes.set(encoded, acc.byteLength)
-    return bytes
-  }, prefix)
+  return encodeFields(values.map(({ type, value }) => ({ name: `${value}`, type, value })))
 }
 
 function invalidScriptField(tpe: string, value: Val): Error {
@@ -516,12 +509,27 @@ function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
   }
 }
 
-function encodeFields(fields: { name: string; type: string; value: Val }[]): string {
-  const prefix = binToHex(encodeI256(BigInt(fields.length)))
-  const encoded = fields
-    .map((field) => binToHex(_encodeField(field.name, () => encodeContractField(field.type, field.value))))
-    .join('')
-  return prefix + encoded
+function encodeFields(fields: { name: string; type: string; value: Val }[]): Uint8Array {
+  const prefix = encodeI256(BigInt(fields.length))
+  return fields.reduce((acc, field) => {
+    const encoded = _encodeField(field.name, () => encodeContractField(field.type, field.value))
+    const bytes = new Uint8Array(acc.byteLength + encoded.byteLength)
+    bytes.set(acc, 0)
+    bytes.set(encoded, acc.byteLength)
+    return bytes
+  }, prefix)
+}
+
+export function encodeContractFields(
+  fields: Fields,
+  fieldsSig: FieldsSig,
+  structs: Struct[]
+): { encodedImmFields: Uint8Array; encodedMutFields: Uint8Array } {
+  const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
+  return {
+    encodedImmFields: encodeFields(allFields.filter((f) => !f.isMutable)),
+    encodedMutFields: encodeFields(allFields.filter((f) => f.isMutable))
+  }
 }
 
 export function buildContractByteCode(
@@ -530,10 +538,8 @@ export function buildContractByteCode(
   fieldsSig: FieldsSig,
   structs: Struct[]
 ): string {
-  const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
-  const encodedImmFields = encodeFields(allFields.filter((f) => !f.isMutable))
-  const encodedMutFields = encodeFields(allFields.filter((f) => f.isMutable))
-  return bytecode + encodedImmFields + encodedMutFields
+  const { encodedImmFields, encodedMutFields } = encodeContractFields(fields, fieldsSig, structs)
+  return bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
 }
 
 export function encodeContractField(tpe: string, value: Val): Uint8Array {

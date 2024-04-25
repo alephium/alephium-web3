@@ -58,7 +58,7 @@ import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest } from '../artifacts/ts'
+import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 
@@ -529,27 +529,7 @@ describe('contract', function () {
   })
 
   it('should test encode contract fields', async () => {
-    const encodedImmFields = encodePrimitiveValues([
-      byteVecVal('0011'), // id
-      byteVecVal('0022'), // tokenId
-      byteVecVal('0033'), // tokenId
-      byteVecVal('0044') // name
-    ])
-
-    const encodedMutFields = encodePrimitiveValues([
-      addressVal('1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'), // address
-      u256Val(100), // totalAmount
-      u256Val(101), // amount
-      u256Val(102) // amount
-    ])
-
-    const result = await signer.signAndSubmitDeployContractTx({
-      signerAddress: signer.address,
-      bytecode: UserAccount.contract.bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
-    })
-    const contractInstance = UserAccount.at(result.contractAddress)
-    const contractFields = (await contractInstance.fetchState()).fields
-    expect(contractFields).toEqual({
+    const contractFields: UserAccountTypes.Fields = {
       id: '0011',
       address: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
       balances: {
@@ -560,6 +540,30 @@ describe('contract', function () {
         ]
       },
       name: '0044'
+    }
+    const encodedImmFields = encodePrimitiveValues([
+      byteVecVal(contractFields.id),
+      byteVecVal(contractFields.balances.tokens[0].tokenId),
+      byteVecVal(contractFields.balances.tokens[1].tokenId),
+      byteVecVal(contractFields.name)
+    ])
+
+    const encodedMutFields = encodePrimitiveValues([
+      addressVal(contractFields.address),
+      u256Val(contractFields.balances.totalAmount),
+      u256Val(contractFields.balances.tokens[0].amount),
+      u256Val(contractFields.balances.tokens[1].amount)
+    ])
+
+    const encoded = UserAccount.encodeFields(contractFields)
+    expect(encoded.encodedImmFields).toEqual(encodedImmFields)
+    expect(encoded.encodedMutFields).toEqual(encodedMutFields)
+
+    const result = await signer.signAndSubmitDeployContractTx({
+      signerAddress: signer.address,
+      bytecode: UserAccount.contract.bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
     })
+    const contractInstance = UserAccount.at(result.contractAddress)
+    expect((await contractInstance.fetchState()).fields).toEqual(contractFields)
   })
 })
