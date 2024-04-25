@@ -444,6 +444,17 @@ describe('contract', function () {
 
     const address = ralph.encodeVmAddress('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
     expect(utils.binToHex(address)).toEqual('0400bee85f379545a2ed9f6cceb331288842f378cf0f04012ad4ac8824aae7d6f80a')
+
+    const values = [
+      ralph.i256Val(-1),
+      ralph.u256Val(1),
+      ralph.byteVecVal('23'),
+      ralph.addressVal('1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'),
+      ralph.boolVal(false)
+    ]
+    expect(utils.binToHex(ralph.encodePrimitiveValues(values))).toEqual(
+      '05013f02010301230400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec0000'
+    )
   })
 
   // it('should test buildByteCode', async () => {

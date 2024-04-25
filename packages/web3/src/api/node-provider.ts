@@ -28,8 +28,9 @@ import {
   requestWithLog
 } from './types'
 import { Api as NodeApi, CallContractFailed, CallContractSucceeded } from './api-alephium'
-import { HexString, tryGetCallResult } from '../contract'
+import { tryGetCallResult } from '../contract'
 import {
+  HexString,
   addressFromContractId,
   addressFromTokenId,
   groupOfAddress,

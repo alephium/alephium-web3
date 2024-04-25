@@ -33,7 +33,11 @@ import {
   ProjectArtifact,
   DEFAULT_NODE_COMPILER_OPTIONS,
   DUST_AMOUNT,
-  DEFAULT_GAS_AMOUNT
+  DEFAULT_GAS_AMOUNT,
+  encodePrimitiveValues,
+  addressVal,
+  byteVecVal,
+  u256Val
 } from '../packages/web3'
 import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
@@ -522,5 +526,40 @@ describe('contract', function () {
 
     const exist1 = (await mapTest.methods.contains({ args: { key: signer.address } })).returns
     expect(exist1).toEqual(false)
+  })
+
+  it('should test encode contract fields', async () => {
+    const encodedImmFields = encodePrimitiveValues([
+      byteVecVal('0011'), // id
+      byteVecVal('0022'), // tokenId
+      byteVecVal('0033'), // tokenId
+      byteVecVal('0044') // name
+    ])
+
+    const encodedMutFields = encodePrimitiveValues([
+      addressVal('1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'), // address
+      u256Val(100), // totalAmount
+      u256Val(101), // amount
+      u256Val(102) // amount
+    ])
+
+    const result = await signer.signAndSubmitDeployContractTx({
+      signerAddress: signer.address,
+      bytecode: UserAccount.contract.bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
+    })
+    const contractInstance = UserAccount.at(result.contractAddress)
+    const contractFields = (await contractInstance.fetchState()).fields
+    expect(contractFields).toEqual({
+      id: '0011',
+      address: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
+      balances: {
+        totalAmount: 100n,
+        tokens: [
+          { tokenId: '0022', amount: 101n },
+          { tokenId: '0033', amount: 102n }
+        ]
+      },
+      name: '0044'
+    })
   })
 })
