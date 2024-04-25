@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as WrongNFTTestContractJson } from "../nft/WrongNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -68,6 +70,14 @@ class Factory extends ContractFactory<
   WrongNFTTestInstance,
   WrongNFTTestTypes.Fields
 > {
+  encodeFields(fields: WrongNFTTestTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as WrongNFTTestTypes.Fields;
   }

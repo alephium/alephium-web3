@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/Assert.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -36,6 +38,10 @@ export namespace AssertTypes {
 }
 
 class Factory extends ContractFactory<AssertInstance, {}> {
+  encodeFields() {
+    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+  }
+
   consts = {
     Error: BigInt(3),
     A: BigInt(-3),

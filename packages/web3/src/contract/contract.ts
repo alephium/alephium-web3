@@ -58,7 +58,8 @@ import {
   hexToBinUnsafe,
   isDevnet,
   addressFromContractId,
-  subContractId
+  subContractId,
+  HexString
 } from '../utils'
 import { getCurrentNodeProvider } from '../global'
 import * as path from 'path'
@@ -89,7 +90,6 @@ export type EventSig = node.EventSig
 export type FunctionSig = node.FunctionSig
 export type Fields = NamedVals
 export type Arguments = NamedVals
-export type HexString = string
 export type Constant = node.Constant
 export type Enum = node.Enum
 

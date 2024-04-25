@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -65,6 +67,14 @@ export namespace NFTTestTypes {
 }
 
 class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
+  encodeFields(fields: NFTTestTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as NFTTestTypes.Fields;
   }

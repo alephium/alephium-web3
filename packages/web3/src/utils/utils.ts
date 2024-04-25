@@ -18,15 +18,13 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC, SignatureInput } from 'elliptic'
 import BN from 'bn.js'
-import bs58 from './bs58'
 import { Buffer } from 'buffer/'
 
 import { TOTAL_NUMBER_OF_GROUPS, TOTAL_NUMBER_OF_CHAINS } from '../constants'
-import { KeyType } from '../signer'
-import { HexString } from '../contract'
 
 export const networkIds = ['mainnet', 'testnet', 'devnet'] as const
 export type NetworkId = (typeof networkIds)[number]
+export type HexString = string
 
 const ec = new EC('secp256k1')
 

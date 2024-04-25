@@ -241,6 +241,21 @@ function genSubscribeAllEvents(contract: Contract): string {
   `
 }
 
+function genEncodeFieldsFunc(contract: Contract): string {
+  const hasStruct = Project.currentProject.structs.length > 0
+  const hasFields = contract.fieldsSig.names.length > 0
+  const params = hasFields ? `fields: ${contractTypes(contract.name)}.Fields` : ''
+  return `
+    encodeFields(${params}) {
+      return encodeContractFields(
+        ${hasFields ? `addStdIdToFields(this.contract, fields)` : '{}'},
+        this.contract.fieldsSig,
+        ${hasStruct ? 'AllStructs' : ''}
+      )
+    }
+  `
+}
+
 function genGetInitialFieldsWithDefaultValues(contract: Contract): string {
   const fieldsSig = getContractFields(contract)
   if (fieldsSig.names.length === 0) {
@@ -416,7 +431,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, multicallMethods, fetchContractState,
       ContractInstance, getContractEventsCurrentCount,
-      TestContractParamsWithoutMaps, TestContractResultWithoutMaps
+      TestContractParamsWithoutMaps, TestContractResultWithoutMaps,
+      addStdIdToFields, encodeContractFields
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
@@ -430,6 +446,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
+      ${genEncodeFieldsFunc(contract)}
       ${genGetInitialFieldsWithDefaultValues(contract)}
       ${genEventIndex(contract)}
       ${genConsts(contract)}

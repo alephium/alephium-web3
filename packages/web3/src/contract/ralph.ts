@@ -18,10 +18,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Buffer } from 'buffer/'
 import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
-import { binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
+import { HexString, binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
 import { compactSignedIntCodec, compactUnsignedIntCodec } from '../codec'
-import { lockupScriptCodec } from '../codec/lockup-script-codec'
 
 const bigIntZero = BigInt(0)
 
@@ -175,23 +174,47 @@ export enum VmValType {
 }
 
 export function encodeVmBool(bool: boolean): Uint8Array {
-  return Buffer.concat([encodeU256(BigInt(VmValType.Bool)), encodeBool(bool)])
+  return new Uint8Array([VmValType.Bool, ...encodeBool(bool)])
 }
 
 export function encodeVmI256(i256: bigint): Uint8Array {
-  return Buffer.concat([encodeU256(BigInt(VmValType.I256)), encodeI256(i256)])
+  return new Uint8Array([VmValType.I256, ...encodeI256(i256)])
 }
 
 export function encodeVmU256(u256: bigint): Uint8Array {
-  return Buffer.concat([encodeU256(BigInt(VmValType.U256)), encodeU256(u256)])
+  return new Uint8Array([VmValType.U256, ...encodeU256(u256)])
 }
 
 export function encodeVmByteVec(bytes: string): Uint8Array {
-  return Buffer.concat([encodeU256(BigInt(VmValType.ByteVec)), encodeByteVec(bytes)])
+  return new Uint8Array([VmValType.ByteVec, ...encodeByteVec(bytes)])
 }
 
 export function encodeVmAddress(address: string): Uint8Array {
-  return Buffer.concat([encodeU256(BigInt(VmValType.Address)), encodeAddress(address)])
+  return new Uint8Array([VmValType.Address, ...encodeAddress(address)])
+}
+
+export function boolVal(value: boolean): { type: 'Bool'; value: Val } {
+  return { type: 'Bool', value }
+}
+
+export function i256Val(value: bigint | number): { type: 'I256'; value: Val } {
+  return { type: 'I256', value: BigInt(value) }
+}
+
+export function u256Val(value: bigint | number): { type: 'U256'; value: Val } {
+  return { type: 'U256', value: BigInt(value) }
+}
+
+export function byteVecVal(value: HexString): { type: 'ByteVec'; value: Val } {
+  return { type: 'ByteVec', value }
+}
+
+export function addressVal(value: string): { type: 'Address'; value: Val } {
+  return { type: 'Address', value }
+}
+
+export function encodePrimitiveValues(values: { type: string; value: Val }[]): Uint8Array {
+  return encodeFields(values.map(({ type, value }) => ({ name: `${value}`, type, value })))
 }
 
 function invalidScriptField(tpe: string, value: Val): Error {
@@ -486,12 +509,27 @@ function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
   }
 }
 
-function encodeFields(fields: { name: string; type: string; value: Val }[]): string {
-  const prefix = binToHex(encodeI256(BigInt(fields.length)))
-  const encoded = fields
-    .map((field) => binToHex(_encodeField(field.name, () => encodeContractField(field.type, field.value))))
-    .join('')
-  return prefix + encoded
+function encodeFields(fields: { name: string; type: string; value: Val }[]): Uint8Array {
+  const prefix = encodeI256(BigInt(fields.length))
+  return fields.reduce((acc, field) => {
+    const encoded = _encodeField(field.name, () => encodeContractField(field.type, field.value))
+    const bytes = new Uint8Array(acc.byteLength + encoded.byteLength)
+    bytes.set(acc, 0)
+    bytes.set(encoded, acc.byteLength)
+    return bytes
+  }, prefix)
+}
+
+export function encodeContractFields(
+  fields: Fields,
+  fieldsSig: FieldsSig,
+  structs: Struct[]
+): { encodedImmFields: Uint8Array; encodedMutFields: Uint8Array } {
+  const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
+  return {
+    encodedImmFields: encodeFields(allFields.filter((f) => !f.isMutable)),
+    encodedMutFields: encodeFields(allFields.filter((f) => f.isMutable))
+  }
 }
 
 export function buildContractByteCode(
@@ -500,45 +538,22 @@ export function buildContractByteCode(
   fieldsSig: FieldsSig,
   structs: Struct[]
 ): string {
-  const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
-  const encodedImmFields = encodeFields(allFields.filter((f) => !f.isMutable))
-  const encodedMutFields = encodeFields(allFields.filter((f) => f.isMutable))
-  return bytecode + encodedImmFields + encodedMutFields
-}
-
-enum ApiValType {
-  Bool = 0,
-  I256 = 1,
-  U256 = 2,
-  ByteVec = 3,
-  Address = 4
-}
-
-function encodeContractFieldI256(value: bigint): Uint8Array {
-  return new Uint8Array([ApiValType.I256, ...encodeI256(value)])
-}
-
-function encodeContractFieldU256(value: bigint): Uint8Array {
-  return new Uint8Array([ApiValType.U256, ...encodeU256(value)])
+  const { encodedImmFields, encodedMutFields } = encodeContractFields(fields, fieldsSig, structs)
+  return bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
 }
 
 export function encodeContractField(tpe: string, value: Val): Uint8Array {
   switch (tpe) {
     case 'Bool':
-      const byte = toApiBoolean(value) ? 1 : 0
-      return new Uint8Array([ApiValType.Bool, byte])
+      return encodeVmBool(toApiBoolean(value))
     case 'I256':
-      const i256 = toApiNumber256(value)
-      return encodeContractFieldI256(BigInt(i256))
+      return encodeVmI256(BigInt(toApiNumber256(value)))
     case 'U256':
-      const u256 = toApiNumber256(value)
-      return encodeContractFieldU256(BigInt(u256))
+      return encodeVmU256(BigInt(toApiNumber256(value)))
     case 'ByteVec':
-      const hexStr = toApiByteVec(value)
-      return new Uint8Array([ApiValType.ByteVec, ...encodeByteVec(hexStr)])
+      return encodeVmByteVec(toApiByteVec(value))
     case 'Address':
-      const address = toApiAddress(value)
-      return new Uint8Array([ApiValType.Address, ...encodeAddress(address)])
+      return encodeVmAddress(toApiAddress(value))
     default:
       throw Error(`Expected primitive type, got ${tpe}`)
   }

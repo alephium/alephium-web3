@@ -25,6 +25,8 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -67,6 +69,14 @@ export namespace GreeterTypes {
 }
 
 class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
+  encodeFields(fields: GreeterTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as GreeterTypes.Fields;
   }
