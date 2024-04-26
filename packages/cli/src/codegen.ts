@@ -241,8 +241,12 @@ function genSubscribeAllEvents(contract: Contract): string {
   `
 }
 
-function genEncodeFieldsFunc(contract: Contract): string {
+function getStructs(): string {
   const hasStruct = Project.currentProject.structs.length > 0
+  return hasStruct ? 'AllStructs' : '[]'
+}
+
+function genEncodeFieldsFunc(contract: Contract): string {
   const hasFields = contract.fieldsSig.names.length > 0
   const params = hasFields ? `fields: ${contractTypes(contract.name)}.Fields` : ''
   return `
@@ -250,7 +254,7 @@ function genEncodeFieldsFunc(contract: Contract): string {
       return encodeContractFields(
         ${hasFields ? `addStdIdToFields(this.contract, fields)` : '{}'},
         this.contract.fieldsSig,
-        ${hasStruct ? 'AllStructs' : ''}
+        ${getStructs()}
       )
     }
   `
@@ -416,7 +420,6 @@ function importStructs(): string {
 
 function genContract(contract: Contract, artifactRelativePath: string): string {
   const fieldsSig = getContractFields(contract)
-  const hasStruct = Project.currentProject.structs.length > 0
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
   if (contractInfo === undefined) {
@@ -459,7 +462,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.name}ContractJson,
       '${contractInfo.bytecodeDebugPatch}',
       '${contractInfo.codeHashDebug}',
-      ${hasStruct ? 'AllStructs' : []}
+      ${getStructs()}
     ))
 
     // Use this class to interact with the blockchain
@@ -480,14 +483,13 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
 function genScript(script: Script): string {
   console.log(`Generating code for script ${script.name}`)
-  const hasStruct = Project.currentProject.structs.length > 0
   const fieldsType = script.fieldsSig.names.length > 0 ? `{${formatParameters(script.fieldsSig)}}` : '{}'
   return `
     export const ${script.name} = new ExecutableScript<${fieldsType}>(
       Script.fromJson(
         ${script.name}ScriptJson,
         '',
-        ${hasStruct ? 'AllStructs' : []}
+        ${getStructs()}
       )
     )
   `
