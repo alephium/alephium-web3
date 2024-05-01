@@ -112,6 +112,31 @@ export function isDevnet(networkId?: number): boolean {
   return networkId !== 0 && networkId !== 1
 }
 
+export function targetToDifficulty(compactedTarget: HexString): bigint {
+  if (!isHexString(compactedTarget) || compactedTarget.length !== 8) {
+    throw Error(`Invalid target ${compactedTarget}, expected a hex string of length 8`)
+  }
+  const size = hexToBinUnsafe(compactedTarget.slice(0, 2))[0]
+  const mantissa = BigInt('0x' + compactedTarget.slice(2))
+  const maxBigInt = 1n << 256n
+  const target = size <= 3 ? mantissa >> BigInt(8 * (3 - size)) : mantissa << BigInt(8 * (size - 3))
+  return maxBigInt / target
+}
+
+export function difficultyToTarget(diff: bigint): HexString {
+  const maxBigInt = 1n << 256n
+  const target = diff === 1n ? maxBigInt - 1n : maxBigInt / diff
+  const size = Math.floor((target.toString(2).length + 7) / 8)
+  const mantissa =
+    size <= 3
+      ? BigInt.asIntN(32, target) << BigInt(8 * (3 - size))
+      : BigInt.asIntN(32, target >> BigInt(8 * (size - 3)))
+  const mantissaBytes = Buffer.alloc(4)
+  mantissaBytes.writeInt32BE(Number(mantissa), 0)
+  const bytes = new Uint8Array([size, ...mantissaBytes.slice(1)])
+  return binToHex(bytes)
+}
+
 type _Eq<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
 export type Eq<X, Y> = _Eq<{ [P in keyof X]: X[P] }, { [P in keyof Y]: Y[P] }>
 // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
