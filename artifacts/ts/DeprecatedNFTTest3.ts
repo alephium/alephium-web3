@@ -28,6 +28,8 @@ import {
   SignExecuteContractMethodParams,
   SignExecuteScriptTxResult,
   signExecuteMethod,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest3ContractJson } from "../nft/DeprecatedNFTTest3.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -92,6 +94,14 @@ class Factory extends ContractFactory<
   DeprecatedNFTTest3Instance,
   DeprecatedNFTTest3Types.Fields
 > {
+  encodeFields(fields: DeprecatedNFTTest3Types.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTest3Types.Fields;
   }

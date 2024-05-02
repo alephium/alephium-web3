@@ -28,6 +28,8 @@ import {
   SignExecuteContractMethodParams,
   SignExecuteScriptTxResult,
   signExecuteMethod,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -76,6 +78,10 @@ export namespace MetaDataTypes {
 }
 
 class Factory extends ContractFactory<MetaDataInstance, {}> {
+  encodeFields() {
+    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+  }
+
   at(address: string): MetaDataInstance {
     return new MetaDataInstance(address);
   }

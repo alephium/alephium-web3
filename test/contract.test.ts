@@ -34,7 +34,11 @@ import {
   DEFAULT_NODE_COMPILER_OPTIONS,
   DUST_AMOUNT,
   DEFAULT_GAS_AMOUNT,
-  stringToHex
+  stringToHex,
+  encodePrimitiveValues,
+  addressVal,
+  byteVecVal,
+  u256Val
 } from '../packages/web3'
 import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
@@ -55,11 +59,11 @@ import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest } from '../artifacts/ts'
+import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 
-describe('contract', function () {
+describe('contract', function() {
   let signer: PrivateKeyWallet
   let signerAccount: Account
   let signerGroup: number
@@ -616,5 +620,44 @@ describe('contract', function () {
     const gasFee = BigInt(txResult.gasAmount) * BigInt(txResult.gasPrice)
     expect(BigInt(beforeBalances.balance)).toEqual(BigInt(afterBalances.balance) + ONE_ALPH / 10n + gasFee)
     expect(afterBalances.tokenBalances?.find((t) => t.id === sub.contractInstance.contractId)!.amount).toEqual('100')
+  })
+
+  it('should test encode contract fields', async () => {
+    const contractFields: UserAccountTypes.Fields = {
+      id: '0011',
+      address: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
+      balances: {
+        totalAmount: 100n,
+        tokens: [
+          { tokenId: '0022', amount: 101n },
+          { tokenId: '0033', amount: 102n }
+        ]
+      },
+      name: '0044'
+    }
+    const encodedImmFields = encodePrimitiveValues([
+      byteVecVal(contractFields.id),
+      byteVecVal(contractFields.balances.tokens[0].tokenId),
+      byteVecVal(contractFields.balances.tokens[1].tokenId),
+      byteVecVal(contractFields.name)
+    ])
+
+    const encodedMutFields = encodePrimitiveValues([
+      addressVal(contractFields.address),
+      u256Val(contractFields.balances.totalAmount),
+      u256Val(contractFields.balances.tokens[0].amount),
+      u256Val(contractFields.balances.tokens[1].amount)
+    ])
+
+    const encoded = UserAccount.encodeFields(contractFields)
+    expect(encoded.encodedImmFields).toEqual(encodedImmFields)
+    expect(encoded.encodedMutFields).toEqual(encodedMutFields)
+
+    const result = await signer.signAndSubmitDeployContractTx({
+      signerAddress: signer.address,
+      bytecode: UserAccount.contract.bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
+    })
+    const contractInstance = UserAccount.at(result.contractAddress)
+    expect((await contractInstance.fetchState()).fields).toEqual(contractFields)
   })
 })

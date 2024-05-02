@@ -28,6 +28,8 @@ import {
   SignExecuteContractMethodParams,
   SignExecuteScriptTxResult,
   signExecuteMethod,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -81,6 +83,14 @@ export namespace WarningsTypes {
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
+  encodeFields(fields: WarningsTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as WarningsTypes.Fields;
   }

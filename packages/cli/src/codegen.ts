@@ -265,6 +265,25 @@ function genSubscribeAllEvents(contract: Contract): string {
   `
 }
 
+function getStructs(): string {
+  const hasStruct = Project.currentProject.structs.length > 0
+  return hasStruct ? 'AllStructs' : '[]'
+}
+
+function genEncodeFieldsFunc(contract: Contract): string {
+  const hasFields = contract.fieldsSig.names.length > 0
+  const params = hasFields ? `fields: ${contractTypes(contract.name)}.Fields` : ''
+  return `
+    encodeFields(${params}) {
+      return encodeContractFields(
+        ${hasFields ? `addStdIdToFields(this.contract, fields)` : '{}'},
+        this.contract.fieldsSig,
+        ${getStructs()}
+      )
+    }
+  `
+}
+
 function genGetInitialFieldsWithDefaultValues(contract: Contract): string {
   const fieldsSig = getContractFields(contract)
   if (fieldsSig.names.length === 0) {
@@ -318,17 +337,17 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
     funcHasArgs && contractHasFields
       ? `params: ${baseParamsType}`
       : funcHasArgs
-      ? `params: Omit<${baseParamsType}, 'initialFields'>`
-      : contractHasFields
-      ? `params: Omit<${baseParamsType}, 'testArgs'>`
-      : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
+        ? `params: Omit<${baseParamsType}, 'initialFields'>`
+        : contractHasFields
+          ? `params: Omit<${baseParamsType}, 'testArgs'>`
+          : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const baseRetType =
     tsReturnTypes.length === 0
       ? 'null'
       : tsReturnTypes.length === 1
-      ? tsReturnTypes[0]
-      : `[${tsReturnTypes.join(', ')}]`
+        ? tsReturnTypes[0]
+        : `[${tsReturnTypes.join(', ')}]`
   const retType = hasMapVars
     ? `TestContractResult<${baseRetType}, ${mapsType}>`
     : `TestContractResultWithoutMaps<${baseRetType}>`
@@ -355,17 +374,17 @@ function genCallMethodTypes(contract: Contract): string {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
         ? `CallContractParams<{${formatParameters({
-            names: functionSig.paramNames,
-            types: functionSig.paramTypes
-          })}}>`
+          names: functionSig.paramNames,
+          types: functionSig.paramTypes
+        })}}>`
         : `Omit<CallContractParams<{}>, 'args'>`
       const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
       const retType =
         tsReturnTypes.length === 0
           ? `CallContractResult<null>`
           : tsReturnTypes.length === 1
-          ? `CallContractResult<${tsReturnTypes[0]}>`
-          : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+            ? `CallContractResult<${tsReturnTypes[0]}>`
+            : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
       return `
       ${functionSig.name}: {
         params: ${params}
@@ -393,9 +412,9 @@ function genSignExecuteMethodTypes(contract: Contract): string {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
         ? `SignExecuteContractMethodParams<{${formatParameters({
-            names: functionSig.paramNames,
-            types: functionSig.paramTypes
-          })}}>`
+          names: functionSig.paramNames,
+          types: functionSig.paramTypes
+        })}}>`
         : `Omit<SignExecuteContractMethodParams<{}>, 'args'>`
 
       return `
@@ -455,7 +474,6 @@ function importStructs(): string {
 
 function genContract(contract: Contract, artifactRelativePath: string): string {
   const fieldsSig = getContractFields(contract)
-  const hasStruct = Project.currentProject.structs.length > 0
   const projectArtifact = Project.currentProject.projectArtifact
   const contractInfo = projectArtifact.infos.get(contract.name)
   if (contractInfo === undefined) {
@@ -471,7 +489,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       testMethod, callMethod, multicallMethods, fetchContractState,
       ContractInstance, getContractEventsCurrentCount,
       TestContractParamsWithoutMaps, TestContractResultWithoutMaps, SignExecuteContractMethodParams,
-      SignExecuteScriptTxResult, signExecuteMethod
+      SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
@@ -486,6 +504,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
+      ${genEncodeFieldsFunc(contract)}
       ${genGetInitialFieldsWithDefaultValues(contract)}
       ${genEventIndex(contract)}
       ${genConsts(contract)}
@@ -498,7 +517,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.name}ContractJson,
       '${contractInfo.bytecodeDebugPatch}',
       '${contractInfo.codeHashDebug}',
-      ${hasStruct ? 'AllStructs' : []}
+      ${getStructs()}
     ))
 
     // Use this class to interact with the blockchain
@@ -520,14 +539,13 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
 function genScript(script: Script): string {
   console.log(`Generating code for script ${script.name}`)
-  const hasStruct = Project.currentProject.structs.length > 0
   const fieldsType = script.fieldsSig.names.length > 0 ? `{${formatParameters(script.fieldsSig)}}` : '{}'
   return `
     export const ${script.name} = new ExecutableScript<${fieldsType}>(
       Script.fromJson(
         ${script.name}ScriptJson,
         '',
-        ${hasStruct ? 'AllStructs' : []}
+        ${getStructs()}
       )
     )
   `

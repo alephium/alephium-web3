@@ -28,6 +28,8 @@ import {
   SignExecuteContractMethodParams,
   SignExecuteScriptTxResult,
   signExecuteMethod,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -111,6 +113,10 @@ export namespace MapTestTypes {
 }
 
 class Factory extends ContractFactory<MapTestInstance, {}> {
+  encodeFields() {
+    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+  }
+
   at(address: string): MapTestInstance {
     return new MapTestInstance(address);
   }
@@ -208,8 +214,8 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
 export const MapTest = new Factory(
   Contract.fromJson(
     MapTestContractJson,
-    "=6-1+4=3-1+a=2-2+11=3-1+3=3-1+5=12-1+b=40+7a037e0300012c00=56+7a037e0300012c00=217-1+a=114+7a047e0300012c00=46+7a047e0300012c00=136",
-    "76d94621028b765345f083b3d7124c355a7fd8ca45e9253fc2661102f5533d11",
+    "=6-2+6e=2-1=1-4+e=2+5a4=1-1+82=2-2+9b=11-1+9=40+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=217-1+8=114+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=136",
+    "0b93613225107052726d5a66e898b0734b982e0c841c3972cb6a682cc78aca00",
     AllStructs
   )
 );

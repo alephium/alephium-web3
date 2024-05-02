@@ -28,6 +28,8 @@ import {
   SignExecuteContractMethodParams,
   SignExecuteScriptTxResult,
   signExecuteMethod,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -83,6 +85,14 @@ class Factory extends ContractFactory<
   OwnerOnlyInstance,
   OwnerOnlyTypes.Fields
 > {
+  encodeFields(fields: OwnerOnlyTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as OwnerOnlyTypes.Fields;
   }

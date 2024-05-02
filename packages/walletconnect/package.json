@@ -1,7 +1,7 @@
 {
   "name": "@alephium/walletconnect-provider",
   "description": "Alephium Provider for WalletConnect Protocol",
-  "version": "0.38.2",
+  "version": "0.39.3",
   "author": "Alephium dev",
   "homepage": "https://github.com/alephium/walletconnect",
   "repository": {
@@ -39,7 +39,8 @@
     "@walletconnect/utils": "2.11.0",
     "@walletconnect/core": "2.11.0",
     "@walletconnect/keyvaluestorage": "1.1.1",
-    "eventemitter3": "^4.0.7"
+    "eventemitter3": "^4.0.7",
+    "async-sema": "^3.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.21.0",

@@ -352,11 +352,14 @@ describe('contract', function () {
   })
 
   it('should decode map debug message', () => {
-    expect(ralph.tryDecodeMapDebugLog('5f5f6d61705f5f')).toEqual(undefined)
-    expect(ralph.tryDecodeMapDebugLog('5f5f6d61705f5f,false')).toEqual(undefined)
-    expect(ralph.tryDecodeMapDebugLog('5f5f6d6170,false')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert: 5f5f6d61705f5f')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('remove: 5f5f6d61705f5f')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert at map path')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert at map path: xxyyzz')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('insert at map path: 5f5f6d6170')).toEqual(undefined)
+    expect(ralph.tryDecodeMapDebugLog('remove at map path: 5f5f6d6170')).toEqual(undefined)
     const result0 = ralph.tryDecodeMapDebugLog(
-      '5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a,true'
+      'insert at map path: 5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a'
     )
     expect(result0).toEqual({
       path: '5f5f6d61705f5f305f5f00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a',
@@ -364,7 +367,7 @@ describe('contract', function () {
       encodedKey: utils.hexToBinUnsafe('00066fb0c875e171612b2da9135756faed416696b184d06d93a32f894e84f9e28a'),
       isInsert: true
     })
-    const result1 = ralph.tryDecodeMapDebugLog('5f5f6d61705f5f315f5f00ec3d,false')
+    const result1 = ralph.tryDecodeMapDebugLog('remove at map path: 5f5f6d61705f5f315f5f00ec3d')
     expect(result1).toEqual({
       path: '5f5f6d61705f5f315f5f00ec3d',
       mapIndex: 1,
@@ -441,6 +444,17 @@ describe('contract', function () {
 
     const address = ralph.encodeVmAddress('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
     expect(utils.binToHex(address)).toEqual('0400bee85f379545a2ed9f6cceb331288842f378cf0f04012ad4ac8824aae7d6f80a')
+
+    const values = [
+      ralph.i256Val(-1),
+      ralph.u256Val(1),
+      ralph.byteVecVal('23'),
+      ralph.addressVal('1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3'),
+      ralph.boolVal(false)
+    ]
+    expect(utils.binToHex(ralph.encodePrimitiveValues(values))).toEqual(
+      '05013f02010301230400a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec0000'
+    )
   })
 
   // it('should test buildByteCode', async () => {

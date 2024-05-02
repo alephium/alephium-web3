@@ -28,6 +28,8 @@ import {
   SignExecuteContractMethodParams,
   SignExecuteScriptTxResult,
   signExecuteMethod,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -104,6 +106,14 @@ class Factory extends ContractFactory<
   UserAccountInstance,
   UserAccountTypes.Fields
 > {
+  encodeFields(fields: UserAccountTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as UserAccountTypes.Fields;
   }

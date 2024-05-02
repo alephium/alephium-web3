@@ -107,4 +107,39 @@ describe('utils', function () {
     check('00000000000a11fc7e30525ff1c2d783de3344b85a9c76abdd207ad8e1401566', 1, 2)
     check('00000000000d09d9f9cf3c3619ca18b84c44437d61cdf0b423831e23e1847e20', 0, 0)
   })
+
+  it('should convert between target and difficulty', () => {
+    const maxBigInt = 1n << 256n
+    for (let num = 1; num < 256; num += 1) {
+      const targetValue = 1n << BigInt(num)
+      const diff = maxBigInt / targetValue
+      const compactedTarget = utils.difficultyToTarget(diff)
+      expect(utils.targetToDifficulty(compactedTarget)).toEqual(diff)
+    }
+
+    expect(utils.targetToDifficulty('03010101')).toEqual(
+      1759945423332515547604927348026201994942774834186624170344224826469580800n
+    )
+    expect(
+      utils.difficultyToTarget(1759945423332515547604927348026201994942774834186624170344224826469580800n)
+    ).toEqual('03010101')
+    expect(utils.targetToDifficulty('10010000')).toEqual(87112285931760246646623899502532662132736n)
+    expect(utils.difficultyToTarget(87112285931760246646623899502532662132736n)).toEqual('10010000')
+    expect(utils.targetToDifficulty('12ffffff')).toEqual(5192297168019855896620738275246080n)
+    expect(utils.difficultyToTarget(5192297168019855896620738275246080n)).toEqual('12ffffff')
+    expect(utils.targetToDifficulty('20ffffff')).toEqual(1n)
+    expect(utils.difficultyToTarget(1n)).toEqual('20ffffff')
+    expect(utils.targetToDifficulty('1b01ae98')).toEqual(167344728152528n)
+    expect(utils.difficultyToTarget(167344728152528n)).toEqual('1b01ae98')
+
+    expect(() => utils.targetToDifficulty('1b01ae9')).toThrow(
+      'Invalid target 1b01ae9, expected a hex string of length 8'
+    )
+    expect(() => utils.targetToDifficulty('1b01ae988')).toThrow(
+      'Invalid target 1b01ae988, expected a hex string of length 8'
+    )
+    expect(() => utils.targetToDifficulty('1b01ae9z')).toThrow(
+      'Invalid target 1b01ae9z, expected a hex string of length 8'
+    )
+  })
 })

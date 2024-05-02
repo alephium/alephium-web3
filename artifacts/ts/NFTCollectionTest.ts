@@ -28,6 +28,8 @@ import {
   SignExecuteContractMethodParams,
   SignExecuteScriptTxResult,
   signExecuteMethod,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as NFTCollectionTestContractJson } from "../nft/NFTCollectionTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -120,6 +122,14 @@ class Factory extends ContractFactory<
   NFTCollectionTestInstance,
   NFTCollectionTestTypes.Fields
 > {
+  encodeFields(fields: NFTCollectionTestTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as NFTCollectionTestTypes.Fields;
   }
