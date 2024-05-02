@@ -63,7 +63,7 @@ import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes }
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 
-describe('contract', function() {
+describe('contract', function () {
   let signer: PrivateKeyWallet
   let signerAccount: Account
   let signerGroup: number

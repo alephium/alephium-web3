@@ -337,17 +337,17 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
     funcHasArgs && contractHasFields
       ? `params: ${baseParamsType}`
       : funcHasArgs
-        ? `params: Omit<${baseParamsType}, 'initialFields'>`
-        : contractHasFields
-          ? `params: Omit<${baseParamsType}, 'testArgs'>`
-          : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
+      ? `params: Omit<${baseParamsType}, 'initialFields'>`
+      : contractHasFields
+      ? `params: Omit<${baseParamsType}, 'testArgs'>`
+      : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const baseRetType =
     tsReturnTypes.length === 0
       ? 'null'
       : tsReturnTypes.length === 1
-        ? tsReturnTypes[0]
-        : `[${tsReturnTypes.join(', ')}]`
+      ? tsReturnTypes[0]
+      : `[${tsReturnTypes.join(', ')}]`
   const retType = hasMapVars
     ? `TestContractResult<${baseRetType}, ${mapsType}>`
     : `TestContractResultWithoutMaps<${baseRetType}>`
@@ -374,17 +374,17 @@ function genCallMethodTypes(contract: Contract): string {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
         ? `CallContractParams<{${formatParameters({
-          names: functionSig.paramNames,
-          types: functionSig.paramTypes
-        })}}>`
+            names: functionSig.paramNames,
+            types: functionSig.paramTypes
+          })}}>`
         : `Omit<CallContractParams<{}>, 'args'>`
       const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
       const retType =
         tsReturnTypes.length === 0
           ? `CallContractResult<null>`
           : tsReturnTypes.length === 1
-            ? `CallContractResult<${tsReturnTypes[0]}>`
-            : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+          ? `CallContractResult<${tsReturnTypes[0]}>`
+          : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
       return `
       ${functionSig.name}: {
         params: ${params}
@@ -412,9 +412,9 @@ function genSignExecuteMethodTypes(contract: Contract): string {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
         ? `SignExecuteContractMethodParams<{${formatParameters({
-          names: functionSig.paramNames,
-          types: functionSig.paramTypes
-        })}}>`
+            names: functionSig.paramNames,
+            types: functionSig.paramTypes
+          })}}>`
         : `Omit<SignExecuteContractMethodParams<{}>, 'args'>`
 
       return `
