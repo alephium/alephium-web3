@@ -23,14 +23,6 @@ Contract MapTest() {
     map0.remove!(key, key)
     map1.remove!(key, value.id)
   }
-
-  pub fn get(key: Address) -> MapValue {
-    return map0[key]
-  }
-
-  pub fn contains(key: Address) -> Bool {
-    return map0.contains!(key)
-  }
 }
 
 TxScript InsertIntoMap(mapTest: MapTest, from: Address, value: MapValue) {

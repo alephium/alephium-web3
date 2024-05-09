@@ -2007,6 +2007,56 @@ export async function testMethod<
   } as TestContractResult<R, M>
 }
 
+export class RalphMap<K extends Val, V extends Val> {
+  constructor(
+    private readonly parentContract: Contract,
+    private readonly parentInstance: ContractInstance,
+    private readonly mapName: string
+  ) {}
+
+  async get(key: K): Promise<V | undefined> {
+    return getMapItem(this.parentContract, this.parentInstance, this.mapName, key)
+  }
+
+  async contains(key: K): Promise<boolean> {
+    return this.get(key).then((v) => v !== undefined)
+  }
+}
+
+export async function getMapItem<R extends Val>(
+  parentContract: Contract,
+  parentInstance: ContractInstance,
+  mapName: string,
+  key: Val
+): Promise<R | undefined> {
+  const index = parentContract.mapsSig?.names.findIndex((name) => name === mapName)
+  const mapType = index === undefined ? undefined : parentContract.mapsSig?.types[`${index}`]
+  if (mapType === undefined) {
+    throw new Error(`Map ${mapName} does not exist in contract ${parentContract.name}`)
+  }
+  const [keyType, valueType] = ralph.parseMapType(mapType)
+  const mapItemContractId = calcWrapperContractId(
+    parentInstance.contractId,
+    index!,
+    key,
+    keyType,
+    parentInstance.groupIndex
+  )
+  const mapItemAddress = addressFromContractId(mapItemContractId)
+  try {
+    const state = await getCurrentNodeProvider().contracts.getContractsAddressState(mapItemAddress)
+    const fieldsSig = getContractFieldsSig(valueType)
+    const fields = fromApiFields(state.immFields, state.mutFields, fieldsSig, parentContract.structs)
+    return fields['value'] as R
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('KeyNotFound')) {
+      // the map item contract does not exist
+      return undefined
+    }
+    throw error
+  }
+}
+
 interface MapInfo {
   name: string
   value: Map<Val, Val>
