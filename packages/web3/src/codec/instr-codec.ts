@@ -22,6 +22,7 @@ import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } fro
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
+import { signedIntCodec } from './signed-int-codec'
 
 const byteStringArrayCodec = new ArrayCodec(byteStringCodec)
 
@@ -192,6 +193,7 @@ export const AddModN: Instr = { code: 0x88, value: {} }
 export const U256ToString: Instr = { code: 0x89, value: {} }
 export const I256ToString: Instr = { code: 0x8a, value: {} }
 export const BoolToString: Instr = { code: 0x8b, value: {} }
+export const GroupOfAddress: Instr = { code: 0x8c, value: {} }
 export const LoadMutField = (index: number): Instr => ({ code: 0xa0, value: { index } })
 export const StoreMutField = (index: number): Instr => ({ code: 0xa1, value: { index } })
 export const ApproveAlph: Instr = { code: 0xa2, value: {} }
@@ -246,6 +248,12 @@ export const CreateMapEntry: (immFields: number, mutFields: number) => Instr = (
   immFields: number,
   mutFields: number
 ) => ({ code: 0xd2, value: { immFields, mutFields } })
+export const MethodSelector: (selector: number) => Instr = (selector: number) => {
+  return { code: 0xd3, value: { index: selector } }
+}
+export const CallExternalBySelector: (selector: number) => Instr = (selector: number) => {
+  return { code: 0xd4, value: { index: selector } }
+}
 
 export class InstrCodec implements Codec<Instr> {
   parser = Parser.start()
@@ -393,6 +401,7 @@ export class InstrCodec implements Codec<Instr> {
         [U256ToString.code]: Parser.start(),
         [I256ToString.code]: Parser.start(),
         [BoolToString.code]: Parser.start(),
+        [GroupOfAddress.code]: Parser.start(),
         0xa0: Parser.start().uint8('index'),
         0xa1: Parser.start().uint8('index'),
         [ApproveAlph.code]: Parser.start(),
@@ -443,7 +452,9 @@ export class InstrCodec implements Codec<Instr> {
         [LoadImmFieldByIndex.code]: Parser.start(),
         [PayGasFee.code]: Parser.start(),
         [MinimalContractDeposit.code]: Parser.start(),
-        0xd2: Parser.start().uint8('immFields').uint8('mutFields')
+        0xd2: Parser.start().uint8('immFields').uint8('mutFields'),
+        0xd3: Parser.start().int32('index'),
+        0xd4: Parser.start().int32('index')
       }
     })
 
@@ -465,6 +476,8 @@ export class InstrCodec implements Codec<Instr> {
     } else if (instr.code === 0xd2) {
       const value = instrValue as CreateMapEntryValue
       result.push(value.immFields, value.mutFields)
+    } else if (instr.code === 0xd3 || instr.code === 0xd4) {
+      result.push(...signedIntCodec.encode((instrValue as InstrValueWithIndex).index))
     }
 
     return Buffer.from(result)

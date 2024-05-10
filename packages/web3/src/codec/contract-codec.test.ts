@@ -35,6 +35,7 @@ import {
   LoadLocal,
   LoadMutField,
   Log5,
+  MethodSelector,
   Return,
   StoreLocal,
   StoreMutField,
@@ -99,7 +100,7 @@ describe('Encode & decode contract', function () {
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
-          instrs: [LoadImmField(3), Return]
+          instrs: [MethodSelector(-1137803467), LoadImmField(3), Return]
         },
         {
           isPublic: true,
@@ -107,7 +108,7 @@ describe('Encode & decode contract', function () {
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
-          instrs: [LoadImmField(0), Return]
+          instrs: [MethodSelector(167928762), LoadImmField(0), Return]
         },
         {
           isPublic: false,
@@ -123,7 +124,7 @@ describe('Encode & decode contract', function () {
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
-          instrs: [LoadImmField(2), Return]
+          instrs: [MethodSelector(1051502534), LoadImmField(2), Return]
         }
       ]
     )
@@ -234,6 +235,7 @@ describe('Encode & decode contract', function () {
           localsLength: 9,
           returnLength: 0,
           instrs: [
+            MethodSelector(-50171758),
             LoadLocal(0),
             LoadLocal(2),
             TokenRemaining,
@@ -321,7 +323,7 @@ describe('Encode & decode contract', function () {
     const encoded = contractCodec.encode(decoded)
 
     const decodedContract = contractCodec.decodeContract(Buffer.from(contractBytecode, 'hex'))
-    expect(decodedContract.fieldLength).toEqual(methods.length)
+    expect(decodedContract.methods.length).toEqual(methods.length)
     expect(toHalfDecoded(decodedContract)).toEqual(decoded)
     decodedContract.methods.map((decodedMethod, index) => {
       expect(decodedMethod.isPublic).toEqual(methods[index].isPublic)
