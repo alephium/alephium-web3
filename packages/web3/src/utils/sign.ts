@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ec as EC } from 'elliptic'
-import { binToHex, encodeSignature, hexToBinUnsafe, signatureDecode } from '..'
+import { binToHex, encodeSignature, hexToBinUnsafe, signatureDecode } from '../utils'
 import { KeyType } from '../signer'
 import * as necc from '@noble/secp256k1'
 import { createHash, createHmac } from 'crypto'
