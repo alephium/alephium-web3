@@ -76,7 +76,7 @@ export const Assert = new Factory(
   Contract.fromJson(
     AssertContractJson,
     "",
-    "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
+    "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b",
     AllStructs
   )
 );

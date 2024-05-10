@@ -116,7 +116,7 @@ export const UserAccount = new Factory(
   Contract.fromJson(
     UserAccountContractJson,
     "",
-    "be41c84b7e99a544bd39df7eb24bc8c221f4ac66b7c0d774dfe96b92745167cc",
+    "4e9f7eac1b76eaa2268b5af6ebb5640252892dc170aad6c1ee7b639131a55816",
     AllStructs
   )
 );

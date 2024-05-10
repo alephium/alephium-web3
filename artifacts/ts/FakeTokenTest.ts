@@ -141,7 +141,7 @@ export const FakeTokenTest = new Factory(
   Contract.fromJson(
     FakeTokenTestContractJson,
     "",
-    "88d74dcc19bfd075e97c90ab5f48d374f9ff982133d8257d4efc32305c5885b3",
+    "52f971cb44d54a5353e94dc8db991d2726f76760af782e79bd8a66a9b5b294b7",
     AllStructs
   )
 );

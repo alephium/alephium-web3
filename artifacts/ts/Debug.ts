@@ -62,8 +62,8 @@ class Factory extends ContractFactory<DebugInstance, {}> {
 export const Debug = new Factory(
   Contract.fromJson(
     DebugContractJson,
-    "=4-2+13=11+2ca7e=1+20748656c6c6f2c200121",
-    "0ffc72054e3668c8933e53c892947dea1963c0c24cc006a4fb0aa028c13a7e13",
+    "=4-2+18=11-1+3=10+ca7e020748656c6c6f2c200121",
+    "eb4209d8f543d9f623d72578f7ed9b271d62cf396dcce42d10f5e68dba3cecd3",
     AllStructs
   )
 );
