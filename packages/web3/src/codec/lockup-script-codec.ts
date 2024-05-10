@@ -38,7 +38,7 @@ class PublicKeyHashCodec implements Codec<PublicKeyHash> {
 }
 
 const publicKeyHashCodec = new PublicKeyHashCodec()
-const publicKeyHashesCodec = new ArrayCodec(publicKeyHashCodec)
+export const publicKeyHashesCodec = new ArrayCodec(publicKeyHashCodec)
 const multiSigParser = Parser.start()
   .nest('publicKeyHashes', { type: publicKeyHashesCodec.parser })
   .nest('m', { type: compactUnsignedIntCodec.parser })

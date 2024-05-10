@@ -24,10 +24,12 @@ import bs58 from './bs58'
 import djb2 from './djb2'
 import { binToHex, hexToBinUnsafe, isHexString } from './utils'
 import { KeyType } from '../signer'
+import { compactSignedIntCodec } from '../codec'
+import * as codec from '../codec'
+import { Buffer } from 'buffer/'
 
 const ec = new EC('secp256k1')
 const PublicKeyBytesLength = 33
-const MaxKeySize = 32
 
 export enum AddressType {
   P2PKH = 0x00,
@@ -165,43 +167,45 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
 }
 
 function multisigAddressFromPublicKey(publicKey: string): string {
-  try {
-    const bytes = hexToBinUnsafe(publicKey)
-    const m = bytes[0]
-    const n = bytes[1]
-    if (n <= 0 || n >= MaxKeySize) {
-      throw new Error(`Invalid n in m-of-n multisig, m: ${m}, n: ${n}`)
-    }
-    if (m <= 0 || m > n) {
-      throw new Error(`Invalid m in m-of-n multisig, m: ${m}, n: ${n}`)
-    }
-    if (bytes.length !== PublicKeyBytesLength * n + 2) {
-      throw new Error('Invalid public key size')
-    }
-
-    const publicKeyHashes: Uint8Array[] = []
-    for (let i = 2; i < bytes.length; i += 33) {
-      const publicKey = bytes.slice(i, i + 33)
-      publicKeyHashes.push(blake.blake2b(publicKey, undefined, 32))
-    }
-    const encoded = Buffer.concat([
-      Buffer.from([AddressType.P2MPKH]),
-      Buffer.from([n]),
-      ...publicKeyHashes,
-      Buffer.from([m])
-    ])
-    return bs58.encode(encoded)
-  } catch (err) {
-    throw new Error(`Invalid multisig public key, error: ${err}`)
+  if (!isHexString(publicKey)) {
+    throw new Error(`Invalid public key ${publicKey}, expected a hex-string`)
   }
+  const bytes = Buffer.from(hexToBinUnsafe(publicKey))
+  const decodedM = compactSignedIntCodec.decode(bytes)
+  let index = decodedM.rest.length + 1
+  const decodedN = compactSignedIntCodec.decode(bytes.slice(index))
+  index += decodedN.rest.length + 1
+  const m = compactSignedIntCodec.toI32(decodedM)
+  const n = compactSignedIntCodec.toI32(decodedN)
+  if (n <= 0) {
+    throw new Error(`Invalid n in m-of-n multisig, m: ${m}, n: ${n}`)
+  }
+  if (m <= 0 || m > n) {
+    throw new Error(`Invalid m in m-of-n multisig, m: ${m}, n: ${n}`)
+  }
+  if (bytes.length !== PublicKeyBytesLength * n + 2) {
+    throw new Error('Invalid public key size')
+  }
+
+  const publicKeyHashes: codec.lockupScript.PublicKeyHash[] = []
+  for (; index < bytes.length; index += 33) {
+    const publicKey = bytes.slice(index, index + 33)
+    publicKeyHashes.push({ publicKeyHash: Buffer.from(blake.blake2b(publicKey, undefined, 32)) })
+  }
+  const lockupScript: codec.lockupScript.LockupScript = {
+    scriptType: AddressType.P2MPKH,
+    script: {
+      publicKeyHashes: codec.lockupScript.publicKeyHashesCodec.fromArray(publicKeyHashes),
+      m: compactSignedIntCodec.fromI32(m)
+    }
+  }
+  const encoded = codec.lockupScript.lockupScriptCodec.encode(lockupScript)
+  return bs58.encode(encoded)
 }
 
 export function encodeMultisigPublicKeys(publicKeys: string[], m: number): string {
   if (publicKeys.length === 0) {
     throw new Error('Public key array is empty')
-  }
-  if (publicKeys.length >= MaxKeySize) {
-    throw new Error('The length of public key array exceeds maximum limit')
   }
   if (m <= 0 || m > publicKeys.length) {
     throw new Error(`Invalid m in m-of-n multisig, m: ${m}, n: ${publicKeys.length}`)
@@ -211,7 +215,8 @@ export function encodeMultisigPublicKeys(publicKeys: string[], m: number): strin
       throw new Error(`Invalid public key: ${publicKey}`)
     }
   })
-  return Buffer.from([m, publicKeys.length]).toString('hex') + publicKeys.join('')
+  const prefix = Buffer.concat([compactSignedIntCodec.encodeI32(m), compactSignedIntCodec.encodeI32(publicKeys.length)])
+  return prefix.toString('hex') + publicKeys.join('')
 }
 
 export function addressFromScript(script: Uint8Array): string {

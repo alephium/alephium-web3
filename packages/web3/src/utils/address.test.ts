@@ -165,9 +165,6 @@ describe('address', function () {
     ).toEqual(
       '0303030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc03c83325bd2c0fe1464161c6d5f42699fc9dd799dda7f984f9fbf59b01b095be1903c0a849d8ab8633b45b45ea7f3bb3229e1083a13fd73e027aac2bc55e7f622172'
     )
-    expect(() =>
-      encodeMultisigPublicKeys(Array(32).fill('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'), 2)
-    ).toThrow('The length of public key array exceeds maximum limit')
   })
 
   it('should compute address from public key', () => {
@@ -183,7 +180,9 @@ describe('address', function () {
       '94438313828b1b17e5d7f2c9d773d44a81af6c3ef67446fbf350497ff3b06c3741'
     ]
     expect(() => addressFromPublicKey('0100', 'multisig')).toThrow('Invalid n in m-of-n multisig, m: 1, n: 0')
-    expect(() => addressFromPublicKey('0130', 'multisig')).toThrow('Invalid n in m-of-n multisig, m: 1, n: 48')
+    expect(() => addressFromPublicKey('013f', 'multisig')).toThrow('Invalid n in m-of-n multisig, m: 1, n: -1')
+    expect(() => addressFromPublicKey('0201', 'multisig')).toThrow('Invalid m in m-of-n multisig, m: 2, n: 1')
+    expect(() => addressFromPublicKey('3f02', 'multisig')).toThrow('Invalid m in m-of-n multisig, m: -1, n: 2')
     expect(() => addressFromPublicKey('04' + encodeMultisigPublicKeys(publicKeys, 3).slice(2), 'multisig')).toThrow(
       'Invalid m in m-of-n multisig, m: 4, n: 3'
     )
