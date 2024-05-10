@@ -140,6 +140,22 @@ function contractFieldType(contractName: string, fieldsSig: node.FieldsSig): str
   return hasFields ? `${contractTypes(contractName)}.Fields` : '{}'
 }
 
+function importRalphMap(contract: Contract): string {
+  if (contract.mapsSig === undefined) return ''
+  return `import { RalphMap } from '@alephium/web3'`
+}
+
+function genMaps(contract: Contract): string {
+  const mapsSig = contract.mapsSig
+  if (mapsSig === undefined) return ''
+  const maps = mapsSig.names.map((name, index) => {
+    const mapType = mapsSig.types[`${index}`]
+    const [key, value] = parseMapType(mapType)
+    return `${name}: new RalphMap<${toTsType(key)}, ${toTsType(value)}>(${contract.name}.contract, this, '${name}')`
+  })
+  return `maps = { ${maps.join(',')} }`
+}
+
 function genFetchState(contract: Contract): string {
   return `
   async fetchState(): Promise<${contractTypes(contract.name)}.State> {
@@ -440,6 +456,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
     ${importStructs()}
+    ${importRalphMap(contract)}
 
     // Custom types for the contract
     export namespace ${contract.name}Types {
@@ -471,6 +488,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
         super(address)
       }
 
+      ${genMaps(contract)}
       ${genFetchState(contract)}
       ${genGetContractEventsCurrentCount(contract)}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}

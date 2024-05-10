@@ -78,7 +78,7 @@ export const OwnerOnly = new Factory(
   Contract.fromJson(
     OwnerOnlyContractJson,
     "",
-    "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
+    "c8ecfd7b7e1f3d0169d80e0abb59702516eeff301d47e0e7be70a631bd9414ca",
     AllStructs
   )
 );

@@ -110,7 +110,7 @@ export const DeprecatedNFTTest4 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest4ContractJson,
     "",
-    "d8f8650c15cc96211608a52ae7d43a15d7b28306ac13acec672c0f1ed02a0538",
+    "a5de0fa0b3580303ac63423f09ce5ed95fccbf789679b32130a53c26fef182e9",
     AllStructs
   )
 );
