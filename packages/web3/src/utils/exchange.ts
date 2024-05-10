@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { AddressType, addressFromPublicKey, addressFromScript, binToHex, bs58, hexToBinUnsafe } from '..'
+import { AddressType, addressFromPublicKey, addressFromScript, binToHex, bs58, hexToBinUnsafe } from '../utils'
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 

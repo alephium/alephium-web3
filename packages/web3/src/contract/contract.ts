@@ -34,7 +34,8 @@ import {
   getDefaultPrimitiveValue,
   PrimitiveTypes,
   decodeArrayType,
-  fromApiPrimitiveVal
+  fromApiPrimitiveVal,
+  tryGetCallResult
 } from '../api'
 import { CompileProjectResult } from '../api/api-alephium'
 import {
@@ -2369,10 +2370,3 @@ export const getContractIdFromUnsignedTx = async (
 
 // This function only works in the simple case where a single non-subcontract is created in the tx
 export const getTokenIdFromUnsignedTx = getContractIdFromUnsignedTx
-
-export function tryGetCallResult(result: node.CallContractResult): node.CallContractSucceeded {
-  if (result.type === 'CallContractFailed') {
-    throw new Error(`Failed to call contract, error: ${(result as node.CallContractFailed).error}`)
-  }
-  return result as node.CallContractSucceeded
-}

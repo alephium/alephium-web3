@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import * as ralph from './ralph'
 import * as utils from '../utils'
 import { Fields, FieldsSig, Struct, fromApiArray, fromApiEventFields, fromApiFields, getDefaultValue } from './contract'
-import { node } from '..'
+import * as node from '../api/api-alephium'
 
 describe('contract', function () {
   it('should encode I256', () => {
