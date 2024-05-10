@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace MetaDataTypes {
@@ -33,6 +38,10 @@ export namespace MetaDataTypes {
 }
 
 class Factory extends ContractFactory<MetaDataInstance, {}> {
+  encodeFields() {
+    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+  }
+
   at(address: string): MetaDataInstance {
     return new MetaDataInstance(address);
   }
@@ -40,26 +49,26 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
   tests = {
     foo: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParamsWithoutMaps<never, never>,
         "testArgs" | "initialFields"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "foo", params === undefined ? {} : params);
     },
     bar: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParamsWithoutMaps<never, never>,
         "testArgs" | "initialFields"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "bar", params === undefined ? {} : params);
     },
     baz: async (
       params?: Omit<
-        TestContractParams<never, never>,
+        TestContractParamsWithoutMaps<never, never>,
         "testArgs" | "initialFields"
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "baz", params === undefined ? {} : params);
     },
   };
@@ -70,7 +79,8 @@ export const MetaData = new Factory(
   Contract.fromJson(
     MetaDataContractJson,
     "",
-    "cade0de390b8e15960b263ac35aa013cb84f844bce6e3e53e6bfe2cc9166623f"
+    "af0b3119565ef5f833f7b3514005a6b00ac9957d5a7779765edfc6e6ce6321c5",
+    AllStructs
   )
 );
 

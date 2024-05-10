@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace SubTypes {
@@ -58,6 +63,14 @@ export namespace SubTypes {
 }
 
 class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
+  encodeFields(fields: SubTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as SubTypes.Fields;
   }
@@ -70,8 +83,11 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
 
   tests = {
     sub: async (
-      params: TestContractParams<SubTypes.Fields, { array: [bigint, bigint] }>
-    ): Promise<TestContractResult<bigint>> => {
+      params: TestContractParamsWithoutMaps<
+        SubTypes.Fields,
+        { array: [bigint, bigint] }
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "sub", params);
     },
   };
@@ -82,7 +98,8 @@ export const Sub = new Factory(
   Contract.fromJson(
     SubContractJson,
     "",
-    "513645f5c95a28d55a51070f3d5c51edbda05a98f46b23cad59952e2ee4846a1"
+    "3461ebfaca02ad0a3f587a5b67a461c0cbd82d14261407b1d9277ed4ad129234",
+    AllStructs
   )
 );
 

@@ -16,13 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, Contract, getContractEventsCurrentCount } from '../packages/web3'
+import {
+  Project,
+  Contract,
+  getContractEventsCurrentCount,
+  contractIdFromAddress,
+  TOTAL_NUMBER_OF_GROUPS
+} from '../packages/web3'
 import { EventSubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { Sub } from '../artifacts/ts/Sub'
 import { Add, AddTypes, AddInstance } from '../artifacts/ts/Add'
 import { Main, DestroyAdd } from '../artifacts/ts/scripts'
-import { CreateContractEventAddress, DestroyContractEventAddress } from '../packages/web3'
+import { CreateContractEventAddresses, DestroyContractEventAddresses } from '../packages/web3'
 import { ContractCreatedEvent, subscribeContractCreatedEvent } from '../packages/web3'
 import { ContractDestroyedEvent, subscribeContractDestroyedEvent } from '../packages/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet/dist/src/privatekey-wallet'
@@ -155,15 +161,36 @@ describe('events', function () {
   })
 
   it('should test special contract address', () => {
-    expect(CreateContractEventAddress).toEqual('tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrpE')
-    expect(DestroyContractEventAddress).toEqual('tgx7VNFoP9DJiFMFgXXtafQZkUvyEdDHT9ryamHJYrpD')
+    CreateContractEventAddresses.forEach((address, groupIndex) => {
+      const bytes = contractIdFromAddress(address)
+      expect(bytes.slice(0, 30)).toEqual(new Uint8Array(30))
+      expect(bytes.slice(30, 31)).toEqual(new Uint8Array([Contract.ContractCreatedEventIndex]))
+      expect(bytes[31]).toEqual(groupIndex)
+    })
+
+    DestroyContractEventAddresses.forEach((address, groupIndex) => {
+      const bytes = contractIdFromAddress(address)
+      expect(bytes.slice(0, 30)).toEqual(new Uint8Array(30))
+      expect(bytes.slice(30, 31)).toEqual(new Uint8Array([Contract.ContractDestroyedEventIndex]))
+      expect(bytes[31]).toEqual(groupIndex)
+    })
   })
 
   it('should subscribe contract created events', async () => {
     const events: Array<ContractCreatedEvent> = []
     const subscribeOptions = createSubscribeOptions(events)
-    const currentEventCount = await getContractEventsCurrentCount(CreateContractEventAddress)
-    const subscription = subscribeContractCreatedEvent(subscribeOptions, currentEventCount)
+    const groups = Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys())
+    const contractEvents0 = await Promise.all(
+      groups.map((g) => {
+        const createContractEventAddress = CreateContractEventAddresses[`${g}`]
+        return getContractEventsCurrentCount(createContractEventAddress)
+      })
+    )
+    const subscription = subscribeContractCreatedEvent(
+      subscribeOptions,
+      signer.group,
+      contractEvents0[`${signer.group}`]
+    )
     const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
     await sleep(1500)
     subscription.unsubscribe()
@@ -174,14 +201,38 @@ describe('events', function () {
     expect(events[0].fields.address).toEqual(sub.contractInstance.address)
     expect(events[0].fields.parentAddress).toEqual(undefined)
     expect(events[0].fields.stdInterfaceIdGuessed).toEqual(undefined)
+
+    const contractEvents1 = await Promise.all(
+      groups.map((g) => {
+        const createContractEventAddress = CreateContractEventAddresses[`${g}`]
+        return getContractEventsCurrentCount(createContractEventAddress)
+      })
+    )
+    contractEvents1.forEach((count, groupIndex) => {
+      if (groupIndex === signer.group) {
+        expect(count).toEqual(contractEvents0[`${groupIndex}`] + 1)
+      } else {
+        expect(count).toEqual(contractEvents0[`${groupIndex}`])
+      }
+    })
   })
 
   it('should subscribe contract destroyed events', async () => {
     const add = await deployContract(signer)
     const events: Array<ContractDestroyedEvent> = []
     const subscribeOptions = createSubscribeOptions(events)
-    const currentContractEventsCount = await getContractEventsCurrentCount(DestroyContractEventAddress)
-    const subscription = subscribeContractDestroyedEvent(subscribeOptions, currentContractEventsCount)
+    const groups = Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys())
+    const contractEvents0 = await Promise.all(
+      groups.map((g) => {
+        const destroyContractEventAddress = DestroyContractEventAddresses[`${g}`]
+        return getContractEventsCurrentCount(destroyContractEventAddress)
+      })
+    )
+    const subscription = subscribeContractDestroyedEvent(
+      subscribeOptions,
+      signer.group,
+      contractEvents0[`${signer.group}`]
+    )
 
     const caller = (await signer.getSelectedAccount()).address
     await DestroyAdd.execute(signer, { initialFields: { add: add.contractId, caller } })
@@ -193,5 +244,43 @@ describe('events', function () {
     expect(events[0].eventIndex).toEqual(Contract.ContractDestroyedEventIndex)
     expect(events[0].name).toEqual(Contract.ContractDestroyedEvent.name)
     expect(events[0].fields.address).toEqual(add.address)
+
+    const contractEvents1 = await Promise.all(
+      groups.map((g) => {
+        const destroyContractEventAddress = DestroyContractEventAddresses[`${g}`]
+        return getContractEventsCurrentCount(destroyContractEventAddress)
+      })
+    )
+    contractEvents1.forEach((count, groupIndex) => {
+      if (groupIndex === signer.group) {
+        expect(count).toEqual(contractEvents0[`${groupIndex}`] + 1)
+      } else {
+        expect(count).toEqual(contractEvents0[`${groupIndex}`])
+      }
+    })
+  })
+
+  it('should check group index', () => {
+    const events: Array<ContractCreatedEvent> = []
+    const subscribeOptions = createSubscribeOptions(events)
+    for (let groupIndex = 0; groupIndex < TOTAL_NUMBER_OF_GROUPS; groupIndex += 1) {
+      const subscription0 = subscribeContractCreatedEvent(subscribeOptions, groupIndex)
+      subscription0.unsubscribe()
+      const subscription1 = subscribeContractDestroyedEvent(subscribeOptions, groupIndex)
+      subscription1.unsubscribe()
+    }
+
+    expect(() => subscribeContractCreatedEvent(subscribeOptions, -1)).toThrow(
+      'Invalid group index -1, expected a value within the range [0, 4)'
+    )
+    expect(() => subscribeContractCreatedEvent(subscribeOptions, 4)).toThrow(
+      'Invalid group index 4, expected a value within the range [0, 4)'
+    )
+    expect(() => subscribeContractDestroyedEvent(subscribeOptions, -1)).toThrow(
+      'Invalid group index -1, expected a value within the range [0, 4)'
+    )
+    expect(() => subscribeContractDestroyedEvent(subscribeOptions, 4)).toThrow(
+      'Invalid group index 4, expected a value within the range [0, 4)'
+    )
   })
 })

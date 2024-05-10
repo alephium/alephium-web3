@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace NFTTestTypes {
@@ -62,6 +67,14 @@ export namespace NFTTestTypes {
 }
 
 class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
+  encodeFields(fields: NFTTestTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as NFTTestTypes.Fields;
   }
@@ -72,13 +85,19 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
 
   tests = {
     getTokenUri: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<HexString>> => {
+      params: Omit<
+        TestContractParamsWithoutMaps<NFTTestTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
     getCollectionIndex: async (
-      params: Omit<TestContractParams<NFTTestTypes.Fields, never>, "testArgs">
-    ): Promise<TestContractResult<[HexString, bigint]>> => {
+      params: Omit<
+        TestContractParamsWithoutMaps<NFTTestTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
       return testMethod(this, "getCollectionIndex", params);
     },
   };
@@ -89,7 +108,8 @@ export const NFTTest = new Factory(
   Contract.fromJson(
     NFTTestContractJson,
     "",
-    "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1"
+    "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
+    AllStructs
   )
 );
 

@@ -74,6 +74,7 @@ export interface SignDeployContractTxParams {
   initialAttoAlphAmount?: Number256
   initialTokenAmounts?: Token[]
   issueTokenAmount?: Number256
+  issueTokenTo?: string
   gasAmount?: number
   gasPrice?: Number256
 }

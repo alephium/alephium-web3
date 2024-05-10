@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace AddTypes {
@@ -60,6 +65,14 @@ export namespace AddTypes {
 }
 
 class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
+  encodeFields(fields: AddTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as AddTypes.Fields;
   }
@@ -72,26 +85,35 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 
   tests = {
     add: async (
-      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-    ): Promise<TestContractResult<[bigint, bigint]>> => {
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { array: [bigint, bigint] }
+      >
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "add", params);
     },
     addPrivate: async (
-      params: TestContractParams<AddTypes.Fields, { array: [bigint, bigint] }>
-    ): Promise<TestContractResult<[bigint, bigint]>> => {
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { array: [bigint, bigint] }
+      >
+    ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
       return testMethod(this, "addPrivate", params);
     },
     createSubContract: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         AddTypes.Fields,
         { a: bigint; path: HexString; subContractId: HexString; payer: Address }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "createSubContract", params);
     },
     destroy: async (
-      params: TestContractParams<AddTypes.Fields, { caller: Address }>
-    ): Promise<TestContractResult<null>> => {
+      params: TestContractParamsWithoutMaps<
+        AddTypes.Fields,
+        { caller: Address }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "destroy", params);
     },
   };
@@ -101,8 +123,9 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
-    "",
-    "2b9e382c20b4facf21eb745a46a72447dae221c274518e19c60b5ddfe478cc9c"
+    "=8-2+48=3-1+d=2-2+7b=47+77e010a=1+1646450726976617465=172",
+    "63d043ea1cf35f5c9d8a6012bb7aa2c7d1aec5ca0ea1a6501cfd38d12cf39543",
+    AllStructs
   )
 );
 

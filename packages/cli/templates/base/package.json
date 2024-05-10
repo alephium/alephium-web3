@@ -3,22 +3,21 @@
   "version": "0.1.0",
   "license": "GPL",
   "scripts": {
-    "build": "npm run clean:windows && npm run clean:unix && npx --yes tsc --build .",
+    "build": "npm run clean && npx --yes tsc --build .",
+    "clean": "npm run clean:windows && npm run clean:unix",
     "clean:unix": "node -e \"if (process.platform !== 'win32') process.exit(1)\" || rm -rf dist",
     "clean:windows": "node -e \"if (process.platform === 'win32') process.exit(1)\" || , if exist dist rmdir /Q /S dist",
-    "devnet:start": "npx --yes @alephium/cli@latest devnet start",
-    "devnet:stop": "npx --yes @alephium/cli@latest devnet stop",
-    "compile": "npx --yes @alephium/cli@latest compile",
-    "deploy": "npx --yes @alephium/cli@latest deploy",
+    "compile": "npx cli compile",
+    "deploy": "npx cli deploy",
     "lint": "eslint . --ext ts",
     "lint:fix": "eslint . --fix --ext ts",
     "test": "jest -i --config ./jest-config.json"
   },
   "dependencies": {
-    "@alephium/cli": "^0.26.0",
-    "@alephium/web3": "^0.26.0",
-    "@alephium/web3-test": "^0.26.0",
-    "@alephium/web3-wallet": "^0.26.0"
+    "@alephium/cli": "^0.39.3",
+    "@alephium/web3": "^0.39.3",
+    "@alephium/web3-test": "^0.39.3",
+    "@alephium/web3-wallet": "^0.39.3"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",

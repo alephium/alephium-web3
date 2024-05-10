@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as WrongNFTTestContractJson } from "../nft/WrongNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace WrongNFTTestTypes {
@@ -65,6 +70,14 @@ class Factory extends ContractFactory<
   WrongNFTTestInstance,
   WrongNFTTestTypes.Fields
 > {
+  encodeFields(fields: WrongNFTTestTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as WrongNFTTestTypes.Fields;
   }
@@ -76,18 +89,18 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<WrongNFTTestTypes.Fields, never>,
+        TestContractParamsWithoutMaps<WrongNFTTestTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
     getCollectionIndex: async (
       params: Omit<
-        TestContractParams<WrongNFTTestTypes.Fields, never>,
+        TestContractParamsWithoutMaps<WrongNFTTestTypes.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<[HexString, bigint]>> => {
+    ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
       return testMethod(this, "getCollectionIndex", params);
     },
   };
@@ -98,7 +111,8 @@ export const WrongNFTTest = new Factory(
   Contract.fromJson(
     WrongNFTTestContractJson,
     "",
-    "7dd2ed643a98b2a1a52a9b9e536fcdae60d961b583b8109f777d846bfdfcae8d"
+    "7dd2ed643a98b2a1a52a9b9e536fcdae60d961b583b8109f777d846bfdfcae8d",
+    AllStructs
   )
 );
 

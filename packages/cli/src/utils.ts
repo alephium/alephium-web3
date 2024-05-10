@@ -53,10 +53,46 @@ export function getConfigFile(): string {
 
 export async function isNetworkLive(url: string): Promise<boolean> {
   try {
-    const res = await fetch(`${url}/infos/node`, { method: 'Get' })
+    const res = await fetch(`${url}/infos/version`, { method: 'Get' })
     return res.status === 200
   } catch (e) {
+    console.error(`Error when checking if network is live: ${e}`)
     return false
+  }
+}
+
+export function getSdkFullNodeVersion() {
+  /* eslint-disable @typescript-eslint/no-var-requires */
+  const web3Path = require.resolve('@alephium/web3')
+  const packageJsonPath = path.join(web3Path, '..', '..', '..', 'package.json')
+  return require(packageJsonPath).config.alephium_version
+  /* eslint-enable @typescript-eslint/no-var-requires */
+}
+
+export function checkFullNodeVersion(connectedFullNodeVersion: string, sdkFullNodeVersion: string) {
+  const connectedVersions = connectedFullNodeVersion.split('.')
+  const sdkVersions = sdkFullNodeVersion.split('.')
+  const connectedMajorVersion = Number(connectedVersions[0])
+  const sdkMajorVersion = Number(sdkVersions[0])
+  if (connectedMajorVersion > sdkMajorVersion) {
+    return
+  }
+  const minimumRequiredVersion = `${sdkVersions[0]}.${sdkVersions[1]}.0`
+  if (connectedMajorVersion < sdkMajorVersion) {
+    throw new Error(
+      `Connected full node version is ${connectedFullNodeVersion}, the minimum required version is ${minimumRequiredVersion}`
+    )
+  }
+
+  const connectedMinorVersion = Number(connectedVersions[1])
+  const sdkMinorVersion = Number(sdkVersions[1])
+  if (connectedMinorVersion > sdkMinorVersion) {
+    return
+  }
+  if (connectedMinorVersion < sdkMinorVersion) {
+    throw new Error(
+      `Connected full node version is ${connectedFullNodeVersion}, the minimum required version is ${minimumRequiredVersion}`
+    )
   }
 }
 
@@ -115,4 +151,8 @@ export function waitUserConfirmation(msg: string): Promise<boolean> {
       resolve(answer.toLowerCase() === 'y')
     })
   })
+}
+
+export function taskIdToVariable(taskId: string): string {
+  return taskId.replace(/[:\-]/g, '_')
 }

@@ -55,8 +55,11 @@ export interface Configuration<Settings = unknown> {
   deployToMultipleGroupsInParallel?: boolean
   deploymentScriptDir?: string
   compilerOptions?: CompilerOptions
+  skipRecompile?: boolean
 
   networks: Record<NetworkId, Network<Settings>>
+
+  enableDebugMode?: boolean
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {

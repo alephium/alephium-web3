@@ -1,8 +1,8 @@
 {
-  "version": "v2.5.5",
+  "version": "v2.14.0",
   "name": "DeprecatedNFTTest2",
-  "bytecode": "02020912010000000102ce0102010000000102ce0002",
-  "codeHash": "c3e8a33252664e2f79903788d8abd79ee2c6785c580fa6911a0868436c59f59e",
+  "bytecode": "02020e1c010000000103d3ee6a5cd5ce0102010000000103d33e65d93dce0002",
+  "codeHash": "ade9aee476ee752050a1e9e1b19039f05261cb3f53941152617174faf9eae572",
   "fieldsSig": {
     "names": [
       "collectionId",

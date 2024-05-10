@@ -58,6 +58,23 @@ describe('contract', function () {
     expect(stdInterfaceId).toEqual('0001')
   })
 
+  it('should send issued token to `issuedTokenTo` address when specified', async () => {
+    const issueTokenAmount = 10n
+    const tokenTest = (
+      await TokenTest.deploy(signer, { initialFields, issueTokenAmount, issueTokenTo: signer.address })
+    ).contractInstance
+
+    const tokenId = tokenTest.contractId
+
+    const contractState = await tokenTest.fetchState()
+    const contractTokenBalance = contractState.asset.tokens!.find((token) => token.id === tokenId)
+    expect(contractTokenBalance).toBeUndefined()
+
+    const signerBalance = await web3.getCurrentNodeProvider().addresses.getAddressesAddressBalance(signer.address)
+    const signerTokenBalance = signerBalance.tokenBalances!.find((token) => token.id === tokenId)
+    expect(BigInt(signerTokenBalance!.amount)).toEqual(issueTokenAmount)
+  })
+
   it('should multicall', async () => {
     const tokenTest = (await TokenTest.deploy(signer, { initialFields })).contractInstance
     const result = await tokenTest.multicall({

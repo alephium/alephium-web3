@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest2ContractJson } from "../nft/DeprecatedNFTTest2.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest2Types {
@@ -64,6 +69,14 @@ class Factory extends ContractFactory<
   DeprecatedNFTTest2Instance,
   DeprecatedNFTTest2Types.Fields
 > {
+  encodeFields(fields: DeprecatedNFTTest2Types.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTest2Types.Fields;
   }
@@ -75,18 +88,18 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest2Types.Fields, never>,
+        TestContractParamsWithoutMaps<DeprecatedNFTTest2Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
     getCollectionId: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest2Types.Fields, never>,
+        TestContractParamsWithoutMaps<DeprecatedNFTTest2Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getCollectionId", params);
     },
   };
@@ -97,7 +110,8 @@ export const DeprecatedNFTTest2 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest2ContractJson,
     "",
-    "c3e8a33252664e2f79903788d8abd79ee2c6785c580fa6911a0868436c59f59e"
+    "ade9aee476ee752050a1e9e1b19039f05261cb3f53941152617174faf9eae572",
+    AllStructs
   )
 );
 

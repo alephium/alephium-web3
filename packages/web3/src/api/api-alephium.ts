@@ -185,6 +185,8 @@ export interface BuildDeployContractTx {
   initialTokenAmounts?: Token[]
   /** @format uint256 */
   issueTokenAmount?: string
+  /** @format address */
+  issueTokenTo?: string
   /** @format gas */
   gasAmount?: number
   /** @format uint256 */
@@ -244,6 +246,14 @@ export interface BuildExecuteScriptTxResult {
 export interface BuildInfo {
   releaseVersion: string
   commit: string
+}
+
+export interface BuildMultiAddressesTransaction {
+  from: Source[]
+  /** @format uint256 */
+  gasPrice?: string
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 export interface BuildMultisig {
@@ -351,6 +361,8 @@ export interface CallContract {
   txId?: string
   /** @format address */
   address: string
+  /** @format address */
+  callerAddress?: string
   /** @format int32 */
   methodIndex: number
   args?: Val[]
@@ -373,6 +385,7 @@ export interface CallContractSucceeded {
   txInputs: string[]
   txOutputs: Output[]
   events: ContractEventByTxId[]
+  debugMessages: DebugMessage[]
   type: string
 }
 
@@ -411,12 +424,14 @@ export interface CompileContractResult {
   enums: Enum[]
   events: EventSig[]
   warnings: string[]
+  maps?: MapsSig
   stdInterfaceId?: string
 }
 
 export interface CompileProjectResult {
   contracts: CompileContractResult[]
   scripts: CompileScriptResult[]
+  structs?: StructSig[]
 }
 
 export interface CompileScriptResult {
@@ -644,6 +659,11 @@ export interface InternalServerError {
   detail: string
 }
 
+export interface MapsSig {
+  names: string[]
+  types: string[]
+}
+
 export interface MemPooled {
   type: string
 }
@@ -739,6 +759,11 @@ export interface Reachable {
   type: string
 }
 
+export interface Result {
+  /** @format bigint */
+  hashrate: string
+}
+
 export interface RevealMnemonic {
   password: string
 }
@@ -771,6 +796,24 @@ export interface Sign {
 export interface SignResult {
   /** @format signature */
   signature: string
+}
+
+export interface Source {
+  /** @format hex-string */
+  fromPublicKey: string
+  destinations: Destination[]
+  /** @format hex-string */
+  fromPublicKeyType?: string
+  /** @format gas */
+  gasAmount?: number
+  utxos?: OutputRef[]
+}
+
+export interface StructSig {
+  name: string
+  fieldNames: string[]
+  fieldTypes: string[]
+  isMutable: boolean[]
 }
 
 export interface SubmitMultisig {
@@ -818,6 +861,11 @@ export interface SweepAddressTransaction {
   gasPrice: string
 }
 
+export interface TargetToHashrate {
+  /** @format hex-string */
+  target: string
+}
+
 export interface TestContract {
   /** @format int32 */
   group?: number
@@ -829,6 +877,8 @@ export interface TestContract {
   txId?: string
   /** @format address */
   address?: string
+  /** @format address */
+  callerAddress?: string
   /** @format contract */
   bytecode: string
   initialImmFields?: Val[]
@@ -1256,7 +1306,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.5.5
+ * @version 2.14.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2118,6 +2168,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Transactions
+     * @name PostTransactionsBuildMultiAddresses
+     * @summary Build an unsigned transaction with multiple addresses to a number of recipients
+     * @request POST:/transactions/build-multi-addresses
+     */
+    postTransactionsBuildMultiAddresses: (data: BuildMultiAddressesTransaction, params: RequestParams = {}) =>
+      this.request<
+        BuildTransactionResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/transactions/build-multi-addresses`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
      * @name PostTransactionsSweepAddressBuild
      * @summary Build unsigned transactions to send all unlocked ALPH and token balances of one address to another address
      * @request POST:/transactions/sweep-address/build
@@ -2413,18 +2484,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get contract state
      * @request GET:/contracts/{address}/state
      */
-    getContractsAddressState: (
-      address: string,
-      query: {
-        /** @format int32 */
-        group: number
-      },
-      params: RequestParams = {}
-    ) =>
+    getContractsAddressState: (address: string, params: RequestParams = {}) =>
       this.request<ContractState, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/contracts/${address}/state`,
         method: 'GET',
-        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse),
@@ -2569,40 +2632,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         body: data,
         type: ContentType.Json,
         format: 'json',
-        ...params
-      }).then(convertHttpResponse)
-  }
-  utils = {
-    /**
-     * No description
-     *
-     * @tags Utils
-     * @name PostUtilsVerifySignature
-     * @summary Verify the SecP256K1 signature of some data
-     * @request POST:/utils/verify-signature
-     */
-    postUtilsVerifySignature: (data: VerifySignature, params: RequestParams = {}) =>
-      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/utils/verify-signature`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params
-      }).then(convertHttpResponse),
-
-    /**
-     * No description
-     *
-     * @tags Utils
-     * @name PutUtilsCheckHashIndexing
-     * @summary Check and repair the indexing of block hashes
-     * @request PUT:/utils/check-hash-indexing
-     */
-    putUtilsCheckHashIndexing: (params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
-        path: `/utils/check-hash-indexing`,
-        method: 'PUT',
         ...params
       }).then(convertHttpResponse)
   }
@@ -2783,6 +2812,58 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         query: query,
         format: 'json',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  utils = {
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name PostUtilsVerifySignature
+     * @summary Verify the SecP256K1 signature of some data
+     * @request POST:/utils/verify-signature
+     */
+    postUtilsVerifySignature: (data: VerifySignature, params: RequestParams = {}) =>
+      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/verify-signature`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name PostUtilsTargetToHashrate
+     * @summary Convert a target to hashrate
+     * @request POST:/utils/target-to-hashrate
+     */
+    postUtilsTargetToHashrate: (data: TargetToHashrate, params: RequestParams = {}) =>
+      this.request<Result, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/target-to-hashrate`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name PutUtilsCheckHashIndexing
+     * @summary Check and repair the indexing of block hashes
+     * @request PUT:/utils/check-hash-indexing
+     */
+    putUtilsCheckHashIndexing: (params: RequestParams = {}) =>
+      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/utils/check-hash-indexing`,
+        method: 'PUT',
         ...params
       }).then(convertHttpResponse)
   }

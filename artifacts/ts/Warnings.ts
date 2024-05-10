@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace WarningsTypes {
@@ -38,6 +43,14 @@ export namespace WarningsTypes {
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
+  encodeFields(fields: WarningsTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as WarningsTypes.Fields;
   }
@@ -50,8 +63,11 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
 
   tests = {
     foo: async (
-      params: TestContractParams<WarningsTypes.Fields, { x: bigint; y: bigint }>
-    ): Promise<TestContractResult<null>> => {
+      params: TestContractParamsWithoutMaps<
+        WarningsTypes.Fields,
+        { x: bigint; y: bigint }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "foo", params);
     },
   };
@@ -62,7 +78,8 @@ export const Warnings = new Factory(
   Contract.fromJson(
     WarningsContractJson,
     "",
-    "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2"
+    "873e095edb39cdb4b11b1157003daeacad06d259a938cd270e22b8e89b75feea",
+    AllStructs
   )
 );
 

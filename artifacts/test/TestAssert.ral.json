@@ -1,0 +1,28 @@
+{
+  "version": "v2.14.0",
+  "name": "TestAssert",
+  "bytecodeTemplate": "010103000000040c0c{0}0100",
+  "fieldsSig": {
+    "names": [
+      "assert"
+    ],
+    "types": [
+      "Assert"
+    ],
+    "isMutable": [
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

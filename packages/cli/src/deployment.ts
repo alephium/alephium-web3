@@ -36,7 +36,8 @@ import {
   ContractInstance,
   ExecutableScript,
   ProjectArtifact,
-  isHexString
+  isHexString,
+  isDevnet
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -58,6 +59,7 @@ import {
   getNetwork,
   loadConfig,
   retryFetch,
+  taskIdToVariable,
   waitTxConfirmed,
   waitUserConfirmation
 } from './utils'
@@ -155,6 +157,32 @@ export class Deployments {
   static async load(configuration: Configuration, networkId: NetworkId): Promise<Deployments> {
     const deploymentsFile = getDeploymentFilePath(configuration, networkId)
     return Deployments.from(deploymentsFile)
+  }
+
+  private tryGetDeployedContract(
+    contractName: string,
+    group?: number,
+    taskId?: string
+  ): DeployContractExecutionResult | undefined {
+    const deployments = group !== undefined ? this.deploymentsByGroup(group) : this.deployments[0]
+    if (deployments === undefined) {
+      return undefined
+    }
+    return taskId === undefined
+      ? deployments.contracts.get(`${contractName}`)
+      : deployments.contracts.get(`${taskIdToVariable(taskId)}`)
+  }
+
+  getInstance<I extends ContractInstance>(
+    contract: ContractFactory<I, any>,
+    group?: number,
+    taskId?: string
+  ): I | undefined {
+    const result = this.tryGetDeployedContract(contract.contract.name, group, taskId)
+    if (result === undefined) {
+      return undefined
+    }
+    return contract.at(result.contractInstance.address)
   }
 }
 
@@ -318,7 +346,10 @@ function createDeployer<Settings = unknown>(
     taskTag?: string
   ): Promise<DeployContractResult<T>> => {
     const initialFields = addStdIdToFields(contractFactory.contract, params.initialFields ?? {})
-    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(initialFields)
+    const initFieldsAndByteCode = contractFactory.contract.buildByteCodeToDeploy(
+      initialFields,
+      isDevnet(network.networkId)
+    )
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(contractFactory.contract, taskTag)
     const previous = deployContractResults.get(taskId)
@@ -532,12 +563,14 @@ export async function deploy<Settings = unknown>(
   const projectRootDir = path.resolve(process.cwd())
   const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
-  await Project.build(
-    configuration.compilerOptions,
-    path.resolve(process.cwd()),
-    configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
-    artifactDir
-  )
+  if (configuration.skipRecompile !== true) {
+    await Project.build(
+      configuration.compilerOptions,
+      path.resolve(process.cwd()),
+      configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
+      artifactDir
+    )
+  }
 
   // When the contract has been deployed previously, and the contract
   // code has changed, ask the user to confirm whether to redeploy the contract

@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest7ContractJson } from "../nft/DeprecatedNFTTest7.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest7Types {
@@ -64,6 +69,14 @@ class Factory extends ContractFactory<
   DeprecatedNFTTest7Instance,
   DeprecatedNFTTest7Types.Fields
 > {
+  encodeFields(fields: DeprecatedNFTTest7Types.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTest7Types.Fields;
   }
@@ -75,18 +88,18 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest7Types.Fields, never>,
+        TestContractParamsWithoutMaps<DeprecatedNFTTest7Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
     returnNegativeIndex: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest7Types.Fields, never>,
+        TestContractParamsWithoutMaps<DeprecatedNFTTest7Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<[HexString, bigint]>> => {
+    ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
       return testMethod(this, "returnNegativeIndex", params);
     },
   };
@@ -97,7 +110,8 @@ export const DeprecatedNFTTest7 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest7ContractJson,
     "",
-    "33ddc42a153c6b9940924d989dcd107d7ff234ecbe9c494ece35ed06bd24450d"
+    "b95c9acf088b090f5d9d34f28ab079cf22b9e53af8ae6864113c71172231ef4c",
+    AllStructs
   )
 );
 

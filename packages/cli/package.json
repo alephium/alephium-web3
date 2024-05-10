@@ -1,6 +1,6 @@
 {
   "name": "@alephium/cli",
-  "version": "0.26.0",
+  "version": "0.39.3",
   "description": "Alephium command line tool",
   "license": "GPL",
   "repository": {
@@ -24,15 +24,13 @@
   "dependencies": {
     "@alephium/web3": "workspace:^",
     "@alephium/web3-wallet": "workspace:^",
+    "@swc/core": "^1.4.1",
     "commander": "^9.5.0",
     "cross-fetch": "^3.1.5",
-    "crypto-js": "^4.1.1",
+    "crypto-js": "^4.2.0",
     "fs-extra": "^10.1.0",
     "jest": "^28.1.3",
     "prettier": "^2.8.7",
-    "openai": "^3.3.0",
-    "ipfs-http-client": "^56.0.0",
-    "yaml": "^2.3.1",
     "fetch-retry": "^5.0.6"
   },
   "devDependencies": {

@@ -18,8 +18,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import EventEmitter from 'eventemitter3'
 import { SessionTypes } from '@walletconnect/types'
 import SignClient from '@walletconnect/sign-client'
+import { SESSION_CONTEXT, SIGN_CLIENT_STORAGE_PREFIX } from '@walletconnect/sign-client'
 import { isBrowser } from '@walletconnect/utils'
-import { getChainsFromNamespaces, getAccountsFromNamespaces, getSdkError } from '@walletconnect/utils'
+import {
+  getChainsFromNamespaces,
+  getAccountsFromNamespaces,
+  getSdkError,
+  mapToObj,
+  objToMap
+} from '@walletconnect/utils'
 import {
   SignerProvider,
   Account,
@@ -56,6 +63,20 @@ import {
   ChainInfo
 } from './types'
 import { isMobile } from './utils'
+import {
+  CORE_STORAGE_PREFIX,
+  CORE_STORAGE_OPTIONS,
+  HISTORY_STORAGE_VERSION,
+  HISTORY_CONTEXT,
+  STORE_STORAGE_VERSION,
+  MESSAGES_STORAGE_VERSION,
+  MESSAGES_CONTEXT
+} from '@walletconnect/core'
+import { KeyValueStorage } from '@walletconnect/keyvaluestorage'
+import { JsonRpcRecord, MessageRecord } from '@walletconnect/types'
+import { Sema } from 'async-sema'
+
+const REQUESTS_PER_SECOND_LIMIT = 5
 
 export interface ProviderOptions extends EnableOptionsBase {
   // Alephium options
@@ -87,6 +108,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   public client!: SignClient
   public session: SessionTypes.Struct | undefined
+  private rateLimit = RateLimit(REQUESTS_PER_SECOND_LIMIT)
 
   static async init(opts: ProviderOptions): Promise<WalletConnectProvider> {
     const provider = new WalletConnectProvider(opts)
@@ -135,19 +157,8 @@ export class WalletConnectProvider extends SignerProvider {
       this.updateNamespace(this.session.namespaces)
     } else {
       this.updateNamespace(this.session.namespaces)
-      await this.ping(this.session.topic)
     }
-  }
-
-  private async ping(topic: string) {
-    const timeout = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Auto connect timeout')), 5 * 1000)
-    })
-    await Promise.race([this.client.ping({ topic }), timeout]).catch((err) => {
-      this.client.session.delete(topic, { code: 0, message: `Error: ${err}` })
-      this.session = undefined
-      this.account = undefined
-    })
+    await this.cleanMessages()
   }
 
   public async disconnect(): Promise<void> {
@@ -157,10 +168,13 @@ export class WalletConnectProvider extends SignerProvider {
 
     await this.providerOpts.onDisconnected()
 
-    await this.client.disconnect({
-      topic: this.session.topic,
-      reason: getSdkError('USER_DISCONNECTED')
-    })
+    const reason = getSdkError('USER_DISCONNECTED')
+    try {
+      await this.client.disconnect({ topic: this.session.topic, reason })
+    } catch (error) {
+      await this.client.session.delete(this.session.topic, reason)
+      await this.client.core.crypto.deleteSymKey(this.session.topic)
+    }
     this.session = undefined
     this.account = undefined
   }
@@ -219,8 +233,93 @@ export class WalletConnectProvider extends SignerProvider {
 
   // ---------- Private ----------------------------------------------- //
 
+  private getWCStorageKey(prefix: string, version: string, name: string): string {
+    return prefix + version + '//' + name
+  }
+
+  private async getSessionTopics(storage: KeyValueStorage): Promise<string[]> {
+    const sessionKey = this.getWCStorageKey(SIGN_CLIENT_STORAGE_PREFIX, STORE_STORAGE_VERSION, SESSION_CONTEXT)
+    const sessions = await storage.getItem<SessionTypes.Struct[]>(sessionKey)
+    if (sessions === undefined) {
+      return []
+    }
+    return sessions
+      .filter((session) => {
+        const chains = getChainsFromNamespaces(session.namespaces, [PROVIDER_NAMESPACE])
+        return chains.length > 0 && chains.every((c) => c.startsWith(PROVIDER_NAMESPACE))
+      })
+      .map((session) => session.topic)
+  }
+
+  // clean the `history` and `messages` storage before `SignClient` init
+  private async cleanBeforeInit() {
+    console.log('Clean storage before SignClient init')
+    const storage = new KeyValueStorage({ ...CORE_STORAGE_OPTIONS })
+    const historyStorageKey = this.getWCStorageKey(CORE_STORAGE_PREFIX, HISTORY_STORAGE_VERSION, HISTORY_CONTEXT)
+    const historyRecords = await storage.getItem<JsonRpcRecord[]>(historyStorageKey)
+    if (historyRecords !== undefined) {
+      const remainRecords = historyRecords.filter((record) => !this.needToDeleteHistory(record))
+      await storage.setItem<JsonRpcRecord[]>(historyStorageKey, remainRecords)
+    }
+
+    const topics = await this.getSessionTopics(storage)
+    if (topics.length > 0) {
+      const messageStorageKey = this.getWCStorageKey(CORE_STORAGE_PREFIX, MESSAGES_STORAGE_VERSION, MESSAGES_CONTEXT)
+      const messages = await storage.getItem<Record<string, MessageRecord>>(messageStorageKey)
+      if (messages === undefined) {
+        return
+      }
+
+      const messagesMap = objToMap(messages)
+      topics.forEach((topic) => messagesMap.delete(topic))
+      await storage.setItem<Record<string, MessageRecord>>(messageStorageKey, mapToObj(messagesMap))
+      console.log(`Clean topics from messages storage: ${topics.join(',')}`)
+    }
+  }
+
+  private needToDeleteHistory(record: JsonRpcRecord): boolean {
+    const request = record.request
+    if (request.method !== 'wc_sessionRequest') {
+      return false
+    }
+    const alphRequestMethod = request.params?.request?.method
+    return alphRequestMethod === 'alph_requestNodeApi' || alphRequestMethod === 'alph_requestExplorerApi'
+  }
+
+  private cleanHistory(checkResponse: boolean) {
+    try {
+      const records = this.client.core.history.records
+      for (const [id, record] of records) {
+        if (checkResponse && record.response === undefined) {
+          continue
+        }
+        if (this.needToDeleteHistory(record)) {
+          this.client.core.history.delete(record.topic, id)
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to clean history, error: ${error}`)
+    }
+  }
+
+  private async cleanMessages() {
+    if (this.session !== undefined) {
+      try {
+        await this.client.core.relayer.messages.del(this.session.topic)
+      } catch (error) {
+        console.error(`Failed to clean messages, error: ${error}, topic: ${this.session.topic}`)
+      }
+    }
+  }
+
   private async initialize() {
+    try {
+      await this.cleanBeforeInit()
+    } catch (error) {
+      console.error(`Failed to clean storage, error: ${error}`)
+    }
     await this.createClient()
+    this.cleanHistory(false)
     this.checkStorage()
     this.registerEventListeners()
   }
@@ -240,8 +339,9 @@ export class WalletConnectProvider extends SignerProvider {
     const sessionKeys = this.client.session.keys
     for (let i = sessionKeys.length - 1; i >= 0; i--) {
       const session = this.client.session.get(sessionKeys[`${i}`])
+      const hasKeyChain = this.client.core.crypto.keychain.has(session.topic)
       const chains = getChainsFromNamespaces(session.namespaces, [PROVIDER_NAMESPACE])
-      if (this.sameChains(chains, [this.permittedChain])) {
+      if (this.sameChains(chains, [this.permittedChain]) && hasKeyChain) {
         this.session = session
         return
       }
@@ -254,23 +354,31 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     this.client.on('session_ping', (args) => {
-      this.emitEvents('session_ping', args)
+      if (args.topic === this.session?.topic) {
+        this.emitEvents('session_ping', args)
+      }
     })
 
     this.client.on('session_event', (args) => {
-      this.emitEvents('session_event', args)
+      if (args.topic === this.session?.topic) {
+        this.emitEvents('session_event', args)
+      }
     })
 
     this.client.on('session_update', ({ topic, params }) => {
-      const { namespaces } = params
-      const _session = this.client?.session.get(topic)
-      this.session = { ..._session, namespaces } as SessionTypes.Struct
-      this.updateNamespace(this.session.namespaces)
-      this.emitEvents('session_update', { topic, params })
+      if (topic === this.session?.topic) {
+        const { namespaces } = params
+        const _session = this.client?.session.get(topic)
+        this.session = { ..._session, namespaces } as SessionTypes.Struct
+        this.updateNamespace(this.session.namespaces)
+        this.emitEvents('session_update', { topic, params })
+      }
     })
 
-    this.client.on('session_delete', () => {
-      this.emitEvents('session_delete')
+    this.client.on('session_delete', (args) => {
+      if (args.topic === this.session?.topic) {
+        this.emitEvents('session_delete')
+      }
     })
   }
 
@@ -284,6 +392,7 @@ export class WalletConnectProvider extends SignerProvider {
 
   // The provider only supports signer methods. The other requests should use Alephium Rest API.
   private async request<T = unknown>(args: { method: string; params: any }): Promise<T> {
+    await this.rateLimit()
     if (!this.session) {
       throw new Error('Sign Client not initialized')
     }
@@ -304,7 +413,8 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     try {
-      if (args.method.startsWith('alph_sign')) {
+      const isSignRequest = args.method.startsWith('alph_sign')
+      if (isSignRequest) {
         redirectToDeepLink()
       }
       const response = await this.client.request<T>({
@@ -315,6 +425,10 @@ export class WalletConnectProvider extends SignerProvider {
         chainId: this.permittedChain,
         topic: this.session?.topic
       })
+      if (!isSignRequest) {
+        this.cleanHistory(true)
+      }
+      await this.cleanMessages()
       return response
     } catch (error: any) {
       if (error.message) {
@@ -447,5 +561,21 @@ export function parseAccount(account: string): Account & { networkId: NetworkId 
 function redirectToDeepLink() {
   if (isMobile() && isBrowser()) {
     window.open(ALEPHIUM_DEEP_LINK, '_self', 'noreferrer noopener')
+  }
+}
+
+function RateLimit(rps: number) {
+  const sema = new Sema(rps)
+  const delay = 1000 // 1 second
+
+  return async () => {
+    const waitingLength = sema.nrWaiting()
+    if (waitingLength > 0) {
+      console.warn(
+        `There are currently ${waitingLength} requests in the waiting queue. Please reduce the number of WalletConnect requests.`
+      )
+    }
+    await sema.acquire()
+    setTimeout(() => sema.release(), delay)
   }
 }

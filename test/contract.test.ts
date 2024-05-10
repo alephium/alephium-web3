@@ -32,21 +32,36 @@ import {
   groupOfAddress,
   ProjectArtifact,
   DEFAULT_NODE_COMPILER_OPTIONS,
-  DUST_AMOUNT
+  DUST_AMOUNT,
+  DEFAULT_GAS_AMOUNT,
+  encodePrimitiveValues,
+  addressVal,
+  byteVecVal,
+  u256Val
 } from '../packages/web3'
 import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
-import { GreeterMain, Main } from '../artifacts/ts/scripts'
+import {
+  GreeterMain,
+  InsertIntoMap,
+  Main,
+  RemoveFromMap,
+  TemplateArrayVar,
+  TestAssert,
+  UpdateMapValue,
+  UpdateUserAccount
+} from '../artifacts/ts/scripts'
 import { Sub, SubTypes } from '../artifacts/ts/Sub'
 import { Add, AddTypes } from '../artifacts/ts/Add'
 import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { NFTTest, TokenTest } from '../artifacts/ts'
+import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
+import { TokenBalance } from '../artifacts/ts/types'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -94,7 +109,7 @@ describe('contract', function () {
     expect(contract0.fields.result).toEqual(1n)
 
     const contract1 = testResult.contracts[1] as AddTypes.State
-    expect(contract1.codeHash).toEqual(Add.contract.codeHash)
+    expect(contract1.codeHash).toEqual(Add.contract.codeHashDebug)
     expect(contract1.fields.sub).toEqual(subState.contractId)
     expect(contract1.fields.result).toEqual(3n)
 
@@ -235,11 +250,12 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(32)
-    sourceFiles.slice(0, 19).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(20, 24).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(25, 26).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(27).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    expect(sourceFiles.length).toEqual(44)
+    sourceFiles.slice(0, 23).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(23, 34).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(34, 36).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(36, 41).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(41).forEach((i) => expect(i.type).toEqual(4)) // structs
   })
 
   it('should load contract from json', () => {
@@ -282,13 +298,28 @@ describe('contract', function () {
     const result = await Debug.tests.debug()
     expect(result.debugMessages.length).toEqual(1)
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
-    expect(result.debugMessages[0].message).toEqual(`Hello, ${result.contractAddress}!`)
+    const nullContractAddress = addressFromContractId('0'.repeat(64))
+    expect(result.debugMessages[0].message).toEqual(`Hello, ${nullContractAddress}!`)
   })
 
   it('should test assert!', async () => {
     await Project.build({ errorOnWarnings: false })
     const contractAddress = randomContractAddress()
     expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, 3)
+
+    const assertDeployResult = await Assert.deploy(signer, { initialFields: {} })
+    const assertAddress = assertDeployResult.contractInstance.address
+
+    expectAssertionError(TestAssert.execute(signer, { initialFields: { assert: assertAddress } }), assertAddress, 3)
+
+    expectAssertionError(
+      TestAssert.execute(signer, {
+        initialFields: { assert: assertAddress },
+        gasAmount: DEFAULT_GAS_AMOUNT
+      }),
+      assertAddress,
+      3
+    )
   })
 
   it('should test enums and constants', async () => {
@@ -364,5 +395,190 @@ describe('contract', function () {
     expect(balances.balance).toEqual((alphAmount + DUST_AMOUNT).toString())
     const tokenBalance = balances.tokenBalances?.find((t) => t.id === contractId)
     expect(tokenBalance?.amount).toEqual(tokenAmount.toString())
+  })
+
+  it('should support template array variables in script', async () => {
+    await TemplateArrayVar.execute(signer, {
+      initialFields: {
+        address: testAddress,
+        numbers0: [
+          [0n, 1n],
+          [2n, 3n]
+        ],
+        bytes: '0011',
+        numbers1: [0n, 1n, 2n]
+      }
+    })
+  })
+
+  it('should test contract with parent', async () => {
+    const address = randomContractAddress()
+    const parentAddress = randomContractAddress()
+
+    const test0 = OwnerOnly.tests.testOwner({
+      initialFields: { owner: parentAddress },
+      address: address,
+      callerAddress: randomContractAddress()
+    })
+    expectAssertionError(test0, address, 0)
+
+    const test1 = await OwnerOnly.tests.testOwner({
+      initialFields: { owner: parentAddress },
+      address: address,
+      callerAddress: parentAddress
+    })
+    // expectAssertionError(test2, address, 0)
+    expect(test1.returns).toEqual(null)
+  })
+
+  it('should test struct', async () => {
+    const initialFields = {
+      ...UserAccount.getInitialFieldsWithDefaultValues(),
+      balances: {
+        totalAmount: 0n,
+        tokens: [
+          { tokenId: '0011', amount: 0n },
+          { tokenId: '0022', amount: 0n }
+        ] as [TokenBalance, TokenBalance]
+      }
+    }
+    const result = await UserAccount.deploy(signer, { initialFields })
+    const state = await result.contractInstance.fetchState()
+    expect(state.fields).toEqual(initialFields)
+
+    const balances0 = await result.contractInstance.methods.getBalances()
+    expect(balances0.returns).toEqual(initialFields.balances)
+
+    await UpdateUserAccount.execute(signer, {
+      initialFields: {
+        address: signer.address,
+        account: result.contractInstance.contractId,
+        tokens: [
+          { tokenId: '0011', amount: 100n },
+          { tokenId: '0022', amount: 101n }
+        ]
+      }
+    })
+
+    const balances1 = await result.contractInstance.methods.getBalances()
+    expect(balances1.returns.totalAmount).toEqual(201n)
+    expect(balances1.returns.tokens[0].amount).toEqual(100n)
+    expect(balances1.returns.tokens[1].amount).toEqual(101n)
+  })
+
+  it('should test map(unit test)', async () => {
+    const insertResult = await MapTest.tests.insert({
+      testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }]
+    })
+    expect(insertResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
+    expect(insertResult.maps?.map1?.get(1n)).toEqual(10n)
+
+    const updateResult = await MapTest.tests.update({
+      initialMaps: {
+        map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
+        map1: new Map([[1n, 10n]])
+      },
+      testArgs: { key: signer.address },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
+    })
+    expect(updateResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
+    expect(updateResult.maps?.map1?.get(1n)).toEqual(11n)
+
+    const removeResult = await MapTest.tests.remove({
+      initialMaps: {
+        map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
+        map1: new Map([[1n, 10n]])
+      },
+      testArgs: { key: signer.address },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
+    })
+    expect(removeResult.maps?.map0?.get(signer.address)).toEqual(undefined)
+    expect(removeResult.maps?.map1?.get(1n)).toEqual(undefined)
+  })
+
+  it('should test map(integration test)', async () => {
+    const result = await MapTest.deploy(signer, {
+      initialFields: {}
+    })
+
+    const mapTest = result.contractInstance
+    await InsertIntoMap.execute(signer, {
+      initialFields: {
+        mapTest: mapTest.contractId,
+        from: signer.address,
+        value: { id: 1n, balance: 10n }
+      },
+      attoAlphAmount: ONE_ALPH * 2n
+    })
+
+    const invalidAddress = randomContractAddress()
+    expect(await mapTest.maps.map0.contains(invalidAddress)).toEqual(false)
+    expect(await mapTest.maps.map0.contains(signer.address)).toEqual(true)
+    expect(await mapTest.maps.map0.get(signer.address)).toEqual({ id: 1n, balance: 10n })
+    expect(await mapTest.maps.map1.contains(0n)).toEqual(false)
+    expect(await mapTest.maps.map1.contains(1n)).toEqual(true)
+    expect(await mapTest.maps.map1.get(1n)).toEqual(10n)
+
+    await UpdateMapValue.execute(signer, {
+      initialFields: {
+        mapTest: mapTest.contractId,
+        key: signer.address
+      }
+    })
+
+    expect(await mapTest.maps.map0.get(signer.address)).toEqual({ id: 1n, balance: 11n })
+    expect(await mapTest.maps.map1.get(1n)).toEqual(11n)
+
+    await RemoveFromMap.execute(signer, {
+      initialFields: {
+        mapTest: mapTest.contractId,
+        key: signer.address
+      }
+    })
+
+    expect(await mapTest.maps.map0.contains(signer.address)).toEqual(false)
+    expect(await mapTest.maps.map0.get(signer.address)).toEqual(undefined)
+    expect(await mapTest.maps.map1.contains(1n)).toEqual(false)
+    expect(await mapTest.maps.map1.get(1n)).toEqual(undefined)
+  })
+
+  it('should test encode contract fields', async () => {
+    const contractFields: UserAccountTypes.Fields = {
+      id: '0011',
+      address: '1C2RAVWSuaXw8xtUxqVERR7ChKBE1XgscNFw73NSHE1v3',
+      balances: {
+        totalAmount: 100n,
+        tokens: [
+          { tokenId: '0022', amount: 101n },
+          { tokenId: '0033', amount: 102n }
+        ]
+      },
+      name: '0044'
+    }
+    const encodedImmFields = encodePrimitiveValues([
+      byteVecVal(contractFields.id),
+      byteVecVal(contractFields.balances.tokens[0].tokenId),
+      byteVecVal(contractFields.balances.tokens[1].tokenId),
+      byteVecVal(contractFields.name)
+    ])
+
+    const encodedMutFields = encodePrimitiveValues([
+      addressVal(contractFields.address),
+      u256Val(contractFields.balances.totalAmount),
+      u256Val(contractFields.balances.tokens[0].amount),
+      u256Val(contractFields.balances.tokens[1].amount)
+    ])
+
+    const encoded = UserAccount.encodeFields(contractFields)
+    expect(encoded.encodedImmFields).toEqual(encodedImmFields)
+    expect(encoded.encodedMutFields).toEqual(encodedMutFields)
+
+    const result = await signer.signAndSubmitDeployContractTx({
+      signerAddress: signer.address,
+      bytecode: UserAccount.contract.bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
+    })
+    const contractInstance = UserAccount.at(result.contractAddress)
+    expect((await contractInstance.fetchState()).fields).toEqual(contractFields)
   })
 })

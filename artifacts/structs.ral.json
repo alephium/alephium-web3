@@ -1,0 +1,47 @@
+[
+  {
+    "name": "MapValue",
+    "fieldNames": [
+      "id",
+      "balance"
+    ],
+    "fieldTypes": [
+      "U256",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      true
+    ]
+  },
+  {
+    "name": "TokenBalance",
+    "fieldNames": [
+      "tokenId",
+      "amount"
+    ],
+    "fieldTypes": [
+      "ByteVec",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      true
+    ]
+  },
+  {
+    "name": "Balances",
+    "fieldNames": [
+      "totalAmount",
+      "tokens"
+    ],
+    "fieldTypes": [
+      "U256",
+      "[TokenBalance;2]"
+    ],
+    "isMutable": [
+      true,
+      true
+    ]
+  }
+]

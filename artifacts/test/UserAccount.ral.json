@@ -1,0 +1,75 @@
+{
+  "version": "v2.14.0",
+  "name": "UserAccount",
+  "bytecode": "080340284037404d010004040013d388b067e71600ce01410c7b1602ce02410c7b1601a1021603a103160116032aa101010001010003d3185a39e11600a100010000000507d384cc0995a001ce01a002ce02a00302",
+  "codeHash": "4e9f7eac1b76eaa2268b5af6ebb5640252892dc170aad6c1ee7b639131a55816",
+  "fieldsSig": {
+    "names": [
+      "id",
+      "address",
+      "balances",
+      "name"
+    ],
+    "types": [
+      "ByteVec",
+      "Address",
+      "Balances",
+      "ByteVec"
+    ],
+    "isMutable": [
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "updateBalance",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "tokens"
+      ],
+      "paramTypes": [
+        "[TokenBalance;2]"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "updateAddress",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [
+        "newAddress"
+      ],
+      "paramTypes": [
+        "Address"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "getBalances",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "Balances"
+      ]
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

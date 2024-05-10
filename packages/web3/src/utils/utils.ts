@@ -18,21 +18,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC, SignatureInput } from 'elliptic'
 import BN from 'bn.js'
-import blake from 'blakejs'
-import bs58 from './bs58'
 import { Buffer } from 'buffer/'
 
 import { TOTAL_NUMBER_OF_GROUPS, TOTAL_NUMBER_OF_CHAINS } from '../constants'
-import djb2 from './djb2'
-import { KeyType } from '../signer'
-import { HexString } from '../contract'
 
 export const networkIds = ['mainnet', 'testnet', 'devnet'] as const
 export type NetworkId = (typeof networkIds)[number]
+export type HexString = string
 
 const ec = new EC('secp256k1')
-const PublicKeyBytesLength = 33
-const MaxKeySize = 32
 
 export function encodeSignature(signature: EC.Signature | { r: BN; s: BN }): string {
   let sNormalized = signature.s
@@ -65,14 +59,6 @@ export function signatureDecode(ec: EC, signature: string): SignatureInput {
   }
 }
 
-export function xorByte(intValue: number): number {
-  const byte0 = (intValue >> 24) & 0xff
-  const byte1 = (intValue >> 16) & 0xff
-  const byte2 = (intValue >> 8) & 0xff
-  const byte3 = intValue & 0xff
-  return (byte0 ^ byte1 ^ byte2 ^ byte3) & 0xff
-}
-
 export function isHexString(input: string): boolean {
   return input.length % 2 === 0 && /^[0-9a-fA-F]*$/.test(input)
 }
@@ -86,209 +72,12 @@ export function toNonNegativeBigInt(input: string): bigint | undefined {
   }
 }
 
-export enum AddressType {
-  P2PKH = 0x00,
-  P2MPKH = 0x01,
-  P2SH = 0x02,
-  P2C = 0x03
-}
-
-export function groupOfAddress(address: string): number {
-  const decoded = bs58.decode(address)
-
-  if (decoded.length == 0) throw new Error('Address string is empty')
-  const addressType = decoded[0]
-  const addressBody = decoded.slice(1)
-
-  if (addressType == AddressType.P2PKH) {
-    return groupOfP2pkhAddress(addressBody)
-  } else if (addressType == AddressType.P2MPKH) {
-    return groupOfP2mpkhAddress(addressBody)
-  } else if (addressType == AddressType.P2SH) {
-    return groupOfP2shAddress(addressBody)
-  } else {
-    // Contract Address
-    const id = contractIdFromAddress(address)
-    return id[`${id.length - 1}`]
-  }
-}
-
-function groupOfAddressBytes(bytes: Uint8Array): number {
-  const hint = djb2(bytes) | 1
-  const hash = xorByte(hint)
-  const group = hash % TOTAL_NUMBER_OF_GROUPS
-  return group
-}
-
-// Pay to public key hash address
-function groupOfP2pkhAddress(address: Uint8Array): number {
-  if (address.length != 32) {
-    throw new Error(`Invalid p2pkh address length: ${address.length}`)
-  }
-
-  return groupOfAddressBytes(address)
-}
-
-// Pay to multiple public key hash address
-function groupOfP2mpkhAddress(address: Uint8Array): number {
-  if ((address.length - 2) % 32 != 0) {
-    throw new Error(`Invalid p2mpkh address length: ${address.length}`)
-  }
-
-  return groupOfAddressBytes(address.slice(1, 33))
-}
-
-// Pay to script hash address
-function groupOfP2shAddress(address: Uint8Array): number {
-  return groupOfAddressBytes(address)
-}
-
-export function contractIdFromAddress(address: string): Uint8Array {
-  return idFromAddress(address)
-}
-
-export function tokenIdFromAddress(address: string): Uint8Array {
-  return idFromAddress(address)
-}
-
-function idFromAddress(address: string): Uint8Array {
-  const decoded = bs58.decode(address)
-
-  if (decoded.length == 0) throw new Error('Address string is empty')
-  const addressType = decoded[0]
-  const addressBody = decoded.slice(1)
-
-  if (addressType == AddressType.P2C) {
-    return addressBody
-  } else {
-    throw new Error(`Invalid contract address type: ${addressType}`)
-  }
-}
-
 export function hexToBinUnsafe(hex: string): Uint8Array {
   return Buffer.from(hex, 'hex')
 }
 
 export function binToHex(bin: Uint8Array): string {
   return Buffer.from(bin).toString('hex')
-}
-
-export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number {
-  return groupOfAddress(addressFromPublicKey(publicKeyFromPrivateKey(privateKey, keyType), keyType))
-}
-
-export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
-  const keyType = _keyType ?? 'default'
-
-  if (keyType === 'default') {
-    const key = ec.keyFromPrivate(privateKey)
-    return key.getPublic(true, 'hex')
-  } else {
-    return ec.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
-  }
-}
-
-export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): string {
-  const keyType = _keyType ?? 'default'
-
-  if (keyType === 'default') {
-    const addressType = Buffer.from([AddressType.P2PKH])
-    const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
-    const bytes = Buffer.concat([addressType, hash])
-    return bs58.encode(bytes)
-  } else if (keyType === 'bip340-schnorr') {
-    const lockupScript = Buffer.from(`0101000000000458144020${publicKey}8685`, 'hex')
-    return addressFromScript(lockupScript)
-  } else {
-    return multisigAddressFromPublicKey(publicKey)
-  }
-}
-
-function multisigAddressFromPublicKey(publicKey: string): string {
-  try {
-    const bytes = hexToBinUnsafe(publicKey)
-    const m = bytes[0]
-    const n = bytes[1]
-    if (n <= 0 || n >= MaxKeySize) {
-      throw new Error(`Invalid n in m-of-n multisig, m: ${m}, n: ${n}`)
-    }
-    if (m <= 0 || m > n) {
-      throw new Error(`Invalid m in m-of-n multisig, m: ${m}, n: ${n}`)
-    }
-    if (bytes.length !== PublicKeyBytesLength * n + 2) {
-      throw new Error('Invalid public key size')
-    }
-
-    const publicKeyHashes: Uint8Array[] = []
-    for (let i = 2; i < bytes.length; i += 33) {
-      const publicKey = bytes.slice(i, i + 33)
-      publicKeyHashes.push(blake.blake2b(publicKey, undefined, 32))
-    }
-    const encoded = Buffer.concat([
-      Buffer.from([AddressType.P2MPKH]),
-      Buffer.from([n]),
-      ...publicKeyHashes,
-      Buffer.from([m])
-    ])
-    return bs58.encode(encoded)
-  } catch (err) {
-    throw new Error(`Invalid multisig public key, error: ${err}`)
-  }
-}
-
-export function encodeMultisigPublicKeys(publicKeys: string[], m: number): string {
-  if (publicKeys.length === 0) {
-    throw new Error('Public key array is empty')
-  }
-  if (publicKeys.length >= MaxKeySize) {
-    throw new Error('The length of public key array exceeds maximum limit')
-  }
-  if (m <= 0 || m > publicKeys.length) {
-    throw new Error(`Invalid m in m-of-n multisig, m: ${m}, n: ${publicKeys.length}`)
-  }
-  publicKeys.forEach((publicKey) => {
-    if (!isHexString(publicKey) || publicKey.length !== PublicKeyBytesLength * 2) {
-      throw new Error(`Invalid public key: ${publicKey}`)
-    }
-  })
-  return Buffer.from([m, publicKeys.length]).toString('hex') + publicKeys.join('')
-}
-
-export function addressFromScript(script: Uint8Array): string {
-  const scriptHash = blake.blake2b(script, undefined, 32)
-  const addressType = Buffer.from([AddressType.P2SH])
-  return bs58.encode(Buffer.concat([addressType, scriptHash]))
-}
-
-export function addressFromContractId(contractId: string): string {
-  const addressType = Buffer.from([AddressType.P2C])
-  const hash = Buffer.from(hexToBinUnsafe(contractId))
-  const bytes = Buffer.concat([addressType, hash])
-  return bs58.encode(bytes)
-}
-
-export function addressFromTokenId(tokenId: string): string {
-  const contractId = tokenId // contract ID is the same as token ID
-  return addressFromContractId(contractId)
-}
-
-export function contractIdFromTx(txId: string, outputIndex: number): string {
-  const txIdBin = hexToBinUnsafe(txId)
-  const data = Buffer.concat([txIdBin, Buffer.from([outputIndex])])
-  const hash = blake.blake2b(data, undefined, 32)
-  return binToHex(hash)
-}
-
-export function subContractId(parentContractId: string, pathInHex: string, group: number): string {
-  if (group < 0 || group >= TOTAL_NUMBER_OF_GROUPS) {
-    throw new Error(`Invalid group ${group}`)
-  }
-  const data = Buffer.concat([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
-  const bytes = Buffer.concat([
-    blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32).slice(0, -1),
-    Buffer.from([group])
-  ])
-  return binToHex(bytes)
 }
 
 export function blockChainIndex(blockHash: HexString): { fromGroup: number; toGroup: number } {
@@ -317,6 +106,35 @@ export function hexToString(str: string): string {
 
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export function isDevnet(networkId?: number): boolean {
+  return networkId !== 0 && networkId !== 1
+}
+
+export function targetToDifficulty(compactedTarget: HexString): bigint {
+  if (!isHexString(compactedTarget) || compactedTarget.length !== 8) {
+    throw Error(`Invalid target ${compactedTarget}, expected a hex string of length 8`)
+  }
+  const size = hexToBinUnsafe(compactedTarget.slice(0, 2))[0]
+  const mantissa = BigInt('0x' + compactedTarget.slice(2))
+  const maxBigInt = 1n << 256n
+  const target = size <= 3 ? mantissa >> BigInt(8 * (3 - size)) : mantissa << BigInt(8 * (size - 3))
+  return maxBigInt / target
+}
+
+export function difficultyToTarget(diff: bigint): HexString {
+  const maxBigInt = 1n << 256n
+  const target = diff === 1n ? maxBigInt - 1n : maxBigInt / diff
+  const size = Math.floor((target.toString(2).length + 7) / 8)
+  const mantissa =
+    size <= 3
+      ? BigInt.asIntN(32, target) << BigInt(8 * (3 - size))
+      : BigInt.asIntN(32, target >> BigInt(8 * (size - 3)))
+  const mantissaBytes = Buffer.alloc(4)
+  mantissaBytes.writeInt32BE(Number(mantissa), 0)
+  const bytes = new Uint8Array([size, ...mantissaBytes.slice(1)])
+  return binToHex(bytes)
 }
 
 type _Eq<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false

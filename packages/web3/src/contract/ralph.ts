@@ -17,9 +17,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { Val, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
-import { bs58, isHexString } from '../utils'
-import { Fields, FieldsSig } from './contract'
+import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
+import { HexString, binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
+import { Fields, FieldsSig, Struct } from './contract'
+import { compactSignedIntCodec, compactUnsignedIntCodec } from '../codec'
 
 const bigIntZero = BigInt(0)
 
@@ -50,6 +51,13 @@ class CompactInt {
 
 export function encodeBool(bool: boolean): Uint8Array {
   return bool ? Uint8Array.from([1]) : Uint8Array.from([0])
+}
+
+export function decodeBool(bytes: Uint8Array): boolean {
+  if (bytes.length !== 1) {
+    throw new Error(`Expected one byte for encoded bool, got ${bytes.length}`)
+  }
+  return bytes[0] === 1 ? true : false
 }
 
 export function encodeI256(i256: bigint): Uint8Array {
@@ -157,6 +165,58 @@ export function encodeAddress(address: string): Uint8Array {
   return bs58.decode(address)
 }
 
+export enum VmValType {
+  Bool = 0,
+  I256 = 1,
+  U256 = 2,
+  ByteVec = 3,
+  Address = 4
+}
+
+export function encodeVmBool(bool: boolean): Uint8Array {
+  return new Uint8Array([VmValType.Bool, ...encodeBool(bool)])
+}
+
+export function encodeVmI256(i256: bigint): Uint8Array {
+  return new Uint8Array([VmValType.I256, ...encodeI256(i256)])
+}
+
+export function encodeVmU256(u256: bigint): Uint8Array {
+  return new Uint8Array([VmValType.U256, ...encodeU256(u256)])
+}
+
+export function encodeVmByteVec(bytes: string): Uint8Array {
+  return new Uint8Array([VmValType.ByteVec, ...encodeByteVec(bytes)])
+}
+
+export function encodeVmAddress(address: string): Uint8Array {
+  return new Uint8Array([VmValType.Address, ...encodeAddress(address)])
+}
+
+export function boolVal(value: boolean): { type: 'Bool'; value: Val } {
+  return { type: 'Bool', value }
+}
+
+export function i256Val(value: bigint | number): { type: 'I256'; value: Val } {
+  return { type: 'I256', value: BigInt(value) }
+}
+
+export function u256Val(value: bigint | number): { type: 'U256'; value: Val } {
+  return { type: 'U256', value: BigInt(value) }
+}
+
+export function byteVecVal(value: HexString): { type: 'ByteVec'; value: Val } {
+  return { type: 'ByteVec', value }
+}
+
+export function addressVal(value: string): { type: 'Address'; value: Val } {
+  return { type: 'Address', value }
+}
+
+export function encodePrimitiveValues(values: { type: string; value: Val }[]): Uint8Array {
+  return encodeFields(values.map(({ type, value }) => ({ name: `${value}`, type, value })))
+}
+
 function invalidScriptField(tpe: string, value: Val): Error {
   return Error(`Invalid script field ${value} for type ${tpe}`)
 }
@@ -197,7 +257,6 @@ export function encodeScriptFieldAsString(tpe: string, value: Val): string {
   return Buffer.from(encodeScriptField(tpe, value)).toString('hex')
 }
 
-// TODO: support array type
 export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   switch (tpe) {
     case 'Bool':
@@ -209,29 +268,233 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
     case 'U256':
       const u256 = toApiNumber256(value)
       return encodeScriptFieldU256(BigInt(u256))
-    case 'ByteVec':
-      const hexStr = toApiByteVec(value)
-      return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(hexStr)])
     case 'Address':
       const address = toApiAddress(value)
       return new Uint8Array([Instruction.addressConst, ...encodeAddress(address)])
+    default: // ByteVec or Contract
+      const hexStr = toApiByteVec(value)
+      return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(hexStr)])
   }
 
   throw invalidScriptField(tpe, value)
 }
 
+export function splitFields(fieldsSig: FieldsSig): [FieldsSig, FieldsSig] {
+  return fieldsSig.types.reduce<[FieldsSig, FieldsSig]>(
+    ([mapFields, fieldsExceptMaps], type, index) => {
+      const fieldSig = type.startsWith('Map[') ? mapFields : fieldsExceptMaps
+      fieldSig.names.push(fieldsSig.names[`${index}`])
+      fieldSig.types.push(type)
+      fieldSig.isMutable.push(fieldsSig.isMutable[`${index}`])
+      return [mapFields, fieldsExceptMaps]
+    },
+    [
+      { names: [], types: [], isMutable: [] },
+      { names: [], types: [], isMutable: [] }
+    ]
+  )
+}
+
+export function parseMapType(type: string): [string, string] {
+  if (!type.startsWith('Map[')) {
+    throw new Error(`Expected map type, got ${type}`)
+  }
+  const keyStartIndex = type.indexOf('[')
+  const keyEndIndex = type.indexOf(',')
+  return [type.slice(keyStartIndex + 1, keyEndIndex), type.slice(keyEndIndex + 1, type.length - 1)]
+}
+
+export function encodeMapPrefix(mapIndex: number): Uint8Array {
+  const str = `__map__${mapIndex}__`
+  const bytes = new Uint8Array(str.length)
+  for (let i = 0; i < str.length; i += 1) {
+    bytes[i] = str.charCodeAt(i)
+  }
+  return bytes
+}
+
+function fromAscii(str: string): string {
+  let result = ''
+  for (let i = 0; i < str.length; i += 2) {
+    const ascii = parseInt(str.slice(i, i + 2), 16)
+    result += String.fromCharCode(ascii)
+  }
+  return result
+}
+
+export function calcFieldSize(
+  type: string,
+  isMutable: boolean,
+  structs: Struct[]
+): { immFields: number; mutFields: number } {
+  const struct = structs.find((s) => s.name === type)
+  if (struct !== undefined) {
+    return struct.fieldTypes.reduce(
+      (acc, fieldType, index) => {
+        const isFieldMutable = isMutable && struct.isMutable[`${index}`]
+        const subFieldSize = calcFieldSize(fieldType, isFieldMutable, structs)
+        return {
+          immFields: acc.immFields + subFieldSize.immFields,
+          mutFields: acc.mutFields + subFieldSize.mutFields
+        }
+      },
+      { immFields: 0, mutFields: 0 }
+    )
+  }
+  if (type.startsWith('[')) {
+    const [baseType, size] = decodeArrayType(type)
+    const base = calcFieldSize(baseType, isMutable, structs)
+    return { immFields: base.immFields * size, mutFields: base.mutFields * size }
+  }
+  return isMutable ? { immFields: 0, mutFields: 1 } : { immFields: 1, mutFields: 0 }
+}
+
+export function tryDecodeMapDebugLog(
+  message: string
+): { path: string; mapIndex: number; encodedKey: Uint8Array; isInsert: boolean } | undefined {
+  if (!message.startsWith('insert at map path: ') && !message.startsWith('remove at map path: ')) {
+    return undefined
+  }
+  const parts = message.split(':')
+  if (parts.length !== 2) return undefined
+  const pathString = parts[1].slice(1)
+  if (!isHexString(pathString)) return undefined
+
+  const prefix = '5f5f6d61705f5f' // __map__
+  const remain = pathString.slice(prefix.length)
+  const suffix = '5f5f' // __
+  const suffixIndex = remain.indexOf(suffix)
+  if (suffixIndex === -1) return undefined
+
+  const encodedMapIndex = remain.slice(0, suffixIndex)
+  const mapIndex = parseInt(fromAscii(encodedMapIndex))
+  const encodedKey = hexToBinUnsafe(remain.slice(suffixIndex + suffix.length))
+  const isInsert = message.startsWith('insert')
+  return { path: pathString, mapIndex, encodedKey, isInsert }
+}
+
+export function decodePrimitive(value: Uint8Array, type: string): Val {
+  switch (type) {
+    case 'Bool':
+      return decodeBool(value)
+    case 'I256':
+      return compactSignedIntCodec.decodeI256(Buffer.from(value))
+    case 'U256':
+      return compactUnsignedIntCodec.decodeU256(Buffer.from(value))
+    case 'ByteVec':
+      return binToHex(value)
+    case 'Address':
+      return bs58.encode(value)
+    default:
+      throw Error(`Expected primitive type, got ${type}`)
+  }
+}
+
+export function primitiveToByteVec(value: Val, type: string): Uint8Array {
+  switch (type) {
+    case 'Bool':
+      const byte = toApiBoolean(value) ? 1 : 0
+      return new Uint8Array([byte])
+    case 'I256':
+      const i256 = toApiNumber256(value)
+      return encodeI256(BigInt(i256))
+    case 'U256':
+      const u256 = toApiNumber256(value)
+      return encodeU256(BigInt(u256))
+    case 'ByteVec':
+      const hexStr = toApiByteVec(value)
+      return encodeByteVec(hexStr)
+    case 'Address':
+      const address = toApiAddress(value)
+      return encodeAddress(address)
+    default:
+      throw Error(`Expected primitive type, got ${type}`)
+  }
+}
+
+export function flattenFields(
+  fields: Fields,
+  names: string[],
+  types: string[],
+  isMutable: boolean[],
+  structs: Struct[]
+): { name: string; type: string; value: Val; isMutable: boolean }[] {
+  return names.flatMap((name, index) => {
+    if (!(name in fields)) {
+      throw new Error(`The value of field ${name} is not provided`)
+    }
+    return flattenField(isMutable[`${index}`], name, types[`${index}`], fields[`${name}`], structs)
+  })
+}
+
+function flattenField(
+  isMutable: boolean,
+  name: string,
+  type: string,
+  value: Val,
+  structs: Struct[]
+): { name: string; type: string; value: Val; isMutable: boolean }[] {
+  if (Array.isArray(value) && type.startsWith('[')) {
+    const [baseType, size] = decodeArrayType(type)
+    if (value.length !== size) {
+      throw Error(`Invalid array length, expected ${size}, got ${value.length}`)
+    }
+    return value.flatMap((item, index) => {
+      return flattenField(isMutable, `${name}[${index}]`, baseType, item, structs)
+    })
+  }
+  const struct = structs.find((s) => s.name === type)
+  if (struct !== undefined) {
+    if (typeof value !== 'object') {
+      throw Error(`Expected an object, but got ${typeof value}`)
+    }
+    return struct.fieldNames.flatMap((fieldName, index) => {
+      if (!(fieldName in value)) {
+        throw new Error(`The value of field ${fieldName} is not provided`)
+      }
+      const isFieldMutable = struct.isMutable[`${index}`]
+      const fieldType = struct.fieldTypes[`${index}`]
+      const fieldValue = value[`${fieldName}`]
+      return flattenField(isMutable && isFieldMutable, `${name}.${fieldName}`, fieldType, fieldValue, structs)
+    })
+  }
+  const primitiveType = checkPrimitiveValue(name, type, value)
+  return [{ name, type: primitiveType, value, isMutable }]
+}
+
+function checkPrimitiveValue(name: string, ralphType: string, value: Val): string {
+  const tsType = typeof value
+  if (ralphType === 'Bool' && tsType === 'boolean') {
+    return ralphType
+  }
+  if (
+    (ralphType === 'U256' || ralphType === 'I256') &&
+    (tsType === 'string' || tsType === 'number' || tsType === 'bigint')
+  ) {
+    return ralphType
+  }
+  if ((ralphType === 'Address' || ralphType === 'ByteVec') && tsType === 'string') {
+    return ralphType
+  }
+  if (!ralphType.startsWith('[') && tsType === 'string') {
+    // contract type
+    return 'ByteVec'
+  }
+  throw Error(`Invalid value ${value} for ${name}, expected a value of type ${ralphType}`)
+}
+
 const scriptFieldRegex = /\{([0-9]*)\}/g
 
-export function buildScriptByteCode(bytecodeTemplate: string, fields: Fields, fieldsSig: FieldsSig): string {
+export function buildScriptByteCode(
+  bytecodeTemplate: string,
+  fields: Fields,
+  fieldsSig: FieldsSig,
+  structs: Struct[]
+): string {
+  const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
   return bytecodeTemplate.replace(scriptFieldRegex, (_, fieldIndex: string) => {
-    const fieldName = fieldsSig.names[`${fieldIndex}`]
-    const fieldType = fieldsSig.types[`${fieldIndex}`]
-    if (fieldName in fields) {
-      const fieldValue = fields[`${fieldName}`]
-      return _encodeField(fieldName, () => encodeScriptFieldAsString(fieldType, fieldValue))
-    } else {
-      throw new Error(`The value of field ${fieldName} is not provided`)
-    }
+    const field = allFields[`${fieldIndex}`]
+    return _encodeField(field.name, () => encodeScriptFieldAsString(field.type, field.value))
   })
 }
 
@@ -246,86 +509,53 @@ function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
   }
 }
 
-function encodeFields(fields: Fields, fieldsSig: FieldsSig, mutable: boolean) {
-  const fieldIndexes = fieldsSig.isMutable
-    .map((_, index) => index)
-    .filter((index) => fieldsSig.isMutable[`${index}`] === mutable)
-  const fieldsEncoded = fieldIndexes.flatMap((fieldIndex) => {
-    const fieldName = fieldsSig.names[`${fieldIndex}`]
-    const fieldType = fieldsSig.types[`${fieldIndex}`]
-    if (fieldName in fields) {
-      const fieldValue = fields[`${fieldName}`]
-      return _encodeField(fieldName, () => encodeContractField(fieldType, fieldValue))
-    } else {
-      throw new Error(`The value of field ${fieldName} is not provided`)
-    }
-  })
-  const fieldsLength = Buffer.from(encodeI256(BigInt(fieldsEncoded.length))).toString('hex')
-  return fieldsLength + fieldsEncoded.map((f) => Buffer.from(f).toString('hex')).join('')
+function encodeFields(fields: { name: string; type: string; value: Val }[]): Uint8Array {
+  const prefix = encodeI256(BigInt(fields.length))
+  return fields.reduce((acc, field) => {
+    const encoded = _encodeField(field.name, () => encodeContractField(field.type, field.value))
+    const bytes = new Uint8Array(acc.byteLength + encoded.byteLength)
+    bytes.set(acc, 0)
+    bytes.set(encoded, acc.byteLength)
+    return bytes
+  }, prefix)
 }
 
-export function buildContractByteCode(bytecode: string, fields: Fields, fieldsSig: FieldsSig): string {
-  const encodedImmFields = encodeFields(fields, fieldsSig, false)
-  const encodedMutFields = encodeFields(fields, fieldsSig, true)
-  return bytecode + encodedImmFields + encodedMutFields
-}
-
-enum ApiValType {
-  Bool = 0,
-  I256 = 1,
-  U256 = 2,
-  ByteVec = 3,
-  Address = 4
-}
-
-function encodeContractFieldI256(value: bigint): Uint8Array {
-  return new Uint8Array([ApiValType.I256, ...encodeI256(value)])
-}
-
-function encodeContractFieldU256(value: bigint): Uint8Array {
-  return new Uint8Array([ApiValType.U256, ...encodeU256(value)])
-}
-
-function encodeContractFieldArray(tpe: string, val: Val): Uint8Array[] {
-  if (!Array.isArray(val)) {
-    throw new Error(`Expected array, got ${val}`)
-  }
-
-  const semiColonIndex = tpe.lastIndexOf(';')
-  if (semiColonIndex == -1) {
-    throw new Error(`Invalid Array type: ${tpe}`)
-  }
-
-  const subType = tpe.slice(1, semiColonIndex)
-  const dim = parseInt(tpe.slice(semiColonIndex + 1, -1))
-  if ((val as Val[]).length != dim) {
-    throw new Error(`Invalid val dimension: ${val}`)
-  } else {
-    return (val as Val[]).flatMap((v) => encodeContractField(subType, v))
+export function encodeContractFields(
+  fields: Fields,
+  fieldsSig: FieldsSig,
+  structs: Struct[]
+): { encodedImmFields: Uint8Array; encodedMutFields: Uint8Array } {
+  const allFields = flattenFields(fields, fieldsSig.names, fieldsSig.types, fieldsSig.isMutable, structs)
+  return {
+    encodedImmFields: encodeFields(allFields.filter((f) => !f.isMutable)),
+    encodedMutFields: encodeFields(allFields.filter((f) => f.isMutable))
   }
 }
 
-export function encodeContractField(tpe: string, value: Val): Uint8Array[] {
+export function buildContractByteCode(
+  bytecode: string,
+  fields: Fields,
+  fieldsSig: FieldsSig,
+  structs: Struct[]
+): string {
+  const { encodedImmFields, encodedMutFields } = encodeContractFields(fields, fieldsSig, structs)
+  return bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
+}
+
+export function encodeContractField(tpe: string, value: Val): Uint8Array {
   switch (tpe) {
     case 'Bool':
-      const byte = toApiBoolean(value) ? 1 : 0
-      return [new Uint8Array([ApiValType.Bool, byte])]
+      return encodeVmBool(toApiBoolean(value))
     case 'I256':
-      const i256 = toApiNumber256(value)
-      return [encodeContractFieldI256(BigInt(i256))]
+      return encodeVmI256(BigInt(toApiNumber256(value)))
     case 'U256':
-      const u256 = toApiNumber256(value)
-      return [encodeContractFieldU256(BigInt(u256))]
+      return encodeVmU256(BigInt(toApiNumber256(value)))
     case 'ByteVec':
-      const hexStr = toApiByteVec(value)
-      return [new Uint8Array([ApiValType.ByteVec, ...encodeByteVec(hexStr)])]
+      return encodeVmByteVec(toApiByteVec(value))
     case 'Address':
-      const address = toApiAddress(value)
-      return [new Uint8Array([ApiValType.Address, ...encodeAddress(address)])]
-
+      return encodeVmAddress(toApiAddress(value))
     default:
-      // Array type
-      return encodeContractFieldArray(tpe, value)
+      throw Error(`Expected primitive type, got ${tpe}`)
   }
 }
 

@@ -141,9 +141,9 @@ describe('nft collection', function () {
     const rawCollectionUri = 'https://cryptopunks.app/cryptopunks'
     const collectionUri = stringToHex(rawCollectionUri)
     let nftCollectionInstance: NFTCollectionTestInstance | NFTCollectionWithRoyaltyTestInstance
+    const royaltyRate = 200n // basis points
 
     if (royalty) {
-      const royaltyRate = 200n // basis points
       nftCollectionInstance = (
         await NFTCollectionWithRoyaltyTest.deploy(signer, {
           initialFields: {
@@ -183,8 +183,7 @@ describe('nft collection', function () {
     expect((await nftCollectionInstance.methods.totalSupply()).returns).toEqual(0n)
 
     const nodeProvider = web3.getCurrentNodeProvider()
-    const isFollowsNFTCollectionStd = await nodeProvider.guessFollowsNFTCollectionStd(nftCollectionInstance.contractId)
-    expect(isFollowsNFTCollectionStd).toEqual(true)
+    expect(await nodeProvider.guessFollowsNFTCollectionStd(nftCollectionInstance.contractId)).toEqual(true)
     const nftCollectionMetadata = await nodeProvider.fetchNFTCollectionMetaData(nftCollectionInstance.contractId)
     expect(nftCollectionMetadata).toEqual({
       collectionUri: rawCollectionUri,
@@ -195,6 +194,8 @@ describe('nft collection', function () {
     }
 
     if (royalty) {
+      expect(await nodeProvider.guessFollowsNFTCollectionWithRoyaltyStd(nftCollectionInstance.contractId)).toEqual(true)
+
       const balanceBefore = await nodeProvider.addresses.getAddressesAddressBalance(nftCollectionInstance.address)
       expect(balanceBefore.balanceHint).toEqual('2 ALPH')
       await WithdrawNFTCollectionTest.execute(signer, {
@@ -205,6 +206,17 @@ describe('nft collection', function () {
       })
       const balanceAfter = await nodeProvider.addresses.getAddressesAddressBalance(nftCollectionInstance.address)
       expect(balanceAfter.balanceHint).toEqual('1 ALPH')
+
+      for (let i = 0n; i < 10n; i++) {
+        const nftPrice = 100n * ONE_ALPH
+        const nftContractId = subContractId(nftCollectionInstance.contractId, binToHex(encodeU256(i)), 0)
+        const royaltyAmount = await nodeProvider.fetchNFTRoyaltyAmount(
+          nftCollectionInstance.contractId,
+          nftContractId,
+          nftPrice
+        )
+        expect(royaltyAmount).toEqual((nftPrice * royaltyRate) / 10000n)
+      }
     }
   }
 

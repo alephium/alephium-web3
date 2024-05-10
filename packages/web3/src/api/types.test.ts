@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ZERO_ADDRESS } from '../constants'
-import { getDefaultValue, toApiAddress, toApiByteVec, toApiNumber256 } from './index'
+import { getDefaultPrimitiveValue, toApiAddress, toApiByteVec, toApiNumber256 } from './index'
 
 describe('ralph types', function () {
   it('should check u256/i256', () => {
@@ -57,14 +57,12 @@ describe('ralph types', function () {
   })
 
   it('should get default value by type', () => {
-    expect(getDefaultValue('I256')).toEqual(0n)
-    expect(getDefaultValue('U256')).toEqual(0n)
-    expect(getDefaultValue('Bool')).toEqual(false)
-    expect(getDefaultValue('Address')).toEqual(ZERO_ADDRESS)
-    expect(getDefaultValue('ByteVec')).toEqual('')
+    expect(getDefaultPrimitiveValue('I256')).toEqual(0n)
+    expect(getDefaultPrimitiveValue('U256')).toEqual(0n)
+    expect(getDefaultPrimitiveValue('Bool')).toEqual(false)
+    expect(getDefaultPrimitiveValue('Address')).toEqual(ZERO_ADDRESS)
+    expect(getDefaultPrimitiveValue('ByteVec')).toEqual('')
 
-    expect(getDefaultValue('[Bool; 4]')).toEqual(Array(4).fill(false))
-    expect(getDefaultValue('[[Bool; 2]; 4]')).toEqual(Array(4).fill(Array(2).fill(false)))
-    expect(getDefaultValue('[[[Address; 2]; 4]; 3]')).toEqual(Array(3).fill(Array(4).fill(Array(2).fill(ZERO_ADDRESS))))
+    expect(() => getDefaultPrimitiveValue('[Bool;4]')).toThrowError('Expected primitive type, got [Bool;4]')
   })
 })

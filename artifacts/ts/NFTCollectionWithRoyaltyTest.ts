@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as NFTCollectionWithRoyaltyTestContractJson } from "../nft/NFTCollectionWithRoyaltyTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace NFTCollectionWithRoyaltyTestTypes {
@@ -79,6 +84,14 @@ class Factory extends ContractFactory<
   NFTCollectionWithRoyaltyTestInstance,
   NFTCollectionWithRoyaltyTestTypes.Fields
 > {
+  encodeFields(fields: NFTCollectionWithRoyaltyTestTypes.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as NFTCollectionWithRoyaltyTestTypes.Fields;
   }
@@ -99,66 +112,72 @@ class Factory extends ContractFactory<
   tests = {
     getCollectionUri: async (
       params: Omit<
-        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never>,
+        TestContractParamsWithoutMaps<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          never
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getCollectionUri", params);
     },
     totalSupply: async (
       params: Omit<
-        TestContractParams<NFTCollectionWithRoyaltyTestTypes.Fields, never>,
+        TestContractParamsWithoutMaps<
+          NFTCollectionWithRoyaltyTestTypes.Fields,
+          never
+        >,
         "testArgs"
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "totalSupply", params);
     },
     nftByIndex: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         NFTCollectionWithRoyaltyTestTypes.Fields,
         { index: bigint }
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "nftByIndex", params);
     },
     validateNFT: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         NFTCollectionWithRoyaltyTestTypes.Fields,
         { nftId: HexString; nftIndex: bigint }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "validateNFT", params);
     },
     royaltyAmount: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         NFTCollectionWithRoyaltyTestTypes.Fields,
         { tokenId: HexString; salePrice: bigint }
       >
-    ): Promise<TestContractResult<bigint>> => {
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "royaltyAmount", params);
     },
     payRoyalty: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         NFTCollectionWithRoyaltyTestTypes.Fields,
         { payer: Address; amount: bigint }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "payRoyalty", params);
     },
     withdrawRoyalty: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         NFTCollectionWithRoyaltyTestTypes.Fields,
         { recipient: Address; amount: bigint }
       >
-    ): Promise<TestContractResult<null>> => {
+    ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "withdrawRoyalty", params);
     },
     mint: async (
-      params: TestContractParams<
+      params: TestContractParamsWithoutMaps<
         NFTCollectionWithRoyaltyTestTypes.Fields,
         { nftUri: HexString }
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "mint", params);
     },
   };
@@ -169,7 +188,8 @@ export const NFTCollectionWithRoyaltyTest = new Factory(
   Contract.fromJson(
     NFTCollectionWithRoyaltyTestContractJson,
     "",
-    "1c162da87d31289c9b392bd48767386336bb1d208101a8680d92b7dc74098ce0"
+    "919808beff802a8043d62c5ff23249f22dbfdbd2fae56264f5f108af59eb171e",
+    AllStructs
   )
 );
 

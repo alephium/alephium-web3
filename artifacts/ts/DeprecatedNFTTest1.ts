@@ -23,9 +23,14 @@ import {
   fetchContractState,
   ContractInstance,
   getContractEventsCurrentCount,
+  TestContractParamsWithoutMaps,
+  TestContractResultWithoutMaps,
+  addStdIdToFields,
+  encodeContractFields,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest1ContractJson } from "../nft/DeprecatedNFTTest1.ral.json";
 import { getContractByCodeHash } from "./contracts";
+import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest1Types {
@@ -60,6 +65,14 @@ class Factory extends ContractFactory<
   DeprecatedNFTTest1Instance,
   DeprecatedNFTTest1Types.Fields
 > {
+  encodeFields(fields: DeprecatedNFTTest1Types.Fields) {
+    return encodeContractFields(
+      addStdIdToFields(this.contract, fields),
+      this.contract.fieldsSig,
+      AllStructs
+    );
+  }
+
   getInitialFieldsWithDefaultValues() {
     return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTest1Types.Fields;
   }
@@ -71,10 +84,10 @@ class Factory extends ContractFactory<
   tests = {
     getTokenUri: async (
       params: Omit<
-        TestContractParams<DeprecatedNFTTest1Types.Fields, never>,
+        TestContractParamsWithoutMaps<DeprecatedNFTTest1Types.Fields, never>,
         "testArgs"
       >
-    ): Promise<TestContractResult<HexString>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params);
     },
   };
@@ -85,7 +98,8 @@ export const DeprecatedNFTTest1 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest1ContractJson,
     "",
-    "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b"
+    "cc6928c9c6777077abcb5b9c4f7c5d620d6cae07ec6f00f5e8b0efe6a7b913c4",
+    AllStructs
   )
 );
 
