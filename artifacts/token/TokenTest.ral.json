@@ -30,9 +30,6 @@
   "functions": [
     {
       "name": "getSymbol",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -42,9 +39,6 @@
     },
     {
       "name": "getName",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -54,9 +48,6 @@
     },
     {
       "name": "getDecimals",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -66,9 +57,6 @@
     },
     {
       "name": "getTotalSupply",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

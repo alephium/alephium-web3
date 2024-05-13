@@ -87,7 +87,7 @@ const crypto = new WebCrypto()
 export type FieldsSig = node.FieldsSig
 export type MapsSig = node.MapsSig
 export type EventSig = node.EventSig
-export type FunctionSig = node.FunctionSig
+export type FunctionSig = Omit<node.FunctionSig, 'isPublic' | 'usePreapprovedAssets' | 'useAssetsInContract'>
 export type Fields = NamedVals
 export type Arguments = NamedVals
 export type Constant = node.Constant
@@ -875,24 +875,22 @@ export abstract class Artifact {
 
   abstract buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string
 
-  publicFunctions(): string[] {
-    return this.functions.filter((func) => func.isPublic).map((func) => func.name)
-  }
-
-  usingPreapprovedAssetsFunctions(): string[] {
-    return this.functions.filter((func) => func.usePreapprovedAssets).map((func) => func.name)
-  }
-
-  usingAssetsInContractFunctions(): string[] {
-    return this.functions.filter((func) => func.useAssetsInContract).map((func) => func.name)
-  }
-
   async isDevnet(signer: SignerProvider): Promise<boolean> {
     if (!signer.nodeProvider) {
       return false
     }
     const chainParams = await signer.nodeProvider.infos.getInfosChainParams()
     return isDevnet(chainParams.networkId)
+  }
+}
+
+function fromFunctionSig(sig: node.FunctionSig): FunctionSig {
+  return {
+    name: sig.name,
+    paramNames: sig.paramNames,
+    paramTypes: sig.paramTypes,
+    paramIsMutable: sig.paramIsMutable,
+    returnTypes: sig.returnTypes
   }
 }
 
@@ -910,6 +908,7 @@ export class Contract extends Artifact {
 
   readonly bytecodeDebug: string
   readonly codeHashDebug: string
+  readonly decodedMethods: Method[]
 
   constructor(
     version: string,
@@ -941,6 +940,20 @@ export class Contract extends Artifact {
 
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
     this.codeHashDebug = codeHashDebug
+
+    this.decodedMethods = contract.contractCodec.decodeContract(Buffer.from(bytecode, 'hex')).methods
+  }
+
+  publicFunctions(): FunctionSig[] {
+    return this.functions.filter((_, index) => this.decodedMethods[`${index}`].isPublic)
+  }
+
+  usingPreapprovedAssetsFunctions(): FunctionSig[] {
+    return this.functions.filter((_, index) => this.decodedMethods[`${index}`].usePreapprovedAssets)
+  }
+
+  usingAssetsInContractFunctions(): FunctionSig[] {
+    return this.functions.filter((_, index) => this.decodedMethods[`${index}`].useContractAssets)
   }
 
   // TODO: safely parse json
@@ -987,7 +1000,7 @@ export class Contract extends Artifact {
       result.codeHashDebug,
       result.fields,
       result.events,
-      result.functions,
+      result.functions.map(fromFunctionSig),
       result.constants,
       result.enums,
       structs,
@@ -1348,7 +1361,7 @@ export class Script extends Artifact {
       result.bytecodeTemplate,
       result.bytecodeDebugPatch,
       result.fields,
-      result.functions,
+      result.functions.map(fromFunctionSig),
       structs
     )
   }
@@ -1877,7 +1890,9 @@ function genCodeForType(type: string, structs: Struct[]): { bytecode: string; co
   const { immFields, mutFields } = ralph.calcFieldSize(type, true, structs)
   const loadImmFieldByIndex: Method = {
     isPublic: true,
-    assetModifier: 0,
+    usePreapprovedAssets: false,
+    useContractAssets: false,
+    usePayToContractOnly: false,
     argsLength: 1,
     localsLength: 1,
     returnLength: 1,
@@ -1905,7 +1920,9 @@ function genCodeForType(type: string, structs: Struct[]): { bytecode: string; co
   }
   const destroy: Method = {
     isPublic: true,
-    assetModifier: 2,
+    usePreapprovedAssets: false,
+    useContractAssets: true,
+    usePayToContractOnly: false,
     argsLength: 1,
     localsLength: 1,
     returnLength: 0,

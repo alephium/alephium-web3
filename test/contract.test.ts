@@ -271,9 +271,9 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
 
     expect(MetaData.contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
-    expect(MetaData.contract.publicFunctions()).toEqual(['foo'])
-    expect(MetaData.contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
-    expect(MetaData.contract.usingAssetsInContractFunctions()).toEqual(['bar'])
+    expect(MetaData.contract.publicFunctions().map((f) => f.name)).toEqual(['foo'])
+    expect(MetaData.contract.usingPreapprovedAssetsFunctions().map((f) => f.name)).toEqual(['foo'])
+    expect(MetaData.contract.usingAssetsInContractFunctions().map((f) => f.name)).toEqual(['bar'])
   })
 
   it('should handle compiler warnings', async () => {

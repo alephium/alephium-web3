@@ -25,9 +25,6 @@
   "functions": [
     {
       "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

@@ -12,9 +12,6 @@
   "functions": [
     {
       "name": "foo",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -22,9 +19,6 @@
     },
     {
       "name": "bar",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": true,
-      "isPublic": false,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -32,9 +26,6 @@
     },
     {
       "name": "baz",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": false,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

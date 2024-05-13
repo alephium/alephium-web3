@@ -30,9 +30,6 @@
   "functions": [
     {
       "name": "greet",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

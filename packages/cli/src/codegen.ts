@@ -29,7 +29,8 @@ import {
   networkIds,
   fromApiPrimitiveVal,
   Val,
-  parseMapType
+  parseMapType,
+  FunctionSig
 } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
@@ -95,7 +96,7 @@ function formatParameters(fieldsSig: { names: string[]; types: string[] }): stri
     .join(', ')
 }
 
-function genCallMethod(contractName: string, functionSig: node.FunctionSig): string {
+function genCallMethod(contractName: string, functionSig: FunctionSig): string {
   const funcHasArgs = functionSig.paramNames.length > 0
   const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
   const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
@@ -108,7 +109,7 @@ function genCallMethod(contractName: string, functionSig: node.FunctionSig): str
 }
 
 function genCallMethods(contract: Contract): string {
-  const functions = contract.functions.filter((f) => f.isPublic && f.returnTypes.length > 0)
+  const functions = contract.publicFunctions().filter((f) => f.returnTypes.length > 0)
   if (functions.length === 0) {
     return ''
   }
@@ -312,7 +313,7 @@ function genMapsType(contract: Contract): string {
   return `{ ${mapFields.join(', ')} }`
 }
 
-function genTestMethod(contract: Contract, functionSig: node.FunctionSig): string {
+function genTestMethod(contract: Contract, functionSig: FunctionSig): string {
   const funcHasArgs = functionSig.paramNames.length > 0
   const fieldsSig = contract.fieldsSig
   const contractHasFields = fieldsSig.names.length > 0
@@ -360,8 +361,9 @@ function genTestMethods(contract: Contract): string {
 }
 
 function genCallMethodTypes(contract: Contract): string {
-  const entities = contract.functions
-    .filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length > 0)
+  const entities = contract
+    .publicFunctions()
+    .filter((functionSig) => functionSig.returnTypes.length > 0)
     .map((functionSig) => {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
@@ -400,7 +402,7 @@ function genCallMethodTypes(contract: Contract): string {
 function genMulticall(contract: Contract): string {
   const types = contractTypes(contract.name)
   const supportMulticall =
-    contract.functions.filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length > 0).length > 0
+    contract.publicFunctions().filter((functionSig) => functionSig.returnTypes.length > 0).length > 0
   return supportMulticall
     ? `
       async multicall<Calls extends ${types}.MultiCallParams>(

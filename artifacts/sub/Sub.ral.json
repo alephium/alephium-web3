@@ -30,9 +30,6 @@
   "functions": [
     {
       "name": "sub",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "array"
       ],

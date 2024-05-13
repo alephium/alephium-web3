@@ -12,9 +12,6 @@
   "functions": [
     {
       "name": "insert",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "key",
         "value"
@@ -31,9 +28,6 @@
     },
     {
       "name": "update",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "key"
       ],
@@ -47,9 +41,6 @@
     },
     {
       "name": "remove",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "key"
       ],
