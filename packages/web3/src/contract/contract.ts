@@ -280,7 +280,18 @@ export class ProjectArtifact {
     return fsPromises.writeFile(filepath, content)
   }
 
-  needToReCompile(compilerOptions: node.CompilerOptions, sourceInfos: SourceInfo[], fullNodeVersion: string): boolean {
+  getChangedSources(sourceInfos: SourceInfo[]): SourceInfo[] {
+    const result: SourceInfo[] = []
+    for (const sourceInfo of sourceInfos) {
+      const info = this.infos.get(sourceInfo.name)
+      if (typeof info === 'undefined' || info.sourceCodeHash !== sourceInfo.sourceCodeHash) {
+        result.push(sourceInfo)
+      }
+    }
+    return result
+  }
+
+  needToReCompile(compilerOptions: node.CompilerOptions, fullNodeVersion: string): boolean {
     ProjectArtifact.checkCompilerOptionsParameter(compilerOptions)
     if (this.fullNodeVersion !== fullNodeVersion) {
       return true
@@ -292,16 +303,6 @@ export class ProjectArtifact {
     })
     if (!optionsMatched) {
       return true
-    }
-
-    if (sourceInfos.length !== this.infos.size) {
-      return true
-    }
-    for (const sourceInfo of sourceInfos) {
-      const info = this.infos.get(sourceInfo.name)
-      if (typeof info === 'undefined' || info.sourceCodeHash !== sourceInfo.sourceCodeHash) {
-        return true
-      }
     }
 
     return false
@@ -326,15 +327,22 @@ export class ProjectArtifact {
   }
 }
 
-function removeOldArtifacts(dir: string) {
+function removeOldArtifacts(dir: string, sourceFiles: SourceInfo[]) {
   const files = fs.readdirSync(dir)
   files.forEach((file) => {
     const filePath = path.join(dir, file)
     const stat = fs.statSync(filePath)
     if (stat.isDirectory()) {
-      removeOldArtifacts(filePath)
+      removeOldArtifacts(filePath, sourceFiles)
     } else if (filePath.endsWith('.ral.json') || filePath.endsWith('.ral')) {
-      fs.unlinkSync(filePath)
+      const filename = path.basename(filePath)
+      const artifactName = filename.slice(0, filename.indexOf('.'))
+      const sourceFile = sourceFiles.find(
+        (s) => s.name === artifactName && (s.type === SourceKind.Contract || s.type === SourceKind.Script)
+      )
+      if (sourceFile === undefined) {
+        fs.unlinkSync(filePath)
+      }
     }
   })
 
@@ -521,7 +529,11 @@ export class Project {
     return fsPromises.writeFile(filePath, JSON.stringify(structs, null, 2))
   }
 
-  private async saveArtifactsToFile(projectRootDir: string): Promise<void> {
+  private async saveArtifactsToFile(
+    projectRootDir: string,
+    skipSaveArtifacts: boolean,
+    changedSources: SourceInfo[]
+  ): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
       const artifactPath = compiled.sourceInfo.getArtifactPath(artifactsRootDir)
@@ -531,9 +543,32 @@ export class Project {
       }
       return fsPromises.writeFile(artifactPath, compiled.artifact.toString())
     }
-    this.contracts.forEach((contract) => saveToFile(contract))
-    this.scripts.forEach((script) => saveToFile(script))
-    this.saveStructsToFile()
+    for (const [_, contract] of this.contracts) {
+      if (!skipSaveArtifacts || changedSources.find((s) => s.name === contract.sourceInfo.name) !== undefined) {
+        await saveToFile(contract)
+      }
+    }
+    for (const [_, script] of this.scripts) {
+      await saveToFile(script)
+    }
+    await this.saveStructsToFile()
+    await this.saveProjectArtifact(projectRootDir, skipSaveArtifacts, changedSources)
+  }
+
+  private async saveProjectArtifact(projectRootDir: string, skipSaveArtifacts: boolean, changedSources: SourceInfo[]) {
+    if (skipSaveArtifacts) {
+      // we should not update the `codeHashDebug` if the `skipSaveArtifacts` is enabled
+      const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
+      if (prevProjectArtifact !== undefined) {
+        for (const [name, info] of this.projectArtifact.infos) {
+          if (changedSources.find((s) => s.name === name) === undefined) {
+            const prevInfo = prevProjectArtifact.infos.get(name)
+            info.bytecodeDebugPatch = prevInfo?.bytecodeDebugPatch ?? info.bytecodeDebugPatch
+            info.codeHashDebug = prevInfo?.codeHashDebug ?? info.codeHashDebug
+          }
+        }
+      }
+    }
     await this.projectArtifact.saveToFile(projectRootDir)
   }
 
@@ -587,7 +622,9 @@ export class Project {
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
-    compilerOptions: node.CompilerOptions
+    compilerOptions: node.CompilerOptions,
+    changedSources: SourceInfo[],
+    skipSaveArtifacts = false
   ): Promise<Project> {
     const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
       if (acc.find((info) => info.sourceCodeHash === sourceInfo.sourceCodeHash) === undefined) {
@@ -639,20 +676,23 @@ export class Project {
       errorOnWarnings,
       projectArtifact
     )
-    await project.saveArtifactsToFile(projectRootDir)
+    await project.saveArtifactsToFile(projectRootDir, skipSaveArtifacts, changedSources)
     return project
   }
 
   private static async loadArtifacts(
     provider: NodeProvider,
     sourceInfos: SourceInfo[],
-    projectArtifact: ProjectArtifact,
     projectRootDir: string,
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions
   ): Promise<Project> {
+    const projectArtifact = await ProjectArtifact.from(projectRootDir)
+    if (projectArtifact === undefined) {
+      throw Error('Failed to load project artifact')
+    }
     try {
       const contracts = new Map<string, Compiled<Contract>>()
       const scripts = new Map<string, Compiled<Script>>()
@@ -698,7 +738,8 @@ export class Project {
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
-        compilerOptions
+        compilerOptions,
+        sourceInfos
       )
     }
   }
@@ -821,19 +862,22 @@ export class Project {
     projectRootDir = '.',
     contractsRootDir = Project.DEFAULT_CONTRACTS_DIR,
     artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR,
-    defaultFullNodeVersion: string | undefined = undefined
+    defaultFullNodeVersion: string | undefined = undefined,
+    skipSaveArtifacts = false
   ): Promise<void> {
     const provider = getCurrentNodeProvider()
     const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosVersion()).version
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
+    const changedSources = projectArtifact?.getChangedSources(sourceFiles) ?? sourceFiles
     if (
       projectArtifact === undefined ||
-      projectArtifact.needToReCompile(nodeCompilerOptions, sourceFiles, fullNodeVersion)
+      projectArtifact.needToReCompile(nodeCompilerOptions, fullNodeVersion) ||
+      changedSources.length > 0
     ) {
       if (fs.existsSync(artifactsRootDir)) {
-        removeOldArtifacts(artifactsRootDir)
+        removeOldArtifacts(artifactsRootDir, sourceFiles)
       }
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
       Project.currentProject = await Project.compile(
@@ -844,21 +888,21 @@ export class Project {
         contractsRootDir,
         artifactsRootDir,
         errorOnWarnings,
-        nodeCompilerOptions
-      )
-    } else {
-      console.log(`Contracts are compiled already. Loading them from folder "${artifactsRootDir}"`)
-      Project.currentProject = await Project.loadArtifacts(
-        provider,
-        sourceFiles,
-        projectArtifact,
-        projectRootDir,
-        contractsRootDir,
-        artifactsRootDir,
-        errorOnWarnings,
-        nodeCompilerOptions
+        nodeCompilerOptions,
+        changedSources,
+        skipSaveArtifacts
       )
     }
+    // we need to reload those contracts that did not regenerate bytecode
+    Project.currentProject = await Project.loadArtifacts(
+      provider,
+      sourceFiles,
+      projectRootDir,
+      contractsRootDir,
+      artifactsRootDir,
+      errorOnWarnings,
+      nodeCompilerOptions
+    )
   }
 }
 

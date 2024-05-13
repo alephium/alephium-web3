@@ -23,7 +23,15 @@ import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { createProject } from './scripts/create-project'
-import { checkFullNodeVersion, codegen, getConfigFile, getSdkFullNodeVersion, isNetworkLive, loadConfig } from './src'
+import {
+  checkFullNodeVersion,
+  codegen,
+  getConfigFile,
+  getSdkFullNodeVersion,
+  isDeployedOnMainnet,
+  isNetworkLive,
+  loadConfig
+} from './src'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -94,7 +102,15 @@ program
       console.log(`Full node version: ${connectedFullNodeVersion}`)
 
       const cwd = path.resolve(process.cwd())
-      await Project.build(config.compilerOptions, cwd, config.sourceDir, config.artifactDir, connectedFullNodeVersion)
+      const skipSaveArtifacts = config.skipSaveArtifacts || isDeployedOnMainnet(config)
+      await Project.build(
+        config.compilerOptions,
+        cwd,
+        config.sourceDir,
+        config.artifactDir,
+        connectedFullNodeVersion,
+        skipSaveArtifacts
+      )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
         return
