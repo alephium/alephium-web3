@@ -1,6 +1,7 @@
 import "std/nft_collection_interface"
 
 @std(id = #000201)
+@using(methodSelector = false)
 Interface INFTCollectionWithRoyalty extends INFTCollection {
     pub fn royaltyAmount(tokenId: ByteVec, salePrice: U256) -> (U256)
 
