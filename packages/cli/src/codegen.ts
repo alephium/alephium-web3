@@ -152,7 +152,9 @@ function genMaps(contract: Contract): string {
   const maps = mapsSig.names.map((name, index) => {
     const mapType = mapsSig.types[`${index}`]
     const [key, value] = parseMapType(mapType)
-    return `${name}: new RalphMap<${toTsType(key)}, ${toTsType(value)}>(${contract.name}.contract, this, '${name}')`
+    return `${name}: new RalphMap<${toTsType(key)}, ${toTsType(value)}>(${
+      contract.name
+    }.contract, this.contractId, '${name}')`
   })
   return `maps = { ${maps.join(',')} }`
 }

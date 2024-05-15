@@ -2069,24 +2069,36 @@ export async function testMethod<
 }
 
 export class RalphMap<K extends Val, V extends Val> {
+  private readonly groupIndex: number
   constructor(
     private readonly parentContract: Contract,
-    private readonly parentInstance: ContractInstance,
+    private readonly parentContractId: HexString,
     private readonly mapName: string
-  ) {}
+  ) {
+    this.groupIndex = groupOfAddress(addressFromContractId(parentContractId))
+  }
 
   async get(key: K): Promise<V | undefined> {
-    return getMapItem(this.parentContract, this.parentInstance, this.mapName, key)
+    return getMapItem(this.parentContract, this.parentContractId, this.groupIndex, this.mapName, key)
   }
 
   async contains(key: K): Promise<boolean> {
     return this.get(key).then((v) => v !== undefined)
   }
+
+  toJSON() {
+    return {
+      parentContractId: this.parentContractId,
+      mapName: this.mapName,
+      groupIndex: this.groupIndex
+    }
+  }
 }
 
 export async function getMapItem<R extends Val>(
   parentContract: Contract,
-  parentInstance: ContractInstance,
+  parentContractId: HexString,
+  groupIndex: number,
   mapName: string,
   key: Val
 ): Promise<R | undefined> {
@@ -2096,13 +2108,7 @@ export async function getMapItem<R extends Val>(
     throw new Error(`Map ${mapName} does not exist in contract ${parentContract.name}`)
   }
   const [keyType, valueType] = ralph.parseMapType(mapType)
-  const mapItemContractId = calcWrapperContractId(
-    parentInstance.contractId,
-    index!,
-    key,
-    keyType,
-    parentInstance.groupIndex
-  )
+  const mapItemContractId = calcWrapperContractId(parentContractId, index!, key, keyType, groupIndex)
   const mapItemAddress = addressFromContractId(mapItemContractId)
   try {
     const state = await getCurrentNodeProvider().contracts.getContractsAddressState(mapItemAddress)
