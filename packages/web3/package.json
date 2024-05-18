@@ -7,8 +7,8 @@
   "browser": "dist/alephium-web3.min.js",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./test": "./dist/src/test/index.js"
+    "node": "./dist/src/index.js",
+    "default": "./dist/alephium-web3.min.js"
   },
   "typesVersions": {
     "*": {
