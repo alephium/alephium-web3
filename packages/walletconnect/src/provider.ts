@@ -47,6 +47,7 @@ import {
   ApiRequestArguments,
   NetworkId,
   networkIds,
+  keyTypes,
   EnableOptionsBase
 } from '@alephium/web3'
 
@@ -547,12 +548,13 @@ export function formatAccount(permittedChain: string, account: Account): string 
 }
 
 export function parseAccount(account: string): Account & { networkId: NetworkId } {
-  const [_namespace, networkId, _group, publicKey, keyType] = account.replace(/\//g, ':').split(':')
-  const address = addressFromPublicKey(publicKey)
-  const group = groupOfAddress(address)
-  if (keyType !== 'default' && keyType !== 'bip340-schnorr') {
-    throw Error(`Invalid key type: ${keyType}`)
+  const [_namespace, networkId, _group, publicKey, _keyType] = account.replace(/\//g, ':').split(':')
+  const keyType = keyTypes.find((tpe) => tpe === _keyType)
+  if (keyType === undefined) {
+    throw Error(`Invalid key type: ${_keyType}`)
   }
+  const address = addressFromPublicKey(publicKey, keyType)
+  const group = groupOfAddress(address)
   return { address, group, publicKey, keyType, networkId: networkId as NetworkId }
 }
 

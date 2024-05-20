@@ -27,7 +27,8 @@ import {
   tokenIdFromAddress,
   validateAddress,
   isAssetAddress,
-  isContractAddress
+  isContractAddress,
+  encodeMultisigPublicKeys
 } from './address'
 import { binToHex } from './utils'
 
@@ -118,12 +119,87 @@ describe('address', function () {
     )
   })
 
+  it('should encode multisig public keys', () => {
+    expect(() => encodeMultisigPublicKeys([], 2)).toThrow('Public key array is empty')
+    expect(() =>
+      encodeMultisigPublicKeys(['030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'], 2)
+    ).toThrow('Invalid m in m-of-n multisig, m: 2, n: 1')
+    expect(() =>
+      encodeMultisigPublicKeys(['030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc', '0011'], 1)
+    ).toThrow('Invalid public key: 0011')
+    expect(encodeMultisigPublicKeys(['030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'], 1)).toEqual(
+      '0101030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
+    )
+    expect(
+      encodeMultisigPublicKeys(
+        [
+          '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc',
+          '03c83325bd2c0fe1464161c6d5f42699fc9dd799dda7f984f9fbf59b01b095be19'
+        ],
+        1
+      )
+    ).toEqual(
+      '0102030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc03c83325bd2c0fe1464161c6d5f42699fc9dd799dda7f984f9fbf59b01b095be19'
+    )
+    expect(
+      encodeMultisigPublicKeys(
+        [
+          '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc',
+          '03c83325bd2c0fe1464161c6d5f42699fc9dd799dda7f984f9fbf59b01b095be19',
+          '03c0a849d8ab8633b45b45ea7f3bb3229e1083a13fd73e027aac2bc55e7f622172'
+        ],
+        2
+      )
+    ).toEqual(
+      '0203030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc03c83325bd2c0fe1464161c6d5f42699fc9dd799dda7f984f9fbf59b01b095be1903c0a849d8ab8633b45b45ea7f3bb3229e1083a13fd73e027aac2bc55e7f622172'
+    )
+    expect(
+      encodeMultisigPublicKeys(
+        [
+          '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc',
+          '03c83325bd2c0fe1464161c6d5f42699fc9dd799dda7f984f9fbf59b01b095be19',
+          '03c0a849d8ab8633b45b45ea7f3bb3229e1083a13fd73e027aac2bc55e7f622172'
+        ],
+        3
+      )
+    ).toEqual(
+      '0303030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc03c83325bd2c0fe1464161c6d5f42699fc9dd799dda7f984f9fbf59b01b095be1903c0a849d8ab8633b45b45ea7f3bb3229e1083a13fd73e027aac2bc55e7f622172'
+    )
+  })
+
   it('should compute address from public key', () => {
     expect(publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
       '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
     )
     expect(addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
       '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
+    )
+    const publicKeys = [
+      '043ed1a15fa4b9c92d5f0b712c238cc26e16bfe8a359d6dc0aeffed983c02e800b',
+      'bcdfb4cbd7555f8df4b66414f17e81eaa108dea382dabb01a63ced575d1824b37e',
+      '94438313828b1b17e5d7f2c9d773d44a81af6c3ef67446fbf350497ff3b06c3741'
+    ]
+    expect(() => addressFromPublicKey('0100', 'multisig')).toThrow('Invalid n in m-of-n multisig, m: 1, n: 0')
+    expect(() => addressFromPublicKey('013f', 'multisig')).toThrow('Invalid n in m-of-n multisig, m: 1, n: -1')
+    expect(() => addressFromPublicKey('0201', 'multisig')).toThrow('Invalid m in m-of-n multisig, m: 2, n: 1')
+    expect(() => addressFromPublicKey('3f02', 'multisig')).toThrow('Invalid m in m-of-n multisig, m: -1, n: 2')
+    expect(() => addressFromPublicKey('04' + encodeMultisigPublicKeys(publicKeys, 3).slice(2), 'multisig')).toThrow(
+      'Invalid m in m-of-n multisig, m: 4, n: 3'
+    )
+    expect(() => addressFromPublicKey('00' + encodeMultisigPublicKeys(publicKeys, 3).slice(2), 'multisig')).toThrow(
+      'Invalid m in m-of-n multisig, m: 0, n: 3'
+    )
+    expect(() => addressFromPublicKey(encodeMultisigPublicKeys(publicKeys, 3).slice(0, -2), 'multisig')).toThrow(
+      'Invalid public key size'
+    )
+    expect(addressFromPublicKey(encodeMultisigPublicKeys(publicKeys, 3), 'multisig')).toEqual(
+      'X15q3KSAid29imun4VPNCTHCNvdcB9Ji6LBp84t4TgUSLv5GvGAzAMT5PdhfWYAD1E8NcxHz5g5Ni9CE5ExRyXf8dXgg3WyEeCu9uWgohcvbtGa5QJ5Q5R33vnNPnxcvzeSEMG'
+    )
+    expect(addressFromPublicKey(encodeMultisigPublicKeys(publicKeys, 2), 'multisig')).toEqual(
+      'X15q3KSAid29imun4VPNCTHCNvdcB9Ji6LBp84t4TgUSLv5GvGAzAMT5PdhfWYAD1E8NcxHz5g5Ni9CE5ExRyXf8dXgg3WyEeCu9uWgohcvbtGa5QJ5Q5R33vnNPnxcvzeSEMF'
+    )
+    expect(addressFromPublicKey(encodeMultisigPublicKeys(publicKeys, 1), 'multisig')).toEqual(
+      'X15q3KSAid29imun4VPNCTHCNvdcB9Ji6LBp84t4TgUSLv5GvGAzAMT5PdhfWYAD1E8NcxHz5g5Ni9CE5ExRyXf8dXgg3WyEeCu9uWgohcvbtGa5QJ5Q5R33vnNPnxcvzeSEME'
     )
   })
 

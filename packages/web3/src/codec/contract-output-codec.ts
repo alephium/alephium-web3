@@ -24,7 +24,7 @@ import { Codec } from './codec'
 import { Token, tokensCodec } from './token-codec'
 import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
-import { binToHex, bs58 } from '..'
+import { binToHex, bs58 } from '../utils'
 import { signedIntCodec } from './signed-int-codec'
 import { lockupScriptCodec } from './lockup-script-codec'
 
