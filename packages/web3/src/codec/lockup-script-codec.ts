@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { ArrayCodec, DecodedArray } from './array-codec'
 
@@ -41,7 +41,7 @@ const publicKeyHashCodec = new PublicKeyHashCodec()
 const publicKeyHashesCodec = new ArrayCodec(publicKeyHashCodec)
 const multiSigParser = Parser.start()
   .nest('publicKeyHashes', { type: publicKeyHashesCodec.parser })
-  .nest('m', { type: compactUnsignedIntCodec.parser })
+  .nest('m', { type: compactSignedIntCodec.parser })
 export interface MultiSig {
   publicKeyHashes: DecodedArray<PublicKeyHash>
   m: DecodedCompactInt
@@ -79,7 +79,7 @@ export class LockupScriptCodec implements Codec<LockupScript> {
       result.push(...(input.script as PublicKeyHash).publicKeyHash)
     } else if (input.scriptType === 1) {
       result.push(...publicKeyHashesCodec.encode((input.script as MultiSig).publicKeyHashes.value))
-      result.push(...compactUnsignedIntCodec.encode((input.script as MultiSig).m))
+      result.push(...compactSignedIntCodec.encode((input.script as MultiSig).m))
     } else if (input.scriptType === 2) {
       result.push(...(input.script as P2SH).scriptHash)
     } else if (input.scriptType === 3) {
