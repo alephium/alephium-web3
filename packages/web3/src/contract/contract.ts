@@ -1831,14 +1831,14 @@ export function subscribeEventsFromContract<T extends Fields, M extends Contract
   decodeFunc: (event: node.ContractEvent) => M,
   fromCount?: number
 ): EventSubscription {
-  const messageCallback = (event: node.ContractEvent): Promise<void> => {
+  const messageCallback = (event: node.ContractEvent) => {
     if (event.eventIndex !== eventIndex) {
       return Promise.resolve()
     }
     return options.messageCallback(decodeFunc(event))
   }
 
-  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
+  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>) => {
     return options.errorCallback(err, subscription as unknown as Subscription<M>)
   }
   const opt: EventSubscribeOptions<node.ContractEvent> = {
@@ -2271,13 +2271,13 @@ export function subscribeContractEvents(
   options: EventSubscribeOptions<ContractEvent<any>>,
   fromCount?: number
 ): EventSubscription {
-  const messageCallback = (event: node.ContractEvent): Promise<void> => {
+  const messageCallback = (event: node.ContractEvent) => {
     return options.messageCallback({
       ...decodeEvent(contract, instance, event, event.eventIndex),
       contractAddress: instance.address
     })
   }
-  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>): Promise<void> => {
+  const errorCallback = (err: any, subscription: Subscription<node.ContractEvent>) => {
     return options.errorCallback(err, subscription as unknown as Subscription<ContractEvent<any>>)
   }
   const opt: EventSubscribeOptions<node.ContractEvent> = {

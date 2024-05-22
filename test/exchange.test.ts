@@ -120,7 +120,6 @@ class BlockPoller extends Subscription<node.BlockEntry> {
       messageCallback: callback,
       errorCallback: (err) => {
         console.error(err)
-        return Promise.resolve()
       }
     })
     this.nodeProvider = nodeProvider

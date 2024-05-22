@@ -21,13 +21,13 @@ import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
 
 export interface EventSubscribeOptions<Message> extends SubscribeOptions<Message> {
-  onEventCountChanged?: (eventCount: number) => Promise<void>
+  onEventCountChanged?: (eventCount: number) => Promise<void> | void
 }
 
 export class EventSubscription extends Subscription<node.ContractEvent> {
   readonly contractAddress: string
   private fromCount: number
-  private onEventCountChanged?: (eventCount: number) => Promise<void>
+  private onEventCountChanged?: (eventCount: number) => Promise<void> | void
 
   constructor(options: EventSubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
     super(options)
@@ -36,13 +36,6 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
     this.onEventCountChanged = options.onEventCountChanged
 
     this.startPolling()
-  }
-
-  override startPolling(): void {
-    this.eventEmitter.on('tick', async () => {
-      await this.polling()
-    })
-    this.eventEmitter.emit('tick')
   }
 
   currentEventCount(): number {
@@ -54,12 +47,7 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
       const events = await web3.getCurrentNodeProvider().events.getEventsContractContractaddress(this.contractAddress, {
         start: this.fromCount
       })
-      if (this.cancelled) {
-        return
-      }
-
       if (this.fromCount === events.nextStart) {
-        this.task = setTimeout(() => this.eventEmitter.emit('tick'), this.pollingInterval)
         return
       }
 

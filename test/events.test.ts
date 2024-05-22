@@ -58,18 +58,15 @@ describe('events', function () {
   function createSubscribeOptions<T>(events: Array<T>): EventSubscribeOptions<T> {
     return {
       pollingInterval: 500,
-      messageCallback: (event: T): Promise<void> => {
+      messageCallback: (event: T) => {
         events.push(event)
-        return Promise.resolve()
       },
-      errorCallback: (error: any, subscription): Promise<void> => {
+      errorCallback: (error: any, subscription) => {
         console.log(error)
         subscription.unsubscribe()
-        return Promise.resolve()
       },
       onEventCountChanged: (count: number) => {
         eventCount = count
-        return Promise.resolve()
       }
     }
   }

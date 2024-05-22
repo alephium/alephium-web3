@@ -18,8 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import EventEmitter from 'eventemitter3'
 
-type MessageCallback<Message> = (message: Message) => Promise<void>
-type ErrorCallback<Message> = (error: any, subscription: Subscription<Message>) => Promise<void>
+type MessageCallback<Message> = (message: Message) => Promise<void> | void
+type ErrorCallback<Message> = (error: any, subscription: Subscription<Message>) => Promise<void> | void
 
 export interface SubscribeOptions<Message> {
   pollingInterval: number
