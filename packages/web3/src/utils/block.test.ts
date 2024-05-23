@@ -126,7 +126,7 @@ describe('block subscription', function () {
   class BlockSubscriptionTest extends BlockSubscriptionBase {
     readonly fromGroup: number
     readonly toGroup: number
-    readonly onReorgCallback?: ReorgCallback
+    readonly reorgCallback?: ReorgCallback
     readonly hashesByHeight: Map<number, string[]>
     readonly blockByHash: Map<string, node.BlockEntry>
 
@@ -150,7 +150,7 @@ describe('block subscription', function () {
       super(options)
       this.fromGroup = fromGroup
       this.toGroup = toGroup
-      this.onReorgCallback = options.reorgCallback
+      this.reorgCallback = options.reorgCallback
       this.hashesByHeight = buildHashesByHeightMap(chains)
       this.blockByHash = buildBlockByHashMap(chains, fromGroup, toGroup)
     }

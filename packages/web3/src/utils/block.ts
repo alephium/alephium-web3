@@ -28,7 +28,7 @@ export interface BlockSubscribeOptions extends SubscribeOptions<node.BlockEntry>
 }
 
 export abstract class BlockSubscriptionBase extends Subscription<node.BlockEntry> {
-  abstract readonly onReorgCallback?: ReorgCallback
+  abstract readonly reorgCallback?: ReorgCallback
   abstract readonly fromGroup: number
   abstract readonly toGroup: number
 
@@ -42,7 +42,7 @@ export abstract class BlockSubscriptionBase extends Subscription<node.BlockEntry
 
   protected async handleReorg(blockHash: string, blockHeight: number) {
     console.log(`reorg occur, hash: ${blockHash}, height: ${blockHeight}`)
-    if (this.onReorgCallback === undefined) return
+    if (this.reorgCallback === undefined) return
 
     const orphans: string[] = []
     const newHashes: string[] = []
@@ -74,7 +74,7 @@ export abstract class BlockSubscriptionBase extends Subscription<node.BlockEntry
       newBlocks.push(block)
     }
     console.info(`orphan hashes: ${orphanBlocks.map((b) => b.hash)}, new hashes: ${newBlocks.map((b) => b.hash)}`)
-    await this.onReorgCallback(orphanBlocks, newBlocks)
+    await this.reorgCallback(orphanBlocks, newBlocks)
   }
 }
 
@@ -82,7 +82,7 @@ export class BlockSubscription extends BlockSubscriptionBase {
   readonly nodeProvider: NodeProvider
   readonly fromGroup: number
   readonly toGroup: number
-  readonly onReorgCallback?: ReorgCallback
+  readonly reorgCallback?: ReorgCallback
   private currentBlockHeight: number
   private parentBlockHash: string | undefined
 
@@ -97,7 +97,7 @@ export class BlockSubscription extends BlockSubscriptionBase {
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.fromGroup = fromGroup
     this.toGroup = toGroup
-    this.onReorgCallback = options.reorgCallback
+    this.reorgCallback = options.reorgCallback
     this.currentBlockHeight = fromBlockHeight
     this.parentBlockHash = undefined
 
