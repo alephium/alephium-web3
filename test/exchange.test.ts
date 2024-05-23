@@ -24,13 +24,13 @@ import {
   ONE_ALPH,
   NodeProvider,
   prettifyAttoAlphAmount,
-  Subscription,
   node,
   sleep,
   TOTAL_NUMBER_OF_GROUPS,
   ALPH_TOKEN_ID,
   getALPHDepositInfo,
-  groupOfAddress
+  groupOfAddress,
+  BlockSubscription
 } from '@alephium/web3'
 import { waitTxConfirmed } from '@alephium/cli'
 import { EventEmitter } from 'stream'
@@ -102,66 +102,6 @@ class User {
   }
 }
 
-class BlockPoller extends Subscription<node.BlockEntry> {
-  readonly nodeProvider: NodeProvider
-  readonly fromGroup: number
-  readonly toGroup: number
-  private fromBlockHeight: number
-
-  constructor(
-    nodeProvider: NodeProvider,
-    fromGroup: number,
-    toGroup: number,
-    callback: (block: node.BlockEntry) => Promise<void>,
-    fromBlockHeight: number
-  ) {
-    super({
-      pollingInterval: 1000,
-      messageCallback: callback,
-      errorCallback: (err) => {
-        console.error(err)
-      }
-    })
-    this.nodeProvider = nodeProvider
-    this.fromGroup = fromGroup
-    this.toGroup = toGroup
-    this.fromBlockHeight = fromBlockHeight
-  }
-
-  override startPolling(): void {
-    this.eventEmitter.on('tick', async () => {
-      await this.polling()
-    })
-    this.eventEmitter.emit('tick')
-  }
-
-  override async polling(): Promise<void> {
-    try {
-      const chainInfo = await this.nodeProvider.blockflow.getBlockflowChainInfo({
-        fromGroup: this.fromGroup,
-        toGroup: this.toGroup
-      })
-      if (this.cancelled) {
-        return
-      }
-
-      while (this.fromBlockHeight <= chainInfo.currentHeight) {
-        const result = await this.nodeProvider.blockflow.getBlockflowHashes({
-          fromGroup: this.fromGroup,
-          toGroup: this.toGroup,
-          height: this.fromBlockHeight
-        })
-        const block = await this.nodeProvider.blockflow.getBlockflowBlocksBlockHash(result.headers[0])
-        await this.messageCallback(block)
-        this.fromBlockHeight += 1
-      }
-      this.task = setTimeout(() => this.eventEmitter.emit('tick'), this.pollingInterval)
-    } catch (err) {
-      await this.errorCallback(err, this)
-    }
-  }
-}
-
 class Exchange {
   readonly nodeProvider: NodeProvider
   readonly wallet: PrivateKeyWallet
@@ -229,8 +169,14 @@ class Exchange {
           fromGroup: fromGroup,
           toGroup: toGroup
         })
-        const poller = new BlockPoller(this.nodeProvider, fromGroup, toGroup, callback, chainInfo.currentHeight + 1)
-        poller.startPolling()
+        const options = {
+          pollingInterval: 1000,
+          messageCallback: callback,
+          errorCallback: (err: any) => {
+            console.error(err)
+          }
+        }
+        new BlockSubscription(options, fromGroup, toGroup, chainInfo.currentHeight + 1)
       }
     }
   }
