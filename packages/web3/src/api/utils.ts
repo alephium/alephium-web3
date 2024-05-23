@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import 'cross-fetch/polyfill'
-import { node } from '..'
+import * as node from '../api/api-alephium'
 
 export function convertHttpResponse<T>(response: { status: number; data: T; error?: { detail: string } }): T {
   if (response.error) {

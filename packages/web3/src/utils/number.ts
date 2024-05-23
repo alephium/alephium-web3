@@ -21,7 +21,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 // 2. https://github.com/ethers-io/ethers.js/blob/724881f34d428406488a1c9f9dbebe54b6edecda/src.ts/utils/fixednumber.ts
 
 import BigNumber from 'bignumber.js'
-import { Number256 } from '..'
+import { Number256 } from '../api/types'
 
 export const isNumeric = (numToCheck: any): boolean => !isNaN(parseFloat(numToCheck)) && isFinite(numToCheck)
 

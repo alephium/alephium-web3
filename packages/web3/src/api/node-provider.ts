@@ -28,7 +28,6 @@ import {
   requestWithLog
 } from './types'
 import { Api as NodeApi, CallContractFailed, CallContractSucceeded } from './api-alephium'
-import { tryGetCallResult } from '../contract'
 import {
   HexString,
   addressFromContractId,
@@ -38,6 +37,7 @@ import {
   isHexString,
   toNonNegativeBigInt
 } from '../utils'
+import * as node from '../api/api-alephium'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {
   const nodeApi = new NodeApi<string>({
@@ -252,4 +252,11 @@ export class NodeProvider implements NodeProviderApis {
         return undefined
     }
   }
+}
+
+export function tryGetCallResult(result: node.CallContractResult): node.CallContractSucceeded {
+  if (result.type === 'CallContractFailed') {
+    throw new Error(`Failed to call contract, error: ${(result as node.CallContractFailed).error}`)
+  }
+  return result as node.CallContractSucceeded
 }

@@ -24,6 +24,9 @@ import bs58 from './bs58'
 import djb2 from './djb2'
 import { binToHex, hexToBinUnsafe } from './utils'
 import { KeyType } from '../signer'
+import { MultiSig, lockupScriptCodec } from '../codec/lockup-script-codec'
+import { Buffer } from 'buffer/'
+import { compactSignedIntCodec } from '../codec'
 
 const ec = new EC('secp256k1')
 
@@ -49,8 +52,18 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType === AddressType.P2MPKH) {
-    // [1, n, ...hashes, m]
-    if ((decoded.length - 3) % 32 === 0) return decoded
+    let multisig: MultiSig
+    try {
+      multisig = lockupScriptCodec.decode(Buffer.from(decoded)).script as MultiSig
+    } catch (_) {
+      throw new Error(`Invalid multisig address: ${address}`)
+    }
+    const n = multisig.publicKeyHashes.value.length
+    const m = compactSignedIntCodec.toI32(multisig.m)
+    if (n < m) {
+      throw new Error(`Invalid multisig address, n: ${n}, m: ${m}`)
+    }
+    return decoded
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
