@@ -15,29 +15,47 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
 import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { DecodedArray } from './array-codec'
 import { Codec } from './codec'
-import { DecodedMethod, methodsCodec } from './method-codec'
+import { DecodedMethod, methodsCodec, Method, MethodCodec } from './method-codec'
 import { OptionCodec } from './option-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 
-export interface Script {
+export interface DecodedScript {
   methods: DecodedArray<DecodedMethod>
 }
 
-export class ScriptCodec implements Codec<Script> {
+export interface Script {
+  methods: Method[]
+}
+
+export class ScriptCodec implements Codec<DecodedScript> {
   parser = Parser.start().nest('methods', {
     type: methodsCodec.parser
   })
 
-  encode(input: Script): Buffer {
+  encode(input: DecodedScript): Buffer {
     const script = methodsCodec.encode(input.methods.value)
     return Buffer.from(script)
   }
 
-  decode(input: Buffer): Script {
+  decode(input: Buffer): DecodedScript {
     return this.parser.parse(input)
+  }
+
+  decodeScript(input: Buffer): Script {
+    const decodedTxScript = this.decode(input)
+    const methods = decodedTxScript.methods.value.map((decodedMethod) => MethodCodec.toMethod(decodedMethod))
+    return { methods }
+  }
+
+  encodeScript(inputTxScript: Script): Buffer {
+    const methodLength = compactUnsignedIntCodec.fromU32(inputTxScript.methods.length)
+    const decodedMethods = inputTxScript.methods.map((method) => MethodCodec.fromMethod(method))
+    return this.encode({ methods: { value: decodedMethods, length: methodLength } })
   }
 }
 

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { utils } from '..'
+import { binToHex, contractIdFromAddress } from '../utils'
 import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiTokens } from '../api'
 import { addressFromPublicKey } from '../utils'
 import { toApiDestinations } from './signer'
@@ -90,7 +90,7 @@ export abstract class TransactionBuilder {
       ...rest
     }
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
-    const contractId = utils.binToHex(utils.contractIdFromAddress(response.contractAddress))
+    const contractId = binToHex(contractIdFromAddress(response.contractAddress))
     return { ...response, groupIndex: response.fromGroup, contractId, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 

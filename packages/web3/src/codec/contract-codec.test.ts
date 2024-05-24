@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { Contract, Project, web3, Struct, decodeArrayType } from '@alephium/web3'
+import { Contract, Project, web3, decodeArrayType } from '@alephium/web3'
 import { Method } from './method-codec'
 import { contractCodec, toHalfDecoded } from './contract-codec'
 import {
@@ -96,7 +96,9 @@ describe('Encode & decode contract', function () {
       [
         {
           isPublic: true,
-          assetModifier: 0,
+          usePreapprovedAssets: false,
+          useContractAssets: false,
+          usePayToContractOnly: false,
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
@@ -104,7 +106,9 @@ describe('Encode & decode contract', function () {
         },
         {
           isPublic: true,
-          assetModifier: 0,
+          usePreapprovedAssets: false,
+          useContractAssets: false,
+          usePayToContractOnly: false,
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
@@ -112,7 +116,9 @@ describe('Encode & decode contract', function () {
         },
         {
           isPublic: false,
-          assetModifier: 0,
+          usePreapprovedAssets: false,
+          useContractAssets: false,
+          usePayToContractOnly: false,
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
@@ -120,7 +126,9 @@ describe('Encode & decode contract', function () {
         },
         {
           isPublic: true,
-          assetModifier: 0,
+          usePreapprovedAssets: false,
+          useContractAssets: false,
+          usePayToContractOnly: false,
           argsLength: 0,
           localsLength: 0,
           returnLength: 1,
@@ -205,7 +213,9 @@ describe('Encode & decode contract', function () {
       [
         {
           isPublic: false,
-          assetModifier: 0,
+          usePreapprovedAssets: false,
+          useContractAssets: false,
+          usePayToContractOnly: false,
           argsLength: 2,
           localsLength: 4,
           returnLength: 2,
@@ -230,7 +240,9 @@ describe('Encode & decode contract', function () {
         },
         {
           isPublic: true,
-          assetModifier: 3,
+          usePreapprovedAssets: true,
+          useContractAssets: false,
+          usePayToContractOnly: false,
           argsLength: 4,
           localsLength: 9,
           returnLength: 0,
@@ -327,7 +339,9 @@ describe('Encode & decode contract', function () {
     expect(toHalfDecoded(decodedContract)).toEqual(decoded)
     decodedContract.methods.map((decodedMethod, index) => {
       expect(decodedMethod.isPublic).toEqual(methods[index].isPublic)
-      expect(decodedMethod.assetModifier).toEqual(methods[index].assetModifier)
+      expect(decodedMethod.usePreapprovedAssets).toEqual(methods[index].usePreapprovedAssets)
+      expect(decodedMethod.useContractAssets).toEqual(methods[index].useContractAssets)
+      expect(decodedMethod.usePayToContractOnly).toEqual(methods[index].usePayToContractOnly)
       expect(decodedMethod.argsLength).toEqual(methods[index].argsLength)
       expect(decodedMethod.localsLength).toEqual(methods[index].localsLength)
       expect(decodedMethod.returnLength).toEqual(methods[index].returnLength)
@@ -362,27 +376,15 @@ describe('Encode & decode contract', function () {
 
     expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsSig.types))
     decodedContract.methods.map((decodedMethod, index) => {
-      const contractFunction = contract.functions[index]
-      expect(decodedMethod.isPublic).toEqual(contractFunction.isPublic)
-      expect(decodedMethod.assetModifier).toEqual(
-        assetModifier(contractFunction.usePreapprovedAssets, contractFunction.useAssetsInContract)
-      )
-      expect(decodedMethod.argsLength).toEqual(getTypesLength(contractFunction.paramTypes))
-      expect(decodedMethod.returnLength).toEqual(getTypesLength(contractFunction.returnTypes))
+      const decoded = contract.decodedMethods[index]
+      const functionSig = contract.functions[index]
+      expect(decodedMethod.isPublic).toEqual(decoded.isPublic)
+      expect(decodedMethod.usePreapprovedAssets).toEqual(decoded.usePreapprovedAssets)
+      expect(decodedMethod.useContractAssets).toEqual(decoded.useContractAssets)
+      expect(decodedMethod.argsLength).toEqual(getTypesLength(functionSig.paramTypes))
+      expect(decodedMethod.returnLength).toEqual(getTypesLength(functionSig.returnTypes))
     })
 
     expect(contract.bytecode).toEqual(encoded.toString('hex'))
-  }
-
-  function assetModifier(usePreapprovedAssets: boolean, useAssetsInContract: boolean): number {
-    if (!usePreapprovedAssets && !useAssetsInContract) {
-      return 0
-    } else if (usePreapprovedAssets && useAssetsInContract) {
-      return 1
-    } else if (!usePreapprovedAssets && useAssetsInContract) {
-      return 2
-    } else {
-      return 3
-    }
   }
 })

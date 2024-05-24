@@ -119,8 +119,16 @@ export class MapTestInstance extends ContractInstance {
   }
 
   maps = {
-    map0: new RalphMap<Address, MapValue>(MapTest.contract, this, "map0"),
-    map1: new RalphMap<bigint, bigint>(MapTest.contract, this, "map1"),
+    map0: new RalphMap<Address, MapValue>(
+      MapTest.contract,
+      this.contractId,
+      "map0"
+    ),
+    map1: new RalphMap<bigint, bigint>(
+      MapTest.contract,
+      this.contractId,
+      "map1"
+    ),
   };
 
   async fetchState(): Promise<MapTestTypes.State> {

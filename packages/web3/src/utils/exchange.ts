@@ -16,9 +16,20 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { AddressType, addressFromPublicKey, addressFromScript, binToHex, bs58, hexToBinUnsafe } from '..'
+import {
+  AddressType,
+  addressFromPublicKey,
+  addressFromScript,
+  binToHex,
+  bs58,
+  hexToBinUnsafe,
+  isHexString
+} from '../utils'
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
+import { P2SH, unlockScriptCodec } from '../codec/unlock-script-codec'
+import { Buffer } from 'buffer/'
+import { scriptCodec } from '../codec/script-codec'
 
 export function validateExchangeAddress(address: string) {
   let decoded: Uint8Array
@@ -80,24 +91,35 @@ enum UnlockScriptType {
 }
 
 export function getAddressFromUnlockScript(unlockScript: string): Address {
+  if (!isHexString(unlockScript)) {
+    throw new Error(`Invalid unlock script ${unlockScript}, expected a hex string`)
+  }
   const decoded = hexToBinUnsafe(unlockScript)
   if (decoded.length === 0) throw new Error('UnlockScript is empty')
   const unlockScriptType = decoded[0]
   const unlockScriptBody = decoded.slice(1)
 
   if (unlockScriptType === UnlockScriptType.P2PKH) {
+    if (unlockScriptBody.length !== 33) {
+      throw new Error(`Invalid p2pkh unlock script: ${unlockScript}`)
+    }
     return addressFromPublicKey(binToHex(unlockScriptBody))
-  } else if (unlockScriptType === UnlockScriptType.P2MPKH) {
-    throw new Error('Naive multi-sig address is not supported for exchanges as it will be replaced by P2SH')
-  } else if (unlockScriptType === UnlockScriptType.P2SH) {
-    // FIXEME: for now we assume that the params is empty, so we need to
-    // remove the last byte from the `unlockScriptBody`, we can decode
-    // the unlock script once the codec PR is merged
-    const script = unlockScriptBody.slice(0, -1)
-    return addressFromScript(script)
-  } else {
-    throw new Error('Invalid unlock script type')
   }
+
+  if (unlockScriptType === UnlockScriptType.P2MPKH) {
+    throw new Error('Naive multi-sig address is not supported for exchanges as it will be replaced by P2SH')
+  }
+
+  if (unlockScriptType === UnlockScriptType.P2SH) {
+    let p2sh: P2SH
+    try {
+      p2sh = unlockScriptCodec.decode(Buffer.from(decoded)).script as P2SH
+    } catch (_) {
+      throw new Error(`Invalid p2sh unlock script: ${unlockScript}`)
+    }
+    return addressFromScript(scriptCodec.encode(p2sh.script))
+  }
+  throw new Error('Invalid unlock script type')
 }
 
 function checkALPHOutput(tx: Transaction): boolean {

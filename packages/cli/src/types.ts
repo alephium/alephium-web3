@@ -60,6 +60,7 @@ export interface Configuration<Settings = unknown> {
   networks: Record<NetworkId, Network<Settings>>
 
   enableDebugMode?: boolean
+  skipSaveArtifacts?: boolean
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {
@@ -85,7 +86,8 @@ export const DEFAULT_CONFIGURATION_VALUES = {
       networkId: 0,
       confirmations: 2
     }
-  }
+  },
+  skipSaveArtifacts: false
 }
 
 export interface Environment<Settings = unknown> {

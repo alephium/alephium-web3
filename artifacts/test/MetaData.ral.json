@@ -1,5 +1,5 @@
 {
-  "version": "v2.14.0",
+  "version": "v2.14.7",
   "name": "MetaData",
   "bytecode": "000319402c4033010300000006d38d0b3636b4b413c40de0b6b3a7640000a702000200000004b213c40de0b6b3a7640000a90200000000000102",
   "codeHash": "af0b3119565ef5f833f7b3514005a6b00ac9957d5a7779765edfc6e6ce6321c5",
@@ -12,9 +12,6 @@
   "functions": [
     {
       "name": "foo",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -22,9 +19,6 @@
     },
     {
       "name": "bar",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": true,
-      "isPublic": false,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -32,9 +26,6 @@
     },
     {
       "name": "baz",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": false,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

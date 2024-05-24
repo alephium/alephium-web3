@@ -1,4 +1,5 @@
 @std(id = #0001)
+@using(methodSelector = false)
 Interface IFungibleToken {
   pub fn getSymbol() -> ByteVec
 

@@ -33,11 +33,49 @@ export interface DecodedMethod {
 
 export interface Method {
   isPublic: boolean
-  assetModifier: number
+  usePreapprovedAssets: boolean
+  useContractAssets: boolean
+  usePayToContractOnly: boolean
   argsLength: number
   localsLength: number
   returnLength: number
   instrs: Instr[]
+}
+
+function decodeAssetModifier(encoded: number): {
+  usePreapprovedAssets: boolean
+  useContractAssets: boolean
+  usePayToContractOnly: boolean
+} {
+  const usePayToContractOnly = (encoded & 4) !== 0
+  switch (encoded & 3) {
+    case 0:
+      return { usePayToContractOnly, usePreapprovedAssets: false, useContractAssets: false }
+    case 1:
+      return { usePayToContractOnly, usePreapprovedAssets: true, useContractAssets: true }
+    case 2:
+      return { usePayToContractOnly, usePreapprovedAssets: false, useContractAssets: true }
+    case 3:
+      return { usePayToContractOnly, usePreapprovedAssets: true, useContractAssets: false }
+    default:
+      throw new Error(`Invalid asset modifier: ${encoded}`)
+  }
+}
+
+function encodeAssetModifier(arg: {
+  usePreapprovedAssets: boolean
+  useContractAssets: boolean
+  usePayToContractOnly: boolean
+}): number {
+  const encoded =
+    !arg.usePreapprovedAssets && !arg.useContractAssets
+      ? 0
+      : arg.usePreapprovedAssets && arg.useContractAssets
+      ? 1
+      : !arg.usePreapprovedAssets && arg.useContractAssets
+      ? 2
+      : 3
+  return encoded | (arg.usePayToContractOnly ? 4 : 0)
 }
 
 export class MethodCodec implements Codec<DecodedMethod> {
@@ -73,7 +111,7 @@ export class MethodCodec implements Codec<DecodedMethod> {
   static toMethod(decodedMethod: DecodedMethod): Method {
     return {
       isPublic: decodedMethod.isPublic === 1,
-      assetModifier: decodedMethod.assetModifier,
+      ...decodeAssetModifier(decodedMethod.assetModifier),
       argsLength: compactUnsignedIntCodec.toU32(decodedMethod.argsLength),
       localsLength: compactUnsignedIntCodec.toU32(decodedMethod.localsLength),
       returnLength: compactUnsignedIntCodec.toU32(decodedMethod.returnLength),
@@ -84,7 +122,7 @@ export class MethodCodec implements Codec<DecodedMethod> {
   static fromMethod(method: Method): DecodedMethod {
     return {
       isPublic: method.isPublic ? 1 : 0,
-      assetModifier: method.assetModifier,
+      assetModifier: encodeAssetModifier(method),
       argsLength: compactUnsignedIntCodec.fromU32(method.argsLength),
       localsLength: compactUnsignedIntCodec.fromU32(method.localsLength),
       returnLength: compactUnsignedIntCodec.fromU32(method.returnLength),

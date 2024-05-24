@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.14.0",
+  "fullNodeVersion": "v2.14.7",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -138,28 +138,28 @@
     },
     "IFungibleToken": {
       "sourceFile": "../packages/web3/std/fungible_token_interface.ral",
-      "sourceCodeHash": "6809cb06fb20fa7edf529461998beeebd12b1636d439612cca2f84214dbf4a20",
+      "sourceCodeHash": "62910bf11e1eeb6cb2fd468626ff606a9b06306b2b81590c3b10f6deb5966bde",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
-      "sourceCodeHash": "7f7514adf9fee057049d1c162701725b3377c01a0a102e6f0f5cf747039926b6",
+      "sourceCodeHash": "acff0211f936d18d3f4a01ddd8f4fe8fbdf0dba9e8b9204b233a48cba1c80d8b",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
-      "sourceCodeHash": "06648d34b65081500e038a943eb81d66301b43252b447d8cb96e0c8f2095edf8",
+      "sourceCodeHash": "9b199426ea89c188ce858b48ab809f13b9fc1ed0d64ca91e3d600eda8fbf6c42",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "INFTCollectionWithRoyalty": {
       "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
-      "sourceCodeHash": "9f325c739267074d442f0da4536fd68baeb9571ef220e29cca6bc173af24b232",
+      "sourceCodeHash": "293aad668909a21df80183c9296f3d1a8edb76a43faa2cbf395a766d1879cdc6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -186,6 +186,8 @@
       "bytecodeDebugPatch": "=6-2+73=2-2+d8=2-2+69=11-1+a=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=227-1+9=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=6",
       "codeHashDebug": "034dec32e1107787800ec476a31b11ed2f5c201c06aa9360d1a1a074d6b29098",
       "warnings": [
+        "No external caller check for function \"MapTest.remove\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
+        "No external caller check for function \"MapTest.update\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"MapTest.insert\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },

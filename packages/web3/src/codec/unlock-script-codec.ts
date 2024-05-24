@@ -20,7 +20,7 @@ import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Codec } from './codec'
-import { Script, scriptCodec } from './script-codec'
+import { DecodedScript, Script, scriptCodec } from './script-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 
@@ -122,7 +122,7 @@ const valCodec = new ValCodec()
 const valsCodec = new ArrayCodec(valCodec)
 
 export interface P2SH {
-  script: Script
+  script: DecodedScript
   params: DecodedArray<Val>
 }
 

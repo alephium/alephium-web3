@@ -46,6 +46,10 @@ describe('address', function () {
     expect(() => validateAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX')).toThrow('Invalid address:')
     expect(validateAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBeUndefined()
     expect(() => validateAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9k')).toThrow('Invalid address:')
+    expect(() => validateAddress('asd')).toThrow('Invalid multisig address: asd')
+    expect(() =>
+      validateAddress('2jVWAcAPphJ8ueZNG1BPwbfPFjjbvorprceuqzgmJQ1ZRyELRpWgARvdB3T9trqpiJs7f4GkudPt6rQLnGbQYqq2NCi')
+    ).toThrow('Invalid multisig address, n: 2, m: 3')
   })
 
   it('should get address type', () => {
