@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Subscription, SubscribeOptions } from './subscription'
+import { Subscription, SubscribeOptions } from '../utils/subscription'
 import * as node from '../api/api-alephium'
 import { NodeProvider } from '../api'
 import * as web3 from '../global'
