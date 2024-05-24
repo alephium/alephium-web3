@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v2.14.0",
+  "fullNodeVersion": "v2.14.7",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -186,6 +186,8 @@
       "bytecodeDebugPatch": "=6-2+73=2-2+d8=2-2+69=11-1+a=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=227-1+9=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=6",
       "codeHashDebug": "034dec32e1107787800ec476a31b11ed2f5c201c06aa9360d1a1a074d6b29098",
       "warnings": [
+        "No external caller check for function \"MapTest.remove\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
+        "No external caller check for function \"MapTest.update\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"MapTest.insert\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
       ]
     },
