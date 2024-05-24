@@ -21,6 +21,7 @@ import { Parser } from 'binary-parser'
 import { DecodedArray } from './array-codec'
 import { Codec } from './codec'
 import { DecodedMethod, Method, MethodCodec, methodsCodec } from './method-codec'
+import { compactUnsignedIntCodec } from './compact-int-codec'
 
 export interface DecodedTxScript {
   methods: DecodedArray<DecodedMethod>
@@ -47,6 +48,12 @@ export class TxScriptCodec implements Codec<DecodedTxScript> {
     const decodedTxScript = this.decode(input)
     const methods = decodedTxScript.methods.value.map((decodedMethod) => MethodCodec.toMethod(decodedMethod))
     return { methods }
+  }
+
+  encodeTxScript(inputTxScript: TxScript): Buffer {
+    const methodLength = compactUnsignedIntCodec.fromU32(inputTxScript.methods.length)
+    const decodedMethods = inputTxScript.methods.map((method) => MethodCodec.fromMethod(method))
+    return this.encode({ methods: { value: decodedMethods, length: methodLength } })
   }
 }
 

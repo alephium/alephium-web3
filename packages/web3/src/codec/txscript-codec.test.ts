@@ -95,8 +95,11 @@ describe('Encode & decode TxScript', function () {
   })
 
   function testTxScript(script: Script, fields: Fields, methods: Method[]) {
-    const bytecode = script.buildByteCodeToDeploy(fields)
-    const decodedTxScript = txScriptCodec.decodeTxScript(Buffer.from(bytecode, 'hex'))
+    const txScriptBytecode = script.buildByteCodeToDeploy(fields)
+    const decodedTxScript = txScriptCodec.decodeTxScript(Buffer.from(txScriptBytecode, 'hex'))
+
+    expect(txScriptCodec.encodeTxScript(decodedTxScript).toString('hex')).toEqual(txScriptBytecode)
+
     expect(decodedTxScript.methods.length).toEqual(methods.length)
     decodedTxScript.methods.map((decodedMethod, index) => {
       expect(decodedMethod.isPublic).toEqual(methods[index].isPublic)
