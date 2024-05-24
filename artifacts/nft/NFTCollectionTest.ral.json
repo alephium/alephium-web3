@@ -27,9 +27,6 @@
   "functions": [
     {
       "name": "getCollectionUri",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -39,9 +36,6 @@
     },
     {
       "name": "totalSupply",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -51,9 +45,6 @@
     },
     {
       "name": "nftByIndex",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "index"
       ],
@@ -69,9 +60,6 @@
     },
     {
       "name": "validateNFT",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "nftId",
         "nftIndex"
@@ -88,9 +76,6 @@
     },
     {
       "name": "mint",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "nftUri"
       ],

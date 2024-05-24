@@ -1,4 +1,5 @@
 @std(id = #0003)
+@using(methodSelector = false)
 Interface INFT {
    // Token Uri points to a json file containing metadata for the NFT.
    //

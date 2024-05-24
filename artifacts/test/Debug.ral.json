@@ -12,9 +12,6 @@
   "functions": [
     {
       "name": "debug",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
