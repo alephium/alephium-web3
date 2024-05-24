@@ -19,7 +19,7 @@ import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { UnsignedTx as ApiUnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '../utils'
-import { Script, scriptCodec, statefulScriptCodecOpt } from './script-codec'
+import { DecodedScript, scriptCodec, statefulScriptCodecOpt } from './script-codec'
 import { Option } from './option-codec'
 import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
 import { Input, InputCodec, inputsCodec } from './input-codec'
@@ -31,7 +31,7 @@ import { Codec } from './codec'
 export interface UnsignedTx {
   version: number
   networkId: number
-  statefulScript: Option<Script>
+  statefulScript: Option<DecodedScript>
   gasAmount: DecodedCompactInt
   gasPrice: DecodedCompactInt
   inputs: DecodedArray<Input>
