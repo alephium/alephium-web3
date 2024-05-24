@@ -176,7 +176,8 @@ class Exchange {
             console.error(err)
           }
         }
-        new BlockSubscription(options, fromGroup, toGroup, chainInfo.currentHeight + 1)
+        const subscription = new BlockSubscription(options, fromGroup, toGroup, chainInfo.currentHeight + 1)
+        subscription.subscribe()
       }
     }
   }

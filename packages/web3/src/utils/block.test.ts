@@ -87,8 +87,8 @@ describe('block subscription', function () {
           if (!hashes.includes(c[currentHeight])) {
             hashes.push(c[currentHeight])
           }
-          hashesByHeight.set(currentHeight, hashes)
         })
+      hashesByHeight.set(currentHeight, hashes)
     }
     return hashesByHeight
   }

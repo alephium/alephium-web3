@@ -45,7 +45,7 @@ export abstract class Subscription<Message> {
     this.eventEmitter = new EventEmitter()
   }
 
-  startPolling(): void {
+  subscribe(): void {
     this.eventEmitter.on('tick', async () => {
       await this.polling()
 
@@ -68,5 +68,5 @@ export abstract class Subscription<Message> {
     return this.cancelled
   }
 
-  abstract polling(): Promise<void>
+  protected abstract polling(): Promise<void>
 }

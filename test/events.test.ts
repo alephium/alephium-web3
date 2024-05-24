@@ -31,7 +31,7 @@ import { Main, DestroyAdd } from '../artifacts/ts/scripts'
 import { CreateContractEventAddresses, DestroyContractEventAddresses } from '../packages/web3'
 import { ContractCreatedEvent, subscribeContractCreatedEvent } from '../packages/web3'
 import { ContractDestroyedEvent, subscribeContractDestroyedEvent } from '../packages/web3'
-import { PrivateKeyWallet } from '@alephium/web3-wallet/dist/src/privatekey-wallet'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { getSigner } from '@alephium/web3-test'
 
 describe('events', function () {

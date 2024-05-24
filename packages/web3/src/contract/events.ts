@@ -34,8 +34,6 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
     this.contractAddress = contractAddress
     this.fromCount = typeof fromCount === 'undefined' ? 0 : fromCount
     this.onEventCountChanged = options.onEventCountChanged
-
-    this.startPolling()
   }
 
   currentEventCount(): number {
@@ -71,5 +69,7 @@ export function subscribeToEvents(
   contractAddress: string,
   fromCount?: number
 ): EventSubscription {
-  return new EventSubscription(options, contractAddress, fromCount)
+  const subscription = new EventSubscription(options, contractAddress, fromCount)
+  subscription.subscribe()
+  return subscription
 }

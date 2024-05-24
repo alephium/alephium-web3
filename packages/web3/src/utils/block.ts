@@ -41,7 +41,7 @@ export abstract class BlockSubscriptionBase extends Subscription<node.BlockEntry
   }
 
   protected async handleReorg(blockHash: string, blockHeight: number) {
-    console.log(`reorg occur, hash: ${blockHash}, height: ${blockHeight}`)
+    console.info(`reorg occur, hash: ${blockHash}, height: ${blockHeight}`)
     if (this.reorgCallback === undefined) return
 
     const orphans: string[] = []
@@ -100,8 +100,6 @@ export class BlockSubscription extends BlockSubscriptionBase {
     this.reorgCallback = options.reorgCallback
     this.currentBlockHeight = fromBlockHeight
     this.parentBlockHash = undefined
-
-    this.startPolling()
   }
 
   override async getHashesAtHeight(height: number): Promise<string[]> {
