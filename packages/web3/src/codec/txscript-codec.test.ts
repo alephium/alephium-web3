@@ -16,14 +16,24 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { AddressConst, ByteConst, CallExternal, U256Const0, U256Const1 } from './instr-codec'
+import {
+  AddressConst,
+  AssertWithErrorCode,
+  ByteConst,
+  CallExternal,
+  LoadLocal,
+  U256Const0,
+  U256Const1,
+  U256Eq
+} from './instr-codec'
 import { Buffer } from 'buffer/'
-import { DestroyAdd } from '../../../../artifacts/ts'
+import { DestroyAdd, GreeterMain } from '../../../../artifacts/ts'
 import { LockupScript } from './lockup-script-codec'
 import { Method } from './method-codec'
 import { Script, Fields, bs58 } from '@alephium/web3'
 import { randomContractId, testAddress } from '@alephium/web3-test'
 import { txScriptCodec } from './txscript-codec'
+import { StoreLocal } from '../../dist/src/codec'
 
 describe('Encode & decode TxScript', function () {
   it('should encode & decode TxScript', () => {
@@ -48,6 +58,38 @@ describe('Encode & decode TxScript', function () {
         localsLength: 0,
         returnLength: 0,
         instrs: [AddressConst(lockupScript), U256Const1, U256Const0, ByteConst(contractIdByteString), CallExternal(3)]
+      }
+    ])
+
+    testTxScript(GreeterMain.script, { greeterContractId: contractId }, [
+      {
+        isPublic: true,
+        assetModifier: 3,
+        argsLength: 0,
+        localsLength: 2,
+        returnLength: 0,
+        instrs: [
+          ByteConst(contractIdByteString),
+          StoreLocal(0),
+          U256Const0,
+          U256Const1,
+          LoadLocal(0),
+          CallExternal(0),
+          U256Const1,
+          U256Eq,
+          U256Const0,
+          AssertWithErrorCode,
+          ByteConst(contractIdByteString),
+          StoreLocal(1),
+          U256Const0,
+          U256Const1,
+          LoadLocal(1),
+          CallExternal(0),
+          U256Const1,
+          U256Eq,
+          U256Const0,
+          AssertWithErrorCode
+        ]
       }
     ])
   })
