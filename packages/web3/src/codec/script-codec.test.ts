@@ -175,7 +175,9 @@ describe('Encode & decode scripts', function () {
     testScript(DestroyAdd.script, { add: contractId, caller: testAddress }, [
       {
         isPublic: true,
-        assetModifier: 3,
+        usePreapprovedAssets: true,
+        useContractAssets: false,
+        usePayToContractOnly: false,
         argsLength: 0,
         localsLength: 0,
         returnLength: 0,
@@ -186,7 +188,9 @@ describe('Encode & decode scripts', function () {
     testScript(GreeterMain.script, { greeterContractId: contractId }, [
       {
         isPublic: true,
-        assetModifier: 3,
+        usePreapprovedAssets: true,
+        useContractAssets: false,
+        usePayToContractOnly: false,
         argsLength: 0,
         localsLength: 2,
         returnLength: 0,
@@ -238,7 +242,9 @@ describe('Encode & decode scripts', function () {
     expect(decodedTxScript.methods.length).toEqual(methods.length)
     decodedTxScript.methods.map((decodedMethod, index) => {
       expect(decodedMethod.isPublic).toEqual(methods[index].isPublic)
-      expect(decodedMethod.assetModifier).toEqual(methods[index].assetModifier)
+      expect(decodedMethod.usePreapprovedAssets).toEqual(methods[index].usePreapprovedAssets)
+      expect(decodedMethod.useContractAssets).toEqual(methods[index].useContractAssets)
+      expect(decodedMethod.usePayToContractOnly).toEqual(methods[index].usePayToContractOnly)
       expect(decodedMethod.argsLength).toEqual(methods[index].argsLength)
       expect(decodedMethod.localsLength).toEqual(methods[index].localsLength)
       expect(decodedMethod.returnLength).toEqual(methods[index].returnLength)

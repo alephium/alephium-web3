@@ -31,7 +31,7 @@ import { Main, DestroyAdd } from '../artifacts/ts/scripts'
 import { CreateContractEventAddresses, DestroyContractEventAddresses } from '../packages/web3'
 import { ContractCreatedEvent, subscribeContractCreatedEvent } from '../packages/web3'
 import { ContractDestroyedEvent, subscribeContractDestroyedEvent } from '../packages/web3'
-import { PrivateKeyWallet } from '@alephium/web3-wallet/dist/src/privatekey-wallet'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { getSigner } from '@alephium/web3-test'
 
 describe('events', function () {
@@ -58,18 +58,15 @@ describe('events', function () {
   function createSubscribeOptions<T>(events: Array<T>): EventSubscribeOptions<T> {
     return {
       pollingInterval: 500,
-      messageCallback: (event: T): Promise<void> => {
+      messageCallback: (event: T) => {
         events.push(event)
-        return Promise.resolve()
       },
-      errorCallback: (error: any, subscription): Promise<void> => {
+      errorCallback: (error: any, subscription) => {
         console.log(error)
         subscription.unsubscribe()
-        return Promise.resolve()
       },
       onEventCountChanged: (count: number) => {
         eventCount = count
-        return Promise.resolve()
       }
     }
   }
