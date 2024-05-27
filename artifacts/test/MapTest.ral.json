@@ -1,8 +1,8 @@
 {
-  "version": "v2.11.0",
+  "version": "v2.14.7",
   "name": "MapTest",
-  "bytecode": "0005403c409c40f6411e41370103030300151600d1a2140a5f5f6d61705f5f305f5f160047441601b11602d202011600d1a2140a5f5f6d61705f5f315f5f16014044b11602d201010100010400402a0c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116020d2a0c0e0c140a5f5f6d61705f5f305f5f16004744cb010216020d2a0c0e0c140a5f5f6d61705f5f315f5f16014044cb0102010001040040240c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116000d0c140a5f5f6d61705f5f305f5f16004744cb010316000d0c140a5f5f6d61705f5f315f5f16014044cb01030100010202110c0d0d140a5f5f6d61705f5f305f5f16004744cb1701160101000c0d0d1601010102010001010107140a5f5f6d61705f5f305f5f16004744cbc502",
-  "codeHash": "9ff6f47837ee2d8f2cb22fe5cfeb05f64d42915aa8b30dbb96783f3e99c363f6",
+  "bytecode": "0003404140a64105010303030016d3a9cdcc691600d1a2140a5f5f6d61705f5f305f5f160047441601b11602d202011600d1a2140a5f5f6d61705f5f315f5f16014044b11602d201010100010400402bd3c50ed2bb0c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116020d2a0c0e0c140a5f5f6d61705f5f305f5f16004744cb010216020d2a0c0e0c140a5f5f6d61705f5f315f5f16014044cb010201000104004025d392ac08660c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116000d0c140a5f5f6d61705f5f305f5f16004744cb010316000d0c140a5f5f6d61705f5f315f5f16014044cb0103",
+  "codeHash": "fa153233f4924fc2fd3e98b43209b838e569154481211662acdade8e20bb48c0",
   "fieldsSig": {
     "names": [],
     "types": [],
@@ -60,42 +60,6 @@
         false
       ],
       "returnTypes": []
-    },
-    {
-      "name": "get",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [
-        "key"
-      ],
-      "paramTypes": [
-        "Address"
-      ],
-      "paramIsMutable": [
-        false
-      ],
-      "returnTypes": [
-        "MapValue"
-      ]
-    },
-    {
-      "name": "contains",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
-      "paramNames": [
-        "key"
-      ],
-      "paramTypes": [
-        "Address"
-      ],
-      "paramIsMutable": [
-        false
-      ],
-      "returnTypes": [
-        "Bool"
-      ]
     }
   ],
   "constants": [],

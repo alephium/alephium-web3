@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -45,36 +42,6 @@ import {
 // Custom types for the contract
 export namespace AssertTypes {
   export type State = Omit<ContractState<any>, "fields">;
-
-  export interface CallMethodTable {
-    test: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<null>;
-    };
-  }
-  export type CallMethodParams<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["params"];
-  export type CallMethodResult<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["result"];
-  export type MultiCallParams = Partial<{
-    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
-  }>;
-  export type MultiCallResults<T extends MultiCallParams> = {
-    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
-      ? CallMethodTable[MaybeName]["result"]
-      : undefined;
-  };
-
-  export interface SignExecuteMethodTable {
-    test: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<AssertInstance, {}> {
@@ -116,7 +83,7 @@ export const Assert = new Factory(
   Contract.fromJson(
     AssertContractJson,
     "",
-    "5bd05924fb9a23ea105df065a8c2dfa463b9ee53cc14a60320140d19dd6151ca",
+    "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b",
     AllStructs
   )
 );
@@ -130,28 +97,4 @@ export class AssertInstance extends ContractInstance {
   async fetchState(): Promise<AssertTypes.State> {
     return fetchContractState(Assert, this);
   }
-
-  methods = {
-    test: async (
-      params?: AssertTypes.CallMethodParams<"test">
-    ): Promise<AssertTypes.CallMethodResult<"test">> => {
-      return callMethod(
-        Assert,
-        this,
-        "test",
-        params === undefined ? {} : params,
-        getContractByCodeHash
-      );
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    test: async (
-      params: AssertTypes.SignExecuteMethodParams<"test">
-    ): Promise<AssertTypes.SignExecuteMethodResult<"test">> => {
-      return signExecuteMethod(Assert, this, "test", params);
-    },
-  };
 }

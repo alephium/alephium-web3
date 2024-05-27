@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -41,75 +38,11 @@ import {
   TokenBalance,
   AllStructs,
 } from "./types";
+import { RalphMap } from "@alephium/web3";
 
 // Custom types for the contract
 export namespace MapTestTypes {
   export type State = Omit<ContractState<any>, "fields">;
-
-  export interface CallMethodTable {
-    insert: {
-      params: CallContractParams<{ key: Address; value: MapValue }>;
-      result: CallContractResult<null>;
-    };
-    update: {
-      params: CallContractParams<{ key: Address }>;
-      result: CallContractResult<null>;
-    };
-    remove: {
-      params: CallContractParams<{ key: Address }>;
-      result: CallContractResult<null>;
-    };
-    get: {
-      params: CallContractParams<{ key: Address }>;
-      result: CallContractResult<MapValue>;
-    };
-    contains: {
-      params: CallContractParams<{ key: Address }>;
-      result: CallContractResult<boolean>;
-    };
-  }
-  export type CallMethodParams<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["params"];
-  export type CallMethodResult<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["result"];
-  export type MultiCallParams = Partial<{
-    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
-  }>;
-  export type MultiCallResults<T extends MultiCallParams> = {
-    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
-      ? CallMethodTable[MaybeName]["result"]
-      : undefined;
-  };
-
-  export interface SignExecuteMethodTable {
-    insert: {
-      params: SignExecuteContractMethodParams<{
-        key: Address;
-        value: MapValue;
-      }>;
-      result: SignExecuteScriptTxResult;
-    };
-    update: {
-      params: SignExecuteContractMethodParams<{ key: Address }>;
-      result: SignExecuteScriptTxResult;
-    };
-    remove: {
-      params: SignExecuteContractMethodParams<{ key: Address }>;
-      result: SignExecuteScriptTxResult;
-    };
-    get: {
-      params: SignExecuteContractMethodParams<{ key: Address }>;
-      result: SignExecuteScriptTxResult;
-    };
-    contains: {
-      params: SignExecuteContractMethodParams<{ key: Address }>;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<MapTestInstance, {}> {
@@ -173,40 +106,6 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
     > => {
       return testMethod(this, "remove", params);
     },
-    get: async (
-      params: Omit<
-        TestContractParams<
-          never,
-          { key: Address },
-          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
-        >,
-        "initialFields"
-      >
-    ): Promise<
-      TestContractResult<
-        MapValue,
-        { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
-      >
-    > => {
-      return testMethod(this, "get", params);
-    },
-    contains: async (
-      params: Omit<
-        TestContractParams<
-          never,
-          { key: Address },
-          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
-        >,
-        "initialFields"
-      >
-    ): Promise<
-      TestContractResult<
-        boolean,
-        { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
-      >
-    > => {
-      return testMethod(this, "contains", params);
-    },
   };
 }
 
@@ -214,8 +113,8 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
 export const MapTest = new Factory(
   Contract.fromJson(
     MapTestContractJson,
-    "=6-2+6e=2-1=1-4+e=2+5a4=1-1+82=2-2+9b=11-1+9=40+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=217-1+8=114+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=136",
-    "0b93613225107052726d5a66e898b0734b982e0c841c3972cb6a682cc78aca00",
+    "=6-2+73=2-2+d8=2-2+69=11-1+a=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=227-1+9=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=6",
+    "034dec32e1107787800ec476a31b11ed2f5c201c06aa9360d1a1a074d6b29098",
     AllStructs
   )
 );
@@ -226,82 +125,12 @@ export class MapTestInstance extends ContractInstance {
     super(address);
   }
 
+  maps = {
+    map0: new RalphMap<Address, MapValue>(MapTest.contract, this, "map0"),
+    map1: new RalphMap<bigint, bigint>(MapTest.contract, this, "map1"),
+  };
+
   async fetchState(): Promise<MapTestTypes.State> {
     return fetchContractState(MapTest, this);
-  }
-
-  methods = {
-    insert: async (
-      params: MapTestTypes.CallMethodParams<"insert">
-    ): Promise<MapTestTypes.CallMethodResult<"insert">> => {
-      return callMethod(MapTest, this, "insert", params, getContractByCodeHash);
-    },
-    update: async (
-      params: MapTestTypes.CallMethodParams<"update">
-    ): Promise<MapTestTypes.CallMethodResult<"update">> => {
-      return callMethod(MapTest, this, "update", params, getContractByCodeHash);
-    },
-    remove: async (
-      params: MapTestTypes.CallMethodParams<"remove">
-    ): Promise<MapTestTypes.CallMethodResult<"remove">> => {
-      return callMethod(MapTest, this, "remove", params, getContractByCodeHash);
-    },
-    get: async (
-      params: MapTestTypes.CallMethodParams<"get">
-    ): Promise<MapTestTypes.CallMethodResult<"get">> => {
-      return callMethod(MapTest, this, "get", params, getContractByCodeHash);
-    },
-    contains: async (
-      params: MapTestTypes.CallMethodParams<"contains">
-    ): Promise<MapTestTypes.CallMethodResult<"contains">> => {
-      return callMethod(
-        MapTest,
-        this,
-        "contains",
-        params,
-        getContractByCodeHash
-      );
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    insert: async (
-      params: MapTestTypes.SignExecuteMethodParams<"insert">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"insert">> => {
-      return signExecuteMethod(MapTest, this, "insert", params);
-    },
-    update: async (
-      params: MapTestTypes.SignExecuteMethodParams<"update">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"update">> => {
-      return signExecuteMethod(MapTest, this, "update", params);
-    },
-    remove: async (
-      params: MapTestTypes.SignExecuteMethodParams<"remove">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"remove">> => {
-      return signExecuteMethod(MapTest, this, "remove", params);
-    },
-    get: async (
-      params: MapTestTypes.SignExecuteMethodParams<"get">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"get">> => {
-      return signExecuteMethod(MapTest, this, "get", params);
-    },
-    contains: async (
-      params: MapTestTypes.SignExecuteMethodParams<"contains">
-    ): Promise<MapTestTypes.SignExecuteMethodResult<"contains">> => {
-      return signExecuteMethod(MapTest, this, "contains", params);
-    },
-  };
-
-  async multicall<Calls extends MapTestTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<MapTestTypes.MultiCallResults<Calls>> {
-    return (await multicallMethods(
-      MapTest,
-      this,
-      calls,
-      getContractByCodeHash
-    )) as MapTestTypes.MultiCallResults<Calls>;
   }
 }

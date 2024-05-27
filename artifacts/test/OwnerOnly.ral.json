@@ -1,8 +1,8 @@
 {
-  "version": "v2.11.0",
+  "version": "v2.14.7",
   "name": "OwnerOnly",
-  "bytecode": "01010c010000000005b4ce00450c7b",
-  "codeHash": "c21e66486f3fa9f78555b71d30ba1ffd2f5a4bf8624647b97ed3748db20e295a",
+  "bytecode": "010111010000000006d3bf853dbdb4ce00450c7b",
+  "codeHash": "c8ecfd7b7e1f3d0169d80e0abb59702516eeff301d47e0e7be70a631bd9414ca",
   "fieldsSig": {
     "names": [
       "owner"

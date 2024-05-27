@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3 } from '..'
+import * as web3 from '../global'
 import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
 
@@ -40,8 +40,6 @@ export class TxStatusSubscription extends Subscription<TxStatus> {
     this.fromGroup = fromGroup
     this.toGroup = toGroup
     this.confirmations = confirmations ?? 1
-
-    this.startPolling()
   }
 
   override async polling(): Promise<void> {
@@ -69,5 +67,7 @@ export function subscribeToTxStatus(
   toGroup?: number,
   confirmations?: number
 ): TxStatusSubscription {
-  return new TxStatusSubscription(options, txId, fromGroup, toGroup, confirmations)
+  const subscription = new TxStatusSubscription(options, txId, fromGroup, toGroup, confirmations)
+  subscription.subscribe()
+  return subscription
 }

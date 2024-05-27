@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -69,17 +66,6 @@ export namespace DeprecatedNFTTest1Types {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
-
-  export interface SignExecuteMethodTable {
-    getTokenUri: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -119,7 +105,7 @@ export const DeprecatedNFTTest1 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest1ContractJson,
     "",
-    "3d89da71c0a6e905dd54267f897137ec6beb9603bb787e0e4a36bfc76f7a712b",
+    "cc6928c9c6777077abcb5b9c4f7c5d620d6cae07ec6f00f5e8b0efe6a7b913c4",
     AllStructs
   )
 );
@@ -145,18 +131,6 @@ export class DeprecatedNFTTest1Instance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    getTokenUri: async (
-      params: DeprecatedNFTTest1Types.SignExecuteMethodParams<"getTokenUri">
-    ): Promise<
-      DeprecatedNFTTest1Types.SignExecuteMethodResult<"getTokenUri">
-    > => {
-      return signExecuteMethod(DeprecatedNFTTest1, this, "getTokenUri", params);
     },
   };
 

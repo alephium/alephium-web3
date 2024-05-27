@@ -29,7 +29,8 @@ import {
   networkIds,
   fromApiPrimitiveVal,
   Val,
-  parseMapType
+  parseMapType,
+  FunctionSig
 } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
@@ -95,7 +96,7 @@ function formatParameters(fieldsSig: { names: string[]; types: string[] }): stri
     .join(', ')
 }
 
-function genCallMethod(contractName: string, functionSig: node.FunctionSig): string {
+function genCallMethod(contractName: string, functionSig: FunctionSig): string {
   const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
   const funcHasArgs = functionSig.paramNames.length > 0
   const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
@@ -108,7 +109,7 @@ function genCallMethod(contractName: string, functionSig: node.FunctionSig): str
 }
 
 function genCallMethods(contract: Contract): string {
-  const functions = contract.functions.filter((f) => f.isPublic)
+  const functions = contract.publicFunctions()
   if (functions.length === 0) {
     return ''
   }
@@ -162,6 +163,23 @@ function contractTypes(contractName: string): string {
 function contractFieldType(contractName: string, fieldsSig: node.FieldsSig): string {
   const hasFields = fieldsSig.names.length > 0
   return hasFields ? `${contractTypes(contractName)}.Fields` : '{}'
+}
+
+function importRalphMap(contract: Contract): string {
+  if (contract.mapsSig === undefined) return ''
+  return `import { RalphMap } from '@alephium/web3'`
+}
+
+function genMaps(contract: Contract): string {
+  const mapsSig = contract.mapsSig
+  if (mapsSig === undefined) return ''
+  const maps = mapsSig.names.map((name, index) => {
+    const mapType = mapsSig.types[`${index}`]
+    const [key, value] = parseMapType(mapType)
+    return `${name}: new RalphMap<${toTsType(key)}, ${toTsType(value)}>(${contract.name
+      }.contract, this.contractId, '${name}')`
+  })
+  return `maps = { ${maps.join(',')} }`
 }
 
 function genFetchState(contract: Contract): string {
@@ -320,7 +338,7 @@ function genMapsType(contract: Contract): string {
   return `{ ${mapFields.join(', ')} }`
 }
 
-function genTestMethod(contract: Contract, functionSig: node.FunctionSig): string {
+function genTestMethod(contract: Contract, functionSig: FunctionSig): string {
   const funcHasArgs = functionSig.paramNames.length > 0
   const fieldsSig = contract.fieldsSig
   const contractHasFields = fieldsSig.names.length > 0
@@ -337,17 +355,17 @@ function genTestMethod(contract: Contract, functionSig: node.FunctionSig): strin
     funcHasArgs && contractHasFields
       ? `params: ${baseParamsType}`
       : funcHasArgs
-      ? `params: Omit<${baseParamsType}, 'initialFields'>`
-      : contractHasFields
-      ? `params: Omit<${baseParamsType}, 'testArgs'>`
-      : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
+        ? `params: Omit<${baseParamsType}, 'initialFields'>`
+        : contractHasFields
+          ? `params: Omit<${baseParamsType}, 'testArgs'>`
+          : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const baseRetType =
     tsReturnTypes.length === 0
       ? 'null'
       : tsReturnTypes.length === 1
-      ? tsReturnTypes[0]
-      : `[${tsReturnTypes.join(', ')}]`
+        ? tsReturnTypes[0]
+        : `[${tsReturnTypes.join(', ')}]`
   const retType = hasMapVars
     ? `TestContractResult<${baseRetType}, ${mapsType}>`
     : `TestContractResultWithoutMaps<${baseRetType}>`
@@ -368,23 +386,22 @@ function genTestMethods(contract: Contract): string {
 }
 
 function genCallMethodTypes(contract: Contract): string {
-  const entities = contract.functions
-    .filter((functionSig) => functionSig.isPublic)
+  const entities = contract.functions.publicFunctions()
     .map((functionSig) => {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
         ? `CallContractParams<{${formatParameters({
-            names: functionSig.paramNames,
-            types: functionSig.paramTypes
-          })}}>`
+          names: functionSig.paramNames,
+          types: functionSig.paramTypes
+        })}}>`
         : `Omit<CallContractParams<{}>, 'args'>`
       const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
       const retType =
         tsReturnTypes.length === 0
           ? `CallContractResult<null>`
           : tsReturnTypes.length === 1
-          ? `CallContractResult<${tsReturnTypes[0]}>`
-          : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+            ? `CallContractResult<${tsReturnTypes[0]}>`
+            : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
       return `
       ${functionSig.name}: {
         params: ${params}
@@ -412,9 +429,9 @@ function genSignExecuteMethodTypes(contract: Contract): string {
       const funcHasArgs = functionSig.paramNames.length > 0
       const params = funcHasArgs
         ? `SignExecuteContractMethodParams<{${formatParameters({
-            names: functionSig.paramNames,
-            types: functionSig.paramTypes
-          })}}>`
+          names: functionSig.paramNames,
+          types: functionSig.paramTypes
+        })}}>`
         : `Omit<SignExecuteContractMethodParams<{}>, 'args'>`
 
       return `
@@ -438,7 +455,7 @@ function genSignExecuteMethodTypes(contract: Contract): string {
 function genMulticall(contract: Contract): string {
   const types = contractTypes(contract.name)
   const supportMulticall =
-    contract.functions.filter((functionSig) => functionSig.isPublic && functionSig.returnTypes.length > 0).length > 0
+    contract.publicFunctions().filter((functionSig) => functionSig.returnTypes.length > 0).length > 0
   return supportMulticall
     ? `
       async multicall<Calls extends ${types}.MultiCallParams>(
@@ -494,6 +511,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
     ${importStructs()}
+    ${importRalphMap(contract)}
 
     // Custom types for the contract
     export namespace ${contract.name}Types {
@@ -526,6 +544,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
         super(address)
       }
 
+      ${genMaps(contract)}
       ${genFetchState(contract)}
       ${genGetContractEventsCurrentCount(contract)}
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}

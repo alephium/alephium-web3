@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -50,36 +47,6 @@ export namespace WarningsTypes {
   };
 
   export type State = ContractState<Fields>;
-
-  export interface CallMethodTable {
-    foo: {
-      params: CallContractParams<{ x: bigint; y: bigint }>;
-      result: CallContractResult<null>;
-    };
-  }
-  export type CallMethodParams<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["params"];
-  export type CallMethodResult<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["result"];
-  export type MultiCallParams = Partial<{
-    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
-  }>;
-  export type MultiCallResults<T extends MultiCallParams> = {
-    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
-      ? CallMethodTable[MaybeName]["result"]
-      : undefined;
-  };
-
-  export interface SignExecuteMethodTable {
-    foo: {
-      params: SignExecuteContractMethodParams<{ x: bigint; y: bigint }>;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
@@ -118,7 +85,7 @@ export const Warnings = new Factory(
   Contract.fromJson(
     WarningsContractJson,
     "",
-    "9a0c90d67d729a478062d6794cf7b75c27483c50f6fe2ad13c5ed8873ad1fde2",
+    "873e095edb39cdb4b11b1157003daeacad06d259a938cd270e22b8e89b75feea",
     AllStructs
   )
 );
@@ -132,22 +99,4 @@ export class WarningsInstance extends ContractInstance {
   async fetchState(): Promise<WarningsTypes.State> {
     return fetchContractState(Warnings, this);
   }
-
-  methods = {
-    foo: async (
-      params: WarningsTypes.CallMethodParams<"foo">
-    ): Promise<WarningsTypes.CallMethodResult<"foo">> => {
-      return callMethod(Warnings, this, "foo", params, getContractByCodeHash);
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    foo: async (
-      params: WarningsTypes.SignExecuteMethodParams<"foo">
-    ): Promise<WarningsTypes.SignExecuteMethodResult<"foo">> => {
-      return signExecuteMethod(Warnings, this, "foo", params);
-    },
-  };
 }

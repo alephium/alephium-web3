@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -74,21 +71,6 @@ export namespace WrongNFTTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
-
-  export interface SignExecuteMethodTable {
-    getTokenUri: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-    getCollectionIndex: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -172,28 +154,6 @@ export class WrongNFTTestInstance extends ContractInstance {
         "getCollectionIndex",
         params === undefined ? {} : params,
         getContractByCodeHash
-      );
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    getTokenUri: async (
-      params: WrongNFTTestTypes.SignExecuteMethodParams<"getTokenUri">
-    ): Promise<WrongNFTTestTypes.SignExecuteMethodResult<"getTokenUri">> => {
-      return signExecuteMethod(WrongNFTTest, this, "getTokenUri", params);
-    },
-    getCollectionIndex: async (
-      params: WrongNFTTestTypes.SignExecuteMethodParams<"getCollectionIndex">
-    ): Promise<
-      WrongNFTTestTypes.SignExecuteMethodResult<"getCollectionIndex">
-    > => {
-      return signExecuteMethod(
-        WrongNFTTest,
-        this,
-        "getCollectionIndex",
-        params
       );
     },
   };

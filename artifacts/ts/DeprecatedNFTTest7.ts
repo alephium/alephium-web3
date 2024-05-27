@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -73,21 +70,6 @@ export namespace DeprecatedNFTTest7Types {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
-
-  export interface SignExecuteMethodTable {
-    getTokenUri: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-    returnNegativeIndex: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -135,7 +117,7 @@ export const DeprecatedNFTTest7 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest7ContractJson,
     "",
-    "33ddc42a153c6b9940924d989dcd107d7ff234ecbe9c494ece35ed06bd24450d",
+    "b95c9acf088b090f5d9d34f28ab079cf22b9e53af8ae6864113c71172231ef4c",
     AllStructs
   )
 );
@@ -173,30 +155,6 @@ export class DeprecatedNFTTest7Instance extends ContractInstance {
         "returnNegativeIndex",
         params === undefined ? {} : params,
         getContractByCodeHash
-      );
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    getTokenUri: async (
-      params: DeprecatedNFTTest7Types.SignExecuteMethodParams<"getTokenUri">
-    ): Promise<
-      DeprecatedNFTTest7Types.SignExecuteMethodResult<"getTokenUri">
-    > => {
-      return signExecuteMethod(DeprecatedNFTTest7, this, "getTokenUri", params);
-    },
-    returnNegativeIndex: async (
-      params: DeprecatedNFTTest7Types.SignExecuteMethodParams<"returnNegativeIndex">
-    ): Promise<
-      DeprecatedNFTTest7Types.SignExecuteMethodResult<"returnNegativeIndex">
-    > => {
-      return signExecuteMethod(
-        DeprecatedNFTTest7,
-        this,
-        "returnNegativeIndex",
-        params
       );
     },
   };

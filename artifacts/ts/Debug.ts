@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -45,36 +42,6 @@ import {
 // Custom types for the contract
 export namespace DebugTypes {
   export type State = Omit<ContractState<any>, "fields">;
-
-  export interface CallMethodTable {
-    debug: {
-      params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<null>;
-    };
-  }
-  export type CallMethodParams<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["params"];
-  export type CallMethodResult<T extends keyof CallMethodTable> =
-    CallMethodTable[T]["result"];
-  export type MultiCallParams = Partial<{
-    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
-  }>;
-  export type MultiCallResults<T extends MultiCallParams> = {
-    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
-      ? CallMethodTable[MaybeName]["result"]
-      : undefined;
-  };
-
-  export interface SignExecuteMethodTable {
-    debug: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<DebugInstance, {}> {
@@ -102,8 +69,8 @@ class Factory extends ContractFactory<DebugInstance, {}> {
 export const Debug = new Factory(
   Contract.fromJson(
     DebugContractJson,
-    "=4-2+13=11+2ca7e=1+20748656c6c6f2c200121",
-    "0ffc72054e3668c8933e53c892947dea1963c0c24cc006a4fb0aa028c13a7e13",
+    "=4-2+18=11-1+3=10+ca7e020748656c6c6f2c200121",
+    "eb4209d8f543d9f623d72578f7ed9b271d62cf396dcce42d10f5e68dba3cecd3",
     AllStructs
   )
 );
@@ -117,28 +84,4 @@ export class DebugInstance extends ContractInstance {
   async fetchState(): Promise<DebugTypes.State> {
     return fetchContractState(Debug, this);
   }
-
-  methods = {
-    debug: async (
-      params?: DebugTypes.CallMethodParams<"debug">
-    ): Promise<DebugTypes.CallMethodResult<"debug">> => {
-      return callMethod(
-        Debug,
-        this,
-        "debug",
-        params === undefined ? {} : params,
-        getContractByCodeHash
-      );
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    debug: async (
-      params: DebugTypes.SignExecuteMethodParams<"debug">
-    ): Promise<DebugTypes.SignExecuteMethodResult<"debug">> => {
-      return signExecuteMethod(Debug, this, "debug", params);
-    },
-  };
 }

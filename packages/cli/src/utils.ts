@@ -107,6 +107,11 @@ export function getDeploymentFilePath(configuration: Configuration, networkId: N
     : path.join(configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, `.deployments.${networkId}.json`)
 }
 
+export function isDeployedOnMainnet(configuration: Configuration): boolean {
+  const file = getDeploymentFilePath(configuration, 'mainnet')
+  return fs.existsSync(file)
+}
+
 export function getNetwork<Settings = unknown>(
   configuration: Configuration<Settings>,
   networkId: NetworkId

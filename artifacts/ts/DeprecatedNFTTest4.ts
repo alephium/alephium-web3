@@ -25,9 +25,6 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
-  SignExecuteContractMethodParams,
-  SignExecuteScriptTxResult,
-  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -73,21 +70,6 @@ export namespace DeprecatedNFTTest4Types {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
-
-  export interface SignExecuteMethodTable {
-    getTokenUri: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-    getBool: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
-      result: SignExecuteScriptTxResult;
-    };
-  }
-  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["params"];
-  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
-    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -135,7 +117,7 @@ export const DeprecatedNFTTest4 = new Factory(
   Contract.fromJson(
     DeprecatedNFTTest4ContractJson,
     "",
-    "d8f8650c15cc96211608a52ae7d43a15d7b28306ac13acec672c0f1ed02a0538",
+    "a5de0fa0b3580303ac63423f09ce5ed95fccbf789679b32130a53c26fef182e9",
     AllStructs
   )
 );
@@ -172,23 +154,6 @@ export class DeprecatedNFTTest4Instance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
-    },
-  };
-
-  call = this.methods;
-
-  transaction = {
-    getTokenUri: async (
-      params: DeprecatedNFTTest4Types.SignExecuteMethodParams<"getTokenUri">
-    ): Promise<
-      DeprecatedNFTTest4Types.SignExecuteMethodResult<"getTokenUri">
-    > => {
-      return signExecuteMethod(DeprecatedNFTTest4, this, "getTokenUri", params);
-    },
-    getBool: async (
-      params: DeprecatedNFTTest4Types.SignExecuteMethodParams<"getBool">
-    ): Promise<DeprecatedNFTTest4Types.SignExecuteMethodResult<"getBool">> => {
-      return signExecuteMethod(DeprecatedNFTTest4, this, "getBool", params);
     },
   };
 

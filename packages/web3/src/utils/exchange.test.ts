@@ -29,15 +29,26 @@ import { NodeProvider } from '../api'
 
 describe('exchange', function () {
   it('should get address from unlock script', () => {
+    expect(() =>
+      getAddressFromUnlockScript('0003498dc83e77e9b5c82b88e2bba7c737fd5aee041dc6bbb4402fefa3e7460a95bz')
+    ).toThrow(`expected a hex string`)
     expect(getAddressFromUnlockScript('0003498dc83e77e9b5c82b88e2bba7c737fd5aee041dc6bbb4402fefa3e7460a95bb')).toEqual(
       '18Y5mtrpu9kaEW9PoyipNQcFwVtA8X5yrGYhTZwYBwXHN'
     )
+    expect(() =>
+      getAddressFromUnlockScript('0003498dc83e77e9b5c82b88e2bba7c737fd5aee041dc6bbb4402fefa3e7460a95')
+    ).toThrow('Invalid p2pkh unlock script')
 
     expect(
       getAddressFromUnlockScript(
         '0201010000000004581440200000000000000000000000000000000000000000000000000000000000000000868500'
       )
     ).toEqual('qCG5ZXg3b7AuGDS4HoEAhzqhCc2yxMqBYjYimBj1QFFT')
+    expect(() =>
+      getAddressFromUnlockScript(
+        '02010100000000045814402000000000000000000000000000000000000000000000000000000000000000008685'
+      )
+    ).toThrow('Invalid p2sh unlock script')
 
     expect(() =>
       getAddressFromUnlockScript(

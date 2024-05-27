@@ -1,14 +1,14 @@
 {
   "name": "@alephium/web3",
-  "version": "0.39.3",
+  "version": "0.41.0",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "main": "dist/src/index.js",
   "browser": "dist/alephium-web3.min.js",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js",
-    "./test": "./dist/src/test/index.js"
+    "node": "./dist/src/index.js",
+    "default": "./dist/alephium-web3.min.js"
   },
   "typesVersions": {
     "*": {
@@ -27,14 +27,14 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "2.11.0",
+    "alephium_version": "2.14.0",
     "explorer_backend_version": "1.17.0"
   },
   "scripts": {
     "build": "rm -rf dist/* && npx tsc --build . && webpack",
     "test": "jest -i --config ./jest-config.json",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
-    "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/rhone-upgrade/api/src/main/resources/openapi.json",
+    "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
     "update-schema:explorer": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
     "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}"
   },

@@ -51,6 +51,7 @@ import {
   RemoveFromMap,
   TemplateArrayVar,
   TestAssert,
+  UpdateMapValue,
   UpdateUserAccount
 } from '../artifacts/ts/scripts'
 import { Sub, SubTypes } from '../artifacts/ts/Sub'
@@ -63,7 +64,7 @@ import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes }
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 
-describe('contract', function () {
+describe('contract', function() {
   let signer: PrivateKeyWallet
   let signerAccount: Account
   let signerGroup: number
@@ -271,9 +272,9 @@ describe('contract', function () {
     await Project.build({ errorOnWarnings: false })
 
     expect(MetaData.contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
-    expect(MetaData.contract.publicFunctions()).toEqual(['foo'])
-    expect(MetaData.contract.usingPreapprovedAssetsFunctions()).toEqual(['foo'])
-    expect(MetaData.contract.usingAssetsInContractFunctions()).toEqual(['bar'])
+    expect(MetaData.contract.publicFunctions().map((f) => f.name)).toEqual(['foo'])
+    expect(MetaData.contract.usingPreapprovedAssetsFunctions().map((f) => f.name)).toEqual(['foo'])
+    expect(MetaData.contract.usingAssetsInContractFunctions().map((f) => f.name)).toEqual(['bar'])
   })
 
   it('should handle compiler warnings', async () => {
@@ -512,11 +513,23 @@ describe('contract', function () {
       attoAlphAmount: ONE_ALPH * 2n
     })
 
-    const exist0 = (await mapTest.methods.contains({ args: { key: signer.address } })).returns
-    expect(exist0).toEqual(true)
+    const invalidAddress = randomContractAddress()
+    expect(await mapTest.maps.map0.contains(invalidAddress)).toEqual(false)
+    expect(await mapTest.maps.map0.contains(signer.address)).toEqual(true)
+    expect(await mapTest.maps.map0.get(signer.address)).toEqual({ id: 1n, balance: 10n })
+    expect(await mapTest.maps.map1.contains(0n)).toEqual(false)
+    expect(await mapTest.maps.map1.contains(1n)).toEqual(true)
+    expect(await mapTest.maps.map1.get(1n)).toEqual(10n)
 
-    const value = (await mapTest.call.get({ args: { key: signer.address } })).returns
-    expect(value).toEqual({ id: 1n, balance: 10n })
+    await UpdateMapValue.execute(signer, {
+      initialFields: {
+        mapTest: mapTest.contractId,
+        key: signer.address
+      }
+    })
+
+    expect(await mapTest.maps.map0.get(signer.address)).toEqual({ id: 1n, balance: 11n })
+    expect(await mapTest.maps.map1.get(1n)).toEqual(11n)
 
     await RemoveFromMap.execute(signer, {
       initialFields: {
@@ -525,8 +538,10 @@ describe('contract', function () {
       }
     })
 
-    const exist1 = (await mapTest.call.contains({ args: { key: signer.address } })).returns
-    expect(exist1).toEqual(false)
+    expect(await mapTest.maps.map0.contains(signer.address)).toEqual(false)
+    expect(await mapTest.maps.map0.get(signer.address)).toEqual(undefined)
+    expect(await mapTest.maps.map1.contains(1n)).toEqual(false)
+    expect(await mapTest.maps.map1.get(1n)).toEqual(undefined)
   })
 
   it('should test sign execute method with primitive arguments', async () => {
