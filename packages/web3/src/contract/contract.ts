@@ -461,7 +461,6 @@ export class Project {
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
     structs: Struct[],
-    errorOnWarnings: boolean,
     projectArtifact: ProjectArtifact
   ) {
     this.contractsRootDir = contractsRootDir
@@ -471,19 +470,22 @@ export class Project {
     this.scripts = scripts
     this.structs = structs
     this.projectArtifact = projectArtifact
-
-    if (errorOnWarnings) {
-      Project.checkCompilerWarnings(
-        [
-          ...[...contracts.entries()].map((c) => c[1].warnings).flat(),
-          ...[...scripts.entries()].map((s) => s[1].warnings).flat()
-        ],
-        errorOnWarnings
-      )
-    }
   }
 
-  static checkCompilerWarnings(warnings: string[], errorOnWarnings: boolean): void {
+  static checkCompilerWarnings(
+    contracts: Map<string, Compiled<Contract>>,
+    scripts: Map<string, Compiled<Script>>,
+    changedSources: SourceInfo[],
+    skipSaveArtifacts: boolean,
+    errorOnWarnings: boolean
+  ): void {
+    const warnings: string[] = []
+    contracts.forEach((contract) => {
+      if (!skipSaveArtifacts || changedSources.find((s) => s.name === contract.sourceInfo.name) !== undefined) {
+        warnings.push(...contract.warnings)
+      }
+    })
+    scripts.forEach((script) => warnings.push(...script.warnings))
     if (warnings.length !== 0) {
       const prefixPerWarning = '  - '
       const warningString = prefixPerWarning + warnings.join('\n' + prefixPerWarning)
@@ -667,6 +669,7 @@ export class Project {
       scripts,
       compilerOptions
     )
+    Project.checkCompilerWarnings(contracts, scripts, changedSources, skipSaveArtifacts, errorOnWarnings)
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,
@@ -674,7 +677,6 @@ export class Project {
       contracts,
       scripts,
       structs,
-      errorOnWarnings,
       projectArtifact
     )
     await project.saveArtifactsToFile(projectRootDir, skipSaveArtifacts, changedSources)
@@ -688,7 +690,9 @@ export class Project {
     contractsRootDir: string,
     artifactsRootDir: string,
     errorOnWarnings: boolean,
-    compilerOptions: node.CompilerOptions
+    compilerOptions: node.CompilerOptions,
+    changedSources: SourceInfo[],
+    skipSaveArtifacts: boolean
   ): Promise<Project> {
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
     if (projectArtifact === undefined) {
@@ -719,16 +723,8 @@ export class Project {
         }
       }
 
-      return new Project(
-        contractsRootDir,
-        artifactsRootDir,
-        sourceInfos,
-        contracts,
-        scripts,
-        structs,
-        errorOnWarnings,
-        projectArtifact
-      )
+      Project.checkCompilerWarnings(contracts, scripts, changedSources, skipSaveArtifacts, errorOnWarnings)
+      return new Project(contractsRootDir, artifactsRootDir, sourceInfos, contracts, scripts, structs, projectArtifact)
     } catch (error) {
       console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
       return Project.compile(
@@ -740,7 +736,7 @@ export class Project {
         artifactsRootDir,
         errorOnWarnings,
         compilerOptions,
-        sourceInfos
+        changedSources
       )
     }
   }
@@ -902,7 +898,9 @@ export class Project {
       contractsRootDir,
       artifactsRootDir,
       errorOnWarnings,
-      nodeCompilerOptions
+      nodeCompilerOptions,
+      changedSources,
+      skipSaveArtifacts
     )
   }
 }
