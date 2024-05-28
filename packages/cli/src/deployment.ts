@@ -340,6 +340,8 @@ function createDeployer<Settings = unknown>(
     publicKey: signer.publicKey
   }
   const confirmations = network.confirmations ? network.confirmations : 1
+  const deployedContracts: string[] = []
+  const executedScripts: string[] = []
 
   const deployContract = async <T extends ContractInstance, P extends Fields>(
     contractFactory: ContractFactory<T, P>,
@@ -353,6 +355,10 @@ function createDeployer<Settings = unknown>(
     )
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(contractFactory.contract, taskTag)
+    if (deployedContracts.includes(taskId)) {
+      throw new Error(`Contract deployment task ${taskId} already exists, please use a new task tag`)
+    }
+    deployedContracts.push(taskId)
     const previous = deployContractResults.get(taskId)
     const tokens = params.initialTokenAmounts ? getTokenRecord(params.initialTokenAmounts) : undefined
     const needToDeploy = await needToDeployContract(
@@ -407,6 +413,10 @@ function createDeployer<Settings = unknown>(
     const initFieldsAndByteCode = executableScript.script.buildByteCodeToDeploy(params.initialFields ?? {})
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(executableScript.script, taskTag)
+    if (executedScripts.includes(taskId)) {
+      throw new Error(`Run script task ${taskId} already exists, please use a new task tag`)
+    }
+    executedScripts.push(taskId)
     const previous = runScriptResults.get(taskId)
     const tokens = params.tokens ? getTokenRecord(params.tokens) : undefined
     const needToRun = await needToRunScript(
