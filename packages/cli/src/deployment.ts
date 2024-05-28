@@ -57,6 +57,7 @@ import {
   getConfigFile,
   getDeploymentFilePath,
   getNetwork,
+  isDeployedOnMainnet,
   loadConfig,
   retryFetch,
   taskIdToVariable,
@@ -564,11 +565,14 @@ export async function deploy<Settings = unknown>(
   const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   if (configuration.skipRecompile !== true) {
+    const skipSaveArtifacts = configuration.skipSaveArtifacts || isDeployedOnMainnet(configuration)
     await Project.build(
       configuration.compilerOptions,
       path.resolve(process.cwd()),
       configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
-      artifactDir
+      artifactDir,
+      undefined,
+      skipSaveArtifacts
     )
   }
 
