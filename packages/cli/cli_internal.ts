@@ -104,7 +104,7 @@ program
 
       const cwd = path.resolve(process.cwd())
       const skipSaveArtifacts = config.skipSaveArtifacts || isDeployedOnMainnet(config)
-      await Project.build(
+      await Project.compile(
         config.compilerOptions,
         cwd,
         config.sourceDir,

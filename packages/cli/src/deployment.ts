@@ -575,7 +575,7 @@ export async function deploy<Settings = unknown>(
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   if (configuration.skipRecompile !== true) {
     const skipSaveArtifacts = configuration.skipSaveArtifacts || isDeployedOnMainnet(configuration)
-    await Project.build(
+    await Project.compile(
       configuration.compilerOptions,
       path.resolve(process.cwd()),
       configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,

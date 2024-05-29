@@ -102,10 +102,10 @@ export async function getEnv<Settings = unknown>(
   networkId?: NetworkId
 ): Promise<Environment<Settings>> {
   const configFile = configFileName ? configFileName : getConfigFile()
-  const config = await loadConfig<Settings>(configFile)
+  const config = loadConfig<Settings>(configFile)
   const network = config.networks[networkId ?? DEFAULT_CONFIGURATION_VALUES.networkId]
   web3.setCurrentNodeProvider(network.nodeUrl)
-  await Project.build(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
+  await Project.compile(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
   return {
     config: config,
     network: network,

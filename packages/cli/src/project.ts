@@ -508,7 +508,7 @@ export class Project {
     }
   }
 
-  private static async compile(
+  private static async compile_(
     fullNodeVersion: string,
     provider: NodeProvider,
     sourceInfos: SourceInfo[],
@@ -618,7 +618,7 @@ export class Project {
       return new Project(contractsRootDir, artifactsRootDir, sourceInfos, contracts, scripts, structs, projectArtifact)
     } catch (error) {
       console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
-      return Project.compile(
+      return Project.compile_(
         projectArtifact.fullNodeVersion,
         provider,
         sourceInfos,
@@ -745,7 +745,7 @@ export class Project {
   static readonly DEFAULT_CONTRACTS_DIR = 'contracts'
   static readonly DEFAULT_ARTIFACTS_DIR = 'artifacts'
 
-  static async build(
+  static async compile(
     compilerOptionsPartial: Partial<CompilerOptions> = {},
     projectRootDir = '.',
     contractsRootDir = Project.DEFAULT_CONTRACTS_DIR,
@@ -768,7 +768,7 @@ export class Project {
         removeOldArtifacts(artifactsRootDir, sourceFiles)
       }
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
-      Project.currentProject = await Project.compile(
+      Project.currentProject = await Project.compile_(
         fullNodeVersion,
         provider,
         sourceFiles,
