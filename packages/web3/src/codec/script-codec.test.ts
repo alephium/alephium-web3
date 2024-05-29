@@ -34,8 +34,9 @@ import { scriptCodec } from './script-codec'
 import { Method } from './method-codec'
 import { LockupScript } from './lockup-script-codec'
 import { DestroyAdd, GreeterMain } from '../../../../artifacts/ts'
+import { ByteStringConst } from './instr-codec'
 
-describe('Encode & decode scripts', function () {
+describe('Encode & decode scripts', function() {
   beforeAll(() => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
   })
@@ -218,6 +219,23 @@ describe('Encode & decode scripts', function () {
         ]
       }
     ])
+  })
+
+  it('should decode claim rewards', () => {
+    const decoded = scriptCodec.decode(Buffer.from('010103000000040c0c1440203d085d6dfc146386aafc52beb912e12e2421a50aa11624aa6ccaddd48fe31a000111', 'hex'))
+    const contractId = '3d085d6dfc146386aafc52beb912e12e2421a50aa11624aa6ccaddd48fe31a00'
+    const contractIdByteString = {
+      length: { mode: 64, rest: Buffer.from(['32']) },
+      value: Buffer.from(contractId, 'hex')
+    }
+    const instrs = decoded.methods.value[0].instrs.value
+    expect(instrs).toEqual([
+      U256Const0,
+      U256Const0,
+      ByteConst(contractIdByteString),
+      CallExternal(17)
+    ])
+    expect(contractId).toEqual((instrs[2].value as ByteStringConst).value.value.toString('hex'))
   })
 
   async function testScriptCode(
