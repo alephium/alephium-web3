@@ -92,7 +92,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "greet", params);
+      return testMethod(this, "greet", params, getContractByCodeHash);
     },
   };
 }

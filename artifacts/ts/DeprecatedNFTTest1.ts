@@ -88,7 +88,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "getTokenUri", params);
+      return testMethod(this, "getTokenUri", params, getContractByCodeHash);
     },
   };
 }

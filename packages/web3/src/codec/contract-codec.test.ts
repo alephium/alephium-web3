@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Buffer } from 'buffer/'
-import { Contract, Project, web3, decodeArrayType } from '@alephium/web3'
+import { Contract, web3, decodeArrayType } from '@alephium/web3'
 import { Method } from './method-codec'
 import { contractCodec, toHalfDecoded } from './contract-codec'
 import {
@@ -62,9 +62,8 @@ import {
 } from '../../../../artifacts/ts'
 
 describe('Encode & decode contract', function () {
-  beforeAll(async () => {
+  beforeAll(() => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
-    await Project.build({ errorOnWarnings: false })
   })
 
   it('should encode and decode contract from source code', async () => {

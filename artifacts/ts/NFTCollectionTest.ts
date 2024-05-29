@@ -109,7 +109,12 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "getCollectionUri", params);
+      return testMethod(
+        this,
+        "getCollectionUri",
+        params,
+        getContractByCodeHash
+      );
     },
     totalSupply: async (
       params: Omit<
@@ -117,7 +122,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "totalSupply", params);
+      return testMethod(this, "totalSupply", params, getContractByCodeHash);
     },
     nftByIndex: async (
       params: TestContractParamsWithoutMaps<
@@ -125,7 +130,7 @@ class Factory extends ContractFactory<
         { index: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "nftByIndex", params);
+      return testMethod(this, "nftByIndex", params, getContractByCodeHash);
     },
     validateNFT: async (
       params: TestContractParamsWithoutMaps<
@@ -133,7 +138,7 @@ class Factory extends ContractFactory<
         { nftId: HexString; nftIndex: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "validateNFT", params);
+      return testMethod(this, "validateNFT", params, getContractByCodeHash);
     },
     mint: async (
       params: TestContractParamsWithoutMaps<
@@ -141,7 +146,7 @@ class Factory extends ContractFactory<
         { nftUri: HexString }
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "mint", params);
+      return testMethod(this, "mint", params, getContractByCodeHash);
     },
   };
 }

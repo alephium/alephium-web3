@@ -92,7 +92,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "getTokenUri", params);
+      return testMethod(this, "getTokenUri", params, getContractByCodeHash);
     },
     getArray: async (
       params: Omit<
@@ -100,7 +100,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
-      return testMethod(this, "getArray", params);
+      return testMethod(this, "getArray", params, getContractByCodeHash);
     },
   };
 }

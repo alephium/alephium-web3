@@ -16,14 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project } from '@alephium/web3'
-import { codegen } from '@alephium/cli'
+import { codegen, Project } from '@alephium/cli'
 import { web3 } from '@alephium/web3'
 
 async function gen() {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-  await Project.build({ errorOnWarnings: false })
-  codegen('./artifacts')
+  const project = await Project.compile({ errorOnWarnings: false })
+  codegen(project)
 }
 
 gen()

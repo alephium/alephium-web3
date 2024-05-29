@@ -28,13 +28,13 @@ import {
   ExecuteScriptResult,
   CompilerOptions,
   web3,
-  Project,
   DEFAULT_COMPILER_OPTIONS,
   NetworkId,
   ContractInstance
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 import path from 'path'
+import { Project } from './project'
 
 export interface Network<Settings = unknown> {
   networkId?: number
@@ -97,15 +97,11 @@ export interface Environment<Settings = unknown> {
 }
 
 // it's convenient for users to write scripts
-export async function getEnv<Settings = unknown>(
-  configFileName?: string,
-  networkId?: NetworkId
-): Promise<Environment<Settings>> {
+export function getEnv<Settings = unknown>(configFileName?: string, networkId?: NetworkId): Environment<Settings> {
   const configFile = configFileName ? configFileName : getConfigFile()
-  const config = await loadConfig<Settings>(configFile)
+  const config = loadConfig<Settings>(configFile)
   const network = config.networks[networkId ?? DEFAULT_CONFIGURATION_VALUES.networkId]
   web3.setCurrentNodeProvider(network.nodeUrl)
-  await Project.build(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
   return {
     config: config,
     network: network,

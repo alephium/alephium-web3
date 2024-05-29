@@ -19,7 +19,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import {
   Account,
   NodeProvider,
-  Project,
   Contract,
   Script,
   web3,
@@ -35,7 +34,6 @@ import {
   NetworkId,
   ContractInstance,
   ExecutableScript,
-  ProjectArtifact,
   isHexString,
   isDevnet
 } from '@alephium/web3'
@@ -66,6 +64,7 @@ import {
 } from './utils'
 import { groupOfAddress } from '@alephium/web3'
 import { codegen, genLoadDeployments } from './codegen'
+import { Project, ProjectArtifact } from './project'
 
 export class Deployments {
   deployments: DeploymentsPerAddress[]
@@ -574,9 +573,10 @@ export async function deploy<Settings = unknown>(
   const projectRootDir = path.resolve(process.cwd())
   const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
+  let project: Project | undefined = undefined
   if (configuration.skipRecompile !== true) {
     const skipSaveArtifacts = configuration.skipSaveArtifacts || isDeployedOnMainnet(configuration)
-    await Project.build(
+    project = await Project.compile(
       configuration.compilerOptions,
       path.resolve(process.cwd()),
       configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
@@ -591,10 +591,11 @@ export async function deploy<Settings = unknown>(
   if (
     !deployments.isEmpty() &&
     prevProjectArtifact !== undefined &&
-    ProjectArtifact.isCodeChanged(Project.currentProject.projectArtifact, prevProjectArtifact)
+    project !== undefined &&
+    ProjectArtifact.isCodeChanged(project.projectArtifact, prevProjectArtifact)
   ) {
     // We need to regenerate the code because the deployment scripts depend on the generated ts code
-    codegen(artifactDir)
+    codegen(project)
     const msg =
       'The contract code has been changed, which will result in redeploying the contract.\nPlease confirm if you want to proceed?'
     if (!(await waitUserConfirmation(msg))) {

@@ -25,6 +25,7 @@ import {
   getContractEventsCurrentCount,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../Greeter.ral.json";
+import { getContractByCodeHash } from "../../../../artifacts/ts/contracts";
 
 // Custom types for the contract
 export namespace GreeterTypes {
@@ -63,7 +64,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     greet: async (
       params: Omit<TestContractParams<GreeterTypes.Fields, never>, "testArgs">
     ): Promise<TestContractResult<bigint>> => {
-      return testMethod(this, "greet", params);
+      return testMethod(this, "greet", params, getContractByCodeHash);
     },
   };
 }
@@ -95,7 +96,8 @@ export class GreeterInstance extends ContractInstance {
         Greeter,
         this,
         "greet",
-        params === undefined ? {} : params
+        params === undefined ? {} : params,
+        getContractByCodeHash
       );
     },
   };
@@ -106,7 +108,8 @@ export class GreeterInstance extends ContractInstance {
     return (await multicallMethods(
       Greeter,
       this,
-      calls
+      calls,
+      getContractByCodeHash
     )) as GreeterTypes.MultiCallResults<Calls>;
   }
 }
