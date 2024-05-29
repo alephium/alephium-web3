@@ -28,7 +28,7 @@ import {
   codegen,
   getConfigFile,
   getSdkFullNodeVersion,
-  isDeployedOnMainnet,
+  isDeployed,
   isNetworkLive,
   loadConfig
 } from './src'
@@ -103,14 +103,17 @@ program
       console.log(`Full node version: ${connectedFullNodeVersion}`)
 
       const cwd = path.resolve(process.cwd())
-      const skipSaveArtifacts = config.skipSaveArtifacts || isDeployedOnMainnet(config)
+      const isContractDeployed = isDeployed(config)
+      if (!config.forceRecompile && isContractDeployed) {
+        console.warn(`The contracts has been deployed on testnet/mainnet, and the artifacts will not be updated.`)
+      }
       const project = await Project.compile(
         config.compilerOptions,
         cwd,
         config.sourceDir,
         config.artifactDir,
         connectedFullNodeVersion,
-        skipSaveArtifacts
+        config.forceRecompile || !isContractDeployed
       )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {

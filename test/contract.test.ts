@@ -274,7 +274,9 @@ describe('contract', function () {
   })
 
   it('should handle compiler warnings', async () => {
-    await expect(Project.compile()).rejects.toThrow(/Compilation warnings\:/)
+    await expect(Project.compile({}, '.', 'contracts', 'artifacts', undefined, true)).rejects.toThrow(
+      /Compilation warnings\:/
+    )
 
     const project0 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
     expect(project0.projectArtifact.infos.get('Warnings')!.warnings).toEqual([

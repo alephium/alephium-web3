@@ -365,16 +365,20 @@ export class Project {
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
     changedSources: SourceInfo[],
-    skipSaveArtifacts: boolean,
+    forceRecompile: boolean,
     errorOnWarnings: boolean
   ): void {
     const warnings: string[] = []
     contracts.forEach((contract) => {
-      if (!skipSaveArtifacts || changedSources.find((s) => s.name === contract.sourceInfo.name) !== undefined) {
+      if (Project.needToUpdate(forceRecompile, changedSources, contract.sourceInfo.name)) {
         warnings.push(...contract.warnings)
       }
     })
-    scripts.forEach((script) => warnings.push(...script.warnings))
+    scripts.forEach((script) => {
+      if (Project.needToUpdate(forceRecompile, changedSources, script.sourceInfo.name)) {
+        warnings.push(...script.warnings)
+      }
+    })
     if (warnings.length !== 0) {
       const prefixPerWarning = '  - '
       const warningString = prefixPerWarning + warnings.join('\n' + prefixPerWarning)
@@ -421,9 +425,13 @@ export class Project {
     return fsPromises.writeFile(filePath, JSON.stringify(structs, null, 2))
   }
 
+  private static needToUpdate(forceRecompile: boolean, changedSources: SourceInfo[], name: string): boolean {
+    return forceRecompile || changedSources.find((s) => s.name === name) !== undefined
+  }
+
   private async saveArtifactsToFile(
     projectRootDir: string,
-    skipSaveArtifacts: boolean,
+    forceRecompile: boolean,
     changedSources: SourceInfo[]
   ): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
@@ -436,20 +444,22 @@ export class Project {
       return fsPromises.writeFile(artifactPath, compiled.artifact.toString())
     }
     for (const [_, contract] of this.contracts) {
-      if (!skipSaveArtifacts || changedSources.find((s) => s.name === contract.sourceInfo.name) !== undefined) {
+      if (Project.needToUpdate(forceRecompile, changedSources, contract.sourceInfo.name)) {
         await saveToFile(contract)
       }
     }
     for (const [_, script] of this.scripts) {
-      await saveToFile(script)
+      if (Project.needToUpdate(forceRecompile, changedSources, script.sourceInfo.name)) {
+        await saveToFile(script)
+      }
     }
     await this.saveStructsToFile()
-    await this.saveProjectArtifact(projectRootDir, skipSaveArtifacts, changedSources)
+    await this.saveProjectArtifact(projectRootDir, forceRecompile, changedSources)
   }
 
-  private async saveProjectArtifact(projectRootDir: string, skipSaveArtifacts: boolean, changedSources: SourceInfo[]) {
-    if (skipSaveArtifacts) {
-      // we should not update the `codeHashDebug` if the `skipSaveArtifacts` is enabled
+  private async saveProjectArtifact(projectRootDir: string, forceRecompile: boolean, changedSources: SourceInfo[]) {
+    if (!forceRecompile) {
+      // we should not update the `codeHashDebug` if the `forceRecompile` is disable
       const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
       if (prevProjectArtifact !== undefined) {
         for (const [name, info] of this.projectArtifact.infos) {
@@ -516,7 +526,7 @@ export class Project {
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions,
     changedSources: SourceInfo[],
-    skipSaveArtifacts = false
+    forceRecompile: boolean
   ): Promise<Project> {
     const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
       if (acc.find((info) => info.sourceCodeHash === sourceInfo.sourceCodeHash) === undefined) {
@@ -558,7 +568,7 @@ export class Project {
       scripts,
       compilerOptions
     )
-    Project.checkCompilerWarnings(contracts, scripts, changedSources, skipSaveArtifacts, errorOnWarnings)
+    Project.checkCompilerWarnings(contracts, scripts, changedSources, forceRecompile, errorOnWarnings)
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,
@@ -568,7 +578,7 @@ export class Project {
       structs,
       projectArtifact
     )
-    await project.saveArtifactsToFile(projectRootDir, skipSaveArtifacts, changedSources)
+    await project.saveArtifactsToFile(projectRootDir, forceRecompile, changedSources)
     return project
   }
 
@@ -581,7 +591,7 @@ export class Project {
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions,
     changedSources: SourceInfo[],
-    skipSaveArtifacts: boolean
+    forceRecompile: boolean
   ): Promise<Project> {
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
     if (projectArtifact === undefined) {
@@ -612,7 +622,7 @@ export class Project {
         }
       }
 
-      Project.checkCompilerWarnings(contracts, scripts, changedSources, skipSaveArtifacts, errorOnWarnings)
+      Project.checkCompilerWarnings(contracts, scripts, changedSources, forceRecompile, errorOnWarnings)
       return new Project(contractsRootDir, artifactsRootDir, sourceInfos, contracts, scripts, structs, projectArtifact)
     } catch (error) {
       console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
@@ -625,7 +635,8 @@ export class Project {
         artifactsRootDir,
         errorOnWarnings,
         compilerOptions,
-        changedSources
+        changedSources,
+        forceRecompile
       )
     }
   }
@@ -749,7 +760,7 @@ export class Project {
     contractsRootDir = Project.DEFAULT_CONTRACTS_DIR,
     artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR,
     defaultFullNodeVersion: string | undefined = undefined,
-    skipSaveArtifacts = false
+    forceRecompile = false
   ): Promise<Project> {
     const provider = web3.getCurrentNodeProvider()
     const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosVersion()).version
@@ -776,7 +787,7 @@ export class Project {
         errorOnWarnings,
         nodeCompilerOptions,
         changedSources,
-        skipSaveArtifacts
+        forceRecompile
       )
     }
     // we need to reload those contracts that did not regenerate bytecode
@@ -789,7 +800,7 @@ export class Project {
       errorOnWarnings,
       nodeCompilerOptions,
       changedSources,
-      skipSaveArtifacts
+      forceRecompile
     )
   }
 }
