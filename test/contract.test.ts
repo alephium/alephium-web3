@@ -61,7 +61,7 @@ import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
-import { ProjectArtifact, Project } from '@alephium/cli'
+import { ProjectArtifact, Project } from '../packages/cli/src/project'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
