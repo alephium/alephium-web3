@@ -636,7 +636,7 @@ export class Project {
     const parts = importPath.split('/')
     if (parts.length > 1 && parts[0] === 'std') {
       const currentDir = path.dirname(__filename)
-      return path.join(...[currentDir, '..', '..', '..', importPath])
+      return path.join(...[currentDir, '..', '..', 'web3', importPath])
     }
     let moduleDir = projectRootDir
     while (true) {
