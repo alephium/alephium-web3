@@ -102,8 +102,8 @@ export async function isDevnetLive(): Promise<boolean> {
 
 export function getDeploymentFilePath(configuration: Configuration, networkId: NetworkId): string {
   const network = getNetwork(configuration, networkId)
-  return network.deploymentStatusFile
-    ? network.deploymentStatusFile
+  return network.deploymentFile
+    ? network.deploymentFile
     : path.join(configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, `.deployments.${networkId}.json`)
 }
 

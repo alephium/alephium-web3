@@ -33,14 +33,13 @@ import {
   ContractInstance
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
-import path from 'path'
 import { Project } from './project'
 
 export interface Network<Settings = unknown> {
   networkId?: number
   nodeUrl: string
   privateKeys: string[] | string
-  deploymentStatusFile?: string
+  deploymentFile?: string
   confirmations?: number
   settings: Settings
 }
