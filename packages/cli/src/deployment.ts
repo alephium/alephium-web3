@@ -19,7 +19,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import {
   Account,
   NodeProvider,
-  Project,
   Contract,
   Script,
   web3,
@@ -35,7 +34,6 @@ import {
   NetworkId,
   ContractInstance,
   ExecutableScript,
-  ProjectArtifact,
   isHexString,
   isDevnet
 } from '@alephium/web3'
@@ -66,6 +64,7 @@ import {
 } from './utils'
 import { groupOfAddress } from '@alephium/web3'
 import { codegen, genLoadDeployments } from './codegen'
+import { Project, ProjectArtifact } from './project'
 
 export class Deployments {
   deployments: DeploymentsPerAddress[]
