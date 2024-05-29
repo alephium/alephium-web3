@@ -573,9 +573,10 @@ export async function deploy<Settings = unknown>(
   const projectRootDir = path.resolve(process.cwd())
   const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
+  let project: Project | undefined = undefined
   if (configuration.skipRecompile !== true) {
     const skipSaveArtifacts = configuration.skipSaveArtifacts || isDeployedOnMainnet(configuration)
-    await Project.compile(
+    project = await Project.compile(
       configuration.compilerOptions,
       path.resolve(process.cwd()),
       configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
@@ -590,10 +591,11 @@ export async function deploy<Settings = unknown>(
   if (
     !deployments.isEmpty() &&
     prevProjectArtifact !== undefined &&
-    ProjectArtifact.isCodeChanged(Project.currentProject.projectArtifact, prevProjectArtifact)
+    project !== undefined &&
+    ProjectArtifact.isCodeChanged(project.projectArtifact, prevProjectArtifact)
   ) {
     // We need to regenerate the code because the deployment scripts depend on the generated ts code
-    codegen(artifactDir)
+    codegen(project)
     const msg =
       'The contract code has been changed, which will result in redeploying the contract.\nPlease confirm if you want to proceed?'
     if (!(await waitUserConfirmation(msg))) {

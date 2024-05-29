@@ -276,14 +276,14 @@ describe('contract', function () {
   it('should handle compiler warnings', async () => {
     await expect(Project.compile()).rejects.toThrow(/Compilation warnings\:/)
 
-    await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
-    expect(Project.currentProject.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
+    const project0 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
+    expect(project0.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
       'Found unused variables in Warnings: foo.y',
       'Found unused fields in Warnings: b'
     ])
 
-    await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: false })
-    expect(Project.currentProject.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
+    const project1 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: false })
+    expect(project1.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
       'Found unused variables in Warnings: foo.y',
       'Found unused constants in Warnings: C',
       'Found unused fields in Warnings: b'

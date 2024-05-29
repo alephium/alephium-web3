@@ -21,8 +21,8 @@ import { web3 } from '@alephium/web3'
 
 async function gen() {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-  await Project.build({ errorOnWarnings: false })
-  codegen('./artifacts')
+  const project = await Project.compile({ errorOnWarnings: false })
+  codegen(project)
 }
 
 gen()

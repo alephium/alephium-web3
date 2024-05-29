@@ -97,15 +97,11 @@ export interface Environment<Settings = unknown> {
 }
 
 // it's convenient for users to write scripts
-export async function getEnv<Settings = unknown>(
-  configFileName?: string,
-  networkId?: NetworkId
-): Promise<Environment<Settings>> {
+export function getEnv<Settings = unknown>(configFileName?: string, networkId?: NetworkId): Environment<Settings> {
   const configFile = configFileName ? configFileName : getConfigFile()
   const config = loadConfig<Settings>(configFile)
   const network = config.networks[networkId ?? DEFAULT_CONFIGURATION_VALUES.networkId]
   web3.setCurrentNodeProvider(network.nodeUrl)
-  await Project.compile(config.compilerOptions, path.resolve(process.cwd()), config.sourceDir, config.artifactDir)
   return {
     config: config,
     network: network,

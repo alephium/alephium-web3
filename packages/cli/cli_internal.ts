@@ -104,7 +104,7 @@ program
 
       const cwd = path.resolve(process.cwd())
       const skipSaveArtifacts = config.skipSaveArtifacts || isDeployedOnMainnet(config)
-      await Project.compile(
+      const project = await Project.compile(
         config.compilerOptions,
         cwd,
         config.sourceDir,
@@ -116,8 +116,7 @@ program
       if (options.skipGenerate) {
         return
       }
-      const artifactDir = config.artifactDir! // there is a default value always
-      codegen(artifactDir)
+      codegen(project)
       console.log('✅ Codegen completed!')
     } catch (error) {
       program.error(`✘ Failed to compile, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)

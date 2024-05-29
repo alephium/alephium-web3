@@ -287,8 +287,6 @@ export class Project {
   readonly contractsRootDir: string
   readonly artifactsRootDir: string
 
-  static currentProject: Project
-
   static readonly importRegex = new RegExp('^import "[^"./]+/[^"]*[a-z][a-z_0-9]*(.ral)?"', 'mg')
   static readonly abstractContractMatcher = new TypedMatcher<SourceKind>(
     '^Abstract Contract ([A-Z][a-zA-Z0-9]*)',
@@ -389,16 +387,16 @@ export class Project {
     }
   }
 
-  static contract(name: string): Contract {
-    const contract = Project.currentProject.contracts.get(name)
+  contract(name: string): Contract {
+    const contract = this.contracts.get(name)
     if (typeof contract === 'undefined') {
       throw new Error(`Contract "${name}" does not exist`)
     }
     return contract.artifact
   }
 
-  static script(name: string): Script {
-    const script = Project.currentProject.scripts.get(name)
+  script(name: string): Script {
+    const script = this.scripts.get(name)
     if (typeof script === 'undefined') {
       throw new Error(`Script "${name}" does not exist`)
     }
@@ -752,7 +750,7 @@ export class Project {
     artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR,
     defaultFullNodeVersion: string | undefined = undefined,
     skipSaveArtifacts = false
-  ): Promise<void> {
+  ): Promise<Project> {
     const provider = web3.getCurrentNodeProvider()
     const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosVersion()).version
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
@@ -768,7 +766,7 @@ export class Project {
         removeOldArtifacts(artifactsRootDir, sourceFiles)
       }
       console.log(`Compiling contracts in folder "${contractsRootDir}"`)
-      Project.currentProject = await Project.compile_(
+      await Project.compile_(
         fullNodeVersion,
         provider,
         sourceFiles,
@@ -782,7 +780,7 @@ export class Project {
       )
     }
     // we need to reload those contracts that did not regenerate bytecode
-    Project.currentProject = await Project.loadArtifacts(
+    return await Project.loadArtifacts(
       provider,
       sourceFiles,
       projectRootDir,
