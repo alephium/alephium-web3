@@ -349,7 +349,7 @@ function genTestMethod(contract: Contract, functionSig: FunctionSig): string {
   const callParams = funcHasArgs || contractHasFields ? 'params' : 'params === undefined ? {} : params'
   return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
-      return testMethod(this, "${functionSig.name}", ${callParams})
+      return testMethod(this, "${functionSig.name}", ${callParams}, getContractByCodeHash)
     }
   `
 }

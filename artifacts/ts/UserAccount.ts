@@ -90,7 +90,7 @@ class Factory extends ContractFactory<
         { tokens: [TokenBalance, TokenBalance] }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "updateBalance", params);
+      return testMethod(this, "updateBalance", params, getContractByCodeHash);
     },
     updateAddress: async (
       params: TestContractParamsWithoutMaps<
@@ -98,7 +98,7 @@ class Factory extends ContractFactory<
         { newAddress: Address }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "updateAddress", params);
+      return testMethod(this, "updateAddress", params, getContractByCodeHash);
     },
     getBalances: async (
       params: Omit<
@@ -106,7 +106,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<Balances>> => {
-      return testMethod(this, "getBalances", params);
+      return testMethod(this, "getBalances", params, getContractByCodeHash);
     },
   };
 }
