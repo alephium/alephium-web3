@@ -17,7 +17,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import {
-  Project,
   Contract,
   getContractEventsCurrentCount,
   contractIdFromAddress,
@@ -41,8 +40,6 @@ describe('events', function () {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await getSigner()
-    // ignore unused private function warnings
-    await Project.build({ errorOnWarnings: false })
   })
 
   beforeEach(() => {
