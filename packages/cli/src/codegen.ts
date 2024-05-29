@@ -624,9 +624,7 @@ async function getAllDeployments(config: Configuration): Promise<DeploymentsPerA
   const allDeployments: DeploymentsPerAddress[] = []
   for (const filePath of filePaths) {
     const deployments = await Deployments.from(filePath)
-    if (deployments.deployments.length > 0) {
-      allDeployments.push(deployments.deployments[0])
-    }
+    allDeployments.push(...deployments.deployments)
   }
   return allDeployments
 }
@@ -746,7 +744,7 @@ export async function genLoadDeployments(config: Configuration) {
       if (deployments === undefined) {
         throw Error('The contract has not been deployed to the ' + networkId)
       }
-      const allDeployments = Array.isArray(deployments) ? deployments : [deployments]
+      const allDeployments: any[] = Array.isArray(deployments) ? deployments : [deployments]
       if (deployerAddress === undefined) {
         if (allDeployments.length > 1) {
           throw Error('The contract has been deployed multiple times on ' + networkId + ', please specify the deployer address')
