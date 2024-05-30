@@ -206,14 +206,21 @@ export class ProjectArtifact {
     return fsPromises.writeFile(filepath, content)
   }
 
-  getChangedSources(sourceInfos: SourceInfo[]): SourceInfo[] {
-    const result: SourceInfo[] = []
-    for (const sourceInfo of sourceInfos) {
+  getChangedSources(sourceInfos: SourceInfo[]): string[] {
+    const result: string[] = []
+    // get all changed and new sources
+    sourceInfos.forEach((sourceInfo) => {
       const info = this.infos.get(sourceInfo.name)
-      if (typeof info === 'undefined' || info.sourceCodeHash !== sourceInfo.sourceCodeHash) {
-        result.push(sourceInfo)
+      if (info === undefined || info.sourceCodeHash !== sourceInfo.sourceCodeHash) {
+        result.push(sourceInfo.name)
       }
-    }
+    })
+    // get all removed sources
+    this.infos.forEach((_, name) => {
+      if (sourceInfos.find((s) => s.name === name) === undefined) {
+        result.push(name)
+      }
+    })
     return result
   }
 
@@ -364,7 +371,7 @@ export class Project {
   static checkCompilerWarnings(
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
-    changedSources: SourceInfo[],
+    changedSources: string[],
     forceRecompile: boolean,
     errorOnWarnings: boolean
   ): void {
@@ -425,14 +432,14 @@ export class Project {
     return fsPromises.writeFile(filePath, JSON.stringify(structs, null, 2))
   }
 
-  private static needToUpdate(forceRecompile: boolean, changedSources: SourceInfo[], name: string): boolean {
-    return forceRecompile || changedSources.find((s) => s.name === name) !== undefined
+  private static needToUpdate(forceRecompile: boolean, changedSources: string[], name: string): boolean {
+    return forceRecompile || changedSources.includes(name)
   }
 
   private async saveArtifactsToFile(
     projectRootDir: string,
     forceRecompile: boolean,
-    changedSources: SourceInfo[]
+    changedSources: string[]
   ): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
@@ -457,13 +464,13 @@ export class Project {
     await this.saveProjectArtifact(projectRootDir, forceRecompile, changedSources)
   }
 
-  private async saveProjectArtifact(projectRootDir: string, forceRecompile: boolean, changedSources: SourceInfo[]) {
+  private async saveProjectArtifact(projectRootDir: string, forceRecompile: boolean, changedSources: string[]) {
     if (!forceRecompile) {
       // we should not update the `codeHashDebug` if the `forceRecompile` is disable
       const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
       if (prevProjectArtifact !== undefined) {
         for (const [name, info] of this.projectArtifact.infos) {
-          if (changedSources.find((s) => s.name === name) === undefined) {
+          if (!changedSources.includes(name)) {
             const prevInfo = prevProjectArtifact.infos.get(name)
             info.bytecodeDebugPatch = prevInfo?.bytecodeDebugPatch ?? info.bytecodeDebugPatch
             info.codeHashDebug = prevInfo?.codeHashDebug ?? info.codeHashDebug
@@ -525,7 +532,7 @@ export class Project {
     artifactsRootDir: string,
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions,
-    changedSources: SourceInfo[],
+    changedSources: string[],
     forceRecompile: boolean
   ): Promise<Project> {
     const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
@@ -590,7 +597,7 @@ export class Project {
     artifactsRootDir: string,
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions,
-    changedSources: SourceInfo[],
+    changedSources: string[],
     forceRecompile: boolean
   ): Promise<Project> {
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
@@ -767,7 +774,7 @@ export class Project {
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
-    const changedSources = projectArtifact?.getChangedSources(sourceFiles) ?? sourceFiles
+    const changedSources = projectArtifact?.getChangedSources(sourceFiles) ?? sourceFiles.map((s) => s.name)
     if (
       projectArtifact === undefined ||
       projectArtifact.needToReCompile(nodeCompilerOptions, fullNodeVersion) ||
