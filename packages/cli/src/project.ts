@@ -66,7 +66,7 @@ enum SourceKind {
   Struct = 4
 }
 
-class SourceInfo {
+export class SourceInfo {
   type: SourceKind
   name: string
   contractRelativePath: string
@@ -127,7 +127,7 @@ class Compiled<T extends Artifact> {
   }
 }
 
-type CodeInfo = {
+export type CodeInfo = {
   sourceFile: string
   sourceCodeHash: string
   bytecodeDebugPatch: string
