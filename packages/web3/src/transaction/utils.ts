@@ -16,6 +16,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './status'
-export * from './sign-verify'
-export * from './utils'
+import { node } from '../api'
+import { getCurrentNodeProvider } from '../global'
+
+function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
+  return txStatus.type === 'Confirmed'
+}
+
+export async function waitTxConfirmed(
+  txId: string,
+  confirmations: number,
+  requestInterval: number
+): Promise<node.Confirmed> {
+  const provider = getCurrentNodeProvider()
+  const status = await provider.transactions.getTransactionsStatus({ txId: txId })
+  if (isConfirmed(status) && status.chainConfirmations >= confirmations) {
+    return status
+  }
+  await new Promise((r) => setTimeout(r, requestInterval))
+  return waitTxConfirmed(txId, confirmations, requestInterval)
+}

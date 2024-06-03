@@ -121,24 +121,6 @@ export function getNetwork<Settings = unknown>(
   return { ...defaultValues, ...networkInput }
 }
 
-function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
-  return txStatus.type === 'Confirmed'
-}
-
-export async function waitTxConfirmed(
-  provider: NodeProvider,
-  txId: string,
-  confirmations: number,
-  requestInterval: number
-): Promise<node.Confirmed> {
-  const status = await provider.transactions.getTransactionsStatus({ txId: txId })
-  if (isConfirmed(status) && status.chainConfirmations >= confirmations) {
-    return status
-  }
-  await new Promise((r) => setTimeout(r, requestInterval))
-  return waitTxConfirmed(provider, txId, confirmations, requestInterval)
-}
-
 export const retryFetch = fetchRetry.default(fetch, {
   retries: 20,
   retryDelay: 1000
