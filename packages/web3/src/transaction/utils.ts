@@ -23,7 +23,7 @@ function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
   return txStatus.type === 'Confirmed'
 }
 
-export async function waitTxConfirmed(
+export async function waitForTxConfirmation(
   txId: string,
   confirmations: number,
   requestInterval: number
@@ -34,5 +34,5 @@ export async function waitTxConfirmed(
     return status
   }
   await new Promise((r) => setTimeout(r, requestInterval))
-  return waitTxConfirmed(txId, confirmations, requestInterval)
+  return waitForTxConfirmation(txId, confirmations, requestInterval)
 }

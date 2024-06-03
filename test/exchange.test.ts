@@ -31,7 +31,7 @@ import {
   getALPHDepositInfo,
   groupOfAddress,
   BlockSubscription,
-  waitTxConfirmed
+  waitForTxConfirmation
 } from '@alephium/web3'
 import { EventEmitter } from 'stream'
 import * as bip39 from 'bip39'
@@ -53,7 +53,7 @@ async function getGasFee(txIds: string[]): Promise<bigint> {
 async function waitTxsConfirmed(txIds: string[]): Promise<void> {
   const nodeProvider = web3.getCurrentNodeProvider()
   for (const txId of txIds) {
-    await waitTxConfirmed(txId, 1, 1000)
+    await waitForTxConfirmation(txId, 1, 1000)
   }
 }
 
@@ -214,7 +214,7 @@ class Exchange {
       throw new Error('Not enough balance')
     }
     const result = await transfer(this.wallet, user.address, ALPH_TOKEN_ID, amount)
-    await waitTxConfirmed(result.txId, 1, 1000)
+    await waitForTxConfirmation(result.txId, 1, 1000)
     this.withdrawTxs.push(result.txId)
     const remain = balance - (amount + WithdrawFee)
     if (remain === 0n) {
@@ -313,7 +313,7 @@ describe('exchange', function () {
           signerAddress: testWallet.address,
           destinations
         })
-        await waitTxConfirmed(result.txId, 1, 1000)
+        await waitForTxConfirmation(result.txId, 1, 1000)
         poolRewardTxNumber += 1
       }
     }
