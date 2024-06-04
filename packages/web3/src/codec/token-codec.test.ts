@@ -29,7 +29,7 @@ describe('Encode & decode tokens', function () {
       const amount = BigInt('0x' + randomBytes(31).toString('hex'))
 
       const token = {
-        tokenId: hexToBinUnsafe(tokenId),
+        tokenId: new Uint8Array(hexToBinUnsafe(tokenId)),
         amount: compactUnsignedIntCodec.fromU256(amount)
       }
 

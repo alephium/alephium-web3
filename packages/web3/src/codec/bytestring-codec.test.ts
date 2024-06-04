@@ -22,7 +22,7 @@ import { compactUnsignedIntCodec } from './compact-int-codec'
 describe('Encode & decode bytestring', function () {
   it('should encode & decode bytestring', function () {
     success(new Uint8Array([]))
-    success(Buffer.from('Alephium is great!'))
+    success(new Uint8Array(Buffer.from('Alephium is great!')))
   })
 
   function success(value: Uint8Array) {
