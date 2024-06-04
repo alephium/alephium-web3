@@ -59,10 +59,9 @@ import {
   loadConfig,
   retryFetch,
   taskIdToVariable,
-  waitTxConfirmed,
   waitUserConfirmation
 } from './utils'
-import { groupOfAddress } from '@alephium/web3'
+import { groupOfAddress, waitForTxConfirmation } from '@alephium/web3'
 import { codegen, genLoadDeployments } from './codegen'
 import { Project, ProjectArtifact } from './project'
 
@@ -381,12 +380,7 @@ function createDeployer<Settings = unknown>(
     console.log(`Deploying contract ${taskId}`)
     console.log(`Deployer - group ${signer.group} - ${signer.address}`)
     const deployResult = await contractFactory.deploy(signer, params)
-    const confirmed = await waitTxConfirmed(
-      web3.getCurrentNodeProvider(),
-      deployResult.txId,
-      confirmations,
-      requestInterval
-    )
+    const confirmed = await waitForTxConfirmation(deployResult.txId, confirmations, requestInterval)
     const result: DeployContractExecutionResult = {
       txId: deployResult.txId,
       unsignedTx: deployResult.unsignedTx,
@@ -433,12 +427,7 @@ function createDeployer<Settings = unknown>(
     }
     console.log(`Executing script ${taskId}`)
     const executeResult = await executableScript.execute(signer, params)
-    const confirmed = await waitTxConfirmed(
-      web3.getCurrentNodeProvider(),
-      executeResult.txId,
-      confirmations,
-      requestInterval
-    )
+    const confirmed = await waitForTxConfirmation(executeResult.txId, confirmations, requestInterval)
     const runScriptResult: RunScriptResult = {
       ...executeResult,
       gasPrice: executeResult.gasPrice.toString(),
