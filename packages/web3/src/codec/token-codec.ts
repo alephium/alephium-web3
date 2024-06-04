@@ -16,14 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { ArrayCodec } from './array-codec'
+import { concatBytes } from '../utils'
 
 export interface Token {
-  tokenId: Buffer
+  tokenId: Uint8Array
   amount: DecodedCompactInt
 }
 
@@ -36,13 +36,13 @@ export class TokenCodec implements Codec<Token> {
       type: compactUnsignedIntCodec.parser
     })
 
-  encode(input: Token): Buffer {
+  encode(input: Token): Uint8Array {
     const tokenId = input.tokenId
-    const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
-    return Buffer.concat([tokenId, amount])
+    const amount = compactUnsignedIntCodec.encode(input.amount)
+    return concatBytes([tokenId, amount])
   }
 
-  decode(input: Buffer): Token {
+  decode(input: Uint8Array): Token {
     return this.parser.parse(input)
   }
 }

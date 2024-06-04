@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC } from 'elliptic'
 import { Account, KeyType, ExplorerProvider, NodeProvider, SignerProviderSimple, utils, web3 } from '@alephium/web3'
+import { publicKeyFromPrivateKey, addressFromPublicKey, groupOfAddress } from '@alephium/web3'
 import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd-wallet'
 
 const ec = new EC('secp256k1')
@@ -62,9 +63,9 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     super()
     this.keyType = keyType ?? 'default'
     this.privateKey = privateKey
-    this.publicKey = utils.publicKeyFromPrivateKey(privateKey, this.keyType)
-    this.address = utils.addressFromPublicKey(this.publicKey, this.keyType)
-    this.group = utils.groupOfAddress(this.address)
+    this.publicKey = publicKeyFromPrivateKey(privateKey, this.keyType)
+    this.address = addressFromPublicKey(this.publicKey, this.keyType)
+    this.group = groupOfAddress(this.address)
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
   }

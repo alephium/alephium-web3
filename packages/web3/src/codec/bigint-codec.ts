@@ -15,12 +15,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 export class BigIntCodec {
-  static encode(value: bigint): Buffer {
+  static encode(value: bigint): Uint8Array {
     // Special case for zero.
     if (value === 0n) {
-      return Buffer.from([0])
+      return new Uint8Array([0])
     }
 
     const isNegative = value < 0n
@@ -62,10 +61,10 @@ export class BigIntCodec {
     }
 
     // The byte array needs to be reversed since we've constructed it in little-endian order.
-    return Buffer.from(new Uint8Array(bytes.reverse()))
+    return new Uint8Array(bytes.reverse())
   }
 
-  static decode(encoded: Buffer, signed: boolean): bigint {
+  static decode(encoded: Uint8Array, signed: boolean): bigint {
     // Special case for zero.
     if (encoded.length === 1 && encoded[0] === 0) {
       return 0n

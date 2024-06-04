@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { promises as fsPromises } from 'fs'
 import {
   fromApiNumber256,
@@ -47,19 +46,16 @@ import * as ralph from './ralph'
 import {
   bs58,
   binToHex,
-  contractIdFromAddress,
   Subscription,
   assertType,
   Eq,
   Optional,
-  groupOfAddress,
   WebCrypto,
   hexToBinUnsafe,
   isDevnet,
-  addressFromContractId,
-  subContractId,
   HexString
 } from '../utils'
+import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
@@ -220,7 +216,7 @@ export class Contract extends Artifact {
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
     this.codeHashDebug = codeHashDebug
 
-    this.decodedMethods = contract.contractCodec.decodeContract(Buffer.from(bytecode, 'hex')).methods
+    this.decodedMethods = contract.contractCodec.decodeContract(hexToBinUnsafe(bytecode)).methods
   }
 
   publicFunctions(): FunctionSig[] {

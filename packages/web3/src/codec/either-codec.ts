@@ -15,7 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { Codec } from './codec'
 
@@ -39,17 +38,17 @@ export class EitherCodec<L, R> implements Codec<Either<L, R>> {
       })
   ) {}
 
-  encode(input: Either<L, R>): Buffer {
+  encode(input: Either<L, R>): Uint8Array {
     const result = [input.either]
     if (input.either === 0) {
       result.push(...this.leftCodec.encode(input.value as L))
     } else {
       result.push(...this.rightCodec.encode(input.value as R))
     }
-    return Buffer.from(result)
+    return new Uint8Array(result)
   }
 
-  decode(input: Buffer): Either<L, R> {
+  decode(input: Uint8Array): Either<L, R> {
     const result = this.parser.parse(input)
     return {
       ...result,

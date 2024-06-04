@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { DecodedArray } from './array-codec'
 import { Codec } from './codec'
@@ -37,22 +36,21 @@ export class ScriptCodec implements Codec<DecodedScript> {
     type: methodsCodec.parser
   })
 
-  encode(input: DecodedScript): Buffer {
-    const script = methodsCodec.encode(input.methods.value)
-    return Buffer.from(script)
+  encode(input: DecodedScript): Uint8Array {
+    return methodsCodec.encode(input.methods.value)
   }
 
-  decode(input: Buffer): DecodedScript {
+  decode(input: Uint8Array): DecodedScript {
     return this.parser.parse(input)
   }
 
-  decodeScript(input: Buffer): Script {
+  decodeScript(input: Uint8Array): Script {
     const decodedTxScript = this.decode(input)
     const methods = decodedTxScript.methods.value.map((decodedMethod) => MethodCodec.toMethod(decodedMethod))
     return { methods }
   }
 
-  encodeScript(inputTxScript: Script): Buffer {
+  encodeScript(inputTxScript: Script): Uint8Array {
     const methodLength = compactUnsignedIntCodec.fromU32(inputTxScript.methods.length)
     const decodedMethods = inputTxScript.methods.map((method) => MethodCodec.fromMethod(method))
     return this.encode({ methods: { value: decodedMethods, length: methodLength } })

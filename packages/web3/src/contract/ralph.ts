@@ -16,9 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
-import { HexString, binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
+import { HexString, binToHex, bs58, concatBytes, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
 import { compactSignedIntCodec, compactUnsignedIntCodec } from '../codec'
 
@@ -151,14 +150,14 @@ export function encodeU256(u256: bigint): Uint8Array {
   }
 }
 
-export function encodeByteVec(bytes: string): Uint8Array {
-  if (!isHexString(bytes)) {
-    throw Error(`Given value ${bytes} is not a valid hex string`)
+export function encodeByteVec(hex: string): Uint8Array {
+  if (!isHexString(hex)) {
+    throw Error(`Given value ${hex} is not a valid hex string`)
   }
 
-  const buffer0 = Buffer.from(bytes, 'hex')
-  const buffer1 = Buffer.from(encodeI256(BigInt(buffer0.length)))
-  return Buffer.concat([buffer1, buffer0])
+  const bytes0 = hexToBinUnsafe(hex)
+  const bytes1 = encodeI256(BigInt(bytes0.length))
+  return concatBytes([bytes1, bytes0])
 }
 
 export function encodeAddress(address: string): Uint8Array {
@@ -254,7 +253,7 @@ function encodeScriptFieldU256(value: bigint): Uint8Array {
 }
 
 export function encodeScriptFieldAsString(tpe: string, value: Val): string {
-  return Buffer.from(encodeScriptField(tpe, value)).toString('hex')
+  return binToHex(encodeScriptField(tpe, value))
 }
 
 export function encodeScriptField(tpe: string, value: Val): Uint8Array {
@@ -378,9 +377,9 @@ export function decodePrimitive(value: Uint8Array, type: string): Val {
     case 'Bool':
       return decodeBool(value)
     case 'I256':
-      return compactSignedIntCodec.decodeI256(Buffer.from(value))
+      return compactSignedIntCodec.decodeI256(value)
     case 'U256':
-      return compactUnsignedIntCodec.decodeU256(Buffer.from(value))
+      return compactUnsignedIntCodec.decodeU256(value)
     case 'ByteVec':
       return binToHex(value)
     case 'Address':

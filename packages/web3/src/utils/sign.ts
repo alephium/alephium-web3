@@ -31,7 +31,7 @@ necc.utils.sha256Sync = (...messages: Uint8Array[]): Uint8Array => {
 }
 
 necc.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8Array => {
-  const hash = createHmac('sha256', Buffer.from(key))
+  const hash = createHmac('sha256', key)
   messages.forEach((m) => hash.update(m))
   return Uint8Array.from(hash.digest())
 }

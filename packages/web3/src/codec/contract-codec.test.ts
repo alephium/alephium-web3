@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
-import { Contract, web3, decodeArrayType } from '@alephium/web3'
+import { Contract, web3, decodeArrayType, hexToBinUnsafe, binToHex } from '@alephium/web3'
 import { Method } from './method-codec'
 import { contractCodec, toHalfDecoded } from './contract-codec'
 import {
@@ -228,7 +227,7 @@ describe('Encode & decode contract', function () {
             LoadLocal(2),
             LoadLocal(3),
             U256Lt,
-            IfFalse({ mode: 3, rest: Buffer.from([]) }),
+            IfFalse({ mode: 3, rest: new Uint8Array([]) }),
             LoadLocal(0),
             LoadLocal(1),
             Return,
@@ -258,12 +257,12 @@ describe('Encode & decode contract', function () {
             U256Const0,
             U256Gt,
             BoolAnd,
-            U256Const({ mode: 15, rest: Buffer.from([]) }),
+            U256Const({ mode: 15, rest: new Uint8Array([]) }),
             AssertWithErrorCode,
             LoadLocal(2),
             LoadLocal(3),
             ByteVecNeq,
-            U256Const({ mode: 11, rest: Buffer.from([]) }),
+            U256Const({ mode: 11, rest: new Uint8Array([]) }),
             AssertWithErrorCode,
             LoadLocal(2),
             LoadLocal(3),
@@ -272,7 +271,7 @@ describe('Encode & decode contract', function () {
             StoreLocal(4),
             LoadLocal(4),
             LoadLocal(5),
-            U256Const({ mode: 2, rest: Buffer.from([]) }),
+            U256Const({ mode: 2, rest: new Uint8Array([]) }),
             Encode,
             StoreLocal(6),
             U256Const0,
@@ -281,7 +280,7 @@ describe('Encode & decode contract', function () {
             U256Const0,
             U256Const0,
             U256Const0,
-            U256Const({ mode: 6, rest: Buffer.from([]) }),
+            U256Const({ mode: 6, rest: new Uint8Array([]) }),
             Encode,
             StoreLocal(7),
             LoadLocal(0),
@@ -294,7 +293,7 @@ describe('Encode & decode contract', function () {
             LoadLocal(6),
             LoadLocal(7),
             U256Const1,
-            U256Const({ mode: 64, rest: Buffer.from([255]) }),
+            U256Const({ mode: 64, rest: new Uint8Array([255]) }),
             U256SHL,
             CopyCreateSubContractWithToken,
             StoreLocal(8),
@@ -330,10 +329,10 @@ describe('Encode & decode contract', function () {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileContractResult = await nodeProvider.contracts.postContractsCompileContract({ code: contractCode })
     const contractBytecode = compileContractResult.bytecode
-    const decoded = contractCodec.decode(Buffer.from(contractBytecode, 'hex'))
+    const decoded = contractCodec.decode(hexToBinUnsafe(contractBytecode))
     const encoded = contractCodec.encode(decoded)
 
-    const decodedContract = contractCodec.decodeContract(Buffer.from(contractBytecode, 'hex'))
+    const decodedContract = contractCodec.decodeContract(hexToBinUnsafe(contractBytecode))
     expect(decodedContract.methods.length).toEqual(methods.length)
     expect(toHalfDecoded(decodedContract)).toEqual(decoded)
     decodedContract.methods.map((decodedMethod, index) => {
@@ -346,7 +345,7 @@ describe('Encode & decode contract', function () {
       expect(decodedMethod.returnLength).toEqual(methods[index].returnLength)
       expect(decodedMethod.instrs).toEqual(methods[index].instrs)
     })
-    expect(contractBytecode).toEqual(encoded.toString('hex'))
+    expect(contractBytecode).toEqual(binToHex(encoded))
   }
 
   function getTypeLength(type: string): number {
@@ -367,10 +366,10 @@ describe('Encode & decode contract', function () {
   }
 
   function testContract(contract: Contract) {
-    const decoded = contractCodec.decode(Buffer.from(contract.bytecode, 'hex'))
+    const decoded = contractCodec.decode(hexToBinUnsafe(contract.bytecode))
     const encoded = contractCodec.encode(decoded)
 
-    const decodedContract = contractCodec.decodeContract(Buffer.from(contract.bytecode, 'hex'))
+    const decodedContract = contractCodec.decodeContract(hexToBinUnsafe(contract.bytecode))
     expect(toHalfDecoded(decodedContract)).toEqual(decoded)
 
     expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsSig.types))
@@ -384,6 +383,6 @@ describe('Encode & decode contract', function () {
       expect(decodedMethod.returnLength).toEqual(getTypesLength(functionSig.returnTypes))
     })
 
-    expect(contract.bytecode).toEqual(encoded.toString('hex'))
+    expect(contract.bytecode).toEqual(binToHex(encoded))
   }
 })

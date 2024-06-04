@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
 import { randomBytes } from 'crypto'
 
@@ -106,8 +105,8 @@ describe('Encode & decode compact int', function () {
 
   class TestCodec {
     constructor(
-      private encode: (number) => Buffer,
-      private decode: (Buffer) => number | bigint,
+      private encode: (number) => Uint8Array,
+      private decode: (Uint8Array) => number | bigint,
       private random: () => number | bigint
     ) {}
 

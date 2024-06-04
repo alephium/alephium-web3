@@ -16,13 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import djb2 from './djb2'
 
 describe('djb2', function () {
   it('djb2', () => {
     function check(str: string, expected: number) {
-      const bytes = Buffer.from(str, 'utf8')
+      const bytes = new TextEncoder().encode(str)
       expect(djb2(bytes)).toEqual(expected)
     }
 

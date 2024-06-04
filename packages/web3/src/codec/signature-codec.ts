@@ -15,23 +15,22 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
 import { Codec } from './codec'
 
 export interface Signature {
-  value: Buffer
+  value: Uint8Array
 }
 
 export class SignatureCodec implements Codec<Signature> {
   parser = Parser.start().buffer('value', { length: 64 })
 
-  encode(input: Signature): Buffer {
+  encode(input: Signature): Uint8Array {
     return input.value
   }
 
-  decode(input: Buffer): Signature {
+  decode(input: Uint8Array): Signature {
     return this.parser.parse(input)
   }
 }

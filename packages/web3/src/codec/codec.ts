@@ -15,13 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 
 export interface Codec<T> {
   parser: Parser
-  encode(input: T): Buffer
-  decode(input: Buffer): T
+  encode(input: T): Uint8Array
+  decode(input: Uint8Array): T
 }
 
 export function assert(value: boolean, message: string) {

@@ -15,14 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import blake from 'blakejs'
 
 export function blakeHash(raw: Uint8Array) {
   return blake.blake2b(raw, undefined, 32)
 }
 
-export function djbIntHash(bytes: Buffer): number {
+export function djbIntHash(bytes: Uint8Array): number {
   let hash = 5381
   bytes.forEach((byte) => {
     hash = (hash << 5) + hash + (byte & 0xff)
@@ -30,6 +29,6 @@ export function djbIntHash(bytes: Buffer): number {
   return hash
 }
 
-export function createHint(input: Buffer): number {
+export function createHint(input: Uint8Array): number {
   return djbIntHash(input) | 1
 }
