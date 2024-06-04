@@ -15,19 +15,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { AssetInput } from '../api/api-alephium'
-import { binToHex } from '../utils'
+import { binToHex, hexToBinUnsafe } from '../utils'
 import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
-import { Codec } from './codec'
+import { Codec, concatBytes } from './codec'
 import { signedIntCodec } from './signed-int-codec'
 import { ArrayCodec } from './array-codec'
 
 export interface Input {
   outputRef: {
     hint: number
-    key: Buffer
+    key: Uint8Array
   }
   unlockScript: UnlockScript
 }
@@ -41,14 +40,15 @@ export class InputCodec implements Codec<Input> {
       type: unlockScriptCodec.parser
     })
 
-  encode(input: Input): Buffer {
-    return Buffer.concat([
-      Buffer.from([...signedIntCodec.encode(input.outputRef.hint), ...input.outputRef.key]),
+  encode(input: Input): Uint8Array {
+    return concatBytes([
+      signedIntCodec.encode(input.outputRef.hint),
+      input.outputRef.key,
       unlockScriptCodec.encode(input.unlockScript)
     ])
   }
 
-  decode(input: Buffer): Input {
+  decode(input: Uint8Array): Input {
     return this.parser.parse(input)
   }
 
@@ -59,7 +59,7 @@ export class InputCodec implements Codec<Input> {
       const unlockScript = unlockScriptCodec.encode(input.unlockScript)
       return {
         outputRef: { hint, key },
-        unlockScript: unlockScript.toString('hex')
+        unlockScript: binToHex(unlockScript)
       }
     })
   }
@@ -67,8 +67,8 @@ export class InputCodec implements Codec<Input> {
   static fromAssetInputs(inputs: AssetInput[]): Input[] {
     return inputs.map((input) => {
       const hint = input.outputRef.hint
-      const key = Buffer.from(input.outputRef.key, 'hex')
-      const unlockScript = unlockScriptCodec.decode(Buffer.from(input.unlockScript, 'hex'))
+      const key = hexToBinUnsafe(input.outputRef.key)
+      const unlockScript = unlockScriptCodec.decode(hexToBinUnsafe(input.unlockScript))
       return {
         outputRef: { hint, key },
         unlockScript

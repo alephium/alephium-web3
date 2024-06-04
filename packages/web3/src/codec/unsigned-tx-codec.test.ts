@@ -16,8 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
-import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode } from '@alephium/web3'
+import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode, binToHex, hexToBinUnsafe } from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
 import { unsignedTxCodec } from './index'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
@@ -215,15 +214,15 @@ describe('Encode & decode unsigned transactions', function () {
     const { unsignedTx: serverDecodedUnsignedTx } = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({
       unsignedTx
     })
-    const clientEncodedUnsignedTx = unsignedTxCodec.encodeApiUnsignedTx(serverDecodedUnsignedTx).toString('hex')
+    const clientEncodedUnsignedTx = binToHex(unsignedTxCodec.encodeApiUnsignedTx(serverDecodedUnsignedTx))
     expect(unsignedTx).toEqual(clientEncodedUnsignedTx)
-    const clientDecodedUnsignedTx: UnsignedTx = unsignedTxCodec.decodeApiUnsignedTx(Buffer.from(unsignedTx, 'hex'))
+    const clientDecodedUnsignedTx: UnsignedTx = unsignedTxCodec.decodeApiUnsignedTx(hexToBinUnsafe(unsignedTx))
     expect(clientDecodedUnsignedTx).toEqual(serverDecodedUnsignedTx)
   }
 
   function checkUnsignedTxCodecRoundtrip(unsignedTx: string) {
-    const decoded: UnsignedTx = unsignedTxCodec.decodeApiUnsignedTx(Buffer.from(unsignedTx, 'hex'))
-    const encoded: string = unsignedTxCodec.encodeApiUnsignedTx(decoded).toString('hex')
+    const decoded: UnsignedTx = unsignedTxCodec.decodeApiUnsignedTx(hexToBinUnsafe(unsignedTx))
+    const encoded: string = binToHex(unsignedTxCodec.encodeApiUnsignedTx(decoded))
     expect(unsignedTx).toEqual(encoded)
   }
 })

@@ -15,17 +15,27 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 
 export interface Codec<T> {
   parser: Parser
-  encode(input: T): Buffer
-  decode(input: Buffer): T
+  encode(input: T): Uint8Array
+  decode(input: Uint8Array): T
 }
 
 export function assert(value: boolean, message: string) {
   if (!value) {
     throw new Error(message)
   }
+}
+
+export function concatBytes(arrays: Uint8Array[]): Uint8Array {
+  const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0)
+  const result = new Uint8Array(totalLength)
+  let offset = 0
+  for (const array of arrays) {
+    result.set(array, offset)
+    offset += array.length
+  }
+  return result
 }

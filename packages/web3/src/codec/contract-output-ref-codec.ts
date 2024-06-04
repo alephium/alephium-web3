@@ -15,25 +15,24 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { Codec } from './codec'
+import { Codec, concatBytes } from './codec'
 import { signedIntCodec } from './signed-int-codec'
 
 export interface ContractOutputRef {
   hint: number
-  key: Buffer
+  key: Uint8Array
 }
 
 export class ContractOutputRefCodec implements Codec<ContractOutputRef> {
   parser = Parser.start().int32('hint').buffer('key', { length: 32 })
 
-  encode(input: ContractOutputRef): Buffer {
-    return Buffer.concat([Buffer.from([...signedIntCodec.encode(input.hint), ...input.key])])
+  encode(input: ContractOutputRef): Uint8Array {
+    return concatBytes([signedIntCodec.encode(input.hint), input.key])
   }
 
-  decode(input: Buffer): ContractOutputRef {
+  decode(input: Uint8Array): ContractOutputRef {
     return this.parser.parse(input)
   }
 }

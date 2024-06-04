@@ -15,7 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
@@ -95,16 +94,16 @@ export class MethodCodec implements Codec<DecodedMethod> {
       type: instrsCodec.parser
     })
 
-  encode(input: DecodedMethod): Buffer {
+  encode(input: DecodedMethod): Uint8Array {
     const result = [input.isPublic, input.assetModifier]
     result.push(...compactUnsignedIntCodec.encode(input.argsLength))
     result.push(...compactUnsignedIntCodec.encode(input.localsLength))
     result.push(...compactUnsignedIntCodec.encode(input.returnLength))
     result.push(...instrsCodec.encode(input.instrs.value))
-    return Buffer.from(result)
+    return new Uint8Array(result)
   }
 
-  decode(input: Buffer): DecodedMethod {
+  decode(input: Uint8Array): DecodedMethod {
     return this.parser.parse(input)
   }
 

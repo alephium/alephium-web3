@@ -15,24 +15,23 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { ArrayCodec, DecodedArray } from './array-codec'
 
 export interface PublicKeyHash {
-  publicKeyHash: Buffer
+  publicKeyHash: Uint8Array
 }
 
 class PublicKeyHashCodec implements Codec<PublicKeyHash> {
   parser = Parser.start().buffer('publicKeyHash', { length: 32 })
 
-  encode(input: PublicKeyHash): Buffer {
+  encode(input: PublicKeyHash): Uint8Array {
     return input.publicKeyHash
   }
 
-  decode(input: Buffer): PublicKeyHash {
+  decode(input: Uint8Array): PublicKeyHash {
     return this.parser.parse(input)
   }
 }
@@ -48,11 +47,11 @@ export interface MultiSig {
 }
 
 export interface P2SH {
-  scriptHash: Buffer
+  scriptHash: Uint8Array
 }
 
 export interface P2C {
-  contractId: Buffer
+  contractId: Uint8Array
 }
 
 export interface LockupScript {
@@ -73,7 +72,7 @@ export class LockupScriptCodec implements Codec<LockupScript> {
       }
     })
 
-  encode(input: LockupScript): Buffer {
+  encode(input: LockupScript): Uint8Array {
     const result: number[] = [input.scriptType]
     if (input.scriptType === 0) {
       result.push(...(input.script as PublicKeyHash).publicKeyHash)
@@ -88,10 +87,10 @@ export class LockupScriptCodec implements Codec<LockupScript> {
       throw new Error(`Unsupported script type: ${input.scriptType}`)
     }
 
-    return Buffer.from(result)
+    return new Uint8Array(result)
   }
 
-  decode(input: Buffer): LockupScript {
+  decode(input: Uint8Array): LockupScript {
     return this.parser.parse(input)
   }
 }

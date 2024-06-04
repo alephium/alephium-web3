@@ -15,7 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { compactSignedIntCodec, compactUnsignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Codec } from './codec'
@@ -28,15 +27,15 @@ export interface DecodedArray<T> {
 export class ArrayCodec<T> implements Codec<T[]> {
   constructor(private childCodec: Codec<T>, public parser = ArrayCodec.arrayParser(childCodec.parser)) {}
 
-  encode(input: T[]): Buffer {
+  encode(input: T[]): Uint8Array {
     const result = [...compactSignedIntCodec.encodeI256(BigInt(input.length))]
     for (const element of input) {
       result.push(...this.childCodec.encode(element))
     }
-    return Buffer.from(result)
+    return new Uint8Array(result)
   }
 
-  decode(input: Buffer): T[] {
+  decode(input: Uint8Array): T[] {
     const result = this.parser.parse(input)
     return result.value.map((v) => this.childCodec.decode(v.value))
   }

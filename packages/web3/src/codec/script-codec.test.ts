@@ -27,8 +27,7 @@ import {
   U256Eq,
   StoreLocal
 } from './instr-codec'
-import { Buffer } from 'buffer/'
-import { Script, bs58, web3, Fields, FieldsSig, buildScriptByteCode } from '@alephium/web3'
+import { Script, bs58, web3, Fields, FieldsSig, buildScriptByteCode, hexToBinUnsafe, binToHex } from '@alephium/web3'
 import { randomContractId, testAddress } from '@alephium/web3-test'
 import { scriptCodec } from './script-codec'
 import { Method } from './method-codec'
@@ -160,7 +159,7 @@ describe('Encode & decode scripts', function () {
 
   it('should encode & decode TxScript from the project', () => {
     const contractId = randomContractId()
-    const decodedTestAddress = Buffer.from(bs58.decode(testAddress))
+    const decodedTestAddress = bs58.decode(testAddress)
     const lockupScript = {
       scriptType: decodedTestAddress[0],
       script: {
@@ -168,8 +167,8 @@ describe('Encode & decode scripts', function () {
       }
     } as LockupScript
     const contractIdByteString = {
-      length: { mode: 64, rest: Buffer.from(['32']) },
-      value: Buffer.from(contractId, 'hex')
+      length: { mode: 64, rest: new Uint8Array([32]) },
+      value: hexToBinUnsafe(contractId)
     }
 
     testScript(DestroyAdd.script, { add: contractId, caller: testAddress }, [
@@ -228,16 +227,16 @@ describe('Encode & decode scripts', function () {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileScriptResult = await nodeProvider.contracts.postContractsCompileScript({ code: scriptCode })
     const scriptBytecode = buildScriptByteCode(compileScriptResult.bytecodeTemplate, fields, fieldsSig, [])
-    const decoded = scriptCodec.decode(Buffer.from(scriptBytecode, 'hex'))
+    const decoded = scriptCodec.decode(hexToBinUnsafe(scriptBytecode))
     const encoded = scriptCodec.encode(decoded)
-    expect(scriptBytecode).toEqual(encoded.toString('hex'))
+    expect(scriptBytecode).toEqual(binToHex(encoded))
   }
 
   function testScript(script: Script, fields: Fields, methods: Method[]) {
     const txScriptBytecode = script.buildByteCodeToDeploy(fields)
-    const decodedTxScript = scriptCodec.decodeScript(Buffer.from(txScriptBytecode, 'hex'))
+    const decodedTxScript = scriptCodec.decodeScript(hexToBinUnsafe(txScriptBytecode))
 
-    expect(scriptCodec.encodeScript(decodedTxScript).toString('hex')).toEqual(txScriptBytecode)
+    expect(binToHex(scriptCodec.encodeScript(decodedTxScript))).toEqual(txScriptBytecode)
 
     expect(decodedTxScript.methods.length).toEqual(methods.length)
     decodedTxScript.methods.map((decodedMethod, index) => {

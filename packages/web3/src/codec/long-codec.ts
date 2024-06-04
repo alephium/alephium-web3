@@ -15,7 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
 
@@ -24,7 +23,7 @@ export class LongCodec implements Codec<bigint> {
     length: 8
   })
 
-  encode(input: bigint): Buffer {
+  encode(input: bigint): Uint8Array {
     const byteArray = new Uint8Array(8)
 
     assert(byteArray.length <= 8, 'Length should be less than or equal to 8')
@@ -34,10 +33,10 @@ export class LongCodec implements Codec<bigint> {
       input >>= BigInt(8)
     }
 
-    return Buffer.from(byteArray)
+    return byteArray
   }
 
-  decode(bytes: Buffer): bigint {
+  decode(bytes: Uint8Array): bigint {
     assert(bytes.length == 8, 'Length should be 8')
     let int64 = BigInt(0)
     let pow = BigInt(1)

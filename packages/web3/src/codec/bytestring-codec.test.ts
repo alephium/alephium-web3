@@ -21,15 +21,15 @@ import { compactUnsignedIntCodec } from './compact-int-codec'
 
 describe('Encode & decode bytestring', function () {
   it('should encode & decode bytestring', function () {
-    success(Buffer.from(''))
+    success(new Uint8Array([]))
     success(Buffer.from('Alephium is great!'))
   })
 
-  function success(value: Buffer) {
-    const encodedOne = byteStringCodec.encodeBuffer(value)
+  function success(value: Uint8Array) {
+    const encodedOne = byteStringCodec.encodeBytes(value)
     const decodedOne = byteStringCodec.decode(encodedOne)
     const encodedTwo = byteStringCodec.encode(decodedOne)
-    const decodedTwo = byteStringCodec.decodeBuffer(encodedTwo)
+    const decodedTwo = byteStringCodec.decodeBytes(encodedTwo)
     expect(compactUnsignedIntCodec.toU32(decodedOne.length)).toEqual(decodedOne.value.length)
     expect(decodedOne.value).toEqual(value)
     expect(decodedTwo).toEqual(value)

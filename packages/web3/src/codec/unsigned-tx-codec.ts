@@ -15,7 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { UnsignedTx as ApiUnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '../utils'
@@ -26,7 +25,7 @@ import { Input, InputCodec, inputsCodec } from './input-codec'
 import { AssetOutput, AssetOutputCodec, assetOutputsCodec } from './asset-output-codec'
 import { DecodedArray } from './array-codec'
 import { blakeHash } from './hash'
-import { Codec } from './codec'
+import { Codec, concatBytes } from './codec'
 
 export interface UnsignedTx {
   version: number
@@ -58,9 +57,9 @@ export class UnsignedTxCodec implements Codec<UnsignedTx> {
       type: assetOutputsCodec.parser
     })
 
-  encode(decodedUnsignedTx: UnsignedTx): Buffer {
-    return Buffer.concat([
-      Buffer.from([decodedUnsignedTx.version, decodedUnsignedTx.networkId]),
+  encode(decodedUnsignedTx: UnsignedTx): Uint8Array {
+    return concatBytes([
+      new Uint8Array([decodedUnsignedTx.version, decodedUnsignedTx.networkId]),
       statefulScriptCodecOpt.encode(decodedUnsignedTx.statefulScript),
       compactSignedIntCodec.encode(decodedUnsignedTx.gasAmount),
       compactUnsignedIntCodec.encode(decodedUnsignedTx.gasPrice),
@@ -69,16 +68,16 @@ export class UnsignedTxCodec implements Codec<UnsignedTx> {
     ])
   }
 
-  decode(input: Buffer): UnsignedTx {
+  decode(input: Uint8Array): UnsignedTx {
     return this.parser.parse(input)
   }
 
-  encodeApiUnsignedTx(input: ApiUnsignedTx): Buffer {
+  encodeApiUnsignedTx(input: ApiUnsignedTx): Uint8Array {
     const decoded = UnsignedTxCodec.fromApiUnsignedTx(input)
     return this.encode(decoded)
   }
 
-  decodeApiUnsignedTx(input: Buffer): ApiUnsignedTx {
+  decodeApiUnsignedTx(input: Uint8Array): ApiUnsignedTx {
     const decoded = this.parser.parse(input)
     return UnsignedTxCodec.toApiUnsignedTx(decoded)
   }
@@ -98,7 +97,7 @@ export class UnsignedTxCodec implements Codec<UnsignedTx> {
     const fixedOutputs = AssetOutputCodec.toFixedAssetOutputs(txIdBytes, unsigned.fixedOutputs.value)
     let scriptOpt: string | undefined = undefined
     if (unsigned.statefulScript.option === 1) {
-      scriptOpt = scriptCodec.encode(unsigned.statefulScript.value!).toString('hex')
+      scriptOpt = binToHex(scriptCodec.encode(unsigned.statefulScript.value!))
     }
 
     return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }
@@ -113,8 +112,8 @@ export class UnsignedTxCodec implements Codec<UnsignedTx> {
     const inputs = inputsCodec.fromArray(inputsValue)
     const fixedOutputsValue = AssetOutputCodec.fromFixedAssetOutputs(unsignedTx.fixedOutputs)
     const fixedOutputs = assetOutputsCodec.fromArray(fixedOutputsValue)
-    const statefulScript = statefulScriptCodecOpt.fromBuffer(
-      unsignedTx.scriptOpt ? Buffer.from(unsignedTx.scriptOpt, 'hex') : undefined
+    const statefulScript = statefulScriptCodecOpt.fromBytes(
+      unsignedTx.scriptOpt ? hexToBinUnsafe(unsignedTx.scriptOpt) : undefined
     )
 
     return { version, networkId, gasAmount, gasPrice, inputs, fixedOutputs, statefulScript }

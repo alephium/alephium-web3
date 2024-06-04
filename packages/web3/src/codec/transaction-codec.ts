@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { DecodedArray } from './array-codec'
 
@@ -27,9 +26,9 @@ import { Either } from './either-codec'
 import { AssetOutput, AssetOutputCodec } from './asset-output-codec'
 import { ContractOutput, ContractOutputCodec } from './contract-output-codec'
 import { FixedAssetOutput, Transaction as ApiTransaction } from '../api/api-alephium'
-import { hexToBinUnsafe } from '../utils'
+import { binToHex, hexToBinUnsafe } from '../utils'
 import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
-import { Codec } from './codec'
+import { Codec, concatBytes } from './codec'
 import { Output, outputCodec, outputsCodec } from './output-codec'
 
 export interface Transaction {
@@ -60,27 +59,27 @@ export class TransactionCodec implements Codec<Transaction> {
       type: signaturesCodec.parser
     })
 
-  encode(decodedTx: Transaction): Buffer {
-    return Buffer.concat([
+  encode(decodedTx: Transaction): Uint8Array {
+    return concatBytes([
       unsignedTxCodec.encode(decodedTx.unsigned),
-      Buffer.from([decodedTx.scriptExecutionOk]),
-      Buffer.from([...contractOutputRefsCodec.encode(decodedTx.contractInputs.value)]),
-      Buffer.from([...outputsCodec.encode(decodedTx.generatedOutputs.value)]),
-      Buffer.from([...signaturesCodec.encode(decodedTx.inputSignatures.value)]),
-      Buffer.from([...signaturesCodec.encode(decodedTx.scriptSignatures.value)])
+      new Uint8Array([decodedTx.scriptExecutionOk]),
+      contractOutputRefsCodec.encode(decodedTx.contractInputs.value),
+      outputsCodec.encode(decodedTx.generatedOutputs.value),
+      signaturesCodec.encode(decodedTx.inputSignatures.value),
+      signaturesCodec.encode(decodedTx.scriptSignatures.value)
     ])
   }
 
-  decode(input: Buffer): Transaction {
+  decode(input: Uint8Array): Transaction {
     return this.parser.parse(input)
   }
 
-  encodeApiTransaction(input: ApiTransaction): Buffer {
+  encodeApiTransaction(input: ApiTransaction): Uint8Array {
     const decodedTx = TransactionCodec.fromApiTransaction(input)
     return this.encode(decodedTx)
   }
 
-  decodeApiTransaction(input: Buffer): ApiTransaction {
+  decodeApiTransaction(input: Uint8Array): ApiTransaction {
     const decodedTx = this.parser.parse(input)
     return TransactionCodec.toApiTransaction(decodedTx)
   }
@@ -91,7 +90,7 @@ export class TransactionCodec implements Codec<Transaction> {
     const scriptExecutionOk = !!transaction.scriptExecutionOk
     const contractInputs = transaction.contractInputs.value.map((contractInput) => {
       const hint = contractInput.hint
-      const key = contractInput.key.toString('hex')
+      const key = binToHex(contractInput.key)
       return { hint, key }
     })
     const txIdBytes = hexToBinUnsafe(txId)
@@ -104,8 +103,8 @@ export class TransactionCodec implements Codec<Transaction> {
       }
     })
 
-    const inputSignatures = transaction.inputSignatures.value.map((signature) => signature.value.toString('hex'))
-    const scriptSignatures = transaction.scriptSignatures.value.map((signature) => signature.value.toString('hex'))
+    const inputSignatures = transaction.inputSignatures.value.map((signature) => binToHex(signature.value))
+    const scriptSignatures = transaction.scriptSignatures.value.map((signature) => binToHex(signature.value))
 
     return { unsigned, scriptExecutionOk, contractInputs, generatedOutputs, inputSignatures, scriptSignatures }
   }
@@ -114,7 +113,7 @@ export class TransactionCodec implements Codec<Transaction> {
     const unsigned = UnsignedTxCodec.fromApiUnsignedTx(tx.unsigned)
     const scriptExecutionOk = tx.scriptExecutionOk ? 1 : 0
     const contractInputs: ContractOutputRef[] = tx.contractInputs.map((contractInput) => {
-      return { hint: contractInput.hint, key: Buffer.from(contractInput.key, 'hex') }
+      return { hint: contractInput.hint, key: hexToBinUnsafe(contractInput.key) }
     })
     const generatedOutputs: Either<AssetOutput, ContractOutput>[] = tx.generatedOutputs.map((output) => {
       if (output.type === 'AssetOutput') {
@@ -127,10 +126,10 @@ export class TransactionCodec implements Codec<Transaction> {
     })
 
     const inputSignatures: Signature[] = tx.inputSignatures.map((signature) => {
-      return { value: Buffer.from(signature, 'hex') }
+      return { value: hexToBinUnsafe(signature) }
     })
     const scriptSignatures: Signature[] = tx.scriptSignatures.map((signature) => {
-      return { value: Buffer.from(signature, 'hex') }
+      return { value: hexToBinUnsafe(signature) }
     })
 
     return {

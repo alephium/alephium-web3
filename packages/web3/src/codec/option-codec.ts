@@ -15,7 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { Codec } from './codec'
 
@@ -35,15 +34,15 @@ export class OptionCodec<T> implements Codec<Option<T>> {
     })
   ) {}
 
-  encode(input: Option<T>): Buffer {
+  encode(input: Option<T>): Uint8Array {
     const result = [input.option]
     if (input.option === 1) {
       result.push(...this.childCodec.encode(input.value!))
     }
-    return Buffer.from(result)
+    return new Uint8Array(result)
   }
 
-  decode(input: Buffer): Option<T> {
+  decode(input: Uint8Array): Option<T> {
     const result = this.parser.parse(input)
     return {
       ...result,
@@ -51,7 +50,7 @@ export class OptionCodec<T> implements Codec<Option<T>> {
     }
   }
 
-  fromBuffer(input?: Buffer): Option<T> {
+  fromBytes(input?: Uint8Array): Option<T> {
     return {
       option: input ? 1 : 0,
       value: input ? this.childCodec.decode(input) : undefined

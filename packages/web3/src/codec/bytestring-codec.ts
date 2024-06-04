@@ -15,14 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
-import { Codec } from './codec'
+import { Codec, concatBytes } from './codec'
 
 export interface ByteString {
   length: DecodedCompactInt
-  value: Buffer
+  value: Uint8Array
 }
 
 export class ByteStringCodec implements Codec<ByteString> {
@@ -36,19 +35,19 @@ export class ByteStringCodec implements Codec<ByteString> {
       }
     })
 
-  encode(input: ByteString): Buffer {
-    return Buffer.from([...compactUnsignedIntCodec.encode(input.length), ...input.value])
+  encode(input: ByteString): Uint8Array {
+    return concatBytes([compactUnsignedIntCodec.encode(input.length), input.value])
   }
 
-  decode(input: Buffer): ByteString {
+  decode(input: Uint8Array): ByteString {
     return this.parser.parse(input)
   }
 
-  encodeBuffer(input: Buffer): Buffer {
-    return Buffer.from([...compactUnsignedIntCodec.encodeU32(input.length), ...input])
+  encodeBytes(input: Uint8Array): Uint8Array {
+    return concatBytes([compactUnsignedIntCodec.encodeU32(input.length), input])
   }
 
-  decodeBuffer(input: Buffer): Buffer {
+  decodeBytes(input: Uint8Array): Uint8Array {
     return this.decode(input).value
   }
 }
