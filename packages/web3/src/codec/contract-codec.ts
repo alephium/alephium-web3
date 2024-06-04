@@ -18,9 +18,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
-import { Codec, concatBytes } from './codec'
+import { Codec } from './codec'
 import { compactSignedIntCodec, compactUnsignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Method, MethodCodec, methodCodec } from './method-codec'
+import { concatBytes } from '../utils'
 
 const compactSignedIntsCodec = new ArrayCodec(compactSignedIntCodec)
 

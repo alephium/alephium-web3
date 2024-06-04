@@ -17,8 +17,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { Codec, concatBytes } from './codec'
+import { Codec } from './codec'
 import { signedIntCodec } from './signed-int-codec'
+import { concatBytes } from '../utils'
 
 export interface ContractOutputRef {
   hint: number

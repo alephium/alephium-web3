@@ -26,9 +26,9 @@ import { Either } from './either-codec'
 import { AssetOutput, AssetOutputCodec } from './asset-output-codec'
 import { ContractOutput, ContractOutputCodec } from './contract-output-codec'
 import { FixedAssetOutput, Transaction as ApiTransaction } from '../api/api-alephium'
-import { binToHex, hexToBinUnsafe } from '../utils'
+import { binToHex, hexToBinUnsafe, concatBytes } from '../utils'
 import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
-import { Codec, concatBytes } from './codec'
+import { Codec } from './codec'
 import { Output, outputCodec, outputsCodec } from './output-codec'
 
 export interface Transaction {

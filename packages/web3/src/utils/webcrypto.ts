@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { webcrypto, randomFillSync } from 'crypto'
 
 const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'
@@ -30,12 +29,12 @@ export class WebCrypto {
         "Failed to execute 'getRandomValues' on 'Crypto': parameter 1 is not of type 'ArrayBufferView'"
       )
     }
-    const buffer = Buffer.from(array.buffer, array.byteOffset, array.byteLength)
+    const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength)
 
     if (isBrowser) {
-      globalThis.crypto.getRandomValues(buffer)
+      globalThis.crypto.getRandomValues(bytes)
     } else {
-      randomFillSync(buffer)
+      randomFillSync(bytes)
     }
     return array
   }

@@ -329,10 +329,10 @@ describe('Encode & decode contract', function () {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileContractResult = await nodeProvider.contracts.postContractsCompileContract({ code: contractCode })
     const contractBytecode = compileContractResult.bytecode
-    const decoded = contractCodec.decode(new Uint8Array(hexToBinUnsafe(contractBytecode)))
+    const decoded = contractCodec.decode(hexToBinUnsafe(contractBytecode))
     const encoded = contractCodec.encode(decoded)
 
-    const decodedContract = contractCodec.decodeContract(new Uint8Array(hexToBinUnsafe(contractBytecode)))
+    const decodedContract = contractCodec.decodeContract(hexToBinUnsafe(contractBytecode))
     expect(decodedContract.methods.length).toEqual(methods.length)
     expect(toHalfDecoded(decodedContract)).toEqual(decoded)
     decodedContract.methods.map((decodedMethod, index) => {
@@ -366,10 +366,10 @@ describe('Encode & decode contract', function () {
   }
 
   function testContract(contract: Contract) {
-    const decoded = contractCodec.decode(new Uint8Array(hexToBinUnsafe(contract.bytecode)))
+    const decoded = contractCodec.decode(hexToBinUnsafe(contract.bytecode))
     const encoded = contractCodec.encode(decoded)
 
-    const decodedContract = contractCodec.decodeContract(new Uint8Array(hexToBinUnsafe(contract.bytecode)))
+    const decodedContract = contractCodec.decodeContract(hexToBinUnsafe(contract.bytecode))
     expect(toHalfDecoded(decodedContract)).toEqual(decoded)
 
     expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsSig.types))

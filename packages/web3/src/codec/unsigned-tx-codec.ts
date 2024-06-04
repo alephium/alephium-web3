@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { UnsignedTx as ApiUnsignedTx } from '../api/api-alephium'
-import { binToHex, hexToBinUnsafe } from '../utils'
+import { binToHex, concatBytes, hexToBinUnsafe } from '../utils'
 import { DecodedScript, scriptCodec, statefulScriptCodecOpt } from './script-codec'
 import { Option } from './option-codec'
 import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
@@ -25,7 +25,7 @@ import { Input, InputCodec, inputsCodec } from './input-codec'
 import { AssetOutput, AssetOutputCodec, assetOutputsCodec } from './asset-output-codec'
 import { DecodedArray } from './array-codec'
 import { blakeHash } from './hash'
-import { Codec, concatBytes } from './codec'
+import { Codec } from './codec'
 
 export interface UnsignedTx {
   version: number

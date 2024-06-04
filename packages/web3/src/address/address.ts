@@ -22,10 +22,9 @@ import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import blake from 'blakejs'
 import bs58 from '../utils/bs58'
 import djb2 from '../utils/djb2'
-import { binToHex, hexToBinUnsafe } from '../utils'
+import { binToHex, concatBytes, hexToBinUnsafe } from '../utils'
 import { KeyType } from '../signer'
 import { MultiSig, lockupScriptCodec } from '../codec/lockup-script-codec'
-import { Buffer } from 'buffer/'
 import { compactSignedIntCodec } from '../codec'
 
 const ec = new EC('secp256k1')
@@ -54,7 +53,7 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   if (addressType === AddressType.P2MPKH) {
     let multisig: MultiSig
     try {
-      multisig = lockupScriptCodec.decode(Buffer.from(decoded)).script as MultiSig
+      multisig = lockupScriptCodec.decode(decoded).script as MultiSig
     } catch (_) {
       throw new Error(`Invalid multisig address: ${address}`)
     }
@@ -163,26 +162,23 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
   const keyType = _keyType ?? 'default'
 
   if (keyType === 'default') {
-    const addressType = Buffer.from([AddressType.P2PKH])
-    const hash = Buffer.from(blake.blake2b(Buffer.from(publicKey, 'hex'), undefined, 32))
-    const bytes = Buffer.concat([addressType, hash])
+    const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
+    const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
     return bs58.encode(bytes)
   } else {
-    const lockupScript = Buffer.from(`0101000000000458144020${publicKey}8685`, 'hex')
+    const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
     return addressFromScript(lockupScript)
   }
 }
 
 export function addressFromScript(script: Uint8Array): string {
   const scriptHash = blake.blake2b(script, undefined, 32)
-  const addressType = Buffer.from([AddressType.P2SH])
-  return bs58.encode(Buffer.concat([addressType, scriptHash]))
+  return bs58.encode(new Uint8Array([AddressType.P2SH, ...scriptHash]))
 }
 
 export function addressFromContractId(contractId: string): string {
-  const addressType = Buffer.from([AddressType.P2C])
-  const hash = Buffer.from(hexToBinUnsafe(contractId))
-  const bytes = Buffer.concat([addressType, hash])
+  const hash = hexToBinUnsafe(contractId)
+  const bytes = new Uint8Array([AddressType.P2C, ...hash])
   return bs58.encode(bytes)
 }
 
@@ -193,7 +189,7 @@ export function addressFromTokenId(tokenId: string): string {
 
 export function contractIdFromTx(txId: string, outputIndex: number): string {
   const txIdBin = hexToBinUnsafe(txId)
-  const data = Buffer.concat([txIdBin, Buffer.from([outputIndex])])
+  const data = new Uint8Array([...txIdBin, outputIndex])
   const hash = blake.blake2b(data, undefined, 32)
   return binToHex(hash)
 }
@@ -202,10 +198,10 @@ export function subContractId(parentContractId: string, pathInHex: string, group
   if (group < 0 || group >= TOTAL_NUMBER_OF_GROUPS) {
     throw new Error(`Invalid group ${group}`)
   }
-  const data = Buffer.concat([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
-  const bytes = Buffer.concat([
-    blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32).slice(0, -1),
-    Buffer.from([group])
+  const data = concatBytes([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
+  const bytes = new Uint8Array([
+    ...blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32).slice(0, -1),
+    group
   ])
   return binToHex(bytes)
 }

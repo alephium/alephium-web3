@@ -28,14 +28,3 @@ export function assert(value: boolean, message: string) {
     throw new Error(message)
   }
 }
-
-export function concatBytes(arrays: Uint8Array[]): Uint8Array {
-  const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0)
-  const result = new Uint8Array(totalLength)
-  let offset = 0
-  for (const array of arrays) {
-    result.set(array, offset)
-    offset += array.length
-  }
-  return result
-}

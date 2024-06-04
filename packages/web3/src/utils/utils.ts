@@ -18,8 +18,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ec as EC, SignatureInput } from 'elliptic'
 import BN from 'bn.js'
-import { Buffer } from 'buffer/'
-
 import { TOTAL_NUMBER_OF_GROUPS, TOTAL_NUMBER_OF_CHAINS } from '../constants'
 
 export const networkIds = ['mainnet', 'testnet', 'devnet'] as const
@@ -73,11 +71,17 @@ export function toNonNegativeBigInt(input: string): bigint | undefined {
 }
 
 export function hexToBinUnsafe(hex: string): Uint8Array {
-  return Buffer.from(hex, 'hex')
+  const bytes: number[] = []
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes.push(parseInt(hex.slice(i, i + 2), 16))
+  }
+  return new Uint8Array(bytes)
 }
 
 export function binToHex(bin: Uint8Array): string {
-  return Buffer.from(bin).toString('hex')
+  return Array.from(bin)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 export function blockChainIndex(blockHash: HexString): { fromGroup: number; toGroup: number } {
@@ -101,7 +105,8 @@ export function hexToString(str: string): string {
   if (!isHexString(str)) {
     throw new Error(`Invalid hex string: ${str}`)
   }
-  return Buffer.from(str, 'hex').toString()
+  const bytes = hexToBinUnsafe(str)
+  return new TextDecoder().decode(bytes)
 }
 
 export function sleep(ms: number): Promise<void> {
@@ -127,14 +132,28 @@ export function difficultyToTarget(diff: bigint): HexString {
   const maxBigInt = 1n << 256n
   const target = diff === 1n ? maxBigInt - 1n : maxBigInt / diff
   const size = Math.floor((target.toString(2).length + 7) / 8)
-  const mantissa =
+  const mantissa = Number(
     size <= 3
       ? BigInt.asIntN(32, target) << BigInt(8 * (3 - size))
       : BigInt.asIntN(32, target >> BigInt(8 * (size - 3)))
-  const mantissaBytes = Buffer.alloc(4)
-  mantissaBytes.writeInt32BE(Number(mantissa), 0)
-  const bytes = new Uint8Array([size, ...mantissaBytes.slice(1)])
-  return binToHex(bytes)
+  )
+  const mantissaBytes = new Uint8Array(4)
+  mantissaBytes[0] = size
+  mantissaBytes[1] = (mantissa >> 16) & 0xff
+  mantissaBytes[2] = (mantissa >> 8) & 0xff
+  mantissaBytes[3] = mantissa & 0xff
+  return binToHex(mantissaBytes)
+}
+
+export function concatBytes(arrays: Uint8Array[]): Uint8Array {
+  const totalLength = arrays.reduce((acc, arr) => acc + arr.length, 0)
+  const result = new Uint8Array(totalLength)
+  let offset = 0
+  for (const array of arrays) {
+    result.set(array, offset)
+    offset += array.length
+  }
+  return result
 }
 
 type _Eq<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false

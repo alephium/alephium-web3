@@ -18,10 +18,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
-import { Codec, concatBytes } from './codec'
+import { Codec } from './codec'
 import { DecodedScript, scriptCodec } from './script-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
+import { concatBytes } from '../utils'
 
 export interface P2PKH {
   publicKey: Uint8Array

@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import {
   AddressConst,
   AssertWithErrorCode,
@@ -169,7 +168,7 @@ describe('Encode & decode scripts', function () {
     } as LockupScript
     const contractIdByteString = {
       length: { mode: 64, rest: new Uint8Array([32]) },
-      value: new Uint8Array(hexToBinUnsafe(contractId))
+      value: hexToBinUnsafe(contractId)
     }
 
     testScript(DestroyAdd.script, { add: contractId, caller: testAddress }, [
@@ -228,14 +227,14 @@ describe('Encode & decode scripts', function () {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileScriptResult = await nodeProvider.contracts.postContractsCompileScript({ code: scriptCode })
     const scriptBytecode = buildScriptByteCode(compileScriptResult.bytecodeTemplate, fields, fieldsSig, [])
-    const decoded = scriptCodec.decode(new Uint8Array(hexToBinUnsafe(scriptBytecode)))
+    const decoded = scriptCodec.decode(hexToBinUnsafe(scriptBytecode))
     const encoded = scriptCodec.encode(decoded)
     expect(scriptBytecode).toEqual(binToHex(encoded))
   }
 
   function testScript(script: Script, fields: Fields, methods: Method[]) {
     const txScriptBytecode = script.buildByteCodeToDeploy(fields)
-    const decodedTxScript = scriptCodec.decodeScript(new Uint8Array(hexToBinUnsafe(txScriptBytecode)))
+    const decodedTxScript = scriptCodec.decodeScript(hexToBinUnsafe(txScriptBytecode))
 
     expect(binToHex(scriptCodec.encodeScript(decodedTxScript))).toEqual(txScriptBytecode)
 

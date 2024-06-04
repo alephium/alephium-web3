@@ -17,7 +17,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
-import { Codec, concatBytes } from './codec'
+import { Codec } from './codec'
+import { concatBytes } from '../utils'
 
 export interface ByteString {
   length: DecodedCompactInt

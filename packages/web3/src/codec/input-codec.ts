@@ -17,9 +17,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { AssetInput } from '../api/api-alephium'
-import { binToHex, hexToBinUnsafe } from '../utils'
+import { binToHex, concatBytes, hexToBinUnsafe } from '../utils'
 import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
-import { Codec, concatBytes } from './codec'
+import { Codec } from './codec'
 import { signedIntCodec } from './signed-int-codec'
 import { ArrayCodec } from './array-codec'
 

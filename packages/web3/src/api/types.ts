@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ZERO_ADDRESS } from '../constants'
 import { isDebugModeEnabled } from '../debug'
-import { assertType, bs58, Eq, isBase58, isHexString } from '../utils'
+import { assertType, binToHex, bs58, Eq, isBase58, isHexString } from '../utils'
 import * as node from './api-alephium'
 
 export type Number256 = bigint | string
@@ -93,7 +93,7 @@ export function toApiByteVec(v: Val): string {
     try {
       const address = bs58.decode(v)
       if (address.length == 33 && address[0] == 3) {
-        return Buffer.from(address.slice(1)).toString('hex')
+        return binToHex(address.slice(1))
       }
     } catch (_) {
       throw new Error(`Invalid hex-string: ${v}`)

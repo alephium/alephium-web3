@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Buffer } from 'buffer/'
 import { createHash } from 'crypto'
 import { ExplorerProvider, fromApiNumber256, fromApiTokens, NodeProvider, toApiNumber256, toApiTokens } from '../api'
 import { node } from '../api'
@@ -254,7 +253,7 @@ export function hashMessage(message: string, hasher: MessageHasher): string {
       return utils.binToHex(blake.blake2b(extendMessage(message), undefined, 32))
     case 'sha256':
       const sha256 = createHash('sha256')
-      sha256.update(Buffer.from(message))
+      sha256.update(new TextEncoder().encode(message))
       return utils.binToHex(sha256.digest())
     case 'blake2b':
       return utils.binToHex(blake.blake2b(message, undefined, 32))

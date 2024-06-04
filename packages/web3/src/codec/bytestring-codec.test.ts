@@ -15,14 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { byteStringCodec } from './bytestring-codec'
 import { compactUnsignedIntCodec } from './compact-int-codec'
 
 describe('Encode & decode bytestring', function () {
   it('should encode & decode bytestring', function () {
     success(new Uint8Array([]))
-    success(new Uint8Array(Buffer.from('Alephium is great!')))
+    success(new TextEncoder().encode('Alephium is great!'))
   })
 
   function success(value: Uint8Array) {
