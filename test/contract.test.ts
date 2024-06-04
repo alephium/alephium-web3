@@ -61,7 +61,7 @@ import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
-import { ProjectArtifact, Project } from '@alephium/cli'
+import { ProjectArtifact, Project } from '../packages/cli/src/project'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -274,7 +274,9 @@ describe('contract', function () {
   })
 
   it('should handle compiler warnings', async () => {
-    await expect(Project.compile()).rejects.toThrow(/Compilation warnings\:/)
+    await expect(Project.compile({}, '.', 'contracts', 'artifacts', undefined, true)).rejects.toThrow(
+      /Compilation warnings\:/
+    )
 
     const project0 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
     expect(project0.projectArtifact.infos.get('Warnings')!.warnings).toEqual([

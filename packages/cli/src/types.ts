@@ -33,14 +33,13 @@ import {
   ContractInstance
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
-import path from 'path'
 import { Project } from './project'
 
 export interface Network<Settings = unknown> {
   networkId?: number
   nodeUrl: string
   privateKeys: string[] | string
-  deploymentStatusFile?: string
+  deploymentFile?: string
   confirmations?: number
   settings: Settings
 }
@@ -60,7 +59,7 @@ export interface Configuration<Settings = unknown> {
   networks: Record<NetworkId, Network<Settings>>
 
   enableDebugMode?: boolean
-  skipSaveArtifacts?: boolean
+  forceRecompile?: boolean
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {
@@ -87,7 +86,7 @@ export const DEFAULT_CONFIGURATION_VALUES = {
       confirmations: 2
     }
   },
-  skipSaveArtifacts: false
+  forceRecompile: false
 }
 
 export interface Environment<Settings = unknown> {
