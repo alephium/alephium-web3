@@ -47,19 +47,16 @@ import * as ralph from './ralph'
 import {
   bs58,
   binToHex,
-  contractIdFromAddress,
   Subscription,
   assertType,
   Eq,
   Optional,
-  groupOfAddress,
   WebCrypto,
   hexToBinUnsafe,
   isDevnet,
-  addressFromContractId,
-  subContractId,
   HexString
 } from '../utils'
+import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'

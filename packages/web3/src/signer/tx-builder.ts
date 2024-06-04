@@ -16,9 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { binToHex, contractIdFromAddress } from '../utils'
+import { binToHex } from '../utils'
 import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiTokens } from '../api'
-import { addressFromPublicKey } from '../utils'
+import { addressFromPublicKey, contractIdFromAddress } from '../address'
 import { toApiDestinations } from './signer'
 import {
   KeyType,

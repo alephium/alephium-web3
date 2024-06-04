@@ -44,7 +44,7 @@ import {
   MessageHasher
 } from './types'
 import { TransactionBuilder } from './tx-builder'
-import { addressFromPublicKey, groupOfAddress } from '../utils'
+import { addressFromPublicKey, groupOfAddress } from '../address'
 
 export abstract class SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined

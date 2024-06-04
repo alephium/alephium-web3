@@ -28,15 +28,8 @@ import {
   requestWithLog
 } from './types'
 import { Api as NodeApi, CallContractFailed, CallContractSucceeded } from './api-alephium'
-import {
-  HexString,
-  addressFromContractId,
-  addressFromTokenId,
-  groupOfAddress,
-  hexToString,
-  isHexString,
-  toNonNegativeBigInt
-} from '../utils'
+import { HexString, hexToString, isHexString, toNonNegativeBigInt } from '../utils'
+import { addressFromContractId, addressFromTokenId, groupOfAddress } from '../address'
 import * as node from '../api/api-alephium'
 
 function initializeNodeApi(baseUrl: string, apiKey?: string, customFetch?: typeof fetch): NodeApi<string> {

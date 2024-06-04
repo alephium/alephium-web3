@@ -16,15 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {
-  AddressType,
-  addressFromPublicKey,
-  addressFromScript,
-  binToHex,
-  bs58,
-  hexToBinUnsafe,
-  isHexString
-} from '../utils'
+import { AddressType, addressFromPublicKey, addressFromScript } from '../address'
+import { binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 import { P2SH, unlockScriptCodec } from '../codec/unlock-script-codec'
