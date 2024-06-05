@@ -149,7 +149,7 @@ export class OwnerOnlyInstance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     testOwner: async (
       params: OwnerOnlyTypes.SignExecuteMethodParams<"testOwner">
     ): Promise<OwnerOnlyTypes.SignExecuteMethodResult<"testOwner">> => {

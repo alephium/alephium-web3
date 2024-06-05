@@ -550,7 +550,7 @@ describe('contract', function () {
     const state = await provider.contracts.getContractsAddressState(add.address)
     expect(state).toBeDefined()
 
-    await add.transaction.destroy({ args: { caller: caller }, signer })
+    await add.txCall.destroy({ args: { caller: caller }, signer })
     await expect(provider.contracts.getContractsAddressState(add.address)).rejects.toThrow(Error)
   })
 
@@ -563,7 +563,7 @@ describe('contract', function () {
     const stateBefore = await provider.contracts.getContractsAddressState(add.address)
     expect(stateBefore.mutFields[0].value).toEqual('0')
 
-    await add.transaction.add({ args: { array: [2n, 1n] }, signer })
+    await add.txCall.add({ args: { array: [2n, 1n] }, signer })
 
     const stateAfter = await provider.contracts.getContractsAddressState(add.address)
     expect(stateAfter.mutFields[0].value).toEqual('3')
@@ -578,7 +578,7 @@ describe('contract', function () {
     const stateBefore = await provider.contracts.getContractsAddressState(add.address)
     expect(stateBefore.mutFields[0].value).toEqual('0')
 
-    await add.transaction.add2({
+    await add.txCall.add2({
       args: {
         array1: [2n, 1n],
         address: signer.address,
@@ -615,7 +615,7 @@ describe('contract', function () {
     const beforeBalances = await signer.nodeProvider.addresses.getAddressesAddressBalance(signerAddress)
     expect(beforeBalances.tokenBalances?.find((t) => t.id === sub.contractInstance.contractId)!.amount).toEqual('300')
 
-    const txResult = await add.transaction.createSubContractAndTransfer({
+    const txResult = await add.txCall.createSubContractAndTransfer({
       args: {
         a: 1n,
         path: stringToHex('test-path'),

@@ -177,7 +177,7 @@ export class DeprecatedNFTTest6Instance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     getTokenUri: async (
       params: DeprecatedNFTTest6Types.SignExecuteMethodParams<"getTokenUri">
     ): Promise<

@@ -130,7 +130,7 @@ function genTransactionMethods(contract: Contract): string {
     return ''
   }
   return `
-    transaction = {
+    txCall = {
       ${functions.map((f) => genTransactionMethod(contract.name, f)).join(',')}
     }
   `

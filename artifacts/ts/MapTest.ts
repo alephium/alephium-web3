@@ -214,7 +214,7 @@ export class MapTestInstance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     insert: async (
       params: MapTestTypes.SignExecuteMethodParams<"insert">
     ): Promise<MapTestTypes.SignExecuteMethodResult<"insert">> => {

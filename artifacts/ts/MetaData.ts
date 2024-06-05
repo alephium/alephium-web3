@@ -165,7 +165,7 @@ export class MetaDataInstance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     foo: async (
       params: MetaDataTypes.SignExecuteMethodParams<"foo">
     ): Promise<MetaDataTypes.SignExecuteMethodResult<"foo">> => {

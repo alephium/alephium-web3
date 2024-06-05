@@ -332,7 +332,7 @@ export class AddInstance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     add: async (
       params: AddTypes.SignExecuteMethodParams<"add">
     ): Promise<AddTypes.SignExecuteMethodResult<"add">> => {

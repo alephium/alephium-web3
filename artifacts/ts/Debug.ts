@@ -139,7 +139,7 @@ export class DebugInstance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     debug: async (
       params: DebugTypes.SignExecuteMethodParams<"debug">
     ): Promise<DebugTypes.SignExecuteMethodResult<"debug">> => {

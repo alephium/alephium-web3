@@ -520,7 +520,7 @@ function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
     return encodeFunc()
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Invalid ${fieldName}, error: ${error.message} `)
+      throw new Error(`Invalid ${fieldName}, error: ${error.message}`)
     }
     throw error
   }
@@ -572,7 +572,7 @@ export function encodeContractField(tpe: string, value: Val): Uint8Array {
     case 'Address':
       return encodeVmAddress(toApiAddress(value))
     default:
-      throw Error(`Expected primitive type, got ${tpe} `)
+      throw Error(`Expected primitive type, got ${tpe}`)
   }
 }
 

@@ -257,7 +257,7 @@ export class FakeTokenTestInstance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     getSymbol: async (
       params: FakeTokenTestTypes.SignExecuteMethodParams<"getSymbol">
     ): Promise<FakeTokenTestTypes.SignExecuteMethodResult<"getSymbol">> => {

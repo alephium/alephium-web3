@@ -154,7 +154,7 @@ export class GreeterInstance extends ContractInstance {
 
   call = this.methods;
 
-  transaction = {
+  txCall = {
     greet: async (
       params: GreeterTypes.SignExecuteMethodParams<"greet">
     ): Promise<GreeterTypes.SignExecuteMethodResult<"greet">> => {
