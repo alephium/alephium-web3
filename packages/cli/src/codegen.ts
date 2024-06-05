@@ -124,19 +124,19 @@ function genCallMethods(contract: Contract): string {
   `
 }
 
-function genTransactionMethods(contract: Contract): string {
+function genTxCallMethods(contract: Contract): string {
   const functions = contract.publicFunctions()
   if (functions.length === 0) {
     return ''
   }
   return `
     txCall = {
-      ${functions.map((f) => genTransactionMethod(contract.name, f)).join(',')}
+      ${functions.map((f) => genTxCallMethod(contract.name, f)).join(',')}
     }
   `
 }
 
-function genTransactionMethod(contractName: string, functionSig: FunctionSig): string {
+function genTxCallMethod(contractName: string, functionSig: FunctionSig): string {
   const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
   const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
   return `
@@ -550,7 +550,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}
       ${genCallMethods(contract)}
-      ${genTransactionMethods(contract)}
+      ${genTxCallMethods(contract)}
       ${genMulticall(contract)}
     }
 `

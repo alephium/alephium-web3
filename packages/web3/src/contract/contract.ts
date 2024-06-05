@@ -1694,7 +1694,7 @@ function getBytecodeTemplate(
 
   // First template var is the contract
   const functionArgsNum = encodeU256Const(BigInt(templateVarsLength - 1))
-  const localsLength = binToHex(compactSignedIntCodec.encodeI32(templateVarStoreLocalInstrs.length / 2))
+  const localsLength = encodeI32(templateVarStoreLocalInstrs.length / 2)
 
   const templateVarLoadLocalInstrs = getTemplateVarLoadLocalInstrs(functionSig, structs)
 
@@ -1707,16 +1707,14 @@ function getBytecodeTemplate(
 
   const contractTemplateVar = '{0}' // always the 1st argument
   const externalCallInstr = encodeInstr(CallExternal(methodIndex))
-  const numberOfInstrs = binToHex(
-    compactSignedIntCodec.encodeI32(
-      callerInstrs.length +
-        approveAlphInstrs.length +
-        approveTokensInstrs.length +
-        templateVarStoreLocalInstrs.length +
-        templateVarLoadLocalInstrs.length +
-        functionReturnTypesLength +
-        4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
-    )
+  const numberOfInstrs = encodeI32(
+    callerInstrs.length +
+      approveAlphInstrs.length +
+      approveTokensInstrs.length +
+      templateVarStoreLocalInstrs.length +
+      templateVarLoadLocalInstrs.length +
+      functionReturnTypesLength +
+      4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
   )
 
   return (
@@ -1847,6 +1845,10 @@ function encodeLoadLocalInstr(index: number): string {
   }
 
   return encodeInstr(LoadLocal(index))
+}
+
+function encodeI32(value: number): string {
+  return binToHex(compactSignedIntCodec.encodeI32(value))
 }
 
 function encodeU256Const(value: bigint): string {
