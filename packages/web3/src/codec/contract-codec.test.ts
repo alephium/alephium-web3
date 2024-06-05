@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Contract, web3, decodeArrayType, hexToBinUnsafe, binToHex } from '@alephium/web3'
 import { Method } from './method-codec'
-import { contractCodec, toHalfDecoded } from './contract-codec'
+import { contractCodec } from './contract-codec'
 import {
   ApproveAlph,
   AssertWithErrorCode,
@@ -329,12 +329,13 @@ describe('Encode & decode contract', function () {
     const nodeProvider = web3.getCurrentNodeProvider()
     const compileContractResult = await nodeProvider.contracts.postContractsCompileContract({ code: contractCode })
     const contractBytecode = compileContractResult.bytecode
-    const decoded = contractCodec.decode(hexToBinUnsafe(contractBytecode))
+    const bytes = hexToBinUnsafe(contractBytecode)
+    const decoded = contractCodec.decode(bytes)
     const encoded = contractCodec.encode(decoded)
 
-    const decodedContract = contractCodec.decodeContract(hexToBinUnsafe(contractBytecode))
+    const decodedContract = contractCodec.decodeContract(bytes)
+    expect(contractCodec.encodeContract(decodedContract)).toEqual(bytes)
     expect(decodedContract.methods.length).toEqual(methods.length)
-    expect(toHalfDecoded(decodedContract)).toEqual(decoded)
     decodedContract.methods.map((decodedMethod, index) => {
       expect(decodedMethod.isPublic).toEqual(methods[index].isPublic)
       expect(decodedMethod.usePreapprovedAssets).toEqual(methods[index].usePreapprovedAssets)
@@ -366,11 +367,12 @@ describe('Encode & decode contract', function () {
   }
 
   function testContract(contract: Contract) {
-    const decoded = contractCodec.decode(hexToBinUnsafe(contract.bytecode))
+    const bytes = hexToBinUnsafe(contract.bytecode)
+    const decoded = contractCodec.decode(bytes)
     const encoded = contractCodec.encode(decoded)
 
-    const decodedContract = contractCodec.decodeContract(hexToBinUnsafe(contract.bytecode))
-    expect(toHalfDecoded(decodedContract)).toEqual(decoded)
+    const decodedContract = contractCodec.decodeContract(bytes)
+    expect(contractCodec.encodeContract(decodedContract)).toEqual(bytes)
 
     expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsSig.types))
     decodedContract.methods.map((decodedMethod, index) => {
