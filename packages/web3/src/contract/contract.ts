@@ -1204,7 +1204,7 @@ function genCodeForType(type: string, structs: Struct[]): { bytecode: string; co
     fieldLength: immFields + mutFields + 1, // parentContractId
     methods: [loadImmFieldByIndex, loadMutFieldByIndex, storeMutFieldByIndex, destroy]
   }
-  const bytecode = contract.contractCodec.encode(contract.toHalfDecoded(c))
+  const bytecode = contract.contractCodec.encodeContract(c)
   const codeHash = blake.blake2b(bytecode, undefined, 32)
   return { bytecode: binToHex(bytecode), codeHash: binToHex(codeHash) }
 }

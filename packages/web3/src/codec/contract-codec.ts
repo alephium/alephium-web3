@@ -36,24 +36,6 @@ export interface Contract {
   methods: Method[]
 }
 
-export function toHalfDecoded(contract: Contract): HalfDecodedContract {
-  const fieldLength = compactSignedIntCodec.fromI32(contract.fieldLength)
-  const methods = contract.methods.map((m) => methodCodec.encode(MethodCodec.fromMethod(m)))
-  let count = 0
-  const methodIndexes = Array.from(Array(methods.length).keys()).map((index) => {
-    count += methods[`${index}`].length
-    return count
-  })
-  return {
-    fieldLength,
-    methodIndexes: {
-      length: compactSignedIntCodec.fromI32(methodIndexes.length),
-      value: methodIndexes.map((value) => compactSignedIntCodec.fromI32(value))
-    },
-    methods: methods.reduce((acc, buffer) => concatBytes([acc, buffer]))
-  }
-}
-
 export class ContractCodec implements Codec<HalfDecodedContract> {
   parser = Parser.start()
     .nest('fieldLength', {
@@ -89,6 +71,25 @@ export class ContractCodec implements Codec<HalfDecodedContract> {
     }
 
     return { fieldLength, methods }
+  }
+
+  encodeContract(contract: Contract): Uint8Array {
+    const fieldLength = compactSignedIntCodec.fromI32(contract.fieldLength)
+    const methods = contract.methods.map((m) => methodCodec.encode(MethodCodec.fromMethod(m)))
+    let count = 0
+    const methodIndexes = Array.from(Array(methods.length).keys()).map((index) => {
+      count += methods[`${index}`].length
+      return count
+    })
+    const halfDecoded = {
+      fieldLength,
+      methodIndexes: {
+        length: compactSignedIntCodec.fromI32(methodIndexes.length),
+        value: methodIndexes.map((value) => compactSignedIntCodec.fromI32(value))
+      },
+      methods: concatBytes(methods)
+    }
+    return this.encode(halfDecoded)
   }
 }
 
