@@ -125,7 +125,7 @@ function genCallMethods(contract: Contract): string {
 }
 
 function genTransactionMethods(contract: Contract): string {
-  const functions = contract.functions.filter((f) => f.isPublic)
+  const functions = contract.publicFunctions()
   if (functions.length === 0) {
     return ''
   }
@@ -136,7 +136,7 @@ function genTransactionMethods(contract: Contract): string {
   `
 }
 
-function genTransactionMethod(contractName: string, functionSig: node.FunctionSig): string {
+function genTransactionMethod(contractName: string, functionSig: FunctionSig): string {
   const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
   const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
   return `
@@ -178,8 +178,9 @@ function genMaps(contract: Contract): string {
   const maps = mapsSig.names.map((name, index) => {
     const mapType = mapsSig.types[`${index}`]
     const [key, value] = parseMapType(mapType)
-    return `${name}: new RalphMap<${toTsType(key)}, ${toTsType(value)}>(${contract.name
-      }.contract, this.contractId, '${name}')`
+    return `${name}: new RalphMap<${toTsType(key)}, ${toTsType(value)}>(${
+      contract.name
+    }.contract, this.contractId, '${name}')`
   })
   return `maps = { ${maps.join(',')} }`
 }
@@ -357,17 +358,17 @@ function genTestMethod(contract: Contract, functionSig: FunctionSig): string {
     funcHasArgs && contractHasFields
       ? `params: ${baseParamsType}`
       : funcHasArgs
-        ? `params: Omit<${baseParamsType}, 'initialFields'>`
-        : contractHasFields
-          ? `params: Omit<${baseParamsType}, 'testArgs'>`
-          : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
+      ? `params: Omit<${baseParamsType}, 'initialFields'>`
+      : contractHasFields
+      ? `params: Omit<${baseParamsType}, 'testArgs'>`
+      : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const baseRetType =
     tsReturnTypes.length === 0
       ? 'null'
       : tsReturnTypes.length === 1
-        ? tsReturnTypes[0]
-        : `[${tsReturnTypes.join(', ')}]`
+      ? tsReturnTypes[0]
+      : `[${tsReturnTypes.join(', ')}]`
   const retType = hasMapVars
     ? `TestContractResult<${baseRetType}, ${mapsType}>`
     : `TestContractResultWithoutMaps<${baseRetType}>`
@@ -388,29 +389,28 @@ function genTestMethods(contract: Contract): string {
 }
 
 function genCallMethodTypes(contract: Contract): string {
-  const entities = contract.functions.publicFunctions()
-    .map((functionSig) => {
-      const funcHasArgs = functionSig.paramNames.length > 0
-      const params = funcHasArgs
-        ? `CallContractParams<{${formatParameters({
+  const entities = contract.publicFunctions().map((functionSig) => {
+    const funcHasArgs = functionSig.paramNames.length > 0
+    const params = funcHasArgs
+      ? `CallContractParams<{${formatParameters({
           names: functionSig.paramNames,
           types: functionSig.paramTypes
         })}}>`
-        : `Omit<CallContractParams<{}>, 'args'>`
-      const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-      const retType =
-        tsReturnTypes.length === 0
-          ? `CallContractResult<null>`
-          : tsReturnTypes.length === 1
-            ? `CallContractResult<${tsReturnTypes[0]}>`
-            : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
-      return `
+      : `Omit<CallContractParams<{}>, 'args'>`
+    const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
+    const retType =
+      tsReturnTypes.length === 0
+        ? `CallContractResult<null>`
+        : tsReturnTypes.length === 1
+        ? `CallContractResult<${tsReturnTypes[0]}>`
+        : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+    return `
       ${functionSig.name}: {
         params: ${params}
         result: ${retType}
       }
     `
-    })
+  })
   return entities.length > 0
     ? `
       export interface CallMethodTable{
@@ -425,24 +425,22 @@ function genCallMethodTypes(contract: Contract): string {
 }
 
 function genSignExecuteMethodTypes(contract: Contract): string {
-  const entities = contract.functions
-    .filter((functionSig) => functionSig.isPublic)
-    .map((functionSig) => {
-      const funcHasArgs = functionSig.paramNames.length > 0
-      const params = funcHasArgs
-        ? `SignExecuteContractMethodParams<{${formatParameters({
+  const entities = contract.publicFunctions().map((functionSig) => {
+    const funcHasArgs = functionSig.paramNames.length > 0
+    const params = funcHasArgs
+      ? `SignExecuteContractMethodParams<{${formatParameters({
           names: functionSig.paramNames,
           types: functionSig.paramTypes
         })}}>`
-        : `Omit<SignExecuteContractMethodParams<{}>, 'args'>`
+      : `Omit<SignExecuteContractMethodParams<{}>, 'args'>`
 
-      return `
+    return `
       ${functionSig.name}: {
         params: ${params}
         result: SignExecuteScriptTxResult
       }
     `
-    })
+  })
   return entities.length > 0
     ? `
       export interface SignExecuteMethodTable{

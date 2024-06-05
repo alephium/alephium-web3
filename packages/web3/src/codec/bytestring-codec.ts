@@ -31,7 +31,7 @@ export class ByteStringCodec implements Codec<ByteString> {
       type: compactSignedIntCodec.parser
     })
     .buffer('value', {
-      length: function(ctx) {
+      length: function (ctx) {
         return compactSignedIntCodec.toI32(this['length']! as any as DecodedCompactInt)
       }
     })
@@ -45,7 +45,7 @@ export class ByteStringCodec implements Codec<ByteString> {
   }
 
   encodeBytes(input: Uint8Array): Uint8Array {
-    return concatBytes([compactSignedIntCodec.encodeU32(input.length), input])
+    return concatBytes([compactSignedIntCodec.encodeI32(input.length), input])
   }
 
   decodeBytes(input: Uint8Array): Uint8Array {

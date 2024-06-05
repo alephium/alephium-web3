@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -70,6 +73,21 @@ export namespace DeprecatedNFTTest2Types {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    getTokenUri: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getCollectionId: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -153,6 +171,30 @@ export class DeprecatedNFTTest2Instance extends ContractInstance {
         "getCollectionId",
         params === undefined ? {} : params,
         getContractByCodeHash
+      );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    getTokenUri: async (
+      params: DeprecatedNFTTest2Types.SignExecuteMethodParams<"getTokenUri">
+    ): Promise<
+      DeprecatedNFTTest2Types.SignExecuteMethodResult<"getTokenUri">
+    > => {
+      return signExecuteMethod(DeprecatedNFTTest2, this, "getTokenUri", params);
+    },
+    getCollectionId: async (
+      params: DeprecatedNFTTest2Types.SignExecuteMethodParams<"getCollectionId">
+    ): Promise<
+      DeprecatedNFTTest2Types.SignExecuteMethodResult<"getCollectionId">
+    > => {
+      return signExecuteMethod(
+        DeprecatedNFTTest2,
+        this,
+        "getCollectionId",
+        params
       );
     },
   };

@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -71,6 +74,21 @@ export namespace NFTTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    getTokenUri: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getCollectionIndex: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
@@ -157,6 +175,21 @@ export class NFTTestInstance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    getTokenUri: async (
+      params: NFTTestTypes.SignExecuteMethodParams<"getTokenUri">
+    ): Promise<NFTTestTypes.SignExecuteMethodResult<"getTokenUri">> => {
+      return signExecuteMethod(NFTTest, this, "getTokenUri", params);
+    },
+    getCollectionIndex: async (
+      params: NFTTestTypes.SignExecuteMethodParams<"getCollectionIndex">
+    ): Promise<NFTTestTypes.SignExecuteMethodResult<"getCollectionIndex">> => {
+      return signExecuteMethod(NFTTest, this, "getCollectionIndex", params);
     },
   };
 

@@ -337,10 +337,10 @@ export class Contract extends Artifact {
       this.stdInterfaceId === undefined
         ? this.fieldsSig
         : {
-          names: this.fieldsSig.names.slice(0, -1),
-          types: this.fieldsSig.types.slice(0, -1),
-          isMutable: this.fieldsSig.isMutable.slice(0, -1)
-        }
+            names: this.fieldsSig.names.slice(0, -1),
+            types: this.fieldsSig.types.slice(0, -1),
+            isMutable: this.fieldsSig.isMutable.slice(0, -1)
+          }
     return getDefaultValue(fields, this.structs)
   }
 
@@ -406,12 +406,12 @@ export class Contract extends Artifact {
       params.initialFields === undefined
         ? []
         : ralph.flattenFields(
-          params.initialFields,
-          this.fieldsSig.names,
-          this.fieldsSig.types,
-          this.fieldsSig.isMutable,
-          this.structs
-        )
+            params.initialFields,
+            this.fieldsSig.names,
+            this.fieldsSig.types,
+            this.fieldsSig.isMutable,
+            this.structs
+          )
     const immFields = allFields.filter((f) => !f.isMutable).map((f) => toApiVal(f.value, f.type))
     const mutFields = allFields.filter((f) => f.isMutable).map((f) => toApiVal(f.value, f.type))
     return {
@@ -1638,9 +1638,10 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 ): Promise<SignExecuteScriptTxResult> {
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const functionSig = contract.contract.functions[methodIndex]
-
+  const usePreapprovedAssets = contract.contract.decodedMethods[methodIndex].usePreapprovedAssets
   const bytecodeTemplate = getBytecodeTemplate(
     methodIndex,
+    usePreapprovedAssets,
     functionSig,
     contract.contract.structs,
     params.attoAlphAmount,
@@ -1672,6 +1673,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 
 function getBytecodeTemplate(
   methodIndex: number,
+  usePreapprovedAssets: boolean,
   functionSig: FunctionSig,
   structs: Struct[],
   attoAlphAmount?: Number256,
@@ -1680,21 +1682,19 @@ function getBytecodeTemplate(
   // For the default TxScript main function
   const numberOfMethods = '01'
   const isPublic = '01'
-  const modifier = functionSig.usePreapprovedAssets ? '03' : '00'
+  const modifier = usePreapprovedAssets ? '03' : '00'
   const argsLength = '00'
   const returnsLength = '00'
 
   const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
 
-  const approveAlphInstrs: string[] = getApproveAlphInstrs(
-    functionSig.usePreapprovedAssets ? attoAlphAmount : undefined
-  )
-  const approveTokensInstrs: string[] = getApproveTokensInstrs(functionSig.usePreapprovedAssets ? tokens : undefined)
+  const approveAlphInstrs: string[] = getApproveAlphInstrs(usePreapprovedAssets ? attoAlphAmount : undefined)
+  const approveTokensInstrs: string[] = getApproveTokensInstrs(usePreapprovedAssets ? tokens : undefined)
   const callerInstrs: string[] = getCallAddressInstrs(approveAlphInstrs.length / 2 + approveTokensInstrs.length / 3)
 
   // First template var is the contract
   const functionArgsNum = encodeU256Const(BigInt(templateVarsLength - 1))
-  const localsLength = compactSignedIntCodec.encodeI32(templateVarStoreLocalInstrs.length / 2).toString('hex')
+  const localsLength = binToHex(compactSignedIntCodec.encodeI32(templateVarStoreLocalInstrs.length / 2))
 
   const templateVarLoadLocalInstrs = getTemplateVarLoadLocalInstrs(functionSig, structs)
 
@@ -1707,17 +1707,17 @@ function getBytecodeTemplate(
 
   const contractTemplateVar = '{0}' // always the 1st argument
   const externalCallInstr = encodeInstr(CallExternal(methodIndex))
-  const numberOfInstrs = compactSignedIntCodec
-    .encodeI32(
+  const numberOfInstrs = binToHex(
+    compactSignedIntCodec.encodeI32(
       callerInstrs.length +
-      approveAlphInstrs.length +
-      approveTokensInstrs.length +
-      templateVarStoreLocalInstrs.length +
-      templateVarLoadLocalInstrs.length +
-      functionReturnTypesLength +
-      4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
+        approveAlphInstrs.length +
+        approveTokensInstrs.length +
+        templateVarStoreLocalInstrs.length +
+        templateVarLoadLocalInstrs.length +
+        functionReturnTypesLength +
+        4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
     )
-    .toString('hex')
+  )
 
   return (
     numberOfMethods +
@@ -1755,7 +1755,7 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
   const approveTokensInstrs: string[] = []
   if (tokens) {
     tokens.forEach((token) => {
-      approveTokensInstrs.push('14' + byteStringCodec.encodeBuffer(Buffer.from(token.id, 'hex')).toString('hex'))
+      approveTokensInstrs.push('14' + binToHex(byteStringCodec.encodeBytes(hexToBinUnsafe(token.id))))
       approveTokensInstrs.push(encodeU256Const(BigInt(token.amount)))
       approveTokensInstrs.push(encodeInstr(ApproveToken))
     })
@@ -1854,7 +1854,7 @@ function encodeU256Const(value: bigint): string {
 }
 
 function encodeInstr(instr: Instr): string {
-  return instrCodec.encode(instr).toString('hex')
+  return binToHex(instrCodec.encode(instr))
 }
 
 function toFieldsSig(contractName: string, functionSig: FunctionSig): FieldsSig {

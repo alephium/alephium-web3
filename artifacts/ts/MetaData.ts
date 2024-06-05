@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -42,6 +45,36 @@ import {
 // Custom types for the contract
 export namespace MetaDataTypes {
   export type State = Omit<ContractState<any>, "fields">;
+
+  export interface CallMethodTable {
+    foo: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
+
+  export interface SignExecuteMethodTable {
+    foo: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<MetaDataInstance, {}> {
@@ -115,4 +148,28 @@ export class MetaDataInstance extends ContractInstance {
   async fetchState(): Promise<MetaDataTypes.State> {
     return fetchContractState(MetaData, this);
   }
+
+  methods = {
+    foo: async (
+      params?: MetaDataTypes.CallMethodParams<"foo">
+    ): Promise<MetaDataTypes.CallMethodResult<"foo">> => {
+      return callMethod(
+        MetaData,
+        this,
+        "foo",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    foo: async (
+      params: MetaDataTypes.SignExecuteMethodParams<"foo">
+    ): Promise<MetaDataTypes.SignExecuteMethodResult<"foo">> => {
+      return signExecuteMethod(MetaData, this, "foo", params);
+    },
+  };
 }

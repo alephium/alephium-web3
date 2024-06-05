@@ -180,7 +180,7 @@ describe('Encode & decode scripts', function () {
         argsLength: 0,
         localsLength: 0,
         returnLength: 0,
-        instrs: [AddressConst(lockupScript), U256Const1, U256Const0, ByteConst(contractIdByteString), CallExternal(3)]
+        instrs: [AddressConst(lockupScript), U256Const1, U256Const0, ByteConst(contractIdByteString), CallExternal(5)]
       }
     ])
 

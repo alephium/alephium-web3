@@ -25,6 +25,9 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
@@ -67,6 +70,17 @@ export namespace SubTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    sub: {
+      params: SignExecuteContractMethodParams<{ array: [bigint, bigint] }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
@@ -142,6 +156,16 @@ export class SubInstance extends ContractInstance {
       params: SubTypes.CallMethodParams<"sub">
     ): Promise<SubTypes.CallMethodResult<"sub">> => {
       return callMethod(Sub, this, "sub", params, getContractByCodeHash);
+    },
+  };
+
+  call = this.methods;
+
+  transaction = {
+    sub: async (
+      params: SubTypes.SignExecuteMethodParams<"sub">
+    ): Promise<SubTypes.SignExecuteMethodResult<"sub">> => {
+      return signExecuteMethod(Sub, this, "sub", params);
     },
   };
 
