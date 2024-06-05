@@ -16,9 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, Project } from '@alephium/web3'
+import { web3 } from '@alephium/web3'
 import { FakeTokenTest } from '../artifacts/ts'
-import { TokenTest, TokenTestTypes } from '../artifacts/ts/TokenTest'
+import { TokenTest } from '../artifacts/ts/TokenTest'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { getSigner } from '@alephium/web3-test'
 
@@ -28,7 +28,6 @@ describe('contract', function () {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
     signer = await getSigner()
-    await Project.build({ errorOnWarnings: false })
   })
 
   const symbol = Buffer.from('TT', 'utf8').toString('hex')

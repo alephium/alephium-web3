@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Project, web3, NetworkId, networkIds, enableDebugMode, isDebugModeEnabled } from '@alephium/web3'
+import { web3, NetworkId, networkIds, enableDebugMode, isDebugModeEnabled } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -28,10 +28,11 @@ import {
   codegen,
   getConfigFile,
   getSdkFullNodeVersion,
-  isDeployedOnMainnet,
+  isDeployed,
   isNetworkLive,
   loadConfig
 } from './src'
+import { Project } from './src/project'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -102,21 +103,23 @@ program
       console.log(`Full node version: ${connectedFullNodeVersion}`)
 
       const cwd = path.resolve(process.cwd())
-      const skipSaveArtifacts = config.skipSaveArtifacts || isDeployedOnMainnet(config)
-      await Project.build(
+      const isContractDeployed = isDeployed(config)
+      if (!config.forceRecompile && isContractDeployed) {
+        console.warn(`The contracts has been deployed on testnet/mainnet, and the artifacts will not be updated.`)
+      }
+      const project = await Project.compile(
         config.compilerOptions,
         cwd,
         config.sourceDir,
         config.artifactDir,
         connectedFullNodeVersion,
-        skipSaveArtifacts
+        config.forceRecompile || !isContractDeployed
       )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
         return
       }
-      const artifactDir = config.artifactDir! // there is a default value always
-      codegen(artifactDir)
+      codegen(project)
       console.log('✅ Codegen completed!')
     } catch (error) {
       program.error(`✘ Failed to compile, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)

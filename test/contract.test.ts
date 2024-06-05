@@ -30,7 +30,6 @@ import {
   binToHex,
   addressFromContractId,
   groupOfAddress,
-  ProjectArtifact,
   DEFAULT_NODE_COMPILER_OPTIONS,
   DUST_AMOUNT,
   DEFAULT_GAS_AMOUNT,
@@ -40,7 +39,7 @@ import {
   byteVecVal,
   u256Val
 } from '../packages/web3'
-import { Contract, Project, Script, getContractIdFromUnsignedTx } from '../packages/web3'
+import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter } from '../artifacts/ts/Greeter'
@@ -63,6 +62,7 @@ import { getContractByCodeHash } from '../artifacts/ts/contracts'
 import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
+import { ProjectArtifact, Project } from '../packages/cli/src/project'
 
 describe('contract', function() {
   let signer: PrivateKeyWallet
@@ -72,7 +72,6 @@ describe('contract', function() {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
 
-    await Project.build({ errorOnWarnings: false })
     signer = await getSigner()
     signerAccount = signer.account
     signerGroup = signerAccount.group
@@ -268,9 +267,7 @@ describe('contract', function() {
     loadScript('./artifacts/greeter/GreeterMain.ral.json')
   })
 
-  it('should extract metadata of contracts', async () => {
-    await Project.build({ errorOnWarnings: false })
-
+  it('should extract metadata of contracts', () => {
     expect(MetaData.contract.functions.map((func) => func.name)).toEqual(['foo', 'bar', 'baz'])
     expect(MetaData.contract.publicFunctions().map((f) => f.name)).toEqual(['foo'])
     expect(MetaData.contract.usingPreapprovedAssetsFunctions().map((f) => f.name)).toEqual(['foo'])
@@ -278,16 +275,18 @@ describe('contract', function() {
   })
 
   it('should handle compiler warnings', async () => {
-    await expect(Project.build()).rejects.toThrow(/Compilation warnings\:/)
+    await expect(Project.compile({}, '.', 'contracts', 'artifacts', undefined, true)).rejects.toThrow(
+      /Compilation warnings\:/
+    )
 
-    await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
-    expect(Project.currentProject.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
+    const project0 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
+    expect(project0.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
       'Found unused variables in Warnings: foo.y',
       'Found unused fields in Warnings: b'
     ])
 
-    await Project.build({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: false })
-    expect(Project.currentProject.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
+    const project1 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: false })
+    expect(project1.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
       'Found unused variables in Warnings: foo.y',
       'Found unused constants in Warnings: C',
       'Found unused fields in Warnings: b'
@@ -295,7 +294,6 @@ describe('contract', function() {
   })
 
   it('should debug', async () => {
-    await Project.build({ errorOnWarnings: false })
     const result = await Debug.tests.debug()
     expect(result.debugMessages.length).toEqual(1)
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
@@ -304,7 +302,6 @@ describe('contract', function() {
   })
 
   it('should test assert!', async () => {
-    await Project.build({ errorOnWarnings: false })
     const contractAddress = randomContractAddress()
     expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, 3)
 
@@ -323,8 +320,7 @@ describe('contract', function() {
     )
   })
 
-  it('should test enums and constants', async () => {
-    await Project.build({ errorOnWarnings: false })
+  it('should test enums and constants', () => {
     expect(Assert.consts.Error).toEqual(3n)
     expect(Assert.consts.A).toEqual(-3n)
     expect(Assert.consts.B).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')

@@ -18,3 +18,4 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 export * from './status'
 export * from './sign-verify'
+export * from './utils'

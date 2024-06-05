@@ -15,17 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { signedIntCodec } from './signed-int-codec'
 import { longCodec } from './long-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
-import { LockupScript, MultiSig, P2C, P2SH, lockupScriptCodec } from './lockup-script-codec'
+import { LockupScript, MultiSig, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
-import { bs58, binToHex } from '../utils'
+import { bs58, binToHex, hexToBinUnsafe, concatBytes } from '../utils'
 import { Codec } from './codec'
 import { PublicKeyHash } from './lockup-script-codec'
 import { Token, tokensCodec } from './token-codec'
@@ -33,7 +32,7 @@ import { Token, tokensCodec } from './token-codec'
 export interface AssetOutput {
   amount: DecodedCompactInt
   lockupScript: LockupScript
-  lockTime: Buffer
+  lockTime: Uint8Array
   tokens: DecodedArray<Token>
   additionalData: ByteString
 }
@@ -56,17 +55,16 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
       type: byteStringCodec.parser
     })
 
-  encode(input: AssetOutput): Buffer {
-    const amount = Buffer.from(compactUnsignedIntCodec.encode(input.amount))
+  encode(input: AssetOutput): Uint8Array {
+    const amount = compactUnsignedIntCodec.encode(input.amount)
     const lockupScript = lockupScriptCodec.encode(input.lockupScript)
-    const lockTime = Buffer.from(input.lockTime)
-    const tokens = Buffer.from(tokensCodec.encode(input.tokens.value))
-    const additionalData = Buffer.from(byteStringCodec.encode(input.additionalData))
+    const tokens = tokensCodec.encode(input.tokens.value)
+    const additionalData = byteStringCodec.encode(input.additionalData)
 
-    return Buffer.concat([amount, lockupScript, lockTime, tokens, additionalData])
+    return concatBytes([amount, lockupScript, input.lockTime, tokens, additionalData])
   }
 
-  decode(input: Buffer): AssetOutput {
+  decode(input: Uint8Array): AssetOutput {
     return this.parser.parse(input)
   }
 
@@ -79,13 +77,13 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
     const lockTime = Number(longCodec.decode(output.lockTime))
     const tokens = output.tokens.value.map((token) => {
       return {
-        id: token.tokenId.toString('hex'),
+        id: binToHex(token.tokenId),
         amount: compactUnsignedIntCodec.toU256(token.amount).toString()
       }
     })
-    const message = output.additionalData.value.toString('hex')
+    const message = binToHex(output.additionalData.value)
     const scriptType = output.lockupScript.scriptType
-    const key = binToHex(blakeHash(Buffer.concat([txIdBytes, signedIntCodec.encode(index)])))
+    const key = binToHex(blakeHash(concatBytes([txIdBytes, signedIntCodec.encode(index)])))
     const outputLockupScript = output.lockupScript.script
     const address = bs58.encode(lockupScriptCodec.encode(output.lockupScript))
 
@@ -117,11 +115,11 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
   static fromFixedAssetOutput(fixedOutput: FixedAssetOutput): AssetOutput {
     const amount: DecodedCompactInt = compactUnsignedIntCodec.fromU256(BigInt(fixedOutput.attoAlphAmount))
 
-    const lockTime: Buffer = longCodec.encode(BigInt(fixedOutput.lockTime))
-    const lockupScript: LockupScript = lockupScriptCodec.decode(Buffer.from(bs58.decode(fixedOutput.address)))
+    const lockTime = longCodec.encode(BigInt(fixedOutput.lockTime))
+    const lockupScript: LockupScript = lockupScriptCodec.decode(bs58.decode(fixedOutput.address))
     const tokensValue = fixedOutput.tokens.map((token) => {
       return {
-        tokenId: Buffer.from(token.id, 'hex'),
+        tokenId: hexToBinUnsafe(token.id),
         amount: compactUnsignedIntCodec.fromU256(BigInt(token.amount))
       }
     })
@@ -129,7 +127,7 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
       length: compactUnsignedIntCodec.fromU32(tokensValue.length),
       value: tokensValue
     }
-    const additionalDataValue = Buffer.from(fixedOutput.message, 'hex')
+    const additionalDataValue = hexToBinUnsafe(fixedOutput.message)
     const additionalData: ByteString = {
       length: compactUnsignedIntCodec.fromU32(additionalDataValue.length),
       value: additionalDataValue

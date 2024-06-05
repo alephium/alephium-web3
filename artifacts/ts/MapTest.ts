@@ -70,7 +70,7 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
       >
     > => {
-      return testMethod(this, "insert", params);
+      return testMethod(this, "insert", params, getContractByCodeHash);
     },
     update: async (
       params: Omit<
@@ -87,7 +87,7 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
       >
     > => {
-      return testMethod(this, "update", params);
+      return testMethod(this, "update", params, getContractByCodeHash);
     },
     remove: async (
       params: Omit<
@@ -104,7 +104,7 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
       >
     > => {
-      return testMethod(this, "remove", params);
+      return testMethod(this, "remove", params, getContractByCodeHash);
     },
   };
 }

@@ -95,7 +95,7 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
         { array: [bigint, bigint] }
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "sub", params);
+      return testMethod(this, "sub", params, getContractByCodeHash);
     },
   };
 }

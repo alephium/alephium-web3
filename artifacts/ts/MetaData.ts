@@ -60,7 +60,12 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "foo", params === undefined ? {} : params);
+      return testMethod(
+        this,
+        "foo",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
     bar: async (
       params?: Omit<
@@ -68,7 +73,12 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "bar", params === undefined ? {} : params);
+      return testMethod(
+        this,
+        "bar",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
     baz: async (
       params?: Omit<
@@ -76,7 +86,12 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "baz", params === undefined ? {} : params);
+      return testMethod(
+        this,
+        "baz",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
   };
 }

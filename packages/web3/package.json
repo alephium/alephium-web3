@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "0.41.0",
+  "version": "0.43.0",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "main": "dist/src/index.js",
@@ -45,7 +45,6 @@
     "bignumber.js": "^9.1.1",
     "blakejs": "1.2.1",
     "bn.js": "5.2.1",
-    "buffer": "^6.0.3",
     "cross-fetch": "^3.1.5",
     "crypto-browserify": "^3.12.0",
     "elliptic": "6.5.4",

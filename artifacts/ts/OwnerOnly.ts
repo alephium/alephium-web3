@@ -75,7 +75,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "testOwner", params);
+      return testMethod(this, "testOwner", params, getContractByCodeHash);
     },
   };
 }

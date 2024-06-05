@@ -75,7 +75,7 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
         { x: bigint; y: bigint }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "foo", params);
+      return testMethod(this, "foo", params, getContractByCodeHash);
     },
   };
 }

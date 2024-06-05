@@ -102,14 +102,15 @@ export async function isDevnetLive(): Promise<boolean> {
 
 export function getDeploymentFilePath(configuration: Configuration, networkId: NetworkId): string {
   const network = getNetwork(configuration, networkId)
-  return network.deploymentStatusFile
-    ? network.deploymentStatusFile
+  return network.deploymentFile
+    ? network.deploymentFile
     : path.join(configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, `.deployments.${networkId}.json`)
 }
 
-export function isDeployedOnMainnet(configuration: Configuration): boolean {
-  const file = getDeploymentFilePath(configuration, 'mainnet')
-  return fs.existsSync(file)
+export function isDeployed(configuration: Configuration): boolean {
+  const mainnet = getDeploymentFilePath(configuration, 'mainnet')
+  const testnet = getDeploymentFilePath(configuration, 'testnet')
+  return fs.existsSync(mainnet) || fs.existsSync(testnet)
 }
 
 export function getNetwork<Settings = unknown>(
@@ -119,24 +120,6 @@ export function getNetwork<Settings = unknown>(
   const networkInput = configuration.networks[`${networkId}`]
   const defaultValues = DEFAULT_CONFIGURATION_VALUES.networks[`${networkId}`]
   return { ...defaultValues, ...networkInput }
-}
-
-function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
-  return txStatus.type === 'Confirmed'
-}
-
-export async function waitTxConfirmed(
-  provider: NodeProvider,
-  txId: string,
-  confirmations: number,
-  requestInterval: number
-): Promise<node.Confirmed> {
-  const status = await provider.transactions.getTransactionsStatus({ txId: txId })
-  if (isConfirmed(status) && status.chainConfirmations >= confirmations) {
-    return status
-  }
-  await new Promise((r) => setTimeout(r, requestInterval))
-  return waitTxConfirmed(provider, txId, confirmations, requestInterval)
 }
 
 export const retryFetch = fetchRetry.default(fetch, {

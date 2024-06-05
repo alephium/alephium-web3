@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import EC from 'elliptic'
 
 import { sign, verifySignature } from './sign'
-import { publicKeyFromPrivateKey } from './address'
+import { publicKeyFromPrivateKey } from '../address'
 
 describe('Signing', function () {
   it('should sign and verify secp2561k1 signature', () => {

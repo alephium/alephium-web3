@@ -19,7 +19,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import {
   Account,
   NodeProvider,
-  Project,
   Contract,
   Script,
   web3,
@@ -35,7 +34,6 @@ import {
   NetworkId,
   ContractInstance,
   ExecutableScript,
-  ProjectArtifact,
   isHexString,
   isDevnet
 } from '@alephium/web3'
@@ -57,14 +55,15 @@ import {
   getConfigFile,
   getDeploymentFilePath,
   getNetwork,
+  isDeployed,
   loadConfig,
   retryFetch,
   taskIdToVariable,
-  waitTxConfirmed,
   waitUserConfirmation
 } from './utils'
-import { groupOfAddress } from '@alephium/web3'
+import { groupOfAddress, waitForTxConfirmation } from '@alephium/web3'
 import { codegen, genLoadDeployments } from './codegen'
+import { Project, ProjectArtifact } from './project'
 
 export class Deployments {
   deployments: DeploymentsPerAddress[]
@@ -339,6 +338,8 @@ function createDeployer<Settings = unknown>(
     publicKey: signer.publicKey
   }
   const confirmations = network.confirmations ? network.confirmations : 1
+  const deployedContracts: string[] = []
+  const executedScripts: string[] = []
 
   const deployContract = async <T extends ContractInstance, P extends Fields>(
     contractFactory: ContractFactory<T, P>,
@@ -352,6 +353,10 @@ function createDeployer<Settings = unknown>(
     )
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(contractFactory.contract, taskTag)
+    if (deployedContracts.includes(taskId)) {
+      throw new Error(`Contract deployment task ${taskId} already exists, please use a new task tag`)
+    }
+    deployedContracts.push(taskId)
     const previous = deployContractResults.get(taskId)
     const tokens = params.initialTokenAmounts ? getTokenRecord(params.initialTokenAmounts) : undefined
     const needToDeploy = await needToDeployContract(
@@ -375,12 +380,7 @@ function createDeployer<Settings = unknown>(
     console.log(`Deploying contract ${taskId}`)
     console.log(`Deployer - group ${signer.group} - ${signer.address}`)
     const deployResult = await contractFactory.deploy(signer, params)
-    const confirmed = await waitTxConfirmed(
-      web3.getCurrentNodeProvider(),
-      deployResult.txId,
-      confirmations,
-      requestInterval
-    )
+    const confirmed = await waitForTxConfirmation(deployResult.txId, confirmations, requestInterval)
     const result: DeployContractExecutionResult = {
       txId: deployResult.txId,
       unsignedTx: deployResult.unsignedTx,
@@ -406,6 +406,10 @@ function createDeployer<Settings = unknown>(
     const initFieldsAndByteCode = executableScript.script.buildByteCodeToDeploy(params.initialFields ?? {})
     const codeHash = cryptojs.SHA256(initFieldsAndByteCode).toString()
     const taskId = getTaskId(executableScript.script, taskTag)
+    if (executedScripts.includes(taskId)) {
+      throw new Error(`Run script task ${taskId} already exists, please use a new task tag`)
+    }
+    executedScripts.push(taskId)
     const previous = runScriptResults.get(taskId)
     const tokens = params.tokens ? getTokenRecord(params.tokens) : undefined
     const needToRun = await needToRunScript(
@@ -423,12 +427,7 @@ function createDeployer<Settings = unknown>(
     }
     console.log(`Executing script ${taskId}`)
     const executeResult = await executableScript.execute(signer, params)
-    const confirmed = await waitTxConfirmed(
-      web3.getCurrentNodeProvider(),
-      executeResult.txId,
-      confirmations,
-      requestInterval
-    )
+    const confirmed = await waitForTxConfirmation(executeResult.txId, confirmations, requestInterval)
     const runScriptResult: RunScriptResult = {
       ...executeResult,
       gasPrice: executeResult.gasPrice.toString(),
@@ -563,12 +562,16 @@ export async function deploy<Settings = unknown>(
   const projectRootDir = path.resolve(process.cwd())
   const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
+  let project: Project | undefined = undefined
   if (configuration.skipRecompile !== true) {
-    await Project.build(
+    const forceRecompile = configuration.forceRecompile || !isDeployed(configuration)
+    project = await Project.compile(
       configuration.compilerOptions,
       path.resolve(process.cwd()),
       configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
-      artifactDir
+      artifactDir,
+      undefined,
+      forceRecompile
     )
   }
 
@@ -577,10 +580,11 @@ export async function deploy<Settings = unknown>(
   if (
     !deployments.isEmpty() &&
     prevProjectArtifact !== undefined &&
-    ProjectArtifact.isCodeChanged(Project.currentProject.projectArtifact, prevProjectArtifact)
+    project !== undefined &&
+    ProjectArtifact.isCodeChanged(project.projectArtifact, prevProjectArtifact)
   ) {
     // We need to regenerate the code because the deployment scripts depend on the generated ts code
-    codegen(artifactDir)
+    codegen(project)
     const msg =
       'The contract code has been changed, which will result in redeploying the contract.\nPlease confirm if you want to proceed?'
     if (!(await waitUserConfirmation(msg))) {

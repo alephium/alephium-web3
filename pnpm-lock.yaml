@@ -344,9 +344,6 @@ importers:
       bn.js:
         specifier: 5.2.1
         version: 5.2.1
-      buffer:
-        specifier: ^6.0.3
-        version: 6.0.3
       cross-fetch:
         specifier: ^3.1.5
         version: 3.1.5
@@ -602,9 +599,6 @@ importers:
       bip39:
         specifier: 3.0.4
         version: 3.0.4
-      buffer:
-        specifier: ^6.0.3
-        version: 6.0.3
       elliptic:
         specifier: 6.5.4
         version: 6.5.4

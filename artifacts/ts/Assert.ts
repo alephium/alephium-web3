@@ -73,7 +73,12 @@ class Factory extends ContractFactory<AssertInstance, {}> {
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "test", params === undefined ? {} : params);
+      return testMethod(
+        this,
+        "test",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
   };
 }

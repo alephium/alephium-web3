@@ -16,22 +16,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-BigInt.prototype['toJSON'] = function () {
-  return this.toString()
+import { node } from '../api'
+import { getCurrentNodeProvider } from '../global'
+
+function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
+  return txStatus.type === 'Confirmed'
 }
 
-export * from './api'
-export * from './contract'
-export * from './signer'
-export * from './utils'
-export * from './transaction'
-export * from './token'
-
-export * from './constants'
-export * as web3 from './global'
-export * as codec from './codec'
-export * as utils from './utils'
-export * from './debug'
-export * from './block'
-export * from './address'
-export * from './exchange'
+export async function waitForTxConfirmation(
+  txId: string,
+  confirmations: number,
+  requestInterval: number
+): Promise<node.Confirmed> {
+  const provider = getCurrentNodeProvider()
+  const status = await provider.transactions.getTransactionsStatus({ txId: txId })
+  if (isConfirmed(status) && status.chainConfirmations >= confirmations) {
+    return status
+  }
+  await new Promise((r) => setTimeout(r, requestInterval))
+  return waitForTxConfirmation(txId, confirmations, requestInterval)
+}

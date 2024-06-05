@@ -42,7 +42,8 @@ import {
   ConnectSettingContext,
   ConnectSettingValue,
   ConnectionStatus,
-  useAlephiumConnectContext
+  useAlephiumConnectContext,
+  useConnectSettingContext
 } from '../contexts/alephiumConnect'
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
 import { ConnectResult, getConnectorById } from '../utils/connector'
@@ -94,13 +95,16 @@ export const ConnectSettingProvider: React.FC<{
     errorMessage
   }
 
+  return <ConnectSettingContext.Provider value={value}>{children}</ConnectSettingContext.Provider>
+}
+
+const DefaultThemeProvider: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
+  const context = useConnectSettingContext()
   return (
-    <ConnectSettingContext.Provider value={value}>
-      <ThemeProvider theme={defaultTheme}>
-        {children}
-        <AlephiumConnectModal theme={_theme} mode={_mode} customTheme={_customTheme} />
-      </ThemeProvider>
-    </ConnectSettingContext.Provider>
+    <ThemeProvider theme={defaultTheme}>
+      {children}
+      <AlephiumConnectModal theme={context.theme} mode={context.mode} customTheme={context.customTheme} />
+    </ThemeProvider>
   )
 }
 
@@ -321,7 +325,9 @@ export const AlephiumWalletProvider = ({
         customTheme={customTheme}
         csrModeOnly={csrModeOnly}
       >
-        <AlephiumBalanceProvider>{children}</AlephiumBalanceProvider>
+        <DefaultThemeProvider>
+          <AlephiumBalanceProvider>{children}</AlephiumBalanceProvider>
+        </DefaultThemeProvider>
       </ConnectSettingProvider>
     </AlephiumConnectProvider>
   )

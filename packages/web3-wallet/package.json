@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-wallet",
-  "version": "0.41.0",
+  "version": "0.43.0",
   "description": "Simple wallets for Alephium",
   "keywords": [
     "alephium",
@@ -33,7 +33,6 @@
     "@types/node": "^16.18.23",
     "bip32": "3.1.0",
     "bip39": "3.0.4",
-    "buffer": "^6.0.3",
     "elliptic": "6.5.4",
     "fs-extra": "10.0.1"
   },

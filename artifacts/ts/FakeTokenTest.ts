@@ -106,7 +106,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "getSymbol", params);
+      return testMethod(this, "getSymbol", params, getContractByCodeHash);
     },
     getName: async (
       params: Omit<
@@ -114,7 +114,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "getName", params);
+      return testMethod(this, "getName", params, getContractByCodeHash);
     },
     getDecimals: async (
       params: Omit<
@@ -122,7 +122,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "getDecimals", params);
+      return testMethod(this, "getDecimals", params, getContractByCodeHash);
     },
     getTotalSupply: async (
       params: Omit<
@@ -130,7 +130,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(this, "getTotalSupply", params);
+      return testMethod(this, "getTotalSupply", params, getContractByCodeHash);
     },
     foo: async (
       params: Omit<
@@ -138,7 +138,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "foo", params);
+      return testMethod(this, "foo", params, getContractByCodeHash);
     },
   };
 }

@@ -15,7 +15,6 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
@@ -458,7 +457,7 @@ export class InstrCodec implements Codec<Instr> {
       }
     })
 
-  encode(instr: Instr): Buffer {
+  encode(instr: Instr): Uint8Array {
     const instrValue = instr.value
     const result = [instr.code]
     const instrsWithIndex = [0x00, 0x01, 0x16, 0x17, 0xa0, 0xa1, 0xce]
@@ -480,10 +479,10 @@ export class InstrCodec implements Codec<Instr> {
       result.push(...signedIntCodec.encode((instrValue as InstrValueWithIndex).index))
     }
 
-    return Buffer.from(result)
+    return new Uint8Array(result)
   }
 
-  decode(input: Buffer): Instr {
+  decode(input: Uint8Array): Instr {
     return this.parser.parse(input)
   }
 }

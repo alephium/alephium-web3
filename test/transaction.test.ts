@@ -17,7 +17,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { subscribeToTxStatus } from '../packages/web3'
-import { Project } from '../packages/web3'
 import { node } from '../packages/web3'
 import { SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
@@ -33,12 +32,10 @@ describe('transactions', function () {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await getSigner()
-    // ignore unused private function warnings
-    await Project.build({ errorOnWarnings: false })
   })
 
   it('should subscribe transaction status', async () => {
-    const sub = Project.contract('Sub')
+    const sub = Sub.contract
     const txParams = await sub.txParamsForDeployment(signer, {
       initialFields: { result: 0n },
       initialTokenAmounts: []

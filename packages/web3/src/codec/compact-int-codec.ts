@@ -15,11 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Buffer } from 'buffer/'
 import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
 import { BigIntCodec } from './bigint-codec'
-import { ArrayCodec } from './array-codec'
+import { binToHex } from '../utils'
 
 export class CompactInt {
   static readonly oneBytePrefix = 0x00
@@ -66,24 +65,24 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
 
   parser = compactIntParser
 
-  encode(input: DecodedCompactInt): Buffer {
-    return Buffer.from([input.mode, ...input.rest])
+  encode(input: DecodedCompactInt): Uint8Array {
+    return new Uint8Array([input.mode, ...input.rest])
   }
 
-  encodeU32(value: number): Buffer {
+  encodeU32(value: number): Uint8Array {
     if (value < this.oneByteBound) {
-      return Buffer.from([(CompactInt.oneBytePrefix + value) & 0xff])
+      return new Uint8Array([(CompactInt.oneBytePrefix + value) & 0xff])
     } else if (value < this.twoByteBound) {
-      return Buffer.from([(CompactInt.twoBytePrefix + (value >> 8)) & 0xff, value & 0xff])
+      return new Uint8Array([(CompactInt.twoBytePrefix + (value >> 8)) & 0xff, value & 0xff])
     } else if (value < this.fourByteBound) {
-      return Buffer.from([
+      return new Uint8Array([
         (CompactInt.fourBytePrefix + (value >> 24)) & 0xff,
         (value >> 16) & 0xff,
         (value >> 8) & 0xff,
         value & 0xff
       ])
     } else {
-      return Buffer.from([
+      return new Uint8Array([
         CompactInt.multiBytePrefix,
         (value >> 24) & 0xff,
         (value >> 16) & 0xff,
@@ -93,7 +92,7 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
-  encodeU256(value: bigint): Buffer {
+  encodeU256(value: bigint): Uint8Array {
     assert(value >= 0n, 'Value should be positive')
 
     if (value < this.fourByteBound) {
@@ -107,26 +106,26 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
       assert(bytes.length <= 32, 'Expect <= 32 bytes for U256')
 
       const header = (bytes.length - 4 + CompactInt.multiBytePrefix) & 0xff
-      return Buffer.concat([Buffer.from([header]), bytes])
+      return new Uint8Array([header, ...bytes])
     }
   }
 
-  decodeU32(input: Buffer): number {
+  decodeU32(input: Uint8Array): number {
     const decoded = this.decode(input)
     return this.toU32(decoded)
   }
 
-  decodeU256(input: Buffer): bigint {
+  decodeU256(input: Uint8Array): bigint {
     const decoded = this.decode(input)
     return this.toU256(decoded)
   }
 
-  decode(input: Buffer): DecodedCompactInt {
+  decode(input: Uint8Array): DecodedCompactInt {
     return this.parser.parse(input)
   }
 
   toU32(value: DecodedCompactInt): number {
-    const body = Buffer.from([value.mode, ...value.rest])
+    const body = new Uint8Array([value.mode, ...value.rest])
     return decodePositiveInt(value.mode, body)
   }
 
@@ -140,7 +139,7 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
       return BigInt(this.toU32(value))
     } else {
       assert(value.rest.length <= 32, 'Expect <= 32 bytes for U256')
-      return BigIntCodec.decode(Buffer.from(value.rest), false)
+      return BigIntCodec.decode(value.rest, false)
     }
   }
 
@@ -159,34 +158,34 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
 
   parser = compactIntParser
 
-  encode(input: DecodedCompactInt): Buffer {
-    return Buffer.from([input.mode, ...input.rest])
+  encode(input: DecodedCompactInt): Uint8Array {
+    return new Uint8Array([input.mode, ...input.rest])
   }
 
-  decode(input: Buffer): DecodedCompactInt {
+  decode(input: Uint8Array): DecodedCompactInt {
     return this.parser.parse(input)
   }
 
-  decodeI32(input: Buffer): number {
+  decodeI32(input: Uint8Array): number {
     const decoded = this.decode(input)
     return this.toI32(decoded)
   }
 
-  encodeI32(value: number): Buffer {
+  encodeI32(value: number): Uint8Array {
     if (value >= 0) {
       if (value < this.oneByteBound) {
-        return Buffer.from([(CompactInt.oneBytePrefix + value) & 0xff])
+        return new Uint8Array([(CompactInt.oneBytePrefix + value) & 0xff])
       } else if (value < this.twoByteBound) {
-        return Buffer.from([(CompactInt.twoBytePrefix + (value >> 8)) & 0xff, value & 0xff])
+        return new Uint8Array([(CompactInt.twoBytePrefix + (value >> 8)) & 0xff, value & 0xff])
       } else if (value < this.fourByteBound) {
-        return Buffer.from([
+        return new Uint8Array([
           (CompactInt.fourBytePrefix + (value >> 24)) & 0xff,
           (value >> 16) & 0xff,
           (value >> 8) & 0xff,
           value & 0xff
         ])
       } else {
-        return Buffer.from([
+        return new Uint8Array([
           CompactInt.multiBytePrefix,
           (value >> 24) & 0xff,
           (value >> 16) & 0xff,
@@ -196,18 +195,18 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
       }
     } else {
       if (value >= -this.oneByteBound) {
-        return Buffer.from([(value ^ CompactInt.oneByteNegPrefix) & 0xff])
+        return new Uint8Array([(value ^ CompactInt.oneByteNegPrefix) & 0xff])
       } else if (value >= -this.twoByteBound) {
-        return Buffer.from([((value >> 8) ^ CompactInt.twoByteNegPrefix) & 0xff, value & 0xff])
+        return new Uint8Array([((value >> 8) ^ CompactInt.twoByteNegPrefix) & 0xff, value & 0xff])
       } else if (value >= -this.fourByteBound) {
-        return Buffer.from([
+        return new Uint8Array([
           ((value >> 24) ^ CompactInt.fourByteNegPrefix) & 0xff,
           (value >> 16) & 0xff,
           (value >> 8) & 0xff,
           value & 0xff
         ])
       } else {
-        return Buffer.from([
+        return new Uint8Array([
           CompactInt.multiBytePrefix,
           (value >> 24) & 0xff,
           (value >> 16) & 0xff,
@@ -218,23 +217,23 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
-  encodeI256(value: bigint): Buffer {
+  encodeI256(value: bigint): Uint8Array {
     if (value >= -0x20000000 && value < 0x20000000) {
       return this.encodeI32(Number(value))
     } else {
       const bytes = BigIntCodec.encode(value)
       const header = (bytes.length - 4 + CompactInt.multiBytePrefix) & 0xff
-      return Buffer.concat([Buffer.from([header]), bytes])
+      return new Uint8Array([header, ...bytes])
     }
   }
 
-  decodeI256(input: Buffer): bigint {
+  decodeI256(input: Uint8Array): bigint {
     const decoded = this.decode(input)
     return this.toI256(decoded)
   }
 
   toI32(value: DecodedCompactInt): number {
-    const body = Buffer.from([value.mode, ...value.rest])
+    const body = new Uint8Array([value.mode, ...value.rest])
     const mode = value.mode & maskRest
     if (fixedSize(mode)) {
       const isPositive = (value.mode & signFlag) == 0
@@ -263,7 +262,7 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
       return BigInt(this.toI32(value))
     } else {
       assert(value.rest.length <= 32, 'Expect <= 32 bytes for I256')
-      return BigIntCodec.decode(Buffer.from(value.rest), true)
+      return BigIntCodec.decode(value.rest, true)
     }
   }
 
@@ -274,7 +273,7 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
 
 export const compactSignedIntCodec = new CompactSignedIntCodec()
 
-function decodePositiveInt(rawMode: number, body: Buffer): number {
+function decodePositiveInt(rawMode: number, body: Uint8Array): number {
   const mode = rawMode & maskRest
 
   switch (mode) {
@@ -288,14 +287,14 @@ function decodePositiveInt(rawMode: number, body: Buffer): number {
       return ((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
     default:
       if (body.length === 5) {
-        return Number(BigInt('0x' + body.slice(1).toString('hex')))
+        return Number(BigInt('0x' + binToHex(body.slice(1))))
       } else {
         throw new Error(`decodePositiveInt: Expect 4 bytes int, but get ${body.length - 1} bytes int`)
       }
   }
 }
 
-function decodeNegativeInt(rawMode: number, body: Buffer) {
+function decodeNegativeInt(rawMode: number, body: Uint8Array) {
   const mode = rawMode & maskRest
   switch (mode) {
     case CompactInt.oneBytePrefix:

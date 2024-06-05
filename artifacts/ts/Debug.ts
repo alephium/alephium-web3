@@ -60,7 +60,12 @@ class Factory extends ContractFactory<DebugInstance, {}> {
         "testArgs" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "debug", params === undefined ? {} : params);
+      return testMethod(
+        this,
+        "debug",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
     },
   };
 }

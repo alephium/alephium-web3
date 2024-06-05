@@ -99,7 +99,7 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
-      return testMethod(this, "getTokenUri", params);
+      return testMethod(this, "getTokenUri", params, getContractByCodeHash);
     },
     returnNegativeIndex: async (
       params: Omit<
@@ -107,7 +107,12 @@ class Factory extends ContractFactory<
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
-      return testMethod(this, "returnNegativeIndex", params);
+      return testMethod(
+        this,
+        "returnNegativeIndex",
+        params,
+        getContractByCodeHash
+      );
     },
   };
 }

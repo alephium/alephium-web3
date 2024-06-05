@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { formatChain, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
 import { WalletClient } from './shared'
-import { web3, node, NodeProvider, verifySignedMessage, Project, groupOfAddress, NetworkId } from '@alephium/web3'
+import { web3, node, NodeProvider, verifySignedMessage, groupOfAddress, NetworkId } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
@@ -307,7 +307,6 @@ async function verifySign(provider: WalletConnectProvider, walletClient: WalletC
     balance = balance1
   }
 
-  await Project.build({ errorOnWarnings: false })
   const selectedAddress = (await provider.getSelectedAccount()).address
 
   expect(selectedAddress).toEqual(ACCOUNTS.a.address)

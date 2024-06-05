@@ -106,7 +106,7 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
         { array: [bigint, bigint] }
       >
     ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
-      return testMethod(this, "add", params);
+      return testMethod(this, "add", params, getContractByCodeHash);
     },
     add2: async (
       params: TestContractParamsWithoutMaps<
@@ -127,7 +127,7 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
         { array: [bigint, bigint] }
       >
     ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
-      return testMethod(this, "addPrivate", params);
+      return testMethod(this, "addPrivate", params, getContractByCodeHash);
     },
     createSubContract: async (
       params: TestContractParamsWithoutMaps<
@@ -135,7 +135,12 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
         { a: bigint; path: HexString; subContractId: HexString; payer: Address }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "createSubContract", params);
+      return testMethod(
+        this,
+        "createSubContract",
+        params,
+        getContractByCodeHash
+      );
     },
     createSubContractAndTransfer: async (
       params: TestContractParamsWithoutMaps<
@@ -151,7 +156,7 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
         { caller: Address }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(this, "destroy", params);
+      return testMethod(this, "destroy", params, getContractByCodeHash);
     },
   };
 }

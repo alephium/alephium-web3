@@ -29,7 +29,7 @@ import {
   isAssetAddress,
   isContractAddress
 } from './address'
-import { binToHex } from './utils'
+import { binToHex } from '../utils'
 
 describe('address', function () {
   it('should validate address', () => {
