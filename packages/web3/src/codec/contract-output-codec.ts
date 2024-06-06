@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { DecodedArray } from './array-codec'
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
 import { P2C } from './lockup-script-codec'
 import { Codec } from './codec'
 import { Token, tokensCodec } from './token-codec'
@@ -82,7 +82,7 @@ export class ContractOutputCodec implements Codec<ContractOutput> {
       }
     })
     const tokens: DecodedArray<Token> = {
-      length: compactUnsignedIntCodec.fromU32(tokensValue.length),
+      length: compactSignedIntCodec.fromI32(tokensValue.length),
       value: tokensValue
     }
 

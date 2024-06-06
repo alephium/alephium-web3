@@ -129,10 +129,6 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     return decodePositiveInt(value.mode, body)
   }
 
-  fromU32(value: number): DecodedCompactInt {
-    return this.decode(this.encodeU32(value))
-  }
-
   toU256(value: DecodedCompactInt): bigint {
     const mode = value.mode & maskRest
     if (fixedSize(mode)) {
