@@ -110,11 +110,6 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
-  decodeU32(input: Uint8Array): number {
-    const decoded = this.decode(input)
-    return this.toU32(decoded)
-  }
-
   decodeU256(input: Uint8Array): bigint {
     const decoded = this.decode(input)
     return this.toU256(decoded)
@@ -124,15 +119,11 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     return this.parser.parse(input)
   }
 
-  toU32(value: DecodedCompactInt): number {
-    const body = new Uint8Array([value.mode, ...value.rest])
-    return decodePositiveInt(value.mode, body)
-  }
-
   toU256(value: DecodedCompactInt): bigint {
     const mode = value.mode & maskRest
     if (fixedSize(mode)) {
-      return BigInt(this.toU32(value))
+      const body = new Uint8Array([value.mode, ...value.rest])
+      return BigInt(decodePositiveInt(value.mode, body))
     } else {
       assert(value.rest.length <= 32, 'Expect <= 32 bytes for U256')
       return BigIntCodec.decode(value.rest, false)
