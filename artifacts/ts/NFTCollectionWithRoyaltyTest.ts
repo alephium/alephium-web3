@@ -386,9 +386,9 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     getCollectionUri: async (
       params: NFTCollectionWithRoyaltyTestTypes.SignExecuteMethodParams<"getCollectionUri">
     ): Promise<

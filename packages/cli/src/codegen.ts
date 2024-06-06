@@ -120,7 +120,7 @@ function genCallMethods(contract: Contract): string {
       ${functions.map((f) => genCallMethod(contract.name, f)).join(',')}
     }
 
-    call = this.methods
+    view = this.methods
   `
 }
 
@@ -130,7 +130,7 @@ function genTxCallMethods(contract: Contract): string {
     return ''
   }
   return `
-    txCall = {
+    transact = {
       ${functions.map((f) => genTxCallMethod(contract.name, f)).join(',')}
     }
   `

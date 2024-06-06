@@ -137,9 +137,9 @@ export class DebugInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     debug: async (
       params: DebugTypes.SignExecuteMethodParams<"debug">
     ): Promise<DebugTypes.SignExecuteMethodResult<"debug">> => {

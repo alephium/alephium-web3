@@ -152,9 +152,9 @@ export class GreeterInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     greet: async (
       params: GreeterTypes.SignExecuteMethodParams<"greet">
     ): Promise<GreeterTypes.SignExecuteMethodResult<"greet">> => {

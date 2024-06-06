@@ -330,9 +330,9 @@ export class AddInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     add: async (
       params: AddTypes.SignExecuteMethodParams<"add">
     ): Promise<AddTypes.SignExecuteMethodResult<"add">> => {

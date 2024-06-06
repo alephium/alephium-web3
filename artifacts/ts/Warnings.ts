@@ -141,9 +141,9 @@ export class WarningsInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     foo: async (
       params: WarningsTypes.SignExecuteMethodParams<"foo">
     ): Promise<WarningsTypes.SignExecuteMethodResult<"foo">> => {

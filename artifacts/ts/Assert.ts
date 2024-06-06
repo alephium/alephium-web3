@@ -150,9 +150,9 @@ export class AssertInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     test: async (
       params: AssertTypes.SignExecuteMethodParams<"test">
     ): Promise<AssertTypes.SignExecuteMethodResult<"test">> => {

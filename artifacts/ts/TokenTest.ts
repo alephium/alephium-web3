@@ -231,9 +231,9 @@ export class TokenTestInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     getSymbol: async (
       params: TokenTestTypes.SignExecuteMethodParams<"getSymbol">
     ): Promise<TokenTestTypes.SignExecuteMethodResult<"getSymbol">> => {

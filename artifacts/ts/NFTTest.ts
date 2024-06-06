@@ -178,9 +178,9 @@ export class NFTTestInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     getTokenUri: async (
       params: NFTTestTypes.SignExecuteMethodParams<"getTokenUri">
     ): Promise<NFTTestTypes.SignExecuteMethodResult<"getTokenUri">> => {

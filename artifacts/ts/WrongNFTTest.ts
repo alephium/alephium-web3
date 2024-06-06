@@ -181,9 +181,9 @@ export class WrongNFTTestInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     getTokenUri: async (
       params: WrongNFTTestTypes.SignExecuteMethodParams<"getTokenUri">
     ): Promise<WrongNFTTestTypes.SignExecuteMethodResult<"getTokenUri">> => {

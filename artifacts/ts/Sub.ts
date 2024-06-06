@@ -159,9 +159,9 @@ export class SubInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     sub: async (
       params: SubTypes.SignExecuteMethodParams<"sub">
     ): Promise<SubTypes.SignExecuteMethodResult<"sub">> => {

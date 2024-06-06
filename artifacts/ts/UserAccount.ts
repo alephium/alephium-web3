@@ -206,9 +206,9 @@ export class UserAccountInstance extends ContractInstance {
     },
   };
 
-  call = this.methods;
+  view = this.methods;
 
-  txCall = {
+  transact = {
     updateBalance: async (
       params: UserAccountTypes.SignExecuteMethodParams<"updateBalance">
     ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateBalance">> => {
