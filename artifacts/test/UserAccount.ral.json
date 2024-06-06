@@ -27,6 +27,9 @@
   "functions": [
     {
       "name": "updateBalance",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [
         "tokens"
       ],
@@ -40,6 +43,9 @@
     },
     {
       "name": "updateAddress",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [
         "newAddress"
       ],
@@ -53,6 +59,9 @@
     },
     {
       "name": "getBalances",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

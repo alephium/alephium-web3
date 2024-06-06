@@ -25,12 +25,22 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace GreeterTypes {
@@ -66,6 +76,17 @@ export namespace GreeterTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    greet: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
@@ -128,6 +149,16 @@ export class GreeterInstance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+  };
+
+  view = this.methods;
+
+  transact = {
+    greet: async (
+      params: GreeterTypes.SignExecuteMethodParams<"greet">
+    ): Promise<GreeterTypes.SignExecuteMethodResult<"greet">> => {
+      return signExecuteMethod(Greeter, this, "greet", params);
     },
   };
 

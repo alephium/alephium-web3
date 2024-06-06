@@ -99,9 +99,9 @@ function formatParameters(fieldsSig: { names: string[]; types: string[] }): stri
 }
 
 function genCallMethod(contractName: string, functionSig: FunctionSig): string {
+  const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
   const funcHasArgs = functionSig.paramNames.length > 0
   const params = `params${funcHasArgs ? '' : '?'}: ${contractName}Types.CallMethodParams<'${functionSig.name}'>`
-  const retType = `${contractName}Types.CallMethodResult<'${functionSig.name}'>`
   const callParams = funcHasArgs ? 'params' : 'params === undefined ? {} : params'
   return `
     ${functionSig.name}: async (${params}): Promise<${retType}> => {
@@ -111,7 +111,7 @@ function genCallMethod(contractName: string, functionSig: FunctionSig): string {
 }
 
 function genCallMethods(contract: Contract): string {
-  const functions = contract.publicFunctions().filter((f) => f.returnTypes.length > 0)
+  const functions = contract.publicFunctions()
   if (functions.length === 0) {
     return ''
   }
@@ -119,7 +119,31 @@ function genCallMethods(contract: Contract): string {
     methods = {
       ${functions.map((f) => genCallMethod(contract.name, f)).join(',')}
     }
+
+    view = this.methods
   `
+}
+
+function genTxCallMethods(contract: Contract): string {
+  const functions = contract.publicFunctions()
+  if (functions.length === 0) {
+    return ''
+  }
+  return `
+    transact = {
+      ${functions.map((f) => genTxCallMethod(contract.name, f)).join(',')}
+    }
+  `
+}
+
+function genTxCallMethod(contractName: string, functionSig: FunctionSig): string {
+  const retType = `${contractName}Types.SignExecuteMethodResult<'${functionSig.name}'>`
+  const params = `params: ${contractName}Types.SignExecuteMethodParams<'${functionSig.name}'>`
+  return `
+      ${functionSig.name}: async (${params}): Promise<${retType}> => {
+        return signExecuteMethod(${contractName}, this, "${functionSig.name}", params)
+      }
+    `
 }
 
 function getInstanceName(contract: Contract): string {
@@ -365,31 +389,28 @@ function genTestMethods(contract: Contract): string {
 }
 
 function genCallMethodTypes(contract: Contract): string {
-  const entities = contract
-    .publicFunctions()
-    .filter((functionSig) => functionSig.returnTypes.length > 0)
-    .map((functionSig) => {
-      const funcHasArgs = functionSig.paramNames.length > 0
-      const params = funcHasArgs
-        ? `CallContractParams<{${formatParameters({
-            names: functionSig.paramNames,
-            types: functionSig.paramTypes
-          })}}>`
-        : `Omit<CallContractParams<{}>, 'args'>`
-      const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
-      const retType =
-        tsReturnTypes.length === 0
-          ? `CallContractResult<null>`
-          : tsReturnTypes.length === 1
-          ? `CallContractResult<${tsReturnTypes[0]}>`
-          : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
-      return `
+  const entities = contract.publicFunctions().map((functionSig) => {
+    const funcHasArgs = functionSig.paramNames.length > 0
+    const params = funcHasArgs
+      ? `CallContractParams<{${formatParameters({
+          names: functionSig.paramNames,
+          types: functionSig.paramTypes
+        })}}>`
+      : `Omit<CallContractParams<{}>, 'args'>`
+    const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
+    const retType =
+      tsReturnTypes.length === 0
+        ? `CallContractResult<null>`
+        : tsReturnTypes.length === 1
+        ? `CallContractResult<${tsReturnTypes[0]}>`
+        : `CallContractResult<[${tsReturnTypes.join(', ')}]>`
+    return `
       ${functionSig.name}: {
         params: ${params}
         result: ${retType}
       }
     `
-    })
+  })
   return entities.length > 0
     ? `
       export interface CallMethodTable{
@@ -399,6 +420,34 @@ function genCallMethodTypes(contract: Contract): string {
       export type CallMethodResult<T extends keyof CallMethodTable> = CallMethodTable[T]['result']
       export type MultiCallParams = Partial<{ [Name in keyof CallMethodTable]: CallMethodTable[Name]['params'] }>
       export type MultiCallResults<T extends MultiCallParams> = { [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable ? CallMethodTable[MaybeName]['result'] : undefined }
+    `
+    : ''
+}
+
+function genSignExecuteMethodTypes(contract: Contract): string {
+  const entities = contract.publicFunctions().map((functionSig) => {
+    const funcHasArgs = functionSig.paramNames.length > 0
+    const params = funcHasArgs
+      ? `SignExecuteContractMethodParams<{${formatParameters({
+          names: functionSig.paramNames,
+          types: functionSig.paramTypes
+        })}}>`
+      : `Omit<SignExecuteContractMethodParams<{}>, 'args'>`
+
+    return `
+      ${functionSig.name}: {
+        params: ${params}
+        result: SignExecuteScriptTxResult
+      }
+    `
+  })
+  return entities.length > 0
+    ? `
+      export interface SignExecuteMethodTable{
+        ${entities.join(',')}
+      }
+      export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> = SignExecuteMethodTable[T]['params']
+      export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> = SignExecuteMethodTable[T]['result']
     `
     : ''
 }
@@ -456,8 +505,8 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
       testMethod, callMethod, multicallMethods, fetchContractState,
       ContractInstance, getContractEventsCurrentCount,
-      TestContractParamsWithoutMaps, TestContractResultWithoutMaps,
-      addStdIdToFields, encodeContractFields
+      TestContractParamsWithoutMaps, TestContractResultWithoutMaps, SignExecuteContractMethodParams,
+      SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'
@@ -469,6 +518,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genContractStateType(contract)}
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
       ${genCallMethodTypes(contract)}
+      ${genSignExecuteMethodTypes(contract)}
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
@@ -500,6 +550,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.eventsSig.map((e) => genSubscribeEvent(contract.name, e)).join('\n')}
       ${genSubscribeAllEvents(contract)}
       ${genCallMethods(contract)}
+      ${genTxCallMethods(contract)}
       ${genMulticall(contract)}
     }
 `

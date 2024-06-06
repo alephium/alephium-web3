@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
 import { signedIntCodec } from './signed-int-codec'
 import { longCodec } from './long-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
@@ -40,7 +40,7 @@ export interface AssetOutput {
 export class AssetOutputCodec implements Codec<AssetOutput> {
   parser = Parser.start()
     .nest('amount', {
-      type: compactUnsignedIntCodec.parser
+      type: compactSignedIntCodec.parser
     })
     .nest('lockupScript', {
       type: lockupScriptCodec.parser
@@ -124,12 +124,12 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
       }
     })
     const tokens: DecodedArray<Token> = {
-      length: compactUnsignedIntCodec.fromU32(tokensValue.length),
+      length: compactSignedIntCodec.fromI32(tokensValue.length),
       value: tokensValue
     }
     const additionalDataValue = hexToBinUnsafe(fixedOutput.message)
     const additionalData: ByteString = {
-      length: compactUnsignedIntCodec.fromU32(additionalDataValue.length),
+      length: compactSignedIntCodec.fromI32(additionalDataValue.length),
       value: additionalDataValue
     }
 

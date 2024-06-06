@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { byteStringCodec } from './bytestring-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
+import { compactSignedIntCodec } from './compact-int-codec'
 
 describe('Encode & decode bytestring', function () {
   it('should encode & decode bytestring', function () {
@@ -29,7 +29,7 @@ describe('Encode & decode bytestring', function () {
     const decodedOne = byteStringCodec.decode(encodedOne)
     const encodedTwo = byteStringCodec.encode(decodedOne)
     const decodedTwo = byteStringCodec.decodeBytes(encodedTwo)
-    expect(compactUnsignedIntCodec.toU32(decodedOne.length)).toEqual(decodedOne.value.length)
+    expect(compactSignedIntCodec.toI32(decodedOne.length)).toEqual(decodedOne.value.length)
     expect(decodedOne.value).toEqual(value)
     expect(decodedTwo).toEqual(value)
   }

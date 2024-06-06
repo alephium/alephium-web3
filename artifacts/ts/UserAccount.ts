@@ -25,12 +25,22 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace UserAccountTypes {
@@ -44,6 +54,14 @@ export namespace UserAccountTypes {
   export type State = ContractState<Fields>;
 
   export interface CallMethodTable {
+    updateBalance: {
+      params: CallContractParams<{ tokens: [TokenBalance, TokenBalance] }>;
+      result: CallContractResult<null>;
+    };
+    updateAddress: {
+      params: CallContractParams<{ newAddress: Address }>;
+      result: CallContractResult<null>;
+    };
     getBalances: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<Balances>;
@@ -61,6 +79,27 @@ export namespace UserAccountTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    updateBalance: {
+      params: SignExecuteContractMethodParams<{
+        tokens: [TokenBalance, TokenBalance];
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    updateAddress: {
+      params: SignExecuteContractMethodParams<{ newAddress: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    getBalances: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -132,6 +171,28 @@ export class UserAccountInstance extends ContractInstance {
   }
 
   methods = {
+    updateBalance: async (
+      params: UserAccountTypes.CallMethodParams<"updateBalance">
+    ): Promise<UserAccountTypes.CallMethodResult<"updateBalance">> => {
+      return callMethod(
+        UserAccount,
+        this,
+        "updateBalance",
+        params,
+        getContractByCodeHash
+      );
+    },
+    updateAddress: async (
+      params: UserAccountTypes.CallMethodParams<"updateAddress">
+    ): Promise<UserAccountTypes.CallMethodResult<"updateAddress">> => {
+      return callMethod(
+        UserAccount,
+        this,
+        "updateAddress",
+        params,
+        getContractByCodeHash
+      );
+    },
     getBalances: async (
       params?: UserAccountTypes.CallMethodParams<"getBalances">
     ): Promise<UserAccountTypes.CallMethodResult<"getBalances">> => {
@@ -142,6 +203,26 @@ export class UserAccountInstance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+  };
+
+  view = this.methods;
+
+  transact = {
+    updateBalance: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"updateBalance">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateBalance">> => {
+      return signExecuteMethod(UserAccount, this, "updateBalance", params);
+    },
+    updateAddress: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"updateAddress">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"updateAddress">> => {
+      return signExecuteMethod(UserAccount, this, "updateAddress", params);
+    },
+    getBalances: async (
+      params: UserAccountTypes.SignExecuteMethodParams<"getBalances">
+    ): Promise<UserAccountTypes.SignExecuteMethodResult<"getBalances">> => {
+      return signExecuteMethod(UserAccount, this, "getBalances", params);
     },
   };
 

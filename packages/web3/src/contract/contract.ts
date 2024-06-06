@@ -40,7 +40,8 @@ import {
   SignDeployContractTxResult,
   SignExecuteScriptTxParams,
   SignerProvider,
-  Address
+  Address,
+  SignExecuteScriptTxResult
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -63,6 +64,8 @@ import * as blake from 'blakejs'
 import { isContractDebugMessageEnabled } from '../debug'
 import {
   contract,
+  compactUnsignedIntCodec,
+  compactSignedIntCodec,
   Method,
   LoadLocal,
   LoadImmFieldByIndex,
@@ -72,7 +75,19 @@ import {
   ByteVecEq,
   Assert,
   StoreMutFieldByIndex,
-  DestroySelf
+  DestroySelf,
+  Pop,
+  byteStringCodec,
+  StoreLocal,
+  instrCodec,
+  U256Const,
+  Instr,
+  ApproveToken,
+  ApproveAlph,
+  CallExternal,
+  Dup,
+  CallerAddress,
+  ByteConst
 } from '../codec'
 
 const crypto = new WebCrypto()
@@ -1043,6 +1058,15 @@ export interface CallContractResult<R> {
   debugMessages: DebugMessage[]
 }
 
+export interface SignExecuteContractMethodParams<T extends Arguments = Arguments> {
+  args: T
+  signer: SignerProvider
+  attoAlphAmount?: Number256
+  tokens?: Token[]
+  gasAmount?: number
+  gasPrice?: Number256
+}
+
 function specialContractAddress(eventIndex: number, groupIndex: number): string {
   const bytes = new Uint8Array(32).fill(0)
   bytes[30] = eventIndex
@@ -1604,6 +1628,251 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
   const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex, getContractByCodeHash)
   contract.contract.printDebugMessages(methodName, callResult.debugMessages)
   return callResult as CallContractResult<R>
+}
+
+export async function signExecuteMethod<I extends ContractInstance, F extends Fields, A extends Arguments, R>(
+  contract: ContractFactory<I, F>,
+  instance: ContractInstance,
+  methodName: string,
+  params: Optional<SignExecuteContractMethodParams<A>, 'args'>
+): Promise<SignExecuteScriptTxResult> {
+  const methodIndex = contract.contract.getMethodIndex(methodName)
+  const functionSig = contract.contract.functions[methodIndex]
+  const usePreapprovedAssets = contract.contract.decodedMethods[methodIndex].usePreapprovedAssets
+  const bytecodeTemplate = getBytecodeTemplate(
+    methodIndex,
+    usePreapprovedAssets,
+    functionSig,
+    contract.contract.structs,
+    params.attoAlphAmount,
+    params.tokens
+  )
+
+  const fieldsSig = toFieldsSig(contract.contract.name, functionSig)
+  const bytecode = ralph.buildScriptByteCode(
+    bytecodeTemplate,
+    { __contract__: instance.contractId, ...params.args },
+    fieldsSig,
+    contract.contract.structs
+  )
+
+  const signer = params.signer
+  const selectedAccount = await signer.getSelectedAccount()
+  const signerParams: SignExecuteScriptTxParams = {
+    signerAddress: selectedAccount.address,
+    signerKeyType: selectedAccount.keyType,
+    bytecode: bytecode,
+    attoAlphAmount: params.attoAlphAmount,
+    tokens: params.tokens,
+    gasAmount: params.gasAmount,
+    gasPrice: params.gasPrice
+  }
+
+  return await signer.signAndSubmitExecuteScriptTx(signerParams)
+}
+
+function getBytecodeTemplate(
+  methodIndex: number,
+  usePreapprovedAssets: boolean,
+  functionSig: FunctionSig,
+  structs: Struct[],
+  attoAlphAmount?: Number256,
+  tokens?: Token[]
+): string {
+  // For the default TxScript main function
+  const numberOfMethods = '01'
+  const isPublic = '01'
+  const modifier = usePreapprovedAssets ? '03' : '00'
+  const argsLength = '00'
+  const returnsLength = '00'
+
+  const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
+
+  const approveAlphInstrs: string[] = getApproveAlphInstrs(usePreapprovedAssets ? attoAlphAmount : undefined)
+  const approveTokensInstrs: string[] = getApproveTokensInstrs(usePreapprovedAssets ? tokens : undefined)
+  const callerInstrs: string[] = getCallAddressInstrs(approveAlphInstrs.length / 2 + approveTokensInstrs.length / 3)
+
+  // First template var is the contract
+  const functionArgsNum = encodeU256Const(BigInt(templateVarsLength - 1))
+  const localsLength = encodeI32(templateVarStoreLocalInstrs.length / 2)
+
+  const templateVarLoadLocalInstrs = getTemplateVarLoadLocalInstrs(functionSig, structs)
+
+  const functionReturnTypesLength: number = functionSig.returnTypes.reduce(
+    (acc, returnType) => acc + ralph.typeLength(returnType, structs),
+    0
+  )
+  const functionReturnPopInstrs = encodeInstr(Pop).repeat(functionReturnTypesLength)
+  const functionReturnNum = encodeU256Const(BigInt(functionReturnTypesLength))
+
+  const contractTemplateVar = '{0}' // always the 1st argument
+  const externalCallInstr = encodeInstr(CallExternal(methodIndex))
+  const numberOfInstrs = encodeI32(
+    callerInstrs.length +
+      approveAlphInstrs.length +
+      approveTokensInstrs.length +
+      templateVarStoreLocalInstrs.length +
+      templateVarLoadLocalInstrs.length +
+      functionReturnTypesLength +
+      4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
+  )
+
+  return (
+    numberOfMethods +
+    isPublic +
+    modifier +
+    argsLength +
+    localsLength +
+    returnsLength +
+    numberOfInstrs +
+    callerInstrs.join('') +
+    approveAlphInstrs.join('') +
+    approveTokensInstrs.join('') +
+    templateVarStoreLocalInstrs.join('') +
+    templateVarLoadLocalInstrs.join('') +
+    functionArgsNum +
+    functionReturnNum +
+    contractTemplateVar +
+    externalCallInstr +
+    functionReturnPopInstrs
+  )
+}
+
+function getApproveAlphInstrs(attoAlphAmount?: Number256): string[] {
+  const approveAlphInstrs: string[] = []
+  if (attoAlphAmount) {
+    const approvedAttoAlphAmount = encodeU256Const(BigInt(attoAlphAmount))
+    approveAlphInstrs.push(approvedAttoAlphAmount)
+    approveAlphInstrs.push(encodeInstr(ApproveAlph))
+  }
+
+  return approveAlphInstrs
+}
+
+function getApproveTokensInstrs(tokens?: Token[]): string[] {
+  const approveTokensInstrs: string[] = []
+  if (tokens) {
+    tokens.forEach((token) => {
+      const tokenIdBin = hexToBinUnsafe(token.id)
+      approveTokensInstrs.push(
+        encodeInstr(
+          ByteConst({
+            length: compactSignedIntCodec.fromI32(tokenIdBin.length),
+            value: tokenIdBin
+          })
+        )
+      )
+      approveTokensInstrs.push(encodeU256Const(BigInt(token.amount)))
+      approveTokensInstrs.push(encodeInstr(ApproveToken))
+    })
+  }
+
+  return approveTokensInstrs
+}
+
+function getCallAddressInstrs(approveAssetsNum: number): string[] {
+  const callerInstrs: string[] = []
+  if (approveAssetsNum > 0) {
+    callerInstrs.push(encodeInstr(CallerAddress))
+
+    const dup = encodeInstr(Dup)
+    if (approveAssetsNum > 1) {
+      callerInstrs.push(...new Array(approveAssetsNum - 1).fill(dup))
+    }
+  }
+
+  return callerInstrs
+}
+
+function getTemplateVarStoreLocalInstrs(functionSig: FunctionSig, structs: Struct[]): [string[], number] {
+  let templateVarIndex = 1 // Start from 1 since first one is always the contract id
+  let localsLength = 0
+  const templateVarStoreInstrs: string[] = []
+  functionSig.paramTypes.forEach((paramType) => {
+    const fieldsLength = ralph.typeLength(paramType, structs)
+    if (fieldsLength > 1) {
+      for (let i = 0; i < fieldsLength; i++) {
+        templateVarStoreInstrs.push(`{${templateVarIndex + i}}`)
+      }
+      for (let i = 0; i < fieldsLength; i++) {
+        templateVarStoreInstrs.push(encodeStoreLocalInstr(localsLength + (fieldsLength - i - 1)))
+      }
+
+      localsLength = localsLength + fieldsLength
+    }
+
+    templateVarIndex = templateVarIndex + fieldsLength
+  })
+
+  return [templateVarStoreInstrs, templateVarIndex]
+}
+
+function getTemplateVarLoadLocalInstrs(functionSig: FunctionSig, structs: Struct[]): string[] {
+  let templateVarIndex = 1
+  let loadIndex = 0
+  const templateVarLoadInstrs: string[] = []
+  functionSig.paramTypes.forEach((paramType) => {
+    const fieldsLength = ralph.typeLength(paramType, structs)
+
+    if (fieldsLength === 1) {
+      templateVarLoadInstrs.push(`{${templateVarIndex}}`)
+    }
+
+    if (fieldsLength > 1) {
+      for (let i = 0; i < fieldsLength; i++) {
+        templateVarLoadInstrs.push(encodeLoadLocalInstr(loadIndex + i))
+      }
+
+      loadIndex = loadIndex + fieldsLength
+    }
+
+    templateVarIndex = templateVarIndex + fieldsLength
+  })
+
+  return templateVarLoadInstrs
+}
+
+function encodeStoreLocalInstr(index: number): string {
+  if (index < 0 || index > 0xff) {
+    throw new Error(`StoreLocal index ${index} must be between 0 and 255 inclusive`)
+  }
+  return encodeInstr(StoreLocal(index))
+}
+
+function encodeLoadLocalInstr(index: number): string {
+  if (index < 0 || index > 0xff) {
+    throw new Error(`LoadLocal index ${index} must be between 0 and 255 inclusive`)
+  }
+
+  return encodeInstr(LoadLocal(index))
+}
+
+function encodeI32(value: number): string {
+  return binToHex(compactSignedIntCodec.encodeI32(value))
+}
+
+function encodeU256Const(value: bigint): string {
+  if (value < 0) {
+    throw new Error(`value ${value} must be non-negative`)
+  }
+
+  if (value < 6) {
+    return (BigInt(0x0c) + value).toString(16).padStart(2, '0')
+  } else {
+    return encodeInstr(U256Const(compactUnsignedIntCodec.fromU256(BigInt(value))))
+  }
+}
+
+function encodeInstr(instr: Instr): string {
+  return binToHex(instrCodec.encode(instr))
+}
+
+function toFieldsSig(contractName: string, functionSig: FunctionSig): FieldsSig {
+  return {
+    names: ['__contract__'].concat(functionSig.paramNames),
+    types: [contractName].concat(functionSig.paramTypes),
+    isMutable: [false].concat(functionSig.paramIsMutable)
+  }
 }
 
 export async function multicallMethods<I extends ContractInstance, F extends Fields>(

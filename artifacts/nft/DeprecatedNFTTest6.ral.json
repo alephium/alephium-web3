@@ -21,6 +21,9 @@
   "functions": [
     {
       "name": "getTokenUri",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -30,6 +33,9 @@
     },
     {
       "name": "getArray",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

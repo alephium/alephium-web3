@@ -5,6 +5,14 @@
 import { Address, HexString, Val, Struct } from "@alephium/web3";
 import { default as allStructsJson } from "../structs.ral.json";
 export const AllStructs = allStructsJson.map((json) => Struct.fromJson(json));
+export interface AddStruct1 extends Record<string, Val> {
+  a: bigint;
+  b: [AddStruct2, AddStruct2];
+}
+export interface AddStruct2 extends Record<string, Val> {
+  a: bigint;
+  b: [bigint, bigint];
+}
 export interface Balances extends Record<string, Val> {
   totalAmount: bigint;
   tokens: [TokenBalance, TokenBalance];

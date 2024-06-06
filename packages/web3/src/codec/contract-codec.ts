@@ -60,8 +60,8 @@ export class ContractCodec implements Codec<HalfDecodedContract> {
 
   decodeContract(input: Uint8Array): Contract {
     const halfDecoded = this.decode(input)
-    const fieldLength = compactUnsignedIntCodec.toU32(halfDecoded.fieldLength)
-    const methodIndexes = halfDecoded.methodIndexes.value.map((v) => compactUnsignedIntCodec.toU32(v))
+    const fieldLength = compactSignedIntCodec.toI32(halfDecoded.fieldLength)
+    const methodIndexes = halfDecoded.methodIndexes.value.map((v) => compactSignedIntCodec.toI32(v))
     const methods: Method[] = []
     for (let i = 0, start = 0; i < methodIndexes.length; i++) {
       const end = methodIndexes[i]

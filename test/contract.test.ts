@@ -33,6 +33,7 @@ import {
   DEFAULT_NODE_COMPILER_OPTIONS,
   DUST_AMOUNT,
   DEFAULT_GAS_AMOUNT,
+  stringToHex,
   encodePrimitiveValues,
   addressVal,
   byteVecVal,
@@ -45,7 +46,7 @@ import { Greeter } from '../artifacts/ts/Greeter'
 import {
   GreeterMain,
   InsertIntoMap,
-  Main,
+  AddMain,
   RemoveFromMap,
   TemplateArrayVar,
   TestAssert,
@@ -159,7 +160,7 @@ describe('contract', function () {
     expect(addContractState0.address).toEqual(add.address)
     expect(addContractState0.contractId).toEqual(add.contractId)
 
-    const mainScriptTx = await Main.execute(signer, { initialFields: { addContractId: add.contractId } })
+    const mainScriptTx = await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub after main script is executed
@@ -249,7 +250,7 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(44)
+    expect(sourceFiles.length).toEqual(46)
     sourceFiles.slice(0, 23).forEach((c) => expect(c.type).toEqual(0)) // contracts
     sourceFiles.slice(23, 34).forEach((s) => expect(s.type).toEqual(1)) // scripts
     sourceFiles.slice(34, 36).forEach((i) => expect(i.type).toEqual(2)) // abstract class
@@ -260,7 +261,7 @@ describe('contract', function () {
   it('should load contract from json', () => {
     loadContract('./artifacts/add/Add.ral.json')
     loadContract('./artifacts/sub/Sub.ral.json')
-    loadScript('./artifacts/add/Main.ral.json')
+    loadScript('./artifacts/add/AddMain.ral.json')
 
     loadContract('./artifacts/greeter/Greeter.ral.json')
     loadScript('./artifacts/greeter/GreeterMain.ral.json')
@@ -537,6 +538,99 @@ describe('contract', function () {
     expect(await mapTest.maps.map0.get(signer.address)).toEqual(undefined)
     expect(await mapTest.maps.map1.contains(1n)).toEqual(false)
     expect(await mapTest.maps.map1.get(1n)).toEqual(undefined)
+  })
+
+  it('should test sign execute method with primitive arguments', async () => {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const caller = (await signer.getSelectedAccount()).address
+    const provider = web3.getCurrentNodeProvider()
+
+    const state = await provider.contracts.getContractsAddressState(add.address)
+    expect(state).toBeDefined()
+
+    await add.transact.destroy({ args: { caller: caller }, signer })
+    await expect(provider.contracts.getContractsAddressState(add.address)).rejects.toThrow(Error)
+  })
+
+  it('should test sign execute method with array arguments', async () => {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const provider = web3.getCurrentNodeProvider()
+
+    const stateBefore = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateBefore.mutFields[0].value).toEqual('0')
+
+    await add.transact.add({ args: { array: [2n, 1n] }, signer })
+
+    const stateAfter = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateAfter.mutFields[0].value).toEqual('3')
+  })
+
+  it('should test sign execute method with struct arguments', async () => {
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const provider = web3.getCurrentNodeProvider()
+
+    const stateBefore = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateBefore.mutFields[0].value).toEqual('0')
+
+    await add.transact.add2({
+      args: {
+        array1: [2n, 1n],
+        address: signer.address,
+        array2: [2n, 1n],
+        addS: {
+          a: 1n,
+          b: [
+            { a: 1n, b: [2n, 1n] },
+            { a: 1n, b: [2n, 1n] }
+          ]
+        }
+      },
+      signer
+    })
+
+    const stateAfter = await provider.contracts.getContractsAddressState(add.address)
+    expect(stateAfter.mutFields[0].value).toEqual('3')
+  })
+
+  it('should test sign execute method with approved assets', async () => {
+    const signerAddress = (await signer.getSelectedAccount()).address
+    const sub = await Sub.deploy(signer, {
+      initialFields: { result: 0n },
+      issueTokenAmount: 300n,
+      issueTokenTo: signerAddress
+    })
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
+      .contractInstance
+    const provider = web3.getCurrentNodeProvider()
+
+    const state = await provider.contracts.getContractsAddressState(add.address)
+    expect(state).toBeDefined()
+
+    const beforeBalances = await signer.nodeProvider.addresses.getAddressesAddressBalance(signerAddress)
+    expect(beforeBalances.tokenBalances?.find((t) => t.id === sub.contractInstance.contractId)!.amount).toEqual('300')
+
+    const txResult = await add.transact.createSubContractAndTransfer({
+      args: {
+        a: 1n,
+        path: stringToHex('test-path'),
+        subContractId: sub.contractInstance.contractId,
+        payer: signerAddress
+      },
+      signer,
+      attoAlphAmount: ONE_ALPH * 2n,
+      tokens: [{ id: sub.contractInstance.contractId, amount: 200n }]
+    })
+
+    const afterBalances = await signer.nodeProvider.addresses.getAddressesAddressBalance(signerAddress)
+    const gasFee = BigInt(txResult.gasAmount) * BigInt(txResult.gasPrice)
+    expect(BigInt(beforeBalances.balance)).toEqual(BigInt(afterBalances.balance) + ONE_ALPH / 10n + gasFee)
+    expect(afterBalances.tokenBalances?.find((t) => t.id === sub.contractInstance.contractId)!.amount).toEqual('100')
   })
 
   it('should test encode contract fields', async () => {

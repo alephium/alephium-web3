@@ -21,7 +21,7 @@ import { DecodedArray } from './array-codec'
 import { Codec } from './codec'
 import { DecodedMethod, methodsCodec, Method, MethodCodec } from './method-codec'
 import { OptionCodec } from './option-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
+import { compactSignedIntCodec } from './compact-int-codec'
 
 export interface DecodedScript {
   methods: DecodedArray<DecodedMethod>
@@ -51,7 +51,7 @@ export class ScriptCodec implements Codec<DecodedScript> {
   }
 
   encodeScript(inputTxScript: Script): Uint8Array {
-    const methodLength = compactUnsignedIntCodec.fromU32(inputTxScript.methods.length)
+    const methodLength = compactSignedIntCodec.fromI32(inputTxScript.methods.length)
     const decodedMethods = inputTxScript.methods.map((method) => MethodCodec.fromMethod(method))
     return this.encode({ methods: { value: decodedMethods, length: methodLength } })
   }

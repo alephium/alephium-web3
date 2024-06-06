@@ -44,28 +44,6 @@ describe('Encode & decode compact int', function () {
     testCodec.success(-129)
   })
 
-  it('should encode & decode u32', function () {
-    const testCodec = new TestCodec(
-      (number) => compactUnsignedIntCodec.encodeU32(number),
-      (buffer) => compactUnsignedIntCodec.decodeU32(buffer),
-      () => (Math.random() * 0xffffffff) >>> 0
-    )
-
-    const min = 0
-    const max = 2 ** 32 - 1
-
-    for (let i = 0; i < 10; i++) {
-      testCodec.success(testCodec.generateRandom())
-    }
-
-    testCodec.success(3186864367)
-    testCodec.success(0)
-    testCodec.success(max)
-    testCodec.success(min)
-    testCodec.fail(max + 1)
-    testCodec.fail(2 ** 50)
-  })
-
   it('should encode & decode u256', function () {
     const testCodec = new TestCodec(
       (number) => compactUnsignedIntCodec.encodeU256(number),

@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
 import { Codec } from './codec'
 import { instrsCodec, Instr } from './instr-codec'
 
@@ -82,13 +82,13 @@ export class MethodCodec implements Codec<DecodedMethod> {
     .uint8('isPublic')
     .uint8('assetModifier')
     .nest('argsLength', {
-      type: compactUnsignedIntCodec.parser
+      type: compactSignedIntCodec.parser
     })
     .nest('localsLength', {
-      type: compactUnsignedIntCodec.parser
+      type: compactSignedIntCodec.parser
     })
     .nest('returnLength', {
-      type: compactUnsignedIntCodec.parser
+      type: compactSignedIntCodec.parser
     })
     .nest('instrs', {
       type: instrsCodec.parser
@@ -96,9 +96,9 @@ export class MethodCodec implements Codec<DecodedMethod> {
 
   encode(input: DecodedMethod): Uint8Array {
     const result = [input.isPublic, input.assetModifier]
-    result.push(...compactUnsignedIntCodec.encode(input.argsLength))
-    result.push(...compactUnsignedIntCodec.encode(input.localsLength))
-    result.push(...compactUnsignedIntCodec.encode(input.returnLength))
+    result.push(...compactSignedIntCodec.encode(input.argsLength))
+    result.push(...compactSignedIntCodec.encode(input.localsLength))
+    result.push(...compactSignedIntCodec.encode(input.returnLength))
     result.push(...instrsCodec.encode(input.instrs.value))
     return new Uint8Array(result)
   }
@@ -111,9 +111,9 @@ export class MethodCodec implements Codec<DecodedMethod> {
     return {
       isPublic: decodedMethod.isPublic === 1,
       ...decodeAssetModifier(decodedMethod.assetModifier),
-      argsLength: compactUnsignedIntCodec.toU32(decodedMethod.argsLength),
-      localsLength: compactUnsignedIntCodec.toU32(decodedMethod.localsLength),
-      returnLength: compactUnsignedIntCodec.toU32(decodedMethod.returnLength),
+      argsLength: compactSignedIntCodec.toI32(decodedMethod.argsLength),
+      localsLength: compactSignedIntCodec.toI32(decodedMethod.localsLength),
+      returnLength: compactSignedIntCodec.toI32(decodedMethod.returnLength),
       instrs: decodedMethod.instrs.value
     }
   }
@@ -122,9 +122,9 @@ export class MethodCodec implements Codec<DecodedMethod> {
     return {
       isPublic: method.isPublic ? 1 : 0,
       assetModifier: encodeAssetModifier(method),
-      argsLength: compactUnsignedIntCodec.fromU32(method.argsLength),
-      localsLength: compactUnsignedIntCodec.fromU32(method.localsLength),
-      returnLength: compactUnsignedIntCodec.fromU32(method.returnLength),
+      argsLength: compactSignedIntCodec.fromI32(method.argsLength),
+      localsLength: compactSignedIntCodec.fromI32(method.localsLength),
+      returnLength: compactSignedIntCodec.fromI32(method.returnLength),
       instrs: instrsCodec.fromArray(method.instrs)
     }
   }

@@ -25,17 +25,76 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 import { RalphMap } from "@alephium/web3";
 
 // Custom types for the contract
 export namespace MapTestTypes {
   export type State = Omit<ContractState<any>, "fields">;
+
+  export interface CallMethodTable {
+    insert: {
+      params: CallContractParams<{ key: Address; value: MapValue }>;
+      result: CallContractResult<null>;
+    };
+    update: {
+      params: CallContractParams<{ key: Address }>;
+      result: CallContractResult<null>;
+    };
+    remove: {
+      params: CallContractParams<{ key: Address }>;
+      result: CallContractResult<null>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
+
+  export interface SignExecuteMethodTable {
+    insert: {
+      params: SignExecuteContractMethodParams<{
+        key: Address;
+        value: MapValue;
+      }>;
+      result: SignExecuteScriptTxResult;
+    };
+    update: {
+      params: SignExecuteContractMethodParams<{ key: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    remove: {
+      params: SignExecuteContractMethodParams<{ key: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<MapTestInstance, {}> {
@@ -134,4 +193,42 @@ export class MapTestInstance extends ContractInstance {
   async fetchState(): Promise<MapTestTypes.State> {
     return fetchContractState(MapTest, this);
   }
+
+  methods = {
+    insert: async (
+      params: MapTestTypes.CallMethodParams<"insert">
+    ): Promise<MapTestTypes.CallMethodResult<"insert">> => {
+      return callMethod(MapTest, this, "insert", params, getContractByCodeHash);
+    },
+    update: async (
+      params: MapTestTypes.CallMethodParams<"update">
+    ): Promise<MapTestTypes.CallMethodResult<"update">> => {
+      return callMethod(MapTest, this, "update", params, getContractByCodeHash);
+    },
+    remove: async (
+      params: MapTestTypes.CallMethodParams<"remove">
+    ): Promise<MapTestTypes.CallMethodResult<"remove">> => {
+      return callMethod(MapTest, this, "remove", params, getContractByCodeHash);
+    },
+  };
+
+  view = this.methods;
+
+  transact = {
+    insert: async (
+      params: MapTestTypes.SignExecuteMethodParams<"insert">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"insert">> => {
+      return signExecuteMethod(MapTest, this, "insert", params);
+    },
+    update: async (
+      params: MapTestTypes.SignExecuteMethodParams<"update">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"update">> => {
+      return signExecuteMethod(MapTest, this, "update", params);
+    },
+    remove: async (
+      params: MapTestTypes.SignExecuteMethodParams<"remove">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"remove">> => {
+      return signExecuteMethod(MapTest, this, "remove", params);
+    },
+  };
 }

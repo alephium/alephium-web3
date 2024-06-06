@@ -25,12 +25,22 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
 import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace NFTTestTypes {
@@ -64,6 +74,21 @@ export namespace NFTTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    getTokenUri: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getCollectionIndex: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
@@ -150,6 +175,21 @@ export class NFTTestInstance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+  };
+
+  view = this.methods;
+
+  transact = {
+    getTokenUri: async (
+      params: NFTTestTypes.SignExecuteMethodParams<"getTokenUri">
+    ): Promise<NFTTestTypes.SignExecuteMethodResult<"getTokenUri">> => {
+      return signExecuteMethod(NFTTest, this, "getTokenUri", params);
+    },
+    getCollectionIndex: async (
+      params: NFTTestTypes.SignExecuteMethodParams<"getCollectionIndex">
+    ): Promise<NFTTestTypes.SignExecuteMethodResult<"getCollectionIndex">> => {
+      return signExecuteMethod(NFTTest, this, "getCollectionIndex", params);
     },
   };
 

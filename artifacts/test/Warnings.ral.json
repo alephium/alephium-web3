@@ -21,6 +21,9 @@
   "functions": [
     {
       "name": "foo",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [
         "x",
         "y"

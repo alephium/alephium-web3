@@ -1,9 +1,23 @@
+struct AddStruct1 {
+    a: U256,
+    b: [AddStruct2; 2]
+}
+
+struct AddStruct2 {
+    a: U256,
+    b: [U256; 2]
+}
+
 Contract Add(sub: Sub, mut result : U256) {
     event Add(x: U256, y: U256)
     event Add1(a: U256, b: U256)
 
     pub fn add(array: [U256; 2]) -> ([U256; 2]) {
         return addPrivate(array)
+    }
+
+    pub fn add2(array1: [U256; 2], address: Address, array2: [U256; 2], addS: AddStruct1) -> ([U256; 2]) {
+        return addPrivate(array1)
     }
 
     @using(updateFields = true)
@@ -21,13 +35,19 @@ Contract Add(sub: Sub, mut result : U256) {
         copyCreateSubContract!{payer -> ALPH: minimalContractDeposit!()}(path, subContractId, immFields, mutFields)
     }
 
+    @using(preapprovedAssets = true, assetsInContract = true)
+    pub fn createSubContractAndTransfer(a: U256, path: ByteVec, subContractId: ByteVec, payer: Address) -> () {
+        let (immFields, mutFields) = Sub.encodeFields!(a)
+        transferTokenToSelf!(payer, subContractId, 200)
+        copyCreateSubContract!{payer -> ALPH: minimalContractDeposit!()}(path, subContractId, immFields, mutFields)
+    }
+
     @using(checkExternalCaller = false, assetsInContract = true)
     pub fn destroy(caller: Address) -> () {
         destroySelf!(caller)
     }
 }
 
-TxScript Main(addContractId: ByteVec) {
-    let add = Add(addContractId)
-    add.add([2, 1])
+TxScript AddMain(add: Add, array: [U256; 2]) {
+    add.add(array)
 }

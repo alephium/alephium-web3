@@ -25,12 +25,22 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace WarningsTypes {
@@ -40,6 +50,36 @@ export namespace WarningsTypes {
   };
 
   export type State = ContractState<Fields>;
+
+  export interface CallMethodTable {
+    foo: {
+      params: CallContractParams<{ x: bigint; y: bigint }>;
+      result: CallContractResult<null>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
+
+  export interface SignExecuteMethodTable {
+    foo: {
+      params: SignExecuteContractMethodParams<{ x: bigint; y: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
@@ -92,4 +132,22 @@ export class WarningsInstance extends ContractInstance {
   async fetchState(): Promise<WarningsTypes.State> {
     return fetchContractState(Warnings, this);
   }
+
+  methods = {
+    foo: async (
+      params: WarningsTypes.CallMethodParams<"foo">
+    ): Promise<WarningsTypes.CallMethodResult<"foo">> => {
+      return callMethod(Warnings, this, "foo", params, getContractByCodeHash);
+    },
+  };
+
+  view = this.methods;
+
+  transact = {
+    foo: async (
+      params: WarningsTypes.SignExecuteMethodParams<"foo">
+    ): Promise<WarningsTypes.SignExecuteMethodResult<"foo">> => {
+      return signExecuteMethod(Warnings, this, "foo", params);
+    },
+  };
 }

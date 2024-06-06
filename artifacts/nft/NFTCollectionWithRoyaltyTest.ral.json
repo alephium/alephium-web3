@@ -33,6 +33,9 @@
   "functions": [
     {
       "name": "getCollectionUri",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -42,6 +45,9 @@
     },
     {
       "name": "totalSupply",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -51,6 +57,9 @@
     },
     {
       "name": "nftByIndex",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [
         "index"
       ],
@@ -66,6 +75,9 @@
     },
     {
       "name": "validateNFT",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [
         "nftId",
         "nftIndex"
@@ -82,6 +94,9 @@
     },
     {
       "name": "royaltyAmount",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [
         "tokenId",
         "salePrice"
@@ -100,6 +115,9 @@
     },
     {
       "name": "payRoyalty",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": true,
+      "isPublic": true,
       "paramNames": [
         "payer",
         "amount"
@@ -116,6 +134,9 @@
     },
     {
       "name": "withdrawRoyalty",
+      "usePreapprovedAssets": false,
+      "useAssetsInContract": true,
+      "isPublic": true,
       "paramNames": [
         "recipient",
         "amount"
@@ -132,6 +153,9 @@
     },
     {
       "name": "mint",
+      "usePreapprovedAssets": true,
+      "useAssetsInContract": false,
+      "isPublic": true,
       "paramNames": [
         "nftUri"
       ],

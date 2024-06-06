@@ -23,7 +23,7 @@ import { web3 } from '../packages/web3'
 import { TxStatus } from '../packages/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { ONE_ALPH } from '../packages/web3/src'
-import { Add, Sub, Main } from '../artifacts/ts'
+import { Add, Sub, AddMain } from '../artifacts/ts'
 import { getSigner } from '@alephium/web3-test'
 
 describe('transactions', function () {
@@ -99,7 +99,7 @@ describe('transactions', function () {
     ).contractInstance
     expect((await addInstance.fetchState()).fields.result).toBe(0n)
 
-    await Main.execute(schnorrSigner, { initialFields: { addContractId: addInstance.contractId } })
+    await AddMain.execute(schnorrSigner, { initialFields: { add: addInstance.contractId, array: [2n, 1n] } })
     expect((await addInstance.fetchState()).fields.result).toBe(3n)
   })
 })

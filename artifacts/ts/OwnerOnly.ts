@@ -25,12 +25,22 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace OwnerOnlyTypes {
@@ -39,6 +49,36 @@ export namespace OwnerOnlyTypes {
   };
 
   export type State = ContractState<Fields>;
+
+  export interface CallMethodTable {
+    testOwner: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+  }
+  export type CallMethodParams<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["params"];
+  export type CallMethodResult<T extends keyof CallMethodTable> =
+    CallMethodTable[T]["result"];
+  export type MultiCallParams = Partial<{
+    [Name in keyof CallMethodTable]: CallMethodTable[Name]["params"];
+  }>;
+  export type MultiCallResults<T extends MultiCallParams> = {
+    [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable
+      ? CallMethodTable[MaybeName]["result"]
+      : undefined;
+  };
+
+  export interface SignExecuteMethodTable {
+    testOwner: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -92,4 +132,28 @@ export class OwnerOnlyInstance extends ContractInstance {
   async fetchState(): Promise<OwnerOnlyTypes.State> {
     return fetchContractState(OwnerOnly, this);
   }
+
+  methods = {
+    testOwner: async (
+      params?: OwnerOnlyTypes.CallMethodParams<"testOwner">
+    ): Promise<OwnerOnlyTypes.CallMethodResult<"testOwner">> => {
+      return callMethod(
+        OwnerOnly,
+        this,
+        "testOwner",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  view = this.methods;
+
+  transact = {
+    testOwner: async (
+      params: OwnerOnlyTypes.SignExecuteMethodParams<"testOwner">
+    ): Promise<OwnerOnlyTypes.SignExecuteMethodResult<"testOwner">> => {
+      return signExecuteMethod(OwnerOnly, this, "testOwner", params);
+    },
+  };
 }

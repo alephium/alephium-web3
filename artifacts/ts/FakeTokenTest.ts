@@ -25,12 +25,22 @@ import {
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
   TestContractResultWithoutMaps,
+  SignExecuteContractMethodParams,
+  SignExecuteScriptTxResult,
+  signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
 } from "@alephium/web3";
 import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
-import { Balances, MapValue, TokenBalance, AllStructs } from "./types";
+import {
+  AddStruct1,
+  AddStruct2,
+  Balances,
+  MapValue,
+  TokenBalance,
+  AllStructs,
+} from "./types";
 
 // Custom types for the contract
 export namespace FakeTokenTestTypes {
@@ -57,6 +67,10 @@ export namespace FakeTokenTestTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
+    foo: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -70,6 +84,33 @@ export namespace FakeTokenTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+
+  export interface SignExecuteMethodTable {
+    getSymbol: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getName: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getDecimals: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getTotalSupply: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    foo: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+  }
+  export type SignExecuteMethodParams<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["params"];
+  export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
+    SignExecuteMethodTable[T]["result"];
 }
 
 class Factory extends ContractFactory<
@@ -200,6 +241,49 @@ export class FakeTokenTestInstance extends ContractInstance {
         params === undefined ? {} : params,
         getContractByCodeHash
       );
+    },
+    foo: async (
+      params?: FakeTokenTestTypes.CallMethodParams<"foo">
+    ): Promise<FakeTokenTestTypes.CallMethodResult<"foo">> => {
+      return callMethod(
+        FakeTokenTest,
+        this,
+        "foo",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+  };
+
+  view = this.methods;
+
+  transact = {
+    getSymbol: async (
+      params: FakeTokenTestTypes.SignExecuteMethodParams<"getSymbol">
+    ): Promise<FakeTokenTestTypes.SignExecuteMethodResult<"getSymbol">> => {
+      return signExecuteMethod(FakeTokenTest, this, "getSymbol", params);
+    },
+    getName: async (
+      params: FakeTokenTestTypes.SignExecuteMethodParams<"getName">
+    ): Promise<FakeTokenTestTypes.SignExecuteMethodResult<"getName">> => {
+      return signExecuteMethod(FakeTokenTest, this, "getName", params);
+    },
+    getDecimals: async (
+      params: FakeTokenTestTypes.SignExecuteMethodParams<"getDecimals">
+    ): Promise<FakeTokenTestTypes.SignExecuteMethodResult<"getDecimals">> => {
+      return signExecuteMethod(FakeTokenTest, this, "getDecimals", params);
+    },
+    getTotalSupply: async (
+      params: FakeTokenTestTypes.SignExecuteMethodParams<"getTotalSupply">
+    ): Promise<
+      FakeTokenTestTypes.SignExecuteMethodResult<"getTotalSupply">
+    > => {
+      return signExecuteMethod(FakeTokenTest, this, "getTotalSupply", params);
+    },
+    foo: async (
+      params: FakeTokenTestTypes.SignExecuteMethodParams<"foo">
+    ): Promise<FakeTokenTestTypes.SignExecuteMethodResult<"foo">> => {
+      return signExecuteMethod(FakeTokenTest, this, "foo", params);
     },
   };
 

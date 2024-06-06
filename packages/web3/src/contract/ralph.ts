@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256 } from '../api'
+import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256, PrimitiveTypes } from '../api'
 import { HexString, binToHex, bs58, concatBytes, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
 import { compactSignedIntCodec, compactUnsignedIntCodec } from '../codec'
@@ -409,6 +409,24 @@ export function primitiveToByteVec(value: Val, type: string): Uint8Array {
     default:
       throw Error(`Expected primitive type, got ${type}`)
   }
+}
+
+export function typeLength(typ: string, structs: Struct[]): number {
+  if (PrimitiveTypes.includes(typ)) {
+    return 1
+  }
+
+  if (typ.startsWith('[')) {
+    const [baseType, size] = decodeArrayType(typ)
+    return size * typeLength(baseType, structs)
+  }
+
+  const struct = structs.find((s) => s.name === typ)
+  if (struct !== undefined) {
+    return struct.fieldTypes.reduce((acc, fieldType) => acc + typeLength(fieldType, structs), 0)
+  }
+
+  return 1
 }
 
 export function flattenFields(
