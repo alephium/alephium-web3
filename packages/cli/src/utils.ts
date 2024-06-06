@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import path from 'path'
 import fs from 'fs'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES, Network } from './types'
-import { NetworkId, node, NodeProvider } from '@alephium/web3'
+import { NetworkId } from '@alephium/web3'
 import * as fetchRetry from 'fetch-retry'
 import * as readline from 'readline'
 
@@ -101,10 +101,12 @@ export async function isDevnetLive(): Promise<boolean> {
 }
 
 export function getDeploymentFilePath(configuration: Configuration, networkId: NetworkId): string {
-  return path.join(
-    configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir,
-    `.deployments.${networkId}.json`
-  )
+  const filename = `.deployments.${networkId}.json`
+  const filepath = path.join(configuration.deploymentsDir ?? DEFAULT_CONFIGURATION_VALUES.deploymentsDir, filename)
+  const legacyFilepath = path.join(configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir, filename)
+  // if the legacy deployments file exists, we need to update it within the
+  // legacy deployments file when the user continues to deploy the contract
+  return fs.existsSync(legacyFilepath) ? legacyFilepath : filepath
 }
 
 export function isDeployed(configuration: Configuration): boolean {

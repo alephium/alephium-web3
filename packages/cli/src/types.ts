@@ -49,6 +49,7 @@ export interface Configuration<Settings = unknown> {
 
   deployToMultipleGroupsInParallel?: boolean
   deploymentScriptDir?: string
+  deploymentsDir?: string
   compilerOptions?: CompilerOptions
   skipRecompile?: boolean
 
@@ -64,6 +65,7 @@ export const DEFAULT_CONFIGURATION_VALUES = {
   compilerOptions: DEFAULT_COMPILER_OPTIONS,
   deployToMultipleGroupsInParallel: true,
   deploymentScriptDir: 'scripts',
+  deploymentsDir: 'deployments',
   networkId: 'devnet' as const,
   networks: {
     devnet: {
