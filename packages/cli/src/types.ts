@@ -39,20 +39,17 @@ export interface Network<Settings = unknown> {
   networkId?: number
   nodeUrl: string
   privateKeys: string[] | string
-  deploymentFile?: string
   confirmations?: number
   settings: Settings
 }
 
 export interface Configuration<Settings = unknown> {
-  nodeVersion?: string
-  nodeConfigFile?: string
-
   sourceDir?: string
   artifactDir?: string
 
   deployToMultipleGroupsInParallel?: boolean
   deploymentScriptDir?: string
+  deploymentsDir?: string
   compilerOptions?: CompilerOptions
   skipRecompile?: boolean
 
@@ -63,13 +60,12 @@ export interface Configuration<Settings = unknown> {
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {
-  nodeVersion: '2.5.0',
-  nodeConfigFile: 'devnet-user.conf',
   sourceDir: Project.DEFAULT_CONTRACTS_DIR,
   artifactDir: Project.DEFAULT_ARTIFACTS_DIR,
   compilerOptions: DEFAULT_COMPILER_OPTIONS,
   deployToMultipleGroupsInParallel: true,
   deploymentScriptDir: 'scripts',
+  deploymentsDir: 'deployments',
   networkId: 'devnet' as const,
   networks: {
     devnet: {
