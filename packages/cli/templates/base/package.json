@@ -14,10 +14,10 @@
     "test": "jest -i --config ./jest-config.json"
   },
   "dependencies": {
-    "@alephium/cli": "^0.44.0",
-    "@alephium/web3": "^0.44.0",
-    "@alephium/web3-test": "^0.44.0",
-    "@alephium/web3-wallet": "^0.44.0"
+    "@alephium/cli": "^0.45.0",
+    "@alephium/web3": "^0.45.0",
+    "@alephium/web3-test": "^0.45.0",
+    "@alephium/web3-wallet": "^0.45.0"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
