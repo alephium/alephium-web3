@@ -28,6 +28,7 @@ import { MultiSig, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { compactSignedIntCodec } from '../codec'
 
 const ec = new EC('secp256k1')
+const PublicKeyHashSize = 32
 
 export enum AddressType {
   P2PKH = 0x00,
@@ -59,10 +60,13 @@ function decodeAndValidateAddress(address: string): Uint8Array {
     }
     const n = multisig.publicKeyHashes.value.length
     const m = compactSignedIntCodec.toI32(multisig.m)
-    if (n < m) {
+    if (n < m || m <= 0) {
       throw new Error(`Invalid multisig address, n: ${n}, m: ${m}`)
     }
-    return decoded
+    const encodedNSize = compactSignedIntCodec.encodeI32(n).length
+    const encodedMSize = multisig.m.rest.length + 1
+    const size = encodedNSize + PublicKeyHashSize * n + encodedMSize + 1 // 1 for the P2MPKH prefix
+    if (decoded.length === size) return decoded
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
