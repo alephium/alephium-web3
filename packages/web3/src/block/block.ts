@@ -69,14 +69,10 @@ export abstract class BlockSubscriptionBase extends Subscription<node.BlockEntry
 
     const newBlocks: node.BlockEntry[] = []
     fromHash = newBlockHash
-    while (true) {
+    while (fromHash !== canonicalHash) {
       const newBlock = await this.getBlockByHash(fromHash)
       newBlocks.push(newBlock)
-      const parentHash = this.getParentHash(newBlock)
-      if (parentHash === canonicalHash) {
-        break
-      }
-      fromHash = parentHash
+      fromHash = this.getParentHash(newBlock)
     }
     const orphans = orphanBlocks.reverse()
     const news = newBlocks.reverse()

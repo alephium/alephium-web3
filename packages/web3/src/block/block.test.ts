@@ -65,25 +65,40 @@ describe('block subscription', function () {
     expect(newHashes).toEqual(['main-0', 'main-1', 'main-2'])
   })
 
+  it('should handle reorg to short chain', async () => {
+    const chains = [
+      ['common', 'main-0', 'main-1'],
+      ['common', 'fork-0', 'fork-1', 'fork-2']
+    ]
+    const blockSubscription = new BlockSubscriptionTest(options, chains)
+    await blockSubscription.handleReorgForTest('fork-2', 'main-1')
+    expect(orphanHashes).toEqual(['fork-0', 'fork-1', 'fork-2'])
+    expect(newHashes).toEqual(['main-0', 'main-1'])
+
+    orphanHashes = []
+    newHashes = []
+    await blockSubscription.handleReorgForTest('fork-2', 'common')
+    expect(orphanHashes).toEqual(['fork-0', 'fork-1', 'fork-2'])
+    expect(newHashes).toEqual([])
+  })
+
   function buildHashesByHeightMap(chains: string[][]) {
     const hashesByHeight: Map<number, string[]> = new Map()
-    const sortedChains = chains.sort((a, b) => {
-      if (a.length === b.length) {
-        return b[b.length - 1] > a[a.length - 1] ? 1 : -1
-      }
-      return b.length - a.length
-    })
-    const maxHeight = sortedChains[0].length
-    for (let currentHeight = 0; currentHeight < maxHeight; currentHeight += 1) {
+    let currentHeight = 0
+    while (true) {
       const hashes = hashesByHeight.get(currentHeight) ?? []
-      sortedChains
+      chains
         .filter((c) => c.length > currentHeight)
         .forEach((c) => {
           if (!hashes.includes(c[currentHeight])) {
             hashes.push(c[currentHeight])
           }
         })
+      if (hashes.length === 0) {
+        break
+      }
       hashesByHeight.set(currentHeight, hashes)
+      currentHeight += 1
     }
     return hashesByHeight
   }
