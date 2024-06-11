@@ -448,7 +448,7 @@ export class Project {
       const oldFuncSig = oldArtifact.functions[`${index}`]
       if (oldFuncSig.name !== newFuncSig.name) {
         throw new Error(
-          `The newly compiled contract ${newArtifact.artifact.name} has different method indexes compared to the existing compilation.`
+          `The newly compiled contract ${newArtifact.artifact.name} has different method indexes compared to the existing deployment on mainnet/testnet`
         )
       }
     })
