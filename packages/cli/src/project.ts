@@ -447,7 +447,9 @@ export class Project {
     newArtifact.artifact.functions.forEach((newFuncSig, index) => {
       const oldFuncSig = oldArtifact.functions[`${index}`]
       if (oldFuncSig.name !== newFuncSig.name) {
-        throw new Error(`Function ${newFuncSig.name} has invalid index ${index}`)
+        throw new Error(
+          `The newly compiled contract ${newArtifact.artifact.name} has different method indexes compared to the existing compilation.`
+        )
       }
     })
   }
