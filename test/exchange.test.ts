@@ -33,7 +33,6 @@ import {
   BlockSubscription,
   waitForTxConfirmation
 } from '@alephium/web3'
-import { EventEmitter } from 'stream'
 import * as bip39 from 'bip39'
 import { testPrivateKey } from '@alephium/web3-test'
 
@@ -51,7 +50,6 @@ async function getGasFee(txIds: string[]): Promise<bigint> {
 }
 
 async function waitTxsConfirmed(txIds: string[]): Promise<void> {
-  const nodeProvider = web3.getCurrentNodeProvider()
   for (const txId of txIds) {
     await waitForTxConfirmation(txId, 1, 1000)
   }
@@ -108,7 +106,6 @@ class Exchange {
   private depositTxs: string[]
   private withdrawTxs: string[]
   private sweepTxs: string[]
-  private eventEmitter: EventEmitter
   private hotAddressMnemonic: string
   private hotAddressPathIndexes: Map<string, number>
   private hotAddresses: Address[]
@@ -119,7 +116,6 @@ class Exchange {
     this.depositTxs = []
     this.withdrawTxs = []
     this.sweepTxs = []
-    this.eventEmitter = new EventEmitter()
     this.hotAddressMnemonic = bip39.generateMnemonic()
     this.wallet = this.getWalletByPathIndex(0)
     this.hotAddressPathIndexes = new Map()
@@ -142,44 +138,31 @@ class Exchange {
     }
   }
 
-  async handleBlock(block: node.BlockEntry, resolver: () => void) {
-    for (const tx of block.transactions) {
-      const infos = getALPHDepositInfo(tx).filter((v) => this.hotAddresses.includes(v.targetAddress))
-      if (infos.length > 0) {
-        for (const { targetAddress, depositAmount } of infos) {
-          await this.handleDepositInfo(targetAddress, depositAmount)
+  async handleBlocks(blocks: node.BlockEntry[]) {
+    for (const block of blocks) {
+      for (const tx of block.transactions) {
+        const infos = getALPHDepositInfo(tx).filter((v) => this.hotAddresses.includes(v.targetAddress))
+        if (infos.length > 0) {
+          for (const { targetAddress, depositAmount } of infos) {
+            await this.handleDepositInfo(targetAddress, depositAmount)
+          }
+          this.depositTxs.push(tx.unsigned.txId)
         }
-        this.depositTxs.push(tx.unsigned.txId)
       }
     }
-    resolver()
   }
 
-  async startPolling(): Promise<void> {
-    this.eventEmitter.on('block', ([block, resolver]) => this.handleBlock(block, resolver))
-    const callback = async (block: node.BlockEntry) => {
-      let resolver: any
-      const promise = new Promise<void>((r) => (resolver = r))
-      this.eventEmitter.emit('block', [block, resolver])
-      return await promise
-    }
-    for (let fromGroup = 0; fromGroup < TOTAL_NUMBER_OF_GROUPS; fromGroup++) {
-      for (let toGroup = 0; toGroup < TOTAL_NUMBER_OF_GROUPS; toGroup++) {
-        const chainInfo = await this.nodeProvider.blockflow.getBlockflowChainInfo({
-          fromGroup: fromGroup,
-          toGroup: toGroup
-        })
-        const options = {
-          pollingInterval: 1000,
-          messageCallback: callback,
-          errorCallback: (err: any) => {
-            console.error(err)
-          }
-        }
-        const subscription = new BlockSubscription(options, fromGroup, toGroup, chainInfo.currentHeight + 1)
-        subscription.subscribe()
+  subscribeBlocks() {
+    const options = {
+      pollingInterval: 1000,
+      messageCallback: (blocks) => this.handleBlocks(blocks),
+      errorCallback: (err: any) => {
+        console.error(err)
       }
     }
+    const subscription = new BlockSubscription(options, Date.now())
+    subscription.subscribe()
+    return subscription
   }
 
   getDepositTxs(): string[] {
@@ -268,7 +251,7 @@ describe('exchange', function () {
       }
     }
 
-    await exchange.startPolling()
+    const subscription = exchange.subscribeBlocks()
 
     const depositTimes = 5
     for (let i = 0; i < depositTimes; i++) {
@@ -337,6 +320,8 @@ describe('exchange', function () {
     const sweepTxFee = await getGasFee(exchange.getSweepTxs())
     const exchangeBalance0 = await nodeProvider.addresses.getAddressesAddressBalance(exchange.wallet.address)
     expect(BigInt(exchangeBalance0.balance)).toEqual(totalDepositAmount - sweepTxFee)
+
+    subscription.unsubscribe()
 
     // withdraw
     console.log(`withdrawing...`)

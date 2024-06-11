@@ -19,18 +19,13 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { BlockSubscribeOptions, BlockSubscriptionBase, ReorgCallback } from './block'
 import * as node from '../api/api-alephium'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
-import { randomInt } from 'crypto'
 
 describe('block subscription', function () {
-  let fromGroup: number
-  let toGroup: number
   let orphanHashes: string[] = []
   let newHashes: string[] = []
   let options: BlockSubscribeOptions
 
   beforeEach(() => {
-    fromGroup = randomInt(0, TOTAL_NUMBER_OF_GROUPS)
-    toGroup = randomInt(0, TOTAL_NUMBER_OF_GROUPS)
     orphanHashes = []
     newHashes = []
     options = {
@@ -41,7 +36,7 @@ describe('block subscription', function () {
       errorCallback: () => {
         return
       },
-      reorgCallback: (orphans, newBlocks) => {
+      reorgCallback: (fromGroup, toGroup, orphans, newBlocks) => {
         orphanHashes.push(...orphans.map((b) => b.hash))
         newHashes.push(...newBlocks.map((b) => b.hash))
       }
@@ -53,8 +48,8 @@ describe('block subscription', function () {
       ['common', 'main-0'],
       ['common', 'fork-0']
     ]
-    const blockSubscription = new BlockSubscriptionTest(options, fromGroup, toGroup, chains)
-    await blockSubscription.handleReorgForTest('fork-0', 1)
+    const blockSubscription = new BlockSubscriptionTest(options, chains)
+    await blockSubscription.handleReorgForTest('fork-0', 'main-0')
     expect(orphanHashes).toEqual(['fork-0'])
     expect(newHashes).toEqual(['main-0'])
   })
@@ -64,36 +59,51 @@ describe('block subscription', function () {
       ['common', 'main-0', 'main-1', 'main-2', 'main-3'],
       ['common', 'fork-0', 'fork-1', 'fork-2']
     ]
-    const blockSubscription = new BlockSubscriptionTest(options, fromGroup, toGroup, chains)
-    await blockSubscription.handleReorgForTest('fork-2', 3)
+    const blockSubscription = new BlockSubscriptionTest(options, chains)
+    await blockSubscription.handleReorgForTest('fork-2', 'main-2')
     expect(orphanHashes).toEqual(['fork-0', 'fork-1', 'fork-2'])
     expect(newHashes).toEqual(['main-0', 'main-1', 'main-2'])
   })
 
+  it('should handle reorg to short chain', async () => {
+    const chains = [
+      ['common', 'main-0', 'main-1'],
+      ['common', 'fork-0', 'fork-1', 'fork-2']
+    ]
+    const blockSubscription = new BlockSubscriptionTest(options, chains)
+    await blockSubscription.handleReorgForTest('fork-2', 'main-1')
+    expect(orphanHashes).toEqual(['fork-0', 'fork-1', 'fork-2'])
+    expect(newHashes).toEqual(['main-0', 'main-1'])
+
+    orphanHashes = []
+    newHashes = []
+    await blockSubscription.handleReorgForTest('fork-2', 'common')
+    expect(orphanHashes).toEqual(['fork-0', 'fork-1', 'fork-2'])
+    expect(newHashes).toEqual([])
+  })
+
   function buildHashesByHeightMap(chains: string[][]) {
     const hashesByHeight: Map<number, string[]> = new Map()
-    const sortedChains = chains.sort((a, b) => {
-      if (a.length === b.length) {
-        return b[b.length - 1] > a[a.length - 1] ? 1 : -1
-      }
-      return b.length - a.length
-    })
-    const maxHeight = sortedChains[0].length
-    for (let currentHeight = 0; currentHeight < maxHeight; currentHeight += 1) {
+    let currentHeight = 0
+    while (true) {
       const hashes = hashesByHeight.get(currentHeight) ?? []
-      sortedChains
+      chains
         .filter((c) => c.length > currentHeight)
         .forEach((c) => {
           if (!hashes.includes(c[currentHeight])) {
             hashes.push(c[currentHeight])
           }
         })
+      if (hashes.length === 0) {
+        break
+      }
       hashesByHeight.set(currentHeight, hashes)
+      currentHeight += 1
     }
     return hashesByHeight
   }
 
-  function buildBlockByHashMap(chains: string[][], fromGroup: number, toGroup: number) {
+  function buildBlockByHashMap(chains: string[][]) {
     const blockByHash: Map<string, node.BlockEntry> = new Map()
     for (const chain of chains) {
       for (let index = 0; index < chain.length; index += 1) {
@@ -101,13 +111,13 @@ describe('block subscription', function () {
         const parentHash = index === 0 ? 'undefined' : chain[index - 1]
         const depsLength = TOTAL_NUMBER_OF_GROUPS * 2 - 1
         const deps = Array.from(Array(depsLength).keys()).map(() => '')
-        const parentIndex = Math.floor(depsLength / 2) + toGroup
+        const parentIndex = Math.floor(depsLength / 2) + 0
         deps[parentIndex] = parentHash
         const blockEntry: node.BlockEntry = {
           hash: hash,
           timestamp: 0,
-          chainFrom: fromGroup,
-          chainTo: toGroup,
+          chainFrom: 0,
+          chainTo: 0,
           height: index,
           deps,
           transactions: [],
@@ -124,8 +134,6 @@ describe('block subscription', function () {
   }
 
   class BlockSubscriptionTest extends BlockSubscriptionBase {
-    readonly fromGroup: number
-    readonly toGroup: number
     readonly reorgCallback?: ReorgCallback
     readonly hashesByHeight: Map<number, string[]>
     readonly blockByHash: Map<string, node.BlockEntry>
@@ -142,17 +150,15 @@ describe('block subscription', function () {
       return Promise.resolve()
     }
 
-    async handleReorgForTest(fromHash: string, fromHeight: number) {
-      await this.handleReorg(fromHash, fromHeight)
+    async handleReorgForTest(orphanBlockHash: string, newBlockHash: string) {
+      await this.handleReorg(0, 0, orphanBlockHash, newBlockHash)
     }
 
-    constructor(options: BlockSubscribeOptions, fromGroup: number, toGroup: number, chains: string[][]) {
+    constructor(options: BlockSubscribeOptions, chains: string[][]) {
       super(options)
-      this.fromGroup = fromGroup
-      this.toGroup = toGroup
       this.reorgCallback = options.reorgCallback
       this.hashesByHeight = buildHashesByHeightMap(chains)
-      this.blockByHash = buildBlockByHashMap(chains, fromGroup, toGroup)
+      this.blockByHash = buildBlockByHashMap(chains)
     }
   }
 })
