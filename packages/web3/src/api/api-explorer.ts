@@ -97,6 +97,23 @@ export interface BlockEntryLite {
   hashRate: string
 }
 
+export interface ContractLiveness {
+  /** @format address */
+  parent?: string
+  creation: ContractLivenessLocation
+  destruction?: ContractLivenessLocation
+  interfaceId?: StdInterfaceId
+}
+
+export interface ContractLivenessLocation {
+  /** @format block-hash */
+  blockHash: string
+  /** @format 32-byte-hash */
+  txHash: string
+  /** @format int64 */
+  timestamp: number
+}
+
 export interface ContractOutput {
   /** @format int32 */
   hint: number
@@ -138,6 +155,10 @@ export interface ExplorerInfo {
   migrationsVersion: number
   /** @format int64 */
   lastFinalizedInputTime: number
+}
+
+export interface FungibleToken {
+  type: string
 }
 
 export interface FungibleTokenMetadata {
@@ -207,10 +228,22 @@ export interface MempoolTransaction {
   lastSeen: number
 }
 
+export interface NFT {
+  type: string
+}
+
+export interface NFTCollection {
+  type: string
+}
+
 export interface NFTCollectionMetadata {
   /** @format address */
   address: string
   collectionUri: string
+}
+
+export interface NFTCollectionWithRoyalty {
+  type: string
 }
 
 export interface NFTMetadata {
@@ -221,6 +254,10 @@ export interface NFTMetadata {
   collectionId: string
   /** @format uint256 */
   nftIndex: string
+}
+
+export interface NonStandard {
+  type: string
 }
 
 export interface NotFound {
@@ -295,6 +332,8 @@ export interface PerChainTimedCount {
 export interface ServiceUnavailable {
   detail: string
 }
+
+export type StdInterfaceId = FungibleToken | NFT | NFTCollection | NFTCollectionWithRoyalty | NonStandard | Unknown
 
 export interface SubContracts {
   subContracts?: string[]
@@ -375,6 +414,11 @@ export type TransactionLike = AcceptedTransaction | PendingTransaction
 
 export interface Unauthorized {
   detail: string
+}
+
+export interface Unknown {
+  id: string
+  type: string
 }
 
 export type Val = ValAddress | ValArray | ValBool | ValByteVec | ValI256 | ValU256
@@ -983,6 +1027,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/addresses/${address}/tokens/${tokenId}/balance`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Get public key of p2pkh addresses, the address needs to have at least one input.
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressPublicKey
+     * @request GET:/addresses/{address}/public-key
+     */
+    getAddressesAddressPublicKey: (address: string, params: RequestParams = {}) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/public-key`,
         method: 'GET',
         format: 'json',
         ...params
@@ -1674,6 +1733,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }).then(convertHttpResponse)
   }
   contracts = {
+    /**
+     * @description Get contract liveness
+     *
+     * @tags Contracts
+     * @name GetContractsContractAddressCurrentLiveness
+     * @request GET:/contracts/{contract_address}/current-liveness
+     */
+    getContractsContractAddressCurrentLiveness: (contractAddress: string, params: RequestParams = {}) =>
+      this.request<ContractLiveness, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/contracts/${contractAddress}/current-liveness`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
     /**
      * @description Get contract parent address if exist
      *

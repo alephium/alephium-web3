@@ -9,6 +9,7 @@
  * ---------------------------------------------------------------
  */
 
+/** AddressBalance */
 export interface AddressBalance {
   /** @format address */
   address: string
@@ -23,6 +24,7 @@ export interface AddressBalance {
   warning?: string
 }
 
+/** AddressInfo */
 export interface AddressInfo {
   /** @format address */
   address: string
@@ -33,18 +35,21 @@ export interface AddressInfo {
   path: string
 }
 
+/** Addresses */
 export interface Addresses {
   /** @format address */
   activeAddress: string
   addresses: AddressInfo[]
 }
 
+/** AssetInput */
 export interface AssetInput {
   outputRef: OutputRef
   /** @format hex-string */
   unlockScript: string
 }
 
+/** AssetOutput */
 export interface AssetOutput {
   /** @format int32 */
   hint: number
@@ -62,16 +67,19 @@ export interface AssetOutput {
   type: string
 }
 
+/** AssetState */
 export interface AssetState {
   /** @format uint256 */
   attoAlphAmount: string
   tokens?: Token[]
 }
 
+/** BadRequest */
 export interface BadRequest {
   detail: string
 }
 
+/** Balance */
 export interface Balance {
   /** @format uint256 */
   balance: string
@@ -88,6 +96,7 @@ export interface Balance {
   warning?: string
 }
 
+/** Balances */
 export interface Balances {
   /** @format uint256 */
   totalBalance: string
@@ -96,22 +105,26 @@ export interface Balances {
   balances: AddressBalance[]
 }
 
+/** Ban */
 export interface Ban {
   peers: string[]
   type: string
 }
 
+/** Banned */
 export interface Banned {
   /** @format int64 */
   until: number
   type: string
 }
 
+/** BlockAndEvents */
 export interface BlockAndEvents {
   block: BlockEntry
   events: ContractEventByBlockHash[]
 }
 
+/** BlockEntry */
 export interface BlockEntry {
   /** @format block-hash */
   hash: string
@@ -134,8 +147,10 @@ export interface BlockEntry {
   txsHash: string
   /** @format hex-string */
   target: string
+  ghostUncles: GhostUncleBlockEntry[]
 }
 
+/** BlockHeaderEntry */
 export interface BlockHeaderEntry {
   /** @format block-hash */
   hash: string
@@ -150,14 +165,17 @@ export interface BlockHeaderEntry {
   deps: string[]
 }
 
+/** BlocksAndEventsPerTimeStampRange */
 export interface BlocksAndEventsPerTimeStampRange {
   blocksAndEvents: BlockAndEvents[][]
 }
 
+/** BlocksPerTimeStampRange */
 export interface BlocksPerTimeStampRange {
   blocks: BlockEntry[][]
 }
 
+/** BrokerInfo */
 export interface BrokerInfo {
   /** @format clique-id */
   cliqueId: string
@@ -173,6 +191,7 @@ export interface BrokerInfo {
   }
 }
 
+/** BuildDeployContractTx */
 export interface BuildDeployContractTx {
   /** @format hex-string */
   fromPublicKey: string
@@ -195,6 +214,7 @@ export interface BuildDeployContractTx {
   targetBlockHash?: string
 }
 
+/** BuildDeployContractTxResult */
 export interface BuildDeployContractTxResult {
   /** @format int32 */
   fromGroup: number
@@ -211,6 +231,7 @@ export interface BuildDeployContractTxResult {
   contractAddress: string
 }
 
+/** BuildExecuteScriptTx */
 export interface BuildExecuteScriptTx {
   /** @format hex-string */
   fromPublicKey: string
@@ -229,6 +250,7 @@ export interface BuildExecuteScriptTx {
   targetBlockHash?: string
 }
 
+/** BuildExecuteScriptTxResult */
 export interface BuildExecuteScriptTxResult {
   /** @format int32 */
   fromGroup: number
@@ -243,11 +265,13 @@ export interface BuildExecuteScriptTxResult {
   txId: string
 }
 
+/** BuildInfo */
 export interface BuildInfo {
   releaseVersion: string
   commit: string
 }
 
+/** BuildMultiAddressesTransaction */
 export interface BuildMultiAddressesTransaction {
   from: Source[]
   /** @format uint256 */
@@ -256,6 +280,7 @@ export interface BuildMultiAddressesTransaction {
   targetBlockHash?: string
 }
 
+/** BuildMultisig */
 export interface BuildMultisig {
   /** @format address */
   fromAddress: string
@@ -267,17 +292,20 @@ export interface BuildMultisig {
   gasPrice?: string
 }
 
+/** BuildMultisigAddress */
 export interface BuildMultisigAddress {
   keys: string[]
   /** @format int32 */
   mrequired: number
 }
 
+/** BuildMultisigAddressResult */
 export interface BuildMultisigAddressResult {
   /** @format address */
   address: string
 }
 
+/** BuildSweepAddressTransactions */
 export interface BuildSweepAddressTransactions {
   /** @format public-key */
   fromPublicKey: string
@@ -295,6 +323,7 @@ export interface BuildSweepAddressTransactions {
   targetBlockHash?: string
 }
 
+/** BuildSweepAddressTransactionsResult */
 export interface BuildSweepAddressTransactionsResult {
   unsignedTxs: SweepAddressTransaction[]
   /** @format int32 */
@@ -303,6 +332,7 @@ export interface BuildSweepAddressTransactionsResult {
   toGroup: number
 }
 
+/** BuildSweepMultisig */
 export interface BuildSweepMultisig {
   /** @format address */
   fromAddress: string
@@ -323,6 +353,7 @@ export interface BuildSweepMultisig {
   targetBlockHash?: string
 }
 
+/** BuildTransaction */
 export interface BuildTransaction {
   /** @format hex-string */
   fromPublicKey: string
@@ -338,6 +369,7 @@ export interface BuildTransaction {
   targetBlockHash?: string
 }
 
+/** BuildTransactionResult */
 export interface BuildTransactionResult {
   unsignedTx: string
   /** @format gas */
@@ -352,6 +384,7 @@ export interface BuildTransactionResult {
   toGroup: number
 }
 
+/** CallContract */
 export interface CallContract {
   /** @format int32 */
   group: number
@@ -370,13 +403,16 @@ export interface CallContract {
   inputAssets?: TestInputAsset[]
 }
 
+/** CallContractFailed */
 export interface CallContractFailed {
   error: string
   type: string
 }
 
+/** CallContractResult */
 export type CallContractResult = CallContractFailed | CallContractSucceeded
 
+/** CallContractSucceeded */
 export interface CallContractSucceeded {
   returns: Val[]
   /** @format int32 */
@@ -389,11 +425,13 @@ export interface CallContractSucceeded {
   type: string
 }
 
+/** ChainInfo */
 export interface ChainInfo {
   /** @format int32 */
   currentHeight: number
 }
 
+/** ChainParams */
 export interface ChainParams {
   networkId: number
   /** @format int32 */
@@ -404,11 +442,13 @@ export interface ChainParams {
   groups: number
 }
 
+/** ChangeActiveAddress */
 export interface ChangeActiveAddress {
   /** @format address */
   address: string
 }
 
+/** CompileContractResult */
 export interface CompileContractResult {
   version: string
   name: string
@@ -428,12 +468,14 @@ export interface CompileContractResult {
   stdInterfaceId?: string
 }
 
+/** CompileProjectResult */
 export interface CompileProjectResult {
   contracts: CompileContractResult[]
   scripts: CompileScriptResult[]
   structs?: StructSig[]
 }
 
+/** CompileScriptResult */
 export interface CompileScriptResult {
   version: string
   name: string
@@ -444,6 +486,7 @@ export interface CompileScriptResult {
   warnings: string[]
 }
 
+/** CompilerOptions */
 export interface CompilerOptions {
   ignoreUnusedConstantsWarnings?: boolean
   ignoreUnusedVariablesWarnings?: boolean
@@ -453,6 +496,7 @@ export interface CompilerOptions {
   ignoreCheckExternalCallerWarnings?: boolean
 }
 
+/** Confirmed */
 export interface Confirmed {
   /** @format block-hash */
   blockHash: string
@@ -467,16 +511,19 @@ export interface Confirmed {
   type: string
 }
 
+/** Constant */
 export interface Constant {
   name: string
   value: Val
 }
 
+/** Contract */
 export interface Contract {
   code: string
   compilerOptions?: CompilerOptions
 }
 
+/** ContractEvent */
 export interface ContractEvent {
   /** @format block-hash */
   blockHash: string
@@ -487,6 +534,7 @@ export interface ContractEvent {
   fields: Val[]
 }
 
+/** ContractEventByBlockHash */
 export interface ContractEventByBlockHash {
   /** @format 32-byte-hash */
   txId: string
@@ -497,6 +545,7 @@ export interface ContractEventByBlockHash {
   fields: Val[]
 }
 
+/** ContractEventByTxId */
 export interface ContractEventByTxId {
   /** @format block-hash */
   blockHash: string
@@ -507,20 +556,24 @@ export interface ContractEventByTxId {
   fields: Val[]
 }
 
+/** ContractEvents */
 export interface ContractEvents {
   events: ContractEvent[]
   /** @format int32 */
   nextStart: number
 }
 
+/** ContractEventsByBlockHash */
 export interface ContractEventsByBlockHash {
   events: ContractEventByBlockHash[]
 }
 
+/** ContractEventsByTxId */
 export interface ContractEventsByTxId {
   events: ContractEventByTxId[]
 }
 
+/** ContractOutput */
 export interface ContractOutput {
   /** @format int32 */
   hint: number
@@ -534,6 +587,7 @@ export interface ContractOutput {
   type: string
 }
 
+/** ContractState */
 export interface ContractState {
   /** @format address */
   address: string
@@ -548,16 +602,19 @@ export interface ContractState {
   asset: AssetState
 }
 
+/** DebugMessage */
 export interface DebugMessage {
   /** @format address */
   contractAddress: string
   message: string
 }
 
+/** DecodeUnsignedTx */
 export interface DecodeUnsignedTx {
   unsignedTx: string
 }
 
+/** DecodeUnsignedTxResult */
 export interface DecodeUnsignedTxResult {
   /** @format int32 */
   fromGroup: number
@@ -566,6 +623,7 @@ export interface DecodeUnsignedTxResult {
   unsignedTx: UnsignedTx
 }
 
+/** Destination */
 export interface Destination {
   /** @format address */
   address: string
@@ -578,30 +636,36 @@ export interface Destination {
   message?: string
 }
 
+/** DiscoveryAction */
 export type DiscoveryAction = Reachable | Unreachable
 
+/** Enum */
 export interface Enum {
   name: string
   fields: EnumField[]
 }
 
+/** EnumField */
 export interface EnumField {
   name: string
   value: Val
 }
 
+/** EventSig */
 export interface EventSig {
   name: string
   fieldNames: string[]
   fieldTypes: string[]
 }
 
+/** FieldsSig */
 export interface FieldsSig {
   names: string[]
   types: string[]
   isMutable: boolean[]
 }
 
+/** FixedAssetOutput */
 export interface FixedAssetOutput {
   /** @format int32 */
   hint: number
@@ -618,6 +682,7 @@ export interface FixedAssetOutput {
   message: string
 }
 
+/** FunctionSig */
 export interface FunctionSig {
   name: string
   usePreapprovedAssets: boolean
@@ -629,15 +694,26 @@ export interface FunctionSig {
   returnTypes: string[]
 }
 
+/** GhostUncleBlockEntry */
+export interface GhostUncleBlockEntry {
+  /** @format block-hash */
+  blockHash: string
+  /** @format address */
+  miner: string
+}
+
+/** Group */
 export interface Group {
   /** @format int32 */
   group: number
 }
 
+/** HashesAtHeight */
 export interface HashesAtHeight {
   headers: string[]
 }
 
+/** InterCliquePeerInfo */
 export interface InterCliquePeerInfo {
   /** @format clique-id */
   cliqueId: string
@@ -655,19 +731,23 @@ export interface InterCliquePeerInfo {
   clientVersion: string
 }
 
+/** InternalServerError */
 export interface InternalServerError {
   detail: string
 }
 
+/** MapsSig */
 export interface MapsSig {
   names: string[]
   types: string[]
 }
 
+/** MemPooled */
 export interface MemPooled {
   type: string
 }
 
+/** MempoolTransactions */
 export interface MempoolTransactions {
   /** @format int32 */
   fromGroup: number
@@ -676,24 +756,30 @@ export interface MempoolTransactions {
   transactions: TransactionTemplate[]
 }
 
+/** MinerAddresses */
 export interface MinerAddresses {
   addresses: string[]
 }
 
+/** MinerAddressesInfo */
 export interface MinerAddressesInfo {
   addresses: AddressInfo[]
 }
 
+/** MisbehaviorAction */
 export type MisbehaviorAction = Ban | Unban
 
+/** MultipleCallContract */
 export interface MultipleCallContract {
   calls: CallContract[]
 }
 
+/** MultipleCallContractResult */
 export interface MultipleCallContractResult {
   results: CallContractResult[]
 }
 
+/** NodeInfo */
 export interface NodeInfo {
   buildInfo: BuildInfo
   upnp: boolean
@@ -705,18 +791,22 @@ export interface NodeInfo {
   }
 }
 
+/** NodeVersion */
 export interface NodeVersion {
   /** @format semver */
   version: string
 }
 
+/** NotFound */
 export interface NotFound {
   detail: string
   resource: string
 }
 
+/** Output */
 export type Output = AssetOutput | ContractOutput
 
+/** OutputRef */
 export interface OutputRef {
   /** @format int32 */
   hint: number
@@ -724,6 +814,7 @@ export interface OutputRef {
   key: string
 }
 
+/** PeerAddress */
 export interface PeerAddress {
   /** @format inet-address */
   address: string
@@ -735,48 +826,58 @@ export interface PeerAddress {
   minerApiPort: number
 }
 
+/** PeerMisbehavior */
 export interface PeerMisbehavior {
   /** @format inet-address */
   peer: string
   status: PeerStatus
 }
 
+/** PeerStatus */
 export type PeerStatus = Banned | Penalty
 
+/** Penalty */
 export interface Penalty {
   /** @format int32 */
   value: number
   type: string
 }
 
+/** Project */
 export interface Project {
   code: string
   compilerOptions?: CompilerOptions
 }
 
+/** Reachable */
 export interface Reachable {
   peers: string[]
   type: string
 }
 
+/** Result */
 export interface Result {
   /** @format bigint */
   hashrate: string
 }
 
+/** RevealMnemonic */
 export interface RevealMnemonic {
   password: string
 }
 
+/** RevealMnemonicResult */
 export interface RevealMnemonicResult {
   mnemonic: string
 }
 
+/** Script */
 export interface Script {
   code: string
   compilerOptions?: CompilerOptions
 }
 
+/** SelfClique */
 export interface SelfClique {
   /** @format clique-id */
   cliqueId: string
@@ -785,19 +886,24 @@ export interface SelfClique {
   synced: boolean
 }
 
+/** ServiceUnavailable */
 export interface ServiceUnavailable {
   detail: string
 }
 
+/** Sign */
 export interface Sign {
+  /** @format 32-byte-hash */
   data: string
 }
 
+/** SignResult */
 export interface SignResult {
   /** @format signature */
   signature: string
 }
 
+/** Source */
 export interface Source {
   /** @format hex-string */
   fromPublicKey: string
@@ -809,6 +915,7 @@ export interface Source {
   utxos?: OutputRef[]
 }
 
+/** StructSig */
 export interface StructSig {
   name: string
   fieldNames: string[]
@@ -816,17 +923,20 @@ export interface StructSig {
   isMutable: boolean[]
 }
 
+/** SubmitMultisig */
 export interface SubmitMultisig {
   unsignedTx: string
   signatures: string[]
 }
 
+/** SubmitTransaction */
 export interface SubmitTransaction {
   unsignedTx: string
   /** @format signature */
   signature: string
 }
 
+/** SubmitTxResult */
 export interface SubmitTxResult {
   /** @format 32-byte-hash */
   txId: string
@@ -836,6 +946,7 @@ export interface SubmitTxResult {
   toGroup: number
 }
 
+/** Sweep */
 export interface Sweep {
   /** @format address */
   toAddress: string
@@ -851,6 +962,7 @@ export interface Sweep {
   targetBlockHash?: string
 }
 
+/** SweepAddressTransaction */
 export interface SweepAddressTransaction {
   /** @format 32-byte-hash */
   txId: string
@@ -861,11 +973,13 @@ export interface SweepAddressTransaction {
   gasPrice: string
 }
 
+/** TargetToHashrate */
 export interface TargetToHashrate {
   /** @format hex-string */
   target: string
 }
 
+/** TestContract */
 export interface TestContract {
   /** @format int32 */
   group?: number
@@ -891,6 +1005,7 @@ export interface TestContract {
   inputAssets?: TestInputAsset[]
 }
 
+/** TestContractResult */
 export interface TestContractResult {
   /** @format address */
   address: string
@@ -906,12 +1021,14 @@ export interface TestContractResult {
   debugMessages: DebugMessage[]
 }
 
+/** TestInputAsset */
 export interface TestInputAsset {
   /** @format address */
   address: string
   asset: AssetState
 }
 
+/** Token */
 export interface Token {
   /** @format 32-byte-hash */
   id: string
@@ -919,6 +1036,7 @@ export interface Token {
   amount: string
 }
 
+/** Transaction */
 export interface Transaction {
   unsigned: UnsignedTx
   scriptExecutionOk: boolean
@@ -928,12 +1046,14 @@ export interface Transaction {
   scriptSignatures: string[]
 }
 
+/** TransactionTemplate */
 export interface TransactionTemplate {
   unsigned: UnsignedTx
   inputSignatures: string[]
   scriptSignatures: string[]
 }
 
+/** Transfer */
 export interface Transfer {
   destinations: Destination[]
   /** @format gas */
@@ -944,6 +1064,7 @@ export interface Transfer {
   utxosLimit?: number
 }
 
+/** TransferResult */
 export interface TransferResult {
   /** @format 32-byte-hash */
   txId: string
@@ -953,16 +1074,20 @@ export interface TransferResult {
   toGroup: number
 }
 
+/** TransferResults */
 export interface TransferResults {
   results: TransferResult[]
 }
 
+/** TxNotFound */
 export interface TxNotFound {
   type: string
 }
 
+/** TxStatus */
 export type TxStatus = Confirmed | MemPooled | TxNotFound
 
+/** UTXO */
 export interface UTXO {
   ref: OutputRef
   /** @format uint256 */
@@ -974,25 +1099,30 @@ export interface UTXO {
   additionalData?: string
 }
 
+/** UTXOs */
 export interface UTXOs {
   utxos: UTXO[]
   warning?: string
 }
 
+/** Unauthorized */
 export interface Unauthorized {
   detail: string
 }
 
+/** Unban */
 export interface Unban {
   peers: string[]
   type: string
 }
 
+/** Unreachable */
 export interface Unreachable {
   peers: string[]
   type: string
 }
 
+/** UnsignedTx */
 export interface UnsignedTx {
   /** @format 32-byte-hash */
   txId: string
@@ -1008,42 +1138,50 @@ export interface UnsignedTx {
   fixedOutputs: FixedAssetOutput[]
 }
 
+/** Val */
 export type Val = ValAddress | ValArray | ValBool | ValByteVec | ValI256 | ValU256
 
+/** ValAddress */
 export interface ValAddress {
   /** @format address */
   value: string
   type: string
 }
 
+/** ValArray */
 export interface ValArray {
   value: Val[]
   type: string
 }
 
+/** ValBool */
 export interface ValBool {
   value: boolean
   type: string
 }
 
+/** ValByteVec */
 export interface ValByteVec {
   /** @format hex-string */
   value: string
   type: string
 }
 
+/** ValI256 */
 export interface ValI256 {
   /** @format bigint */
   value: string
   type: string
 }
 
+/** ValU256 */
 export interface ValU256 {
   /** @format uint256 */
   value: string
   type: string
 }
 
+/** VerifySignature */
 export interface VerifySignature {
   /** @format hex-string */
   data: string
@@ -1053,6 +1191,7 @@ export interface VerifySignature {
   publicKey: string
 }
 
+/** WalletCreation */
 export interface WalletCreation {
   password: string
   walletName: string
@@ -1061,15 +1200,18 @@ export interface WalletCreation {
   mnemonicSize?: number
 }
 
+/** WalletCreationResult */
 export interface WalletCreationResult {
   walletName: string
   mnemonic: string
 }
 
+/** WalletDeletion */
 export interface WalletDeletion {
   password: string
 }
 
+/** WalletRestore */
 export interface WalletRestore {
   password: string
   mnemonic: string
@@ -1078,15 +1220,18 @@ export interface WalletRestore {
   mnemonicPassphrase?: string
 }
 
+/** WalletRestoreResult */
 export interface WalletRestoreResult {
   walletName: string
 }
 
+/** WalletStatus */
 export interface WalletStatus {
   walletName: string
   locked: boolean
 }
 
+/** WalletUnlock */
 export interface WalletUnlock {
   password: string
   mnemonicPassphrase?: string
@@ -1306,7 +1451,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 2.14.0
+ * @version 3.1.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -1974,6 +2119,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getBlockflowBlocksBlockHash: (blockHash: string, params: RequestParams = {}) =>
       this.request<BlockEntry, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/blockflow/blocks/${blockHash}`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Blockflow
+     * @name GetBlockflowMainChainBlockByGhostUncleGhostUncleHash
+     * @summary Get a mainchain block by ghost uncle hash
+     * @request GET:/blockflow/main-chain-block-by-ghost-uncle/{ghost_uncle_hash}
+     */
+    getBlockflowMainChainBlockByGhostUncleGhostUncleHash: (ghostUncleHash: string, params: RequestParams = {}) =>
+      this.request<BlockEntry, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/blockflow/main-chain-block-by-ghost-uncle/${ghostUncleHash}`,
         method: 'GET',
         format: 'json',
         ...params
