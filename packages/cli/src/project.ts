@@ -436,6 +436,24 @@ export class Project {
     return forceRecompile || changedSources.includes(name)
   }
 
+  private async checkMethodIndex(newArtifact: Compiled<Contract>) {
+    const artifactPath = newArtifact.sourceInfo.getArtifactPath(this.artifactsRootDir)
+    let oldArtifact: Contract
+    try {
+      oldArtifact = await Contract.fromArtifactFile(artifactPath, '', '')
+    } catch (error) {
+      throw new Error(`Failed to load contract artifact, error: ${error}, contract: ${newArtifact.sourceInfo.name}`)
+    }
+    newArtifact.artifact.functions.forEach((newFuncSig, index) => {
+      const oldFuncSig = oldArtifact.functions[`${index}`]
+      if (oldFuncSig.name !== newFuncSig.name) {
+        throw new Error(
+          `The newly compiled contract ${newArtifact.artifact.name} has different method indexes compared to the existing deployment on mainnet/testnet`
+        )
+      }
+    })
+  }
+
   private async saveArtifactsToFile(
     projectRootDir: string,
     forceRecompile: boolean,
@@ -453,6 +471,8 @@ export class Project {
     for (const [_, contract] of this.contracts) {
       if (Project.needToUpdate(forceRecompile, changedSources, contract.sourceInfo.name)) {
         await saveToFile(contract)
+      } else {
+        await this.checkMethodIndex(contract)
       }
     }
     for (const [_, script] of this.scripts) {
