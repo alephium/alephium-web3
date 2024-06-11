@@ -51,7 +51,8 @@
       "@babel/traverse": ">=7.23.2",
       "browserify-sign": ">=4.2.2",
       "axios": ">=1.6.0",
-      "word-wrap": ">=1.2.4"
+      "word-wrap": ">=1.2.4",
+      "braces@<3.0.3": ">=3.0.3"
     }
   }
 }
