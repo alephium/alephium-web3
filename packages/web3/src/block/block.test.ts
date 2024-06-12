@@ -125,7 +125,8 @@ describe('block subscription', function () {
           version: 0,
           depStateHash: '',
           txsHash: '',
-          target: ''
+          target: '',
+          ghostUncles: []
         }
         blockByHash.set(hash, blockEntry)
       }
