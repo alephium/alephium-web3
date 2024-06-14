@@ -1,13 +1,11 @@
 import { Deployments } from '@alephium/cli'
-import { web3, Project, DUST_AMOUNT } from '@alephium/web3'
+import { web3, DUST_AMOUNT } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import configuration from '../alephium.config'
 import { TokenFaucet, Withdraw } from '../artifacts/ts'
 
 async function withdraw() {
   web3.setCurrentNodeProvider('http://127.0.0.1:22973')
-  // Compile the contracts of the project if they are not compiled
-  Project.build()
 
   // Attention: test wallet is used for demonstration purpose
   const signer = await testNodeWallet()
