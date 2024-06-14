@@ -1,4 +1,4 @@
-import { web3, Project, TestContractParams, addressFromContractId, AssetOutput, DUST_AMOUNT, groupOfAddress } from '@alephium/web3'
+import { web3, TestContractParams, addressFromContractId, AssetOutput, DUST_AMOUNT, groupOfAddress } from '@alephium/web3'
 import { expectAssertionError, randomContractId, testAddress, testNodeWallet } from '@alephium/web3-test'
 import { deployToDevnet } from '@alephium/cli'
 import { TokenFaucet, TokenFaucetTypes, Withdraw } from '../artifacts/ts'
@@ -12,7 +12,6 @@ describe('unit tests', () => {
   // We initialize the fixture variables before all tests
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
-    await Project.build()
     testContractId = randomContractId()
     testTokenId = testContractId
     testContractAddress = addressFromContractId(testContractId)
@@ -104,7 +103,6 @@ describe('unit tests', () => {
 describe('integration tests', () => {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
-    await Project.build()
   })
 
   it('should withdraw on devnet', async () => {
