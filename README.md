@@ -14,7 +14,7 @@ You could run the following command to scaffold a skeleton project for smart con
 npx @alephium/cli init <project-dir> [-t (base | react | nextjs)]
 ```
 
-Please read the [documentation](https://docs.alephium.org/dapps/sdk/getting-started/) for more.
+Please read the [documentation](https://docs.alephium.org/sdk/getting-started/) for more.
 
 ## Packages
 
