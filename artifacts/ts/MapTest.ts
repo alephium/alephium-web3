@@ -112,14 +112,22 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         TestContractParams<
           never,
           { key: Address; value: MapValue },
-          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+          {
+            map0?: Map<Address, MapValue>;
+            map1?: Map<bigint, bigint>;
+            map2?: Map<HexString, bigint>;
+          }
         >,
         "initialFields"
       >
     ): Promise<
       TestContractResult<
         null,
-        { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        {
+          map0?: Map<Address, MapValue>;
+          map1?: Map<bigint, bigint>;
+          map2?: Map<HexString, bigint>;
+        }
       >
     > => {
       return testMethod(this, "insert", params, getContractByCodeHash);
@@ -129,14 +137,22 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         TestContractParams<
           never,
           { key: Address },
-          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+          {
+            map0?: Map<Address, MapValue>;
+            map1?: Map<bigint, bigint>;
+            map2?: Map<HexString, bigint>;
+          }
         >,
         "initialFields"
       >
     ): Promise<
       TestContractResult<
         null,
-        { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        {
+          map0?: Map<Address, MapValue>;
+          map1?: Map<bigint, bigint>;
+          map2?: Map<HexString, bigint>;
+        }
       >
     > => {
       return testMethod(this, "update", params, getContractByCodeHash);
@@ -146,14 +162,22 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         TestContractParams<
           never,
           { key: Address },
-          { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+          {
+            map0?: Map<Address, MapValue>;
+            map1?: Map<bigint, bigint>;
+            map2?: Map<HexString, bigint>;
+          }
         >,
         "initialFields"
       >
     ): Promise<
       TestContractResult<
         null,
-        { map0?: Map<Address, MapValue>; map1?: Map<bigint, bigint> }
+        {
+          map0?: Map<Address, MapValue>;
+          map1?: Map<bigint, bigint>;
+          map2?: Map<HexString, bigint>;
+        }
       >
     > => {
       return testMethod(this, "remove", params, getContractByCodeHash);
@@ -165,8 +189,8 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
 export const MapTest = new Factory(
   Contract.fromJson(
     MapTestContractJson,
-    "=6-2+73=2-2+d8=2-2+69=11-1+a=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=227-1+9=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=6",
-    "034dec32e1107787800ec476a31b11ed2f5c201c06aa9360d1a1a074d6b29098",
+    "=6-2+a8=1-3+128=2-2+ea=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=6",
+    "8666d70738c42748551e987c3eb46a2d7b1db5d82f5f6b2fdfc95b3906ff7477",
     AllStructs
   )
 );
@@ -187,6 +211,11 @@ export class MapTestInstance extends ContractInstance {
       MapTest.contract,
       this.contractId,
       "map1"
+    ),
+    map2: new RalphMap<HexString, bigint>(
+      MapTest.contract,
+      this.contractId,
+      "map2"
     ),
   };
 

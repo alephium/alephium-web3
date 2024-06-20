@@ -31,7 +31,7 @@ services:
         condition: service_healthy
 
   alephium:
-    image: alephium/alephium:v3.1.0
+    image: alephium/alephium:v3.1.4
     restart: unless-stopped
     ports:
       - 19973:19973/tcp

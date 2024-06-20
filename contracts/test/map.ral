@@ -5,28 +5,32 @@ struct MapValue {
 Contract MapTest() {
   mapping[Address, MapValue] map0
   mapping[U256, U256] map1
+  mapping[ByteVec, U256] map2
 
   @using(preapprovedAssets = true)
   pub fn insert(key: Address, value: MapValue) -> () {
     map0.insert!(key, key, value)
     map1.insert!(key, value.id, value.balance)
+    map2.insert!(key, #0011, value.balance)
   }
 
   pub fn update(key: Address) -> () {
     let value = map0[key]
     map0[key].balance = value.balance + 1
     map1[value.id] = value.balance + 1
+    map2[#0011] = value.balance + 1
   }
 
   pub fn remove(key: Address) -> () {
     let value = map0[key]
     map0.remove!(key, key)
     map1.remove!(key, value.id)
+    map2.remove!(key, #0011)
   }
 }
 
 TxScript InsertIntoMap(mapTest: MapTest, from: Address, value: MapValue) {
-  mapTest.insert{from -> ALPH: mapEntryDeposit!() * 2}(from, value)
+  mapTest.insert{from -> ALPH: mapEntryDeposit!() * 3}(from, value)
 }
 
 TxScript RemoveFromMap(mapTest: MapTest, key: Address) {

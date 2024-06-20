@@ -457,6 +457,17 @@ describe('contract', function () {
     )
   })
 
+  it('should encode map key', () => {
+    expect(utils.binToHex(ralph.encodeMapKey(true, 'Bool'))).toEqual('01')
+    expect(utils.binToHex(ralph.encodeMapKey(false, 'Bool'))).toEqual('00')
+    expect(utils.binToHex(ralph.encodeMapKey(11011n, 'U256'))).toEqual('6b03')
+    expect(utils.binToHex(ralph.encodeMapKey(11011n, 'I256'))).toEqual('80002b03')
+    expect(utils.binToHex(ralph.encodeMapKey('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH', 'Address'))).toEqual(
+      '00bee85f379545a2ed9f6cceb331288842f378cf0f04012ad4ac8824aae7d6f80a'
+    )
+    expect(utils.binToHex(ralph.encodeMapKey('00112233', 'ByteVec'))).toEqual('00112233')
+  })
+
   // it('should test buildByteCode', async () => {
   //   const compiled = {
   //     type: 'TemplateContractByteCode',
