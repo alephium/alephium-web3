@@ -389,7 +389,7 @@ export function decodePrimitive(value: Uint8Array, type: string): Val {
   }
 }
 
-export function primitiveToByteVec(value: Val, type: string): Uint8Array {
+export function encodeMapKey(value: Val, type: string): Uint8Array {
   switch (type) {
     case 'Bool':
       const byte = toApiBoolean(value) ? 1 : 0
@@ -402,7 +402,7 @@ export function primitiveToByteVec(value: Val, type: string): Uint8Array {
       return encodeU256(BigInt(u256))
     case 'ByteVec':
       const hexStr = toApiByteVec(value)
-      return encodeByteVec(hexStr)
+      return hexToBinUnsafe(hexStr)
     case 'Address':
       const address = toApiAddress(value)
       return encodeAddress(address)

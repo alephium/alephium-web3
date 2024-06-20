@@ -470,28 +470,33 @@ describe('contract', function () {
     })
     expect(insertResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
     expect(insertResult.maps?.map1?.get(1n)).toEqual(10n)
+    expect(insertResult.maps?.map2?.get('0011')).toEqual(10n)
 
     const updateResult = await MapTest.tests.update({
       initialMaps: {
         map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
-        map1: new Map([[1n, 10n]])
+        map1: new Map([[1n, 10n]]),
+        map2: new Map([['0011', 10n]])
       },
       testArgs: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
     expect(updateResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
     expect(updateResult.maps?.map1?.get(1n)).toEqual(11n)
+    expect(updateResult.maps?.map2?.get('0011')).toEqual(11n)
 
     const removeResult = await MapTest.tests.remove({
       initialMaps: {
         map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
-        map1: new Map([[1n, 10n]])
+        map1: new Map([[1n, 10n]]),
+        map2: new Map([['0011', 10n]])
       },
       testArgs: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
     expect(removeResult.maps?.map0?.get(signer.address)).toEqual(undefined)
     expect(removeResult.maps?.map1?.get(1n)).toEqual(undefined)
+    expect(removeResult.maps?.map2?.get('0011')).toEqual(undefined)
   })
 
   it('should test map(integration test)', async () => {
@@ -516,6 +521,9 @@ describe('contract', function () {
     expect(await mapTest.maps.map1.contains(0n)).toEqual(false)
     expect(await mapTest.maps.map1.contains(1n)).toEqual(true)
     expect(await mapTest.maps.map1.get(1n)).toEqual(10n)
+    expect(await mapTest.maps.map2.contains('0010')).toEqual(false)
+    expect(await mapTest.maps.map2.contains('0011')).toEqual(true)
+    expect(await mapTest.maps.map2.get('0011')).toEqual(10n)
 
     await UpdateMapValue.execute(signer, {
       initialFields: {
@@ -526,6 +534,7 @@ describe('contract', function () {
 
     expect(await mapTest.maps.map0.get(signer.address)).toEqual({ id: 1n, balance: 11n })
     expect(await mapTest.maps.map1.get(1n)).toEqual(11n)
+    expect(await mapTest.maps.map2.get('0011')).toEqual(11n)
 
     await RemoveFromMap.execute(signer, {
       initialFields: {
@@ -538,6 +547,8 @@ describe('contract', function () {
     expect(await mapTest.maps.map0.get(signer.address)).toEqual(undefined)
     expect(await mapTest.maps.map1.contains(1n)).toEqual(false)
     expect(await mapTest.maps.map1.get(1n)).toEqual(undefined)
+    expect(await mapTest.maps.map2.contains('0011')).toEqual(false)
+    expect(await mapTest.maps.map2.get('0011')).toEqual(undefined)
   })
 
   it('should test sign execute method with primitive arguments', async () => {

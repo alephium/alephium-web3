@@ -1,8 +1,8 @@
 {
-  "version": "v2.14.7",
+  "version": "v3.1.4",
   "name": "MapTest",
-  "bytecode": "0003404140a64105010303030016d3a9cdcc691600d1a2140a5f5f6d61705f5f305f5f160047441601b11602d202011600d1a2140a5f5f6d61705f5f315f5f16014044b11602d201010100010400402bd3c50ed2bb0c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116020d2a0c0e0c140a5f5f6d61705f5f305f5f16004744cb010216020d2a0c0e0c140a5f5f6d61705f5f315f5f16014044cb010201000104004025d392ac08660c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116000d0c140a5f5f6d61705f5f305f5f16004744cb010316000d0c140a5f5f6d61705f5f315f5f16014044cb0103",
-  "codeHash": "fa153233f4924fc2fd3e98b43209b838e569154481211662acdade8e20bb48c0",
+  "bytecode": "0003405c40dc415301030303001fd3a9cdcc691600d1a2140a5f5f6d61705f5f305f5f160047441601b11602d202011600d1a2140a5f5f6d61705f5f315f5f16014044b11602d201011600d1a2140a5f5f6d61705f5f325f5f1402001144b11602d2010101000104004036d3c50ed2bb0c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116020d2a0c0e0c140a5f5f6d61705f5f305f5f16004744cb010216020d2a0c0e0c140a5f5f6d61705f5f315f5f16014044cb010216020d2a0c0e0c140a5f5f6d61705f5f325f5f1402001144cb01020100010400402dd392ac08660c0d0d140a5f5f6d61705f5f305f5f16004744cb1703160301000c0d0d160301011702170116000d0c140a5f5f6d61705f5f305f5f16004744cb010316000d0c140a5f5f6d61705f5f315f5f16014044cb010316000d0c140a5f5f6d61705f5f325f5f1402001144cb0103",
+  "codeHash": "6ce8563011315ab1834d01457eb638c0a081c689b0daf1a59f8d914330a8673d",
   "fieldsSig": {
     "names": [],
     "types": [],
@@ -12,9 +12,6 @@
   "functions": [
     {
       "name": "insert",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "key",
         "value"
@@ -31,9 +28,6 @@
     },
     {
       "name": "update",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "key"
       ],
@@ -47,9 +41,6 @@
     },
     {
       "name": "remove",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [
         "key"
       ],
@@ -67,11 +58,13 @@
   "mapsSig": {
     "names": [
       "map0",
-      "map1"
+      "map1",
+      "map2"
     ],
     "types": [
       "Map[Address,MapValue]",
-      "Map[U256,U256]"
+      "Map[U256,U256]",
+      "Map[ByteVec,U256]"
     ]
   }
 }

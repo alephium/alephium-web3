@@ -1177,7 +1177,7 @@ function calcWrapperContractId(
   group: number
 ): string {
   const prefix = ralph.encodeMapPrefix(mapIndex)
-  const encodedKey = ralph.primitiveToByteVec(key, keyType)
+  const encodedKey = ralph.encodeMapKey(key, keyType)
   const path = binToHex(prefix) + binToHex(encodedKey)
   return subContractId(parentContractId, path, group)
 }
