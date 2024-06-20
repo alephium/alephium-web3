@@ -8,10 +8,17 @@
   ],
   "license": "GPL",
   "main": "dist/src/index.js",
-  "browser": "dist/alephium-web3.min.js",
+  "browser": "dist/alephium-web3-wallet.min.js",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js"
+    "node": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
+    "default": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/alephium-web3-wallet.min.js"
+    }
   },
   "repository": {
     "type": "git",
