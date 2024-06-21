@@ -303,12 +303,16 @@ describe('contract', function () {
 
   it('should test assert!', async () => {
     const contractAddress = randomContractAddress()
-    expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, 3)
+    expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, Assert.consts.Error)
 
     const assertDeployResult = await Assert.deploy(signer, { initialFields: {} })
     const assertAddress = assertDeployResult.contractInstance.address
 
-    expectAssertionError(TestAssert.execute(signer, { initialFields: { assert: assertAddress } }), assertAddress, 3)
+    expectAssertionError(
+      TestAssert.execute(signer, { initialFields: { assert: assertAddress } }),
+      assertAddress,
+      Assert.consts.Error
+    )
 
     expectAssertionError(
       TestAssert.execute(signer, {
