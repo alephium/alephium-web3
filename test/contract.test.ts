@@ -302,6 +302,8 @@ describe('contract', function () {
   })
 
   it('should test assert!', async () => {
+    expect(Assert.consts.Numbers.C).toEqual((1n << 256n) - 1n)
+
     const contractAddress = randomContractAddress()
     expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, Assert.consts.Error)
 

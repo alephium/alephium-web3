@@ -49,11 +49,11 @@
     },
     "Assert": {
       "sourceFile": "test/assert.ral",
-      "sourceCodeHash": "65f8387941a38e88ef555f5d0b4992dab390d97ff97b2473fdea45b8d58a74a5",
+      "sourceCodeHash": "9f400f63bcdefcbccb09253140532bea0054f543fa7264b555abcadc0da2d87d",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b",
       "warnings": [
-        "Found unused constants in Assert: A, Addresses.A, Addresses.B, B, ByteVecs.A, ByteVecs.B, C, Numbers.A, Numbers.B"
+        "Found unused constants in Assert: A, Addresses.A, Addresses.B, B, ByteVecs.A, ByteVecs.B, C, Numbers.A, Numbers.B, Numbers.C"
       ]
     },
     "Balances": {
@@ -299,7 +299,7 @@
     },
     "TestAssert": {
       "sourceFile": "test/assert.ral",
-      "sourceCodeHash": "65f8387941a38e88ef555f5d0b4992dab390d97ff97b2473fdea45b8d58a74a5",
+      "sourceCodeHash": "9f400f63bcdefcbccb09253140532bea0054f543fa7264b555abcadc0da2d87d",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []

@@ -95,7 +95,7 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
     return this.contract.getInitialFieldsWithDefaultValues() as WarningsTypes.Fields;
   }
 
-  consts = { C: BigInt(0) };
+  consts = { C: BigInt("0") };
 
   at(address: string): WarningsInstance {
     return new WarningsInstance(address);
