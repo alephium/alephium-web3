@@ -212,7 +212,7 @@ function nodeValToString(value: node.Val): string {
 function valToString(v: Val): string {
   if (typeof v === 'bigint') {
     // use BigInt(...) format to avoid that some projects do not support es2020
-    return `BigInt(${v.toString()})`
+    return `BigInt('${v.toString()}')`
   } else if (typeof v === 'string') {
     return `"${v}"`
   } else if (Array.isArray(v)) {

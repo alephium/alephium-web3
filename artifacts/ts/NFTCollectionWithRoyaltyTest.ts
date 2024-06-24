@@ -171,10 +171,10 @@ class Factory extends ContractFactory<
 
   consts = {
     ErrorCodes: {
-      IncorrectTokenIndex: BigInt(0),
-      NFTNotFound: BigInt(1),
-      NFTNotPartOfCollection: BigInt(2),
-      CollectionOwnerAllowedOnly: BigInt(1),
+      IncorrectTokenIndex: BigInt("0"),
+      NFTNotFound: BigInt("1"),
+      NFTNotPartOfCollection: BigInt("2"),
+      CollectionOwnerAllowedOnly: BigInt("1"),
     },
   };
 

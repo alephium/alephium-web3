@@ -83,15 +83,21 @@ class Factory extends ContractFactory<AssertInstance, {}> {
   }
 
   consts = {
-    Error: BigInt(3),
-    A: BigInt(-3),
+    Error: BigInt("3"),
+    A: BigInt("-3"),
     B: "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH",
     C: "0011",
     Addresses: {
       A: "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH",
       B: "14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF",
     },
-    Numbers: { A: BigInt(0), B: BigInt(1) },
+    Numbers: {
+      A: BigInt("0"),
+      B: BigInt("1"),
+      C: BigInt(
+        "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+      ),
+    },
     ByteVecs: { A: "00", B: "11" },
   };
 
