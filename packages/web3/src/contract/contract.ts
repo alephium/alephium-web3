@@ -590,7 +590,8 @@ export class Contract extends Artifact {
       group: groupIndex,
       address: contractAddress,
       methodIndex: methodIndex,
-      args: args
+      args: args,
+      inputAssets: toApiInputAssets(params.inputAssets)
     }
   }
 
@@ -1045,7 +1046,7 @@ export interface CallContractParams<T extends Arguments = Arguments> {
   worldStateBlockHash?: string
   txId?: string
   existingContracts?: string[]
-  inputAssets?: node.TestInputAsset[]
+  inputAssets?: InputAsset[]
 }
 
 export interface CallContractResult<R> {
