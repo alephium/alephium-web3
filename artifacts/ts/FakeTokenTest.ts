@@ -197,7 +197,7 @@ export class FakeTokenTestInstance extends ContractInstance {
     return fetchContractState(FakeTokenTest, this);
   }
 
-  methods = {
+  view = {
     getSymbol: async (
       params?: FakeTokenTestTypes.CallMethodParams<"getSymbol">
     ): Promise<FakeTokenTestTypes.CallMethodResult<"getSymbol">> => {
@@ -254,8 +254,6 @@ export class FakeTokenTestInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     getSymbol: async (

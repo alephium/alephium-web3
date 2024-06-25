@@ -156,7 +156,7 @@ export class WrongNFTTestInstance extends ContractInstance {
     return fetchContractState(WrongNFTTest, this);
   }
 
-  methods = {
+  view = {
     getTokenUri: async (
       params?: WrongNFTTestTypes.CallMethodParams<"getTokenUri">
     ): Promise<WrongNFTTestTypes.CallMethodResult<"getTokenUri">> => {
@@ -180,8 +180,6 @@ export class WrongNFTTestInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     getTokenUri: async (

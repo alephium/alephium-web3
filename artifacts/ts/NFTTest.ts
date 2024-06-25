@@ -153,7 +153,7 @@ export class NFTTestInstance extends ContractInstance {
     return fetchContractState(NFTTest, this);
   }
 
-  methods = {
+  view = {
     getTokenUri: async (
       params?: NFTTestTypes.CallMethodParams<"getTokenUri">
     ): Promise<NFTTestTypes.CallMethodResult<"getTokenUri">> => {
@@ -177,8 +177,6 @@ export class NFTTestInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     getTokenUri: async (

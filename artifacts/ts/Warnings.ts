@@ -133,15 +133,13 @@ export class WarningsInstance extends ContractInstance {
     return fetchContractState(Warnings, this);
   }
 
-  methods = {
+  view = {
     foo: async (
       params: WarningsTypes.CallMethodParams<"foo">
     ): Promise<WarningsTypes.CallMethodResult<"foo">> => {
       return callMethod(Warnings, this, "foo", params, getContractByCodeHash);
     },
   };
-
-  view = this.methods;
 
   transact = {
     foo: async (

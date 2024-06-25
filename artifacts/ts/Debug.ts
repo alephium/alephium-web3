@@ -123,7 +123,7 @@ export class DebugInstance extends ContractInstance {
     return fetchContractState(Debug, this);
   }
 
-  methods = {
+  view = {
     debug: async (
       params?: DebugTypes.CallMethodParams<"debug">
     ): Promise<DebugTypes.CallMethodResult<"debug">> => {
@@ -136,8 +136,6 @@ export class DebugInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     debug: async (
