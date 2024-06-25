@@ -138,7 +138,7 @@ export class GreeterInstance extends ContractInstance {
     return fetchContractState(Greeter, this);
   }
 
-  methods = {
+  view = {
     greet: async (
       params?: GreeterTypes.CallMethodParams<"greet">
     ): Promise<GreeterTypes.CallMethodResult<"greet">> => {
@@ -151,8 +151,6 @@ export class GreeterInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     greet: async (

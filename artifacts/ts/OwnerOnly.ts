@@ -133,7 +133,7 @@ export class OwnerOnlyInstance extends ContractInstance {
     return fetchContractState(OwnerOnly, this);
   }
 
-  methods = {
+  view = {
     testOwner: async (
       params?: OwnerOnlyTypes.CallMethodParams<"testOwner">
     ): Promise<OwnerOnlyTypes.CallMethodResult<"testOwner">> => {
@@ -146,8 +146,6 @@ export class OwnerOnlyInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     testOwner: async (

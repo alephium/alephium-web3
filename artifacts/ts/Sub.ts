@@ -151,15 +151,13 @@ export class SubInstance extends ContractInstance {
     );
   }
 
-  methods = {
+  view = {
     sub: async (
       params: SubTypes.CallMethodParams<"sub">
     ): Promise<SubTypes.CallMethodResult<"sub">> => {
       return callMethod(Sub, this, "sub", params, getContractByCodeHash);
     },
   };
-
-  view = this.methods;
 
   transact = {
     sub: async (

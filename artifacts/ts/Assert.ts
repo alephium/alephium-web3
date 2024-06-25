@@ -142,7 +142,7 @@ export class AssertInstance extends ContractInstance {
     return fetchContractState(Assert, this);
   }
 
-  methods = {
+  view = {
     test: async (
       params?: AssertTypes.CallMethodParams<"test">
     ): Promise<AssertTypes.CallMethodResult<"test">> => {
@@ -155,8 +155,6 @@ export class AssertInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     test: async (

@@ -223,7 +223,7 @@ export class MapTestInstance extends ContractInstance {
     return fetchContractState(MapTest, this);
   }
 
-  methods = {
+  view = {
     insert: async (
       params: MapTestTypes.CallMethodParams<"insert">
     ): Promise<MapTestTypes.CallMethodResult<"insert">> => {
@@ -240,8 +240,6 @@ export class MapTestInstance extends ContractInstance {
       return callMethod(MapTest, this, "remove", params, getContractByCodeHash);
     },
   };
-
-  view = this.methods;
 
   transact = {
     insert: async (
