@@ -39,10 +39,10 @@ describe('contract', function () {
   it('should get token infos', async () => {
     const tokenTest = (await TokenTest.deploy(signer, { initialFields })).contractInstance
 
-    expect((await tokenTest.methods.getSymbol()).returns).toEqual(symbol)
-    expect((await tokenTest.methods.getName()).returns).toEqual(name)
-    expect((await tokenTest.methods.getDecimals()).returns).toEqual(decimals)
-    expect((await tokenTest.methods.getTotalSupply()).returns).toEqual(totalSupply)
+    expect((await tokenTest.view.getSymbol()).returns).toEqual(symbol)
+    expect((await tokenTest.view.getName()).returns).toEqual(name)
+    expect((await tokenTest.view.getDecimals()).returns).toEqual(decimals)
+    expect((await tokenTest.view.getTotalSupply()).returns).toEqual(totalSupply)
 
     const stateWithStdId = await tokenTest.fetchState()
     expect(stateWithStdId.fields).toEqual({

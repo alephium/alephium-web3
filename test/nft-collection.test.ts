@@ -79,7 +79,7 @@ describe('nft collection', function () {
       })
     ).contractInstance
 
-    expect((await nftTest.methods.getTokenUri()).returns).toEqual(nftUri)
+    expect((await nftTest.view.getTokenUri()).returns).toEqual(nftUri)
 
     await testNFTCollection(nftTest.contractId, nftUri, false)
     await testNFTCollection(nftTest.contractId, nftUri, true)
@@ -106,7 +106,7 @@ describe('nft collection', function () {
       })
     ).contractInstance
 
-    expect((await wrongNFTTest.methods.getTokenUri()).returns).toEqual(uri)
+    expect((await wrongNFTTest.view.getTokenUri()).returns).toEqual(uri)
     await expect(signer.nodeProvider.fetchNFTMetaData(wrongNFTTest.contractId)).rejects.toThrowError(
       'Failed to call contract, error: VM execution error'
     )
@@ -129,7 +129,7 @@ describe('nft collection', function () {
       })
     ).contractInstance
 
-    expect((await deprecatedNFTTest.methods.getTokenUri()).returns).toEqual(uri)
+    expect((await deprecatedNFTTest.view.getTokenUri()).returns).toEqual(uri)
     await expect(signer.nodeProvider.fetchNFTMetaData(deprecatedNFTTest.contractId)).rejects.toThrowError(
       'Deprecated NFT contract'
     )
@@ -157,7 +157,7 @@ describe('nft collection', function () {
 
       expect(
         (
-          await nftCollectionInstance.methods.royaltyAmount({
+          await nftCollectionInstance.view.royaltyAmount({
             args: {
               tokenId: nftTemplateId,
               salePrice: ONE_ALPH
@@ -177,8 +177,8 @@ describe('nft collection', function () {
       ).contractInstance
     }
 
-    expect((await nftCollectionInstance.methods.getCollectionUri()).returns).toEqual(collectionUri)
-    expect((await nftCollectionInstance.methods.totalSupply()).returns).toEqual(0n)
+    expect((await nftCollectionInstance.view.getCollectionUri()).returns).toEqual(collectionUri)
+    expect((await nftCollectionInstance.view.totalSupply()).returns).toEqual(0n)
 
     const nodeProvider = web3.getCurrentNodeProvider()
     expect(await nodeProvider.guessFollowsNFTCollectionStd(nftCollectionInstance.contractId)).toEqual(true)
@@ -224,7 +224,7 @@ describe('nft collection', function () {
     tokenIndex: bigint
   ) {
     const royalty = nftCollectionTest instanceof NFTCollectionWithRoyaltyTestInstance
-    await expect(nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).rejects.toThrow(Error)
+    await expect(nftCollectionTest.view.nftByIndex({ args: { index: tokenIndex } })).rejects.toThrow(Error)
     await MintNFTTest.execute(signer, {
       initialFields: {
         nftCollectionContractId: nftCollectionTest.contractId,
@@ -235,7 +235,7 @@ describe('nft collection', function () {
     })
 
     const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
-    expect((await nftCollectionTest.methods.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
+    expect((await nftCollectionTest.view.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
     const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
     const nftFields = (await nftInstance.fetchState()).fields
     expect(nftFields.uri).toEqual(nftUri)
@@ -243,7 +243,7 @@ describe('nft collection', function () {
     expect(stdInterfaceId).toEqual('0003')
     const tokenType = await web3.getCurrentNodeProvider().guessStdTokenType(nftInstance.contractId)
     expect(tokenType).toEqual('non-fungible')
-    const [collectionId, index] = (await nftInstance.methods.getCollectionIndex()).returns
+    const [collectionId, index] = (await nftInstance.view.getCollectionIndex()).returns
     expect(collectionId).toEqual(nftCollectionTest.contractId)
     expect(index).toEqual(tokenIndex)
     const nftMetadata = await web3.getCurrentNodeProvider().fetchNFTMetaData(nftInstance.contractId)
