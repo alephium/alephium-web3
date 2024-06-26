@@ -103,6 +103,7 @@ export interface SignExecuteScriptTxParams {
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
+  gasEstimationMultiplier?: number
 }
 assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {

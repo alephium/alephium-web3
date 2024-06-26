@@ -170,7 +170,7 @@ export class UserAccountInstance extends ContractInstance {
     return fetchContractState(UserAccount, this);
   }
 
-  methods = {
+  view = {
     updateBalance: async (
       params: UserAccountTypes.CallMethodParams<"updateBalance">
     ): Promise<UserAccountTypes.CallMethodResult<"updateBalance">> => {
@@ -205,8 +205,6 @@ export class UserAccountInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     updateBalance: async (

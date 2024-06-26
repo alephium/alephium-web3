@@ -149,7 +149,7 @@ export class MetaDataInstance extends ContractInstance {
     return fetchContractState(MetaData, this);
   }
 
-  methods = {
+  view = {
     foo: async (
       params?: MetaDataTypes.CallMethodParams<"foo">
     ): Promise<MetaDataTypes.CallMethodResult<"foo">> => {
@@ -162,8 +162,6 @@ export class MetaDataInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     foo: async (

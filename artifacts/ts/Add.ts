@@ -290,7 +290,7 @@ export class AddInstance extends ContractInstance {
     return subscribeContractEvents(Add.contract, this, options, fromCount);
   }
 
-  methods = {
+  view = {
     add: async (
       params: AddTypes.CallMethodParams<"add">
     ): Promise<AddTypes.CallMethodResult<"add">> => {
@@ -329,8 +329,6 @@ export class AddInstance extends ContractInstance {
       return callMethod(Add, this, "destroy", params, getContractByCodeHash);
     },
   };
-
-  view = this.methods;
 
   transact = {
     add: async (

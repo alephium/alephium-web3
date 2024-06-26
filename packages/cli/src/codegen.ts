@@ -116,11 +116,9 @@ function genCallMethods(contract: Contract): string {
     return ''
   }
   return `
-    methods = {
+    view = {
       ${functions.map((f) => genCallMethod(contract.name, f)).join(',')}
     }
-
-    view = this.methods
   `
 }
 

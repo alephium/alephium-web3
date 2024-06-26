@@ -215,7 +215,7 @@ export class NFTCollectionTestInstance extends ContractInstance {
     return fetchContractState(NFTCollectionTest, this);
   }
 
-  methods = {
+  view = {
     getCollectionUri: async (
       params?: NFTCollectionTestTypes.CallMethodParams<"getCollectionUri">
     ): Promise<NFTCollectionTestTypes.CallMethodResult<"getCollectionUri">> => {
@@ -272,8 +272,6 @@ export class NFTCollectionTestInstance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     getCollectionUri: async (

@@ -150,7 +150,7 @@ export class DeprecatedNFTTest3Instance extends ContractInstance {
     return fetchContractState(DeprecatedNFTTest3, this);
   }
 
-  methods = {
+  view = {
     getTokenUri: async (
       params?: DeprecatedNFTTest3Types.CallMethodParams<"getTokenUri">
     ): Promise<DeprecatedNFTTest3Types.CallMethodResult<"getTokenUri">> => {
@@ -174,8 +174,6 @@ export class DeprecatedNFTTest3Instance extends ContractInstance {
       );
     },
   };
-
-  view = this.methods;
 
   transact = {
     getTokenUri: async (

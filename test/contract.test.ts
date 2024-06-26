@@ -171,7 +171,7 @@ describe('contract', function () {
     expect(addContractState1.fields.sub).toEqual(sub.contractId)
     expect(addContractState1.fields.result).toEqual(3n)
 
-    const callResult = await add.methods.add({
+    const callResult = await add.view.add({
       args: { array: [2n, 1n] },
       existingContracts: [sub.address]
     })
@@ -449,7 +449,7 @@ describe('contract', function () {
     const state = await result.contractInstance.fetchState()
     expect(state.fields).toEqual(initialFields)
 
-    const balances0 = await result.contractInstance.methods.getBalances()
+    const balances0 = await result.contractInstance.view.getBalances()
     expect(balances0.returns).toEqual(initialFields.balances)
 
     await UpdateUserAccount.execute(signer, {
@@ -463,7 +463,7 @@ describe('contract', function () {
       }
     })
 
-    const balances1 = await result.contractInstance.methods.getBalances()
+    const balances1 = await result.contractInstance.view.getBalances()
     expect(balances1.returns.totalAmount).toEqual(201n)
     expect(balances1.returns.tokens[0].amount).toEqual(100n)
     expect(balances1.returns.tokens[1].amount).toEqual(101n)
