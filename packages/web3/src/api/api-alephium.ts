@@ -248,6 +248,8 @@ export interface BuildExecuteScriptTx {
   gasPrice?: string
   /** @format block-hash */
   targetBlockHash?: string
+  /** @format double */
+  gasEstimationMultiplier?: number
 }
 
 /** BuildExecuteScriptTxResult */
@@ -1451,7 +1453,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.1.0
+ * @version 3.2.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

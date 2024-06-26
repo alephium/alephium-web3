@@ -33,7 +33,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "3.1.0",
+    "alephium_version": "3.2.0",
     "explorer_backend_version": "1.19.3"
   },
   "scripts": {
