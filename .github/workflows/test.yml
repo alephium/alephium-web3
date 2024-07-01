@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16, 18]
+        node-version: [20]
 
     steps:
       - uses: actions/checkout@v2
@@ -19,9 +19,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - uses: pnpm/action-setup@v3.0.0
+      - uses: pnpm/action-setup@v4
         with:
-          version: 8.14
+          version: 9.4
       - run: |
           pushd docker
           docker-compose up -d
