@@ -15,29 +15,17 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 
-export interface Codec<T> {
-  parser: Parser
-  encode(input: T): Uint8Array
-  decode(input: Uint8Array): T
-}
+import { TOTAL_NUMBER_OF_GROUPS, groupOfAddress } from '@alephium/web3'
+import { randomContractAddress } from './test-wallet'
 
-export function assert(value: boolean, message: string) {
-  if (!value) {
-    throw new Error(message)
-  }
-}
-
-export function fixedSizeBytes(name: string, length: number): Parser {
-  return Parser.start().wrapped({
-    length,
-    type: Parser.start().buffer(name, { length }),
-    wrapper: function (result) {
-      if (result.length === length) {
-        return result
-      }
-      throw new Error(`Too few bytes when parsing ${name}, expected ${length}, got ${result.length}`)
+describe('test-wallet', function () {
+  it('should generate random contract id by group index', () => {
+    for (let group = 0; group < TOTAL_NUMBER_OF_GROUPS; group += 1) {
+      const contractAddress = randomContractAddress(group)
+      expect(groupOfAddress(contractAddress)).toEqual(group)
     }
+    expect(() => randomContractAddress(TOTAL_NUMBER_OF_GROUPS)).toThrow('Invalid group index')
+    expect(() => randomContractAddress(-1)).toThrow('Invalid group index')
   })
-}
+})

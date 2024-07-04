@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Parser } from 'binary-parser'
 import { ArrayCodec, DecodedArray } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
-import { Codec } from './codec'
+import { Codec, fixedSizeBytes } from './codec'
 import { DecodedScript, scriptCodec } from './script-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
@@ -29,7 +29,7 @@ export interface P2PKH {
 }
 
 class P2PKHCodec implements Codec<P2PKH> {
-  parser = Parser.start().buffer('publicKey', { length: 33 })
+  parser = fixedSizeBytes('publicKey', 33)
 
   encode(input: P2PKH): Uint8Array {
     return input.publicKey

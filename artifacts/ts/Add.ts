@@ -53,6 +53,7 @@ export namespace AddTypes {
 
   export type AddEvent = ContractEvent<{ x: bigint; y: bigint }>;
   export type Add1Event = ContractEvent<{ a: bigint; b: bigint }>;
+  export type EmptyEvent = ContractEvent<{}>;
 
   export interface CallMethodTable {
     add: {
@@ -160,7 +161,7 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     return this.contract.getInitialFieldsWithDefaultValues() as AddTypes.Fields;
   }
 
-  eventIndex = { Add: 0, Add1: 1 };
+  eventIndex = { Add: 0, Add1: 1, Empty: 2 };
 
   at(address: string): AddInstance {
     return new AddInstance(address);
@@ -237,8 +238,8 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
 export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
-    "=12-2+5a=3-1+f=2-2+ac=2+b=1-1=83+77e010a=1+1646450726976617465=262",
-    "34b2d26e23a53fafc6d898ca4911f50ebc782e3d2836af0f235f2e18c6875dd3",
+    "=12-2+5c=2-2+81=3-1+e=2-2+bc=83-1+97e010a61646450726976617465=266",
+    "c46db1ae7bae8b332c115869126eb1402bc71574925608a2adcea3cf7b9f8e7e",
     AllStructs
   )
 );
@@ -283,8 +284,23 @@ export class AddInstance extends ContractInstance {
     );
   }
 
+  subscribeEmptyEvent(
+    options: EventSubscribeOptions<AddTypes.EmptyEvent>,
+    fromCount?: number
+  ): EventSubscription {
+    return subscribeContractEvent(
+      Add.contract,
+      this,
+      options,
+      "Empty",
+      fromCount
+    );
+  }
+
   subscribeAllEvents(
-    options: EventSubscribeOptions<AddTypes.AddEvent | AddTypes.Add1Event>,
+    options: EventSubscribeOptions<
+      AddTypes.AddEvent | AddTypes.Add1Event | AddTypes.EmptyEvent
+    >,
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvents(Add.contract, this, options, fromCount);

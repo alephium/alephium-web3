@@ -93,7 +93,7 @@ describe('events', function () {
 
   it('should subscribe all events', async () => {
     const add = await deployContract(signer)
-    type EventTypes = AddTypes.AddEvent | AddTypes.Add1Event
+    type EventTypes = AddTypes.AddEvent | AddTypes.Add1Event | AddTypes.EmptyEvent
     const addEvents: Array<EventTypes> = []
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAllEvents(subscribeOptions)
@@ -110,7 +110,11 @@ describe('events', function () {
       return (<AddTypes.Add1Event>event).fields.a !== undefined
     }
 
-    expect(addEvents.length).toEqual(6)
+    const isEmpty = (event: EventTypes): event is AddTypes.EmptyEvent => {
+      return Object.keys((<AddTypes.EmptyEvent>event).fields).length === 0
+    }
+
+    expect(addEvents.length).toEqual(9)
     addEvents.forEach((event) => {
       if (isAdd(event)) {
         expect(event.fields.x).toEqual(2n)
@@ -122,6 +126,10 @@ describe('events', function () {
         expect(event.fields.b).toEqual(1n)
         expect(event.name).toEqual('Add1')
         expect(event.eventIndex).toEqual(1)
+      } else if (isEmpty(event)) {
+        expect(event.fields).toEqual({})
+        expect(event.name).toEqual('Empty')
+        expect(event.eventIndex).toEqual(2)
       } else {
         expect(false).toEqual(true)
       }
