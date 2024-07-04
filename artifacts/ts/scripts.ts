@@ -11,7 +11,10 @@ import {
   SignerProvider,
   HexString,
 } from "@alephium/web3";
+import { getContractByCodeHash } from "./contracts";
 import { default as AddMainScriptJson } from "../add/AddMain.ral.json";
+import { default as CallScript0ScriptJson } from "../test/CallScript0.ral.json";
+import { default as CallScript1ScriptJson } from "../test/CallScript1.ral.json";
 import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as InsertIntoMapScriptJson } from "../test/InsertIntoMap.ral.json";
@@ -34,57 +37,101 @@ import {
 export const AddMain = new ExecutableScript<{
   add: HexString;
   array: [bigint, bigint];
-}>(Script.fromJson(AddMainScriptJson, "", AllStructs));
+}>(Script.fromJson(AddMainScriptJson, "", AllStructs), getContractByCodeHash);
+
+export const CallScript0 = new ExecutableScript<
+  { mapTest: HexString; key: Address },
+  MapValue
+>(
+  Script.fromJson(CallScript0ScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
+
+export const CallScript1 = new ExecutableScript<
+  { mapTest: HexString; key: Address; userAccount: HexString },
+  [MapValue, Balances]
+>(
+  Script.fromJson(CallScript1ScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const DestroyAdd = new ExecutableScript<{
   add: HexString;
   caller: Address;
-}>(Script.fromJson(DestroyAddScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(DestroyAddScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const GreeterMain = new ExecutableScript<{
   greeterContractId: HexString;
-}>(Script.fromJson(GreeterMainScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(GreeterMainScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const InsertIntoMap = new ExecutableScript<{
   mapTest: HexString;
   from: Address;
   value: MapValue;
-}>(Script.fromJson(InsertIntoMapScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(InsertIntoMapScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const MintNFTTest = new ExecutableScript<{
   nftCollectionContractId: HexString;
   uri: HexString;
   royalty: boolean;
-}>(Script.fromJson(MintNFTTestScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(MintNFTTestScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const RemoveFromMap = new ExecutableScript<{
   mapTest: HexString;
   key: Address;
-}>(Script.fromJson(RemoveFromMapScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(RemoveFromMapScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const TemplateArrayVar = new ExecutableScript<{
   address: Address;
   numbers0: [[bigint, bigint], [bigint, bigint]];
   bytes: HexString;
   numbers1: [bigint, bigint, bigint];
-}>(Script.fromJson(TemplateArrayVarScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(TemplateArrayVarScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const TestAssert = new ExecutableScript<{ assert: HexString }>(
-  Script.fromJson(TestAssertScriptJson, "", AllStructs)
+  Script.fromJson(TestAssertScriptJson, "", AllStructs),
+  getContractByCodeHash
 );
 
 export const UpdateMapValue = new ExecutableScript<{
   mapTest: HexString;
   key: Address;
-}>(Script.fromJson(UpdateMapValueScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(UpdateMapValueScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const UpdateUserAccount = new ExecutableScript<{
   account: HexString;
   tokens: [TokenBalance, TokenBalance];
   address: Address;
-}>(Script.fromJson(UpdateUserAccountScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(UpdateUserAccountScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
 
 export const WithdrawNFTCollectionTest = new ExecutableScript<{
   collection: HexString;
   amount: bigint;
-}>(Script.fromJson(WithdrawNFTCollectionTestScriptJson, "", AllStructs));
+}>(
+  Script.fromJson(WithdrawNFTCollectionTestScriptJson, "", AllStructs),
+  getContractByCodeHash
+);

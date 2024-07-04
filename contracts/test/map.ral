@@ -27,6 +27,10 @@ Contract MapTest() {
     map1.remove!(key, value.id)
     map2.remove!(key, #0011)
   }
+
+  pub fn getValue(key: Address) -> MapValue {
+    return map0[key]
+  }
 }
 
 TxScript InsertIntoMap(mapTest: MapTest, from: Address, value: MapValue) {
