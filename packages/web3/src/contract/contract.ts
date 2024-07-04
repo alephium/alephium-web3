@@ -77,7 +77,6 @@ import {
   StoreMutFieldByIndex,
   DestroySelf,
   Pop,
-  byteStringCodec,
   StoreLocal,
   instrCodec,
   U256Const,
@@ -603,20 +602,30 @@ export class Contract extends Artifact {
   ): CallContractResult<unknown> {
     const returnTypes = this.functions[`${methodIndex}`].returnTypes
     const callResult = tryGetCallResult(result)
-    const rawReturn = fromApiArray(callResult.returns, returnTypes, this.structs)
-    const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
+    return fromCallResult(callResult, txId, returnTypes, this.structs, getContractByCodeHash)
+  }
+}
 
-    const addressToCodeHash = new Map<string, string>()
-    callResult.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
-    return {
-      returns: returns,
-      gasUsed: callResult.gasUsed,
-      contracts: callResult.contracts.map((state) => Contract.fromApiContractState(state, getContractByCodeHash)),
-      txInputs: callResult.txInputs,
-      txOutputs: callResult.txOutputs.map((output) => fromApiOutput(output)),
-      events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash),
-      debugMessages: callResult.debugMessages
-    }
+function fromCallResult(
+  callResult: node.CallContractSucceeded | node.CallTxScriptResult,
+  txId: string,
+  returnTypes: string[],
+  structs: Struct[],
+  getContractByCodeHash: (codeHash: string) => Contract
+): CallContractResult<unknown> {
+  const rawReturn = fromApiArray(callResult.returns, returnTypes, structs)
+  const returns = rawReturn.length === 0 ? null : rawReturn.length === 1 ? rawReturn[0] : rawReturn
+
+  const addressToCodeHash = new Map<string, string>()
+  callResult.contracts.forEach((contract) => addressToCodeHash.set(contract.address, contract.codeHash))
+  return {
+    returns: returns,
+    gasUsed: callResult.gasUsed,
+    contracts: callResult.contracts.map((state) => Contract.fromApiContractState(state, getContractByCodeHash)),
+    txInputs: callResult.txInputs,
+    txOutputs: callResult.txOutputs.map((output) => fromApiOutput(output)),
+    events: Contract.fromApiEvents(callResult.events, addressToCodeHash, txId, getContractByCodeHash),
+    debugMessages: callResult.debugMessages
   }
 }
 
@@ -1011,16 +1020,37 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
   }
 }
 
-export class ExecutableScript<P extends Fields = Fields> {
+export class ExecutableScript<P extends Fields = Fields, R extends Val | null = null> {
   readonly script: Script
+  readonly getContractByCodeHash: (codeHash: string) => Contract
 
-  constructor(script: Script) {
+  constructor(script: Script, getContractByCodeHash: (codeHash: string) => Contract) {
     this.script = script
+    this.getContractByCodeHash = getContractByCodeHash
   }
 
   async execute(signer: SignerProvider, params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
     const signerParams = await this.script.txParamsForExecution(signer, params)
     return await signer.signAndSubmitExecuteScriptTx(signerParams)
+  }
+
+  async call(params: CallScriptParams<P>): Promise<CallScriptResult<R>> {
+    const mainFunc = this.script.functions.find((f) => f.name === 'main')
+    if (mainFunc === undefined) {
+      throw new Error(`There is no main function in script ${this.script.name}`)
+    }
+    const bytecode = this.script.buildByteCodeToDeploy(params.initialFields)
+    const txId = params.txId ?? randomTxId()
+    const provider = getCurrentNodeProvider()
+    const callResult = await provider.contracts.postContractsCallTxScript({
+      ...params,
+      group: params.groupIndex ?? 0,
+      bytecode: bytecode,
+      inputAssets: toApiInputAssets(params.inputAssets)
+    })
+    const returnTypes = mainFunc.returnTypes
+    const result = fromCallResult(callResult, txId, returnTypes, this.script.structs, this.getContractByCodeHash)
+    return result as CallScriptResult<R>
   }
 }
 
@@ -1040,6 +1070,18 @@ export interface ExecuteScriptResult {
   gasAmount: number
   gasPrice: Number256
 }
+
+export interface CallScriptParams<P extends Fields = Fields> {
+  initialFields: P
+  groupIndex?: number
+  callerAddress?: string
+  worldStateBlockHash?: string
+  txId?: string
+  existingContracts?: string[]
+  inputAssets?: InputAsset[]
+}
+
+export type CallScriptResult<R> = CallContractResult<R>
 
 export interface CallContractParams<T extends Arguments = Arguments> {
   args: T
