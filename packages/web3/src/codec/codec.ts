@@ -28,3 +28,16 @@ export function assert(value: boolean, message: string) {
     throw new Error(message)
   }
 }
+
+export function fixedSizeBytes(name: string, length: number): Parser {
+  return Parser.start().wrapped({
+    length,
+    type: Parser.start().buffer(name, { length }),
+    wrapper: function (result) {
+      if (result.length === length) {
+        return result
+      }
+      throw new Error(`Too few bytes when parsing ${name}, expected ${length}, got ${result.length}`)
+    }
+  })
+}

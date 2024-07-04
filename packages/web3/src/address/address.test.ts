@@ -56,6 +56,7 @@ describe('address', function () {
     expect(() =>
       validateAddress('2jVWAcAPphJ8ueZNG1BPwbfPFjjbvorprceuqzgmJQ1ZRyELRpWgARvdB3T9trqpiJs7f4GkudPt6rQLnGbQYqq2NCi')
     ).toThrow('Invalid multisig address, n: 2, m: 3')
+    expect(() => validateAddress('thebear')).toThrow('Invalid multisig address')
   })
 
   it('should get address type', () => {

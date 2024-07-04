@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
-import { Codec } from './codec'
+import { Codec, fixedSizeBytes } from './codec'
 import { ArrayCodec, DecodedArray } from './array-codec'
 
 export interface PublicKeyHash {
@@ -25,7 +25,7 @@ export interface PublicKeyHash {
 }
 
 class PublicKeyHashCodec implements Codec<PublicKeyHash> {
-  parser = Parser.start().buffer('publicKeyHash', { length: 32 })
+  parser = fixedSizeBytes('publicKeyHash', 32)
 
   encode(input: PublicKeyHash): Uint8Array {
     return input.publicKeyHash
