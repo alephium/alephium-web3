@@ -197,7 +197,7 @@ function getEventType(event: EventSig): string {
 
 function genEventType(event: EventSig): string {
   if (event.fieldNames.length === 0) {
-    return `export type ${getEventType(event)} = Omit<ContractEvent, 'fields'>`
+    return `export type ${getEventType(event)} = ContractEvent<{}>`
   }
   const fieldsType = `{${formatParameters({ names: event.fieldNames, types: event.fieldTypes })}}`
   return `export type ${getEventType(event)} = ContractEvent<${fieldsType}>`

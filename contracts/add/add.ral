@@ -11,6 +11,7 @@ struct AddStruct2 {
 Contract Add(sub: Sub, mut result : U256) {
     event Add(x: U256, y: U256)
     event Add1(a: U256, b: U256)
+    event Empty()
 
     pub fn add(array: [U256; 2]) -> ([U256; 2]) {
         return addPrivate(array)
@@ -25,6 +26,7 @@ Contract Add(sub: Sub, mut result : U256) {
         emit Debug(`addPrivate`)
         emit Add(array[0], array[1])
         emit Add1(array[0], array[1])
+        emit Empty()
         result = result + array[0] + array[1]
         return [result, sub.sub(array)]
     }

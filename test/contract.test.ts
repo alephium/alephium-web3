@@ -82,6 +82,7 @@ describe('contract', function () {
   it('should test event index', () => {
     expect(Add.eventIndex.Add).toEqual(0)
     expect(Add.eventIndex.Add1).toEqual(1)
+    expect(Add.eventIndex.Empty).toEqual(2)
     expect(Sub.eventIndex.Sub).toEqual(0)
   })
 
@@ -127,11 +128,16 @@ describe('contract', function () {
       expect(event1.fields.a).toEqual(2n)
       expect(event1.fields.b).toEqual(1n)
 
-      const event2 = events[2] as SubTypes.SubEvent
-      expect(event2.name).toEqual('Sub')
-      expect(event2.eventIndex).toEqual(0)
-      expect(event2.fields.x).toEqual(2n)
-      expect(event2.fields.y).toEqual(1n)
+      const event2 = events[2] as AddTypes.EmptyEvent
+      expect(event2.name).toEqual('Empty')
+      expect(event2.eventIndex).toEqual(2)
+      expect(event2.fields).toEqual({})
+
+      const event3 = events[3] as SubTypes.SubEvent
+      expect(event3.name).toEqual('Sub')
+      expect(event3.eventIndex).toEqual(0)
+      expect(event3.fields.x).toEqual(2n)
+      expect(event3.fields.y).toEqual(1n)
     }
 
     checkEvents(testResult.events)

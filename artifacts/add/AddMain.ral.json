@@ -1,5 +1,5 @@
 {
-  "version": "v2.14.7",
+  "version": "v3.2.0",
   "name": "AddMain",
   "bytecodeTemplate": "0101030002000c{1}{2}17011700160016010e0e{0}01001818",
   "fieldsSig": {
@@ -19,9 +19,6 @@
   "functions": [
     {
       "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
