@@ -26,7 +26,8 @@ import {
   ALPH_TOKEN_ID,
   DUST_AMOUNT,
   Address,
-  TOTAL_NUMBER_OF_GROUPS
+  TOTAL_NUMBER_OF_GROUPS,
+  binToHex
 } from '@alephium/web3'
 import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
@@ -142,10 +143,12 @@ export async function expectAssertionError(
   )
 }
 
-export function randomContractId(): string {
-  return randomBytes(32).toString('hex')
+export function randomContractId(groupIndex = 0): string {
+  checkGroup(groupIndex)
+  const bytes = new Uint8Array([...randomBytes(31), groupIndex])
+  return binToHex(bytes)
 }
 
-export function randomContractAddress(): string {
-  return addressFromContractId(randomContractId())
+export function randomContractAddress(groupIndex = 0): string {
+  return addressFromContractId(randomContractId(groupIndex))
 }
