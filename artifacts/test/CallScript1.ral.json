@@ -1,17 +1,17 @@
 {
   "version": "v3.2.0",
-  "name": "InsertIntoMap",
-  "bytecodeTemplate": "01010300020010{2}{3}17011700{1}d10f2ca2{1}160016010f0c{0}0100",
+  "name": "CallScript1",
+  "bytecodeTemplate": "0101000000070a{1}0d0e{0}01030c11{2}010202",
   "fieldsSig": {
     "names": [
       "mapTest",
-      "from",
-      "value"
+      "key",
+      "userAccount"
     ],
     "types": [
       "MapTest",
       "Address",
-      "MapValue"
+      "UserAccount"
     ],
     "isMutable": [
       false,
@@ -25,7 +25,10 @@
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
-      "returnTypes": []
+      "returnTypes": [
+        "MapValue",
+        "Balances"
+      ]
     }
   ]
 }

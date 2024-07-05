@@ -401,7 +401,7 @@ export interface CallContract {
   /** @format int32 */
   methodIndex: number
   args?: Val[]
-  existingContracts?: string[]
+  interestedContracts?: string[]
   inputAssets?: TestInputAsset[]
 }
 
@@ -425,6 +425,34 @@ export interface CallContractSucceeded {
   events: ContractEventByTxId[]
   debugMessages: DebugMessage[]
   type: string
+}
+
+/** CallTxScript */
+export interface CallTxScript {
+  /** @format int32 */
+  group: number
+  /** @format hex-string */
+  bytecode: string
+  /** @format address */
+  callerAddress?: string
+  /** @format block-hash */
+  worldStateBlockHash?: string
+  /** @format 32-byte-hash */
+  txId?: string
+  inputAssets?: TestInputAsset[]
+  interestedContracts?: string[]
+}
+
+/** CallTxScriptResult */
+export interface CallTxScriptResult {
+  returns: Val[]
+  /** @format int32 */
+  gasUsed: number
+  contracts: ContractState[]
+  txInputs: string[]
+  txOutputs: Output[]
+  events: ContractEventByTxId[]
+  debugMessages: DebugMessage[]
 }
 
 /** ChainInfo */
@@ -1453,7 +1481,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.2.0
+ * @version 3.3.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2714,7 +2742,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         format: 'json',
         ...params
-      }).then(convertHttpResponse)
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
+     * @name PostContractsCallTxScript
+     * @summary Call TxScript
+     * @request POST:/contracts/call-tx-script
+     */
+    postContractsCallTxScript: (data: CallTxScript, params: RequestParams = {}) =>
+      this.request<CallTxScriptResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>(
+        {
+          path: `/contracts/call-tx-script`,
+          method: 'POST',
+          body: data,
+          type: ContentType.Json,
+          format: 'json',
+          ...params
+        }
+      ).then(convertHttpResponse)
   }
   multisig = {
     /**

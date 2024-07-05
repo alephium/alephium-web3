@@ -1,0 +1,11 @@
+TxScript CallScript0(mapTest: MapTest, key: Address) {
+  pub fn main() -> MapValue {
+    return mapTest.getValue(key)
+  }
+}
+
+TxScript CallScript1(mapTest: MapTest, key: Address, userAccount: UserAccount) {
+  pub fn main() -> (MapValue, Balances) {
+    return mapTest.getValue(key), userAccount.getBalances()
+  }
+}

@@ -557,13 +557,25 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 function genScript(script: Script): string {
   console.log(`Generating code for script ${script.name}`)
   const fieldsType = script.fieldsSig.names.length > 0 ? `{${formatParameters(script.fieldsSig)}}` : '{}'
+  const mainFunction = script.functions.find((f) => f.name === 'main')
+  if (mainFunction === undefined) {
+    throw new Error(`There is no main function in script ${script.name}`)
+  }
+  const tsReturnTypes = mainFunction.returnTypes.map((tpe) => toTsType(tpe))
+  const retType =
+    tsReturnTypes.length === 0
+      ? ''
+      : tsReturnTypes.length === 1
+      ? `, ${tsReturnTypes[0]}`
+      : `, [${tsReturnTypes.join(', ')}]`
   return `
-    export const ${script.name} = new ExecutableScript<${fieldsType}>(
+    export const ${script.name} = new ExecutableScript<${fieldsType}${retType}>(
       Script.fromJson(
         ${script.name}ScriptJson,
         '',
         ${getStructs()}
-      )
+      ),
+      getContractByCodeHash
     )
   `
 }
@@ -592,6 +604,7 @@ function genScripts(outDir: string, artifactDir: string, exports: string[]) {
       SignerProvider,
       HexString
     } from '@alephium/web3'
+    import { getContractByCodeHash } from './contracts'
     ${importArtifacts}
     ${importStructs()}
 

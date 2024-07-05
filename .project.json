@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v3.2.0",
+  "fullNodeVersion": "v3.3.0",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -59,6 +59,20 @@
     "Balances": {
       "sourceFile": "test/struct.ral",
       "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "CallScript0": {
+      "sourceFile": "test/call_scripts.ral",
+      "sourceCodeHash": "71ecb0e86393e15d1b284326c92ac9b0d15e8fdad75cd5dc197cd34679ca83f1",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "CallScript1": {
+      "sourceFile": "test/call_scripts.ral",
+      "sourceCodeHash": "71ecb0e86393e15d1b284326c92ac9b0d15e8fdad75cd5dc197cd34679ca83f1",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -193,16 +207,16 @@
     },
     "InsertIntoMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "997a7ecabb3c68882a1c28b4889c252258493c1bcb1877d4afe992a872420d38",
+      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
     },
     "MapTest": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "997a7ecabb3c68882a1c28b4889c252258493c1bcb1877d4afe992a872420d38",
-      "bytecodeDebugPatch": "=6-2+a8=1-3+128=2-2+ea=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=6",
-      "codeHashDebug": "8666d70738c42748551e987c3eb46a2d7b1db5d82f5f6b2fdfc95b3906ff7477",
+      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
+      "bytecodeDebugPatch": "=6-2+a8=1-3+128=2-2+ea=1+2=1-2+7=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=96",
+      "codeHashDebug": "31aed0ff7b29f2cbc2d8360a83f31af4e9db00f0084a7406bd84b7745181373d",
       "warnings": [
         "No external caller check for function \"MapTest.remove\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
         "No external caller check for function \"MapTest.update\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
@@ -211,7 +225,7 @@
     },
     "MapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "997a7ecabb3c68882a1c28b4889c252258493c1bcb1877d4afe992a872420d38",
+      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -278,7 +292,7 @@
     },
     "RemoveFromMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "997a7ecabb3c68882a1c28b4889c252258493c1bcb1877d4afe992a872420d38",
+      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -320,7 +334,7 @@
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "997a7ecabb3c68882a1c28b4889c252258493c1bcb1877d4afe992a872420d38",
+      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []

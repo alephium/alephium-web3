@@ -51,7 +51,9 @@ import {
   TemplateArrayVar,
   TestAssert,
   UpdateMapValue,
-  UpdateUserAccount
+  UpdateUserAccount,
+  CallScript0,
+  CallScript1
 } from '../artifacts/ts/scripts'
 import { Sub, SubTypes } from '../artifacts/ts/Sub'
 import { Add, AddTypes } from '../artifacts/ts/Add'
@@ -179,7 +181,7 @@ describe('contract', function () {
 
     const callResult = await add.view.add({
       args: { array: [2n, 1n] },
-      existingContracts: [sub.address]
+      interestedContracts: [sub.address]
     })
     expect(callResult.returns).toEqual([6n, 2n])
     checkEvents(callResult.events)
@@ -256,12 +258,12 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(46)
+    expect(sourceFiles.length).toEqual(48)
     sourceFiles.slice(0, 23).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(23, 34).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(34, 36).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(36, 41).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(41).forEach((i) => expect(i.type).toEqual(4)) // structs
+    sourceFiles.slice(23, 36).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(36, 38).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(38, 43).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(43).forEach((i) => expect(i.type).toEqual(4)) // structs
   })
 
   it('should load contract from json', () => {
@@ -693,5 +695,51 @@ describe('contract', function () {
     })
     const contractInstance = UserAccount.at(result.contractAddress)
     expect((await contractInstance.fetchState()).fields).toEqual(contractFields)
+  })
+
+  it('should call TxScript', async () => {
+    const result0 = await MapTest.deploy(signer, {
+      initialFields: {}
+    })
+    const mapTest = result0.contractInstance
+    await InsertIntoMap.execute(signer, {
+      initialFields: {
+        mapTest: mapTest.contractId,
+        from: signer.address,
+        value: { id: 1n, balance: 10n }
+      },
+      attoAlphAmount: ONE_ALPH * 2n
+    })
+
+    const callResult0 = await CallScript0.call({ initialFields: { mapTest: mapTest.contractId, key: signer.address } })
+    expect(callResult0.returns.id).toEqual(1n)
+    expect(callResult0.returns.balance).toEqual(10n)
+
+    const initialFields = {
+      ...UserAccount.getInitialFieldsWithDefaultValues(),
+      balances: {
+        totalAmount: 0n,
+        tokens: [
+          { tokenId: '0011', amount: 0n },
+          { tokenId: '0022', amount: 0n }
+        ] as [TokenBalance, TokenBalance]
+      }
+    }
+    const result1 = await UserAccount.deploy(signer, { initialFields })
+    const userAccount = result1.contractInstance
+
+    const callResult1 = await CallScript1.call({
+      initialFields: { mapTest: mapTest.contractId, key: signer.address, userAccount: userAccount.contractId }
+    })
+    expect(callResult1.returns).toEqual([
+      { id: 1n, balance: 10n },
+      {
+        totalAmount: 0n,
+        tokens: [
+          { tokenId: '0011', amount: 0n },
+          { tokenId: '0022', amount: 0n }
+        ]
+      }
+    ])
   })
 })

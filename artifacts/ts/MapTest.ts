@@ -60,6 +60,10 @@ export namespace MapTestTypes {
       params: CallContractParams<{ key: Address }>;
       result: CallContractResult<null>;
     };
+    getValue: {
+      params: CallContractParams<{ key: Address }>;
+      result: CallContractResult<MapValue>;
+    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -87,6 +91,10 @@ export namespace MapTestTypes {
       result: SignExecuteScriptTxResult;
     };
     remove: {
+      params: SignExecuteContractMethodParams<{ key: Address }>;
+      result: SignExecuteScriptTxResult;
+    };
+    getValue: {
       params: SignExecuteContractMethodParams<{ key: Address }>;
       result: SignExecuteScriptTxResult;
     };
@@ -182,6 +190,31 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
     > => {
       return testMethod(this, "remove", params, getContractByCodeHash);
     },
+    getValue: async (
+      params: Omit<
+        TestContractParams<
+          never,
+          { key: Address },
+          {
+            map0?: Map<Address, MapValue>;
+            map1?: Map<bigint, bigint>;
+            map2?: Map<HexString, bigint>;
+          }
+        >,
+        "initialFields"
+      >
+    ): Promise<
+      TestContractResult<
+        MapValue,
+        {
+          map0?: Map<Address, MapValue>;
+          map1?: Map<bigint, bigint>;
+          map2?: Map<HexString, bigint>;
+        }
+      >
+    > => {
+      return testMethod(this, "getValue", params, getContractByCodeHash);
+    },
   };
 }
 
@@ -189,8 +222,8 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
 export const MapTest = new Factory(
   Contract.fromJson(
     MapTestContractJson,
-    "=6-2+a8=1-3+128=2-2+ea=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=6",
-    "8666d70738c42748551e987c3eb46a2d7b1db5d82f5f6b2fdfc95b3906ff7477",
+    "=6-2+a8=1-3+128=2-2+ea=1+2=1-2+7=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=96",
+    "31aed0ff7b29f2cbc2d8360a83f31af4e9db00f0084a7406bd84b7745181373d",
     AllStructs
   )
 );
@@ -239,6 +272,17 @@ export class MapTestInstance extends ContractInstance {
     ): Promise<MapTestTypes.CallMethodResult<"remove">> => {
       return callMethod(MapTest, this, "remove", params, getContractByCodeHash);
     },
+    getValue: async (
+      params: MapTestTypes.CallMethodParams<"getValue">
+    ): Promise<MapTestTypes.CallMethodResult<"getValue">> => {
+      return callMethod(
+        MapTest,
+        this,
+        "getValue",
+        params,
+        getContractByCodeHash
+      );
+    },
   };
 
   transact = {
@@ -257,5 +301,21 @@ export class MapTestInstance extends ContractInstance {
     ): Promise<MapTestTypes.SignExecuteMethodResult<"remove">> => {
       return signExecuteMethod(MapTest, this, "remove", params);
     },
+    getValue: async (
+      params: MapTestTypes.SignExecuteMethodParams<"getValue">
+    ): Promise<MapTestTypes.SignExecuteMethodResult<"getValue">> => {
+      return signExecuteMethod(MapTest, this, "getValue", params);
+    },
   };
+
+  async multicall<Calls extends MapTestTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<MapTestTypes.MultiCallResults<Calls>> {
+    return (await multicallMethods(
+      MapTest,
+      this,
+      calls,
+      getContractByCodeHash
+    )) as MapTestTypes.MultiCallResults<Calls>;
+  }
 }
