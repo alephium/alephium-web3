@@ -36,3 +36,4 @@ coverage/
 .project.json
 
 .vscode
+.ralph-lsp/
