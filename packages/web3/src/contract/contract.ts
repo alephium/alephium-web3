@@ -1077,7 +1077,7 @@ export interface CallScriptParams<P extends Fields = Fields> {
   callerAddress?: string
   worldStateBlockHash?: string
   txId?: string
-  existingContracts?: string[]
+  interestedContracts?: string[]
   inputAssets?: InputAsset[]
 }
 
@@ -1087,7 +1087,7 @@ export interface CallContractParams<T extends Arguments = Arguments> {
   args: T
   worldStateBlockHash?: string
   txId?: string
-  existingContracts?: string[]
+  interestedContracts?: string[]
   inputAssets?: InputAsset[]
 }
 

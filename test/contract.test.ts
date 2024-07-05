@@ -181,7 +181,7 @@ describe('contract', function () {
 
     const callResult = await add.view.add({
       args: { array: [2n, 1n] },
-      existingContracts: [sub.address]
+      interestedContracts: [sub.address]
     })
     expect(callResult.returns).toEqual([6n, 2n])
     checkEvents(callResult.events)

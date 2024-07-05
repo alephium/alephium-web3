@@ -401,7 +401,7 @@ export interface CallContract {
   /** @format int32 */
   methodIndex: number
   args?: Val[]
-  existingContracts?: string[]
+  interestedContracts?: string[]
   inputAssets?: TestInputAsset[]
 }
 
@@ -440,7 +440,7 @@ export interface CallTxScript {
   /** @format 32-byte-hash */
   txId?: string
   inputAssets?: TestInputAsset[]
-  existingContracts?: string[]
+  interestedContracts?: string[]
 }
 
 /** CallTxScriptResult */
@@ -1481,7 +1481,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.2.0
+ * @version 3.3.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
