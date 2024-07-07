@@ -14,11 +14,30 @@ Interface INFT {
    //         },
    //         "description": {
    //             "type": "string",
-   //             "description": "General description of the NFT"
+   //             "description": "General description of the NFT",
+   //             "nullable": true
    //         },
    //         "image": {
    //             "type": "string",
    //             "description": "A URI to the image that represents the NFT"
+   //         },
+   //         "attributes": {
+   //           "type": "array",
+   //           "description": "An array of attributes for the NFT",
+   //           "items": {
+   //             "type": "object",
+   //             "properties": {
+   //               "trait_type": {
+   //                 "type": "string",
+   //                 "description": "The type of trait"
+   //               },
+   //               "value": {
+   //                 "type": ["string", "number", "boolean"],
+   //                 "description": "The value of the trait"
+   //               }
+   //             }
+   //           },
+   //           "nullable": true
    //         }
    //     }
    // }
