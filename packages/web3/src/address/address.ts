@@ -41,6 +41,15 @@ export function validateAddress(address: string) {
   decodeAndValidateAddress(address)
 }
 
+export function isValidAddress(address: string): boolean {
+  try {
+    validateAddress(address)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function decodeAndValidateAddress(address: string): Uint8Array {
   let decoded: Uint8Array
   try {

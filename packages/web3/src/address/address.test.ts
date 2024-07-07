@@ -27,7 +27,8 @@ import {
   tokenIdFromAddress,
   validateAddress,
   isAssetAddress,
-  isContractAddress
+  isContractAddress,
+  isValidAddress
 } from './address'
 import { binToHex } from '../utils'
 
@@ -57,6 +58,19 @@ describe('address', function () {
       validateAddress('2jVWAcAPphJ8ueZNG1BPwbfPFjjbvorprceuqzgmJQ1ZRyELRpWgARvdB3T9trqpiJs7f4GkudPt6rQLnGbQYqq2NCi')
     ).toThrow('Invalid multisig address, n: 2, m: 3')
     expect(() => validateAddress('thebear')).toThrow('Invalid multisig address')
+  })
+
+  it('should return if an address is valid', () => {
+    expect(isValidAddress('')).toEqual(false)
+    expect(isValidAddress('asdasdf')).toEqual(false)
+    expect(
+      isValidAddress('2jVWAcAPphJ8ueZNG1BPwbfPFjjbvorprceuqzgmJQ1ZRyELRpWgARvdB3T9trqpiJs7f4GkudPt6rQLnGbQYqq2NCi')
+    ).toEqual(false)
+    expect(isValidAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toEqual(true)
+    expect(isValidAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toEqual(true)
+    expect(
+      isValidAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
+    ).toEqual(true)
   })
 
   it('should get address type', () => {
