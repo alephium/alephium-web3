@@ -38,8 +38,9 @@ function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   const config = loadConfig(configFile)
-  if (config.enableDebugMode || options.debug) enableDebugMode()
-  return config
+  const isDebugModeEnabled = config.enableDebugMode || options.debug
+  if (isDebugModeEnabled) enableDebugMode()
+  return { ...config, enableDebugMode: isDebugModeEnabled }
 }
 
 function checkAndGetNetworkId(networkId?: string): NetworkId {

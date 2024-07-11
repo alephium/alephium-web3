@@ -133,7 +133,7 @@ export class Deployments {
       try {
         await genLoadDeployments(config)
       } catch (error) {
-        console.log(`failed to generate deployments.ts, error: ${error}`)
+        console.error(`Failed to generate deployments.ts, error: ${error}`)
       }
     }
   }
@@ -148,7 +148,7 @@ export class Deployments {
       const objects = Array.isArray(json) ? json : [json]
       return new Deployments(objects.map((object) => DeploymentsPerAddress.unmarshal(object)))
     } catch (error) {
-      console.log(`Failed to parse deployments, error: ${error}, will re-deploy the contract`)
+      console.error(`Failed to parse deployments, error: ${error}, will re-deploy the contract`)
       return Deployments.empty()
     }
   }
@@ -323,7 +323,14 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
   return `${code.name}:${taskTag}`
 }
 
+function debugLog(enableDebugMode: boolean, message: string) {
+  if (enableDebugMode) {
+    console.log(message)
+  }
+}
+
 function createDeployer<Settings = unknown>(
+  enableDebugMode: boolean,
   network: Network<Settings>,
   signer: PrivateKeyWallet,
   allDeployments: Deployments,
@@ -378,7 +385,7 @@ function createDeployer<Settings = unknown>(
       }
     }
     console.log(`Deploying contract ${taskId}`)
-    console.log(`Deployer - group ${signer.group} - ${signer.address}`)
+    debugLog(enableDebugMode, `Deployer - group ${signer.group} - ${signer.address}`)
     const deployResult = await contractFactory.deploy(signer, params)
     const confirmed = await waitForTxConfirmation(deployResult.txId, confirmations, requestInterval)
     const result: DeployContractExecutionResult = {
@@ -695,6 +702,7 @@ async function deployToGroup<Settings = unknown>(
 ) {
   const requestInterval = networkId === 'devnet' ? 1000 : 10000
   const deployer = createDeployer(
+    configuration.enableDebugMode ?? false,
     network,
     signer,
     allDeployments,
