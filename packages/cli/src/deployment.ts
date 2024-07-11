@@ -323,14 +323,25 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
   return `${code.name}:${taskTag}`
 }
 
-function debugLog(enableDebugMode: boolean, message: string) {
-  if (enableDebugMode) {
-    console.log(message)
+function getDebugLogger(enableDebugMode: boolean): (string) => void {
+  return (message: string): void => {
+    if (enableDebugMode) {
+      console.log(message)
+    }
+  }
+}
+
+function getDeploymentLogger(silent: boolean): (string) => void {
+  return (message: string): void => {
+    if (!silent) {
+      console.log(message)
+    }
   }
 }
 
 function createDeployer<Settings = unknown>(
-  enableDebugMode: boolean,
+  deploymentLogger: (string) => void,
+  debugLogger: (string) => void,
   network: Network<Settings>,
   signer: PrivateKeyWallet,
   allDeployments: Deployments,
@@ -376,7 +387,7 @@ function createDeployer<Settings = unknown>(
     )
     if (!needToDeploy) {
       // we have checked in `needToDeployContract`
-      console.log(`The deployment of contract ${taskId} is skipped as it has been deployed`)
+      deploymentLogger(`The deployment of contract ${taskId} is skipped as it has been deployed`)
       const previousDeployResult = previous!
       const contractInstance = contractFactory.at(previousDeployResult.contractInstance.address)
       return {
@@ -384,8 +395,8 @@ function createDeployer<Settings = unknown>(
         contractInstance
       }
     }
-    console.log(`Deploying contract ${taskId}`)
-    debugLog(enableDebugMode, `Deployer - group ${signer.group} - ${signer.address}`)
+    deploymentLogger(`Deploying contract ${taskId}`)
+    debugLogger(`Deployer - group ${signer.group} - ${signer.address}`)
     const deployResult = await contractFactory.deploy(signer, params)
     const confirmed = await waitForTxConfirmation(deployResult.txId, confirmations, requestInterval)
     const result: DeployContractExecutionResult = {
@@ -428,11 +439,11 @@ function createDeployer<Settings = unknown>(
     )
     if (!needToRun) {
       // we have checked in `needToRunScript`
-      console.log(`The execution of script ${taskId} is skipped as it has been executed`)
+      deploymentLogger(`The execution of script ${taskId} is skipped as it has been executed`)
       const previousExecuteResult = previous!
       return { ...previousExecuteResult }
     }
-    console.log(`Executing script ${taskId}`)
+    deploymentLogger(`Executing script ${taskId}`)
     const executeResult = await executableScript.execute(signer, params)
     const confirmed = await waitForTxConfirmation(executeResult.txId, confirmations, requestInterval)
     const runScriptResult: RunScriptResult = {
@@ -558,7 +569,8 @@ export async function deploy<Settings = unknown>(
   networkId: NetworkId,
   deployments: Deployments,
   fromIndex?: number,
-  toIndex?: number
+  toIndex?: number,
+  silent = false
 ): Promise<boolean> {
   const network = getNetwork(configuration, networkId)
   if (typeof network === 'undefined') {
@@ -632,9 +644,9 @@ export async function deploy<Settings = unknown>(
   const inParallel =
     configuration.deployToMultipleGroupsInParallel ?? DEFAULT_CONFIGURATION_VALUES.deployToMultipleGroupsInParallel
   if (inParallel && signers.length > 1) {
-    await deployInParallel(signers, deployments, networkId, configuration, network, scripts)
+    await deployInParallel(signers, deployments, networkId, configuration, network, scripts, silent)
   } else {
-    await deployInSequential(signers, deployments, networkId, configuration, network, scripts)
+    await deployInSequential(signers, deployments, networkId, configuration, network, scripts, silent)
   }
   return true
 }
@@ -645,13 +657,23 @@ async function deployInSequential<Settings = unknown>(
   networkId: NetworkId,
   configuration: Configuration<Settings>,
   networkSettings: Network<Settings>,
-  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
+  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[],
+  silent: boolean
 ) {
   for (const signer of signers) {
     const deploymentsPerAddress =
       deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
     deployments.add(deploymentsPerAddress)
-    await deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, networkSettings, scripts)
+    await deployToGroup(
+      networkId,
+      configuration,
+      deployments,
+      deploymentsPerAddress,
+      signer,
+      networkSettings,
+      scripts,
+      silent
+    )
   }
 }
 
@@ -661,13 +683,23 @@ async function deployInParallel<Settings = unknown>(
   networkId: NetworkId,
   configuration: Configuration<Settings>,
   networkSettings: Network<Settings>,
-  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
+  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[],
+  silent: boolean
 ) {
   const promises = signers.map((signer) => {
     const deploymentsPerAddress =
       deployments.getByDeployer(signer.address) ?? DeploymentsPerAddress.empty(signer.address)
     deployments.add(deploymentsPerAddress)
-    return deployToGroup(networkId, configuration, deployments, deploymentsPerAddress, signer, networkSettings, scripts)
+    return deployToGroup(
+      networkId,
+      configuration,
+      deployments,
+      deploymentsPerAddress,
+      signer,
+      networkSettings,
+      scripts,
+      silent
+    )
   })
   const results = await Promise.allSettled(promises)
   const rejected = results
@@ -684,10 +716,10 @@ async function deployInParallel<Settings = unknown>(
   }
 }
 
-export async function deployToDevnet(): Promise<Deployments> {
+export async function deployToDevnet(silent = false): Promise<Deployments> {
   const deployments = Deployments.empty()
   const configuration = loadConfig(getConfigFile())
-  await deploy(configuration, 'devnet', deployments)
+  await deploy(configuration, 'devnet', deployments, undefined, undefined, silent)
   return deployments
 }
 
@@ -698,11 +730,14 @@ async function deployToGroup<Settings = unknown>(
   deployments: DeploymentsPerAddress,
   signer: PrivateKeyWallet,
   network: Network<Settings>,
-  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[]
+  scripts: { scriptFilePath: string; func: DeployFunction<Settings> }[],
+  silent: boolean
 ) {
   const requestInterval = networkId === 'devnet' ? 1000 : 10000
+  const deploymentLogger = getDeploymentLogger(silent)
   const deployer = createDeployer(
-    configuration.enableDebugMode ?? false,
+    deploymentLogger,
+    getDebugLogger(configuration.enableDebugMode ?? false),
     network,
     signer,
     allDeployments,
@@ -714,7 +749,7 @@ async function deployToGroup<Settings = unknown>(
   for (const script of scripts) {
     try {
       if (script.func.id && deployments.migrations.get(script.func.id) !== undefined) {
-        console.log(`Skipping ${script.scriptFilePath} as the script already executed and complete`)
+        deploymentLogger(`Skipping ${script.scriptFilePath} as the script already executed and complete`)
         continue
       }
       let skip = false
@@ -722,7 +757,7 @@ async function deployToGroup<Settings = unknown>(
         skip = await script.func.skip(configuration, networkId)
       }
       if (skip) {
-        console.log(`Skip the execution of ${script.scriptFilePath}`)
+        deploymentLogger(`Skip the execution of ${script.scriptFilePath}`)
         continue
       }
       const result = await script.func(deployer, network)

@@ -189,13 +189,17 @@ program
     'run scripts to a specific index(inclusive), the number refers to the prefix of the script file'
   )
   .option('--debug', 'show detailed debug information such as error stack traces')
+  .option('--silent', 'remove deployment log output')
   .action(async (options) => {
     try {
       const config = getConfig(options)
       const networkId = checkAndGetNetworkId(options.network)
       const fromIndex = tryGetScriptIndex(options.from)
       const toIndex = tryGetScriptIndex(options.to)
-      await deployAndSaveProgress(config, networkId, fromIndex, toIndex)
+      if (config.enableDebugMode && options.silent) {
+        throw new Error('The `--silent` and `--debug` options cannot be enabled at the same time')
+      }
+      await deployAndSaveProgress(config, networkId, options.silent, fromIndex, toIndex)
     } catch (error) {
       program.error(`✘ Failed to deploy contracts, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
     }
