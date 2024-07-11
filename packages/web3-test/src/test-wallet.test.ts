@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { TOTAL_NUMBER_OF_GROUPS, groupOfAddress } from '@alephium/web3'
-import { randomContractAddress } from './test-wallet'
+import { expectAssertionError, randomContractAddress } from './test-wallet'
 
 describe('test-wallet', function () {
   it('should generate random contract id by group index', () => {
