@@ -186,7 +186,7 @@
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
-      "sourceCodeHash": "acff0211f936d18d3f4a01ddd8f4fe8fbdf0dba9e8b9204b233a48cba1c80d8b",
+      "sourceCodeHash": "92956f4e61c198f011b48dbda2ed76193ffc79ac9c39f60bf1763a34e02f2c41",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -201,6 +201,20 @@
     "INFTCollectionWithRoyalty": {
       "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
       "sourceCodeHash": "293aad668909a21df80183c9296f3d1a8edb76a43faa2cbf395a766d1879cdc6",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "INewFungibleToken": {
+      "sourceFile": "token/token_test_std.ral",
+      "sourceCodeHash": "a93692964e6b76a29683ddf914eb96ea79f8cb6c6287b294ef19172e4dd41ee3",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "",
+      "warnings": []
+    },
+    "INewNFT": {
+      "sourceFile": "nft/nft_test_std.ral",
+      "sourceCodeHash": "2a6c8e61f798ac8a69fcd7e665e871bd655a66bcdab763950a092ffe03d5ea5e",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
@@ -283,6 +297,13 @@
       "codeHashDebug": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
       "warnings": []
     },
+    "NFTTestStd": {
+      "sourceFile": "nft/nft_test_std.ral",
+      "sourceCodeHash": "2a6c8e61f798ac8a69fcd7e665e871bd655a66bcdab763950a092ffe03d5ea5e",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "b7ff3fa8dfacc7ae5edbabd6573d0699dffc5a0f07ad14023f682a201b7bce55",
+      "warnings": []
+    },
     "OwnerOnly": {
       "sourceFile": "test/owner.ral",
       "sourceCodeHash": "fcf5f080df9ad62ec723c6127c3d9b153feff9669af0ecc46470526d46db1209",
@@ -330,6 +351,13 @@
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
+      "warnings": []
+    },
+    "TokenTestStd": {
+      "sourceFile": "token/token_test_std.ral",
+      "sourceCodeHash": "a93692964e6b76a29683ddf914eb96ea79f8cb6c6287b294ef19172e4dd41ee3",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "4aa5c769148cada8eeb1cd3791f6e793ed92009ac79ebb64dc79d4d7f2969c8b",
       "warnings": []
     },
     "UpdateMapValue": {

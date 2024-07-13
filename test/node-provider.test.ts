@@ -16,7 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { testAddress, testNodeWallet, testWalletName } from '@alephium/web3-test'
+import { stringToHex } from '@alephium/web3'
+import { getSigner, testAddress, testNodeWallet, testWalletName } from '@alephium/web3-test'
+import { MapTest, NFTTest, NFTTestStd, TokenTest, TokenTestStd } from '../artifacts/ts'
 import { web3, NodeProvider } from '../packages/web3/src'
 
 describe('node provider', () => {
@@ -47,5 +49,29 @@ describe('node provider', () => {
     expect(proxyFunc1).not.toEqual(proxyFunc0)
     expect(proxyFunc1).not.toEqual(sourceFunc1)
     expect(proxyFunc1).toEqual(`() => Promise.reject('')`)
+  })
+
+  it('should guess the token type', async () => {
+    const signer = await getSigner()
+
+    const symbol = Buffer.from('TT', 'utf8').toString('hex')
+    const name = Buffer.from('TestToken', 'utf8').toString('hex')
+    const decimals = 18n
+    const totalSupply = 1n << 128n
+    const tokenInitialFields = { symbol, name, decimals, totalSupply }
+    const tokenTest1 = (await TokenTest.deploy(signer, { initialFields: tokenInitialFields })).contractInstance
+    expect(await nodeProvider.guessStdTokenType(tokenTest1.contractId)).toEqual('fungible')
+    const tokenTest2 = (await TokenTestStd.deploy(signer, { initialFields: tokenInitialFields })).contractInstance
+    expect(await nodeProvider.guessStdTokenType(tokenTest2.contractId)).toEqual('fungible')
+
+    const nftUri = stringToHex('https://cryptopunks.app/cryptopunks/details/1')
+    const nftInitialFields = { uri: nftUri, nftIndex: 0n, collectionId: '' }
+    const nftTest1 = (await NFTTest.deploy(signer, { initialFields: nftInitialFields })).contractInstance
+    expect(await nodeProvider.guessStdTokenType(nftTest1.contractId)).toEqual('non-fungible')
+    const nftTest2 = (await NFTTestStd.deploy(signer, { initialFields: nftInitialFields })).contractInstance
+    expect(await nodeProvider.guessStdTokenType(nftTest2.contractId)).toEqual('non-fungible')
+
+    const mapTest = (await MapTest.deploy(signer, { initialFields: {} })).contractInstance
+    expect(await nodeProvider.guessStdTokenType(mapTest.contractId)).toBeUndefined
   })
 })

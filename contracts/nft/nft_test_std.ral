@@ -1,0 +1,24 @@
+import "std/nft_interface"
+
+@std(id = #000302)
+Interface INewNFT extends INFT {
+  pub fn newMethod() -> ()
+}
+
+Contract NFTTestStd(
+  collectionId: ByteVec,
+  nftIndex: U256,
+  uri: ByteVec
+) implements INewNFT {
+  pub fn getTokenUri() -> ByteVec {
+    return uri
+  }
+
+  pub fn getCollectionIndex() -> (ByteVec, U256) {
+    return collectionId, nftIndex
+  }
+
+  pub fn newMethod() -> () {
+    return
+  }
+}
