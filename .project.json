@@ -186,7 +186,7 @@
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
-      "sourceCodeHash": "acff0211f936d18d3f4a01ddd8f4fe8fbdf0dba9e8b9204b233a48cba1c80d8b",
+      "sourceCodeHash": "92956f4e61c198f011b48dbda2ed76193ffc79ac9c39f60bf1763a34e02f2c41",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "",
       "warnings": []
