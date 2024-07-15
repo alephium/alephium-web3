@@ -323,9 +323,9 @@ function getTaskId(code: Contract | Script, taskTag?: string): string {
   return `${code.name}:${taskTag}`
 }
 
-function getDebugLogger(enableDebugMode: boolean): (string) => void {
+function getDebugLogger(debugModeEnabled: boolean): (string) => void {
   return (message: string): void => {
-    if (enableDebugMode) {
+    if (debugModeEnabled) {
       console.log(message)
     }
   }
