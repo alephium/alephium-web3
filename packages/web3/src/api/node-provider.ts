@@ -236,10 +236,10 @@ export class NodeProvider implements NodeProviderApis {
 
   guessStdTokenType = async (tokenId: HexString): Promise<'fungible' | 'non-fungible' | undefined> => {
     const interfaceId = await this.guessStdInterfaceId(tokenId)
-    switch (interfaceId) {
-      case StdInterfaceIds.FungibleToken:
+    switch (true) {
+      case interfaceId?.startsWith(StdInterfaceIds.FungibleToken):
         return 'fungible'
-      case StdInterfaceIds.NFT:
+      case interfaceId?.startsWith(StdInterfaceIds.NFT):
         return 'non-fungible'
       default:
         return undefined

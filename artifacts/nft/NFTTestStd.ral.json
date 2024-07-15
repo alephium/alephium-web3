@@ -1,0 +1,58 @@
+{
+  "version": "v3.3.0",
+  "name": "NFTTestStd",
+  "bytecode": "040309144020010000000102ce0202010000000203ce00ce0102010000000002d36811cfdd02",
+  "codeHash": "b7ff3fa8dfacc7ae5edbabd6573d0699dffc5a0f07ad14023f682a201b7bce55",
+  "fieldsSig": {
+    "names": [
+      "collectionId",
+      "nftIndex",
+      "uri",
+      "__stdInterfaceId"
+    ],
+    "types": [
+      "ByteVec",
+      "U256",
+      "ByteVec",
+      "ByteVec"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "getTokenUri",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "ByteVec"
+      ]
+    },
+    {
+      "name": "getCollectionIndex",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "ByteVec",
+        "U256"
+      ]
+    },
+    {
+      "name": "newMethod",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ],
+  "constants": [],
+  "enums": [],
+  "stdInterfaceId": "000302"
+}
