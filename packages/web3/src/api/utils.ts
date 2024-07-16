@@ -21,8 +21,8 @@ import * as node from '../api/api-alephium'
 
 export function convertHttpResponse<T>(response: { status: number; data: T; error?: { detail: string } }): T {
   if (response.error) {
-    const errorMessage = response.error.detail ?? `status code: ${response.status}`
-    throw new Error(`[API Error] - ${errorMessage}`)
+    const errorMessage = response.error.detail ?? `Unknown error`
+    throw new Error(`[API Error] - ${errorMessage} - Status code: ${response.status}`)
   } else {
     return response.data
   }
