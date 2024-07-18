@@ -77,10 +77,10 @@ describe('contract', function () {
   it('should multicall', async () => {
     const tokenTest = (await TokenTest.deploy(signer, { initialFields })).contractInstance
     const result = await tokenTest.multicall({
-      getSymbol: {},
       getName: {},
+      getTotalSupply: {},
       getDecimals: {},
-      getTotalSupply: {}
+      getSymbol: {}
     })
     expect(result.getSymbol.returns).toEqual(symbol)
     expect(result.getName.returns).toEqual(name)

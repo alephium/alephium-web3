@@ -1940,7 +1940,7 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
   const callsResult: Record<string, CallContractResult<any>> = {}
   callsParams.forEach((call, index) => {
     const methodIndex = call.methodIndex
-    const callResult = result.results[`${methodIndex}`]
+    const callResult = result.results[`${index}`]
     const methodName = callEntries[`${index}`][`0`]
     callsResult[`${methodName}`] = contract.contract.fromApiCallContractResult(
       callResult,
