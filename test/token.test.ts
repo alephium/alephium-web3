@@ -82,10 +82,10 @@ describe('contract', function () {
       getDecimals: {},
       getSymbol: {}
     })
-    expect(result0[0].getSymbol.returns).toEqual(symbol)
-    expect(result0[0].getName.returns).toEqual(name)
-    expect(result0[0].getDecimals.returns).toEqual(decimals)
-    expect(result0[0].getTotalSupply.returns).toEqual(totalSupply)
+    expect(result0.getSymbol.returns).toEqual(symbol)
+    expect(result0.getName.returns).toEqual(name)
+    expect(result0.getDecimals.returns).toEqual(decimals)
+    expect(result0.getTotalSupply.returns).toEqual(totalSupply)
 
     const result1 = await tokenTest.multicall(
       { getName: {} },

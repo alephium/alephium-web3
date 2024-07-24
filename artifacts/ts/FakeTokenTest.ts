@@ -287,18 +287,26 @@ export class FakeTokenTestInstance extends ContractInstance {
 
   async multicall<Callss extends FakeTokenTestTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: FakeTokenTestTypes.MultiCallResults<Callss[index]>;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? FakeTokenTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: FakeTokenTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        }
+  > {
     return (await multicallMethods(
       FakeTokenTest,
       this,
       callss,
       getContractByCodeHash
-    )) as {
-      [index in keyof Callss]: FakeTokenTestTypes.MultiCallResults<
-        Callss[index]
-      >;
-    };
+    )) as Callss["length"] extends 1
+      ? FakeTokenTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: FakeTokenTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        };
   }
 }

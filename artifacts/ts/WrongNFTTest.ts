@@ -203,18 +203,26 @@ export class WrongNFTTestInstance extends ContractInstance {
 
   async multicall<Callss extends WrongNFTTestTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: WrongNFTTestTypes.MultiCallResults<Callss[index]>;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? WrongNFTTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: WrongNFTTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        }
+  > {
     return (await multicallMethods(
       WrongNFTTest,
       this,
       callss,
       getContractByCodeHash
-    )) as {
-      [index in keyof Callss]: WrongNFTTestTypes.MultiCallResults<
-        Callss[index]
-      >;
-    };
+    )) as Callss["length"] extends 1
+      ? WrongNFTTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: WrongNFTTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        };
   }
 }

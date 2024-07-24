@@ -1923,7 +1923,7 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
   instance: ContractInstance,
   callss: Record<string, Optional<CallContractParams<any>, 'args'>>[],
   getContractByCodeHash: (codeHash: string) => Contract
-): Promise<Record<string, CallContractResult<any>>[]> {
+): Promise<Record<string, CallContractResult<any>>[] | Record<string, CallContractResult<any>>> {
   const callEntries = callss.map((calls) => Object.entries(calls))
   const callsParams = callEntries.map((entries) => {
     return entries.map((entry) => {
@@ -1940,7 +1940,7 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
   })
   const result = await getCurrentNodeProvider().contracts.postContractsMulticallContract({ calls: callsParams.flat() })
   let callResultIndex = 0
-  return callsParams.map((calls, index0) => {
+  const results = callsParams.map((calls, index0) => {
     const callsResult: Record<string, CallContractResult<any>> = {}
     const entries = callEntries[`${index0}`]
     calls.forEach((call, index1) => {
@@ -1957,6 +1957,7 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
     })
     return callsResult
   })
+  return results.length === 1 ? results[0] : results
 }
 
 export async function getContractEventsCurrentCount(contractAddress: Address): Promise<number> {

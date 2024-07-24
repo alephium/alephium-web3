@@ -489,20 +489,26 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
     Callss extends NFTCollectionWithRoyaltyTestTypes.MultiCallParams[]
   >(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: NFTCollectionWithRoyaltyTestTypes.MultiCallResults<
-      Callss[index]
-    >;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? NFTCollectionWithRoyaltyTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: NFTCollectionWithRoyaltyTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        }
+  > {
     return (await multicallMethods(
       NFTCollectionWithRoyaltyTest,
       this,
       callss,
       getContractByCodeHash
-    )) as {
-      [index in keyof Callss]: NFTCollectionWithRoyaltyTestTypes.MultiCallResults<
-        Callss[index]
-      >;
-    };
+    )) as Callss["length"] extends 1
+      ? NFTCollectionWithRoyaltyTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: NFTCollectionWithRoyaltyTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        };
   }
 }

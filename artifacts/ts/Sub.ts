@@ -169,14 +169,18 @@ export class SubInstance extends ContractInstance {
 
   async multicall<Callss extends SubTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: SubTypes.MultiCallResults<Callss[index]>;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? SubTypes.MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: SubTypes.MultiCallResults<Callss[index]> }
+  > {
     return (await multicallMethods(
       Sub,
       this,
       callss,
       getContractByCodeHash
-    )) as { [index in keyof Callss]: SubTypes.MultiCallResults<Callss[index]> };
+    )) as Callss["length"] extends 1
+      ? SubTypes.MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: SubTypes.MultiCallResults<Callss[index]> };
   }
 }

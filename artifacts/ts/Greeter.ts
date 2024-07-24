@@ -162,16 +162,22 @@ export class GreeterInstance extends ContractInstance {
 
   async multicall<Callss extends GreeterTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: GreeterTypes.MultiCallResults<Callss[index]>;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? GreeterTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: GreeterTypes.MultiCallResults<Callss[index]>;
+        }
+  > {
     return (await multicallMethods(
       Greeter,
       this,
       callss,
       getContractByCodeHash
-    )) as {
-      [index in keyof Callss]: GreeterTypes.MultiCallResults<Callss[index]>;
-    };
+    )) as Callss["length"] extends 1
+      ? GreeterTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: GreeterTypes.MultiCallResults<Callss[index]>;
+        };
   }
 }

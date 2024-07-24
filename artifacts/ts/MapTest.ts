@@ -310,16 +310,22 @@ export class MapTestInstance extends ContractInstance {
 
   async multicall<Callss extends MapTestTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: MapTestTypes.MultiCallResults<Callss[index]>;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? MapTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: MapTestTypes.MultiCallResults<Callss[index]>;
+        }
+  > {
     return (await multicallMethods(
       MapTest,
       this,
       callss,
       getContractByCodeHash
-    )) as {
-      [index in keyof Callss]: MapTestTypes.MultiCallResults<Callss[index]>;
-    };
+    )) as Callss["length"] extends 1
+      ? MapTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: MapTestTypes.MultiCallResults<Callss[index]>;
+        };
   }
 }

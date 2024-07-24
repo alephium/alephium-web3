@@ -458,8 +458,12 @@ function genMulticall(contract: Contract): string {
     ? `
       async multicall<Callss extends ${types}.MultiCallParams[]>(
         ...callss: Callss
-      ): Promise<{ [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }> {
-        return (await multicallMethods(${contract.name}, this, callss, getContractByCodeHash)) as { [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }
+      ): Promise<Callss['length'] extends 1 ? ${types}.MultiCallResults<Callss[0]> : { [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }> {
+        return (await multicallMethods(${contract.name}, this, callss, getContractByCodeHash)) as
+          (Callss['length'] extends 1 ?
+            ${types}.MultiCallResults<Callss[0]> :
+            { [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }
+          )
       }
     `
     : ''

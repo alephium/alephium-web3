@@ -230,16 +230,26 @@ export class NFTTestStdInstance extends ContractInstance {
 
   async multicall<Callss extends NFTTestStdTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: NFTTestStdTypes.MultiCallResults<Callss[index]>;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? NFTTestStdTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: NFTTestStdTypes.MultiCallResults<
+            Callss[index]
+          >;
+        }
+  > {
     return (await multicallMethods(
       NFTTestStd,
       this,
       callss,
       getContractByCodeHash
-    )) as {
-      [index in keyof Callss]: NFTTestStdTypes.MultiCallResults<Callss[index]>;
-    };
+    )) as Callss["length"] extends 1
+      ? NFTTestStdTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: NFTTestStdTypes.MultiCallResults<
+            Callss[index]
+          >;
+        };
   }
 }

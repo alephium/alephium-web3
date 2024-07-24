@@ -316,20 +316,26 @@ export class NFTCollectionTestInstance extends ContractInstance {
 
   async multicall<Callss extends NFTCollectionTestTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<{
-    [index in keyof Callss]: NFTCollectionTestTypes.MultiCallResults<
-      Callss[index]
-    >;
-  }> {
+  ): Promise<
+    Callss["length"] extends 1
+      ? NFTCollectionTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: NFTCollectionTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        }
+  > {
     return (await multicallMethods(
       NFTCollectionTest,
       this,
       callss,
       getContractByCodeHash
-    )) as {
-      [index in keyof Callss]: NFTCollectionTestTypes.MultiCallResults<
-        Callss[index]
-      >;
-    };
+    )) as Callss["length"] extends 1
+      ? NFTCollectionTestTypes.MultiCallResults<Callss[0]>
+      : {
+          [index in keyof Callss]: NFTCollectionTestTypes.MultiCallResults<
+            Callss[index]
+          >;
+        };
   }
 }
