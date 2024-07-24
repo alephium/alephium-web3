@@ -264,11 +264,17 @@ export class ProjectArtifact {
 
 function removeOldArtifacts(dir: string, sourceFiles: SourceInfo[]) {
   const files = fs.readdirSync(dir)
+  const hasConstant = sourceFiles.find((s) => s.type === SourceKind.Constants) !== undefined
+  const hasStruct = sourceFiles.find((s) => s.type === SourceKind.Struct) !== undefined
   files.forEach((file) => {
     const filePath = path.join(dir, file)
     const stat = fs.statSync(filePath)
     if (stat.isDirectory()) {
       removeOldArtifacts(filePath, sourceFiles)
+    } else if (filePath.endsWith(Project.constantArtifactFileName)) {
+      if (!hasConstant) fs.unlinkSync(filePath)
+    } else if (filePath.endsWith(Project.structArtifactFileName)) {
+      if (!hasStruct) fs.unlinkSync(filePath)
     } else if (filePath.endsWith('.ral.json') || filePath.endsWith('.ral')) {
       const filename = path.basename(filePath)
       const artifactName = filename.slice(0, filename.indexOf('.'))
