@@ -224,14 +224,18 @@ export class UserAccountInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends UserAccountTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<UserAccountTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends UserAccountTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<{
+    [index in keyof Callss]: UserAccountTypes.MultiCallResults<Callss[index]>;
+  }> {
     return (await multicallMethods(
       UserAccount,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as UserAccountTypes.MultiCallResults<Calls>;
+    )) as {
+      [index in keyof Callss]: UserAccountTypes.MultiCallResults<Callss[index]>;
+    };
   }
 }

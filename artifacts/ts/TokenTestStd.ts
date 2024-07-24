@@ -286,14 +286,20 @@ export class TokenTestStdInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends TokenTestStdTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<TokenTestStdTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends TokenTestStdTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<{
+    [index in keyof Callss]: TokenTestStdTypes.MultiCallResults<Callss[index]>;
+  }> {
     return (await multicallMethods(
       TokenTestStd,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as TokenTestStdTypes.MultiCallResults<Calls>;
+    )) as {
+      [index in keyof Callss]: TokenTestStdTypes.MultiCallResults<
+        Callss[index]
+      >;
+    };
   }
 }

@@ -308,14 +308,18 @@ export class MapTestInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends MapTestTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<MapTestTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends MapTestTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<{
+    [index in keyof Callss]: MapTestTypes.MultiCallResults<Callss[index]>;
+  }> {
     return (await multicallMethods(
       MapTest,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as MapTestTypes.MultiCallResults<Calls>;
+    )) as {
+      [index in keyof Callss]: MapTestTypes.MultiCallResults<Callss[index]>;
+    };
   }
 }

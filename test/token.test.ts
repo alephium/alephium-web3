@@ -76,16 +76,28 @@ describe('contract', function () {
 
   it('should multicall', async () => {
     const tokenTest = (await TokenTest.deploy(signer, { initialFields })).contractInstance
-    const result = await tokenTest.multicall({
+    const result0 = await tokenTest.multicall({
       getName: {},
       getTotalSupply: {},
       getDecimals: {},
       getSymbol: {}
     })
-    expect(result.getSymbol.returns).toEqual(symbol)
-    expect(result.getName.returns).toEqual(name)
-    expect(result.getDecimals.returns).toEqual(decimals)
-    expect(result.getTotalSupply.returns).toEqual(totalSupply)
+    expect(result0[0].getSymbol.returns).toEqual(symbol)
+    expect(result0[0].getName.returns).toEqual(name)
+    expect(result0[0].getDecimals.returns).toEqual(decimals)
+    expect(result0[0].getTotalSupply.returns).toEqual(totalSupply)
+
+    const result1 = await tokenTest.multicall(
+      { getName: {} },
+      { getName: {}, getSymbol: {} },
+      { getName: {}, getSymbol: {}, getDecimals: {} }
+    )
+    expect(result1[0].getName.returns).toEqual(name)
+    expect(result1[1].getName.returns).toEqual(name)
+    expect(result1[1].getSymbol.returns).toEqual(symbol)
+    expect(result1[2].getName.returns).toEqual(name)
+    expect(result1[2].getSymbol.returns).toEqual(symbol)
+    expect(result1[2].getDecimals.returns).toEqual(decimals)
 
     const tokenType = await web3.getCurrentNodeProvider().guessStdTokenType(tokenTest.contractId)
     expect(tokenType).toEqual('fungible')

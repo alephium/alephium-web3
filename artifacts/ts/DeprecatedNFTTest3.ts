@@ -197,14 +197,22 @@ export class DeprecatedNFTTest3Instance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends DeprecatedNFTTest3Types.MultiCallParams>(
-    calls: Calls
-  ): Promise<DeprecatedNFTTest3Types.MultiCallResults<Calls>> {
+  async multicall<Callss extends DeprecatedNFTTest3Types.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<{
+    [index in keyof Callss]: DeprecatedNFTTest3Types.MultiCallResults<
+      Callss[index]
+    >;
+  }> {
     return (await multicallMethods(
       DeprecatedNFTTest3,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as DeprecatedNFTTest3Types.MultiCallResults<Calls>;
+    )) as {
+      [index in keyof Callss]: DeprecatedNFTTest3Types.MultiCallResults<
+        Callss[index]
+      >;
+    };
   }
 }

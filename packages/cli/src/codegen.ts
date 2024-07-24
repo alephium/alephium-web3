@@ -456,10 +456,10 @@ function genMulticall(contract: Contract): string {
     contract.publicFunctions().filter((functionSig) => functionSig.returnTypes.length > 0).length > 0
   return supportMulticall
     ? `
-      async multicall<Calls extends ${types}.MultiCallParams>(
-        calls: Calls
-      ): Promise<${types}.MultiCallResults<Calls>> {
-        return (await multicallMethods(${contract.name}, this, calls, getContractByCodeHash)) as ${types}.MultiCallResults<Calls>
+      async multicall<Callss extends ${types}.MultiCallParams[]>(
+        ...callss: Callss
+      ): Promise<{ [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }> {
+        return (await multicallMethods(${contract.name}, this, callss, getContractByCodeHash)) as { [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }
       }
     `
     : ''
