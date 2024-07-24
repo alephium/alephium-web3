@@ -100,6 +100,10 @@ export namespace NFTCollectionWithRoyaltyTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     getCollectionUri: {
@@ -489,26 +493,12 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
     Callss extends NFTCollectionWithRoyaltyTestTypes.MultiCallParams[]
   >(
     ...callss: Callss
-  ): Promise<
-    Callss["length"] extends 1
-      ? NFTCollectionWithRoyaltyTestTypes.MultiCallResults<Callss[0]>
-      : {
-          [index in keyof Callss]: NFTCollectionWithRoyaltyTestTypes.MultiCallResults<
-            Callss[index]
-          >;
-        }
-  > {
+  ): Promise<NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       NFTCollectionWithRoyaltyTest,
       this,
       callss,
       getContractByCodeHash
-    )) as Callss["length"] extends 1
-      ? NFTCollectionWithRoyaltyTestTypes.MultiCallResults<Callss[0]>
-      : {
-          [index in keyof Callss]: NFTCollectionWithRoyaltyTestTypes.MultiCallResults<
-            Callss[index]
-          >;
-        };
+    )) as NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>;
   }
 }

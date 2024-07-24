@@ -74,6 +74,10 @@ export namespace WrongNFTTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     getTokenUri: {
@@ -203,26 +207,12 @@ export class WrongNFTTestInstance extends ContractInstance {
 
   async multicall<Callss extends WrongNFTTestTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<
-    Callss["length"] extends 1
-      ? WrongNFTTestTypes.MultiCallResults<Callss[0]>
-      : {
-          [index in keyof Callss]: WrongNFTTestTypes.MultiCallResults<
-            Callss[index]
-          >;
-        }
-  > {
+  ): Promise<WrongNFTTestTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       WrongNFTTest,
       this,
       callss,
       getContractByCodeHash
-    )) as Callss["length"] extends 1
-      ? WrongNFTTestTypes.MultiCallResults<Callss[0]>
-      : {
-          [index in keyof Callss]: WrongNFTTestTypes.MultiCallResults<
-            Callss[index]
-          >;
-        };
+    )) as WrongNFTTestTypes.MulticallReturnType<Callss>;
   }
 }

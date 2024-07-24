@@ -78,6 +78,10 @@ export namespace NFTTestStdTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     getTokenUri: {
@@ -230,26 +234,12 @@ export class NFTTestStdInstance extends ContractInstance {
 
   async multicall<Callss extends NFTTestStdTypes.MultiCallParams[]>(
     ...callss: Callss
-  ): Promise<
-    Callss["length"] extends 1
-      ? NFTTestStdTypes.MultiCallResults<Callss[0]>
-      : {
-          [index in keyof Callss]: NFTTestStdTypes.MultiCallResults<
-            Callss[index]
-          >;
-        }
-  > {
+  ): Promise<NFTTestStdTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       NFTTestStd,
       this,
       callss,
       getContractByCodeHash
-    )) as Callss["length"] extends 1
-      ? NFTTestStdTypes.MultiCallResults<Callss[0]>
-      : {
-          [index in keyof Callss]: NFTTestStdTypes.MultiCallResults<
-            Callss[index]
-          >;
-        };
+    )) as NFTTestStdTypes.MulticallReturnType<Callss>;
   }
 }

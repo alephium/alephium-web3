@@ -418,6 +418,7 @@ function genCallMethodTypes(contract: Contract): string {
       export type CallMethodResult<T extends keyof CallMethodTable> = CallMethodTable[T]['result']
       export type MultiCallParams = Partial<{ [Name in keyof CallMethodTable]: CallMethodTable[Name]['params'] }>
       export type MultiCallResults<T extends MultiCallParams> = { [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable ? CallMethodTable[MaybeName]['result'] : undefined }
+      export type MulticallReturnType<Callss extends MultiCallParams[]> = Callss['length'] extends 1 ? MultiCallResults<Callss[0]> : { [index in keyof Callss]: MultiCallResults<Callss[index]> }
     `
     : ''
 }
@@ -458,12 +459,8 @@ function genMulticall(contract: Contract): string {
     ? `
       async multicall<Callss extends ${types}.MultiCallParams[]>(
         ...callss: Callss
-      ): Promise<Callss['length'] extends 1 ? ${types}.MultiCallResults<Callss[0]> : { [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }> {
-        return (await multicallMethods(${contract.name}, this, callss, getContractByCodeHash)) as
-          (Callss['length'] extends 1 ?
-            ${types}.MultiCallResults<Callss[0]> :
-            { [index in keyof Callss]: ${types}.MultiCallResults<Callss[index]> }
-          )
+      ): Promise<${types}.MulticallReturnType<Callss>> {
+        return (await multicallMethods(${contract.name}, this, callss, getContractByCodeHash)) as ${types}.MulticallReturnType<Callss>
       }
     `
     : ''
