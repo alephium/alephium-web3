@@ -1,6 +1,8 @@
 const AssertError = 3
 const A = -3i
 const B = @1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH
+const ConstantTrue = true
+const ConstantFalse = false
 
 enum Numbers {
     A = 0

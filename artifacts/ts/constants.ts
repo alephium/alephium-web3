@@ -5,6 +5,8 @@
 export const AssertError = BigInt("3");
 export const A = BigInt("-3");
 export const B = "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH";
+export const ConstantTrue = true;
+export const ConstantFalse = false;
 export const Numbers = {
   A: BigInt("0"),
   B: BigInt("1"),

@@ -20,6 +20,20 @@
         "type": "Address",
         "value": "1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH"
       }
+    },
+    {
+      "name": "ConstantTrue",
+      "value": {
+        "type": "Bool",
+        "value": true
+      }
+    },
+    {
+      "name": "ConstantFalse",
+      "value": {
+        "type": "Bool",
+        "value": false
+      }
     }
   ],
   "enums": [

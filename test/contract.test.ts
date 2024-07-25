@@ -65,7 +65,7 @@ import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes }
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
-import { A, Addresses, B, ByteVecs, AssertError, Numbers } from '../artifacts/ts/constants'
+import { A, Addresses, B, ByteVecs, AssertError, Numbers, ConstantTrue, ConstantFalse } from '../artifacts/ts/constants'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -331,6 +331,8 @@ describe('contract', function () {
     expect(AssertError).toEqual(3n)
     expect(A).toEqual(-3n)
     expect(B).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(ConstantTrue).toEqual(true)
+    expect(ConstantFalse).toEqual(false)
     expect(Numbers.A).toEqual(0n)
     expect(Numbers.B).toEqual(1n)
     expect(Addresses.A).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
