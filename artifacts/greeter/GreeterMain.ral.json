@@ -1,7 +1,7 @@
 {
-  "version": "v2.14.7",
+  "version": "v3.3.0",
   "name": "GreeterMain",
-  "bytecodeTemplate": "01010300020014{0}17000c0d160001000d2f0c7b{0}17010c0d160101000d2f0c7b",
+  "bytecodeTemplate": "01010300020014{0}17000c0d160001000d2f0c7b{0}17010c0d1601d4952f757b0d2f0c7b",
   "fieldsSig": {
     "names": [
       "greeterContractId"
@@ -16,9 +16,6 @@
   "functions": [
     {
       "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

@@ -13,401 +13,319 @@
       "sourceFile": "add/add.ral",
       "sourceCodeHash": "e53e74ff98c352525e856abd4311868176d45c61c957791c3d42eae274088df0",
       "bytecodeDebugPatch": "=12-2+5c=2-2+81=3-1+e=2-2+bc=83-1+97e010a61646450726976617465=266",
-      "codeHashDebug": "c46db1ae7bae8b332c115869126eb1402bc71574925608a2adcea3cf7b9f8e7e",
-      "warnings": [
-        "Found unused variables in Add: add2.addS, add2.address, add2.array2",
-        "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
-        "The return values of the function \"Add.copyCreateSubContract\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
-        "No external caller check for function \"Add.createSubContract\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "No external caller check for function \"Add.add\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "No external caller check for function \"Add.add2\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "No external caller check for function \"Add.createSubContractAndTransfer\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
-      ]
+      "codeHashDebug": "c46db1ae7bae8b332c115869126eb1402bc71574925608a2adcea3cf7b9f8e7e"
     },
     "AddMain": {
       "sourceFile": "add/add.ral",
       "sourceCodeHash": "e53e74ff98c352525e856abd4311868176d45c61c957791c3d42eae274088df0",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": [
-        "The return values of the function \"Add.add\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
-      ]
+      "codeHashDebug": ""
     },
     "AddStruct1": {
       "sourceFile": "add/add.ral",
       "sourceCodeHash": "e53e74ff98c352525e856abd4311868176d45c61c957791c3d42eae274088df0",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "AddStruct2": {
       "sourceFile": "add/add.ral",
       "sourceCodeHash": "e53e74ff98c352525e856abd4311868176d45c61c957791c3d42eae274088df0",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "Assert": {
       "sourceFile": "test/assert.ral",
-      "sourceCodeHash": "9f400f63bcdefcbccb09253140532bea0054f543fa7264b555abcadc0da2d87d",
+      "sourceCodeHash": "2cb837275917553343581f13e3c2e33a5943ae1483b887408ff97f93d6f12d3f",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b",
-      "warnings": [
-        "Found unused constants in Assert: A, Addresses.A, Addresses.B, B, ByteVecs.A, ByteVecs.B, C, Numbers.A, Numbers.B, Numbers.C"
-      ]
+      "codeHashDebug": "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b"
     },
     "Balances": {
       "sourceFile": "test/struct.ral",
       "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "CallScript0": {
       "sourceFile": "test/call_scripts.ral",
       "sourceCodeHash": "71ecb0e86393e15d1b284326c92ac9b0d15e8fdad75cd5dc197cd34679ca83f1",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "CallScript1": {
       "sourceFile": "test/call_scripts.ral",
       "sourceCodeHash": "71ecb0e86393e15d1b284326c92ac9b0d15e8fdad75cd5dc197cd34679ca83f1",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "Debug": {
       "sourceFile": "test/debug.ral",
       "sourceCodeHash": "0d7cdfad264cf2009dd8907b716ba0d79cc4cf722b35773129645c5415bcb4dc",
       "bytecodeDebugPatch": "=4-2+18=11-1+3=10+ca7e020748656c6c6f2c200121",
-      "codeHashDebug": "eb4209d8f543d9f623d72578f7ed9b271d62cf396dcce42d10f5e68dba3cecd3",
-      "warnings": []
+      "codeHashDebug": "eb4209d8f543d9f623d72578f7ed9b271d62cf396dcce42d10f5e68dba3cecd3"
     },
     "DeprecatedNFTTest1": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "cc6928c9c6777077abcb5b9c4f7c5d620d6cae07ec6f00f5e8b0efe6a7b913c4",
-      "warnings": []
+      "codeHashDebug": "cc6928c9c6777077abcb5b9c4f7c5d620d6cae07ec6f00f5e8b0efe6a7b913c4"
     },
     "DeprecatedNFTTest2": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "ade9aee476ee752050a1e9e1b19039f05261cb3f53941152617174faf9eae572",
-      "warnings": []
+      "codeHashDebug": "ade9aee476ee752050a1e9e1b19039f05261cb3f53941152617174faf9eae572"
     },
     "DeprecatedNFTTest3": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "465bc3739cd1649e58e0470971bd2fabf21363ab9fc2c15052fb2440dd06ada5",
-      "warnings": [
-        "Found unused fields in DeprecatedNFTTest3: collectionId"
-      ]
+      "codeHashDebug": "465bc3739cd1649e58e0470971bd2fabf21363ab9fc2c15052fb2440dd06ada5"
     },
     "DeprecatedNFTTest4": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "a5de0fa0b3580303ac63423f09ce5ed95fccbf789679b32130a53c26fef182e9",
-      "warnings": []
+      "codeHashDebug": "a5de0fa0b3580303ac63423f09ce5ed95fccbf789679b32130a53c26fef182e9"
     },
     "DeprecatedNFTTest5": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "8b1374f39db98c485af3dd05d0b0ce861e9528f290ca9dc0d7108e8b48b50161",
-      "warnings": []
+      "codeHashDebug": "8b1374f39db98c485af3dd05d0b0ce861e9528f290ca9dc0d7108e8b48b50161"
     },
     "DeprecatedNFTTest6": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "8bc0d39f0607d4a771ec70ae1057b71dbcde404177cb3b25fd7d93d553a2b8cd",
-      "warnings": []
+      "codeHashDebug": "8bc0d39f0607d4a771ec70ae1057b71dbcde404177cb3b25fd7d93d553a2b8cd"
     },
     "DeprecatedNFTTest7": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "b95c9acf088b090f5d9d34f28ab079cf22b9e53af8ae6864113c71172231ef4c",
-      "warnings": []
+      "codeHashDebug": "b95c9acf088b090f5d9d34f28ab079cf22b9e53af8ae6864113c71172231ef4c"
     },
     "DestroyAdd": {
       "sourceFile": "add/destroy_add.ral",
       "sourceCodeHash": "dbddae3cd53736478c299026ac67683909fcc04d036f98ce6dc72af7d92a4835",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "FakeTokenTest": {
       "sourceFile": "token/fake_token_test.ral",
       "sourceCodeHash": "c51d0d664dc1c0ff0e2c4f9c133bbd4d8cc6b8c55b44df42c98a19b43fe329e5",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "52f971cb44d54a5353e94dc8db991d2726f76760af782e79bd8a66a9b5b294b7",
-      "warnings": []
+      "codeHashDebug": "52f971cb44d54a5353e94dc8db991d2726f76760af782e79bd8a66a9b5b294b7"
     },
     "FungibleTokenUnimplemented": {
       "sourceFile": "../packages/web3/std/fungible_token_unimplemented.ral",
       "sourceCodeHash": "df36ccc9548da207df716192341e864c7a8d0ea22ea9214b9cfad13bf324a0f6",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "Greeter": {
       "sourceFile": "greeter/greeter.ral",
       "sourceCodeHash": "703915a6b6d323f3e5a4f62f53a2a1ae2302539b5941570af254617f45ff99d3",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "3813cf61a6e0f126463190119cd861a14ca9c2f92839e193c4f9934517b02477",
-      "warnings": []
+      "codeHashDebug": "4bbf82c83dcb0a3df905c290fbc12a19ce5160a7b655c1a347913481da12d747"
     },
     "GreeterInterface": {
       "sourceFile": "greeter/greeter.ral",
       "sourceCodeHash": "703915a6b6d323f3e5a4f62f53a2a1ae2302539b5941570af254617f45ff99d3",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "GreeterMain": {
       "sourceFile": "greeter/greeter.ral",
       "sourceCodeHash": "703915a6b6d323f3e5a4f62f53a2a1ae2302539b5941570af254617f45ff99d3",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "IFungibleToken": {
       "sourceFile": "../packages/web3/std/fungible_token_interface.ral",
       "sourceCodeHash": "62910bf11e1eeb6cb2fd468626ff606a9b06306b2b81590c3b10f6deb5966bde",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "INFT": {
       "sourceFile": "../packages/web3/std/nft_interface.ral",
       "sourceCodeHash": "92956f4e61c198f011b48dbda2ed76193ffc79ac9c39f60bf1763a34e02f2c41",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "INFTCollection": {
       "sourceFile": "../packages/web3/std/nft_collection_interface.ral",
       "sourceCodeHash": "9b199426ea89c188ce858b48ab809f13b9fc1ed0d64ca91e3d600eda8fbf6c42",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "INFTCollectionWithRoyalty": {
       "sourceFile": "../packages/web3/std/nft_collection_with_royalty_interface.ral",
       "sourceCodeHash": "293aad668909a21df80183c9296f3d1a8edb76a43faa2cbf395a766d1879cdc6",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "INewFungibleToken": {
       "sourceFile": "token/token_test_std.ral",
       "sourceCodeHash": "a93692964e6b76a29683ddf914eb96ea79f8cb6c6287b294ef19172e4dd41ee3",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "INewNFT": {
       "sourceFile": "nft/nft_test_std.ral",
       "sourceCodeHash": "2a6c8e61f798ac8a69fcd7e665e871bd655a66bcdab763950a092ffe03d5ea5e",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "InsertIntoMap": {
       "sourceFile": "test/map.ral",
       "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "MapTest": {
       "sourceFile": "test/map.ral",
       "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "=6-2+a8=1-3+128=2-2+ea=1+2=1-2+7=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=96",
-      "codeHashDebug": "31aed0ff7b29f2cbc2d8360a83f31af4e9db00f0084a7406bd84b7745181373d",
-      "warnings": [
-        "No external caller check for function \"MapTest.remove\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "No external caller check for function \"MapTest.update\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "No external caller check for function \"MapTest.insert\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
-      ]
+      "codeHashDebug": "31aed0ff7b29f2cbc2d8360a83f31af4e9db00f0084a7406bd84b7745181373d"
     },
     "MapValue": {
       "sourceFile": "test/map.ral",
       "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "MetaData": {
       "sourceFile": "test/metadata.ral",
       "sourceCodeHash": "79099ed139ae980aeb7010a648998ebeaf4ee4102cb76c40addb1a0d5dd9c684",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "af0b3119565ef5f833f7b3514005a6b00ac9957d5a7779765edfc6e6ce6321c5",
-      "warnings": [
-        "No external caller check for function \"MetaData.foo\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\".",
-        "Private function \"MetaData.bar\" is not used",
-        "Private function \"MetaData.baz\" is not used"
-      ]
+      "codeHashDebug": "af0b3119565ef5f833f7b3514005a6b00ac9957d5a7779765edfc6e6ce6321c5"
     },
     "MintNFTTest": {
       "sourceFile": "nft/mint_nft_test.ral",
       "sourceCodeHash": "1fb25375808315eddf482b5e6bf58a9e4d6b1ee875c35f72c2b5692f024c8ba8",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": [
-        "The return values of the function \"NFTCollectionWithRoyaltyTest.mint\" are not used. If this is intentional, consider using anonymous variables to suppress this warning.",
-        "The return values of the function \"NFTCollectionTest.mint\" are not used. If this is intentional, consider using anonymous variables to suppress this warning."
-      ]
+      "codeHashDebug": ""
     },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
       "sourceCodeHash": "ac1d8da86e8cb3e5c412c463d7cf0376db563d9cbc459eb034d3067dcaa2045e",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "087f9292bb326a4d39a6fac09928cb25edf2837718f830f3a166a937f8724779",
-      "warnings": [
-        "No external caller check for function \"NFTCollectionTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
-      ]
+      "codeHashDebug": "087f9292bb326a4d39a6fac09928cb25edf2837718f830f3a166a937f8724779"
     },
     "NFTCollectionTestBase": {
       "sourceFile": "nft/nft_collection_test_base.ral",
-      "sourceCodeHash": "60406d258606a398d4fd9b8e233fa2ddf08dc111fae040be0f43c60a4cd77dcc",
+      "sourceCodeHash": "09a0fb1bf8bea319c735c58b73de9c9cbb8c927dc9988519c7b34f43b33d6ac2",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "NFTCollectionWithRoyaltyTest": {
       "sourceFile": "nft/nft_collection_with_royalty_test.ral",
-      "sourceCodeHash": "797c82a70c622eb1c8b06a1aade4e44050e9f198afd0496231b61c7cb7c4b1c7",
+      "sourceCodeHash": "a33a90ab5f62b34b1e6619f675e5e01e6bb59c956be3780d161e2aed5281fe33",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "919808beff802a8043d62c5ff23249f22dbfdbd2fae56264f5f108af59eb171e",
-      "warnings": [
-        "No external caller check for function \"NFTCollectionWithRoyaltyTest.mint\". Please use \"checkCaller!(...)\" in the function or its callees, or disable it with \"@using(checkExternalCaller = false)\"."
-      ]
+      "codeHashDebug": "3b64d5e360566a4e4f568f773536a3ea74e66d12231aa44f19d2214ba87b38d6"
     },
     "NFTTest": {
       "sourceFile": "nft/nft_test.ral",
       "sourceCodeHash": "ddcc7fedd2dcbce030a9428f5560deb53124688f9cee396433192700131ed73f",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
-      "warnings": []
+      "codeHashDebug": "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1"
     },
     "NFTTestStd": {
       "sourceFile": "nft/nft_test_std.ral",
       "sourceCodeHash": "2a6c8e61f798ac8a69fcd7e665e871bd655a66bcdab763950a092ffe03d5ea5e",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "b7ff3fa8dfacc7ae5edbabd6573d0699dffc5a0f07ad14023f682a201b7bce55",
-      "warnings": []
+      "codeHashDebug": "b7ff3fa8dfacc7ae5edbabd6573d0699dffc5a0f07ad14023f682a201b7bce55"
     },
     "OwnerOnly": {
       "sourceFile": "test/owner.ral",
       "sourceCodeHash": "fcf5f080df9ad62ec723c6127c3d9b153feff9669af0ecc46470526d46db1209",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "c8ecfd7b7e1f3d0169d80e0abb59702516eeff301d47e0e7be70a631bd9414ca",
-      "warnings": []
+      "codeHashDebug": "c8ecfd7b7e1f3d0169d80e0abb59702516eeff301d47e0e7be70a631bd9414ca"
     },
     "RemoveFromMap": {
       "sourceFile": "test/map.ral",
       "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "Sub": {
       "sourceFile": "sub/sub.ral",
       "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "3461ebfaca02ad0a3f587a5b67a461c0cbd82d14261407b1d9277ed4ad129234",
-      "warnings": []
+      "codeHashDebug": "3461ebfaca02ad0a3f587a5b67a461c0cbd82d14261407b1d9277ed4ad129234"
     },
     "TemplateArrayVar": {
       "sourceFile": "test/template_array_var.ral",
       "sourceCodeHash": "9d4585b01c450c8602f797f63995d1a734a260ea5579d68b81ba84272c9de235",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "TestAssert": {
       "sourceFile": "test/assert.ral",
-      "sourceCodeHash": "9f400f63bcdefcbccb09253140532bea0054f543fa7264b555abcadc0da2d87d",
+      "sourceCodeHash": "2cb837275917553343581f13e3c2e33a5943ae1483b887408ff97f93d6f12d3f",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "TokenBalance": {
       "sourceFile": "test/struct.ral",
       "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "TokenTest": {
       "sourceFile": "token/token_test.ral",
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
-      "warnings": []
+      "codeHashDebug": "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd"
     },
     "TokenTestStd": {
       "sourceFile": "token/token_test_std.ral",
       "sourceCodeHash": "a93692964e6b76a29683ddf914eb96ea79f8cb6c6287b294ef19172e4dd41ee3",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "4aa5c769148cada8eeb1cd3791f6e793ed92009ac79ebb64dc79d4d7f2969c8b",
-      "warnings": []
+      "codeHashDebug": "4aa5c769148cada8eeb1cd3791f6e793ed92009ac79ebb64dc79d4d7f2969c8b"
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
       "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "UpdateUserAccount": {
       "sourceFile": "test/struct.ral",
       "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "UserAccount": {
       "sourceFile": "test/struct.ral",
       "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "4e9f7eac1b76eaa2268b5af6ebb5640252892dc170aad6c1ee7b639131a55816",
-      "warnings": [
-        "Function \"UserAccount.updateBalance\" updates fields. Please use \"@using(updateFields = true)\" for the function.",
-        "Function \"UserAccount.updateAddress\" updates fields. Please use \"@using(updateFields = true)\" for the function."
-      ]
+      "codeHashDebug": "4e9f7eac1b76eaa2268b5af6ebb5640252892dc170aad6c1ee7b639131a55816"
     },
     "Warnings": {
       "sourceFile": "test/warnings.ral",
       "sourceCodeHash": "974d69b74d3b88e9c5c23e8c8674d78dcd2e9b261fcae7be5adafddb777a3d01",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "873e095edb39cdb4b11b1157003daeacad06d259a938cd270e22b8e89b75feea",
-      "warnings": [
-        "Found unused variables in Warnings: foo.y",
-        "Found unused constants in Warnings: C",
-        "Found unused fields in Warnings: b"
-      ]
+      "codeHashDebug": "873e095edb39cdb4b11b1157003daeacad06d259a938cd270e22b8e89b75feea"
     },
     "WithdrawNFTCollectionTest": {
       "sourceFile": "nft/withdraw_nft_collection_test.ral",
       "sourceCodeHash": "b06eed2252a147738da24c9098452123c444d325f8de4d6134d10fea92b3ee45",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "",
-      "warnings": []
+      "codeHashDebug": ""
     },
     "WrongNFTTest": {
       "sourceFile": "nft/wrong_nft_test.ral",
       "sourceCodeHash": "7d7c2d3ba4c523554010c80d06c1d3a4213546d450838e6a0effc50a31b6599c",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "7dd2ed643a98b2a1a52a9b9e536fcdae60d961b583b8109f777d846bfdfcae8d",
-      "warnings": []
+      "codeHashDebug": "7dd2ed643a98b2a1a52a9b9e536fcdae60d961b583b8109f777d846bfdfcae8d"
+    },
+    "constants": {
+      "sourceFile": "constants.ral",
+      "sourceCodeHash": "54bdb6d7fd7392f1100ea2eebe2fee5bb2a0ff83a146311316e259eccc616598",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
     }
   }
 }

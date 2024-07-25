@@ -65,6 +65,7 @@ import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes }
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
+import { A, Addresses, B, ByteVecs, AssertError, Numbers } from '../artifacts/ts/constants'
 
 describe('contract', function () {
   let signer: PrivateKeyWallet
@@ -258,12 +259,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(52)
+    expect(sourceFiles.length).toEqual(53)
     sourceFiles.slice(0, 25).forEach((c) => expect(c.type).toEqual(0)) // contracts
     sourceFiles.slice(25, 38).forEach((s) => expect(s.type).toEqual(1)) // scripts
     sourceFiles.slice(38, 40).forEach((i) => expect(i.type).toEqual(2)) // abstract class
     sourceFiles.slice(40, 47).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(47).forEach((i) => expect(i.type).toEqual(4)) // structs
+    sourceFiles.slice(47, 52).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[52].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -287,18 +289,9 @@ describe('contract', function () {
       /Compilation warnings\:/
     )
 
-    const project0 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: true })
-    expect(project0.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
-      'Found unused variables in Warnings: foo.y',
-      'Found unused fields in Warnings: b'
-    ])
-
-    const project1 = await Project.compile({ errorOnWarnings: false, ignoreUnusedConstantsWarnings: false })
-    expect(project1.projectArtifact.infos.get('Warnings')!.warnings).toEqual([
-      'Found unused variables in Warnings: foo.y',
-      'Found unused constants in Warnings: C',
-      'Found unused fields in Warnings: b'
-    ])
+    expect(() =>
+      Project.compile({ errorOnWarnings: false }, '.', 'contracts', 'artifacts', undefined, true)
+    ).not.toThrow()
   })
 
   it('should debug', async () => {
@@ -310,10 +303,10 @@ describe('contract', function () {
   })
 
   it('should test assert!', async () => {
-    expect(Assert.consts.Numbers.C).toEqual((1n << 256n) - 1n)
+    expect(Numbers.C).toEqual((1n << 256n) - 1n)
 
     const contractAddress = randomContractAddress()
-    expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, Assert.consts.Error)
+    expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, AssertError)
 
     const assertDeployResult = await Assert.deploy(signer, { initialFields: {} })
     const assertAddress = assertDeployResult.contractInstance.address
@@ -321,7 +314,7 @@ describe('contract', function () {
     expectAssertionError(
       TestAssert.execute(signer, { initialFields: { assert: assertAddress } }),
       assertAddress,
-      Assert.consts.Error
+      AssertError
     )
 
     expectAssertionError(
@@ -335,16 +328,15 @@ describe('contract', function () {
   })
 
   it('should test enums and constants', () => {
-    expect(Assert.consts.Error).toEqual(3n)
-    expect(Assert.consts.A).toEqual(-3n)
-    expect(Assert.consts.B).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
-    expect(Assert.consts.C).toEqual('0011')
-    expect(Assert.consts.Numbers.A).toEqual(0n)
-    expect(Assert.consts.Numbers.B).toEqual(1n)
-    expect(Assert.consts.Addresses.A).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
-    expect(Assert.consts.Addresses.B).toEqual('14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF')
-    expect(Assert.consts.ByteVecs.A).toEqual('00')
-    expect(Assert.consts.ByteVecs.B).toEqual('11')
+    expect(AssertError).toEqual(3n)
+    expect(A).toEqual(-3n)
+    expect(B).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(Numbers.A).toEqual(0n)
+    expect(Numbers.B).toEqual(1n)
+    expect(Addresses.A).toEqual('1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH')
+    expect(Addresses.B).toEqual('14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF')
+    expect(ByteVecs.A).toEqual('00')
+    expect(ByteVecs.B).toEqual('11')
   })
 
   it('should get contract by code hash', () => {

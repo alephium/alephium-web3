@@ -127,7 +127,7 @@ export const Greeter = new Factory(
   Contract.fromJson(
     GreeterContractJson,
     "",
-    "3813cf61a6e0f126463190119cd861a14ca9c2f92839e193c4f9934517b02477",
+    "4bbf82c83dcb0a3df905c290fbc12a19ce5160a7b655c1a347913481da12d747",
     AllStructs
   )
 );

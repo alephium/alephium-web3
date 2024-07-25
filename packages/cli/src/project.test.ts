@@ -25,8 +25,7 @@ describe('project', () => {
       sourceFile: '',
       sourceCodeHash: hash,
       bytecodeDebugPatch: '',
-      codeHashDebug: '',
-      warnings: []
+      codeHashDebug: ''
     }
   }
 

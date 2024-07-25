@@ -854,6 +854,7 @@ export class Project {
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
     const changedSources = projectArtifact?.getChangedSources(sourceFiles) ?? sourceFiles.map((s) => s.name)
     if (
+      forceRecompile ||
       projectArtifact === undefined ||
       projectArtifact.needToReCompile(nodeCompilerOptions, fullNodeVersion) ||
       changedSources.length > 0

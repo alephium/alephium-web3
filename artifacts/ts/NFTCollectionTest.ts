@@ -138,14 +138,6 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as NFTCollectionTestTypes.Fields;
   }
 
-  consts = {
-    ErrorCodes: {
-      IncorrectTokenIndex: BigInt("0"),
-      NFTNotFound: BigInt("1"),
-      NFTNotPartOfCollection: BigInt("2"),
-    },
-  };
-
   at(address: string): NFTCollectionTestInstance {
     return new NFTCollectionTestInstance(address);
   }
