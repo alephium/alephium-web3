@@ -70,6 +70,10 @@ export namespace SubTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     sub: {
@@ -167,14 +171,14 @@ export class SubInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends SubTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<SubTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends SubTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<SubTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       Sub,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as SubTypes.MultiCallResults<Calls>;
+    )) as SubTypes.MulticallReturnType<Callss>;
   }
 }

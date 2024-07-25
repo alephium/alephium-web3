@@ -79,6 +79,10 @@ export namespace UserAccountTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     updateBalance: {
@@ -224,14 +228,14 @@ export class UserAccountInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends UserAccountTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<UserAccountTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends UserAccountTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<UserAccountTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       UserAccount,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as UserAccountTypes.MultiCallResults<Calls>;
+    )) as UserAccountTypes.MulticallReturnType<Callss>;
   }
 }

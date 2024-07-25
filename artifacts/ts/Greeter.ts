@@ -76,6 +76,10 @@ export namespace GreeterTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     greet: {
@@ -160,14 +164,14 @@ export class GreeterInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends GreeterTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<GreeterTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends GreeterTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<GreeterTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       Greeter,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as GreeterTypes.MultiCallResults<Calls>;
+    )) as GreeterTypes.MulticallReturnType<Callss>;
   }
 }

@@ -77,6 +77,10 @@ export namespace MapTestTypes {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     insert: {
@@ -308,14 +312,14 @@ export class MapTestInstance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends MapTestTypes.MultiCallParams>(
-    calls: Calls
-  ): Promise<MapTestTypes.MultiCallResults<Calls>> {
+  async multicall<Callss extends MapTestTypes.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<MapTestTypes.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       MapTest,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as MapTestTypes.MultiCallResults<Calls>;
+    )) as MapTestTypes.MulticallReturnType<Callss>;
   }
 }

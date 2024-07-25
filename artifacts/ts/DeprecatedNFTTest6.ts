@@ -73,6 +73,10 @@ export namespace DeprecatedNFTTest6Types {
       ? CallMethodTable[MaybeName]["result"]
       : undefined;
   };
+  export type MulticallReturnType<Callss extends MultiCallParams[]> =
+    Callss["length"] extends 1
+      ? MultiCallResults<Callss[0]>
+      : { [index in keyof Callss]: MultiCallResults<Callss[index]> };
 
   export interface SignExecuteMethodTable {
     getTokenUri: {
@@ -190,14 +194,14 @@ export class DeprecatedNFTTest6Instance extends ContractInstance {
     },
   };
 
-  async multicall<Calls extends DeprecatedNFTTest6Types.MultiCallParams>(
-    calls: Calls
-  ): Promise<DeprecatedNFTTest6Types.MultiCallResults<Calls>> {
+  async multicall<Callss extends DeprecatedNFTTest6Types.MultiCallParams[]>(
+    ...callss: Callss
+  ): Promise<DeprecatedNFTTest6Types.MulticallReturnType<Callss>> {
     return (await multicallMethods(
       DeprecatedNFTTest6,
       this,
-      calls,
+      callss,
       getContractByCodeHash
-    )) as DeprecatedNFTTest6Types.MultiCallResults<Calls>;
+    )) as DeprecatedNFTTest6Types.MulticallReturnType<Callss>;
   }
 }
