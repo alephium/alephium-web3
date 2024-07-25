@@ -27,7 +27,9 @@ import {
   node,
   web3,
   WebCrypto,
-  CompilerOptions
+  CompilerOptions,
+  Constant,
+  Enum
 } from '@alephium/web3'
 import * as path from 'path'
 import fs from 'fs'
@@ -63,7 +65,8 @@ enum SourceKind {
   Script = 1,
   AbstractContract = 2,
   Interface = 3,
-  Struct = 4
+  Struct = 4,
+  Constants = 5
 }
 
 export class SourceInfo {
@@ -288,6 +291,8 @@ export class Project {
   contracts: Map<string, Compiled<Contract>>
   scripts: Map<string, Compiled<Script>>
   structs: Struct[]
+  constants: Constant[]
+  enums: Enum[]
   projectArtifact: ProjectArtifact
 
   readonly contractsRootDir: string
@@ -309,6 +314,9 @@ export class Project {
     Project.scriptMatcher,
     Project.structMatcher
   ]
+
+  static readonly structArtifactFileName = 'structs.ral.json'
+  static readonly constantArtifactFileName = 'constants.ral.json'
 
   static buildProjectArtifact(
     fullNodeVersion: string,
@@ -353,6 +361,8 @@ export class Project {
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
     structs: Struct[],
+    constants: Constant[],
+    enums: Enum[],
     projectArtifact: ProjectArtifact
   ) {
     this.contractsRootDir = contractsRootDir
@@ -361,17 +371,20 @@ export class Project {
     this.contracts = contracts
     this.scripts = scripts
     this.structs = structs
+    this.constants = constants
+    this.enums = enums
     this.projectArtifact = projectArtifact
   }
 
   static checkCompilerWarnings(
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
+    globalWarnings: string[],
     changedSources: string[],
     forceRecompile: boolean,
     errorOnWarnings: boolean
   ): void {
-    const warnings: string[] = []
+    const warnings: string[] = forceRecompile ? globalWarnings : []
     contracts.forEach((contract) => {
       if (Project.needToUpdate(forceRecompile, changedSources, contract.sourceInfo.name)) {
         warnings.push(...contract.warnings)
@@ -411,7 +424,7 @@ export class Project {
   }
 
   private static async loadStructs(artifactsRootDir: string): Promise<Struct[]> {
-    const filePath = path.join(artifactsRootDir, 'structs.ral.json')
+    const filePath = path.join(artifactsRootDir, Project.structArtifactFileName)
     if (!fs.existsSync(filePath)) return []
     const content = await fsPromises.readFile(filePath)
     const json = JSON.parse(content.toString())
@@ -424,8 +437,32 @@ export class Project {
   private async saveStructsToFile(): Promise<void> {
     if (this.structs.length === 0) return
     const structs = this.structs.map((s) => s.toJson())
-    const filePath = path.join(this.artifactsRootDir, 'structs.ral.json')
+    const filePath = path.join(this.artifactsRootDir, Project.structArtifactFileName)
     return fsPromises.writeFile(filePath, JSON.stringify(structs, null, 2))
+  }
+
+  private static async loadConstants(artifactsRootDir: string): Promise<{ constants: Constant[]; enums: Enum[] }> {
+    const filePath = path.join(artifactsRootDir, Project.constantArtifactFileName)
+    if (!fs.existsSync(filePath)) return { constants: [], enums: [] }
+    const content = await fsPromises.readFile(filePath)
+    const json = JSON.parse(content.toString())
+    let result: { constants: Constant[]; enums: Enum[] } = { constants: [], enums: [] }
+    if (json.constants) result = { ...result, constants: json.constants as Constant[] }
+    if (json.enums) result = { ...result, enums: json.enums as Enum[] }
+    return result
+  }
+
+  private async saveConstantsToFile(): Promise<void> {
+    if (this.constants.length === 0 && this.enums.length === 0) return
+    const object = {}
+    if (this.constants.length !== 0) {
+      object['constants'] = this.constants
+    }
+    if (this.enums.length !== 0) {
+      object['enums'] = this.enums
+    }
+    const filePath = path.join(this.artifactsRootDir, 'constants.ral.json')
+    return fsPromises.writeFile(filePath, JSON.stringify(object, null, 2))
   }
 
   private static needToUpdate(forceRecompile: boolean, changedSources: string[], name: string): boolean {
@@ -477,6 +514,7 @@ export class Project {
       }
     }
     await this.saveStructsToFile()
+    await this.saveConstantsToFile()
     await this.saveProjectArtifact(projectRootDir, forceRecompile, changedSources)
   }
 
@@ -591,7 +629,14 @@ export class Project {
       scripts,
       compilerOptions
     )
-    Project.checkCompilerWarnings(contracts, scripts, changedSources, forceRecompile, errorOnWarnings)
+    Project.checkCompilerWarnings(
+      contracts,
+      scripts,
+      result.warnings ?? [],
+      changedSources,
+      forceRecompile,
+      errorOnWarnings
+    )
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,
@@ -599,6 +644,8 @@ export class Project {
       contracts,
       scripts,
       structs,
+      result.constants ?? [],
+      result.enums ?? [],
       projectArtifact
     )
     await project.saveArtifactsToFile(projectRootDir, forceRecompile, changedSources)
@@ -624,6 +671,7 @@ export class Project {
       const contracts = new Map<string, Compiled<Contract>>()
       const scripts = new Map<string, Compiled<Script>>()
       const structs = await Project.loadStructs(artifactsRootDir)
+      const constants = await Project.loadConstants(artifactsRootDir)
       for (const sourceInfo of sourceInfos) {
         const info = projectArtifact.infos.get(sourceInfo.name)
         if (typeof info === 'undefined') {
@@ -644,7 +692,17 @@ export class Project {
         }
       }
 
-      return new Project(contractsRootDir, artifactsRootDir, sourceInfos, contracts, scripts, structs, projectArtifact)
+      return new Project(
+        contractsRootDir,
+        artifactsRootDir,
+        sourceInfos,
+        contracts,
+        scripts,
+        structs,
+        constants.constants,
+        constants.enums,
+        projectArtifact
+      )
     } catch (error) {
       console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
       return Project.compile_(
@@ -736,12 +794,18 @@ export class Project {
       throw new Error(`Invalid import statements, source: ${sourcePath}`)
     }
     const sourceInfos = externalSourceInfos
+    let isConstantsFile = true
     for (const matcher of this.matchers) {
-      const results = sourceStr.matchAll(matcher.matcher)
+      const results = Array.from(sourceStr.matchAll(matcher.matcher))
+      if (isConstantsFile) isConstantsFile = results.length === 0
       for (const result of results) {
         const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceStr, contractRelativePath, isExternal)
         sourceInfos.push(sourceInfo)
       }
+    }
+    if (isConstantsFile) {
+      const name = path.basename(sourcePath, path.extname(sourcePath))
+      sourceInfos.push(await SourceInfo.from(SourceKind.Constants, name, sourceStr, contractRelativePath, false))
     }
     return sourceInfos
   }

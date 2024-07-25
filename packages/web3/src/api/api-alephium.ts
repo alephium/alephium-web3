@@ -503,6 +503,9 @@ export interface CompileProjectResult {
   contracts: CompileContractResult[]
   scripts: CompileScriptResult[]
   structs?: StructSig[]
+  constants?: Constant[]
+  enums?: Enum[]
+  warnings?: string[]
 }
 
 /** CompileScriptResult */
