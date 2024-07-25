@@ -132,7 +132,6 @@ export type CodeInfo = {
   sourceCodeHash: string
   bytecodeDebugPatch: string
   codeHashDebug: string
-  warnings: string[]
 }
 
 type SourceInfoIndexes = {
@@ -324,8 +323,7 @@ export class Project {
         sourceFile: c.sourceInfo.contractRelativePath,
         sourceCodeHash: c.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: c.artifact.bytecodeDebugPatch,
-        codeHashDebug: c.artifact.codeHashDebug,
-        warnings: c.warnings
+        codeHashDebug: c.artifact.codeHashDebug
       })
     })
     scripts.forEach((s) => {
@@ -333,8 +331,7 @@ export class Project {
         sourceFile: s.sourceInfo.contractRelativePath,
         sourceCodeHash: s.sourceInfo.sourceCodeHash,
         bytecodeDebugPatch: s.artifact.bytecodeDebugPatch,
-        codeHashDebug: '',
-        warnings: s.warnings
+        codeHashDebug: ''
       })
     })
     const compiledSize = contracts.size + scripts.size
@@ -343,8 +340,7 @@ export class Project {
         sourceFile: c.contractRelativePath,
         sourceCodeHash: c.sourceCodeHash,
         bytecodeDebugPatch: '',
-        codeHashDebug: '',
-        warnings: []
+        codeHashDebug: ''
       })
     })
     return new ProjectArtifact(fullNodeVersion, compilerOptions, files)
@@ -633,7 +629,6 @@ export class Project {
         if (typeof info === 'undefined') {
           throw Error(`Unable to find project info for ${sourceInfo.name}, please rebuild the project`)
         }
-        const warnings = info.warnings
         const artifactDir = sourceInfo.getArtifactPath(artifactsRootDir)
         if (sourceInfo.type === SourceKind.Contract) {
           const artifact = await Contract.fromArtifactFile(
@@ -642,14 +637,13 @@ export class Project {
             info.codeHashDebug,
             structs
           )
-          contracts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
+          contracts.set(artifact.name, new Compiled(sourceInfo, artifact, []))
         } else if (sourceInfo.type === SourceKind.Script) {
           const artifact = await Script.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, structs)
-          scripts.set(artifact.name, new Compiled(sourceInfo, artifact, warnings))
+          scripts.set(artifact.name, new Compiled(sourceInfo, artifact, []))
         }
       }
 
-      Project.checkCompilerWarnings(contracts, scripts, changedSources, forceRecompile, errorOnWarnings)
       return new Project(contractsRootDir, artifactsRootDir, sourceInfos, contracts, scripts, structs, projectArtifact)
     } catch (error) {
       console.log(`Failed to load artifacts, error: ${error}, try to re-compile contracts...`)
