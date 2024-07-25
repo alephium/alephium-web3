@@ -635,6 +635,12 @@ export interface ContractState {
   asset: AssetState
 }
 
+/** CurrentDifficulty */
+export interface CurrentDifficulty {
+  /** @format bigint */
+  difficulty: string
+}
+
 /** DebugMessage */
 export interface DebugMessage {
   /** @format address */
@@ -739,6 +745,11 @@ export interface GhostUncleBlockEntry {
 export interface Group {
   /** @format int32 */
   group: number
+}
+
+/** HashRateResponse */
+export interface HashRateResponse {
+  hashrate: string
 }
 
 /** HashesAtHeight */
@@ -1484,7 +1495,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.3.0
+ * @version 3.4.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2022,7 +2033,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<HashRateResponse, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/history-hashrate`,
         method: 'GET',
         query: query,
@@ -2048,7 +2059,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<HashRateResponse, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/current-hashrate`,
         method: 'GET',
         query: query,
@@ -2065,7 +2076,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/current-difficulty
      */
     getInfosCurrentDifficulty: (params: RequestParams = {}) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<CurrentDifficulty, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/infos/current-difficulty`,
         method: 'GET',
         format: 'json',
