@@ -1,0 +1,26 @@
+const AssertError = 3
+const A = -3i
+const B = @1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH
+
+enum Numbers {
+    A = 0
+    B = 1
+    C = 115792089237316195423570985008687907853269984665640564039457584007913129639935
+}
+
+enum Addresses {
+    A = @1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH
+    B = @14UAjZ3qcmEVKdTo84Kwf4RprTQi86w2TefnnGFjov9xF
+}
+
+enum ByteVecs {
+    A = #00
+    B = #11
+}
+
+enum ErrorCodes {
+    IncorrectTokenIndex = 0
+    NFTNotFound = 1
+    NFTNotPartOfCollection = 2
+    CollectionOwnerAllowedOnly = 3
+}

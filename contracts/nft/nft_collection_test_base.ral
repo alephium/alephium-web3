@@ -5,12 +5,6 @@ Abstract Contract NFTCollectionTestBase(
   collectionUri: ByteVec,
   mut totalSupply: U256
 ) implements INFTCollection {
-  enum ErrorCodes {
-    IncorrectTokenIndex = 0
-    NFTNotFound = 1
-    NFTNotPartOfCollection = 2
-  }
-
   pub fn getCollectionUri() -> ByteVec {
     return collectionUri
   }
