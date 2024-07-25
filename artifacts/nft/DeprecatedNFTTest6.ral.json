@@ -1,5 +1,5 @@
 {
-  "version": "v2.14.7",
+  "version": "v3.4.0",
   "name": "DeprecatedNFTTest6",
   "bytecode": "02020e1c010000000103d3ee6a5cd5ce0102010000000204d30e0a3ac10c0d02",
   "codeHash": "8bc0d39f0607d4a771ec70ae1057b71dbcde404177cb3b25fd7d93d553a2b8cd",
@@ -21,9 +21,6 @@
   "functions": [
     {
       "name": "getTokenUri",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],
@@ -33,9 +30,6 @@
     },
     {
       "name": "getArray",
-      "usePreapprovedAssets": false,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

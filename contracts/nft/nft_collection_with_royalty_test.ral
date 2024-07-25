@@ -8,10 +8,6 @@ Contract NFTCollectionWithRoyaltyTest(
   mut totalSupply: U256
 ) extends NFTCollectionTestBase(nftTemplateId, collectionUri, totalSupply)
     implements INFTCollectionWithRoyalty {
-    enum ErrorCodes {
-        CollectionOwnerAllowedOnly = 1
-    }
-
     pub fn royaltyAmount(@unused tokenId: ByteVec, salePrice: U256) -> (U256) {
         return salePrice * royaltyRate / 10000
     }

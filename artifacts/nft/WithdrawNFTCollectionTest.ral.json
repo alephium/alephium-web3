@@ -1,5 +1,5 @@
 {
-  "version": "v2.14.7",
+  "version": "v3.4.0",
   "name": "WithdrawNFTCollectionTest",
   "bytecodeTemplate": "01010300000006b4{1}0e0c{0}0106",
   "fieldsSig": {
@@ -19,9 +19,6 @@
   "functions": [
     {
       "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

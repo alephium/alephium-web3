@@ -228,9 +228,9 @@ function genEventIndex(contract: Contract): string {
   return `eventIndex = { ${defs} }`
 }
 
-function genConsts(contract: Contract): string {
-  const constants = genConstants(contract.constants)
-  const enums = genEnums(contract.enums)
+function genLocalConsts(contract: Contract): string {
+  const constants = genConstants(contract.constants, true)
+  const enums = genEnums(contract.enums, true)
   const constDefs = constants.concat(enums)
   if (constDefs.length === 0) {
     return ''
@@ -238,17 +238,21 @@ function genConsts(contract: Contract): string {
   return `consts = { ${constDefs.join(',')} }`
 }
 
-function genConstants(constants: Constant[]): string[] {
-  return constants.map((constant) => `${constant.name}: ${nodeValToString(constant.value)}`)
+function genConstants(constants: Constant[], isLocal: boolean): string[] {
+  const prefix = isLocal ? '' : 'export const '
+  const separator = isLocal ? ': ' : ' = '
+  return constants.map((constant) => `${prefix}${constant.name}${separator}${nodeValToString(constant.value)}`)
 }
 
-function genEnum(enumDef: Enum): string {
+function genEnum(enumDef: Enum, isLocal: boolean): string {
+  const prefix = isLocal ? '' : 'export const '
+  const separator = isLocal ? ': ' : ' = '
   const fields = enumDef.fields.map((field) => `${field.name}: ${nodeValToString(field.value)}`).join(',')
-  return `${enumDef.name}: { ${fields} }`
+  return `${prefix}${enumDef.name}${separator}{ ${fields} }`
 }
 
-function genEnums(enums: Enum[]): string[] {
-  return enums.map((enumDef) => genEnum(enumDef))
+function genEnums(enums: Enum[], isLocal: boolean): string[] {
+  return enums.map((enumDef) => genEnum(enumDef, isLocal))
 }
 
 function genGetContractEventsCurrentCount(contract: Contract): string {
@@ -524,7 +528,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genEncodeFieldsFunc(contract)}
       ${genGetInitialFieldsWithDefaultValues(contract)}
       ${genEventIndex(contract)}
-      ${genConsts(contract)}
+      ${genLocalConsts(contract)}
       ${genAttach(getInstanceName(contract))}
       ${genTestMethods(contract)}
     }
@@ -869,6 +873,19 @@ function genStructTypes(outDir: string) {
   formatAndSaveToFile(sourcePath, sourceCode)
 }
 
+function genGlobalConstants(project: Project, outDir: string) {
+  const constants = project.constants
+  const enums = project.enums
+  if (constants.length === 0 && enums.length === 0) return
+  const sourceCode = `
+    ${header}
+    ${genConstants(constants, false).join('\n')}
+    ${genEnums(enums, false).join('\n')}
+  `
+  const sourcePath = path.join(outDir, 'constants.ts')
+  formatAndSaveToFile(sourcePath, sourceCode)
+}
+
 export function codegen(project: Project) {
   currentProject = project
   const artifactDir = project.artifactsRootDir
@@ -882,6 +899,7 @@ export function codegen(project: Project) {
   const exports: string[] = []
   try {
     genStructTypes(outDir)
+    genGlobalConstants(project, outDir)
     genContracts(outDir, artifactDir, exports)
     const contractNames = exports.map((p) => p.slice(2))
     genContractByCodeHash(outDir, contractNames)

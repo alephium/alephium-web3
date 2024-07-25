@@ -1,5 +1,5 @@
 {
-  "version": "v2.14.7",
+  "version": "v3.4.0",
   "name": "DestroyAdd",
   "bytecodeTemplate": "01010300000005{1}0d0c{0}0105",
   "fieldsSig": {
@@ -19,9 +19,6 @@
   "functions": [
     {
       "name": "main",
-      "usePreapprovedAssets": true,
-      "useAssetsInContract": false,
-      "isPublic": true,
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

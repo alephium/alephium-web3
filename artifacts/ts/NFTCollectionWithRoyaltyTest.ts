@@ -173,15 +173,6 @@ class Factory extends ContractFactory<
     return this.contract.getInitialFieldsWithDefaultValues() as NFTCollectionWithRoyaltyTestTypes.Fields;
   }
 
-  consts = {
-    ErrorCodes: {
-      IncorrectTokenIndex: BigInt("0"),
-      NFTNotFound: BigInt("1"),
-      NFTNotPartOfCollection: BigInt("2"),
-      CollectionOwnerAllowedOnly: BigInt("1"),
-    },
-  };
-
   at(address: string): NFTCollectionWithRoyaltyTestInstance {
     return new NFTCollectionWithRoyaltyTestInstance(address);
   }
@@ -270,7 +261,7 @@ export const NFTCollectionWithRoyaltyTest = new Factory(
   Contract.fromJson(
     NFTCollectionWithRoyaltyTestContractJson,
     "",
-    "919808beff802a8043d62c5ff23249f22dbfdbd2fae56264f5f108af59eb171e",
+    "3b64d5e360566a4e4f568f773536a3ea74e66d12231aa44f19d2214ba87b38d6",
     AllStructs
   )
 );

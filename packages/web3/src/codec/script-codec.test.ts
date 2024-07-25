@@ -25,7 +25,8 @@ import {
   U256Const0,
   U256Const1,
   U256Eq,
-  StoreLocal
+  StoreLocal,
+  CallExternalBySelector
 } from './instr-codec'
 import { Script, bs58, web3, Fields, FieldsSig, buildScriptByteCode, hexToBinUnsafe, binToHex } from '@alephium/web3'
 import { randomContractId, testAddress } from '@alephium/web3-test'
@@ -209,7 +210,7 @@ describe('Encode & decode scripts', function () {
           U256Const0,
           U256Const1,
           LoadLocal(1),
-          CallExternal(0),
+          CallExternalBySelector(-1792051845),
           U256Const1,
           U256Eq,
           U256Const0,
