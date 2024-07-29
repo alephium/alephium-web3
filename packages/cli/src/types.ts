@@ -135,6 +135,11 @@ export interface Deployer {
     taskTag?: string
   ): Promise<DeployContractResult<T>>
 
+  deployTemplate<T extends ContractInstance, P extends Fields>(
+    constractFactory: ContractFactory<T, P>,
+    taskTag?: string
+  ): Promise<DeployContractResult<T>>
+
   runScript<P extends Fields>(
     executableScript: ExecutableScript<P>,
     params: ExecuteScriptParams<P>,

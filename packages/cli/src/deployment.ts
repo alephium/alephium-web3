@@ -359,7 +359,7 @@ function createDeployer<Settings = unknown>(
   const deployedContracts: string[] = []
   const executedScripts: string[] = []
 
-  const deployContract = async <T extends ContractInstance, P extends Fields>(
+  const deployContractInner = async <T extends ContractInstance, P extends Fields>(
     contractFactory: ContractFactory<T, P>,
     params: DeployContractParams<P>,
     taskTag?: string
@@ -414,6 +414,24 @@ function createDeployer<Settings = unknown>(
     }
     deployContractResults.set(taskId, result)
     return deployResult
+  }
+
+  const deployContract = async <T extends ContractInstance, P extends Fields>(
+    contractFactory: ContractFactory<T, P>,
+    params: DeployContractParams<P>,
+    taskTag?: string
+  ): Promise<DeployContractResult<T>> => {
+    return deployContractInner(contractFactory, params, taskTag)
+  }
+
+  const deployTemplate = async <T extends ContractInstance, P extends Fields>(
+    contractFactory: ContractFactory<T, P>,
+    taskTag?: string
+  ): Promise<DeployContractResult<T>> => {
+    const params: DeployContractParams<P> = {
+      initialFields: contractFactory.contract.getInitialFieldsWithDefaultValues() as P
+    }
+    return deployContractInner(contractFactory, params, taskTag)
   }
 
   const runScript = async <P extends Fields>(
@@ -490,6 +508,7 @@ function createDeployer<Settings = unknown>(
     provider: web3.getCurrentNodeProvider(),
     account: account,
     deployContract: deployContract,
+    deployTemplate: deployTemplate,
     runScript: runScript,
     getDeployContractResult: getDeployContractResult,
     getRunScriptResult: getRunScriptResult,

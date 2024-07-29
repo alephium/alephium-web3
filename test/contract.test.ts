@@ -37,7 +37,9 @@ import {
   encodePrimitiveValues,
   addressVal,
   byteVecVal,
-  u256Val
+  u256Val,
+  ZERO_ADDRESS,
+  MINIMAL_CONTRACT_DEPOSIT
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
@@ -735,5 +737,34 @@ describe('contract', function () {
         ]
       }
     ])
+  })
+
+  it('should deploy contract template', async () => {
+    const signer = await getSigner()
+    const template0 = await Assert.deployTemplate(signer)
+    const state0 = await template0.contractInstance.fetchState()
+    expect(state0['fields']).toEqual({})
+    expect(BigInt(state0.asset.alphAmount)).toEqual(MINIMAL_CONTRACT_DEPOSIT)
+
+    const template1 = await Add.deployTemplate(signer)
+    const state1 = await template1.contractInstance.fetchState()
+    expect(state1.fields).toEqual({ sub: '', result: 0n })
+    expect(BigInt(state1.asset.alphAmount)).toEqual(MINIMAL_CONTRACT_DEPOSIT)
+
+    const template2 = await UserAccount.deployTemplate(signer)
+    const state2 = await template2.contractInstance.fetchState()
+    expect(state2.fields).toEqual({
+      id: '',
+      address: ZERO_ADDRESS,
+      balances: {
+        totalAmount: 0n,
+        tokens: [
+          { tokenId: '', amount: 0n },
+          { tokenId: '', amount: 0n }
+        ]
+      },
+      name: ''
+    })
+    expect(BigInt(state2.asset.alphAmount)).toEqual(MINIMAL_CONTRACT_DEPOSIT)
   })
 })
