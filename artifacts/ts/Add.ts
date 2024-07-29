@@ -161,10 +161,6 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as AddTypes.Fields;
-  }
-
   eventIndex = { Add: 0, Add1: 1, Empty: 2 };
 
   at(address: string): AddInstance {

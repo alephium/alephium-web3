@@ -307,18 +307,6 @@ function genEncodeFieldsFunc(contract: Contract): string {
   `
 }
 
-function genGetInitialFieldsWithDefaultValues(contract: Contract): string {
-  const fieldsSig = getContractFields(contract)
-  if (fieldsSig.names.length === 0) {
-    return ''
-  }
-  return `
-    getInitialFieldsWithDefaultValues() {
-      return this.contract.getInitialFieldsWithDefaultValues() as ${contract.name}Types.Fields
-    }
-  `
-}
-
 function genContractStateType(contract: Contract): string {
   if (contract.fieldsSig.names.length === 0) {
     return `export type State = Omit<ContractState<any>, 'fields'>`
@@ -526,7 +514,6 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
 
     class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
       ${genEncodeFieldsFunc(contract)}
-      ${genGetInitialFieldsWithDefaultValues(contract)}
       ${genEventIndex(contract)}
       ${genLocalConsts(contract)}
       ${genAttach(getInstanceName(contract))}

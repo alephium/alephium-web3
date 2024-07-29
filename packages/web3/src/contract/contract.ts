@@ -1010,6 +1010,12 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
     }
   }
 
+  async deployTemplate(signer: SignerProvider): Promise<DeployContractResult<I>> {
+    return this.deploy(signer, {
+      initialFields: this.contract.getInitialFieldsWithDefaultValues() as F
+    })
+  }
+
   // This is used for testing contract functions
   stateForTest(initFields: F, asset?: Asset, address?: string): ContractState<F> {
     const newAsset = {

@@ -169,10 +169,6 @@ class Factory extends ContractFactory<
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as NFTCollectionWithRoyaltyTestTypes.Fields;
-  }
-
   at(address: string): NFTCollectionWithRoyaltyTestInstance {
     return new NFTCollectionWithRoyaltyTestInstance(address);
   }

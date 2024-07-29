@@ -107,10 +107,6 @@ class Factory extends ContractFactory<
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as WrongNFTTestTypes.Fields;
-  }
-
   at(address: string): WrongNFTTestInstance {
     return new WrongNFTTestInstance(address);
   }
