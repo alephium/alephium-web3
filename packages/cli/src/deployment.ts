@@ -424,7 +424,7 @@ function createDeployer<Settings = unknown>(
     return deployContractInner(contractFactory, params, taskTag)
   }
 
-  const deployTemplate = async <T extends ContractInstance, P extends Fields>(
+  const deployContractTemplate = async <T extends ContractInstance, P extends Fields>(
     contractFactory: ContractFactory<T, P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>> => {
@@ -508,7 +508,7 @@ function createDeployer<Settings = unknown>(
     provider: web3.getCurrentNodeProvider(),
     account: account,
     deployContract: deployContract,
-    deployTemplate: deployTemplate,
+    deployContractTemplate: deployContractTemplate,
     runScript: runScript,
     getDeployContractResult: getDeployContractResult,
     getRunScriptResult: getRunScriptResult,

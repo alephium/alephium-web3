@@ -135,7 +135,7 @@ export interface Deployer {
     taskTag?: string
   ): Promise<DeployContractResult<T>>
 
-  deployTemplate<T extends ContractInstance, P extends Fields>(
+  deployContractTemplate<T extends ContractInstance, P extends Fields>(
     constractFactory: ContractFactory<T, P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>>
