@@ -106,10 +106,6 @@ class Factory extends ContractFactory<
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as DeprecatedNFTTest3Types.Fields;
-  }
-
   at(address: string): DeprecatedNFTTest3Instance {
     return new DeprecatedNFTTest3Instance(address);
   }

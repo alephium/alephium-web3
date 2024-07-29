@@ -129,10 +129,6 @@ class Factory extends ContractFactory<
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as FakeTokenTestTypes.Fields;
-  }
-
   at(address: string): FakeTokenTestInstance {
     return new FakeTokenTestInstance(address);
   }

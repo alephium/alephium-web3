@@ -97,10 +97,6 @@ class Factory extends ContractFactory<
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as OwnerOnlyTypes.Fields;
-  }
-
   at(address: string): OwnerOnlyInstance {
     return new OwnerOnlyInstance(address);
   }

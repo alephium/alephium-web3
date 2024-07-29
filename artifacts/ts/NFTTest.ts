@@ -104,10 +104,6 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as NFTTestTypes.Fields;
-  }
-
   at(address: string): NFTTestInstance {
     return new NFTTestInstance(address);
   }

@@ -132,10 +132,6 @@ class Factory extends ContractFactory<
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as TokenTestStdTypes.Fields;
-  }
-
   at(address: string): TokenTestStdInstance {
     return new TokenTestStdInstance(address);
   }

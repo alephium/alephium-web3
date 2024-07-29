@@ -118,10 +118,6 @@ class Factory extends ContractFactory<
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as UserAccountTypes.Fields;
-  }
-
   at(address: string): UserAccountInstance {
     return new UserAccountInstance(address);
   }

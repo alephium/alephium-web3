@@ -102,10 +102,6 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     );
   }
 
-  getInitialFieldsWithDefaultValues() {
-    return this.contract.getInitialFieldsWithDefaultValues() as GreeterTypes.Fields;
-  }
-
   at(address: string): GreeterInstance {
     return new GreeterInstance(address);
   }

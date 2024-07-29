@@ -44,7 +44,7 @@ import {
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { Greeter } from '../artifacts/ts/Greeter'
+import { Greeter, GreeterTypes } from '../artifacts/ts/Greeter'
 import {
   GreeterMain,
   InsertIntoMap,
@@ -191,7 +191,7 @@ describe('contract', function () {
   })
 
   it('should test contract (2)', async () => {
-    const initialFields = Greeter.getInitialFieldsWithDefaultValues()
+    const initialFields = Greeter.contract.getInitialFieldsWithDefaultValues() as GreeterTypes.Fields
     const testResult = await Greeter.tests.greet({ initialFields: { ...initialFields, btcPrice: 1n } })
     expect(testResult.returns).toEqual(1n)
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
@@ -233,16 +233,6 @@ describe('contract', function () {
     expect(event.fields.address).toEqual(addressFromContractId(expectedSubContractId))
     expect(event.fields.parentAddress).toEqual(addAddress)
     expect(event.fields.stdInterfaceIdGuessed).toEqual(undefined)
-  })
-
-  it('should deploy contract with default initial values', async () => {
-    const initialFields = Greeter.getInitialFieldsWithDefaultValues()
-    const result = await Greeter.deploy(signer, { initialFields })
-    const state = await result.contractInstance.fetchState()
-    expect(state.fields).toEqual(initialFields)
-
-    const tokenInitialFields = TokenTest.getInitialFieldsWithDefaultValues()
-    expect(tokenInitialFields).toEqual({ symbol: '', name: '', decimals: 0n, totalSupply: 0n })
   })
 
   function loadJson(fileName: string) {
@@ -440,14 +430,16 @@ describe('contract', function () {
 
   it('should test struct', async () => {
     const initialFields = {
-      ...UserAccount.getInitialFieldsWithDefaultValues(),
+      id: '',
+      address: ZERO_ADDRESS,
       balances: {
         totalAmount: 0n,
         tokens: [
           { tokenId: '0011', amount: 0n },
           { tokenId: '0022', amount: 0n }
         ] as [TokenBalance, TokenBalance]
-      }
+      },
+      name: ''
     }
     const result = await UserAccount.deploy(signer, { initialFields })
     const state = await result.contractInstance.fetchState()
@@ -712,14 +704,16 @@ describe('contract', function () {
     expect(callResult0.returns.balance).toEqual(10n)
 
     const initialFields = {
-      ...UserAccount.getInitialFieldsWithDefaultValues(),
+      id: '',
+      address: ZERO_ADDRESS,
       balances: {
         totalAmount: 0n,
         tokens: [
           { tokenId: '0011', amount: 0n },
           { tokenId: '0022', amount: 0n }
         ] as [TokenBalance, TokenBalance]
-      }
+      },
+      name: ''
     }
     const result1 = await UserAccount.deploy(signer, { initialFields })
     const userAccount = result1.contractInstance
