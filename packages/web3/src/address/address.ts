@@ -22,7 +22,7 @@ import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import blake from 'blakejs'
 import bs58 from '../utils/bs58'
 import djb2 from '../utils/djb2'
-import { binToHex, concatBytes, hexToBinUnsafe } from '../utils'
+import { binToHex, concatBytes, hexToBinUnsafe, isHexString } from '../utils'
 import { KeyType } from '../signer'
 import { MultiSig, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { compactSignedIntCodec } from '../codec'
@@ -210,6 +210,12 @@ export function contractIdFromTx(txId: string, outputIndex: number): string {
 export function subContractId(parentContractId: string, pathInHex: string, group: number): string {
   if (group < 0 || group >= TOTAL_NUMBER_OF_GROUPS) {
     throw new Error(`Invalid group ${group}`)
+  }
+  if (!isHexString(parentContractId)) {
+    throw new Error(`Invalid parent contract ID: ${parentContractId}, expected hex string`)
+  }
+  if (!isHexString(pathInHex)) {
+    throw new Error(`Invalid path: ${pathInHex}, expected hex string`)
   }
   const data = concatBytes([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
   const bytes = new Uint8Array([

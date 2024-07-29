@@ -1687,10 +1687,10 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 ): Promise<SignExecuteScriptTxResult> {
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const functionSig = contract.contract.functions[methodIndex]
-  const usePreapprovedAssets = contract.contract.decodedMethods[methodIndex].usePreapprovedAssets
+  const methodUsePreapprovedAssets = contract.contract.decodedMethods[methodIndex].usePreapprovedAssets
   const bytecodeTemplate = getBytecodeTemplate(
     methodIndex,
-    usePreapprovedAssets,
+    methodUsePreapprovedAssets,
     functionSig,
     contract.contract.structs,
     params.attoAlphAmount,
@@ -1722,7 +1722,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 
 function getBytecodeTemplate(
   methodIndex: number,
-  usePreapprovedAssets: boolean,
+  methodUsePreapprovedAssets: boolean,
   functionSig: FunctionSig,
   structs: Struct[],
   attoAlphAmount?: Number256,
@@ -1731,14 +1731,15 @@ function getBytecodeTemplate(
   // For the default TxScript main function
   const numberOfMethods = '01'
   const isPublic = '01'
-  const modifier = usePreapprovedAssets ? '03' : '00'
+  const scriptUseApprovedAssets = attoAlphAmount !== undefined || tokens !== undefined
+  const modifier = scriptUseApprovedAssets ? '03' : '00'
   const argsLength = '00'
   const returnsLength = '00'
 
   const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
 
-  const approveAlphInstrs: string[] = getApproveAlphInstrs(usePreapprovedAssets ? attoAlphAmount : undefined)
-  const approveTokensInstrs: string[] = getApproveTokensInstrs(usePreapprovedAssets ? tokens : undefined)
+  const approveAlphInstrs: string[] = getApproveAlphInstrs(methodUsePreapprovedAssets ? attoAlphAmount : undefined)
+  const approveTokensInstrs: string[] = getApproveTokensInstrs(methodUsePreapprovedAssets ? tokens : undefined)
   const callerInstrs: string[] = getCallAddressInstrs(approveAlphInstrs.length / 2 + approveTokensInstrs.length / 3)
 
   // First template var is the contract

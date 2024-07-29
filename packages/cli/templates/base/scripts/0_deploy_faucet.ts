@@ -1,6 +1,7 @@
 import { Deployer, DeployFunction, Network } from '@alephium/cli'
 import { Settings } from '../alephium.config'
 import { TokenFaucet } from '../artifacts/ts'
+import { stringToHex } from '@alephium/web3'
 
 // This deploy function will be called by cli deployment tool automatically
 // Note that deployment scripts should prefixed with numbers (starting from 0)
@@ -15,8 +16,8 @@ const deployFaucet: DeployFunction<Settings> = async (
     issueTokenAmount: issueTokenAmount,
     // The initial states of the faucet contract
     initialFields: {
-      symbol: Buffer.from('TF', 'utf8').toString('hex'),
-      name: Buffer.from('TokenFaucet', 'utf8').toString('hex'),
+      symbol: stringToHex('TF'),
+      name: stringToHex('TokenFaucet'),
       decimals: 18n,
       supply: issueTokenAmount,
       balance: issueTokenAmount

@@ -166,6 +166,8 @@ describe('address', function () {
     const pathInHex = '4f51cd1f0af97cf5ec9c7a3397eaeea549d55a93c216e54f2ab4a8cf29f6f865'
     expect(() => subContractId(parentContractId, pathInHex, -1)).toThrow('Invalid group -1')
     expect(() => subContractId(parentContractId, pathInHex, 4)).toThrow('Invalid group 4')
+    expect(() => subContractId('&&', pathInHex, 0)).toThrow(`Invalid parent contract ID: &&, expected hex string`)
+    expect(() => subContractId(parentContractId, '&&', 0)).toThrow(`Invalid path: &&, expected hex string`)
     expect(subContractId(parentContractId, pathInHex, 0)).toBe(
       '0e28f15ca290002c31d691aa008aa56ac12356b0380efb6c88fff929b6a26800'
     )
