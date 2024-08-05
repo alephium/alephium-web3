@@ -7,7 +7,7 @@ Contract MetaData() {
 
     @using(preapprovedAssets = false, assetsInContract = true)
     fn bar() -> () {
-        transferTokenToSelf!(selfAddress!(), ALPH, 1 alph)
+        transferTokenFromSelf!(callerAddress!(), ALPH, 1 alph)
         return
     }
 

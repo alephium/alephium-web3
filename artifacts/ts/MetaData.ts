@@ -138,7 +138,7 @@ export const MetaData = new Factory(
   Contract.fromJson(
     MetaDataContractJson,
     "",
-    "af0b3119565ef5f833f7b3514005a6b00ac9957d5a7779765edfc6e6ce6321c5",
+    "5b113459525557465f1cc5aeee453dfd5823d1a6094372cee6067f7466b40896",
     AllStructs
   )
 );

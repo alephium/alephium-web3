@@ -1,12 +1,13 @@
 {
-  "fullNodeVersion": "v3.4.0",
+  "fullNodeVersion": "v3.5.0",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
     "ignoreUnusedFieldsWarnings": false,
     "ignoreUnusedPrivateFunctionsWarnings": false,
     "ignoreUpdateFieldsCheckWarnings": false,
-    "ignoreCheckExternalCallerWarnings": false
+    "ignoreCheckExternalCallerWarnings": false,
+    "ignoreUnusedFunctionReturnWarnings": false
   },
   "infos": {
     "Add": {
@@ -197,9 +198,9 @@
     },
     "MetaData": {
       "sourceFile": "test/metadata.ral",
-      "sourceCodeHash": "79099ed139ae980aeb7010a648998ebeaf4ee4102cb76c40addb1a0d5dd9c684",
+      "sourceCodeHash": "6fbbcd8234fe831049af733ed59feae926f8ea8e5ebd322cd6e10766a2f5c224",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "af0b3119565ef5f833f7b3514005a6b00ac9957d5a7779765edfc6e6ce6321c5"
+      "codeHashDebug": "5b113459525557465f1cc5aeee453dfd5823d1a6094372cee6067f7466b40896"
     },
     "MintNFTTest": {
       "sourceFile": "nft/mint_nft_test.ral",

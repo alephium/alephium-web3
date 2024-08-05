@@ -24,7 +24,7 @@ jobs:
           version: 9.4
       - run: |
           pushd docker
-          docker-compose up -d
+          docker compose up -d
           popd
           SECONDS=0
           sleep 5
