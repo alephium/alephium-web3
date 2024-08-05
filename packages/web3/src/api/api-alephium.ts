@@ -21,7 +21,6 @@ export interface AddressBalance {
   lockedBalance: string
   /** @format x.x ALPH */
   lockedBalanceHint: string
-  warning?: string
 }
 
 /** AddressInfo */
@@ -93,7 +92,6 @@ export interface Balance {
   lockedTokenBalances?: Token[]
   /** @format int32 */
   utxoNum: number
-  warning?: string
 }
 
 /** Balances */
@@ -527,6 +525,7 @@ export interface CompilerOptions {
   ignoreUnusedPrivateFunctionsWarnings?: boolean
   ignoreUpdateFieldsCheckWarnings?: boolean
   ignoreCheckExternalCallerWarnings?: boolean
+  ignoreUnusedFunctionReturnWarnings?: boolean
 }
 
 /** Confirmed */
@@ -1146,7 +1145,6 @@ export interface UTXO {
 /** UTXOs */
 export interface UTXOs {
   utxos: UTXO[]
-  warning?: string
 }
 
 /** Unauthorized */
@@ -1495,7 +1493,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.4.0
+ * @version 3.5.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

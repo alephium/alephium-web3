@@ -112,7 +112,8 @@ export const DEFAULT_NODE_COMPILER_OPTIONS: node.CompilerOptions = {
   ignoreUnusedFieldsWarnings: false,
   ignoreUnusedPrivateFunctionsWarnings: false,
   ignoreUpdateFieldsCheckWarnings: false,
-  ignoreCheckExternalCallerWarnings: false
+  ignoreCheckExternalCallerWarnings: false,
+  ignoreUnusedFunctionReturnWarnings: false
 }
 
 export const DEFAULT_COMPILER_OPTIONS: CompilerOptions = { errorOnWarnings: true, ...DEFAULT_NODE_COMPILER_OPTIONS }
