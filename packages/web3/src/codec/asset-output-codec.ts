@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { u256Codec } from './compact-int-codec'
 import { signedIntCodec } from './signed-int-codec'
 import { longCodec } from './long-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
@@ -28,7 +28,7 @@ import { FixedSizeCodec, ObjectCodec } from './codec'
 import { Token, tokensCodec } from './token-codec'
 
 export interface AssetOutput {
-  amount: DecodedCompactInt
+  amount: bigint
   lockupScript: LockupScript
   lockTime: Uint8Array
   tokens: Token[]
@@ -41,12 +41,12 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
   }
 
   static toFixedAssetOutput(txIdBytes: Uint8Array, output: AssetOutput, index: number): FixedAssetOutput {
-    const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
+    const attoAlphAmount = output.amount.toString()
     const lockTime = Number(longCodec.decode(output.lockTime))
     const tokens = output.tokens.map((token) => {
       return {
         id: binToHex(token.tokenId),
-        amount: compactUnsignedIntCodec.toU256(token.amount).toString()
+        amount: token.amount.toString()
       }
     })
     const message = binToHex(output.additionalData)
@@ -78,14 +78,13 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
   }
 
   static fromFixedAssetOutput(fixedOutput: FixedAssetOutput): AssetOutput {
-    const amount: DecodedCompactInt = compactUnsignedIntCodec.fromU256(BigInt(fixedOutput.attoAlphAmount))
-
+    const amount = BigInt(fixedOutput.attoAlphAmount)
     const lockTime = longCodec.encode(BigInt(fixedOutput.lockTime))
     const lockupScript: LockupScript = lockupScriptCodec.decode(bs58.decode(fixedOutput.address))
     const tokens = fixedOutput.tokens.map((token) => {
       return {
         tokenId: hexToBinUnsafe(token.id),
-        amount: compactUnsignedIntCodec.fromU256(BigInt(token.amount))
+        amount: BigInt(token.amount)
       }
     })
     const additionalData = hexToBinUnsafe(fixedOutput.message)
@@ -94,7 +93,7 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
 }
 
 export const assetOutputCodec = new AssetOutputCodec({
-  amount: compactUnsignedIntCodec,
+  amount: u256Codec,
   lockupScript: lockupScriptCodec,
   lockTime: new FixedSizeCodec(8),
   tokens: tokensCodec,

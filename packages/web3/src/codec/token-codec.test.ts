@@ -17,7 +17,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { tokenCodec } from './token-codec'
-import { compactUnsignedIntCodec } from './compact-int-codec'
 import { randomContractId } from '@alephium/web3-test'
 import { randomBytes } from 'crypto'
 import { hexToBinUnsafe } from '../utils'
@@ -30,7 +29,7 @@ describe('Encode & decode tokens', function () {
 
       const token = {
         tokenId: hexToBinUnsafe(tokenId),
-        amount: compactUnsignedIntCodec.fromU256(amount)
+        amount: amount
       }
 
       const encoded = tokenCodec.encode(token)

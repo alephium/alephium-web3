@@ -68,12 +68,12 @@ function decodeAndValidateAddress(address: string): Uint8Array {
       throw new Error(`Invalid multisig address: ${address}`)
     }
     const n = multisig.publicKeyHashes.length
-    const m = compactSignedIntCodec.toI32(multisig.m)
+    const m = multisig.m
     if (n < m || m <= 0) {
       throw new Error(`Invalid multisig address, n: ${n}, m: ${m}`)
     }
     const encodedNSize = compactSignedIntCodec.encodeI32(n).length
-    const encodedMSize = multisig.m.rest.length + 1
+    const encodedMSize = compactSignedIntCodec.encodeI32(m).length
     const size = encodedNSize + PublicKeyHashSize * n + encodedMSize + 1 // 1 for the P2MPKH prefix
     if (decoded.length === size) return decoded
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {

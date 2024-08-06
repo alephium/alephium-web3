@@ -16,17 +16,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
-import { FixedSizeCodec, ObjectCodec } from './codec'
+import { u256Codec } from './compact-int-codec'
+import { byte32Codec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
 
 export interface Token {
   tokenId: Uint8Array
-  amount: DecodedCompactInt
+  amount: bigint
 }
 
 export const tokenCodec = new ObjectCodec<Token>({
-  tokenId: new FixedSizeCodec(32),
-  amount: compactUnsignedIntCodec
+  tokenId: byte32Codec,
+  amount: u256Codec
 })
 export const tokensCodec = new ArrayCodec(tokenCodec)

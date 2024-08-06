@@ -19,7 +19,7 @@ import { UnsignedTx as ApiUnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '../utils'
 import { Script, scriptCodec, statefulScriptCodecOpt } from './script-codec'
 import { Option } from './option-codec'
-import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
+import { compactInt32Codec, u256Codec } from './compact-int-codec'
 import { Input, InputCodec, inputsCodec } from './input-codec'
 import { AssetOutput, AssetOutputCodec, assetOutputsCodec } from './asset-output-codec'
 import { blakeHash } from './hash'
@@ -29,8 +29,8 @@ export interface UnsignedTx {
   version: number
   networkId: number
   statefulScript: Option<Script>
-  gasAmount: DecodedCompactInt
-  gasPrice: DecodedCompactInt
+  gasAmount: number
+  gasPrice: bigint
   inputs: Input[]
   fixedOutputs: AssetOutput[]
 }
@@ -55,8 +55,8 @@ export class UnsignedTxCodec extends ObjectCodec<UnsignedTx> {
     const txIdBytes = hexToBinUnsafe(txId)
     const version = unsigned.version
     const networkId = unsigned.networkId
-    const gasAmount = compactSignedIntCodec.toI32(unsigned.gasAmount)
-    const gasPrice = compactUnsignedIntCodec.toU256(unsigned.gasPrice).toString()
+    const gasAmount = unsigned.gasAmount
+    const gasPrice = unsigned.gasPrice.toString()
     const inputs = InputCodec.toAssetInputs(unsigned.inputs)
     const fixedOutputs = AssetOutputCodec.toFixedAssetOutputs(txIdBytes, unsigned.fixedOutputs)
     let scriptOpt: string | undefined = undefined
@@ -70,8 +70,8 @@ export class UnsignedTxCodec extends ObjectCodec<UnsignedTx> {
   static fromApiUnsignedTx(unsignedTx: ApiUnsignedTx): UnsignedTx {
     const version = unsignedTx.version
     const networkId = unsignedTx.networkId
-    const gasAmount = compactSignedIntCodec.fromI32(unsignedTx.gasAmount)
-    const gasPrice = compactUnsignedIntCodec.fromU256(BigInt(unsignedTx.gasPrice))
+    const gasAmount = unsignedTx.gasAmount
+    const gasPrice = BigInt(unsignedTx.gasPrice)
     const inputs = InputCodec.fromAssetInputs(unsignedTx.inputs)
     const fixedOutputs = AssetOutputCodec.fromFixedAssetOutputs(unsignedTx.fixedOutputs)
     const statefulScript = statefulScriptCodecOpt.fromBytes(
@@ -86,8 +86,8 @@ export const unsignedTxCodec = new UnsignedTxCodec({
   version: byteCodec,
   networkId: byteCodec,
   statefulScript: statefulScriptCodecOpt,
-  gasAmount: compactSignedIntCodec,
-  gasPrice: compactUnsignedIntCodec,
+  gasAmount: compactInt32Codec,
+  gasPrice: u256Codec,
   inputs: inputsCodec,
   fixedOutputs: assetOutputsCodec
 })

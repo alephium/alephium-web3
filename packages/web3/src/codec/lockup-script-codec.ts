@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
+import { compactInt32Codec } from './compact-int-codec'
 import { byte32Codec, EnumCodec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
 
@@ -28,12 +28,12 @@ export const p2cCodec = byte32Codec
 
 export interface P2MPKH {
   publicKeyHashes: PublicKeyHash[]
-  m: DecodedCompactInt
+  m: number
 }
 
 const p2mpkhCodec = new ObjectCodec<P2MPKH>({
   publicKeyHashes: new ArrayCodec(byte32Codec),
-  m: compactSignedIntCodec
+  m: compactInt32Codec
 })
 
 export type LockupScript =

@@ -130,6 +130,10 @@ export class CompactUnsignedIntCodec extends Codec<DecodedCompactInt> {
 }
 
 export const compactUnsignedIntCodec = new CompactUnsignedIntCodec()
+export const u256Codec = compactUnsignedIntCodec.bimap<bigint>(
+  (v) => compactUnsignedIntCodec.toU256(v),
+  (v) => compactUnsignedIntCodec.fromU256(v)
+)
 
 export class CompactSignedIntCodec extends Codec<DecodedCompactInt> {
   private signFlag = 0x20 // 0b00100000
@@ -254,6 +258,10 @@ export const compactSignedIntCodec = new CompactSignedIntCodec()
 export const compactInt32Codec = compactSignedIntCodec.bimap<number>(
   (v) => compactSignedIntCodec.toI32(v),
   (v) => compactSignedIntCodec.fromI32(v)
+)
+export const i256Codec = compactSignedIntCodec.bimap<bigint>(
+  (v) => compactSignedIntCodec.toI256(v),
+  (v) => compactSignedIntCodec.fromI256(v)
 )
 
 function decodePositiveInt(rawMode: number, body: Uint8Array): number {

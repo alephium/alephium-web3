@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
+import { compactInt32Codec, i256Codec, u256Codec } from './compact-int-codec'
 import { boolCodec, Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
 import { Script, scriptCodec } from './script-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
@@ -24,15 +24,15 @@ import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 
 export type Val =
   | { type: 'Bool'; value: boolean }
-  | { type: 'I256'; value: DecodedCompactInt }
-  | { type: 'U256'; value: DecodedCompactInt }
+  | { type: 'I256'; value: bigint }
+  | { type: 'U256'; value: bigint }
   | { type: 'ByteVec'; value: ByteString }
   | { type: 'Address'; value: LockupScript }
 
 const valCodec = new EnumCodec<Val>('val', {
   Bool: boolCodec,
-  I256: compactSignedIntCodec,
-  U256: compactUnsignedIntCodec,
+  I256: i256Codec,
+  U256: u256Codec,
   ByteVec: byteStringCodec,
   Address: lockupScriptCodec
 })
@@ -41,7 +41,7 @@ const valsCodec = new ArrayCodec(valCodec)
 export type P2PKH = Uint8Array
 export interface KeyWithIndex {
   publicKey: P2PKH
-  index: DecodedCompactInt
+  index: number
 }
 export type P2MPKH = KeyWithIndex[]
 export interface P2SH {
@@ -59,7 +59,7 @@ export type UnlockScript =
 const p2pkhCodec = new FixedSizeCodec(33)
 const keyWithIndexCodec = new ObjectCodec<KeyWithIndex>({
   publicKey: p2pkhCodec,
-  index: compactSignedIntCodec
+  index: compactInt32Codec
 })
 const p2mpkhCodec: Codec<P2MPKH> = new ArrayCodec(keyWithIndexCodec)
 const p2shCodec = new ObjectCodec<P2SH>({
