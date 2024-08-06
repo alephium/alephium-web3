@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { ArrayCodec } from './array-codec'
 import { Codec } from './codec'
 import { compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
-import { Method, MethodCodec, methodCodec } from './method-codec'
+import { Method, methodCodec } from './method-codec'
 import { concatBytes } from '../utils'
 import { Reader } from './reader'
 
@@ -59,7 +59,7 @@ export class ContractCodec extends Codec<HalfDecodedContract> {
     const methods: Method[] = []
     for (let i = 0, start = 0; i < methodIndexes.length; i++) {
       const end = methodIndexes[i]
-      const method = MethodCodec.toMethod(methodCodec.decode(halfDecoded.methods.slice(start, end)))
+      const method = methodCodec.decode(halfDecoded.methods.slice(start, end))
       methods.push(method)
       start = end
     }
@@ -69,7 +69,7 @@ export class ContractCodec extends Codec<HalfDecodedContract> {
 
   encodeContract(contract: Contract): Uint8Array {
     const fieldLength = compactSignedIntCodec.fromI32(contract.fieldLength)
-    const methods = contract.methods.map((m) => methodCodec.encode(MethodCodec.fromMethod(m)))
+    const methods = contract.methods.map((m) => methodCodec.encode(m))
     let count = 0
     const methodIndexes = Array.from(Array(methods.length).keys()).map((index) => {
       count += methods[`${index}`].length

@@ -251,6 +251,10 @@ export class CompactSignedIntCodec extends Codec<DecodedCompactInt> {
 }
 
 export const compactSignedIntCodec = new CompactSignedIntCodec()
+export const compactInt32Codec = compactSignedIntCodec.bimap<number>(
+  (v) => compactSignedIntCodec.toI32(v),
+  (v) => compactSignedIntCodec.fromI32(v)
+)
 
 function decodePositiveInt(rawMode: number, body: Uint8Array): number {
   const mode = rawMode & maskRest

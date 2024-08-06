@@ -17,11 +17,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
-import { Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
-import { DecodedScript, scriptCodec } from './script-codec'
+import { boolCodec, Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
+import { Script, scriptCodec } from './script-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
-import { Reader } from './reader'
 
 export type Val =
   | { type: 'Bool'; value: boolean }
@@ -29,22 +28,6 @@ export type Val =
   | { type: 'U256'; value: DecodedCompactInt }
   | { type: 'ByteVec'; value: ByteString }
   | { type: 'Address'; value: LockupScript }
-
-const boolCodec = new (class extends Codec<boolean> {
-  encode(input: boolean): Uint8Array {
-    return new Uint8Array([input ? 1 : 0])
-  }
-  _decode(input: Reader): boolean {
-    const byte = input.consumeByte()
-    if (byte === 1) {
-      return true
-    } else if (byte === 0) {
-      return false
-    } else {
-      throw new Error(`Invalid encoded bool value ${byte}, expected 0 or 1`)
-    }
-  }
-})()
 
 const valCodec = new EnumCodec<Val>('val', {
   Bool: boolCodec,
@@ -62,7 +45,7 @@ export interface KeyWithIndex {
 }
 export type P2MPKH = KeyWithIndex[]
 export interface P2SH {
-  script: DecodedScript
+  script: Script
   params: Val[]
 }
 export type SameAsPrevious = 'SameAsPrevious'

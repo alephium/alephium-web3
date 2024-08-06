@@ -230,9 +230,9 @@ describe('Encode & decode scripts', function () {
 
   function testScript(script: Script, fields: Fields, methods: Method[]) {
     const txScriptBytecode = script.buildByteCodeToDeploy(fields)
-    const decodedTxScript = scriptCodec.decodeScript(hexToBinUnsafe(txScriptBytecode))
+    const decodedTxScript = scriptCodec.decode(hexToBinUnsafe(txScriptBytecode))
 
-    expect(binToHex(scriptCodec.encodeScript(decodedTxScript))).toEqual(txScriptBytecode)
+    expect(binToHex(scriptCodec.encode(decodedTxScript))).toEqual(txScriptBytecode)
 
     expect(decodedTxScript.methods.length).toEqual(methods.length)
     decodedTxScript.methods.map((decodedMethod, index) => {

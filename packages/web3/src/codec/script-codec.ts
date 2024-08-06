@@ -17,36 +17,21 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Codec } from './codec'
-import { DecodedMethod, methodsCodec, Method, MethodCodec } from './method-codec'
+import { methodsCodec, Method } from './method-codec'
 import { OptionCodec } from './option-codec'
 import { Reader } from './reader'
-
-export interface DecodedScript {
-  methods: DecodedMethod[]
-}
 
 export interface Script {
   methods: Method[]
 }
 
-export class ScriptCodec extends Codec<DecodedScript> {
-  encode(input: DecodedScript): Uint8Array {
+export class ScriptCodec extends Codec<Script> {
+  encode(input: Script): Uint8Array {
     return methodsCodec.encode(input.methods)
   }
 
-  _decode(input: Reader): DecodedScript {
+  _decode(input: Reader): Script {
     return { methods: methodsCodec._decode(input) }
-  }
-
-  decodeScript(input: Uint8Array): Script {
-    const decodedTxScript = this.decode(input)
-    const methods = decodedTxScript.methods.map((decodedMethod) => MethodCodec.toMethod(decodedMethod))
-    return { methods }
-  }
-
-  encodeScript(inputTxScript: Script): Uint8Array {
-    const methods = inputTxScript.methods.map((method) => MethodCodec.fromMethod(method))
-    return this.encode({ methods })
   }
 }
 

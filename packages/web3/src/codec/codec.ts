@@ -27,6 +27,21 @@ export abstract class Codec<T> {
   }
 
   abstract _decode(input: Reader): T
+
+  bimap<R>(from: (v: T) => R, to: (v: R) => T): Codec<R> {
+    return new (class extends Codec<R> {
+      constructor(private readonly codecT: Codec<T>) {
+        super()
+      }
+
+      encode(input: R): Uint8Array {
+        return this.codecT.encode(to(input))
+      }
+      _decode(input: Reader): R {
+        return from(this.codecT._decode(input))
+      }
+    })(this)
+  }
 }
 
 export function assert(value: boolean, message: string) {
@@ -106,14 +121,28 @@ export class EnumCodec<T extends { type: ExtractType<T>; value: ExtractValue<T, 
   }
 }
 
-export class ByteCodec extends Codec<number> {
+export const byte32Codec = new FixedSizeCodec(32)
+export const byteCodec = new (class extends Codec<number> {
   encode(input: number): Uint8Array {
     return new Uint8Array([input])
   }
   _decode(input: Reader): number {
     return input.consumeByte()
   }
-}
+})()
 
-export const byte32Codec = new FixedSizeCodec(32)
-export const byteCodec = new ByteCodec()
+export const boolCodec = new (class extends Codec<boolean> {
+  encode(input: boolean): Uint8Array {
+    return new Uint8Array([input ? 1 : 0])
+  }
+  _decode(input: Reader): boolean {
+    const byte = input.consumeByte()
+    if (byte === 1) {
+      return true
+    } else if (byte === 0) {
+      return false
+    } else {
+      throw new Error(`Invalid encoded bool value ${byte}, expected 0 or 1`)
+    }
+  }
+})()
