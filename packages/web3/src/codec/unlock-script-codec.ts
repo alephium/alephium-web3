@@ -16,27 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
-import { compactInt32Codec, i256Codec, u256Codec } from './compact-int-codec'
-import { boolCodec, Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
+import { compactInt32Codec } from './compact-int-codec'
+import { Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
 import { Script, scriptCodec } from './script-codec'
-import { ByteString, byteStringCodec } from './bytestring-codec'
-import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
-
-export type Val =
-  | { type: 'Bool'; value: boolean }
-  | { type: 'I256'; value: bigint }
-  | { type: 'U256'; value: bigint }
-  | { type: 'ByteVec'; value: ByteString }
-  | { type: 'Address'; value: LockupScript }
-
-const valCodec = new EnumCodec<Val>('val', {
-  Bool: boolCodec,
-  I256: i256Codec,
-  U256: u256Codec,
-  ByteVec: byteStringCodec,
-  Address: lockupScriptCodec
-})
-const valsCodec = new ArrayCodec(valCodec)
+import { Val, valsCodec } from './val'
 
 export type P2PKH = Uint8Array
 export interface KeyWithIndex {
