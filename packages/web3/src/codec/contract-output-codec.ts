@@ -48,7 +48,7 @@ export class ContractOutputCodec extends ObjectCodec<ContractOutput> {
 
   static convertToOutput(apiContractOutput: ApiContractOutput): ContractOutput {
     const amount: DecodedCompactInt = compactUnsignedIntCodec.fromU256(BigInt(apiContractOutput.attoAlphAmount))
-    const lockupScript: P2C = lockupScriptCodec.decode(bs58.decode(apiContractOutput.address)).script as P2C
+    const lockupScript: P2C = lockupScriptCodec.decode(bs58.decode(apiContractOutput.address)).value as P2C
 
     const tokens = apiContractOutput.tokens.map((token) => {
       return {

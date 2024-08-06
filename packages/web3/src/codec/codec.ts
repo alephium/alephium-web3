@@ -75,6 +75,37 @@ export class ObjectCodec<T> extends Codec<T> {
   }
 }
 
+type ExtractType<T> = T extends { type: infer U extends string } ? U : never
+type ExtractValue<T, K> = T extends { type: K; value: infer V } ? V : never
+
+export class EnumCodec<T extends { type: ExtractType<T>; value: ExtractValue<T, ExtractType<T>> }> extends Codec<T> {
+  private types: ExtractType<T>[]
+
+  constructor(private name: string, private codecs: { [K in ExtractType<T>]: Codec<ExtractValue<T, K>> }) {
+    super()
+    this.types = Object.keys(codecs) as ExtractType<T>[]
+  }
+
+  encode(value: T): Uint8Array {
+    const index = this.types.findIndex((t) => t === value.type)
+    if (index === -1) {
+      throw new Error(`Invalid ${this.name} type ${value.type}, expected one of ${this.types}`)
+    }
+    const codec = this.codecs[value.type]
+    return new Uint8Array([index, ...codec.encode(value.value)])
+  }
+
+  _decode(input: Reader): T {
+    const index = input.consumeByte()
+    if (index >= 0 && index < this.types.length) {
+      const type = this.types[`${index}`]
+      const codec = this.codecs[type as ExtractType<T>]
+      return { type, value: codec._decode(input) } as T
+    }
+    throw new Error(`Invalid encoded ${this.name} type: ${index}`)
+  }
+}
+
 export class ByteCodec extends Codec<number> {
   encode(input: number): Uint8Array {
     return new Uint8Array([input])

@@ -17,11 +17,43 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
-import { Codec, FixedSizeCodec, ObjectCodec } from './codec'
+import { Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
 import { DecodedScript, scriptCodec } from './script-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { Reader } from './reader'
+
+export type Val =
+  | { type: 'Bool'; value: boolean }
+  | { type: 'I256'; value: DecodedCompactInt }
+  | { type: 'U256'; value: DecodedCompactInt }
+  | { type: 'ByteVec'; value: ByteString }
+  | { type: 'Address'; value: LockupScript }
+
+const boolCodec = new (class extends Codec<boolean> {
+  encode(input: boolean): Uint8Array {
+    return new Uint8Array([input ? 1 : 0])
+  }
+  _decode(input: Reader): boolean {
+    const byte = input.consumeByte()
+    if (byte === 1) {
+      return true
+    } else if (byte === 0) {
+      return false
+    } else {
+      throw new Error(`Invalid encoded bool value ${byte}, expected 0 or 1`)
+    }
+  }
+})()
+
+const valCodec = new EnumCodec<Val>('val', {
+  Bool: boolCodec,
+  I256: compactSignedIntCodec,
+  U256: compactUnsignedIntCodec,
+  ByteVec: byteStringCodec,
+  Address: lockupScriptCodec
+})
+const valsCodec = new ArrayCodec(valCodec)
 
 export type P2PKH = Uint8Array
 export interface KeyWithIndex {
@@ -29,112 +61,40 @@ export interface KeyWithIndex {
   index: DecodedCompactInt
 }
 export type P2MPKH = KeyWithIndex[]
+export interface P2SH {
+  script: DecodedScript
+  params: Val[]
+}
+export type SameAsPrevious = 'SameAsPrevious'
+
+export type UnlockScript =
+  | { type: 'P2PKH'; value: P2PKH }
+  | { type: 'P2MPKH'; value: P2MPKH }
+  | { type: 'P2SH'; value: P2SH }
+  | { type: 'SameAsPrevious'; value: SameAsPrevious }
 
 const p2pkhCodec = new FixedSizeCodec(33)
 const keyWithIndexCodec = new ObjectCodec<KeyWithIndex>({
   publicKey: p2pkhCodec,
   index: compactSignedIntCodec
 })
-
 const p2mpkhCodec: Codec<P2MPKH> = new ArrayCodec(keyWithIndexCodec)
-
-export interface Val {
-  type: number
-  val: number | DecodedCompactInt | ByteString | LockupScript
-}
-class ValCodec extends Codec<Val> {
-  encode(input: Val): Uint8Array {
-    const valType = input.type
-
-    switch (valType) {
-      case 0x00: // Boolean
-        return new Uint8Array([valType, input.val as number])
-      case 0x01: // I256
-        return new Uint8Array([valType, ...compactSignedIntCodec.encode(input.val as DecodedCompactInt)])
-      case 0x02: // U256
-        return new Uint8Array([valType, ...compactUnsignedIntCodec.encode(input.val as DecodedCompactInt)])
-      case 0x03: // ByteVec
-        return new Uint8Array([valType, ...byteStringCodec.encode(input.val as ByteString)])
-      case 0x04: // Address
-        return new Uint8Array([valType, ...lockupScriptCodec.encode(input.val as LockupScript)])
-      default:
-        throw new Error(`ValCodec: unsupported val type: ${valType}`)
-    }
-  }
-
-  _decode(input: Reader): Val {
-    const type = input.consumeByte()
-    switch (type) {
-      case 0x00: // Boolean
-        return { type, val: input.consumeByte() }
-      case 0x01: // I256
-        return { type, val: compactSignedIntCodec._decode(input) }
-      case 0x02: // U256
-        return { type, val: compactUnsignedIntCodec._decode(input) }
-      case 0x03: // ByteVec
-        return { type, val: byteStringCodec._decode(input) }
-      case 0x04: // Address
-        return { type, val: lockupScriptCodec._decode(input) }
-      default:
-        throw new Error(`ValCodec: unsupported val type: ${type}`)
-    }
-  }
-}
-
-const valCodec = new ValCodec()
-const valsCodec = new ArrayCodec(valCodec)
-
-export interface P2SH {
-  script: DecodedScript
-  params: Val[]
-}
-
 const p2shCodec = new ObjectCodec<P2SH>({
   script: scriptCodec,
   params: valsCodec
 })
-
-export type SameAsPrevious = 'SameAsPrevious'
-
-export interface UnlockScript {
-  scriptType: number
-  script: P2PKH | P2MPKH | P2SH | SameAsPrevious
-}
-
-export class UnlockScriptCodec extends Codec<UnlockScript> {
-  encode(input: UnlockScript): Uint8Array {
-    const scriptType = input.scriptType
-    const inputUnLockScript = input.script
-
-    switch (scriptType) {
-      case 0: // P2PKH
-        return new Uint8Array([scriptType, ...p2pkhCodec.encode(inputUnLockScript as P2PKH)])
-      case 1: // P2MPKH
-        return new Uint8Array([scriptType, ...p2mpkhCodec.encode(inputUnLockScript as P2MPKH)])
-      case 2: // P2SH
-        return new Uint8Array([scriptType, ...p2shCodec.encode(inputUnLockScript as P2SH)])
-      case 3: // SameAsPrevious
-        return new Uint8Array([scriptType])
-      default:
-        throw new Error(`Unsupported unlock script type: ${scriptType}`)
-    }
+const sameAsPreviousCodec = new (class extends Codec<SameAsPrevious> {
+  encode(): Uint8Array {
+    return new Uint8Array([])
   }
-
-  _decode(input: Reader): UnlockScript {
-    const scriptType = input.consumeByte()
-    switch (scriptType) {
-      case 0: // P2PKH
-        return { scriptType, script: p2pkhCodec._decode(input) }
-      case 1: // P2MPKH
-        return { scriptType, script: p2mpkhCodec._decode(input) }
-      case 2: // P2SH
-        return { scriptType, script: p2shCodec._decode(input) }
-      case 3: // SameAsPrevious
-        return { scriptType, script: 'SameAsPrevious' }
-      default:
-        throw new Error(`Unsupported unlock script type: ${scriptType}`)
-    }
+  _decode(): SameAsPrevious {
+    return 'SameAsPrevious'
   }
-}
+})()
 
-export const unlockScriptCodec = new UnlockScriptCodec()
+export const unlockScriptCodec = new EnumCodec<UnlockScript>('unlock script', {
+  P2PKH: p2pkhCodec,
+  P2MPKH: p2mpkhCodec,
+  P2SH: p2shCodec,
+  SameAsPrevious: sameAsPreviousCodec
+})

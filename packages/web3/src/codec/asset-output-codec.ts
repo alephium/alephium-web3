@@ -50,22 +50,19 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
       }
     })
     const message = binToHex(output.additionalData)
-    const scriptType = output.lockupScript.scriptType
+    const scriptType = output.lockupScript.type
     const key = binToHex(blakeHash(concatBytes([txIdBytes, signedIntCodec.encode(index)])))
-    const outputLockupScript = output.lockupScript.script
+    const outputLockupScript = output.lockupScript.value
     const address = bs58.encode(lockupScriptCodec.encode(output.lockupScript))
 
     let hint: number | undefined = undefined
-    if (scriptType === 0) {
-      // P2PKH
+    if (scriptType === 'P2PKH') {
       hint = createHint(outputLockupScript as P2PKH)
-    } else if (scriptType === 1) {
-      // P2MPKH
+    } else if (scriptType === 'P2MPKH') {
       hint = createHint((outputLockupScript as P2MPKH).publicKeyHashes[0])
-    } else if (scriptType === 2) {
-      // P2SH
+    } else if (scriptType === 'P2SH') {
       hint = createHint(outputLockupScript as P2SH)
-    } else if (scriptType === 3) {
+    } else if (scriptType === 'P2C') {
       throw new Error(`P2C script type not allowed for asset output`)
     } else {
       throw new Error(`Unexpected output script type: ${scriptType}`)

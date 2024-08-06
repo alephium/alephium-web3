@@ -161,10 +161,10 @@ describe('Encode & decode scripts', function () {
   it('should encode & decode TxScript from the project', () => {
     const contractId = randomContractId()
     const decodedTestAddress = bs58.decode(testAddress)
-    const lockupScript = {
-      scriptType: decodedTestAddress[0],
-      script: decodedTestAddress.slice(1)
-    } as LockupScript
+    const lockupScript: LockupScript = {
+      type: 'P2PKH',
+      value: decodedTestAddress.slice(1)
+    }
     const contractIdByteString = hexToBinUnsafe(contractId)
 
     testScript(DestroyAdd.script, { add: contractId, caller: testAddress }, [

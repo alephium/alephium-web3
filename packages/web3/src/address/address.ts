@@ -63,7 +63,7 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   if (addressType === AddressType.P2MPKH) {
     let multisig: P2MPKH
     try {
-      multisig = lockupScriptCodec.decode(decoded).script as P2MPKH
+      multisig = lockupScriptCodec.decode(decoded).value as P2MPKH
     } catch (_) {
       throw new Error(`Invalid multisig address: ${address}`)
     }
