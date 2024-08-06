@@ -15,24 +15,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { Codec } from './codec'
+import { Reader } from './reader'
 
 export interface Option<T> {
   option: number
   value?: T
 }
-export class OptionCodec<T> implements Codec<Option<T>> {
-  constructor(
-    private childCodec: Codec<T>,
-    public parser = new Parser().uint8('option').choice('value', {
-      tag: 'option',
-      choices: {
-        0: new Parser(),
-        1: childCodec.parser
-      }
-    })
-  ) {}
+
+export class OptionCodec<T> extends Codec<Option<T>> {
+  constructor(private childCodec: Codec<T>) {
+    super()
+  }
 
   encode(input: Option<T>): Uint8Array {
     const result = [input.option]
@@ -42,12 +36,9 @@ export class OptionCodec<T> implements Codec<Option<T>> {
     return new Uint8Array(result)
   }
 
-  decode(input: Uint8Array): Option<T> {
-    const result = this.parser.parse(input)
-    return {
-      ...result,
-      value: result.option ? this.childCodec.decode(result.value.value) : undefined
-    }
+  _decode(input: Reader): Option<T> {
+    const option = input.consumeByte()
+    return { option, value: option === 1 ? this.childCodec._decode(input) : undefined }
   }
 
   fromBytes(input?: Uint8Array): Option<T> {

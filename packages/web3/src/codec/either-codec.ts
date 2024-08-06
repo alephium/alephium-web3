@@ -15,28 +15,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { Codec } from './codec'
+import { Reader } from './reader'
 
 export interface Either<L, R> {
   either: number
   value: L | R
 }
 
-export class EitherCodec<L, R> implements Codec<Either<L, R>> {
-  constructor(
-    private leftCodec: Codec<L>,
-    private rightCodec: Codec<R>,
-    public parser = Parser.start()
-      .uint8('either')
-      .choice('value', {
-        tag: 'either',
-        choices: {
-          0: leftCodec.parser,
-          1: rightCodec.parser
-        }
-      })
-  ) {}
+export class EitherCodec<L, R> extends Codec<Either<L, R>> {
+  constructor(private leftCodec: Codec<L>, private rightCodec: Codec<R>) {
+    super()
+  }
 
   encode(input: Either<L, R>): Uint8Array {
     const result = [input.either]
@@ -48,13 +38,10 @@ export class EitherCodec<L, R> implements Codec<Either<L, R>> {
     return new Uint8Array(result)
   }
 
-  decode(input: Uint8Array): Either<L, R> {
-    const result = this.parser.parse(input)
-    return {
-      ...result,
-      value:
-        result.either === 0 ? this.leftCodec.decode(result.value.value) : this.rightCodec.decode(result.value.value)
-    }
+  _decode(input: Reader): Either<L, R> {
+    const type = input.consumeByte()
+    const value = type === 0 ? this.leftCodec._decode(input) : this.rightCodec._decode(input)
+    return { either: type, value }
   }
 
   fromLeft(left: L): Either<L, R> {

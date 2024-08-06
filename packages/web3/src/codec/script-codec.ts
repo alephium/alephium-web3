@@ -16,44 +16,37 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Parser } from 'binary-parser'
-import { DecodedArray } from './array-codec'
 import { Codec } from './codec'
 import { DecodedMethod, methodsCodec, Method, MethodCodec } from './method-codec'
 import { OptionCodec } from './option-codec'
-import { compactSignedIntCodec } from './compact-int-codec'
+import { Reader } from './reader'
 
 export interface DecodedScript {
-  methods: DecodedArray<DecodedMethod>
+  methods: DecodedMethod[]
 }
 
 export interface Script {
   methods: Method[]
 }
 
-export class ScriptCodec implements Codec<DecodedScript> {
-  parser = Parser.start().nest('methods', {
-    type: methodsCodec.parser
-  })
-
+export class ScriptCodec extends Codec<DecodedScript> {
   encode(input: DecodedScript): Uint8Array {
-    return methodsCodec.encode(input.methods.value)
+    return methodsCodec.encode(input.methods)
   }
 
-  decode(input: Uint8Array): DecodedScript {
-    return this.parser.parse(input)
+  _decode(input: Reader): DecodedScript {
+    return { methods: methodsCodec._decode(input) }
   }
 
   decodeScript(input: Uint8Array): Script {
     const decodedTxScript = this.decode(input)
-    const methods = decodedTxScript.methods.value.map((decodedMethod) => MethodCodec.toMethod(decodedMethod))
+    const methods = decodedTxScript.methods.map((decodedMethod) => MethodCodec.toMethod(decodedMethod))
     return { methods }
   }
 
   encodeScript(inputTxScript: Script): Uint8Array {
-    const methodLength = compactSignedIntCodec.fromI32(inputTxScript.methods.length)
-    const decodedMethods = inputTxScript.methods.map((method) => MethodCodec.fromMethod(method))
-    return this.encode({ methods: { value: decodedMethods, length: methodLength } })
+    const methods = inputTxScript.methods.map((method) => MethodCodec.fromMethod(method))
+    return this.encode({ methods })
   }
 }
 

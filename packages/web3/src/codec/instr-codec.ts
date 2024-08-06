@@ -15,13 +15,13 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { ArrayCodec, DecodedArray } from './array-codec'
+import { ArrayCodec } from './array-codec'
 import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
 import { signedIntCodec } from './signed-int-codec'
+import { Reader } from './reader'
 
 const byteStringArrayCodec = new ArrayCodec(byteStringCodec)
 
@@ -41,7 +41,7 @@ export interface AddressConst extends InstrValue {
   value: LockupScript
 }
 export interface Debug extends InstrValue {
-  stringParts: DecodedArray<ByteString>
+  stringParts: ByteString[]
 }
 export interface CreateMapEntryValue extends InstrValue {
   immFields: number
@@ -126,8 +126,8 @@ export const AddressNeq: Instr = { code: 0x46, value: {} }
 export const AddressToByteVec: Instr = { code: 0x47, value: {} }
 export const IsAssetAddress: Instr = { code: 0x48, value: {} }
 export const IsContractAddress: Instr = { code: 0x49, value: {} }
-export const Jump = (value: DecodedCompactInt): Instr => ({ code: 0x4a, value })
-export const IfTrue = (value: DecodedCompactInt): Instr => ({ code: 0x4b, value })
+export const Jump = (value: DecodedCompactInt): Instr => ({ code: 0x4a, value: { value } })
+export const IfTrue = (value: DecodedCompactInt): Instr => ({ code: 0x4b, value: { value } })
 export const IfFalse = (value: DecodedCompactInt): Instr => ({ code: 0x4c, value: { value } })
 export const Assert: Instr = { code: 0x4d, value: {} }
 export const Blake2b: Instr = { code: 0x4e, value: {} }
@@ -178,7 +178,7 @@ export const Dup: Instr = { code: 0x7a, value: {} }
 export const AssertWithErrorCode: Instr = { code: 0x7b, value: {} }
 export const Swap: Instr = { code: 0x7c, value: {} }
 export const BlockHash: Instr = { code: 0x7d, value: {} }
-export const DEBUG = (stringParts: DecodedArray<ByteString>): Instr => ({ code: 0x7e, value: { stringParts } })
+export const DEBUG = (stringParts: ByteString[]): Instr => ({ code: 0x7e, value: { stringParts } })
 export const TxGasPrice: Instr = { code: 0x7f, value: {} }
 export const TxGasAmount: Instr = { code: 0x80, value: {} }
 export const TxGasFee: Instr = { code: 0x81, value: {} }
@@ -254,222 +254,30 @@ export const CallExternalBySelector: (selector: number) => Instr = (selector: nu
   return { code: 0xd4, value: { index: selector } }
 }
 
-export class InstrCodec implements Codec<Instr> {
-  parser = Parser.start()
-    .uint8('code')
-    .choice('value', {
-      tag: 'code',
-      choices: {
-        0x00: Parser.start().uint8('index'), // CallLocal
-        0x01: Parser.start().uint8('index'), // CallExternal
-        [Return.code]: Parser.start(),
-        [ConstTrue.code]: Parser.start(),
-        [ConstFalse.code]: Parser.start(),
-        [I256Const0.code]: Parser.start(),
-        [I256Const1.code]: Parser.start(),
-        [I256Const2.code]: Parser.start(),
-        [I256Const3.code]: Parser.start(),
-        [I256Const4.code]: Parser.start(),
-        [I256Const5.code]: Parser.start(),
-        [I256ConstN1.code]: Parser.start(),
-        [U256Const0.code]: Parser.start(),
-        [U256Const1.code]: Parser.start(),
-        [U256Const2.code]: Parser.start(),
-        [U256Const3.code]: Parser.start(),
-        [U256Const4.code]: Parser.start(),
-        [U256Const5.code]: Parser.start(),
-        0x12: Parser.start().nest('value', { type: compactSignedIntCodec.parser }),
-        0x13: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }),
-        0x14: Parser.start().nest('value', { type: byteStringCodec.parser }),
-        0x15: Parser.start().nest('value', { type: lockupScriptCodec.parser }),
-        0x16: Parser.start().uint8('index'),
-        0x17: Parser.start().uint8('index'),
-        [Pop.code]: Parser.start(),
-        [BoolNot.code]: Parser.start(),
-        [BoolAnd.code]: Parser.start(),
-        [BoolOr.code]: Parser.start(),
-        [BoolEq.code]: Parser.start(),
-        [BoolNeq.code]: Parser.start(),
-        [BoolToByteVec.code]: Parser.start(),
-        [I256Add.code]: Parser.start(),
-        [I256Sub.code]: Parser.start(),
-        [I256Mul.code]: Parser.start(),
-        [I256Div.code]: Parser.start(),
-        [I256Mod.code]: Parser.start(),
-        [I256Eq.code]: Parser.start(),
-        [I256Neq.code]: Parser.start(),
-        [I256Lt.code]: Parser.start(),
-        [I256Le.code]: Parser.start(),
-        [I256Gt.code]: Parser.start(),
-        [I256Ge.code]: Parser.start(),
-        [U256Add.code]: Parser.start(),
-        [U256Sub.code]: Parser.start(),
-        [U256Mul.code]: Parser.start(),
-        [U256Div.code]: Parser.start(),
-        [U256Mod.code]: Parser.start(),
-        [U256Eq.code]: Parser.start(),
-        [U256Neq.code]: Parser.start(),
-        [U256Lt.code]: Parser.start(),
-        [U256Le.code]: Parser.start(),
-        [U256Gt.code]: Parser.start(),
-        [U256Ge.code]: Parser.start(),
-        [U256ModAdd.code]: Parser.start(),
-        [U256ModSub.code]: Parser.start(),
-        [U256ModMul.code]: Parser.start(),
-        [U256BitAnd.code]: Parser.start(),
-        [U256BitOr.code]: Parser.start(),
-        [U256Xor.code]: Parser.start(),
-        [U256SHL.code]: Parser.start(),
-        [U256SHR.code]: Parser.start(),
-        [I256ToU256.code]: Parser.start(),
-        [I256ToByteVec.code]: Parser.start(),
-        [U256ToI256.code]: Parser.start(),
-        [U256ToByteVec.code]: Parser.start(),
-        [ByteVecEq.code]: Parser.start(),
-        [ByteVecNeq.code]: Parser.start(),
-        [ByteVecSize.code]: Parser.start(),
-        [ByteVecConcat.code]: Parser.start(),
-        [AddressEq.code]: Parser.start(),
-        [AddressNeq.code]: Parser.start(),
-        [AddressToByteVec.code]: Parser.start(),
-        [IsAssetAddress.code]: Parser.start(),
-        [IsContractAddress.code]: Parser.start(),
-        0x4a: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // Jump
-        0x4b: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // IfTrue
-        0x4c: Parser.start().nest('value', { type: compactUnsignedIntCodec.parser }), // IfFalse
-        [Assert.code]: Parser.start(),
-        [Blake2b.code]: Parser.start(),
-        [Keccak256.code]: Parser.start(),
-        [Sha256.code]: Parser.start(),
-        [Sha3.code]: Parser.start(),
-        [VerifyTxSignature.code]: Parser.start(),
-        [VerifySecP256K1.code]: Parser.start(),
-        [VerifyED25519.code]: Parser.start(),
-        [NetworkId.code]: Parser.start(),
-        [BlockTimeStamp.code]: Parser.start(),
-        [BlockTarget.code]: Parser.start(),
-        [TxId.code]: Parser.start(),
-        [TxInputAddressAt.code]: Parser.start(),
-        [TxInputsSize.code]: Parser.start(),
-        [VerifyAbsoluteLocktime.code]: Parser.start(),
-        [VerifyRelativeLocktime.code]: Parser.start(),
-        [Log1.code]: Parser.start(),
-        [Log2.code]: Parser.start(),
-        [Log3.code]: Parser.start(),
-        [Log4.code]: Parser.start(),
-        [Log5.code]: Parser.start(),
-        [ByteVecSlice.code]: Parser.start(),
-        [ByteVecToAddress.code]: Parser.start(),
-        [Encode.code]: Parser.start(),
-        [Zeros.code]: Parser.start(),
-        [U256To1Byte.code]: Parser.start(),
-        [U256To2Byte.code]: Parser.start(),
-        [U256To4Byte.code]: Parser.start(),
-        [U256To8Byte.code]: Parser.start(),
-        [U256To16Byte.code]: Parser.start(),
-        [U256To32Byte.code]: Parser.start(),
-        [U256From1Byte.code]: Parser.start(),
-        [U256From2Byte.code]: Parser.start(),
-        [U256From4Byte.code]: Parser.start(),
-        [U256From8Byte.code]: Parser.start(),
-        [U256From16Byte.code]: Parser.start(),
-        [U256From32Byte.code]: Parser.start(),
-        [EthEcRecover.code]: Parser.start(),
-        [Log6.code]: Parser.start(),
-        [Log7.code]: Parser.start(),
-        [Log8.code]: Parser.start(),
-        [Log9.code]: Parser.start(),
-        [ContractIdToAddress.code]: Parser.start(),
-        [LoadLocalByIndex.code]: Parser.start(),
-        [StoreLocalByIndex.code]: Parser.start(),
-        [Dup.code]: Parser.start(),
-        [AssertWithErrorCode.code]: Parser.start(),
-        [Swap.code]: Parser.start(),
-        [BlockHash.code]: Parser.start(),
-        0x7e: Parser.start().nest('stringParts', { type: byteStringArrayCodec.parser }), // DEBUG
-        [TxGasPrice.code]: Parser.start(),
-        [TxGasAmount.code]: Parser.start(),
-        [TxGasFee.code]: Parser.start(),
-        [I256Exp.code]: Parser.start(),
-        [U256Exp.code]: Parser.start(),
-        [U256ModExp.code]: Parser.start(),
-        [VerifyBIP340Schnorr.code]: Parser.start(),
-        [GetSegragatedSignature.code]: Parser.start(),
-        [MulModN.code]: Parser.start(),
-        [AddModN.code]: Parser.start(),
-        [U256ToString.code]: Parser.start(),
-        [I256ToString.code]: Parser.start(),
-        [BoolToString.code]: Parser.start(),
-        [GroupOfAddress.code]: Parser.start(),
-        0xa0: Parser.start().uint8('index'),
-        0xa1: Parser.start().uint8('index'),
-        [ApproveAlph.code]: Parser.start(),
-        [ApproveToken.code]: Parser.start(),
-        [AlphRemaining.code]: Parser.start(),
-        [TokenRemaining.code]: Parser.start(),
-        [IsPaying.code]: Parser.start(),
-        [TransferAlph.code]: Parser.start(),
-        [TransferAlphFromSelf.code]: Parser.start(),
-        [TransferAlphToSelf.code]: Parser.start(),
-        [TransferToken.code]: Parser.start(),
-        [TransferTokenFromSelf.code]: Parser.start(),
-        [TransferTokenToSelf.code]: Parser.start(),
-        [CreateContract.code]: Parser.start(),
-        [CreateContractWithToken.code]: Parser.start(),
-        [CopyCreateContract.code]: Parser.start(),
-        [DestroySelf.code]: Parser.start(),
-        [SelfContractId.code]: Parser.start(),
-        [SelfAddress.code]: Parser.start(),
-        [CallerContractId.code]: Parser.start(),
-        [CallerAddress.code]: Parser.start(),
-        [IsCallerFromTxScript.code]: Parser.start(),
-        [CallerInitialStateHash.code]: Parser.start(),
-        [CallerCodeHash.code]: Parser.start(),
-        [ContractInitialStateHash.code]: Parser.start(),
-        [ContractInitialCodeHash.code]: Parser.start(),
-        [MigrateSimple.code]: Parser.start(),
-        [MigrateWithFields.code]: Parser.start(),
-        [CopyCreateContractWithToken.code]: Parser.start(),
-        [BurnToken.code]: Parser.start(),
-        [LockApprovedAssets.code]: Parser.start(),
-        [CreateSubContract.code]: Parser.start(),
-        [CreateSubContractWithToken.code]: Parser.start(),
-        [CopyCreateSubContract.code]: Parser.start(),
-        [CopyCreateSubContractWithToken.code]: Parser.start(),
-        [LoadMutFieldByIndex.code]: Parser.start(),
-        [StoreMutFieldByIndex.code]: Parser.start(),
-        [ContractExists.code]: Parser.start(),
-        [CreateContractAndTransferToken.code]: Parser.start(),
-        [CopyCreateContractAndTransferToken.code]: Parser.start(),
-        [CreateSubContractAndTransferToken.code]: Parser.start(),
-        [CopyCreateSubContractAndTransferToken.code]: Parser.start(),
-        [NullContractAddress.code]: Parser.start(),
-        [SubContractId.code]: Parser.start(),
-        [SubContractIdOf.code]: Parser.start(),
-        [AlphTokenId.code]: Parser.start(),
-        0xce: Parser.start().uint8('index'),
-        [LoadImmFieldByIndex.code]: Parser.start(),
-        [PayGasFee.code]: Parser.start(),
-        [MinimalContractDeposit.code]: Parser.start(),
-        0xd2: Parser.start().uint8('immFields').uint8('mutFields'),
-        0xd3: Parser.start().int32('index'),
-        0xd4: Parser.start().int32('index')
-      }
-    })
+export class InstrCodec extends Codec<Instr> {
+  private checkCode(code: number) {
+    if ((code >= 0x00 && code <= 0x8c) || (code >= 0xa0 && code <= 0xd4)) {
+      return
+    }
+    throw new Error(`Unsupported instr: ${code}`)
+  }
 
   encode(instr: Instr): Uint8Array {
+    this.checkCode(instr.code)
     const instrValue = instr.value
     const result = [instr.code]
     const instrsWithIndex = [0x00, 0x01, 0x16, 0x17, 0xa0, 0xa1, 0xce]
-    const instrsWithCompactInt = [0x12, 0x13, 0x4a, 0x4b, 0x4c]
+    const instrsWithCompactSignedInt = [0x12, 0x4a, 0x4b, 0x4c]
     if (instr.code === 0x14) {
       result.push(...byteStringCodec.encode((instrValue as ByteStringConst).value))
     } else if (instr.code === 0x15) {
       result.push(...lockupScriptCodec.encode((instrValue as AddressConst).value))
     } else if (instr.code === 0x7e) {
-      result.push(...byteStringArrayCodec.encode((instrValue as Debug).stringParts.value))
-    } else if (instrsWithCompactInt.includes(instr.code)) {
+      result.push(...byteStringArrayCodec.encode((instrValue as Debug).stringParts))
+    } else if (instr.code === 0x13) {
       result.push(...compactUnsignedIntCodec.encode((instrValue as InstrValueWithCompactInt).value))
+    } else if (instrsWithCompactSignedInt.includes(instr.code)) {
+      result.push(...compactSignedIntCodec.encode((instrValue as InstrValueWithCompactInt).value))
     } else if (instrsWithIndex.includes(instr.code)) {
       result.push((instrValue as InstrValueWithIndex).index)
     } else if (instr.code === 0xd2) {
@@ -482,8 +290,49 @@ export class InstrCodec implements Codec<Instr> {
     return new Uint8Array(result)
   }
 
-  decode(input: Uint8Array): Instr {
-    return this.parser.parse(input)
+  _decode(input: Reader): Instr {
+    const code = input.consumeByte()
+    this.checkCode(code)
+    switch (code) {
+      case 0x00: // CallLocal
+        return CallLocal(input.consumeByte())
+      case 0x01: // CallExternal
+        return CallExternal(input.consumeByte())
+      case 0x12: // I256Const
+        return I256Const(compactSignedIntCodec._decode(input))
+      case 0x13: // U256Const
+        return U256Const(compactUnsignedIntCodec._decode(input))
+      case 0x14: // ByteConst
+        return ByteConst(byteStringCodec._decode(input))
+      case 0x15: // AddressConst
+        return AddressConst(lockupScriptCodec._decode(input))
+      case 0x16: // LoadLocal
+        return LoadLocal(input.consumeByte())
+      case 0x17: // StoreLocal
+        return StoreLocal(input.consumeByte())
+      case 0x4a: // Jump
+        return Jump(compactSignedIntCodec._decode(input))
+      case 0x4b: // IfTrue
+        return IfTrue(compactSignedIntCodec._decode(input))
+      case 0x4c: // IfFalse
+        return IfFalse(compactSignedIntCodec._decode(input))
+      case 0x7e: // DEBUG
+        return DEBUG(byteStringArrayCodec._decode(input))
+      case 0xa0: // LoadMutField
+        return LoadMutField(input.consumeByte())
+      case 0xa1: // StoreMutField
+        return StoreMutField(input.consumeByte())
+      case 0xce: // LoadImmField
+        return LoadImmField(input.consumeByte())
+      case 0xd2: // CreateMapEntry
+        return CreateMapEntry(input.consumeByte(), input.consumeByte())
+      case 0xd3: // MethodSelector
+        return MethodSelector(signedIntCodec._decode(input))
+      case 0xd4: // CallExternalBySelector
+        return CallExternalBySelector(signedIntCodec._decode(input))
+      default:
+        return { code, value: {} }
+    }
   }
 }
 

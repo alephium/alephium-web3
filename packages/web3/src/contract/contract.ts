@@ -1804,14 +1804,7 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
   if (tokens) {
     tokens.forEach((token) => {
       const tokenIdBin = hexToBinUnsafe(token.id)
-      approveTokensInstrs.push(
-        encodeInstr(
-          ByteConst({
-            length: compactSignedIntCodec.fromI32(tokenIdBin.length),
-            value: tokenIdBin
-          })
-        )
-      )
+      approveTokensInstrs.push(encodeInstr(ByteConst(tokenIdBin)))
       approveTokensInstrs.push(encodeU256Const(BigInt(token.amount)))
       approveTokensInstrs.push(encodeInstr(ApproveToken))
     })

@@ -163,14 +163,9 @@ describe('Encode & decode scripts', function () {
     const decodedTestAddress = bs58.decode(testAddress)
     const lockupScript = {
       scriptType: decodedTestAddress[0],
-      script: {
-        publicKeyHash: decodedTestAddress.slice(1)
-      }
+      script: decodedTestAddress.slice(1)
     } as LockupScript
-    const contractIdByteString = {
-      length: { mode: 64, rest: new Uint8Array([32]) },
-      value: hexToBinUnsafe(contractId)
-    }
+    const contractIdByteString = hexToBinUnsafe(contractId)
 
     testScript(DestroyAdd.script, { add: contractId, caller: testAddress }, [
       {

@@ -15,11 +15,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { DecodedArray } from './array-codec'
-import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
-import { P2C } from './lockup-script-codec'
-import { Codec } from './codec'
+import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
+import { P2C, p2cCodec } from './lockup-script-codec'
+import { ObjectCodec } from './codec'
 import { Token, tokensCodec } from './token-codec'
 import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
@@ -30,39 +28,16 @@ import { lockupScriptCodec } from './lockup-script-codec'
 export interface ContractOutput {
   amount: DecodedCompactInt
   lockupScript: P2C
-  tokens: DecodedArray<Token>
+  tokens: Token[]
 }
 
-export class ContractOutputCodec implements Codec<ContractOutput> {
-  parser = Parser.start()
-    .nest('amount', {
-      type: compactUnsignedIntCodec.parser
-    })
-    .nest('lockupScript', {
-      type: Parser.start().buffer('contractId', { length: 32 })
-    })
-    .nest('tokens', {
-      type: tokensCodec.parser
-    })
-
-  encode(input: ContractOutput): Uint8Array {
-    const amount = compactUnsignedIntCodec.encode(input.amount)
-    const lockupScript = input.lockupScript.contractId
-    const tokens = tokensCodec.encode(input.tokens.value)
-
-    return concatBytes([amount, lockupScript, tokens])
-  }
-
-  decode(input: Uint8Array): ContractOutput {
-    return this.parser.parse(input)
-  }
-
+export class ContractOutputCodec extends ObjectCodec<ContractOutput> {
   static convertToApiContractOutput(txIdBytes: Uint8Array, output: ContractOutput, index: number): ApiContractOutput {
-    const hint = createHint(output.lockupScript.contractId)
+    const hint = createHint(output.lockupScript)
     const key = binToHex(blakeHash(concatBytes([txIdBytes, signedIntCodec.encode(index)])))
     const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
-    const address = bs58.encode(new Uint8Array([0x03, ...output.lockupScript.contractId]))
-    const tokens = output.tokens.value.map((token) => {
+    const address = bs58.encode(new Uint8Array([0x03, ...output.lockupScript]))
+    const tokens = output.tokens.map((token) => {
       return {
         id: binToHex(token.tokenId),
         amount: compactUnsignedIntCodec.toU256(token.amount).toString()
@@ -75,19 +50,18 @@ export class ContractOutputCodec implements Codec<ContractOutput> {
     const amount: DecodedCompactInt = compactUnsignedIntCodec.fromU256(BigInt(apiContractOutput.attoAlphAmount))
     const lockupScript: P2C = lockupScriptCodec.decode(bs58.decode(apiContractOutput.address)).script as P2C
 
-    const tokensValue = apiContractOutput.tokens.map((token) => {
+    const tokens = apiContractOutput.tokens.map((token) => {
       return {
         tokenId: hexToBinUnsafe(token.id),
         amount: compactUnsignedIntCodec.fromU256(BigInt(token.amount))
       }
     })
-    const tokens: DecodedArray<Token> = {
-      length: compactSignedIntCodec.fromI32(tokensValue.length),
-      value: tokensValue
-    }
-
     return { amount, lockupScript, tokens }
   }
 }
 
-export const contractOutputCodec = new ContractOutputCodec()
+export const contractOutputCodec = new ContractOutputCodec({
+  amount: compactUnsignedIntCodec,
+  lockupScript: p2cCodec,
+  tokens: tokensCodec
+})

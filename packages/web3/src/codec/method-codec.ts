@@ -15,10 +15,9 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { ArrayCodec, DecodedArray } from './array-codec'
+import { ArrayCodec } from './array-codec'
 import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
-import { Codec } from './codec'
+import { byteCodec, ObjectCodec } from './codec'
 import { instrsCodec, Instr } from './instr-codec'
 
 export interface DecodedMethod {
@@ -27,7 +26,7 @@ export interface DecodedMethod {
   argsLength: DecodedCompactInt
   localsLength: DecodedCompactInt
   returnLength: DecodedCompactInt
-  instrs: DecodedArray<Instr>
+  instrs: Instr[]
 }
 
 export interface Method {
@@ -77,36 +76,7 @@ function encodeAssetModifier(arg: {
   return encoded | (arg.usePayToContractOnly ? 4 : 0)
 }
 
-export class MethodCodec implements Codec<DecodedMethod> {
-  parser = Parser.start()
-    .uint8('isPublic')
-    .uint8('assetModifier')
-    .nest('argsLength', {
-      type: compactSignedIntCodec.parser
-    })
-    .nest('localsLength', {
-      type: compactSignedIntCodec.parser
-    })
-    .nest('returnLength', {
-      type: compactSignedIntCodec.parser
-    })
-    .nest('instrs', {
-      type: instrsCodec.parser
-    })
-
-  encode(input: DecodedMethod): Uint8Array {
-    const result = [input.isPublic, input.assetModifier]
-    result.push(...compactSignedIntCodec.encode(input.argsLength))
-    result.push(...compactSignedIntCodec.encode(input.localsLength))
-    result.push(...compactSignedIntCodec.encode(input.returnLength))
-    result.push(...instrsCodec.encode(input.instrs.value))
-    return new Uint8Array(result)
-  }
-
-  decode(input: Uint8Array): DecodedMethod {
-    return this.parser.parse(input)
-  }
-
+export class MethodCodec extends ObjectCodec<DecodedMethod> {
   static toMethod(decodedMethod: DecodedMethod): Method {
     return {
       isPublic: decodedMethod.isPublic === 1,
@@ -114,7 +84,7 @@ export class MethodCodec implements Codec<DecodedMethod> {
       argsLength: compactSignedIntCodec.toI32(decodedMethod.argsLength),
       localsLength: compactSignedIntCodec.toI32(decodedMethod.localsLength),
       returnLength: compactSignedIntCodec.toI32(decodedMethod.returnLength),
-      instrs: decodedMethod.instrs.value
+      instrs: decodedMethod.instrs
     }
   }
 
@@ -125,10 +95,17 @@ export class MethodCodec implements Codec<DecodedMethod> {
       argsLength: compactSignedIntCodec.fromI32(method.argsLength),
       localsLength: compactSignedIntCodec.fromI32(method.localsLength),
       returnLength: compactSignedIntCodec.fromI32(method.returnLength),
-      instrs: instrsCodec.fromArray(method.instrs)
+      instrs: method.instrs
     }
   }
 }
 
-export const methodCodec = new MethodCodec()
+export const methodCodec = new MethodCodec({
+  isPublic: byteCodec,
+  assetModifier: byteCodec,
+  argsLength: compactSignedIntCodec,
+  localsLength: compactSignedIntCodec,
+  returnLength: compactSignedIntCodec,
+  instrs: instrsCodec
+})
 export const methodsCodec = new ArrayCodec(methodCodec)

@@ -15,14 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
+import { Reader } from './reader'
 
-export class LongCodec implements Codec<bigint> {
-  parser = Parser.start().buffer('value', {
-    length: 8
-  })
-
+export class LongCodec extends Codec<bigint> {
   encode(input: bigint): Uint8Array {
     const byteArray = new Uint8Array(8)
 
@@ -36,8 +32,8 @@ export class LongCodec implements Codec<bigint> {
     return byteArray
   }
 
-  decode(bytes: Uint8Array): bigint {
-    assert(bytes.length == 8, 'Length should be 8')
+  _decode(input: Reader): bigint {
+    const bytes = input.consumeBytes(8)
     let int64 = BigInt(0)
     let pow = BigInt(1)
 

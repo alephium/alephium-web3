@@ -15,20 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { Codec, assert } from './codec'
+import { Codec } from './codec'
+import { Reader } from './reader'
 
-export class SignedIntCodec implements Codec<number> {
-  parser = Parser.start().buffer('value', {
-    length: 4
-  })
-
+export class SignedIntCodec extends Codec<number> {
   encode(value: number): Uint8Array {
     return new Uint8Array([(value >> 24) & 0xff, (value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff])
   }
 
-  decode(bytes: Uint8Array): number {
-    assert(bytes.length === 4, 'Length should be 4')
+  _decode(input: Reader): number {
+    const bytes = input.consumeBytes(4)
     return ((bytes[0] & 0xff) << 24) | ((bytes[1] & 0xff) << 16) | ((bytes[2] & 0xff) << 8) | (bytes[3] & 0xff)
   }
 }

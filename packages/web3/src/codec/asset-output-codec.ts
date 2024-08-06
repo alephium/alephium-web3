@@ -15,59 +15,27 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { ArrayCodec, DecodedArray } from './array-codec'
-import { DecodedCompactInt, compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
+import { ArrayCodec } from './array-codec'
+import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
 import { signedIntCodec } from './signed-int-codec'
 import { longCodec } from './long-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
-import { LockupScript, MultiSig, P2SH, lockupScriptCodec } from './lockup-script-codec'
+import { LockupScript, P2MPKH, P2PKH, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
 import { bs58, binToHex, hexToBinUnsafe, concatBytes } from '../utils'
-import { Codec } from './codec'
-import { PublicKeyHash } from './lockup-script-codec'
+import { FixedSizeCodec, ObjectCodec } from './codec'
 import { Token, tokensCodec } from './token-codec'
 
 export interface AssetOutput {
   amount: DecodedCompactInt
   lockupScript: LockupScript
   lockTime: Uint8Array
-  tokens: DecodedArray<Token>
+  tokens: Token[]
   additionalData: ByteString
 }
 
-export class AssetOutputCodec implements Codec<AssetOutput> {
-  parser = Parser.start()
-    .nest('amount', {
-      type: compactSignedIntCodec.parser
-    })
-    .nest('lockupScript', {
-      type: lockupScriptCodec.parser
-    })
-    .buffer('lockTime', {
-      length: 8
-    })
-    .nest('tokens', {
-      type: tokensCodec.parser
-    })
-    .nest('additionalData', {
-      type: byteStringCodec.parser
-    })
-
-  encode(input: AssetOutput): Uint8Array {
-    const amount = compactUnsignedIntCodec.encode(input.amount)
-    const lockupScript = lockupScriptCodec.encode(input.lockupScript)
-    const tokens = tokensCodec.encode(input.tokens.value)
-    const additionalData = byteStringCodec.encode(input.additionalData)
-
-    return concatBytes([amount, lockupScript, input.lockTime, tokens, additionalData])
-  }
-
-  decode(input: Uint8Array): AssetOutput {
-    return this.parser.parse(input)
-  }
-
+export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
   static toFixedAssetOutputs(txIdBytes: Uint8Array, outputs: AssetOutput[]): FixedAssetOutput[] {
     return outputs.map((output, index) => AssetOutputCodec.toFixedAssetOutput(txIdBytes, output, index))
   }
@@ -75,13 +43,13 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
   static toFixedAssetOutput(txIdBytes: Uint8Array, output: AssetOutput, index: number): FixedAssetOutput {
     const attoAlphAmount = compactUnsignedIntCodec.toU256(output.amount).toString()
     const lockTime = Number(longCodec.decode(output.lockTime))
-    const tokens = output.tokens.value.map((token) => {
+    const tokens = output.tokens.map((token) => {
       return {
         id: binToHex(token.tokenId),
         amount: compactUnsignedIntCodec.toU256(token.amount).toString()
       }
     })
-    const message = binToHex(output.additionalData.value)
+    const message = binToHex(output.additionalData)
     const scriptType = output.lockupScript.scriptType
     const key = binToHex(blakeHash(concatBytes([txIdBytes, signedIntCodec.encode(index)])))
     const outputLockupScript = output.lockupScript.script
@@ -90,13 +58,13 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
     let hint: number | undefined = undefined
     if (scriptType === 0) {
       // P2PKH
-      hint = createHint((outputLockupScript as PublicKeyHash).publicKeyHash)
+      hint = createHint(outputLockupScript as P2PKH)
     } else if (scriptType === 1) {
       // P2MPKH
-      hint = createHint((outputLockupScript as MultiSig).publicKeyHashes.value[0].publicKeyHash)
+      hint = createHint((outputLockupScript as P2MPKH).publicKeyHashes[0])
     } else if (scriptType === 2) {
       // P2SH
-      hint = createHint((outputLockupScript as P2SH).scriptHash)
+      hint = createHint(outputLockupScript as P2SH)
     } else if (scriptType === 3) {
       throw new Error(`P2C script type not allowed for asset output`)
     } else {
@@ -117,31 +85,22 @@ export class AssetOutputCodec implements Codec<AssetOutput> {
 
     const lockTime = longCodec.encode(BigInt(fixedOutput.lockTime))
     const lockupScript: LockupScript = lockupScriptCodec.decode(bs58.decode(fixedOutput.address))
-    const tokensValue = fixedOutput.tokens.map((token) => {
+    const tokens = fixedOutput.tokens.map((token) => {
       return {
         tokenId: hexToBinUnsafe(token.id),
         amount: compactUnsignedIntCodec.fromU256(BigInt(token.amount))
       }
     })
-    const tokens: DecodedArray<Token> = {
-      length: compactSignedIntCodec.fromI32(tokensValue.length),
-      value: tokensValue
-    }
-    const additionalDataValue = hexToBinUnsafe(fixedOutput.message)
-    const additionalData: ByteString = {
-      length: compactSignedIntCodec.fromI32(additionalDataValue.length),
-      value: additionalDataValue
-    }
-
-    return {
-      amount,
-      lockupScript,
-      lockTime,
-      tokens,
-      additionalData
-    }
+    const additionalData = hexToBinUnsafe(fixedOutput.message)
+    return { amount, lockupScript, lockTime, tokens, additionalData }
   }
 }
 
-export const assetOutputCodec = new AssetOutputCodec()
+export const assetOutputCodec = new AssetOutputCodec({
+  amount: compactUnsignedIntCodec,
+  lockupScript: lockupScriptCodec,
+  lockTime: new FixedSizeCodec(8),
+  tokens: tokensCodec,
+  additionalData: byteStringCodec
+})
 export const assetOutputsCodec = new ArrayCodec(assetOutputCodec)

@@ -16,18 +16,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Parser } from 'binary-parser'
-import { ArrayCodec, DecodedArray } from './array-codec'
+import { ArrayCodec } from './array-codec'
 import { Codec } from './codec'
 import { compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
 import { Method, MethodCodec, methodCodec } from './method-codec'
 import { concatBytes } from '../utils'
+import { Reader } from './reader'
 
 const compactSignedIntsCodec = new ArrayCodec(compactSignedIntCodec)
 
 export interface HalfDecodedContract {
   fieldLength: DecodedCompactInt
-  methodIndexes: DecodedArray<DecodedCompactInt>
+  methodIndexes: DecodedCompactInt[]
   methods: Uint8Array
 }
 
@@ -36,32 +36,26 @@ export interface Contract {
   methods: Method[]
 }
 
-export class ContractCodec implements Codec<HalfDecodedContract> {
-  parser = Parser.start()
-    .nest('fieldLength', {
-      type: compactSignedIntCodec.parser
-    })
-    .nest('methodIndexes', {
-      type: compactSignedIntsCodec.parser
-    })
-    .buffer('methods', { readUntil: 'eof' })
-
+export class ContractCodec extends Codec<HalfDecodedContract> {
   encode(input: HalfDecodedContract): Uint8Array {
     return concatBytes([
       compactSignedIntCodec.encode(input.fieldLength),
-      compactSignedIntsCodec.encode(input.methodIndexes.value),
+      compactSignedIntsCodec.encode(input.methodIndexes),
       input.methods
     ])
   }
 
-  decode(input: Uint8Array): HalfDecodedContract {
-    return this.parser.parse(input)
+  _decode(input: Reader): HalfDecodedContract {
+    const fieldLength = compactSignedIntCodec._decode(input)
+    const methodIndexes = compactSignedIntsCodec._decode(input)
+    const methods = input.consumeAll()
+    return { fieldLength, methodIndexes, methods }
   }
 
   decodeContract(input: Uint8Array): Contract {
     const halfDecoded = this.decode(input)
     const fieldLength = compactSignedIntCodec.toI32(halfDecoded.fieldLength)
-    const methodIndexes = halfDecoded.methodIndexes.value.map((v) => compactSignedIntCodec.toI32(v))
+    const methodIndexes = halfDecoded.methodIndexes.map((v) => compactSignedIntCodec.toI32(v))
     const methods: Method[] = []
     for (let i = 0, start = 0; i < methodIndexes.length; i++) {
       const end = methodIndexes[i]
@@ -83,10 +77,7 @@ export class ContractCodec implements Codec<HalfDecodedContract> {
     })
     const halfDecoded = {
       fieldLength,
-      methodIndexes: {
-        length: compactSignedIntCodec.fromI32(methodIndexes.length),
-        value: methodIndexes.map((value) => compactSignedIntCodec.fromI32(value))
-      },
+      methodIndexes: methodIndexes.map((value) => compactSignedIntCodec.fromI32(value)),
       methods: concatBytes(methods)
     }
     return this.encode(halfDecoded)

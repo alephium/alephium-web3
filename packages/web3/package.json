@@ -56,8 +56,7 @@
     "elliptic": "6.5.4",
     "eventemitter3": "^4.0.7",
     "path-browserify": "^1.0.1",
-    "stream-browserify": "^3.0.0",
-    "binary-parser": "2.2.1"
+    "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.21.3",

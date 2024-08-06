@@ -15,25 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { ArrayCodec } from './array-codec'
-import { Codec } from './codec'
+import { FixedSizeCodec } from './codec'
 
-export interface Signature {
-  value: Uint8Array
-}
+export type Signature = Uint8Array
 
-export class SignatureCodec implements Codec<Signature> {
-  parser = Parser.start().buffer('value', { length: 64 })
-
-  encode(input: Signature): Uint8Array {
-    return input.value
-  }
-
-  decode(input: Uint8Array): Signature {
-    return this.parser.parse(input)
-  }
-}
-
-export const signatureCodec = new SignatureCodec()
+export const signatureCodec = new FixedSizeCodec(64)
 export const signaturesCodec = new ArrayCodec(signatureCodec)

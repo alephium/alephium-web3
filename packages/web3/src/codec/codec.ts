@@ -15,12 +15,18 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 
-export interface Codec<T> {
-  parser: Parser
-  encode(input: T): Uint8Array
-  decode(input: Uint8Array): T
+import { concatBytes } from '../utils'
+import { Reader } from './reader'
+
+export abstract class Codec<T> {
+  abstract encode(input: T): Uint8Array
+  decode(input: Uint8Array): T {
+    const reader = new Reader(input)
+    return this._decode(reader)
+  }
+
+  abstract _decode(input: Reader): T
 }
 
 export function assert(value: boolean, message: string) {
@@ -29,15 +35,54 @@ export function assert(value: boolean, message: string) {
   }
 }
 
-export function fixedSizeBytes(name: string, length: number): Parser {
-  return Parser.start().wrapped({
-    length,
-    type: Parser.start().buffer(name, { length }),
-    wrapper: function (result) {
-      if (result.length === length) {
-        return result
-      }
-      throw new Error(`Too few bytes when parsing ${name}, expected ${length}, got ${result.length}`)
-    }
-  })
+export class FixedSizeCodec extends Codec<Uint8Array> {
+  constructor(private readonly size: number) {
+    super()
+  }
+
+  encode(input: Uint8Array): Uint8Array {
+    assert(input.length === this.size, `Invalid length, expected ${this.size}, got ${input.length}`)
+    return input
+  }
+
+  _decode(input: Reader): Uint8Array {
+    return input.consumeBytes(this.size)
+  }
 }
+
+export class ObjectCodec<T> extends Codec<T> {
+  private keys: (keyof T)[]
+
+  constructor(private codecs: { [K in keyof T]: Codec<T[K]> }) {
+    super()
+    this.keys = Object.keys(codecs) as (keyof T)[]
+  }
+
+  encode(value: T): Uint8Array {
+    const bytes: Uint8Array[] = []
+    for (const key of this.keys) {
+      bytes.push(this.codecs[key].encode(value[key]))
+    }
+    return concatBytes(bytes)
+  }
+
+  _decode(input: Reader): T {
+    const result: T = {} as T
+    for (const key of this.keys) {
+      result[key] = this.codecs[key]._decode(input)
+    }
+    return result as T
+  }
+}
+
+export class ByteCodec extends Codec<number> {
+  encode(input: number): Uint8Array {
+    return new Uint8Array([input])
+  }
+  _decode(input: Reader): number {
+    return input.consumeByte()
+  }
+}
+
+export const byte32Codec = new FixedSizeCodec(32)
+export const byteCodec = new ByteCodec()

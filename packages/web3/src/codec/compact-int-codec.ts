@@ -15,10 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
 import { BigIntCodec } from './bigint-codec'
 import { binToHex } from '../utils'
+import { Reader } from './reader'
 
 export class CompactInt {
   static readonly oneBytePrefix = 0x00
@@ -40,30 +40,24 @@ export interface DecodedCompactInt {
   rest: Uint8Array
 }
 
-const compactIntParser = new Parser().uint8('mode').buffer('rest', {
-  length: function (ctx) {
-    const rawMode = this['mode']
-    const mode = rawMode & maskRest
+function decodeFromReader(reader: Reader): DecodedCompactInt {
+  const mode = reader.consumeByte()
+  const prefix = mode & maskRest
+  const size =
+    prefix === CompactInt.oneBytePrefix
+      ? 0
+      : prefix === CompactInt.twoBytePrefix
+      ? 1
+      : prefix === CompactInt.fourBytePrefix
+      ? 3
+      : (mode & maskMode) + 4
+  return { mode, rest: reader.consumeBytes(size) }
+}
 
-    switch (mode) {
-      case CompactInt.oneBytePrefix:
-        return 0
-      case CompactInt.twoBytePrefix:
-        return 1
-      case CompactInt.fourBytePrefix:
-        return 3
-      default:
-        return (rawMode & maskMode) + 4
-    }
-  }
-})
-
-export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
+export class CompactUnsignedIntCodec extends Codec<DecodedCompactInt> {
   private oneByteBound = 0x40
   private twoByteBound = this.oneByteBound << 8
   private fourByteBound = this.oneByteBound << (8 * 3)
-
-  parser = compactIntParser
 
   encode(input: DecodedCompactInt): Uint8Array {
     return new Uint8Array([input.mode, ...input.rest])
@@ -115,10 +109,6 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     return this.toU256(decoded)
   }
 
-  decode(input: Uint8Array): DecodedCompactInt {
-    return this.parser.parse(input)
-  }
-
   toU256(value: DecodedCompactInt): bigint {
     const mode = value.mode & maskRest
     if (fixedSize(mode)) {
@@ -133,28 +123,26 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
   fromU256(value: bigint): DecodedCompactInt {
     return this.decode(this.encodeU256(value))
   }
+
+  _decode(input: Reader): DecodedCompactInt {
+    return decodeFromReader(input)
+  }
 }
 
 export const compactUnsignedIntCodec = new CompactUnsignedIntCodec()
 
-export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
+export class CompactSignedIntCodec extends Codec<DecodedCompactInt> {
   private signFlag = 0x20 // 0b00100000
   private oneByteBound = 0x20 // 0b00100000
   private twoByteBound = this.oneByteBound << 8
   private fourByteBound = this.oneByteBound << (8 * 3)
 
-  parser = compactIntParser
-
   encode(input: DecodedCompactInt): Uint8Array {
     return new Uint8Array([input.mode, ...input.rest])
   }
 
-  decode(input: Uint8Array): DecodedCompactInt {
-    return this.parser.parse(input)
-  }
-
-  decodeI32(input: Uint8Array): number {
-    const decoded = this.decode(input)
+  decodeI32(input: Reader): number {
+    const decoded = this._decode(input)
     return this.toI32(decoded)
   }
 
@@ -255,6 +243,10 @@ export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
 
   fromI256(value: bigint): DecodedCompactInt {
     return this.decode(this.encodeI256(value))
+  }
+
+  _decode(input: Reader): DecodedCompactInt {
+    return decodeFromReader(input)
   }
 }
 

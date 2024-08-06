@@ -15,83 +15,57 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
-import { Codec, fixedSizeBytes } from './codec'
-import { ArrayCodec, DecodedArray } from './array-codec'
+import { byte32Codec, Codec, ObjectCodec } from './codec'
+import { ArrayCodec } from './array-codec'
+import { Reader } from './reader'
 
-export interface PublicKeyHash {
-  publicKeyHash: Uint8Array
-}
+export type PublicKeyHash = Uint8Array
+export type P2PKH = Uint8Array
+export type P2SH = Uint8Array
+export type P2C = Uint8Array
 
-class PublicKeyHashCodec implements Codec<PublicKeyHash> {
-  parser = fixedSizeBytes('publicKeyHash', 32)
+export const p2cCodec = byte32Codec
 
-  encode(input: PublicKeyHash): Uint8Array {
-    return input.publicKeyHash
-  }
-
-  decode(input: Uint8Array): PublicKeyHash {
-    return this.parser.parse(input)
-  }
-}
-
-const publicKeyHashCodec = new PublicKeyHashCodec()
-const publicKeyHashesCodec = new ArrayCodec(publicKeyHashCodec)
-const multiSigParser = Parser.start()
-  .nest('publicKeyHashes', { type: publicKeyHashesCodec.parser })
-  .nest('m', { type: compactSignedIntCodec.parser })
-export interface MultiSig {
-  publicKeyHashes: DecodedArray<PublicKeyHash>
+export interface P2MPKH {
+  publicKeyHashes: PublicKeyHash[]
   m: DecodedCompactInt
 }
 
-export interface P2SH {
-  scriptHash: Uint8Array
-}
-
-export interface P2C {
-  contractId: Uint8Array
-}
+const p2mpkhCodec = new ObjectCodec<P2MPKH>({
+  publicKeyHashes: new ArrayCodec(byte32Codec),
+  m: compactSignedIntCodec
+})
 
 export interface LockupScript {
   scriptType: number
-  script: PublicKeyHash | MultiSig | P2SH | P2C
+  script: P2PKH | P2MPKH | P2SH | P2C
 }
 
-export class LockupScriptCodec implements Codec<LockupScript> {
-  parser = Parser.start()
-    .uint8('scriptType')
-    .choice('script', {
-      tag: 'scriptType',
-      choices: {
-        0: publicKeyHashCodec.parser,
-        1: multiSigParser,
-        2: Parser.start().buffer('scriptHash', { length: 32 }),
-        3: Parser.start().buffer('contractId', { length: 32 })
-      }
-    })
+export class LockupScriptCodec extends Codec<LockupScript> {
+  private checkType(type: number) {
+    if (type === 0 || type === 1 || type === 2 || type === 3) {
+      return
+    }
+    throw Error(`Unsupported script type: ${type}`)
+  }
 
   encode(input: LockupScript): Uint8Array {
+    this.checkType(input.scriptType)
     const result: number[] = [input.scriptType]
-    if (input.scriptType === 0) {
-      result.push(...(input.script as PublicKeyHash).publicKeyHash)
-    } else if (input.scriptType === 1) {
-      result.push(...publicKeyHashesCodec.encode((input.script as MultiSig).publicKeyHashes.value))
-      result.push(...compactSignedIntCodec.encode((input.script as MultiSig).m))
-    } else if (input.scriptType === 2) {
-      result.push(...(input.script as P2SH).scriptHash)
-    } else if (input.scriptType === 3) {
-      result.push(...(input.script as P2C).contractId)
+    if (input.scriptType === 1) {
+      result.push(...p2mpkhCodec.encode(input.script as P2MPKH))
     } else {
-      throw new Error(`Unsupported script type: ${input.scriptType}`)
+      result.push(...byte32Codec.encode(input.script as Uint8Array))
     }
-
     return new Uint8Array(result)
   }
 
-  decode(input: Uint8Array): LockupScript {
-    return this.parser.parse(input)
+  _decode(input: Reader): LockupScript {
+    const scriptType = input.consumeByte()
+    this.checkType(scriptType)
+    const script = scriptType === 1 ? p2mpkhCodec._decode(input) : byte32Codec._decode(input)
+    return { scriptType, script }
   }
 }
 
