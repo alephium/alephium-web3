@@ -71,7 +71,7 @@ export class BigIntCodec {
     }
 
     // Determine if the number is negative by checking the most significant byte (MSB)
-    const isNegative = signed ? encoded[0] === 0xff : signed
+    const isNegative = signed ? (encoded[0] & 0x80) !== 0 : signed
 
     // Convert the byte array to a bigint
     let value = 0n
