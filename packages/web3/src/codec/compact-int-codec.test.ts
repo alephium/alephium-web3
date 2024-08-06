@@ -18,13 +18,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { compactSignedIntCodec, compactUnsignedIntCodec } from './compact-int-codec'
 import { randomBytes } from 'crypto'
-import { Reader } from './reader'
 
 describe('Encode & decode compact int', function () {
   it('should encode & decode i32', function () {
     const testCodec = new TestCodec(
       (number) => compactSignedIntCodec.encodeI32(number),
-      (buffer) => compactSignedIntCodec.decodeI32(new Reader(buffer)),
+      (buffer) => compactSignedIntCodec.decodeI32(buffer),
       () => (Math.random() * 0xffffffff) | 0
     )
 

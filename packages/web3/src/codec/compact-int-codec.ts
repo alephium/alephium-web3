@@ -144,8 +144,8 @@ export class CompactSignedIntCodec extends Codec<DecodedCompactInt> {
     return new Uint8Array([input.mode, ...input.rest])
   }
 
-  decodeI32(input: Reader): number {
-    const decoded = this._decode(input)
+  decodeI32(input: Uint8Array): number {
+    const decoded = this.decode(input)
     return this.toI32(decoded)
   }
 
