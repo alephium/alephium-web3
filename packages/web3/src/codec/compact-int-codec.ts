@@ -136,7 +136,6 @@ export const u256Codec = compactUnsignedIntCodec.bimap<bigint>(
 )
 
 export class CompactSignedIntCodec extends Codec<DecodedCompactInt> {
-  private signFlag = 0x20 // 0b00100000
   private oneByteBound = 0x20 // 0b00100000
   private twoByteBound = this.oneByteBound << 8
   private fourByteBound = this.oneByteBound << (8 * 3)
