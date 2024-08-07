@@ -23,11 +23,11 @@ import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { ArrayCodec } from './array-codec'
 
 export type Val =
-  | { type: 'Bool'; value: boolean }
-  | { type: 'I256'; value: bigint }
-  | { type: 'U256'; value: bigint }
-  | { type: 'ByteVec'; value: ByteString }
-  | { type: 'Address'; value: LockupScript }
+  | { kind: 'Bool'; value: boolean }
+  | { kind: 'I256'; value: bigint }
+  | { kind: 'U256'; value: bigint }
+  | { kind: 'ByteVec'; value: ByteString }
+  | { kind: 'Address'; value: LockupScript }
 
 export const valCodec = new EnumCodec<Val>('val', {
   Bool: boolCodec,

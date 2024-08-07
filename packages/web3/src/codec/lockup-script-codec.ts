@@ -37,10 +37,10 @@ const p2mpkhCodec = new ObjectCodec<P2MPKH>({
 })
 
 export type LockupScript =
-  | { type: 'P2PKH'; value: P2PKH }
-  | { type: 'P2MPKH'; value: P2MPKH }
-  | { type: 'P2SH'; value: P2SH }
-  | { type: 'P2C'; value: P2C }
+  | { kind: 'P2PKH'; value: P2PKH }
+  | { kind: 'P2MPKH'; value: P2MPKH }
+  | { kind: 'P2SH'; value: P2SH }
+  | { kind: 'P2C'; value: P2C }
 
 export const lockupScriptCodec = new EnumCodec<LockupScript>('lockup script', {
   P2PKH: byte32Codec,

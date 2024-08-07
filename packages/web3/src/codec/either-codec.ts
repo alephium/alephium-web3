@@ -15,46 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Codec } from './codec'
-import { Reader } from './reader'
+import { Codec, EnumCodec } from './codec'
 
-export interface Either<L, R> {
-  either: number
-  value: L | R
-}
+export type Either<L, R> = { kind: 'Left'; value: L } | { kind: 'Right'; value: R }
 
-export class EitherCodec<L, R> extends Codec<Either<L, R>> {
-  constructor(private leftCodec: Codec<L>, private rightCodec: Codec<R>) {
-    super()
-  }
-
-  encode(input: Either<L, R>): Uint8Array {
-    const result = [input.either]
-    if (input.either === 0) {
-      result.push(...this.leftCodec.encode(input.value as L))
-    } else {
-      result.push(...this.rightCodec.encode(input.value as R))
-    }
-    return new Uint8Array(result)
-  }
-
-  _decode(input: Reader): Either<L, R> {
-    const type = input.consumeByte()
-    const value = type === 0 ? this.leftCodec._decode(input) : this.rightCodec._decode(input)
-    return { either: type, value }
-  }
-
-  fromLeft(left: L): Either<L, R> {
-    return {
-      either: 0,
-      value: left
-    }
-  }
-
-  fromRight(right: R): Either<L, R> {
-    return {
-      either: 1,
-      value: right
-    }
-  }
+export function either<L, R>(name: string, l: Codec<L>, r: Codec<R>): Codec<Either<L, R>> {
+  return new EnumCodec(name, { Left: l, Right: r })
 }

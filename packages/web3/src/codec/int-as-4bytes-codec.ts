@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Codec } from './codec'
 import { Reader } from './reader'
 
-export class SignedIntCodec extends Codec<number> {
+export class IntAs4BytesCodec extends Codec<number> {
   encode(value: number): Uint8Array {
     return new Uint8Array([(value >> 24) & 0xff, (value >> 16) & 0xff, (value >> 8) & 0xff, value & 0xff])
   }
@@ -29,4 +29,4 @@ export class SignedIntCodec extends Codec<number> {
   }
 }
 
-export const signedIntCodec = new SignedIntCodec()
+export const intAs4BytesCodec = new IntAs4BytesCodec()

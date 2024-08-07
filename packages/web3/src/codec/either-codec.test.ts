@@ -15,20 +15,20 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { EitherCodec } from './either-codec'
-import { signedIntCodec } from './signed-int-codec'
+import { Either, either } from './either-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { timestampCodec } from './timestamp-codec'
 
 describe('Encode & decode either type', function () {
   it('should encode and decode either type', function () {
-    const eitherCodec = new EitherCodec(signedIntCodec, timestampCodec)
+    const eitherCodec = either('test', intAs4BytesCodec, timestampCodec)
 
-    const signedInt = { either: 0, value: 1000 }
+    const signedInt: Either<number, bigint> = { kind: 'Left', value: 1000 }
     const encodedSignedInt = eitherCodec.encode(signedInt)
     const decodedSignedInt = eitherCodec.decode(encodedSignedInt)
     expect(signedInt).toEqual(decodedSignedInt)
 
-    const long = { either: 1, value: 100000000n }
+    const long: Either<number, bigint> = { kind: 'Right', value: 100000000n }
     const encodedLong = eitherCodec.encode(long)
     const decodedLong = eitherCodec.decode(encodedLong)
     expect(long).toEqual(decodedLong)

@@ -21,29 +21,29 @@ import { hexToBinUnsafe } from '../utils'
 
 describe('Val', function () {
   it('should encode & decode val', function () {
-    test(new Uint8Array([0x00, 0x00]), { type: 'Bool', value: false })
-    test(new Uint8Array([0x00, 0x01]), { type: 'Bool', value: true })
+    test(new Uint8Array([0x00, 0x00]), { kind: 'Bool', value: false })
+    test(new Uint8Array([0x00, 0x01]), { kind: 'Bool', value: true })
     test(
       new Uint8Array([0x01, ...hexToBinUnsafe('dc7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd')]),
-      { type: 'I256', value: 57896044618658097711785492504343953926634992332820282019728792003956564819965n }
+      { kind: 'I256', value: 57896044618658097711785492504343953926634992332820282019728792003956564819965n }
     )
     test(
       new Uint8Array([0x01, ...hexToBinUnsafe('dc8000000000000000000000000000000000000000000000000000000000000000')]),
-      { type: 'I256', value: -57896044618658097711785492504343953926634992332820282019728792003956564819968n }
+      { kind: 'I256', value: -57896044618658097711785492504343953926634992332820282019728792003956564819968n }
     )
-    test(new Uint8Array([0x02, ...hexToBinUnsafe('bfffffff')]), { type: 'U256', value: 1073741823n })
+    test(new Uint8Array([0x02, ...hexToBinUnsafe('bfffffff')]), { kind: 'U256', value: 1073741823n })
     test(
       new Uint8Array([0x02, ...hexToBinUnsafe('dcfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe')]),
-      { type: 'U256', value: 115792089237316195423570985008687907853269984665640564039457584007913129639934n }
+      { kind: 'U256', value: 115792089237316195423570985008687907853269984665640564039457584007913129639934n }
     )
     test(new Uint8Array([0x03, 0x04, 0x00, 0x01, 0x02, 0x03]), {
-      type: 'ByteVec',
+      kind: 'ByteVec',
       value: new Uint8Array([0x00, 0x01, 0x02, 0x03])
     })
-    test(new Uint8Array([0x03, 0x00]), { type: 'ByteVec', value: new Uint8Array([]) })
+    test(new Uint8Array([0x03, 0x00]), { kind: 'ByteVec', value: new Uint8Array([]) })
     const bytes = new Uint8Array(randomBytes(32))
     const encodedLockupScript = new Uint8Array([0x04, 0x00, ...bytes])
-    test(encodedLockupScript, { type: 'Address', value: { type: 'P2PKH', value: bytes } })
+    test(encodedLockupScript, { kind: 'Address', value: { kind: 'P2PKH', value: bytes } })
   })
 
   function test(encoded: Uint8Array, expected: Val) {

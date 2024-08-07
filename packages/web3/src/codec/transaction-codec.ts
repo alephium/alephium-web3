@@ -59,7 +59,7 @@ export class TransactionCodec extends ObjectCodec<Transaction> {
     })
     const txIdBytes = hexToBinUnsafe(txId)
     const generatedOutputs = transaction.generatedOutputs.map((output, index) => {
-      if (output.either === 0) {
+      if (output.kind === 'Left') {
         const fixedAssetOutput = AssetOutputCodec.toFixedAssetOutput(txIdBytes, output.value as AssetOutput, index)
         return { ...fixedAssetOutput, type: 'AssetOutput' }
       } else {
@@ -81,9 +81,9 @@ export class TransactionCodec extends ObjectCodec<Transaction> {
     })
     const generatedOutputs: Either<AssetOutput, ContractOutput>[] = tx.generatedOutputs.map((output) => {
       if (output.type === 'AssetOutput') {
-        return outputCodec.fromLeft(AssetOutputCodec.fromFixedAssetOutput(output as FixedAssetOutput))
+        return { kind: 'Left', value: AssetOutputCodec.fromFixedAssetOutput(output as FixedAssetOutput) }
       } else if (output.type === 'ContractOutput') {
-        return outputCodec.fromRight(ContractOutputCodec.convertToOutput(output as ApiContractOutput))
+        return { kind: 'Right', value: ContractOutputCodec.convertToOutput(output as ApiContractOutput) }
       } else {
         throw new Error('Invalid output type')
       }

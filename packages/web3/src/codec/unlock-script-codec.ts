@@ -34,10 +34,10 @@ export interface P2SH {
 export type SameAsPrevious = 'SameAsPrevious'
 
 export type UnlockScript =
-  | { type: 'P2PKH'; value: P2PKH }
-  | { type: 'P2MPKH'; value: P2MPKH }
-  | { type: 'P2SH'; value: P2SH }
-  | { type: 'SameAsPrevious'; value: SameAsPrevious }
+  | { kind: 'P2PKH'; value: P2PKH }
+  | { kind: 'P2MPKH'; value: P2MPKH }
+  | { kind: 'P2SH'; value: P2SH }
+  | { kind: 'SameAsPrevious'; value: SameAsPrevious }
 
 const p2pkhCodec = new FixedSizeCodec(33)
 const keyWithIndexCodec = new ObjectCodec<KeyWithIndex>({

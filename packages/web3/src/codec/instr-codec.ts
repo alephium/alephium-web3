@@ -20,7 +20,7 @@ import { i256Codec, u256Codec, i32Codec } from './compact-int-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
-import { signedIntCodec } from './signed-int-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { Reader } from './reader'
 
 const byteStringArrayCodec = new ArrayCodec(byteStringCodec)
@@ -289,7 +289,7 @@ export class InstrCodec extends Codec<Instr> {
       const value = instrValue as CreateMapEntryValue
       result.push(value.immFields, value.mutFields)
     } else if (instr.code === 0xd3 || instr.code === 0xd4) {
-      result.push(...signedIntCodec.encode((instrValue as InstrValueWithIndex).index))
+      result.push(...intAs4BytesCodec.encode((instrValue as InstrValueWithIndex).index))
     }
 
     return new Uint8Array(result)
@@ -332,9 +332,9 @@ export class InstrCodec extends Codec<Instr> {
       case 0xd2: // CreateMapEntry
         return CreateMapEntry(input.consumeByte(), input.consumeByte())
       case 0xd3: // MethodSelector
-        return MethodSelector(signedIntCodec._decode(input))
+        return MethodSelector(intAs4BytesCodec._decode(input))
       case 0xd4: // CallExternalBySelector
-        return CallExternalBySelector(signedIntCodec._decode(input))
+        return CallExternalBySelector(intAs4BytesCodec._decode(input))
       default:
         return { code, value: {} }
     }

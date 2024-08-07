@@ -15,21 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { OptionCodec } from './option-codec'
-import { intAs4BytesCodec } from './int-as-4bytes-codec'
+import { byteCodec } from './codec'
 
-describe('Encode & decode options', function () {
-  it('should encode and decode options', function () {
-    const optionalStringCodec = new OptionCodec(intAs4BytesCodec)
+describe('codec', function () {
+  it('should encode & decode byte', function () {
+    for (let i = 0; i < 256; i += 1) {
+      expect(byteCodec.encode(i)).toEqual(new Uint8Array([i]))
+      expect(byteCodec.decode(new Uint8Array([i]))).toEqual(i)
+    }
 
-    const none = { option: 0 }
-    const encodedNone = optionalStringCodec.encode(none)
-    const decodedNone = optionalStringCodec.decode(encodedNone)
-    expect(none).toEqual(decodedNone)
-
-    const option = { option: 1, value: 1000 }
-    const encodedOption = optionalStringCodec.encode(option)
-    const decodedOption = optionalStringCodec.decode(encodedOption)
-    expect(option).toEqual(decodedOption)
+    expect(() => byteCodec.encode(-1)).toThrow()
+    expect(() => byteCodec.encode(256)).toThrow()
   })
 })

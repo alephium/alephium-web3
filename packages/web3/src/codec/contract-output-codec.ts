@@ -22,7 +22,7 @@ import { Token, tokensCodec } from './token-codec'
 import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
 import { binToHex, bs58, concatBytes, hexToBinUnsafe } from '../utils'
-import { signedIntCodec } from './signed-int-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { lockupScriptCodec } from './lockup-script-codec'
 
 export interface ContractOutput {
@@ -34,7 +34,7 @@ export interface ContractOutput {
 export class ContractOutputCodec extends ObjectCodec<ContractOutput> {
   static convertToApiContractOutput(txIdBytes: Uint8Array, output: ContractOutput, index: number): ApiContractOutput {
     const hint = createHint(output.lockupScript)
-    const key = binToHex(blakeHash(concatBytes([txIdBytes, signedIntCodec.encode(index)])))
+    const key = binToHex(blakeHash(concatBytes([txIdBytes, intAs4BytesCodec.encode(index)])))
     const attoAlphAmount = output.amount.toString()
     const address = bs58.encode(new Uint8Array([0x03, ...output.lockupScript]))
     const tokens = output.tokens.map((token) => {

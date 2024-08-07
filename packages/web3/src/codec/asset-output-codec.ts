@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
 import { u256Codec } from './compact-int-codec'
-import { signedIntCodec } from './signed-int-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { timestampCodec } from './timestamp-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, P2MPKH, P2PKH, P2SH, lockupScriptCodec } from './lockup-script-codec'
@@ -50,8 +50,8 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
       }
     })
     const message = binToHex(output.additionalData)
-    const scriptType = output.lockupScript.type
-    const key = binToHex(blakeHash(concatBytes([txIdBytes, signedIntCodec.encode(index)])))
+    const scriptType = output.lockupScript.kind
+    const key = binToHex(blakeHash(concatBytes([txIdBytes, intAs4BytesCodec.encode(index)])))
     const outputLockupScript = output.lockupScript.value
     const address = bs58.encode(lockupScriptCodec.encode(output.lockupScript))
 

@@ -17,10 +17,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ArrayCodec } from './array-codec'
-import { Either, EitherCodec } from './either-codec'
+import { either, Either } from './either-codec'
 import { AssetOutput, assetOutputCodec } from './asset-output-codec'
 import { ContractOutput, contractOutputCodec } from './contract-output-codec'
 
 export type Output = Either<AssetOutput, ContractOutput>
-export const outputCodec = new EitherCodec<AssetOutput, ContractOutput>(assetOutputCodec, contractOutputCodec)
+export const outputCodec = either('output', assetOutputCodec, contractOutputCodec)
 export const outputsCodec = new ArrayCodec(outputCodec)

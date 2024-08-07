@@ -25,10 +25,10 @@ describe('UnlockScript', function () {
     const key0 = new Uint8Array(randomBytes(33))
     const key2 = new Uint8Array(randomBytes(33))
 
-    test(new Uint8Array([0x00, ...key0]), { type: 'P2PKH', value: key0 })
+    test(new Uint8Array([0x00, ...key0]), { kind: 'P2PKH', value: key0 })
     const encodedP2mpkh = new Uint8Array([0x01, 0x02, ...key0, 0x00, ...key2, 0x02])
     const p2mpkh: UnlockScript = {
-      type: 'P2MPKH',
+      kind: 'P2MPKH',
       value: [
         { publicKey: key0, index: 0 },
         { publicKey: key2, index: 2 }
@@ -37,7 +37,7 @@ describe('UnlockScript', function () {
     test(encodedP2mpkh, p2mpkh)
     const encodedP2sh = hexToBinUnsafe('0201010002000001020200010306000102030405')
     test(encodedP2sh, {
-      type: 'P2SH',
+      kind: 'P2SH',
       value: {
         script: {
           methods: [
@@ -54,12 +54,12 @@ describe('UnlockScript', function () {
           ]
         },
         params: [
-          { type: 'Bool', value: true },
-          { type: 'ByteVec', value: new Uint8Array([0x00, 0x01, 0x02, 0x03, 0x04, 0x05]) }
+          { kind: 'Bool', value: true },
+          { kind: 'ByteVec', value: new Uint8Array([0x00, 0x01, 0x02, 0x03, 0x04, 0x05]) }
         ]
       }
     })
-    test(new Uint8Array([0x03]), { type: 'SameAsPrevious', value: 'SameAsPrevious' })
+    test(new Uint8Array([0x03]), { kind: 'SameAsPrevious', value: 'SameAsPrevious' })
   })
 
   function test(encoded: Uint8Array, expected: UnlockScript) {

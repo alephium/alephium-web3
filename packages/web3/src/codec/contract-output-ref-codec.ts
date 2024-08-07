@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
 import { byte32Codec, ObjectCodec } from './codec'
-import { signedIntCodec } from './signed-int-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 
 export interface ContractOutputRef {
   hint: number
@@ -25,7 +25,7 @@ export interface ContractOutputRef {
 }
 
 export const contractOutputRefCodec = new ObjectCodec<ContractOutputRef>({
-  hint: signedIntCodec,
+  hint: intAs4BytesCodec,
   key: byte32Codec
 })
 export const contractOutputRefsCodec = new ArrayCodec(contractOutputRefCodec)

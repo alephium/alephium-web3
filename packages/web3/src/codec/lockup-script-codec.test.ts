@@ -24,12 +24,12 @@ describe('LockupScript', function () {
     const bytes1 = new Uint8Array(randomBytes(32))
     const bytes2 = new Uint8Array(randomBytes(32))
 
-    test(new Uint8Array([0x00, ...bytes0]), { type: 'P2PKH', value: new Uint8Array(bytes0) })
+    test(new Uint8Array([0x00, ...bytes0]), { kind: 'P2PKH', value: new Uint8Array(bytes0) })
     const encodedMultisig = new Uint8Array([0x01, 0x03, ...bytes0, ...bytes1, ...bytes2, 0x02])
     const p2mpkh = { publicKeyHashes: [bytes0, bytes1, bytes2], m: 2 }
-    test(encodedMultisig, { type: 'P2MPKH', value: p2mpkh })
-    test(new Uint8Array([0x02, ...bytes0]), { type: 'P2SH', value: new Uint8Array(bytes0) })
-    test(new Uint8Array([0x03, ...bytes0]), { type: 'P2C', value: new Uint8Array(bytes0) })
+    test(encodedMultisig, { kind: 'P2MPKH', value: p2mpkh })
+    test(new Uint8Array([0x02, ...bytes0]), { kind: 'P2SH', value: new Uint8Array(bytes0) })
+    test(new Uint8Array([0x03, ...bytes0]), { kind: 'P2C', value: new Uint8Array(bytes0) })
   })
 
   function test(encoded: Uint8Array, expected: LockupScript) {

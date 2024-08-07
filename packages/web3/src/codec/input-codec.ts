@@ -20,7 +20,7 @@ import { binToHex, hexToBinUnsafe } from '../utils'
 import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
 import { byte32Codec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
-import { signedIntCodec } from './signed-int-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 
 export interface Input {
   hint: number
@@ -52,7 +52,7 @@ export class InputCodec extends ObjectCodec<Input> {
 }
 
 export const inputCodec = new InputCodec({
-  hint: signedIntCodec,
+  hint: intAs4BytesCodec,
   key: byte32Codec,
   unlockScript: unlockScriptCodec
 })

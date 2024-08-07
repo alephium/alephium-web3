@@ -162,7 +162,7 @@ describe('Encode & decode scripts', function () {
     const contractId = randomContractId()
     const decodedTestAddress = bs58.decode(testAddress)
     const lockupScript: LockupScript = {
-      type: 'P2PKH',
+      kind: 'P2PKH',
       value: decodedTestAddress.slice(1)
     }
     const contractIdByteString = hexToBinUnsafe(contractId)
