@@ -1737,6 +1737,10 @@ function getBytecodeTemplate(
   const argsLength = '00'
   const returnsLength = '00'
 
+  if (methodUsePreapprovedAssets && !scriptUseApprovedAssets) {
+    throw new Error('The contract call requires preapproved assets but none are provided')
+  }
+
   const [templateVarStoreLocalInstrs, templateVarsLength] = getTemplateVarStoreLocalInstrs(functionSig, structs)
 
   const approveAlphInstrs: string[] = getApproveAlphInstrs(methodUsePreapprovedAssets ? attoAlphAmount : undefined)
