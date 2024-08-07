@@ -1,0 +1,45 @@
+{
+  "version": "v3.5.0",
+  "name": "Transact",
+  "bytecode": "01034027404e405c010100000009d353dbb7aab413c40de0b6b3a7640000a9a00013c40de0b6b3a76400002aa10002010200000009d3a248861cb413c40de0b6b3a7640000a8a00013c40de0b6b3a76400002ba10002010000000103d376c7c673a00002",
+  "codeHash": "e69364160d369d3459e19d1b2fcaae7f0cac7059357dba5616147ea18d0c1f0e",
+  "fieldsSig": {
+    "names": [
+      "totalDeposits"
+    ],
+    "types": [
+      "U256"
+    ],
+    "isMutable": [
+      true
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "deposit",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    },
+    {
+      "name": "withdraw",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    },
+    {
+      "name": "getTotalDeposits",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

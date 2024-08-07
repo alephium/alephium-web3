@@ -286,6 +286,12 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": "4aa5c769148cada8eeb1cd3791f6e793ed92009ac79ebb64dc79d4d7f2969c8b"
     },
+    "Transact": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "be72f5d014486592f9ba43c41ded84a6c11dea338f2d0a86736ee6d1bd62f7fe",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "e69364160d369d3459e19d1b2fcaae7f0cac7059357dba5616147ea18d0c1f0e"
+    },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
       "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
