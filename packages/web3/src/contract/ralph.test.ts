@@ -20,11 +20,12 @@ import * as ralph from './ralph'
 import * as utils from '../utils'
 import { Fields, FieldsSig, Struct, fromApiArray, fromApiEventFields, fromApiFields, getDefaultValue } from './contract'
 import * as node from '../api/api-alephium'
+import { i256Codec, u256Codec } from '../codec'
 
 describe('contract', function () {
   it('should encode I256', () => {
     function test(i256: bigint, expected: string) {
-      expect(utils.binToHex(ralph.encodeI256(i256))).toEqual(expected)
+      expect(utils.binToHex(i256Codec.encode(i256))).toEqual(expected)
     }
     test(BigInt('0'), '00')
     test(BigInt('1'), '01')
@@ -72,7 +73,7 @@ describe('contract', function () {
     )
 
     function fail(n: bigint) {
-      expect(() => ralph.encodeI256(n)).toThrow()
+      expect(() => i256Codec.encode(n)).toThrow()
     }
     fail(BigInt('57896044618658097711785492504343953926634992332820282019728792003956564819968'))
     fail(BigInt('57896044618658097711785492504343953926634992332820282019728792003956564819969'))
@@ -82,7 +83,7 @@ describe('contract', function () {
 
   it('should encode U256', () => {
     function test(u256: bigint, expected: string) {
-      expect(utils.binToHex(ralph.encodeU256(u256))).toEqual(expected)
+      expect(utils.binToHex(u256Codec.encode(u256))).toEqual(expected)
     }
     test(BigInt('0'), '00')
     test(BigInt('1'), '01')
@@ -118,7 +119,7 @@ describe('contract', function () {
     )
 
     function fail(n: bigint) {
-      expect(() => ralph.encodeU256(n)).toThrow()
+      expect(() => u256Codec.encode(n)).toThrow()
     }
     fail(BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639936'))
     fail(BigInt('115792089237316195423570985008687907853269984665640564039457584007913129639937'))

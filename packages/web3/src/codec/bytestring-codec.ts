@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { compactInt32Codec } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { Codec } from './codec'
 import { concatBytes } from '../utils'
 import { Reader } from './reader'
@@ -24,11 +24,11 @@ export type ByteString = Uint8Array
 
 export class ByteStringCodec extends Codec<ByteString> {
   encode(input: ByteString): Uint8Array {
-    return concatBytes([compactInt32Codec.encode(input.length), input])
+    return concatBytes([i32Codec.encode(input.length), input])
   }
 
   _decode(input: Reader): ByteString {
-    const length = compactInt32Codec._decode(input)
+    const length = i32Codec._decode(input)
     return input.consumeBytes(length)
   }
 }

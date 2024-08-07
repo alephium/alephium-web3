@@ -25,7 +25,7 @@ describe('Encode & decode bigint', function () {
       const isNegative = i % 2 === 0
       const n = BigInt('0x' + randomBytes(100).toString('hex')) * (isNegative ? -1n : 1n)
       const encoded = BigIntCodec.encode(n)
-      const decoded = BigIntCodec.decode(encoded, isNegative)
+      const decoded = isNegative ? BigIntCodec.decodeSigned(encoded) : BigIntCodec.decodeUnsigned(encoded)
       expect(n).toEqual(decoded)
     }
   })

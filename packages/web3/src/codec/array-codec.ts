@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { compactInt32Codec } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { Codec } from './codec'
 import { Reader } from './reader'
 import { concatBytes } from '../utils'
@@ -26,7 +26,7 @@ export class ArrayCodec<T> extends Codec<T[]> {
   }
 
   encode(input: T[]): Uint8Array {
-    const bytes: Uint8Array[] = [compactInt32Codec.encode(input.length)]
+    const bytes: Uint8Array[] = [i32Codec.encode(input.length)]
     for (const element of input) {
       bytes.push(this.childCodec.encode(element))
     }
@@ -34,7 +34,7 @@ export class ArrayCodec<T> extends Codec<T[]> {
   }
 
   _decode(input: Reader): T[] {
-    const length = compactInt32Codec._decode(input)
+    const length = i32Codec._decode(input)
     const array: T[] = []
     for (let index = 0; index < length; index += 1) {
       array.push(this.childCodec._decode(input))

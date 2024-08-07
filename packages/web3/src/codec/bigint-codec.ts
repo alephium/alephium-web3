@@ -64,14 +64,28 @@ export class BigIntCodec {
     return new Uint8Array(bytes.reverse())
   }
 
-  static decode(encoded: Uint8Array, signed: boolean): bigint {
+  static decodeUnsigned(encoded: Uint8Array): bigint {
+    // Special case for zero.
+    if (encoded.length === 1 && encoded[0] === 0) {
+      return 0n
+    }
+
+    // Convert the byte array to a bigint
+    let value = 0n
+    for (const byte of encoded) {
+      value = (value << 8n) | BigInt(byte)
+    }
+    return value
+  }
+
+  static decodeSigned(encoded: Uint8Array): bigint {
     // Special case for zero.
     if (encoded.length === 1 && encoded[0] === 0) {
       return 0n
     }
 
     // Determine if the number is negative by checking the most significant byte (MSB)
-    const isNegative = signed ? (encoded[0] & 0x80) !== 0 : signed
+    const isNegative = (encoded[0] & 0x80) !== 0
 
     // Convert the byte array to a bigint
     let value = 0n

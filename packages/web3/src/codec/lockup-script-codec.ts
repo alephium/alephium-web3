@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { compactInt32Codec } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { byte32Codec, EnumCodec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
 
@@ -33,7 +33,7 @@ export interface P2MPKH {
 
 const p2mpkhCodec = new ObjectCodec<P2MPKH>({
   publicKeyHashes: new ArrayCodec(byte32Codec),
-  m: compactInt32Codec
+  m: i32Codec
 })
 
 export type LockupScript =

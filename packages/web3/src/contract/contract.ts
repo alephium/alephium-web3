@@ -64,8 +64,6 @@ import * as blake from 'blakejs'
 import { isContractDebugMessageEnabled } from '../debug'
 import {
   contract,
-  compactUnsignedIntCodec,
-  compactSignedIntCodec,
   Method,
   LoadLocal,
   LoadImmFieldByIndex,
@@ -86,7 +84,8 @@ import {
   CallExternal,
   Dup,
   CallerAddress,
-  ByteConst
+  ByteConst,
+  i32Codec
 } from '../codec'
 
 const crypto = new WebCrypto()
@@ -1891,7 +1890,7 @@ function encodeLoadLocalInstr(index: number): string {
 }
 
 function encodeI32(value: number): string {
-  return binToHex(compactSignedIntCodec.encodeI32(value))
+  return binToHex(i32Codec.encode(value))
 }
 
 function encodeU256Const(value: bigint): string {
@@ -1902,7 +1901,7 @@ function encodeU256Const(value: bigint): string {
   if (value < 6) {
     return (BigInt(0x0c) + value).toString(16).padStart(2, '0')
   } else {
-    return encodeInstr(U256Const(compactUnsignedIntCodec.fromU256(BigInt(value))))
+    return encodeInstr(U256Const(value))
   }
 }
 

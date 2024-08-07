@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
-import { compactInt32Codec } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { boolCodec, byteCodec, Codec } from './codec'
 import { instrsCodec, Instr } from './instr-codec'
 import { Reader } from './reader'
@@ -74,9 +74,9 @@ export class MethodCodec extends Codec<Method> {
     const bytes: Uint8Array[] = []
     bytes.push(boolCodec.encode(method.isPublic))
     bytes.push(new Uint8Array([encodeAssetModifier(method)]))
-    bytes.push(compactInt32Codec.encode(method.argsLength))
-    bytes.push(compactInt32Codec.encode(method.localsLength))
-    bytes.push(compactInt32Codec.encode(method.returnLength))
+    bytes.push(i32Codec.encode(method.argsLength))
+    bytes.push(i32Codec.encode(method.localsLength))
+    bytes.push(i32Codec.encode(method.returnLength))
     bytes.push(instrsCodec.encode(method.instrs))
     return concatBytes(bytes)
   }
@@ -84,9 +84,9 @@ export class MethodCodec extends Codec<Method> {
   _decode(input: Reader): Method {
     const isPublic = boolCodec._decode(input)
     const assetModifier = decodeAssetModifier(byteCodec._decode(input))
-    const argsLength = compactInt32Codec._decode(input)
-    const localsLength = compactInt32Codec._decode(input)
-    const returnLength = compactInt32Codec._decode(input)
+    const argsLength = i32Codec._decode(input)
+    const localsLength = i32Codec._decode(input)
+    const returnLength = i32Codec._decode(input)
     const instrs = instrsCodec._decode(input)
     return { ...assetModifier, isPublic, argsLength, localsLength, returnLength, instrs }
   }

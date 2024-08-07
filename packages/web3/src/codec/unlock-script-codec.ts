@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
-import { compactInt32Codec } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
 import { Script, scriptCodec } from './script-codec'
 import { Val, valsCodec } from './val'
@@ -42,7 +42,7 @@ export type UnlockScript =
 const p2pkhCodec = new FixedSizeCodec(33)
 const keyWithIndexCodec = new ObjectCodec<KeyWithIndex>({
   publicKey: p2pkhCodec,
-  index: compactInt32Codec
+  index: i32Codec
 })
 const p2mpkhCodec: Codec<P2MPKH> = new ArrayCodec(keyWithIndexCodec)
 const p2shCodec = new ObjectCodec<P2SH>({

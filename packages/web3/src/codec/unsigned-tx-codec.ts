@@ -19,7 +19,7 @@ import { UnsignedTx as ApiUnsignedTx } from '../api/api-alephium'
 import { binToHex, hexToBinUnsafe } from '../utils'
 import { Script, scriptCodec, statefulScriptCodecOpt } from './script-codec'
 import { Option } from './option-codec'
-import { compactInt32Codec, u256Codec } from './compact-int-codec'
+import { i32Codec, u256Codec } from './compact-int-codec'
 import { Input, InputCodec, inputsCodec } from './input-codec'
 import { AssetOutput, AssetOutputCodec, assetOutputsCodec } from './asset-output-codec'
 import { blakeHash } from './hash'
@@ -86,7 +86,7 @@ export const unsignedTxCodec = new UnsignedTxCodec({
   version: byteCodec,
   networkId: byteCodec,
   statefulScript: statefulScriptCodecOpt,
-  gasAmount: compactInt32Codec,
+  gasAmount: i32Codec,
   gasPrice: u256Codec,
   inputs: inputsCodec,
   fixedOutputs: assetOutputsCodec

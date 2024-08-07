@@ -18,12 +18,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ArrayCodec } from './array-codec'
 import { Codec } from './codec'
-import { compactInt32Codec } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { Method, methodCodec } from './method-codec'
 import { concatBytes } from '../utils'
 import { Reader } from './reader'
 
-const compactInt32sCodec = new ArrayCodec(compactInt32Codec)
+const i32sCodec = new ArrayCodec(i32Codec)
 
 export interface HalfDecodedContract {
   fieldLength: number
@@ -38,16 +38,12 @@ export interface Contract {
 
 export class ContractCodec extends Codec<HalfDecodedContract> {
   encode(input: HalfDecodedContract): Uint8Array {
-    return concatBytes([
-      compactInt32Codec.encode(input.fieldLength),
-      compactInt32sCodec.encode(input.methodIndexes),
-      input.methods
-    ])
+    return concatBytes([i32Codec.encode(input.fieldLength), i32sCodec.encode(input.methodIndexes), input.methods])
   }
 
   _decode(input: Reader): HalfDecodedContract {
-    const fieldLength = compactInt32Codec._decode(input)
-    const methodIndexes = compactInt32sCodec._decode(input)
+    const fieldLength = i32Codec._decode(input)
+    const methodIndexes = i32sCodec._decode(input)
     const methods = input.consumeAll()
     return { fieldLength, methodIndexes, methods }
   }

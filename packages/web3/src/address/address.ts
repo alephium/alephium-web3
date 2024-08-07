@@ -25,7 +25,7 @@ import djb2 from '../utils/djb2'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString } from '../utils'
 import { KeyType } from '../signer'
 import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
-import { compactSignedIntCodec } from '../codec'
+import { i32Codec } from '../codec'
 
 const ec = new EC('secp256k1')
 const PublicKeyHashSize = 32
@@ -72,8 +72,8 @@ function decodeAndValidateAddress(address: string): Uint8Array {
     if (n < m || m <= 0) {
       throw new Error(`Invalid multisig address, n: ${n}, m: ${m}`)
     }
-    const encodedNSize = compactSignedIntCodec.encodeI32(n).length
-    const encodedMSize = compactSignedIntCodec.encodeI32(m).length
+    const encodedNSize = i32Codec.encode(n).length
+    const encodedMSize = i32Codec.encode(m).length
     const size = encodedNSize + PublicKeyHashSize * n + encodedMSize + 1 // 1 for the P2MPKH prefix
     if (decoded.length === size) return decoded
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {

@@ -17,147 +17,28 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256, PrimitiveTypes } from '../api'
-import { HexString, binToHex, bs58, concatBytes, hexToBinUnsafe, isHexString } from '../utils'
+import { HexString, binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
-import { compactSignedIntCodec, compactUnsignedIntCodec } from '../codec'
-
-const bigIntZero = BigInt(0)
-
-class UnSigned {
-  static readonly oneByteBound = BigInt(0x40)
-  static readonly twoByteBound = UnSigned.oneByteBound << BigInt(8)
-  static readonly fourByteBound = UnSigned.oneByteBound << BigInt(8 * 3)
-  static readonly u256UpperBound = BigInt(1) << BigInt(256)
-}
-
-class Signed {
-  static readonly oneByteBound = BigInt(0x20)
-  static readonly twoByteBound = Signed.oneByteBound << BigInt(8)
-  static readonly fourByteBound = Signed.oneByteBound << BigInt(8 * 3)
-  static readonly i256UpperBound = BigInt(1) << BigInt(255)
-  static readonly i256LowerBound = -this.i256UpperBound
-}
-
-class CompactInt {
-  static readonly oneBytePrefix = 0x00
-  static readonly oneByteNegPrefix = 0xc0
-  static readonly twoBytePrefix = 0x40
-  static readonly twoByteNegPrefix = 0x80
-  static readonly fourBytePrefix = 0x80
-  static readonly fourByteNegPrefix = 0x40
-  static readonly multiBytePrefix = 0xc0
-}
-
-export function encodeBool(bool: boolean): Uint8Array {
-  return bool ? Uint8Array.from([1]) : Uint8Array.from([0])
-}
-
-export function decodeBool(bytes: Uint8Array): boolean {
-  if (bytes.length !== 1) {
-    throw new Error(`Expected one byte for encoded bool, got ${bytes.length}`)
-  }
-  return bytes[0] === 1 ? true : false
-}
-
-export function encodeI256(i256: bigint): Uint8Array {
-  if (i256 >= bigIntZero) {
-    return encodeI256Positive(i256)
-  } else {
-    return encodeI256Negative(i256)
-  }
-}
-
-// n should be positive
-function toByteArray(n: bigint, signed: boolean, notBit: boolean): Uint8Array {
-  let hex = n.toString(16)
-  if (hex.length % 2 === 1) {
-    hex = '0' + hex
-  } else if (signed && hex[0] >= '8') {
-    hex = '00' + hex // add the byte for sign
-  }
-
-  const byteLength = hex.length / 2
-  const bytes = new Uint8Array(byteLength + 1)
-  for (let index = 0; index < byteLength; index++) {
-    const offset = index * 2
-    const byte = parseInt(hex.slice(offset, offset + 2), 16)
-    bytes[`${index + 1}`] = notBit ? ~byte : byte
-  }
-
-  const header = byteLength - 4 + CompactInt.multiBytePrefix
-  bytes[0] = header
-  return bytes
-}
-
-function encodeI256Positive(i256: bigint): Uint8Array {
-  if (i256 < Signed.oneByteBound) {
-    return new Uint8Array([Number(i256) + CompactInt.oneBytePrefix])
-  } else if (i256 < Signed.twoByteBound) {
-    const num = Number(i256)
-    return new Uint8Array([(num >> 8) + CompactInt.twoBytePrefix, num & 0xff])
-  } else if (i256 < Signed.fourByteBound) {
-    const num = Number(i256)
-    return new Uint8Array([(num >> 24) + CompactInt.fourBytePrefix, (num >> 16) & 0xff, (num >> 8) & 0xff, num & 0xff])
-  } else if (i256 < Signed.i256UpperBound) {
-    return toByteArray(i256, true, false)
-  } else {
-    throw Error(`Too large number for i256: ${i256}`)
-  }
-}
-
-function encodeI256Negative(i256: bigint): Uint8Array {
-  if (i256 >= -Signed.oneByteBound) {
-    const num = Number(i256)
-    return new Uint8Array([(num ^ CompactInt.oneByteNegPrefix) & 0xff])
-  } else if (i256 >= -Signed.twoByteBound) {
-    const num = Number(i256)
-    return new Uint8Array([((num >> 8) ^ CompactInt.twoByteNegPrefix) & 0xff, num & 0xff])
-  } else if (i256 >= -Signed.fourByteBound) {
-    const num = Number(i256)
-    return new Uint8Array([
-      ((num >> 24) ^ CompactInt.fourByteNegPrefix) & 0xff,
-      (num >> 16) & 0xff,
-      (num >> 8) & 0xff,
-      num & 0xff
-    ])
-  } else if (i256 >= Signed.i256LowerBound) {
-    return toByteArray(~i256, true, true)
-  } else {
-    throw Error(`Too small number for i256: ${i256}`)
-  }
-}
-
-export function encodeU256(u256: bigint): Uint8Array {
-  if (u256 < bigIntZero) {
-    throw Error(`Negative number for U256: ${u256}`)
-  } else if (u256 < UnSigned.oneByteBound) {
-    return new Uint8Array([Number(u256) + CompactInt.oneBytePrefix])
-  } else if (u256 < UnSigned.twoByteBound) {
-    const num = Number(u256)
-    return new Uint8Array([((num >> 8) & 0xff) + CompactInt.twoBytePrefix, num & 0xff])
-  } else if (u256 < UnSigned.fourByteBound) {
-    const num = Number(u256)
-    return new Uint8Array([
-      ((num >> 24) & 0xff) + CompactInt.fourBytePrefix,
-      (num >> 16) & 0xff,
-      (num >> 8) & 0xff,
-      num & 0xff
-    ])
-  } else if (u256 < UnSigned.u256UpperBound) {
-    return toByteArray(u256, false, false)
-  } else {
-    throw Error(`Too large number for U256: ${u256}`)
-  }
-}
+import {
+  byteStringCodec,
+  ConstFalse,
+  ConstTrue,
+  i256Codec,
+  I256Const,
+  i32Codec,
+  instrCodec,
+  u256Codec,
+  U256Const
+} from '../codec'
+import { boolCodec } from '../codec/codec'
 
 export function encodeByteVec(hex: string): Uint8Array {
   if (!isHexString(hex)) {
     throw Error(`Given value ${hex} is not a valid hex string`)
   }
 
-  const bytes0 = hexToBinUnsafe(hex)
-  const bytes1 = encodeI256(BigInt(bytes0.length))
-  return concatBytes([bytes1, bytes0])
+  const bytes = hexToBinUnsafe(hex)
+  return byteStringCodec.encode(bytes)
 }
 
 export function encodeAddress(address: string): Uint8Array {
@@ -173,15 +54,15 @@ export enum VmValType {
 }
 
 export function encodeVmBool(bool: boolean): Uint8Array {
-  return new Uint8Array([VmValType.Bool, ...encodeBool(bool)])
+  return new Uint8Array([VmValType.Bool, ...boolCodec.encode(bool)])
 }
 
 export function encodeVmI256(i256: bigint): Uint8Array {
-  return new Uint8Array([VmValType.I256, ...encodeI256(i256)])
+  return new Uint8Array([VmValType.I256, ...i256Codec.encode(i256)])
 }
 
 export function encodeVmU256(u256: bigint): Uint8Array {
-  return new Uint8Array([VmValType.U256, ...encodeU256(u256)])
+  return new Uint8Array([VmValType.U256, ...u256Codec.encode(u256)])
 }
 
 export function encodeVmByteVec(bytes: string): Uint8Array {
@@ -244,12 +125,12 @@ enum Instruction {
 
 // TODO: optimize
 function encodeScriptFieldI256(value: bigint): Uint8Array {
-  return new Uint8Array([Instruction.i256Const, ...encodeI256(value)])
+  return instrCodec.encode(I256Const(value))
 }
 
 // TODO: optimize
 function encodeScriptFieldU256(value: bigint): Uint8Array {
-  return new Uint8Array([Instruction.u256Const, ...encodeU256(value)])
+  return instrCodec.encode(U256Const(value))
 }
 
 export function encodeScriptFieldAsString(tpe: string, value: Val): string {
@@ -259,7 +140,7 @@ export function encodeScriptFieldAsString(tpe: string, value: Val): string {
 export function encodeScriptField(tpe: string, value: Val): Uint8Array {
   switch (tpe) {
     case 'Bool':
-      const byte = toApiBoolean(value) ? Instruction.trueConst : Instruction.falseConst
+      const byte = toApiBoolean(value) ? ConstTrue.code : ConstFalse.code
       return new Uint8Array([byte])
     case 'I256':
       const i256 = toApiNumber256(value)
@@ -375,11 +256,11 @@ export function tryDecodeMapDebugLog(
 export function decodePrimitive(value: Uint8Array, type: string): Val {
   switch (type) {
     case 'Bool':
-      return decodeBool(value)
+      return boolCodec.decode(value)
     case 'I256':
-      return compactSignedIntCodec.decodeI256(value)
+      return i256Codec.decode(value)
     case 'U256':
-      return compactUnsignedIntCodec.decodeU256(value)
+      return u256Codec.decode(value)
     case 'ByteVec':
       return binToHex(value)
     case 'Address':
@@ -396,10 +277,10 @@ export function encodeMapKey(value: Val, type: string): Uint8Array {
       return new Uint8Array([byte])
     case 'I256':
       const i256 = toApiNumber256(value)
-      return encodeI256(BigInt(i256))
+      return i256Codec.encode(BigInt(i256))
     case 'U256':
       const u256 = toApiNumber256(value)
-      return encodeU256(BigInt(u256))
+      return u256Codec.encode(BigInt(u256))
     case 'ByteVec':
       const hexStr = toApiByteVec(value)
       return hexToBinUnsafe(hexStr)
@@ -527,7 +408,7 @@ function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
 }
 
 function encodeFields(fields: { name: string; type: string; value: Val }[]): Uint8Array {
-  const prefix = encodeI256(BigInt(fields.length))
+  const prefix = i32Codec.encode(fields.length)
   return fields.reduce((acc, field) => {
     const encoded = _encodeField(field.name, () => encodeContractField(field.type, field.value))
     const bytes = new Uint8Array(acc.byteLength + encoded.byteLength)

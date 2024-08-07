@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { ArrayCodec } from './array-codec'
-import { compactUnsignedIntCodec, compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
+import { i256Codec, u256Codec, i32Codec } from './compact-int-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { Codec } from './codec'
@@ -30,8 +30,11 @@ export interface InstrValue { }
 export interface InstrValueWithIndex extends InstrValue {
   index: number
 }
-export interface InstrValueWithCompactInt extends InstrValue {
-  value: DecodedCompactInt
+export interface InstrValueWithBigInt extends InstrValue {
+  value: bigint
+}
+export interface InstrValueWithI32 extends InstrValue {
+  value: number
 }
 
 export interface ByteStringConst extends InstrValue {
@@ -70,8 +73,8 @@ export const U256Const2: Instr = { code: 0x0e, value: {} }
 export const U256Const3: Instr = { code: 0x0f, value: {} }
 export const U256Const4: Instr = { code: 0x10, value: {} }
 export const U256Const5: Instr = { code: 0x11, value: {} }
-export const I256Const = (value: DecodedCompactInt): Instr => ({ code: 0x12, value: { value } })
-export const U256Const = (value: DecodedCompactInt): Instr => ({ code: 0x13, value: { value } })
+export const I256Const = (value: bigint): Instr => ({ code: 0x12, value: { value } })
+export const U256Const = (value: bigint): Instr => ({ code: 0x13, value: { value } })
 export const ByteConst = (value: ByteString): Instr => ({ code: 0x14, value: { value } })
 export const AddressConst = (value: LockupScript): Instr => ({ code: 0x15, value: { value } })
 export const LoadLocal = (index: number): Instr => ({ code: 0x16, value: { index } })
@@ -126,9 +129,9 @@ export const AddressNeq: Instr = { code: 0x46, value: {} }
 export const AddressToByteVec: Instr = { code: 0x47, value: {} }
 export const IsAssetAddress: Instr = { code: 0x48, value: {} }
 export const IsContractAddress: Instr = { code: 0x49, value: {} }
-export const Jump = (value: DecodedCompactInt): Instr => ({ code: 0x4a, value: { value } })
-export const IfTrue = (value: DecodedCompactInt): Instr => ({ code: 0x4b, value: { value } })
-export const IfFalse = (value: DecodedCompactInt): Instr => ({ code: 0x4c, value: { value } })
+export const Jump = (value: number): Instr => ({ code: 0x4a, value: { value } })
+export const IfTrue = (value: number): Instr => ({ code: 0x4b, value: { value } })
+export const IfFalse = (value: number): Instr => ({ code: 0x4c, value: { value } })
 export const Assert: Instr = { code: 0x4d, value: {} }
 export const Blake2b: Instr = { code: 0x4e, value: {} }
 export const Keccak256: Instr = { code: 0x4f, value: {} }
@@ -267,17 +270,19 @@ export class InstrCodec extends Codec<Instr> {
     const instrValue = instr.value
     const result = [instr.code]
     const instrsWithIndex = [0x00, 0x01, 0x16, 0x17, 0xa0, 0xa1, 0xce]
-    const instrsWithCompactSignedInt = [0x12, 0x4a, 0x4b, 0x4c]
+    const controlInstrs = [0x4a, 0x4b, 0x4c]
     if (instr.code === 0x14) {
       result.push(...byteStringCodec.encode((instrValue as ByteStringConst).value))
     } else if (instr.code === 0x15) {
       result.push(...lockupScriptCodec.encode((instrValue as AddressConst).value))
     } else if (instr.code === 0x7e) {
       result.push(...byteStringArrayCodec.encode((instrValue as Debug).stringParts))
+    } else if (instr.code === 0x12) {
+      result.push(...i256Codec.encode((instrValue as InstrValueWithBigInt).value))
     } else if (instr.code === 0x13) {
-      result.push(...compactUnsignedIntCodec.encode((instrValue as InstrValueWithCompactInt).value))
-    } else if (instrsWithCompactSignedInt.includes(instr.code)) {
-      result.push(...compactSignedIntCodec.encode((instrValue as InstrValueWithCompactInt).value))
+      result.push(...u256Codec.encode((instrValue as InstrValueWithBigInt).value))
+    } else if (controlInstrs.includes(instr.code)) {
+      result.push(...i32Codec.encode((instrValue as InstrValueWithI32).value))
     } else if (instrsWithIndex.includes(instr.code)) {
       result.push((instrValue as InstrValueWithIndex).index)
     } else if (instr.code === 0xd2) {
@@ -299,9 +304,9 @@ export class InstrCodec extends Codec<Instr> {
       case 0x01: // CallExternal
         return CallExternal(input.consumeByte())
       case 0x12: // I256Const
-        return I256Const(compactSignedIntCodec._decode(input))
+        return I256Const(i256Codec._decode(input))
       case 0x13: // U256Const
-        return U256Const(compactUnsignedIntCodec._decode(input))
+        return U256Const(u256Codec._decode(input))
       case 0x14: // ByteConst
         return ByteConst(byteStringCodec._decode(input))
       case 0x15: // AddressConst
@@ -311,11 +316,11 @@ export class InstrCodec extends Codec<Instr> {
       case 0x17: // StoreLocal
         return StoreLocal(input.consumeByte())
       case 0x4a: // Jump
-        return Jump(compactSignedIntCodec._decode(input))
+        return Jump(i32Codec._decode(input))
       case 0x4b: // IfTrue
-        return IfTrue(compactSignedIntCodec._decode(input))
+        return IfTrue(i32Codec._decode(input))
       case 0x4c: // IfFalse
-        return IfFalse(compactSignedIntCodec._decode(input))
+        return IfFalse(i32Codec._decode(input))
       case 0x7e: // DEBUG
         return DEBUG(byteStringArrayCodec._decode(input))
       case 0xa0: // LoadMutField
