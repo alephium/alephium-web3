@@ -18,19 +18,19 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { ArrayCodec } from './array-codec'
 import { u256Codec } from './compact-int-codec'
 import { signedIntCodec } from './signed-int-codec'
-import { longCodec } from './long-codec'
+import { timestampCodec } from './timestamp-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
 import { LockupScript, P2MPKH, P2PKH, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
 import { bs58, binToHex, hexToBinUnsafe, concatBytes } from '../utils'
-import { FixedSizeCodec, ObjectCodec } from './codec'
+import { ObjectCodec } from './codec'
 import { Token, tokensCodec } from './token-codec'
 
 export interface AssetOutput {
   amount: bigint
   lockupScript: LockupScript
-  lockTime: Uint8Array
+  lockTime: bigint
   tokens: Token[]
   additionalData: ByteString
 }
@@ -42,7 +42,7 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
 
   static toFixedAssetOutput(txIdBytes: Uint8Array, output: AssetOutput, index: number): FixedAssetOutput {
     const attoAlphAmount = output.amount.toString()
-    const lockTime = Number(longCodec.decode(output.lockTime))
+    const lockTime = Number(output.lockTime)
     const tokens = output.tokens.map((token) => {
       return {
         id: binToHex(token.tokenId),
@@ -79,7 +79,7 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
 
   static fromFixedAssetOutput(fixedOutput: FixedAssetOutput): AssetOutput {
     const amount = BigInt(fixedOutput.attoAlphAmount)
-    const lockTime = longCodec.encode(BigInt(fixedOutput.lockTime))
+    const lockTime = BigInt(fixedOutput.lockTime)
     const lockupScript: LockupScript = lockupScriptCodec.decode(bs58.decode(fixedOutput.address))
     const tokens = fixedOutput.tokens.map((token) => {
       return {
@@ -95,7 +95,7 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
 export const assetOutputCodec = new AssetOutputCodec({
   amount: u256Codec,
   lockupScript: lockupScriptCodec,
-  lockTime: new FixedSizeCodec(8),
+  lockTime: timestampCodec,
   tokens: tokensCodec,
   additionalData: byteStringCodec
 })

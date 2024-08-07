@@ -15,18 +15,19 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { binToHex } from '../utils'
 import { Codec, assert } from './codec'
 import { Reader } from './reader'
 
-export class LongCodec extends Codec<bigint> {
-  encode(input: bigint): Uint8Array {
-    const byteArray = new Uint8Array(8)
+export class TimestampCodec extends Codec<bigint> {
+  static max = 1n << 64n
 
-    assert(byteArray.length <= 8, 'Length should be less than or equal to 8')
-    for (let index = 0; index < byteArray.length; index++) {
-      const byte = input & BigInt(0xff)
-      byteArray[byteArray.length - index - 1] = Number(byte)
-      input >>= BigInt(8)
+  encode(input: bigint): Uint8Array {
+    assert(input >= 0n && input < TimestampCodec.max, `Invalid timestamp: ${input}`)
+
+    const byteArray = new Uint8Array(8)
+    for (let index = 0; index < 8; index += 1) {
+      byteArray[`${index}`] = Number((input >> BigInt((7 - index) * 8)) & BigInt(0xff))
     }
 
     return byteArray
@@ -34,21 +35,8 @@ export class LongCodec extends Codec<bigint> {
 
   _decode(input: Reader): bigint {
     const bytes = input.consumeBytes(8)
-    let int64 = BigInt(0)
-    let pow = BigInt(1)
-
-    for (let i = bytes.length - 1; i >= 0; i--) {
-      int64 += BigInt(bytes[i]) * pow
-      pow *= BigInt(256)
-    }
-
-    // Determine if the number is negative (check the sign bit of the first byte)
-    if (bytes[0] & 0x80) {
-      int64 -= BigInt(1) << BigInt(64)
-    }
-
-    return int64
+    return BigInt(`0x${binToHex(bytes)}`)
   }
 }
 
-export const longCodec = new LongCodec()
+export const timestampCodec = new TimestampCodec()
