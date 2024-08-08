@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import {
   AddressConst,
   AssertWithErrorCode,
-  ByteConst,
+  BytesConst,
   CallExternal,
   LoadLocal,
   U256Const0,
@@ -176,7 +176,7 @@ describe('Encode & decode scripts', function () {
         argsLength: 0,
         localsLength: 0,
         returnLength: 0,
-        instrs: [AddressConst(lockupScript), U256Const1, U256Const0, ByteConst(contractIdByteString), CallExternal(5)]
+        instrs: [AddressConst(lockupScript), U256Const1, U256Const0, BytesConst(contractIdByteString), CallExternal(5)]
       }
     ])
 
@@ -190,7 +190,7 @@ describe('Encode & decode scripts', function () {
         localsLength: 2,
         returnLength: 0,
         instrs: [
-          ByteConst(contractIdByteString),
+          BytesConst(contractIdByteString),
           StoreLocal(0),
           U256Const0,
           U256Const1,
@@ -200,7 +200,7 @@ describe('Encode & decode scripts', function () {
           U256Eq,
           U256Const0,
           AssertWithErrorCode,
-          ByteConst(contractIdByteString),
+          BytesConst(contractIdByteString),
           StoreLocal(1),
           U256Const0,
           U256Const1,

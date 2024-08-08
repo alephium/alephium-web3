@@ -84,8 +84,8 @@ import {
   CallExternal,
   Dup,
   CallerAddress,
-  ByteConst,
-  i32Codec
+  i32Codec,
+  BytesConst
 } from '../codec'
 
 const crypto = new WebCrypto()
@@ -1803,7 +1803,7 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
   if (tokens) {
     tokens.forEach((token) => {
       const tokenIdBin = hexToBinUnsafe(token.id)
-      approveTokensInstrs.push(encodeInstr(ByteConst(tokenIdBin)))
+      approveTokensInstrs.push(encodeInstr(BytesConst(tokenIdBin)))
       approveTokensInstrs.push(encodeU256Const(BigInt(token.amount)))
       approveTokensInstrs.push(encodeInstr(ApproveToken))
     })

@@ -399,7 +399,7 @@ describe('contract', function () {
       isMutable: [false, false, false, false]
     }
     const bytecode = ralph.buildScriptByteCode('-{0}-{1}-{2}-{3}-', variables, fieldsSig, [])
-    expect(bytecode).toEqual('-03-1305-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
+    expect(bytecode).toEqual('-03-11-1401ff-1500a3cd757be03c7dac8d48bf79e2a7d6e735e018a9c054b99138c7b29738c437ec-')
   })
 
   it('should test buildContractByteCode', () => {

@@ -20,15 +20,30 @@ import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNu
 import { HexString, binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
 import {
+  AddressConstCode,
+  BytesConstCode,
   byteStringCodec,
   ConstFalse,
   ConstTrue,
   i256Codec,
   I256Const,
+  I256Const0,
+  I256Const1,
+  I256Const2,
+  I256Const3,
+  I256Const4,
+  I256Const5,
+  I256ConstN1,
   i32Codec,
   instrCodec,
   u256Codec,
-  U256Const
+  U256Const,
+  U256Const0,
+  U256Const1,
+  U256Const2,
+  U256Const3,
+  U256Const4,
+  U256Const5
 } from '../codec'
 import { boolCodec } from '../codec/codec'
 
@@ -101,36 +116,44 @@ function invalidScriptField(tpe: string, value: Val): Error {
   return Error(`Invalid script field ${value} for type ${tpe}`)
 }
 
-enum Instruction {
-  trueConst = 3,
-  falseConst = 4,
-  i256Const0 = 5,
-  i256Const1 = 6,
-  i256Const2 = 7,
-  i256Const3 = 8,
-  i256Const4 = 9,
-  i256Const5 = 10,
-  i256ConstN1 = 11,
-  u256Const0 = 12,
-  u256Const1 = 13,
-  u256Const2 = 14,
-  u256Const3 = 15,
-  u256Const4 = 16,
-  u256Const5 = 17,
-  i256Const = 18,
-  u256Const = 19,
-  bytesConst = 20,
-  addressConst = 21
-}
-
-// TODO: optimize
 function encodeScriptFieldI256(value: bigint): Uint8Array {
-  return instrCodec.encode(I256Const(value))
+  switch (value) {
+    case 0n:
+      return instrCodec.encode(I256Const0)
+    case 1n:
+      return instrCodec.encode(I256Const1)
+    case 2n:
+      return instrCodec.encode(I256Const2)
+    case 3n:
+      return instrCodec.encode(I256Const3)
+    case 4n:
+      return instrCodec.encode(I256Const4)
+    case 5n:
+      return instrCodec.encode(I256Const5)
+    case -1n:
+      return instrCodec.encode(I256ConstN1)
+    default:
+      return instrCodec.encode(I256Const(value))
+  }
 }
 
-// TODO: optimize
 function encodeScriptFieldU256(value: bigint): Uint8Array {
-  return instrCodec.encode(U256Const(value))
+  switch (value) {
+    case 0n:
+      return instrCodec.encode(U256Const0)
+    case 1n:
+      return instrCodec.encode(U256Const1)
+    case 2n:
+      return instrCodec.encode(U256Const2)
+    case 3n:
+      return instrCodec.encode(U256Const3)
+    case 4n:
+      return instrCodec.encode(U256Const4)
+    case 5n:
+      return instrCodec.encode(U256Const5)
+    default:
+      return instrCodec.encode(U256Const(value))
+  }
 }
 
 export function encodeScriptFieldAsString(tpe: string, value: Val): string {
@@ -150,10 +173,10 @@ export function encodeScriptField(tpe: string, value: Val): Uint8Array {
       return encodeScriptFieldU256(BigInt(u256))
     case 'Address':
       const address = toApiAddress(value)
-      return new Uint8Array([Instruction.addressConst, ...encodeAddress(address)])
+      return new Uint8Array([AddressConstCode, ...encodeAddress(address)])
     default: // ByteVec or Contract
       const hexStr = toApiByteVec(value)
-      return new Uint8Array([Instruction.bytesConst, ...encodeByteVec(hexStr)])
+      return new Uint8Array([BytesConstCode, ...encodeByteVec(hexStr)])
   }
 
   throw invalidScriptField(tpe, value)

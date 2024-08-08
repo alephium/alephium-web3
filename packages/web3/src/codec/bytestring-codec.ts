@@ -19,6 +19,7 @@ import { i32Codec } from './compact-int-codec'
 import { Codec } from './codec'
 import { concatBytes } from '../utils'
 import { Reader } from './reader'
+import { ArrayCodec } from './array-codec'
 
 export type ByteString = Uint8Array
 
@@ -34,3 +35,4 @@ export class ByteStringCodec extends Codec<ByteString> {
 }
 
 export const byteStringCodec = new ByteStringCodec()
+export const byteStringsCodec = new ArrayCodec(byteStringCodec)
