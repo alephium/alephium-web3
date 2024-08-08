@@ -15,21 +15,21 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { OptionCodec } from './option-codec'
+import { Option, option } from './option-codec'
 import { intAs4BytesCodec } from './int-as-4bytes-codec'
 
 describe('Encode & decode options', function () {
   it('should encode and decode options', function () {
-    const optionalStringCodec = new OptionCodec(intAs4BytesCodec)
+    const optionalStringCodec = option(intAs4BytesCodec)
 
-    const none = { option: 0 }
+    const none: Option<number> = { kind: 'None', value: undefined }
     const encodedNone = optionalStringCodec.encode(none)
     const decodedNone = optionalStringCodec.decode(encodedNone)
     expect(none).toEqual(decodedNone)
 
-    const option = { option: 1, value: 1000 }
-    const encodedOption = optionalStringCodec.encode(option)
-    const decodedOption = optionalStringCodec.decode(encodedOption)
-    expect(option).toEqual(decodedOption)
+    const some: Option<number> = { kind: 'Some', value: 1000 }
+    const encodedSome = optionalStringCodec.encode(some)
+    const decodedSome = optionalStringCodec.decode(encodedSome)
+    expect(some).toEqual(decodedSome)
   })
 })

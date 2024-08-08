@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Codec } from './codec'
 import { methodsCodec, Method } from './method-codec'
-import { OptionCodec } from './option-codec'
+import { option } from './option-codec'
 import { Reader } from './reader'
 
 export interface Script {
@@ -36,4 +36,4 @@ export class ScriptCodec extends Codec<Script> {
 }
 
 export const scriptCodec = new ScriptCodec()
-export const statefulScriptCodecOpt = new OptionCodec(scriptCodec)
+export const statefulScriptCodecOpt = option(scriptCodec)

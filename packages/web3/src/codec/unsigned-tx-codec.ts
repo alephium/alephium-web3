@@ -60,8 +60,8 @@ export class UnsignedTxCodec extends ObjectCodec<UnsignedTx> {
     const inputs = InputCodec.toAssetInputs(unsigned.inputs)
     const fixedOutputs = AssetOutputCodec.toFixedAssetOutputs(txIdBytes, unsigned.fixedOutputs)
     let scriptOpt: string | undefined = undefined
-    if (unsigned.statefulScript.option === 1) {
-      scriptOpt = binToHex(scriptCodec.encode(unsigned.statefulScript.value!))
+    if (unsigned.statefulScript.kind === 'Some') {
+      scriptOpt = binToHex(scriptCodec.encode(unsigned.statefulScript.value))
     }
 
     return { txId, version, networkId, gasAmount, scriptOpt, gasPrice, inputs, fixedOutputs }
@@ -74,9 +74,10 @@ export class UnsignedTxCodec extends ObjectCodec<UnsignedTx> {
     const gasPrice = BigInt(unsignedTx.gasPrice)
     const inputs = InputCodec.fromAssetInputs(unsignedTx.inputs)
     const fixedOutputs = AssetOutputCodec.fromFixedAssetOutputs(unsignedTx.fixedOutputs)
-    const statefulScript = statefulScriptCodecOpt.fromBytes(
-      unsignedTx.scriptOpt ? hexToBinUnsafe(unsignedTx.scriptOpt) : undefined
-    )
+    const statefulScript: Option<Script> =
+      unsignedTx.scriptOpt !== undefined
+        ? { kind: 'Some', value: scriptCodec.decode(hexToBinUnsafe(unsignedTx.scriptOpt)) }
+        : { kind: 'None', value: undefined }
 
     return { version, networkId, gasAmount, gasPrice, inputs, fixedOutputs, statefulScript }
   }
