@@ -90,15 +90,15 @@ export class ObjectCodec<T> extends Codec<T> {
   }
 }
 
-type ExtractType<T> = T extends { kind: infer U extends string } ? U : never
+type ExtractKind<T> = T extends { kind: infer U extends string } ? U : never
 type ExtractValue<T, K> = T extends { kind: K; value: infer V } ? V : never
 
-export class EnumCodec<T extends { kind: ExtractType<T>; value: ExtractValue<T, ExtractType<T>> }> extends Codec<T> {
-  private kinds: ExtractType<T>[]
+export class EnumCodec<T extends { kind: ExtractKind<T>; value: ExtractValue<T, ExtractKind<T>> }> extends Codec<T> {
+  private kinds: ExtractKind<T>[]
 
-  constructor(private name: string, private codecs: { [K in ExtractType<T>]: Codec<ExtractValue<T, K>> }) {
+  constructor(private name: string, private codecs: { [K in ExtractKind<T>]: Codec<ExtractValue<T, K>> }) {
     super()
-    this.kinds = Object.keys(codecs) as ExtractType<T>[]
+    this.kinds = Object.keys(codecs) as ExtractKind<T>[]
   }
 
   encode(value: T): Uint8Array {
@@ -114,7 +114,7 @@ export class EnumCodec<T extends { kind: ExtractType<T>; value: ExtractValue<T, 
     const index = input.consumeByte()
     if (index >= 0 && index < this.kinds.length) {
       const kind = this.kinds[`${index}`]
-      const codec = this.codecs[kind as ExtractType<T>]
+      const codec = this.codecs[kind as ExtractKind<T>]
       return { kind, value: codec._decode(input) } as T
     }
     throw new Error(`Invalid encoded ${this.name} kind: ${index}`)
