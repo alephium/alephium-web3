@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { signedIntCodec } from './signed-int-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 
 describe('Encode & decode signed int', function () {
   it('should encode & decode int', function () {
@@ -35,14 +35,14 @@ describe('Encode & decode signed int', function () {
   })
 
   function success(value: number) {
-    const encoded = signedIntCodec.encode(value)
-    const decoded = signedIntCodec.decode(encoded)
+    const encoded = intAs4BytesCodec.encode(value)
+    const decoded = intAs4BytesCodec.decode(encoded)
     expect(decoded).toEqual(value)
   }
 
   function fail(value: number) {
-    const encoded = signedIntCodec.encode(value)
-    const decoded = signedIntCodec.decode(encoded)
+    const encoded = intAs4BytesCodec.encode(value)
+    const decoded = intAs4BytesCodec.decode(encoded)
     expect(decoded).not.toEqual(value)
   }
 

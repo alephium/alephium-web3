@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import {
   AddressConst,
   AssertWithErrorCode,
-  ByteConst,
+  BytesConst,
   CallExternal,
   LoadLocal,
   U256Const0,
@@ -161,16 +161,11 @@ describe('Encode & decode scripts', function () {
   it('should encode & decode TxScript from the project', () => {
     const contractId = randomContractId()
     const decodedTestAddress = bs58.decode(testAddress)
-    const lockupScript = {
-      scriptType: decodedTestAddress[0],
-      script: {
-        publicKeyHash: decodedTestAddress.slice(1)
-      }
-    } as LockupScript
-    const contractIdByteString = {
-      length: { mode: 64, rest: new Uint8Array([32]) },
-      value: hexToBinUnsafe(contractId)
+    const lockupScript: LockupScript = {
+      kind: 'P2PKH',
+      value: decodedTestAddress.slice(1)
     }
+    const contractIdByteString = hexToBinUnsafe(contractId)
 
     testScript(DestroyAdd.script, { add: contractId, caller: testAddress }, [
       {
@@ -181,7 +176,7 @@ describe('Encode & decode scripts', function () {
         argsLength: 0,
         localsLength: 0,
         returnLength: 0,
-        instrs: [AddressConst(lockupScript), U256Const1, U256Const0, ByteConst(contractIdByteString), CallExternal(5)]
+        instrs: [AddressConst(lockupScript), U256Const1, U256Const0, BytesConst(contractIdByteString), CallExternal(5)]
       }
     ])
 
@@ -195,7 +190,7 @@ describe('Encode & decode scripts', function () {
         localsLength: 2,
         returnLength: 0,
         instrs: [
-          ByteConst(contractIdByteString),
+          BytesConst(contractIdByteString),
           StoreLocal(0),
           U256Const0,
           U256Const1,
@@ -205,7 +200,7 @@ describe('Encode & decode scripts', function () {
           U256Eq,
           U256Const0,
           AssertWithErrorCode,
-          ByteConst(contractIdByteString),
+          BytesConst(contractIdByteString),
           StoreLocal(1),
           U256Const0,
           U256Const1,
@@ -235,9 +230,9 @@ describe('Encode & decode scripts', function () {
 
   function testScript(script: Script, fields: Fields, methods: Method[]) {
     const txScriptBytecode = script.buildByteCodeToDeploy(fields)
-    const decodedTxScript = scriptCodec.decodeScript(hexToBinUnsafe(txScriptBytecode))
+    const decodedTxScript = scriptCodec.decode(hexToBinUnsafe(txScriptBytecode))
 
-    expect(binToHex(scriptCodec.encodeScript(decodedTxScript))).toEqual(txScriptBytecode)
+    expect(binToHex(scriptCodec.encode(decodedTxScript))).toEqual(txScriptBytecode)
 
     expect(decodedTxScript.methods.length).toEqual(methods.length)
     decodedTxScript.methods.map((decodedMethod, index) => {

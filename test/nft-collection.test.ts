@@ -21,7 +21,7 @@ import {
   stringToHex,
   subContractId,
   binToHex,
-  encodeU256,
+  codec,
   ONE_ALPH,
   addressFromContractId,
   hexToString,
@@ -207,7 +207,7 @@ describe('nft collection', function () {
 
       for (let i = 0n; i < 10n; i++) {
         const nftPrice = 100n * ONE_ALPH
-        const nftContractId = subContractId(nftCollectionInstance.contractId, binToHex(encodeU256(i)), 0)
+        const nftContractId = subContractId(nftCollectionInstance.contractId, binToHex(codec.u256Codec.encode(i)), 0)
         const royaltyAmount = await nodeProvider.fetchNFTRoyaltyAmount(
           nftCollectionInstance.contractId,
           nftContractId,
@@ -234,7 +234,7 @@ describe('nft collection', function () {
       attoAlphAmount: 2n * ONE_ALPH
     })
 
-    const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(encodeU256(tokenIndex)), 0)
+    const nftContractId = subContractId(nftCollectionTest.contractId, binToHex(codec.u256Codec.encode(tokenIndex)), 0)
     expect((await nftCollectionTest.view.nftByIndex({ args: { index: tokenIndex } })).returns).toEqual(nftContractId)
     const nftInstance = NFTTest.at(addressFromContractId(nftContractId))
     const nftFields = (await nftInstance.fetchState()).fields

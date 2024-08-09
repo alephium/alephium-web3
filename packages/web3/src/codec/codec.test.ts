@@ -15,10 +15,16 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { ArrayCodec } from './array-codec'
-import { FixedSizeCodec } from './codec'
+import { byteCodec } from './codec'
 
-export type Signature = Uint8Array
+describe('codec', function () {
+  it('should encode & decode byte', function () {
+    for (let i = 0; i < 256; i += 1) {
+      expect(byteCodec.encode(i)).toEqual(new Uint8Array([i]))
+      expect(byteCodec.decode(new Uint8Array([i]))).toEqual(i)
+    }
 
-export const signatureCodec = new FixedSizeCodec(64)
-export const signaturesCodec = new ArrayCodec(signatureCodec)
+    expect(() => byteCodec.encode(-1)).toThrow()
+    expect(() => byteCodec.encode(256)).toThrow()
+  })
+})

@@ -64,8 +64,6 @@ import * as blake from 'blakejs'
 import { isContractDebugMessageEnabled } from '../debug'
 import {
   contract,
-  compactUnsignedIntCodec,
-  compactSignedIntCodec,
   Method,
   LoadLocal,
   LoadImmFieldByIndex,
@@ -86,7 +84,8 @@ import {
   CallExternal,
   Dup,
   CallerAddress,
-  ByteConst
+  i32Codec,
+  BytesConst
 } from '../codec'
 
 const crypto = new WebCrypto()
@@ -1809,14 +1808,7 @@ function getApproveTokensInstrs(tokens?: Token[]): string[] {
   if (tokens) {
     tokens.forEach((token) => {
       const tokenIdBin = hexToBinUnsafe(token.id)
-      approveTokensInstrs.push(
-        encodeInstr(
-          ByteConst({
-            length: compactSignedIntCodec.fromI32(tokenIdBin.length),
-            value: tokenIdBin
-          })
-        )
-      )
+      approveTokensInstrs.push(encodeInstr(BytesConst(tokenIdBin)))
       approveTokensInstrs.push(encodeU256Const(BigInt(token.amount)))
       approveTokensInstrs.push(encodeInstr(ApproveToken))
     })
@@ -1903,7 +1895,7 @@ function encodeLoadLocalInstr(index: number): string {
 }
 
 function encodeI32(value: number): string {
-  return binToHex(compactSignedIntCodec.encodeI32(value))
+  return binToHex(i32Codec.encode(value))
 }
 
 function encodeU256Const(value: bigint): string {
@@ -1914,7 +1906,7 @@ function encodeU256Const(value: bigint): string {
   if (value < 6) {
     return (BigInt(0x0c) + value).toString(16).padStart(2, '0')
   } else {
-    return encodeInstr(U256Const(compactUnsignedIntCodec.fromU256(BigInt(value))))
+    return encodeInstr(U256Const(value))
   }
 }
 

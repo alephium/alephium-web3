@@ -15,45 +15,22 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { Codec } from './codec'
+import { Codec, EnumCodec } from './codec'
 
-export interface Option<T> {
-  option: number
-  value?: T
-}
-export class OptionCodec<T> implements Codec<Option<T>> {
-  constructor(
-    private childCodec: Codec<T>,
-    public parser = new Parser().uint8('option').choice('value', {
-      tag: 'option',
-      choices: {
-        0: new Parser(),
-        1: childCodec.parser
-      }
-    })
-  ) {}
+export type Option<T> = { kind: 'None'; value: undefined } | { kind: 'Some'; value: T }
 
-  encode(input: Option<T>): Uint8Array {
-    const result = [input.option]
-    if (input.option === 1) {
-      result.push(...this.childCodec.encode(input.value!))
-    }
-    return new Uint8Array(result)
+const undefinedCodec = new (class extends Codec<undefined> {
+  encode(): Uint8Array {
+    return new Uint8Array([])
   }
-
-  decode(input: Uint8Array): Option<T> {
-    const result = this.parser.parse(input)
-    return {
-      ...result,
-      value: result.option ? this.childCodec.decode(result.value.value) : undefined
-    }
+  _decode(): undefined {
+    return undefined
   }
+})()
 
-  fromBytes(input?: Uint8Array): Option<T> {
-    return {
-      option: input ? 1 : 0,
-      value: input ? this.childCodec.decode(input) : undefined
-    }
-  }
+export function option<T>(codec: Codec<T>): Codec<Option<T>> {
+  return new EnumCodec<Option<T>>('option', {
+    None: undefinedCodec,
+    Some: codec
+  })
 }

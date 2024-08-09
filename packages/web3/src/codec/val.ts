@@ -15,10 +15,25 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+
+import { i256Codec, u256Codec } from './compact-int-codec'
+import { ByteString, byteStringCodec } from './bytestring-codec'
+import { boolCodec, EnumCodec } from './codec'
+import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { ArrayCodec } from './array-codec'
-import { FixedSizeCodec } from './codec'
 
-export type Signature = Uint8Array
+export type Val =
+  | { kind: 'Bool'; value: boolean }
+  | { kind: 'I256'; value: bigint }
+  | { kind: 'U256'; value: bigint }
+  | { kind: 'ByteVec'; value: ByteString }
+  | { kind: 'Address'; value: LockupScript }
 
-export const signatureCodec = new FixedSizeCodec(64)
-export const signaturesCodec = new ArrayCodec(signatureCodec)
+export const valCodec = new EnumCodec<Val>('val', {
+  Bool: boolCodec,
+  I256: i256Codec,
+  U256: u256Codec,
+  ByteVec: byteStringCodec,
+  Address: lockupScriptCodec
+})
+export const valsCodec = new ArrayCodec(valCodec)

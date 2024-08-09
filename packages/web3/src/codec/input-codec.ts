@@ -15,47 +15,24 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { AssetInput } from '../api/api-alephium'
-import { binToHex, concatBytes, hexToBinUnsafe } from '../utils'
+import { binToHex, hexToBinUnsafe } from '../utils'
 import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
-import { Codec } from './codec'
-import { signedIntCodec } from './signed-int-codec'
+import { byte32Codec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 
 export interface Input {
-  outputRef: {
-    hint: number
-    key: Uint8Array
-  }
+  hint: number
+  key: Uint8Array
   unlockScript: UnlockScript
 }
 
-export class InputCodec implements Codec<Input> {
-  parser = Parser.start()
-    .nest('outputRef', {
-      type: Parser.start().int32('hint').buffer('key', { length: 32 })
-    })
-    .nest('unlockScript', {
-      type: unlockScriptCodec.parser
-    })
-
-  encode(input: Input): Uint8Array {
-    return concatBytes([
-      signedIntCodec.encode(input.outputRef.hint),
-      input.outputRef.key,
-      unlockScriptCodec.encode(input.unlockScript)
-    ])
-  }
-
-  decode(input: Uint8Array): Input {
-    return this.parser.parse(input)
-  }
-
+export class InputCodec extends ObjectCodec<Input> {
   static toAssetInputs(inputs: Input[]): AssetInput[] {
     return inputs.map((input) => {
-      const hint = input.outputRef.hint
-      const key = binToHex(input.outputRef.key)
+      const hint = input.hint
+      const key = binToHex(input.key)
       const unlockScript = unlockScriptCodec.encode(input.unlockScript)
       return {
         outputRef: { hint, key },
@@ -69,13 +46,14 @@ export class InputCodec implements Codec<Input> {
       const hint = input.outputRef.hint
       const key = hexToBinUnsafe(input.outputRef.key)
       const unlockScript = unlockScriptCodec.decode(hexToBinUnsafe(input.unlockScript))
-      return {
-        outputRef: { hint, key },
-        unlockScript
-      }
+      return { hint, key, unlockScript }
     })
   }
 }
 
-export const inputCodec = new InputCodec()
+export const inputCodec = new InputCodec({
+  hint: intAs4BytesCodec,
+  key: byte32Codec,
+  unlockScript: unlockScriptCodec
+})
 export const inputsCodec = new ArrayCodec(inputCodec)

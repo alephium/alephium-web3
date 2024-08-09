@@ -24,8 +24,8 @@ import bs58 from '../utils/bs58'
 import djb2 from '../utils/djb2'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString } from '../utils'
 import { KeyType } from '../signer'
-import { MultiSig, lockupScriptCodec } from '../codec/lockup-script-codec'
-import { compactSignedIntCodec } from '../codec'
+import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
+import { i32Codec } from '../codec'
 
 const ec = new EC('secp256k1')
 const PublicKeyHashSize = 32
@@ -61,19 +61,19 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType === AddressType.P2MPKH) {
-    let multisig: MultiSig
+    let multisig: P2MPKH
     try {
-      multisig = lockupScriptCodec.decode(decoded).script as MultiSig
+      multisig = lockupScriptCodec.decode(decoded).value as P2MPKH
     } catch (_) {
       throw new Error(`Invalid multisig address: ${address}`)
     }
-    const n = multisig.publicKeyHashes.value.length
-    const m = compactSignedIntCodec.toI32(multisig.m)
+    const n = multisig.publicKeyHashes.length
+    const m = multisig.m
     if (n < m || m <= 0) {
       throw new Error(`Invalid multisig address, n: ${n}, m: ${m}`)
     }
-    const encodedNSize = compactSignedIntCodec.encodeI32(n).length
-    const encodedMSize = multisig.m.rest.length + 1
+    const encodedNSize = i32Codec.encode(n).length
+    const encodedMSize = i32Codec.encode(m).length
     const size = encodedNSize + PublicKeyHashSize * n + encodedMSize + 1 // 1 for the P2MPKH prefix
     if (decoded.length === size) return decoded
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {

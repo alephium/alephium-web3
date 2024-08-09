@@ -15,42 +15,24 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { DecodedCompactInt, compactSignedIntCodec } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { Codec } from './codec'
 import { concatBytes } from '../utils'
+import { Reader } from './reader'
+import { ArrayCodec } from './array-codec'
 
-export interface ByteString {
-  length: DecodedCompactInt
-  value: Uint8Array
-}
+export type ByteString = Uint8Array
 
-export class ByteStringCodec implements Codec<ByteString> {
-  parser = new Parser()
-    .nest('length', {
-      type: compactSignedIntCodec.parser
-    })
-    .buffer('value', {
-      length: function (ctx) {
-        return compactSignedIntCodec.toI32(this['length']! as any as DecodedCompactInt)
-      }
-    })
-
+export class ByteStringCodec extends Codec<ByteString> {
   encode(input: ByteString): Uint8Array {
-    return concatBytes([compactSignedIntCodec.encode(input.length), input.value])
+    return concatBytes([i32Codec.encode(input.length), input])
   }
 
-  decode(input: Uint8Array): ByteString {
-    return this.parser.parse(input)
-  }
-
-  encodeBytes(input: Uint8Array): Uint8Array {
-    return concatBytes([compactSignedIntCodec.encodeI32(input.length), input])
-  }
-
-  decodeBytes(input: Uint8Array): Uint8Array {
-    return this.decode(input).value
+  _decode(input: Reader): ByteString {
+    const length = i32Codec._decode(input)
+    return input.consumeBytes(length)
   }
 }
 
 export const byteStringCodec = new ByteStringCodec()
+export const byteStringsCodec = new ArrayCodec(byteStringCodec)

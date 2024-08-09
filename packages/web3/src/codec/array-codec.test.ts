@@ -17,11 +17,11 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ArrayCodec } from './array-codec'
-import { signedIntCodec } from './signed-int-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 
 describe('Encode & decode arrays', function () {
   it('should encode and decode arrays', function () {
-    const arraySignedIntCodec = new ArrayCodec(signedIntCodec)
+    const arraySignedIntCodec = new ArrayCodec(intAs4BytesCodec)
 
     const arrayOfSignedInts = [1, 2, 3, 4, 5]
     const encodedSignedInts = arraySignedIntCodec.encode(arrayOfSignedInts)

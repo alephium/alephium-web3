@@ -15,26 +15,34 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-
-import { tokenCodec } from './token-codec'
-import { randomContractId } from '@alephium/web3-test'
 import { randomBytes } from 'crypto'
-import { hexToBinUnsafe } from '../utils'
+import { timestampCodec } from './timestamp-codec'
+import { binToHex } from '../utils'
 
-describe('Encode & decode tokens', function () {
-  it('should encode & decode tokens', function () {
-    for (let i = 0; i < 100; i++) {
-      const tokenId = randomContractId()
-      const amount = BigInt('0x' + randomBytes(31).toString('hex'))
-
-      const token = {
-        tokenId: hexToBinUnsafe(tokenId),
-        amount: amount
-      }
-
-      const encoded = tokenCodec.encode(token)
-      const decoded = tokenCodec.decode(encoded)
-      expect(decoded).toEqual(token)
+describe('Encode & decode timestamp', function () {
+  it('should encode & decode timestamp', function () {
+    function test(n: bigint) {
+      expect(timestampCodec.decode(timestampCodec.encode(n))).toEqual(n)
     }
+
+    for (let i = 0n; i < 64n; i += 1n) {
+      test(1n << i)
+      test((1n << i) + 1n)
+      test((1n << i) - 1n)
+    }
+
+    expect(() => test(-1n)).toThrow()
+    expect(() => test(1n << 64n)).toThrow()
+
+    function randomTimestamp(): bigint {
+      return BigInt(`0x${binToHex(randomBytes(8))}`)
+    }
+
+    for (let i = 0; i < 10; i += 1) {
+      test(randomTimestamp())
+    }
+
+    test(0n)
+    test((1n << 64n) - 1n)
   })
 })

@@ -15,75 +15,67 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
 import { Codec, assert } from './codec'
 import { BigIntCodec } from './bigint-codec'
-import { binToHex } from '../utils'
-
-export class CompactInt {
-  static readonly oneBytePrefix = 0x00
-  static readonly oneByteNegPrefix = 0xc0
-  static readonly twoBytePrefix = 0x40
-  static readonly twoByteNegPrefix = 0x80
-  static readonly fourBytePrefix = 0x80
-  static readonly fourByteNegPrefix = 0x40
-  static readonly multiBytePrefix = 0xc0
-}
+import { Reader } from './reader'
 
 const maskRest = 0xc0
 const maskMode = 0x3f
 const maskModeNeg = 0xffffffc0
-const signFlag = 0x20 // 0b00100000
 
-export interface DecodedCompactInt {
-  mode: number
-  rest: Uint8Array
+type FixedWidthMode = {
+  type: 'SingleByte' | 'TwoByte' | 'FourByte'
+  prefix: number
+  negPrefix: number
 }
+type MultiByteMode = { type: 'MultiByte'; prefix: number }
+type Mode = FixedWidthMode | MultiByteMode
 
-const compactIntParser = new Parser().uint8('mode').buffer('rest', {
-  length: function (ctx) {
-    const rawMode = this['mode']
-    const mode = rawMode & maskRest
+const SingleByteMode: FixedWidthMode = { type: 'SingleByte', prefix: 0x00, negPrefix: 0xc0 }
+const TwoByteMode: FixedWidthMode = { type: 'TwoByte', prefix: 0x40, negPrefix: 0x80 }
+const FourByteMode: FixedWidthMode = { type: 'FourByte', prefix: 0x80, negPrefix: 0x40 }
+const MultiByte: MultiByteMode = { type: 'MultiByte', prefix: 0xc0 }
 
-    switch (mode) {
-      case CompactInt.oneBytePrefix:
-        return 0
-      case CompactInt.twoBytePrefix:
-        return 1
-      case CompactInt.fourBytePrefix:
-        return 3
-      default:
-        return (rawMode & maskMode) + 4
+function decodeMode(input: Reader): { mode: Mode; body: Uint8Array } {
+  const byte = input.consumeByte()
+  switch (byte & maskRest) {
+    case SingleByteMode.prefix:
+      return { mode: SingleByteMode, body: new Uint8Array([byte]) }
+    case TwoByteMode.prefix:
+      return { mode: TwoByteMode, body: new Uint8Array([byte, ...input.consumeBytes(1)]) }
+    case FourByteMode.prefix:
+      return { mode: FourByteMode, body: new Uint8Array([byte, ...input.consumeBytes(3)]) }
+    default: {
+      const length = (byte & maskMode) + 4
+      return { mode: MultiByte, body: new Uint8Array([byte, ...input.consumeBytes(length)]) }
     }
   }
-})
+}
 
-export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
-  private oneByteBound = 0x40
-  private twoByteBound = this.oneByteBound << 8
-  private fourByteBound = this.oneByteBound << (8 * 3)
+export class UnSigned {
+  static readonly oneByteBound = BigInt(0x40)
+  static readonly twoByteBound = UnSigned.oneByteBound << BigInt(8)
+  static readonly fourByteBound = UnSigned.oneByteBound << BigInt(8 * 3)
+  static readonly u256UpperBound = BigInt(1) << BigInt(256)
+  static readonly u32UpperBound = 2 ** 32
 
-  parser = compactIntParser
+  static encodeU32(value: number): Uint8Array {
+    assert(value >= 0 && value < UnSigned.u32UpperBound, `Invalid u32 value: ${value}`)
 
-  encode(input: DecodedCompactInt): Uint8Array {
-    return new Uint8Array([input.mode, ...input.rest])
-  }
-
-  encodeU32(value: number): Uint8Array {
-    if (value < this.oneByteBound) {
-      return new Uint8Array([(CompactInt.oneBytePrefix + value) & 0xff])
-    } else if (value < this.twoByteBound) {
-      return new Uint8Array([(CompactInt.twoBytePrefix + (value >> 8)) & 0xff, value & 0xff])
-    } else if (value < this.fourByteBound) {
+    if (value < UnSigned.oneByteBound) {
+      return new Uint8Array([(SingleByteMode.prefix + value) & 0xff])
+    } else if (value < UnSigned.twoByteBound) {
+      return new Uint8Array([(TwoByteMode.prefix + (value >> 8)) & 0xff, value & 0xff])
+    } else if (value < UnSigned.fourByteBound) {
       return new Uint8Array([
-        (CompactInt.fourBytePrefix + (value >> 24)) & 0xff,
+        (FourByteMode.prefix + (value >> 24)) & 0xff,
         (value >> 16) & 0xff,
         (value >> 8) & 0xff,
         value & 0xff
       ])
     } else {
       return new Uint8Array([
-        CompactInt.multiBytePrefix,
+        MultiByte.prefix,
         (value >> 24) & 0xff,
         (value >> 16) & 0xff,
         (value >> 8) & 0xff,
@@ -92,211 +84,242 @@ export class CompactUnsignedIntCodec implements Codec<DecodedCompactInt> {
     }
   }
 
-  encodeU256(value: bigint): Uint8Array {
-    assert(value >= 0n, 'Value should be positive')
+  static encodeU256(value: bigint): Uint8Array {
+    assert(value >= 0n && value < UnSigned.u256UpperBound, `Invalid u256 value: ${value}`)
 
-    if (value < this.fourByteBound) {
-      return this.encodeU32(Number(value))
+    if (value < UnSigned.fourByteBound) {
+      return UnSigned.encodeU32(Number(value))
     } else {
       let bytes = BigIntCodec.encode(value)
       if (bytes[0] === 0) {
         bytes = bytes.slice(1)
       }
 
-      assert(bytes.length <= 32, 'Expect <= 32 bytes for U256')
-
-      const header = (bytes.length - 4 + CompactInt.multiBytePrefix) & 0xff
+      const header = (bytes.length - 4 + MultiByte.prefix) & 0xff
       return new Uint8Array([header, ...bytes])
     }
   }
 
-  decodeU256(input: Uint8Array): bigint {
-    const decoded = this.decode(input)
-    return this.toU256(decoded)
-  }
-
-  decode(input: Uint8Array): DecodedCompactInt {
-    return this.parser.parse(input)
-  }
-
-  toU256(value: DecodedCompactInt): bigint {
-    const mode = value.mode & maskRest
-    if (fixedSize(mode)) {
-      const body = new Uint8Array([value.mode, ...value.rest])
-      return BigInt(decodePositiveInt(value.mode, body))
-    } else {
-      assert(value.rest.length <= 32, 'Expect <= 32 bytes for U256')
-      return BigIntCodec.decode(value.rest, false)
+  static decodeInt(mode: FixedWidthMode, body: Uint8Array): number {
+    switch (mode.type) {
+      case 'SingleByte':
+        assert(body.length === 1, 'Length should be 2')
+        return body[0]
+      case 'TwoByte':
+        assert(body.length === 2, 'Length should be 2')
+        return ((body[0] & maskMode) << 8) | (body[1] & 0xff)
+      case 'FourByte':
+        assert(body.length === 4, 'Length should be 4')
+        return (
+          (((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)) >>> 0
+        )
     }
   }
 
-  fromU256(value: bigint): DecodedCompactInt {
-    return this.decode(this.encodeU256(value))
+  static decodeU32(mode: Mode, body: Uint8Array): number {
+    switch (mode.type) {
+      case 'SingleByte':
+      case 'TwoByte':
+      case 'FourByte':
+        return UnSigned.decodeInt(mode, body)
+      case 'MultiByte':
+        assert(body.length >= 5, 'Length should be greater than 5')
+        if (body.length === 5) {
+          return ((body[1] << 24) | ((body[2] & 0xff) << 16) | ((body[3] & 0xff) << 8) | (body[4] & 0xff)) >>> 0
+        } else {
+          throw new Error(`Expect 4 bytes int, but get ${body.length - 1} bytes int`)
+        }
+    }
+  }
+
+  static decodeU256(mode: Mode, body: Uint8Array): bigint {
+    switch (mode.type) {
+      case 'SingleByte':
+      case 'TwoByte':
+      case 'FourByte':
+        return BigInt(UnSigned.decodeInt(mode, body))
+      case 'MultiByte':
+        return BigIntCodec.decodeUnsigned(body.slice(1, body.length))
+    }
   }
 }
 
-export const compactUnsignedIntCodec = new CompactUnsignedIntCodec()
-
-export class CompactSignedIntCodec implements Codec<DecodedCompactInt> {
-  private signFlag = 0x20 // 0b00100000
-  private oneByteBound = 0x20 // 0b00100000
-  private twoByteBound = this.oneByteBound << 8
-  private fourByteBound = this.oneByteBound << (8 * 3)
-
-  parser = compactIntParser
-
-  encode(input: DecodedCompactInt): Uint8Array {
-    return new Uint8Array([input.mode, ...input.rest])
+export const u256Codec = new (class extends Codec<bigint> {
+  encode(input: bigint): Uint8Array {
+    return UnSigned.encodeU256(input)
   }
-
-  decode(input: Uint8Array): DecodedCompactInt {
-    return this.parser.parse(input)
+  _decode(input: Reader): bigint {
+    const { mode, body } = decodeMode(input)
+    return UnSigned.decodeU256(mode, body)
   }
+})()
 
-  decodeI32(input: Uint8Array): number {
-    const decoded = this.decode(input)
-    return this.toI32(decoded)
+export const u32Codec = new (class extends Codec<number> {
+  encode(input: number): Uint8Array {
+    return UnSigned.encodeU32(input)
   }
+  _decode(input: Reader): number {
+    const { mode, body } = decodeMode(input)
+    return UnSigned.decodeU32(mode, body)
+  }
+})()
 
-  encodeI32(value: number): Uint8Array {
+export class Signed {
+  static readonly signFlag = 0x20 // 0b00100000
+  static readonly oneByteBound = BigInt(0x20)
+  static readonly twoByteBound = Signed.oneByteBound << BigInt(8)
+  static readonly fourByteBound = Signed.oneByteBound << BigInt(8 * 3)
+  static readonly i256UpperBound = BigInt(1) << BigInt(255)
+  static readonly i256LowerBound = -Signed.i256UpperBound
+  static readonly i32UpperBound = 2 ** 31
+  static readonly i32LowerBound = -Signed.i32UpperBound
+
+  static encodeI32(value: number): Uint8Array {
+    assert(value >= Signed.i32LowerBound && value < Signed.i32UpperBound, `Invalid i32 value: ${value}`)
     if (value >= 0) {
-      if (value < this.oneByteBound) {
-        return new Uint8Array([(CompactInt.oneBytePrefix + value) & 0xff])
-      } else if (value < this.twoByteBound) {
-        return new Uint8Array([(CompactInt.twoBytePrefix + (value >> 8)) & 0xff, value & 0xff])
-      } else if (value < this.fourByteBound) {
-        return new Uint8Array([
-          (CompactInt.fourBytePrefix + (value >> 24)) & 0xff,
-          (value >> 16) & 0xff,
-          (value >> 8) & 0xff,
-          value & 0xff
-        ])
-      } else {
-        return new Uint8Array([
-          CompactInt.multiBytePrefix,
-          (value >> 24) & 0xff,
-          (value >> 16) & 0xff,
-          (value >> 8) & 0xff,
-          value & 0xff
-        ])
-      }
+      return Signed.encodePositiveI32(value)
     } else {
-      if (value >= -this.oneByteBound) {
-        return new Uint8Array([(value ^ CompactInt.oneByteNegPrefix) & 0xff])
-      } else if (value >= -this.twoByteBound) {
-        return new Uint8Array([((value >> 8) ^ CompactInt.twoByteNegPrefix) & 0xff, value & 0xff])
-      } else if (value >= -this.fourByteBound) {
-        return new Uint8Array([
-          ((value >> 24) ^ CompactInt.fourByteNegPrefix) & 0xff,
-          (value >> 16) & 0xff,
-          (value >> 8) & 0xff,
-          value & 0xff
-        ])
-      } else {
-        return new Uint8Array([
-          CompactInt.multiBytePrefix,
-          (value >> 24) & 0xff,
-          (value >> 16) & 0xff,
-          (value >> 8) & 0xff,
-          value & 0xff
-        ])
-      }
+      return Signed.encodeNegativeI32(value)
     }
   }
 
-  encodeI256(value: bigint): Uint8Array {
+  static encodePositiveI32(value: number): Uint8Array {
+    if (value < this.oneByteBound) {
+      return new Uint8Array([(SingleByteMode.prefix + value) & 0xff])
+    } else if (value < this.twoByteBound) {
+      return new Uint8Array([(TwoByteMode.prefix + (value >> 8)) & 0xff, value & 0xff])
+    } else if (value < this.fourByteBound) {
+      return new Uint8Array([
+        (FourByteMode.prefix + (value >> 24)) & 0xff,
+        (value >> 16) & 0xff,
+        (value >> 8) & 0xff,
+        value & 0xff
+      ])
+    } else {
+      return new Uint8Array([
+        MultiByte.prefix,
+        (value >> 24) & 0xff,
+        (value >> 16) & 0xff,
+        (value >> 8) & 0xff,
+        value & 0xff
+      ])
+    }
+  }
+
+  static encodeNegativeI32(value: number): Uint8Array {
+    if (value >= -this.oneByteBound) {
+      return new Uint8Array([(value ^ SingleByteMode.negPrefix) & 0xff])
+    } else if (value >= -this.twoByteBound) {
+      return new Uint8Array([((value >> 8) ^ TwoByteMode.negPrefix) & 0xff, value & 0xff])
+    } else if (value >= -this.fourByteBound) {
+      return new Uint8Array([
+        ((value >> 24) ^ FourByteMode.negPrefix) & 0xff,
+        (value >> 16) & 0xff,
+        (value >> 8) & 0xff,
+        value & 0xff
+      ])
+    } else {
+      return new Uint8Array([
+        MultiByte.prefix,
+        (value >> 24) & 0xff,
+        (value >> 16) & 0xff,
+        (value >> 8) & 0xff,
+        value & 0xff
+      ])
+    }
+  }
+
+  static encodeI256(value: bigint): Uint8Array {
+    assert(value >= Signed.i256LowerBound && value < Signed.i256UpperBound, `Invalid i256 value: ${value}`)
+
     if (value >= -0x20000000 && value < 0x20000000) {
       return this.encodeI32(Number(value))
     } else {
       const bytes = BigIntCodec.encode(value)
-      const header = (bytes.length - 4 + CompactInt.multiBytePrefix) & 0xff
+      const header = (bytes.length - 4 + MultiByte.prefix) & 0xff
       return new Uint8Array([header, ...bytes])
     }
   }
 
-  decodeI256(input: Uint8Array): bigint {
-    const decoded = this.decode(input)
-    return this.toI256(decoded)
-  }
-
-  toI32(value: DecodedCompactInt): number {
-    const body = new Uint8Array([value.mode, ...value.rest])
-    const mode = value.mode & maskRest
-    if (fixedSize(mode)) {
-      const isPositive = (value.mode & signFlag) == 0
-      if (isPositive) {
-        return decodePositiveInt(value.mode, body)
-      } else {
-        return decodeNegativeInt(value.mode, body)
-      }
+  static decodeInt(mode: FixedWidthMode, body: Uint8Array): number {
+    const isPositive = (body[0] & Signed.signFlag) === 0
+    if (isPositive) {
+      return Signed.decodePositiveInt(mode, body)
     } else {
-      if (body.length === 5) {
-        return ((body[1] & 0xff) << 24) | ((body[2] & 0xff) << 16) | ((body[3] & 0xff) << 8) | (body[4] & 0xff)
-      } else {
-        throw new Error(`Expect 4 bytes int, but get ${body.length - 1} bytes int`)
-      }
+      return Signed.decodeNegativeInt(mode, body)
     }
   }
 
-  fromI32(value: number): DecodedCompactInt {
-    return this.decode(this.encodeI32(value))
-  }
-
-  toI256(value: DecodedCompactInt): bigint {
-    const mode = value.mode & maskRest
-
-    if (fixedSize(mode)) {
-      return BigInt(this.toI32(value))
-    } else {
-      assert(value.rest.length <= 32, 'Expect <= 32 bytes for I256')
-      return BigIntCodec.decode(value.rest, true)
+  static decodePositiveInt(mode: FixedWidthMode, body: Uint8Array): number {
+    switch (mode.type) {
+      case 'SingleByte':
+        return body[0]
+      case 'TwoByte':
+        assert(body.length === 2, 'Length should be 2')
+        return ((body[0] & maskMode) << 8) | (body[1] & 0xff)
+      case 'FourByte':
+        assert(body.length === 4, 'Length should be 4')
+        return ((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
     }
   }
 
-  fromI256(value: bigint): DecodedCompactInt {
-    return this.decode(this.encodeI256(value))
+  static decodeNegativeInt(mode: FixedWidthMode, body: Uint8Array) {
+    switch (mode.type) {
+      case 'SingleByte':
+        return body[0] | maskModeNeg
+      case 'TwoByte':
+        assert(body.length === 2, 'Length should be 2')
+        return ((body[0] | maskModeNeg) << 8) | (body[1] & 0xff)
+      case 'FourByte':
+        assert(body.length === 4, 'Length should be 4')
+        return ((body[0] | maskModeNeg) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
+    }
+  }
+
+  static decodeI32(mode: Mode, body: Uint8Array): number {
+    switch (mode.type) {
+      case 'SingleByte':
+      case 'TwoByte':
+      case 'FourByte':
+        return Signed.decodeInt(mode, body)
+      case 'MultiByte':
+        if (body.length === 5) {
+          return (body[1] << 24) | ((body[2] & 0xff) << 16) | ((body[3] & 0xff) << 8) | (body[4] & 0xff)
+        } else {
+          throw new Error(`Expect 4 bytes int, but get ${body.length - 1} bytes int`)
+        }
+    }
+  }
+
+  static decodeI256(mode: Mode, body: Uint8Array): bigint {
+    switch (mode.type) {
+      case 'SingleByte':
+      case 'TwoByte':
+      case 'FourByte':
+        return BigInt(Signed.decodeInt(mode, body))
+      case 'MultiByte':
+        const bytes = body.slice(1, body.length)
+        assert(bytes.length <= 32, 'Expect <= 32 bytes for I256')
+        return BigIntCodec.decodeSigned(bytes)
+    }
   }
 }
 
-export const compactSignedIntCodec = new CompactSignedIntCodec()
-
-function decodePositiveInt(rawMode: number, body: Uint8Array): number {
-  const mode = rawMode & maskRest
-
-  switch (mode) {
-    case CompactInt.oneBytePrefix:
-      return rawMode
-    case CompactInt.twoBytePrefix:
-      assert(body.length === 2, 'Length should be 2')
-      return ((body[0] & maskMode) << 8) | (body[1] & 0xff)
-    case CompactInt.fourBytePrefix:
-      assert(body.length === 4, 'Length should be 4')
-      return ((body[0] & maskMode) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
-    default:
-      if (body.length === 5) {
-        return Number(BigInt('0x' + binToHex(body.slice(1))))
-      } else {
-        throw new Error(`decodePositiveInt: Expect 4 bytes int, but get ${body.length - 1} bytes int`)
-      }
+export const i256Codec = new (class extends Codec<bigint> {
+  encode(input: bigint): Uint8Array {
+    return Signed.encodeI256(input)
   }
-}
-
-function decodeNegativeInt(rawMode: number, body: Uint8Array) {
-  const mode = rawMode & maskRest
-  switch (mode) {
-    case CompactInt.oneBytePrefix:
-      return rawMode | maskModeNeg
-    case CompactInt.twoBytePrefix:
-      assert(body.length === 2, 'Length should be 2')
-      return ((body[0] | maskModeNeg) << 8) | (body[1] & 0xff)
-    case CompactInt.fourBytePrefix:
-      assert(body.length === 4, 'Length should be 4')
-      return ((body[0] | maskModeNeg) << 24) | ((body[1] & 0xff) << 16) | ((body[2] & 0xff) << 8) | (body[3] & 0xff)
-    default:
-      throw new Error(`decodeNegativeInt: Expect 4 bytes int, but get ${body.length - 1} bytes int`)
+  _decode(input: Reader): bigint {
+    const { mode, body } = decodeMode(input)
+    return Signed.decodeI256(mode, body)
   }
-}
-
-function fixedSize(mode: number): boolean {
-  return mode === CompactInt.oneBytePrefix || mode === CompactInt.twoBytePrefix || mode === CompactInt.fourBytePrefix
-}
+})()
+export const i32Codec = new (class extends Codec<number> {
+  encode(input: number): Uint8Array {
+    return Signed.encodeI32(input)
+  }
+  _decode(input: Reader): number {
+    const { mode, body } = decodeMode(input)
+    return Signed.decodeI32(mode, body)
+  }
+})()

@@ -15,10 +15,28 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { ArrayCodec } from './array-codec'
-import { FixedSizeCodec } from './codec'
+import { binToHex } from '../utils'
+import { Codec, assert } from './codec'
+import { Reader } from './reader'
 
-export type Signature = Uint8Array
+export class TimestampCodec extends Codec<bigint> {
+  static max = 1n << 64n
 
-export const signatureCodec = new FixedSizeCodec(64)
-export const signaturesCodec = new ArrayCodec(signatureCodec)
+  encode(input: bigint): Uint8Array {
+    assert(input >= 0n && input < TimestampCodec.max, `Invalid timestamp: ${input}`)
+
+    const byteArray = new Uint8Array(8)
+    for (let index = 0; index < 8; index += 1) {
+      byteArray[`${index}`] = Number((input >> BigInt((7 - index) * 8)) & BigInt(0xff))
+    }
+
+    return byteArray
+  }
+
+  _decode(input: Reader): bigint {
+    const bytes = input.consumeBytes(8)
+    return BigInt(`0x${binToHex(bytes)}`)
+  }
+}
+
+export const timestampCodec = new TimestampCodec()

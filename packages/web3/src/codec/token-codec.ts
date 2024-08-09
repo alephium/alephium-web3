@@ -16,36 +16,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Parser } from 'binary-parser'
-import { DecodedCompactInt, compactUnsignedIntCodec } from './compact-int-codec'
-import { Codec } from './codec'
+import { u256Codec } from './compact-int-codec'
+import { byte32Codec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
-import { concatBytes } from '../utils'
 
 export interface Token {
   tokenId: Uint8Array
-  amount: DecodedCompactInt
+  amount: bigint
 }
 
-export class TokenCodec implements Codec<Token> {
-  parser = Parser.start()
-    .buffer('tokenId', {
-      length: 32
-    })
-    .nest('amount', {
-      type: compactUnsignedIntCodec.parser
-    })
-
-  encode(input: Token): Uint8Array {
-    const tokenId = input.tokenId
-    const amount = compactUnsignedIntCodec.encode(input.amount)
-    return concatBytes([tokenId, amount])
-  }
-
-  decode(input: Uint8Array): Token {
-    return this.parser.parse(input)
-  }
-}
-
-export const tokenCodec = new TokenCodec()
+export const tokenCodec = new ObjectCodec<Token>({
+  tokenId: byte32Codec,
+  amount: u256Codec
+})
 export const tokensCodec = new ArrayCodec(tokenCodec)

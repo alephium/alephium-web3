@@ -15,48 +15,30 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { Parser } from 'binary-parser'
-import { compactSignedIntCodec, DecodedCompactInt } from './compact-int-codec'
+import { i32Codec } from './compact-int-codec'
 import { Codec } from './codec'
+import { Reader } from './reader'
+import { concatBytes } from '../utils'
 
-export interface DecodedArray<T> {
-  length: DecodedCompactInt
-  value: T[]
-}
-
-export class ArrayCodec<T> implements Codec<T[]> {
-  constructor(private childCodec: Codec<T>, public parser = ArrayCodec.arrayParser(childCodec.parser)) {}
+export class ArrayCodec<T> extends Codec<T[]> {
+  constructor(private childCodec: Codec<T>) {
+    super()
+  }
 
   encode(input: T[]): Uint8Array {
-    const result = [...compactSignedIntCodec.encodeI256(BigInt(input.length))]
+    const bytes: Uint8Array[] = [i32Codec.encode(input.length)]
     for (const element of input) {
-      result.push(...this.childCodec.encode(element))
+      bytes.push(this.childCodec.encode(element))
     }
-    return new Uint8Array(result)
+    return concatBytes(bytes)
   }
 
-  decode(input: Uint8Array): T[] {
-    const result = this.parser.parse(input)
-    return result.value.map((v) => this.childCodec.decode(v.value))
-  }
-
-  static arrayParser(parser: Parser) {
-    return new Parser()
-      .nest('length', {
-        type: compactSignedIntCodec.parser
-      })
-      .array('value', {
-        length: function (ctx) {
-          return compactSignedIntCodec.toI32(this['length']! as any as DecodedCompactInt)
-        },
-        type: parser
-      })
-  }
-
-  fromArray(inputs: T[]): DecodedArray<T> {
-    return {
-      length: compactSignedIntCodec.fromI32(inputs.length),
-      value: inputs
+  _decode(input: Reader): T[] {
+    const length = i32Codec._decode(input)
+    const array: T[] = []
+    for (let index = 0; index < length; index += 1) {
+      array.push(this.childCodec._decode(input))
     }
+    return array
   }
 }
