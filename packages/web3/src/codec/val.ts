@@ -22,12 +22,13 @@ import { boolCodec, EnumCodec } from './codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
 import { ArrayCodec } from './array-codec'
 
-export type Val =
-  | { kind: 'Bool'; value: boolean }
-  | { kind: 'I256'; value: bigint }
-  | { kind: 'U256'; value: bigint }
-  | { kind: 'ByteVec'; value: ByteString }
-  | { kind: 'Address'; value: LockupScript }
+export type ValBool = { kind: 'Bool'; value: boolean }
+export type ValI256 = { kind: 'I256'; value: bigint }
+export type ValU256 = { kind: 'U256'; value: bigint }
+export type ValByteVec = { kind: 'ByteVec'; value: ByteString }
+export type ValAddress = { kind: 'Address'; value: LockupScript }
+
+export type Val = ValBool | ValI256 | ValU256 | ValByteVec | ValAddress
 
 export const valCodec = new EnumCodec<Val>('val', {
   Bool: boolCodec,
