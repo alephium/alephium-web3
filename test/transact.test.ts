@@ -28,9 +28,8 @@ describe('transact', function () {
       initialAttoAlphAmount: ONE_ALPH,
       initialFields: { totalDeposits: 0n }
     })
-    expect(() => ScriptSimulator.extractContractCallsWithErrors(deploy.unsignedTx)).toThrow(
-      'Unimplemented instruction: CreateContract'
-    )
+    const deployCalls = ScriptSimulator.extractContractCallsWithErrors(deploy.unsignedTx)
+    expect(deployCalls.length).toBe(0)
     const instance = deploy.contractInstance
 
     // The contract call requires preapproved assets but none are provided
@@ -71,5 +70,33 @@ describe('transact', function () {
     const getCalls1 = ScriptSimulator.extractContractCallsWithErrors(getTx1.unsignedTx)
     expect(getCalls1.length).toBe(1)
     expect(getCalls1[0].contractAddress).toBe(instance.address)
+  })
+
+  it('should test different deploy options', async function () {
+    const signer = await getSigner(ONE_ALPH * 10n)
+
+    const deploy0 = await Transact.deploy(signer, {
+      initialAttoAlphAmount: ONE_ALPH,
+      initialFields: { totalDeposits: 0n }
+    })
+    const deployCalls0 = ScriptSimulator.extractContractCallsWithErrors(deploy0.unsignedTx)
+    expect(deployCalls0.length).toBe(0)
+
+    const deploy1 = await Transact.deploy(signer, {
+      initialAttoAlphAmount: ONE_ALPH,
+      initialFields: { totalDeposits: 0n },
+      issueTokenAmount: 10n ** 18n
+    })
+    const deployCalls1 = ScriptSimulator.extractContractCallsWithErrors(deploy1.unsignedTx)
+    expect(deployCalls1.length).toBe(0)
+
+    const deploy2 = await Transact.deploy(signer, {
+      initialAttoAlphAmount: ONE_ALPH,
+      initialFields: { totalDeposits: 0n },
+      issueTokenAmount: 10n ** 18n,
+      issueTokenTo: signer.address
+    })
+    const deployCalls2 = ScriptSimulator.extractContractCallsWithErrors(deploy2.unsignedTx)
+    expect(deployCalls2.length).toBe(0)
   })
 })

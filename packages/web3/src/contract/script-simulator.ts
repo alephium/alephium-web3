@@ -329,23 +329,13 @@ export class ScriptSimulator {
         case 'ByteVecEq': {
           const byteVec1 = operandStack.popByteVec()
           const byteVec2 = operandStack.popByteVec()
-          comparisonOp<'ByteVec', Uint8Array>(
-            byteVec1,
-            byteVec2,
-            (x, y) => arrayEquals(x, y),
-            operandStack.push
-          )
+          comparisonOp<'ByteVec', Uint8Array>(byteVec1, byteVec2, (x, y) => arrayEquals(x, y), operandStack.push)
           break
         }
         case 'ByteVecNeq': {
           const byteVec1 = operandStack.popByteVec()
           const byteVec2 = operandStack.popByteVec()
-          comparisonOp<'ByteVec', Uint8Array>(
-            byteVec1,
-            byteVec2,
-            (x, y) => !arrayEquals(x, y),
-            operandStack.push
-          )
+          comparisonOp<'ByteVec', Uint8Array>(byteVec1, byteVec2, (x, y) => !arrayEquals(x, y), operandStack.push)
           break
         }
         case 'ByteVecSize': {
@@ -360,23 +350,14 @@ export class ScriptSimulator {
         case 'ByteVecConcat': {
           const byteVec2 = operandStack.popByteVec()
           const byteVec1 = operandStack.popByteVec()
-          binaryOp<'ByteVec', Uint8Array>(
-            byteVec1,
-            byteVec2,
-            (x, y) => new Uint8Array([...x, ...y]),
-            operandStack.push
-          )
+          binaryOp<'ByteVec', Uint8Array>(byteVec1, byteVec2, (x, y) => new Uint8Array([...x, ...y]), operandStack.push)
           break
         }
         case 'ByteVecSlice': {
           const end = operandStack.popU256()
           const start = operandStack.popU256()
           const byteVec = operandStack.popByteVec()
-          if (
-            byteVec.kind === 'Symbol-ByteVec' ||
-            start.kind === 'Symbol-U256' ||
-            end.kind === 'Symbol-U256'
-          ) {
+          if (byteVec.kind === 'Symbol-ByteVec' || start.kind === 'Symbol-U256' || end.kind === 'Symbol-U256') {
             operandStack.push({ kind: 'Symbol-ByteVec', value: undefined })
           } else {
             operandStack.push({
@@ -533,6 +514,32 @@ export class ScriptSimulator {
           operandStack.popU256() // amount
           operandStack.popByteVec() // token
           operandStack.popAddress() // spender
+          break
+        }
+        case 'CreateContractAndTransferToken': {
+          operandStack.popAddress() // token owner
+        }
+        case 'CreateContractWithToken': {
+          operandStack.popU256() // token amount
+        }
+        case 'CreateContract': {
+          operandStack.popByteVec() // mutable fields
+          operandStack.popByteVec() // immutable fields
+          operandStack.popByteVec() // contract code
+          operandStack.push({ kind: 'Symbol-ByteVec', value: undefined }) // new contract id
+          break
+        }
+        case 'TransferAlph': {
+          operandStack.popU256() // amount
+          operandStack.popAddress() // recipient
+          operandStack.popAddress() // sender
+          break
+        }
+        case 'TransferToken': {
+          operandStack.popU256() // amount
+          operandStack.popByteVec() // token
+          operandStack.popAddress() // recipient
+          operandStack.popAddress() // sender
           break
         }
         default:
