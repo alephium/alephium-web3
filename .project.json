@@ -288,9 +288,9 @@
     },
     "Transact": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "be72f5d014486592f9ba43c41ded84a6c11dea338f2d0a86736ee6d1bd62f7fe",
+      "sourceCodeHash": "292002a11e2912bee43b424b3d55e8b947ca83a46dc3a4d0780d870bb7d7b9c5",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "e69364160d369d3459e19d1b2fcaae7f0cac7059357dba5616147ea18d0c1f0e"
+      "codeHashDebug": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55"
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",

@@ -1,16 +1,22 @@
 {
   "version": "v3.5.0",
   "name": "Transact",
-  "bytecode": "01034027404e405c010100000009d353dbb7aab413c40de0b6b3a7640000a9a00013c40de0b6b3a76400002aa10002010200000009d3a248861cb413c40de0b6b3a7640000a8a00013c40de0b6b3a76400002ba10002010000000103d376c7c673a00002",
-  "codeHash": "e69364160d369d3459e19d1b2fcaae7f0cac7059357dba5616147ea18d0c1f0e",
+  "bytecode": "03064027404e40674080408e409c010100010009d353dbb7aab413c40de0b6b3a7640000a9a00013c40de0b6b3a76400002aa10002010200010009d3a248861cb413c40de0b6b3a7640000a8a00013c40de0b6b3a76400002ba1000201010101000ad3bf2d01bdb4ce001600aca00116002aa1010201020101000ad35496306fb4ce001600aba00116002ba10102010000000103d3815a8d0da00002010000000103d3a51b051ca00102",
+  "codeHash": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55",
   "fieldsSig": {
     "names": [
-      "totalDeposits"
+      "tokenId",
+      "totalALPH",
+      "totalTokens"
     ],
     "types": [
+      "ByteVec",
+      "U256",
       "U256"
     ],
     "isMutable": [
+      false,
+      true,
       true
     ]
   },
@@ -31,7 +37,42 @@
       "returnTypes": []
     },
     {
-      "name": "getTotalDeposits",
+      "name": "depositToken",
+      "paramNames": [
+        "amount"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "withdrawToken",
+      "paramNames": [
+        "amount"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "getTotalALPH",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256"
+      ]
+    },
+    {
+      "name": "getTotalTokens",
       "paramNames": [],
       "paramTypes": [],
       "paramIsMutable": [],

@@ -45,7 +45,9 @@ import {
 // Custom types for the contract
 export namespace TransactTypes {
   export type Fields = {
-    totalDeposits: bigint;
+    tokenId: HexString;
+    totalALPH: bigint;
+    totalTokens: bigint;
   };
 
   export type State = ContractState<Fields>;
@@ -59,7 +61,19 @@ export namespace TransactTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<null>;
     };
-    getTotalDeposits: {
+    depositToken: {
+      params: CallContractParams<{ amount: bigint }>;
+      result: CallContractResult<null>;
+    };
+    withdrawToken: {
+      params: CallContractParams<{ amount: bigint }>;
+      result: CallContractResult<null>;
+    };
+    getTotalALPH: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<bigint>;
+    };
+    getTotalTokens: {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<bigint>;
     };
@@ -90,7 +104,19 @@ export namespace TransactTypes {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
-    getTotalDeposits: {
+    depositToken: {
+      params: SignExecuteContractMethodParams<{ amount: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
+    withdrawToken: {
+      params: SignExecuteContractMethodParams<{ amount: bigint }>;
+      result: SignExecuteScriptTxResult;
+    };
+    getTotalALPH: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    getTotalTokens: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
@@ -131,18 +157,37 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "withdraw", params, getContractByCodeHash);
     },
-    getTotalDeposits: async (
+    depositToken: async (
+      params: TestContractParamsWithoutMaps<
+        TransactTypes.Fields,
+        { amount: bigint }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
+      return testMethod(this, "depositToken", params, getContractByCodeHash);
+    },
+    withdrawToken: async (
+      params: TestContractParamsWithoutMaps<
+        TransactTypes.Fields,
+        { amount: bigint }
+      >
+    ): Promise<TestContractResultWithoutMaps<null>> => {
+      return testMethod(this, "withdrawToken", params, getContractByCodeHash);
+    },
+    getTotalALPH: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
         "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
-      return testMethod(
-        this,
-        "getTotalDeposits",
-        params,
-        getContractByCodeHash
-      );
+      return testMethod(this, "getTotalALPH", params, getContractByCodeHash);
+    },
+    getTotalTokens: async (
+      params: Omit<
+        TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
+        "testArgs"
+      >
+    ): Promise<TestContractResultWithoutMaps<bigint>> => {
+      return testMethod(this, "getTotalTokens", params, getContractByCodeHash);
     },
   };
 }
@@ -152,7 +197,7 @@ export const Transact = new Factory(
   Contract.fromJson(
     TransactContractJson,
     "",
-    "e69364160d369d3459e19d1b2fcaae7f0cac7059357dba5616147ea18d0c1f0e",
+    "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55",
     AllStructs
   )
 );
@@ -190,13 +235,46 @@ export class TransactInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
-    getTotalDeposits: async (
-      params?: TransactTypes.CallMethodParams<"getTotalDeposits">
-    ): Promise<TransactTypes.CallMethodResult<"getTotalDeposits">> => {
+    depositToken: async (
+      params: TransactTypes.CallMethodParams<"depositToken">
+    ): Promise<TransactTypes.CallMethodResult<"depositToken">> => {
       return callMethod(
         Transact,
         this,
-        "getTotalDeposits",
+        "depositToken",
+        params,
+        getContractByCodeHash
+      );
+    },
+    withdrawToken: async (
+      params: TransactTypes.CallMethodParams<"withdrawToken">
+    ): Promise<TransactTypes.CallMethodResult<"withdrawToken">> => {
+      return callMethod(
+        Transact,
+        this,
+        "withdrawToken",
+        params,
+        getContractByCodeHash
+      );
+    },
+    getTotalALPH: async (
+      params?: TransactTypes.CallMethodParams<"getTotalALPH">
+    ): Promise<TransactTypes.CallMethodResult<"getTotalALPH">> => {
+      return callMethod(
+        Transact,
+        this,
+        "getTotalALPH",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    getTotalTokens: async (
+      params?: TransactTypes.CallMethodParams<"getTotalTokens">
+    ): Promise<TransactTypes.CallMethodResult<"getTotalTokens">> => {
+      return callMethod(
+        Transact,
+        this,
+        "getTotalTokens",
         params === undefined ? {} : params,
         getContractByCodeHash
       );
@@ -214,10 +292,25 @@ export class TransactInstance extends ContractInstance {
     ): Promise<TransactTypes.SignExecuteMethodResult<"withdraw">> => {
       return signExecuteMethod(Transact, this, "withdraw", params);
     },
-    getTotalDeposits: async (
-      params: TransactTypes.SignExecuteMethodParams<"getTotalDeposits">
-    ): Promise<TransactTypes.SignExecuteMethodResult<"getTotalDeposits">> => {
-      return signExecuteMethod(Transact, this, "getTotalDeposits", params);
+    depositToken: async (
+      params: TransactTypes.SignExecuteMethodParams<"depositToken">
+    ): Promise<TransactTypes.SignExecuteMethodResult<"depositToken">> => {
+      return signExecuteMethod(Transact, this, "depositToken", params);
+    },
+    withdrawToken: async (
+      params: TransactTypes.SignExecuteMethodParams<"withdrawToken">
+    ): Promise<TransactTypes.SignExecuteMethodResult<"withdrawToken">> => {
+      return signExecuteMethod(Transact, this, "withdrawToken", params);
+    },
+    getTotalALPH: async (
+      params: TransactTypes.SignExecuteMethodParams<"getTotalALPH">
+    ): Promise<TransactTypes.SignExecuteMethodResult<"getTotalALPH">> => {
+      return signExecuteMethod(Transact, this, "getTotalALPH", params);
+    },
+    getTotalTokens: async (
+      params: TransactTypes.SignExecuteMethodParams<"getTotalTokens">
+    ): Promise<TransactTypes.SignExecuteMethodResult<"getTotalTokens">> => {
+      return signExecuteMethod(Transact, this, "getTotalTokens", params);
     },
   };
 
