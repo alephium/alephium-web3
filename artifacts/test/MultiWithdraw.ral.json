@@ -1,0 +1,28 @@
+{
+  "version": "v3.5.0",
+  "name": "MultiWithdraw",
+  "bytecodeTemplate": "010103000000120c0c{0}01010c0c{1}010113c40de0b6b3a76400000d0c{0}010313c40de0b6b3a76400000d0c{1}0103",
+  "fieldsSig": {
+    "names": [
+      "c0",
+      "c1"
+    ],
+    "types": [
+      "Transact",
+      "Transact"
+    ],
+    "isMutable": [
+      false,
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

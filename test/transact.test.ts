@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { DUST_AMOUNT, ONE_ALPH, ScriptSimulator } from '@alephium/web3'
 import { getSigner, mintToken } from '@alephium/web3-test'
-import { Transact } from '../artifacts/ts'
+import { MultiDeposit, MultiWithdraw, Transact } from '../artifacts/ts'
 
 describe('transact', function () {
   it('should use transact methods for ALPH', async function () {
@@ -192,5 +192,66 @@ describe('transact', function () {
     })
     const deployCalls2 = ScriptSimulator.extractContractCallsWithErrors(deploy2.unsignedTx)
     expect(deployCalls2.length).toBe(0)
+  })
+
+  it.only('should test multicall', async function () {
+    const signer = await getSigner(ONE_ALPH * 10n)
+    const { tokenId } = await mintToken(signer.address, 10n * 10n ** 18n)
+
+    const deploy0 = await Transact.deploy(signer, {
+      initialAttoAlphAmount: ONE_ALPH,
+      initialFields: { tokenId, totalALPH: 0n, totalTokens: 0n }
+    })
+    const instance0 = deploy0.contractInstance
+
+    const deploy1 = await Transact.deploy(signer, {
+      initialAttoAlphAmount: ONE_ALPH,
+      initialFields: { tokenId, totalALPH: 0n, totalTokens: 0n }
+    })
+    const instance1 = deploy1.contractInstance
+
+    const deposits = await MultiDeposit.execute(signer, {
+      attoAlphAmount: ONE_ALPH * 2n,
+      tokens: [{ id: tokenId, amount: 10n ** 18n * 2n }],
+      initialFields: { c0: instance0.address, c1: instance1.address, tokenId }
+    })
+    const depositsCalls = ScriptSimulator.extractContractCallsWithErrors(deposits.unsignedTx)
+    expect(depositsCalls.length).toBe(4)
+    expect(depositsCalls[0].contractAddress).toBe(instance0.address)
+    expect(depositsCalls[0].approvedAttoAlphAmount).toBe(ONE_ALPH)
+    expect(depositsCalls[0].approvedTokens).toBe(undefined)
+    expect(depositsCalls[1].contractAddress).toBe(instance1.address)
+    expect(depositsCalls[1].approvedAttoAlphAmount).toBe(ONE_ALPH)
+    expect(depositsCalls[1].approvedTokens).toBe(undefined)
+    expect(depositsCalls[2].contractAddress).toBe(instance0.address)
+    expect(depositsCalls[2].approvedAttoAlphAmount).toBe(undefined)
+    expect(JSON.stringify(depositsCalls[2].approvedTokens)).toBe(JSON.stringify([{ id: tokenId, amount: 10n ** 18n }]))
+    expect(depositsCalls[3].contractAddress).toBe(instance1.address)
+    expect(depositsCalls[3].approvedAttoAlphAmount).toBe(undefined)
+    expect(JSON.stringify(depositsCalls[3].approvedTokens)).toBe(JSON.stringify([{ id: tokenId, amount: 10n ** 18n }]))
+
+    expect((await instance0.view.getTotalALPH()).returns).toBe(ONE_ALPH)
+    expect((await instance1.view.getTotalALPH()).returns).toBe(ONE_ALPH)
+    expect((await instance0.view.getTotalTokens()).returns).toBe(10n ** 18n)
+    expect((await instance1.view.getTotalTokens()).returns).toBe(10n ** 18n)
+
+    const withdraws = await MultiWithdraw.execute(signer, {
+      attoAlphAmount: DUST_AMOUNT * 2n,
+      initialFields: { c0: instance0.address, c1: instance1.address }
+    })
+    const withdrawsCalls = ScriptSimulator.extractContractCallsWithErrors(withdraws.unsignedTx)
+    expect(withdrawsCalls.length).toBe(4)
+    expect(withdrawsCalls[0].contractAddress).toBe(instance0.address)
+    expect(withdrawsCalls[0].approvedAttoAlphAmount).toBe(undefined)
+    expect(withdrawsCalls[0].approvedTokens).toBe(undefined)
+    expect(withdrawsCalls[1].contractAddress).toBe(instance1.address)
+    expect(withdrawsCalls[1].approvedAttoAlphAmount).toBe(undefined)
+    expect(withdrawsCalls[1].approvedTokens).toBe(undefined)
+    expect(withdrawsCalls[2].contractAddress).toBe(instance0.address)
+    expect(withdrawsCalls[2].approvedAttoAlphAmount).toBe(undefined)
+    expect(withdrawsCalls[2].approvedTokens).toBe(undefined)
+    expect(withdrawsCalls[3].contractAddress).toBe(instance1.address)
+    expect(withdrawsCalls[3].approvedAttoAlphAmount).toBe(undefined)
+    expect(withdrawsCalls[3].approvedTokens).toBe(undefined)
   })
 })

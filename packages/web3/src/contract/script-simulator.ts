@@ -378,7 +378,7 @@ export class ScriptSimulator {
           } else {
             operandStack.push({
               kind: 'ByteVec',
-              value: byteVec.value.slice(Number(start.value), Number(end.value)),
+              value: byteVec.value.slice(Number(start.value), Number(end.value))
             })
           }
           break

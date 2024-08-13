@@ -19,6 +19,8 @@ import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as InsertIntoMapScriptJson } from "../test/InsertIntoMap.ral.json";
 import { default as MintNFTTestScriptJson } from "../nft/MintNFTTest.ral.json";
+import { default as MultiDepositScriptJson } from "../test/MultiDeposit.ral.json";
+import { default as MultiWithdrawScriptJson } from "../test/MultiWithdraw.ral.json";
 import { default as RemoveFromMapScriptJson } from "../test/RemoveFromMap.ral.json";
 import { default as TemplateArrayVarScriptJson } from "../test/TemplateArrayVar.ral.json";
 import { default as TestAssertScriptJson } from "../test/TestAssert.ral.json";
@@ -85,6 +87,23 @@ export const MintNFTTest = new ExecutableScript<{
   royalty: boolean;
 }>(
   Script.fromJson(MintNFTTestScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
+
+export const MultiDeposit = new ExecutableScript<{
+  c0: HexString;
+  c1: HexString;
+  tokenId: HexString;
+}>(
+  Script.fromJson(MultiDepositScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
+
+export const MultiWithdraw = new ExecutableScript<{
+  c0: HexString;
+  c1: HexString;
+}>(
+  Script.fromJson(MultiWithdrawScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 

@@ -208,6 +208,18 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
+    "MultiDeposit": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "92acc48b107b7c552d1f94ae9a07b41215c0359bb10a3aae7d1a10662f654117",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
+    "MultiWithdraw": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "92acc48b107b7c552d1f94ae9a07b41215c0359bb10a3aae7d1a10662f654117",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
       "sourceCodeHash": "ac1d8da86e8cb3e5c412c463d7cf0376db563d9cbc459eb034d3067dcaa2045e",
@@ -288,7 +300,7 @@
     },
     "Transact": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "292002a11e2912bee43b424b3d55e8b947ca83a46dc3a4d0780d870bb7d7b9c5",
+      "sourceCodeHash": "92acc48b107b7c552d1f94ae9a07b41215c0359bb10a3aae7d1a10662f654117",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55"
     },
