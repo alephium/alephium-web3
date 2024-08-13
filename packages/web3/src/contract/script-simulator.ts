@@ -17,15 +17,30 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { addressFromContractId } from '../address'
+import { Token } from '../api'
 import { boolCodec, Method, unsignedTxCodec } from '../codec'
 import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { Script } from '../codec/script-codec'
 import { Val, ValAddress, ValBool, ValByteVec, ValI256, ValU256 } from '../codec/val'
+import { ALPH_TOKEN_ID } from '../constants'
 import { binToHex, HexString, hexToBinUnsafe } from '../utils'
 
-// TODO: support approved assets
+/**
+ * Contract call extracted from a script
+ * @param contractAddress the address of the contract
+ * @param approvedAttoAlphAmount the amount of ALPH approved to the contract
+ *   - undefined if no ALPH is approved
+ *   - 'unknown' if the amount cannot be determined
+ *   - a number if the amount is known
+ * @param approvedTokens the tokens approved to the contract
+ *  - undefined if no tokens are approved
+ *  - 'unknown' if the tokens cannot be determined
+ *  - an array of tokens if the tokens are known
+ */
 export interface ContractCall {
   contractAddress: string
+  approvedAttoAlphAmount?: bigint | 'unknown'
+  approvedTokens?: Token[] | 'unknown'
 }
 
 export class ScriptSimulator {
@@ -69,8 +84,9 @@ export class ScriptSimulator {
     const contractCalls: ContractCall[] = []
     const callerAddress: ValAddress = {
       kind: 'Address',
-      value: { kind: 'P2PKH', value: random32Bytes() },
+      value: { kind: 'P2PKH', value: random32Bytes() }
     }
+    const approved = new ApprovedAccumulator()
     for (const instr of mainMethod.instrs) {
       switch (instr.name) {
         case 'ConstTrue':
@@ -462,11 +478,16 @@ export class ScriptSimulator {
           const contractId = operandStack.popByteVec()
           const returnLength = operandStack.popU256() // method return length
           operandStack.popU256() // method args length
+
           if (contractId.kind !== 'Symbol-ByteVec') {
             contractCalls.push({
               contractAddress: addressFromContractId(binToHex(contractId.value)),
+              approvedAttoAlphAmount: approved.getApprovedAttoAlph(),
+              approvedTokens: approved.getApprovedTokens()
             })
           }
+          approved.reset()
+
           if (returnLength.kind !== 'Symbol-U256') {
             for (let i = 0; i < returnLength.value; i++) {
               operandStack.push({ kind: 'Symbol-Any', value: undefined })
@@ -506,14 +527,24 @@ export class ScriptSimulator {
           break
         }
         case 'ApproveAlph': {
-          operandStack.popU256() // amount
-          operandStack.popAddress() // spender
+          const amount = operandStack.popU256() // amount
+          const spender = operandStack.popAddress() // spender
+          if (spender.kind.startsWith('Symbol')) {
+            approved.setUnknown() // The spender might be the caller
+          } else if (spender === callerAddress) {
+            approved.addApprovedAttoAlph(amount)
+          }
           break
         }
         case 'ApproveToken': {
-          operandStack.popU256() // amount
-          operandStack.popByteVec() // token
-          operandStack.popAddress() // spender
+          const amount = operandStack.popU256() // amount
+          const tokenId = operandStack.popByteVec() // token
+          const spender = operandStack.popAddress() // spender
+          if (spender.kind.startsWith('Symbol')) {
+            approved.setUnknown() // The spender might be the caller
+          } else if (spender === callerAddress) {
+            approved.addApprovedToken(tokenId, amount)
+          }
           break
         }
         case 'CreateContractAndTransferToken': {
@@ -735,4 +766,72 @@ function unimplemented(instrName: string): never {
 
 function dummyImplementation(instrName: string): void {
   console.debug(`Dummy implementation for instruction: ${instrName}`)
+}
+
+class ApprovedAccumulator {
+  private approvedTokens: { id: string; amount: bigint | 'unknown' }[] | 'unknown' = []
+
+  constructor() {
+    this.reset()
+  }
+
+  reset(): void {
+    this.approvedTokens = [{ id: ALPH_TOKEN_ID, amount: 0n }]
+  }
+
+  setUnknown(): void {
+    this.approvedTokens = 'unknown'
+  }
+
+  getApprovedAttoAlph(): bigint | 'unknown' | undefined {
+    if (this.approvedTokens === 'unknown') {
+      return 'unknown'
+    }
+
+    const approvedAttoAlph = this.approvedTokens[0].amount
+    return approvedAttoAlph === 'unknown' ? 'unknown' : approvedAttoAlph === 0n ? undefined : approvedAttoAlph
+  }
+
+  getApprovedTokens(): { id: string; amount: bigint | 'unknown' }[] | 'unknown' | undefined {
+    if (this.approvedTokens === 'unknown') {
+      return 'unknown'
+    }
+
+    const allTokens = this.approvedTokens.slice(1)
+    return allTokens.length === 0 ? undefined : allTokens
+  }
+
+  addApprovedAttoAlph(amount: ValU256 | SymbolU256): void {
+    this.addApprovedToken({ kind: 'ByteVec', value: hexToBinUnsafe(ALPH_TOKEN_ID) }, amount)
+  }
+
+  addApprovedToken(tokenId: ValByteVec | SymbolByteVec, amount: ValU256 | SymbolU256): void {
+    if (this.approvedTokens === 'unknown') {
+      return
+    }
+
+    if (tokenId.kind === 'Symbol-ByteVec') {
+      this.approvedTokens = 'unknown'
+      return
+    }
+
+    const tokenIndex = this.approvedTokens.findIndex((token) => arrayEquals(hexToBinUnsafe(token.id), tokenId.value))
+    if (tokenIndex === -1) {
+      this.approvedTokens.push({
+        id: binToHex(tokenId.value),
+        amount: amount.kind === 'Symbol-U256' ? 'unknown' : amount.value
+      })
+    } else {
+      const approved = this.approvedTokens[`${tokenIndex}`]
+      if (approved.amount === 'unknown') {
+        return
+      }
+
+      if (amount.kind === 'Symbol-U256') {
+        approved.amount = 'unknown'
+      } else {
+        approved.amount += amount.value
+      }
+    }
+  }
 }

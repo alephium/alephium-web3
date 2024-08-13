@@ -19,6 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { ONE_ALPH, ScriptSimulator } from '@alephium/web3'
 import { getSigner } from '@alephium/web3-test'
 import { Transact } from '../artifacts/ts'
+import exp from 'constants'
 
 describe('transact', function () {
   it('should use transact methods', async function () {
@@ -42,18 +43,24 @@ describe('transact', function () {
     const depositCalls0 = ScriptSimulator.extractContractCallsWithErrors(depositTx0.unsignedTx)
     expect(depositCalls0.length).toBe(1)
     expect(depositCalls0[0].contractAddress).toBe(instance.address)
+    expect(depositCalls0[0].approvedAttoAlphAmount).toBe(ONE_ALPH)
+    expect(depositCalls0[0].approvedTokens).toBe(undefined)
 
     const depositTx1 = await instance.transact.deposit({ signer, attoAlphAmount: ONE_ALPH })
     expect((await instance.view.getTotalDeposits()).returns).toBe(ONE_ALPH * 2n)
     const depositCalls1 = ScriptSimulator.extractContractCallsWithErrors(depositTx1.unsignedTx)
     expect(depositCalls1.length).toBe(1)
     expect(depositCalls1[0].contractAddress).toBe(instance.address)
+    expect(depositCalls1[0].approvedAttoAlphAmount).toBe(ONE_ALPH)
+    expect(depositCalls1[0].approvedTokens).toBe(undefined)
 
     const withdrawTx0 = await instance.transact.withdraw({ signer })
     expect((await instance.view.getTotalDeposits()).returns).toBe(ONE_ALPH)
     const withdrawCalls0 = ScriptSimulator.extractContractCallsWithErrors(withdrawTx0.unsignedTx)
     expect(withdrawCalls0.length).toBe(1)
     expect(withdrawCalls0[0].contractAddress).toBe(instance.address)
+    expect(withdrawCalls0[0].approvedAttoAlphAmount).toBe(undefined)
+    expect(withdrawCalls0[0].approvedTokens).toBe(undefined)
 
     // Approve assets for the contract even if it's not needed
     const withdrawTx1 = await instance.transact.withdraw({ signer, attoAlphAmount: ONE_ALPH })
@@ -61,15 +68,21 @@ describe('transact', function () {
     const withdrawCalls1 = ScriptSimulator.extractContractCallsWithErrors(withdrawTx1.unsignedTx)
     expect(withdrawCalls1.length).toBe(1)
     expect(withdrawCalls1[0].contractAddress).toBe(instance.address)
+    expect(withdrawCalls1[0].approvedAttoAlphAmount).toBe(undefined)
+    expect(withdrawCalls1[0].approvedTokens).toBe(undefined)
 
     const getTx0 = await instance.transact.getTotalDeposits({ signer })
     const getCalls0 = ScriptSimulator.extractContractCallsWithErrors(getTx0.unsignedTx)
     expect(getCalls0.length).toBe(1)
     expect(getCalls0[0].contractAddress).toBe(instance.address)
+    expect(getCalls0[0].approvedAttoAlphAmount).toBe(undefined)
+    expect(getCalls0[0].approvedTokens).toBe(undefined)
     const getTx1 = await instance.transact.getTotalDeposits({ signer, attoAlphAmount: ONE_ALPH })
     const getCalls1 = ScriptSimulator.extractContractCallsWithErrors(getTx1.unsignedTx)
     expect(getCalls1.length).toBe(1)
     expect(getCalls1[0].contractAddress).toBe(instance.address)
+    expect(getCalls1[0].approvedAttoAlphAmount).toBe(undefined)
+    expect(getCalls1[0].approvedTokens).toBe(undefined)
   })
 
   it('should test different deploy options', async function () {
