@@ -117,5 +117,5 @@ export async function mintToken(recipient: Address, amount: bigint) {
   const result = await createAndTransferToken(nodeProvider, deployer, recipient, amount)
   const contractId = await getContractIdFromUnsignedTx(nodeProvider, result.unsignedTx)
   const tokenId = contractId
-  return { ...result, tokenId, contractAddress: addressFromContractId(contractId) }
+  return { ...result, tokenId, contractId, contractAddress: addressFromContractId(contractId) }
 }
