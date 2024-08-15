@@ -19,3 +19,4 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 export * from './ralph'
 export * from './contract'
 export * from './events'
+export * from './script-simulator'

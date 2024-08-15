@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v3.5.0",
+  "fullNodeVersion": "v3.5.2",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -208,6 +208,18 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
+    "MultiDeposit": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
+    "MultiWithdraw": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
     "NFTCollectionTest": {
       "sourceFile": "nft/nft_collection_test.ral",
       "sourceCodeHash": "ac1d8da86e8cb3e5c412c463d7cf0376db563d9cbc459eb034d3067dcaa2045e",
@@ -288,9 +300,9 @@
     },
     "Transact": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "be72f5d014486592f9ba43c41ded84a6c11dea338f2d0a86736ee6d1bd62f7fe",
+      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "e69364160d369d3459e19d1b2fcaae7f0cac7059357dba5616147ea18d0c1f0e"
+      "codeHashDebug": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55"
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",

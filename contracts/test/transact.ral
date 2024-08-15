@@ -1,21 +1,55 @@
 Contract Transact(
-    mut totalDeposits: U256
+    tokenId: ByteVec,
+    mut totalALPH: U256,
+    mut totalTokens: U256
 ) {
     @using(preapprovedAssets = true, assetsInContract = true)
     pub fn deposit() -> () {
         transferTokenToSelf!(callerAddress!(), ALPH, 1 alph)
-        totalDeposits = totalDeposits + 1 alph
+        totalALPH = totalALPH + 1 alph
         return
     }
 
     @using(preapprovedAssets = false, assetsInContract = true)
     pub fn withdraw() -> () {
         transferTokenFromSelf!(callerAddress!(), ALPH, 1 alph)
-        totalDeposits = totalDeposits - 1 alph
+        totalALPH = totalALPH - 1 alph
         return
     }
 
-    pub fn getTotalDeposits() -> U256 {
-        return totalDeposits
+    @using(preapprovedAssets = true, assetsInContract = true)
+    pub fn depositToken(amount: U256) -> () {
+        transferTokenToSelf!(callerAddress!(), tokenId, amount)
+        totalTokens = totalTokens + amount
+        return
     }
+
+    @using(preapprovedAssets = false, assetsInContract = true)
+    pub fn withdrawToken(amount: U256) -> () {
+        transferTokenFromSelf!(callerAddress!(), tokenId, amount)
+        totalTokens = totalTokens - amount
+        return
+    }
+
+    pub fn getTotalALPH() -> U256 {
+        return totalALPH
+    }
+
+    pub fn getTotalTokens() -> U256 {
+        return totalTokens
+    }
+}
+
+TxScript MultiDeposit(c: [Transact; 2], tokenId: ByteVec) {
+    c[0].deposit{callerAddress!() -> ALPH: 1 alph}()
+    c[1].deposit{callerAddress!() -> ALPH: 1 alph}()
+    c[0].depositToken{callerAddress!() -> tokenId: 1e18}(1e18)
+    c[1].depositToken{callerAddress!() -> tokenId: 1e18}(1e18)
+}
+
+TxScript MultiWithdraw(c: [Transact; 2]) {
+    c[0].withdraw()
+    c[1].withdraw()
+    c[0].withdrawToken(1e18)
+    c[1].withdrawToken(1e18)
 }

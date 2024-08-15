@@ -116,5 +116,6 @@ export async function mintToken(recipient: Address, amount: bigint) {
   const deployer = new PrivateKeyWallet({ privateKey: testPrivateKeys[`${group}`], nodeProvider })
   const result = await createAndTransferToken(nodeProvider, deployer, recipient, amount)
   const contractId = await getContractIdFromUnsignedTx(nodeProvider, result.unsignedTx)
-  return { ...result, contractId, contractAddress: addressFromContractId(contractId) }
+  const tokenId = contractId
+  return { ...result, tokenId, contractId, contractAddress: addressFromContractId(contractId) }
 }

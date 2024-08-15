@@ -1,21 +1,15 @@
 {
   "version": "v3.5.2",
-  "name": "UpdateUserAccount",
-  "bytecodeTemplate": "01010300040015{1}{2}{3}{4}17031702170117001600160116021603100c{0}0100{5}0d0c{0}0101",
+  "name": "MultiWithdraw",
+  "bytecodeTemplate": "01010300020016{0}{1}170117000c0c160001010c0c1601010113c40de0b6b3a76400000d0c1600010313c40de0b6b3a76400000d0c16010103",
   "fieldsSig": {
     "names": [
-      "account",
-      "tokens",
-      "address"
+      "c"
     ],
     "types": [
-      "UserAccount",
-      "[TokenBalance;2]",
-      "Address"
+      "[Transact;2]"
     ],
     "isMutable": [
-      false,
-      false,
       false
     ]
   },
