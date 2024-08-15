@@ -1,5 +1,5 @@
 {
-  "version": "v3.5.0",
+  "version": "v3.5.2",
   "name": "MultiWithdraw",
   "bytecodeTemplate": "010103000000120c0c{0}01010c0c{1}010113c40de0b6b3a76400000d0c{0}010313c40de0b6b3a76400000d0c{1}0103",
   "fieldsSig": {

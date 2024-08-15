@@ -1,5 +1,5 @@
 {
-  "version": "v3.5.0",
+  "version": "v3.5.2",
   "name": "MultiDeposit",
   "bytecodeTemplate": "0101030000004020b413c40de0b6b3a7640000a20c0c{0}0100b413c40de0b6b3a7640000a20c0c{1}0100b4{2}13c40de0b6b3a7640000a313c40de0b6b3a76400000d0c{0}0102b4{2}13c40de0b6b3a7640000a313c40de0b6b3a76400000d0c{1}0102",
   "fieldsSig": {
