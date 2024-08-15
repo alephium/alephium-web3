@@ -213,7 +213,7 @@ describe('transact', function () {
     const deposits = await MultiDeposit.execute(signer, {
       attoAlphAmount: ONE_ALPH * 2n,
       tokens: [{ id: tokenId, amount: 10n ** 18n * 2n }],
-      initialFields: { c0: instance0.address, c1: instance1.address, tokenId }
+      initialFields: { c: [instance0.address, instance1.address], tokenId }
     })
     const depositsCalls = ScriptSimulator.extractContractCallsWithErrors(deposits.unsignedTx)
     expect(depositsCalls.length).toBe(4)
@@ -237,7 +237,7 @@ describe('transact', function () {
 
     const withdraws = await MultiWithdraw.execute(signer, {
       attoAlphAmount: DUST_AMOUNT * 2n,
-      initialFields: { c0: instance0.address, c1: instance1.address }
+      initialFields: { c: [instance0.address, instance1.address] }
     })
     const withdrawsCalls = ScriptSimulator.extractContractCallsWithErrors(withdraws.unsignedTx)
     expect(withdrawsCalls.length).toBe(4)

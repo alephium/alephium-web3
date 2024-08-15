@@ -91,8 +91,7 @@ export const MintNFTTest = new ExecutableScript<{
 );
 
 export const MultiDeposit = new ExecutableScript<{
-  c0: HexString;
-  c1: HexString;
+  c: [HexString, HexString];
   tokenId: HexString;
 }>(
   Script.fromJson(MultiDepositScriptJson, "", AllStructs),
@@ -100,8 +99,7 @@ export const MultiDeposit = new ExecutableScript<{
 );
 
 export const MultiWithdraw = new ExecutableScript<{
-  c0: HexString;
-  c1: HexString;
+  c: [HexString, HexString];
 }>(
   Script.fromJson(MultiWithdrawScriptJson, "", AllStructs),
   getContractByCodeHash

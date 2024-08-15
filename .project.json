@@ -210,13 +210,13 @@
     },
     "MultiDeposit": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "92acc48b107b7c552d1f94ae9a07b41215c0359bb10a3aae7d1a10662f654117",
+      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
     "MultiWithdraw": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "92acc48b107b7c552d1f94ae9a07b41215c0359bb10a3aae7d1a10662f654117",
+      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
@@ -300,7 +300,7 @@
     },
     "Transact": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "92acc48b107b7c552d1f94ae9a07b41215c0359bb10a3aae7d1a10662f654117",
+      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55"
     },

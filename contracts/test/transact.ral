@@ -40,16 +40,16 @@ Contract Transact(
     }
 }
 
-TxScript MultiDeposit(c0: Transact, c1: Transact, tokenId: ByteVec) {
-    c0.deposit{callerAddress!() -> ALPH: 1 alph}()
-    c1.deposit{callerAddress!() -> ALPH: 1 alph}()
-    c0.depositToken{callerAddress!() -> tokenId: 1e18}(1e18)
-    c1.depositToken{callerAddress!() -> tokenId: 1e18}(1e18)
+TxScript MultiDeposit(c: [Transact; 2], tokenId: ByteVec) {
+    c[0].deposit{callerAddress!() -> ALPH: 1 alph}()
+    c[1].deposit{callerAddress!() -> ALPH: 1 alph}()
+    c[0].depositToken{callerAddress!() -> tokenId: 1e18}(1e18)
+    c[1].depositToken{callerAddress!() -> tokenId: 1e18}(1e18)
 }
 
-TxScript MultiWithdraw(c0: Transact, c1: Transact) {
-    c0.withdraw()
-    c1.withdraw()
-    c0.withdrawToken(1e18)
-    c1.withdrawToken(1e18)
+TxScript MultiWithdraw(c: [Transact; 2]) {
+    c[0].withdraw()
+    c[1].withdraw()
+    c[0].withdrawToken(1e18)
+    c[1].withdrawToken(1e18)
 }
