@@ -85,7 +85,7 @@ describe('transact', function () {
     expect(getCalls1[0].approvedTokens).toBe(undefined)
   })
 
-  it.only('should use transact methods for token', async function () {
+  it('should use transact methods for token', async function () {
     const signer = await getSigner(ONE_ALPH * 10n)
     const { tokenId } = await mintToken(signer.address, 10n * 10n ** 18n)
 
@@ -194,7 +194,7 @@ describe('transact', function () {
     expect(deployCalls2.length).toBe(0)
   })
 
-  it.only('should test multicall', async function () {
+  it('should test multicall', async function () {
     const signer = await getSigner(ONE_ALPH * 10n)
     const { tokenId } = await mintToken(signer.address, 10n * 10n ** 18n)
 

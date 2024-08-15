@@ -158,6 +158,7 @@ export class ScriptSimulator {
         case 'Dup':
           const val = operandStack.pop()
           operandStack.push(val)
+          operandStack.push(val)
           break
         case 'Swap':
           const val1 = operandStack.pop()
@@ -592,7 +593,7 @@ type SimulatorVal = Val | SymbolBool | SymbolI256 | SymbolU256 | SymbolByteVec |
 type SimulatorVar<K extends string, V> = { kind: K; value: V } | { kind: `Symbol-${K}`; value: undefined }
 
 function unaryOp<K extends string, V>(x: SimulatorVar<K, V>, op: (x: V) => V): SimulatorVar<K, V> {
-  if (x.kind.startsWith('symbol')) {
+  if (x.kind.startsWith('Symbol')) {
     return x
   } else {
     return { kind: x.kind as K, value: op(x.value as V) }
@@ -605,9 +606,9 @@ function binaryOp<K extends string, V>(
   op: (x: V, y: V) => V,
   push: (z: SimulatorVar<K, V>) => void
 ): void {
-  const result = x.kind.startsWith('symbol')
+  const result = x.kind.startsWith('Symbol')
     ? x
-    : y.kind.startsWith('symbol')
+    : y.kind.startsWith('Symbol')
     ? y
     : { kind: x.kind as K, value: op(x.value as V, y.value as V) }
   push(result)
@@ -620,7 +621,7 @@ function comparisonOp<K extends string, V>(
   push: (z: SimulatorVar<'Bool', boolean>) => void
 ): void {
   const result: SimulatorVar<'Bool', boolean> =
-    x.kind.startsWith('symbol') || y.kind.startsWith('symbol')
+    x.kind.startsWith('Symbol') || y.kind.startsWith('Symbol')
       ? { kind: 'Symbol-Bool', value: undefined }
       : { kind: 'Bool', value: op(x.value as V, y.value as V) }
   push(result)
@@ -664,7 +665,7 @@ class Stack {
   }
 
   checkedResult(result: SimulatorVal, expected: string): SimulatorVal {
-    if (result.kind.startsWith('symbol')) {
+    if (result.kind.startsWith('Symbol')) {
       if (result.kind !== `Symbol-${expected}`) {
         throw new Error(`Expected a ${expected} value on the stack`)
       }
@@ -722,7 +723,7 @@ class LocalVariables {
   }
 
   private checkedResult(result: SimulatorVal, index: number, expected: string): SimulatorVal {
-    if (result.kind.startsWith('symbol')) {
+    if (result.kind.startsWith('Symbol')) {
       if (result.kind !== `Symbol-${expected}`) {
         throw new Error(`Local variable at index ${index} is not a ${expected}`)
       }
