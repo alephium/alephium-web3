@@ -252,7 +252,10 @@ export class ProjectArtifact {
       const content = await fsPromises.readFile(filepath)
       const json = JSON.parse(content.toString())
       const fullNodeVersion = json.fullNodeVersion as string
-      const compilerOptionsUsed = json.compilerOptionsUsed as node.CompilerOptions
+      const compilerOptionsUsed = { ...DEFAULT_NODE_COMPILER_OPTIONS }
+      Object.entries(json.compilerOptionsUsed).forEach(([key, value]) => {
+        compilerOptionsUsed[`${key}`] = value
+      })
       const files = new Map(Object.entries<CodeInfo>(json.infos))
       return new ProjectArtifact(fullNodeVersion, compilerOptionsUsed, files)
     } catch (error) {
