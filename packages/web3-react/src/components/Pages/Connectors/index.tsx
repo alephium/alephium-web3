@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useConnectSettingContext } from '../../../contexts/alephiumConnect'
 import supportedConnectors from '../../../constants/supportedConnectors'
 
@@ -41,14 +41,17 @@ const Connectors: React.FC = () => {
   const context = useConnectSettingContext()
   const mobile = isMobile()
   const wallets = useDefaultWallets()
+  const connectors = useMemo(() => {
+    return mobile ? supportedConnectors.filter((c) => c.id !== 'desktopWallet') : supportedConnectors
+  }, [mobile])
 
   return (
     <PageContent style={{ width: 312 }}>
       {mobile ? (
         <>
           <MobileConnectorsContainer>
-            {supportedConnectors.map((connector) => {
-              const info = supportedConnectors.filter((c) => c.id === connector.id)[0]
+            {connectors.map((connector) => {
+              const info = connectors.filter((c) => c.id === connector.id)[0]
               if (!info) return null
 
               let logos = info.logos
@@ -89,8 +92,8 @@ const Connectors: React.FC = () => {
       ) : (
         <>
           <ConnectorsContainer>
-            {supportedConnectors.map((connector) => {
-              const info = supportedConnectors.filter((c) => c.id === connector.id)[0]
+            {connectors.map((connector) => {
+              const info = connectors.filter((c) => c.id === connector.id)[0]
               if (!info) return null
 
               let logos = info.logos
