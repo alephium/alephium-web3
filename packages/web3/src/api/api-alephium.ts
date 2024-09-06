@@ -892,6 +892,18 @@ export interface Project {
   compilerOptions?: CompilerOptions
 }
 
+/** RawBlock */
+export interface RawBlock {
+  /** @format hex-string */
+  value: string
+}
+
+/** RawTransaction */
+export interface RawTransaction {
+  /** @format hex-string */
+  value: string
+}
+
 /** Reachable */
 export interface Reachable {
   peers: string[]
@@ -964,6 +976,13 @@ export interface StructSig {
   fieldNames: string[]
   fieldTypes: string[]
   isMutable: boolean[]
+}
+
+/** SubContracts */
+export interface SubContracts {
+  subContracts: string[]
+  /** @format int32 */
+  nextStart: number
 }
 
 /** SubmitMultisig */
@@ -1493,7 +1512,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.5.2
+ * @version 3.6.2
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2287,6 +2306,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'GET',
         format: 'json',
         ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Blockflow
+     * @name GetBlockflowRawBlocksBlockHash
+     * @summary Get raw block in hex format
+     * @request GET:/blockflow/raw-blocks/{block_hash}
+     */
+    getBlockflowRawBlocksBlockHash: (blockHash: string, params: RequestParams = {}) =>
+      this.request<RawBlock, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/blockflow/raw-blocks/${blockHash}`,
+        method: 'GET',
+        format: 'json',
+        ...params
       }).then(convertHttpResponse)
   }
   addresses = {
@@ -2478,6 +2513,32 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Transactions
+     * @name GetTransactionsRawTxid
+     * @summary Get raw transaction in hex format
+     * @request GET:/transactions/raw/{txId}
+     */
+    getTransactionsRawTxid: (
+      txId: string,
+      query?: {
+        /** @format int32 */
+        fromGroup?: number
+        /** @format int32 */
+        toGroup?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<RawTransaction, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/transactions/raw/${txId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
      * @name GetTransactionsStatus
      * @summary Get tx status
      * @request GET:/transactions/status
@@ -2495,6 +2556,31 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<TxStatus, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/transactions/status`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
+     * @name GetTransactionsTxIdFromOutputref
+     * @summary Get transaction id from transaction output ref
+     * @request GET:/transactions/tx-id-from-outputref
+     */
+    getTransactionsTxIdFromOutputref: (
+      query: {
+        /** @format int32 */
+        hint: number
+        /** @format 32-byte-hash */
+        key: string
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/transactions/tx-id-from-outputref`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -2752,6 +2838,64 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
+     * @name GetContractsAddressParent
+     * @summary Get parent contract address
+     * @request GET:/contracts/{address}/parent
+     */
+    getContractsAddressParent: (address: string, params: RequestParams = {}) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/contracts/${address}/parent`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
+     * @name GetContractsAddressSubContracts
+     * @summary Get sub-contract addresses
+     * @request GET:/contracts/{address}/sub-contracts
+     */
+    getContractsAddressSubContracts: (
+      address: string,
+      query: {
+        /** @format int32 */
+        start: number
+        /** @format int32 */
+        limit?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<SubContracts, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/contracts/${address}/sub-contracts`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
+     * @name GetContractsAddressSubContractsCurrentCount
+     * @summary Get current value of the sub-contracts counter for a contract
+     * @request GET:/contracts/{address}/sub-contracts/current-count
+     */
+    getContractsAddressSubContractsCurrentCount: (address: string, params: RequestParams = {}) =>
+      this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/contracts/${address}/sub-contracts/current-count`,
+        method: 'GET',
         format: 'json',
         ...params
       }).then(convertHttpResponse),
