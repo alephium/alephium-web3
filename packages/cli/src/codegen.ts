@@ -410,7 +410,7 @@ function genCallMethodTypes(contract: Contract): string {
       export type CallMethodResult<T extends keyof CallMethodTable> = CallMethodTable[T]['result']
       export type MultiCallParams = Partial<{ [Name in keyof CallMethodTable]: CallMethodTable[Name]['params'] }>
       export type MultiCallResults<T extends MultiCallParams> = { [MaybeName in keyof T]: MaybeName extends keyof CallMethodTable ? CallMethodTable[MaybeName]['result'] : undefined }
-      export type MulticallReturnType<Callss extends MultiCallParams[]> = Callss['length'] extends 1 ? MultiCallResults<Callss[0]> : { [index in keyof Callss]: MultiCallResults<Callss[index]> }
+      export type MulticallReturnType<Callss extends MultiCallParams[]> = { [index in keyof Callss]: MultiCallResults<Callss[index]> }
     `
     : ''
 }
