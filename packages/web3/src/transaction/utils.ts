@@ -16,8 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { groupOfLockupScript } from '../address'
 import { node } from '../api'
+import { UnsignedTx } from '../codec'
 import { getCurrentNodeProvider } from '../global'
+import { groupFromHint } from '../utils'
 
 function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
   return txStatus.type === 'Confirmed'
@@ -35,4 +38,21 @@ export async function waitForTxConfirmation(
   }
   await new Promise((r) => setTimeout(r, requestInterval))
   return waitForTxConfirmation(txId, confirmations, requestInterval)
+}
+
+export function groupIndexOfTransaction(unsignedTx: UnsignedTx): [number, number] {
+  if (unsignedTx.inputs.length === 0) throw new Error('Empty inputs for unsignedTx')
+
+  const fromGroup = groupFromHint(unsignedTx.inputs[0].hint)
+
+  let toGroup = fromGroup
+  if (unsignedTx.fixedOutputs.length !== 0) {
+    const index = unsignedTx.fixedOutputs.findIndex((output) => groupOfLockupScript(output.lockupScript) !== fromGroup)
+
+    if (index !== -1) {
+      toGroup = groupOfLockupScript(unsignedTx.fixedOutputs[index].lockupScript)
+    }
+  }
+
+  return [fromGroup, toGroup]
 }

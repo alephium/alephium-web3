@@ -16,11 +16,23 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export * from './webcrypto'
-export * from './bs58'
-export * from './djb2'
-export * from './utils'
-export * from './subscription'
-export * from './sign'
-export * from './number'
-export * from './group'
+import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
+import djb2 from './djb2'
+
+export function groupFromBytes(bytes: Uint8Array): number {
+  const hint = djb2(bytes) | 1
+  return groupFromHint(hint)
+}
+
+export function groupFromHint(hint: number): number {
+  const hash = xorByte(hint)
+  return hash % TOTAL_NUMBER_OF_GROUPS
+}
+
+export function xorByte(intValue: number): number {
+  const byte0 = (intValue >> 24) & 0xff
+  const byte1 = (intValue >> 16) & 0xff
+  const byte2 = (intValue >> 8) & 0xff
+  const byte3 = intValue & 0xff
+  return (byte0 ^ byte1 ^ byte2 ^ byte3) & 0xff
+}
