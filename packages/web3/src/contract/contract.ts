@@ -197,7 +197,7 @@ export class Contract extends Artifact {
 
   readonly bytecodeDebug: string
   readonly codeHashDebug: string
-  readonly decodedDebugContract: contract.Contract
+  readonly decodedContract: contract.Contract
 
   private bytecodeForTesting: string | undefined
   private codeHashForTesting: string | undefined
@@ -233,7 +233,7 @@ export class Contract extends Artifact {
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
     this.codeHashDebug = codeHashDebug
 
-    this.decodedDebugContract = contract.contractCodec.decodeContract(hexToBinUnsafe(this.bytecodeDebug))
+    this.decodedContract = contract.contractCodec.decodeContract(hexToBinUnsafe(this.bytecode))
     this.bytecodeForTesting = undefined
     this.codeHashForTesting = undefined
   }
@@ -247,9 +247,10 @@ export class Contract extends Artifact {
       return this.bytecodeForTesting
     }
 
-    const methods = this.decodedDebugContract.methods.map((method) => ({ ...method, isPublic: true }))
+    const decodedDebugContract = contract.contractCodec.decodeContract(hexToBinUnsafe(this.bytecodeDebug))
+    const methods = decodedDebugContract.methods.map((method) => ({ ...method, isPublic: true }))
     const bytecodeForTesting = contract.contractCodec.encodeContract({
-      fieldLength: this.decodedDebugContract.fieldLength,
+      fieldLength: decodedDebugContract.fieldLength,
       methods: methods
     })
     const codeHashForTesting = blake.blake2b(bytecodeForTesting, undefined, 32)
@@ -263,7 +264,7 @@ export class Contract extends Artifact {
   }
 
   getDecodedMethod(methodIndex: number): Method {
-    return this.decodedDebugContract.methods[`${methodIndex}`]
+    return this.decodedContract.methods[`${methodIndex}`]
   }
 
   publicFunctions(): FunctionSig[] {
@@ -563,12 +564,15 @@ export class Contract extends Artifact {
 
   async txParamsForDeployment<P extends Fields>(
     signer: SignerProvider,
-    params: DeployContractParams<P>,
-    exposePrivateFunctions = false
+    params: DeployContractParams<P>
   ): Promise<SignDeployContractTxParams> {
     const isDevnet = await this.isDevnet(signer)
     const initialFields: Fields = params.initialFields ?? {}
-    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields), isDevnet, exposePrivateFunctions)
+    const bytecode = this.buildByteCodeToDeploy(
+      addStdIdToFields(this, initialFields),
+      isDevnet,
+      params.exposePrivateFunctions ?? false
+    )
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractTxParams = {
       signerAddress: selectedAccount.address,
@@ -1014,10 +1018,11 @@ export interface DeployContractParams<P extends Fields = Fields> {
   issueTokenTo?: string
   gasAmount?: number
   gasPrice?: Number256
+  exposePrivateFunctions?: boolean
 }
 assertType<
   Eq<
-    Omit<DeployContractParams<undefined>, 'initialFields'>,
+    Omit<DeployContractParams<undefined>, 'initialFields' | 'exposePrivateFunctions'>,
     Omit<SignDeployContractTxParams, 'signerAddress' | 'signerKeyType' | 'bytecode'>
   >
 >
@@ -1037,19 +1042,11 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
 
   abstract at(address: string): I
 
-  async deploy(
-    signer: SignerProvider,
-    deployParams: DeployContractParams<F>,
-    exposePrivateFunctions = false
-  ): Promise<DeployContractResult<I>> {
-    const signerParams = await this.contract.txParamsForDeployment(
-      signer,
-      {
-        ...deployParams,
-        initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
-      },
-      exposePrivateFunctions
-    )
+  async deploy(signer: SignerProvider, deployParams: DeployContractParams<F>): Promise<DeployContractResult<I>> {
+    const signerParams = await this.contract.txParamsForDeployment(signer, {
+      ...deployParams,
+      initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
+    })
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
       ...result,
