@@ -589,6 +589,10 @@ export class Contract extends Artifact {
   }
 
   buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean, exposePrivateFunctions = false): string {
+    if (exposePrivateFunctions && !isDevnet) {
+      throw new Error('Cannot expose private functions in non-devnet environment')
+    }
+
     try {
       const bytecode =
         exposePrivateFunctions && isDevnet
