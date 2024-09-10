@@ -69,6 +69,10 @@ export namespace AddTypes {
       }>;
       result: CallContractResult<[bigint, bigint]>;
     };
+    addPrivate: {
+      params: CallContractParams<{ array: [bigint, bigint] }>;
+      result: CallContractResult<[bigint, bigint]>;
+    };
     createSubContract: {
       params: CallContractParams<{
         a: bigint;
@@ -120,6 +124,10 @@ export namespace AddTypes {
         array2: [bigint, bigint];
         addS: AddStruct1;
       }>;
+      result: SignExecuteScriptTxResult;
+    };
+    addPrivate: {
+      params: SignExecuteContractMethodParams<{ array: [bigint, bigint] }>;
       result: SignExecuteScriptTxResult;
     };
     createSubContract: {
@@ -316,6 +324,11 @@ export class AddInstance extends ContractInstance {
     ): Promise<AddTypes.CallMethodResult<"add2">> => {
       return callMethod(Add, this, "add2", params, getContractByCodeHash);
     },
+    addPrivate: async (
+      params: AddTypes.CallMethodParams<"addPrivate">
+    ): Promise<AddTypes.CallMethodResult<"addPrivate">> => {
+      return callMethod(Add, this, "addPrivate", params, getContractByCodeHash);
+    },
     createSubContract: async (
       params: AddTypes.CallMethodParams<"createSubContract">
     ): Promise<AddTypes.CallMethodResult<"createSubContract">> => {
@@ -355,6 +368,11 @@ export class AddInstance extends ContractInstance {
       params: AddTypes.SignExecuteMethodParams<"add2">
     ): Promise<AddTypes.SignExecuteMethodResult<"add2">> => {
       return signExecuteMethod(Add, this, "add2", params);
+    },
+    addPrivate: async (
+      params: AddTypes.SignExecuteMethodParams<"addPrivate">
+    ): Promise<AddTypes.SignExecuteMethodResult<"addPrivate">> => {
+      return signExecuteMethod(Add, this, "addPrivate", params);
     },
     createSubContract: async (
       params: AddTypes.SignExecuteMethodParams<"createSubContract">

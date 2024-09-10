@@ -51,6 +51,14 @@ export namespace MetaDataTypes {
       params: Omit<CallContractParams<{}>, "args">;
       result: CallContractResult<null>;
     };
+    bar: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
+    baz: {
+      params: Omit<CallContractParams<{}>, "args">;
+      result: CallContractResult<null>;
+    };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
     CallMethodTable[T]["params"];
@@ -70,6 +78,14 @@ export namespace MetaDataTypes {
 
   export interface SignExecuteMethodTable {
     foo: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    bar: {
+      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      result: SignExecuteScriptTxResult;
+    };
+    baz: {
       params: Omit<SignExecuteContractMethodParams<{}>, "args">;
       result: SignExecuteScriptTxResult;
     };
@@ -164,6 +180,28 @@ export class MetaDataInstance extends ContractInstance {
         getContractByCodeHash
       );
     },
+    bar: async (
+      params?: MetaDataTypes.CallMethodParams<"bar">
+    ): Promise<MetaDataTypes.CallMethodResult<"bar">> => {
+      return callMethod(
+        MetaData,
+        this,
+        "bar",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
+    baz: async (
+      params?: MetaDataTypes.CallMethodParams<"baz">
+    ): Promise<MetaDataTypes.CallMethodResult<"baz">> => {
+      return callMethod(
+        MetaData,
+        this,
+        "baz",
+        params === undefined ? {} : params,
+        getContractByCodeHash
+      );
+    },
   };
 
   transact = {
@@ -171,6 +209,16 @@ export class MetaDataInstance extends ContractInstance {
       params: MetaDataTypes.SignExecuteMethodParams<"foo">
     ): Promise<MetaDataTypes.SignExecuteMethodResult<"foo">> => {
       return signExecuteMethod(MetaData, this, "foo", params);
+    },
+    bar: async (
+      params: MetaDataTypes.SignExecuteMethodParams<"bar">
+    ): Promise<MetaDataTypes.SignExecuteMethodResult<"bar">> => {
+      return signExecuteMethod(MetaData, this, "bar", params);
+    },
+    baz: async (
+      params: MetaDataTypes.SignExecuteMethodParams<"baz">
+    ): Promise<MetaDataTypes.SignExecuteMethodResult<"baz">> => {
+      return signExecuteMethod(MetaData, this, "baz", params);
     },
   };
 }
