@@ -46,11 +46,11 @@ export function groupIndexOfTransaction(unsignedTx: UnsignedTx): [number, number
   const fromGroup = groupFromHint(unsignedTx.inputs[0].hint)
 
   let toGroup = fromGroup
-  if (unsignedTx.fixedOutputs.length !== 0) {
-    const index = unsignedTx.fixedOutputs.findIndex((output) => groupOfLockupScript(output.lockupScript) !== fromGroup)
-
-    if (index !== -1) {
-      toGroup = groupOfLockupScript(unsignedTx.fixedOutputs[index].lockupScript)
+  for (const output of unsignedTx.fixedOutputs) {
+    const outputGroup = groupOfLockupScript(output.lockupScript)
+    if (outputGroup !== fromGroup) {
+      toGroup = outputGroup
+      break
     }
   }
 
