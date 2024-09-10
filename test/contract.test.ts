@@ -42,7 +42,14 @@ import {
   MINIMAL_CONTRACT_DEPOSIT
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
-import { expectAssertionError, testAddress, randomContractAddress, getSigner, mintToken } from '../packages/web3-test'
+import {
+  expectAssertionError,
+  testAddress,
+  randomContractAddress,
+  getSigner,
+  mintToken,
+  randomContractId
+} from '../packages/web3-test'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { Greeter, GreeterTypes } from '../artifacts/ts/Greeter'
 import {
@@ -73,6 +80,7 @@ describe('contract', function () {
   let signer: PrivateKeyWallet
   let signerAccount: Account
   let signerGroup: number
+  let exposePrivateFunctions: boolean
 
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
@@ -80,6 +88,7 @@ describe('contract', function () {
     signer = await getSigner()
     signerAccount = signer.account
     signerGroup = signerAccount.group
+    exposePrivateFunctions = Math.random() < 0.5
 
     expect(signerGroup).toEqual(groupOfAddress(testAddress))
   })
@@ -93,11 +102,15 @@ describe('contract', function () {
 
   it('should get contract id from tx id', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
-    const deployResult0 = await Sub.deploy(signer, { initialFields: { result: 0n } })
+    const deployResult0 = await Sub.deploy(signer, { initialFields: { result: 0n } }, exposePrivateFunctions)
     const subContractId = await getContractIdFromUnsignedTx(nodeProvider, deployResult0.unsignedTx)
     expect(subContractId).toEqual(deployResult0.contractInstance.contractId)
 
-    const deployResult1 = await Add.deploy(signer, { initialFields: { sub: subContractId, result: 0n } })
+    const deployResult1 = await Add.deploy(
+      signer,
+      { initialFields: { sub: subContractId, result: 0n } },
+      exposePrivateFunctions
+    )
     const addContractId = await getContractIdFromUnsignedTx(nodeProvider, deployResult1.unsignedTx)
     expect(addContractId).toEqual(deployResult1.contractInstance.contractId)
   })
@@ -154,9 +167,11 @@ describe('contract', function () {
     })
     expect(testResultPrivate.returns).toEqual([3n, 1n])
 
-    const sub = (await Sub.deploy(signer, { initialFields: { result: 0n } })).contractInstance
+    const sub = (await Sub.deploy(signer, { initialFields: { result: 0n } }, exposePrivateFunctions)).contractInstance
     expect(sub.groupIndex).toEqual(signerGroup)
-    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } })).contractInstance
+    const add = (
+      await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } }, exposePrivateFunctions)
+    ).contractInstance
     expect(add.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub before main script is executed
@@ -197,8 +212,9 @@ describe('contract', function () {
     expect(testResult.contracts[0].codeHash).toEqual(Greeter.contract.codeHash)
     expect(testResult.contracts[0].fields.btcPrice).toEqual(1n)
 
-    const greeter = (await Greeter.deploy(signer, { initialFields: { ...initialFields, btcPrice: 1n } }))
-      .contractInstance
+    const greeter = (
+      await Greeter.deploy(signer, { initialFields: { ...initialFields, btcPrice: 1n } }, exposePrivateFunctions)
+    ).contractInstance
     expect(greeter.groupIndex).toEqual(signerGroup)
     const contractState = await greeter.fetchState()
     expect(contractState.fields.btcPrice).toEqual(1n)
@@ -300,7 +316,7 @@ describe('contract', function () {
     const contractAddress = randomContractAddress()
     expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, AssertError)
 
-    const assertDeployResult = await Assert.deploy(signer, { initialFields: {} })
+    const assertDeployResult = await Assert.deploy(signer, { initialFields: {} }, exposePrivateFunctions)
     const assertAddress = assertDeployResult.contractInstance.address
 
     expectAssertionError(
@@ -441,7 +457,7 @@ describe('contract', function () {
       },
       name: ''
     }
-    const result = await UserAccount.deploy(signer, { initialFields })
+    const result = await UserAccount.deploy(signer, { initialFields }, exposePrivateFunctions)
     const state = await result.contractInstance.fetchState()
     expect(state.fields).toEqual(initialFields)
 
@@ -502,9 +518,7 @@ describe('contract', function () {
   })
 
   it('should test map(integration test)', async () => {
-    const result = await MapTest.deploy(signer, {
-      initialFields: {}
-    })
+    const result = await MapTest.deploy(signer, { initialFields: {} }, exposePrivateFunctions)
 
     const mapTest = result.contractInstance
     await InsertIntoMap.execute(signer, {
@@ -554,9 +568,14 @@ describe('contract', function () {
   })
 
   it('should test sign execute method with primitive arguments', async () => {
-    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
-    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
-      .contractInstance
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } }, exposePrivateFunctions)
+    const add = (
+      await Add.deploy(
+        signer,
+        { initialFields: { sub: sub.contractInstance.contractId, result: 0n } },
+        exposePrivateFunctions
+      )
+    ).contractInstance
     const caller = (await signer.getSelectedAccount()).address
     const provider = web3.getCurrentNodeProvider()
 
@@ -568,9 +587,14 @@ describe('contract', function () {
   })
 
   it('should test sign execute method with array arguments', async () => {
-    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
-    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
-      .contractInstance
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } }, exposePrivateFunctions)
+    const add = (
+      await Add.deploy(
+        signer,
+        { initialFields: { sub: sub.contractInstance.contractId, result: 0n } },
+        exposePrivateFunctions
+      )
+    ).contractInstance
     const provider = web3.getCurrentNodeProvider()
 
     const stateBefore = await provider.contracts.getContractsAddressState(add.address)
@@ -583,9 +607,14 @@ describe('contract', function () {
   })
 
   it('should test sign execute method with struct arguments', async () => {
-    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } })
-    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
-      .contractInstance
+    const sub = await Sub.deploy(signer, { initialFields: { result: 0n } }, exposePrivateFunctions)
+    const add = (
+      await Add.deploy(
+        signer,
+        { initialFields: { sub: sub.contractInstance.contractId, result: 0n } },
+        exposePrivateFunctions
+      )
+    ).contractInstance
     const provider = web3.getCurrentNodeProvider()
 
     const stateBefore = await provider.contracts.getContractsAddressState(add.address)
@@ -613,13 +642,22 @@ describe('contract', function () {
 
   it('should test sign execute method with approved assets', async () => {
     const signerAddress = (await signer.getSelectedAccount()).address
-    const sub = await Sub.deploy(signer, {
-      initialFields: { result: 0n },
-      issueTokenAmount: 300n,
-      issueTokenTo: signerAddress
-    })
-    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractInstance.contractId, result: 0n } }))
-      .contractInstance
+    const sub = await Sub.deploy(
+      signer,
+      {
+        initialFields: { result: 0n },
+        issueTokenAmount: 300n,
+        issueTokenTo: signerAddress
+      },
+      exposePrivateFunctions
+    )
+    const add = (
+      await Add.deploy(
+        signer,
+        { initialFields: { sub: sub.contractInstance.contractId, result: 0n } },
+        exposePrivateFunctions
+      )
+    ).contractInstance
     const provider = web3.getCurrentNodeProvider()
 
     const state = await provider.contracts.getContractsAddressState(add.address)
@@ -686,9 +724,7 @@ describe('contract', function () {
   })
 
   it('should call TxScript', async () => {
-    const result0 = await MapTest.deploy(signer, {
-      initialFields: {}
-    })
+    const result0 = await MapTest.deploy(signer, { initialFields: {} }, exposePrivateFunctions)
     const mapTest = result0.contractInstance
     await InsertIntoMap.execute(signer, {
       initialFields: {
@@ -715,7 +751,7 @@ describe('contract', function () {
       },
       name: ''
     }
-    const result1 = await UserAccount.deploy(signer, { initialFields })
+    const result1 = await UserAccount.deploy(signer, { initialFields }, exposePrivateFunctions)
     const userAccount = result1.contractInstance
 
     const callResult1 = await CallScript1.call({
@@ -760,5 +796,36 @@ describe('contract', function () {
       name: ''
     })
     expect(BigInt(state2.asset.alphAmount)).toEqual(MINIMAL_CONTRACT_DEPOSIT)
+  })
+
+  it('should get the contract bytecode for testing', async () => {
+    expect(Add.contract.publicFunctions().length).not.toEqual(Add.contract.functions.length)
+    const instance0 = (await Add.deploy(signer, { initialFields: { sub: randomContractId(), result: 0n } }, true))
+      .contractInstance
+    const state0 = await instance0.fetchState()
+    expect(state0.bytecode).toEqual(Add.contract.getByteCodeForTesting())
+    expect(state0.bytecode).not.toEqual(Add.contract.bytecode)
+    expect(state0.bytecode).not.toEqual(Add.contract.bytecodeDebug)
+    expect(state0.codeHash).not.toEqual(Add.contract.codeHash)
+    expect(state0.codeHash).not.toEqual(Add.contract.codeHashDebug)
+    expect(Add.contract.hasCodeHash(state0.codeHash)).toEqual(true)
+
+    expect(Assert.contract.publicFunctions().length).toEqual(Assert.contract.functions.length)
+    const instance1 = (await Assert.deploy(signer, { initialFields: {} }, true)).contractInstance
+    const state1 = await instance1.fetchState()
+    expect(state1.bytecode).toEqual(Assert.contract.bytecodeDebug)
+    expect(state1.codeHash).toEqual(Assert.contract.codeHashDebug)
+    expect(Assert.contract.hasCodeHash(state1.codeHash)).toEqual(true)
+  })
+
+  it('should test contract private functions', async () => {
+    const sub = (await Sub.deploy(signer, { initialFields: { result: 0n } }, true)).contractInstance
+    const add = (await Add.deploy(signer, { initialFields: { sub: sub.contractId, result: 0n } }, true))
+      .contractInstance
+    await add.transact.addPrivate({ args: { array: [2n, 1n] }, signer })
+    const state0 = await add.fetchState()
+    expect(state0.fields.result).toEqual(3n)
+    const state1 = await sub.fetchState()
+    expect(state1.fields.result).toEqual(1n)
   })
 })
