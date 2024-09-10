@@ -376,7 +376,7 @@ describe('Encode & decode contract', function () {
 
     expect(decodedContract.fieldLength).toEqual(getTypesLength(contract.fieldsSig.types))
     decodedContract.methods.map((decodedMethod, index) => {
-      const decoded = contract.decodedMethods[index]
+      const decoded = contract.getDecodedMethod(index)
       const functionSig = contract.functions[index]
       expect(decodedMethod.isPublic).toEqual(decoded.isPublic)
       expect(decodedMethod.usePreapprovedAssets).toEqual(decoded.usePreapprovedAssets)

@@ -111,7 +111,7 @@ function genCallMethod(contractName: string, functionSig: FunctionSig): string {
 }
 
 function genCallMethods(contract: Contract): string {
-  const functions = contract.publicFunctions()
+  const functions = contract.functions
   if (functions.length === 0) {
     return ''
   }
@@ -123,7 +123,7 @@ function genCallMethods(contract: Contract): string {
 }
 
 function genTxCallMethods(contract: Contract): string {
-  const functions = contract.publicFunctions()
+  const functions = contract.functions
   if (functions.length === 0) {
     return ''
   }
@@ -379,7 +379,7 @@ function genTestMethods(contract: Contract): string {
 }
 
 function genCallMethodTypes(contract: Contract): string {
-  const entities = contract.publicFunctions().map((functionSig) => {
+  const entities = contract.functions.map((functionSig) => {
     const funcHasArgs = functionSig.paramNames.length > 0
     const params = funcHasArgs
       ? `CallContractParams<{${formatParameters({
@@ -416,7 +416,7 @@ function genCallMethodTypes(contract: Contract): string {
 }
 
 function genSignExecuteMethodTypes(contract: Contract): string {
-  const entities = contract.publicFunctions().map((functionSig) => {
+  const entities = contract.functions.map((functionSig) => {
     const funcHasArgs = functionSig.paramNames.length > 0
     const params = funcHasArgs
       ? `SignExecuteContractMethodParams<{${formatParameters({
@@ -445,8 +445,7 @@ function genSignExecuteMethodTypes(contract: Contract): string {
 
 function genMulticall(contract: Contract): string {
   const types = contractTypes(contract.name)
-  const supportMulticall =
-    contract.publicFunctions().filter((functionSig) => functionSig.returnTypes.length > 0).length > 0
+  const supportMulticall = contract.functions.filter((functionSig) => functionSig.returnTypes.length > 0).length > 0
   return supportMulticall
     ? `
       async multicall<Callss extends ${types}.MultiCallParams[]>(
@@ -624,7 +623,7 @@ function genContractByCodeHash(outDir: string, contractNames: string[]) {
       if (contracts === undefined) {
         contracts = [${contracts}]
       }
-      const c = contracts.find((c) => c.contract.codeHash === codeHash || c.contract.codeHashDebug === codeHash)
+      const c = contracts.find((c) => c.contract.hasCodeHash(codeHash))
       if (c === undefined) {
         throw new Error("Unknown code with code hash: " + codeHash)
       }
