@@ -162,7 +162,7 @@ export abstract class Artifact {
     this.functions = functions
   }
 
-  abstract buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string
+  abstract buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean, exposePrivateFunctions: boolean): string
 
   async isDevnet(signer: SignerProvider): Promise<boolean> {
     if (!signer.nodeProvider) {
@@ -197,7 +197,10 @@ export class Contract extends Artifact {
 
   readonly bytecodeDebug: string
   readonly codeHashDebug: string
-  readonly decodedMethods: Method[]
+  readonly decodedDebugContract: contract.Contract
+
+  private bytecodeForTesting: string | undefined
+  private codeHashForTesting: string | undefined
 
   constructor(
     version: string,
@@ -230,19 +233,53 @@ export class Contract extends Artifact {
     this.bytecodeDebug = ralph.buildDebugBytecode(this.bytecode, this.bytecodeDebugPatch)
     this.codeHashDebug = codeHashDebug
 
-    this.decodedMethods = contract.contractCodec.decodeContract(hexToBinUnsafe(bytecode)).methods
+    this.decodedDebugContract = contract.contractCodec.decodeContract(hexToBinUnsafe(this.bytecodeDebug))
+    this.bytecodeForTesting = undefined
+    this.codeHashForTesting = undefined
+  }
+
+  getByteCodeForTesting(): string {
+    if (this.bytecodeForTesting !== undefined) return this.bytecodeForTesting
+
+    if (this.publicFunctions().length == this.functions.length) {
+      this.bytecodeForTesting = this.bytecodeDebug
+      this.codeHashForTesting = this.codeHashDebug
+      return this.bytecodeForTesting
+    }
+
+    const methods = this.decodedDebugContract.methods.map((method) => ({ ...method, isPublic: true }))
+    const bytecodeForTesting = contract.contractCodec.encodeContract({
+      fieldLength: this.decodedDebugContract.fieldLength,
+      methods: methods
+    })
+    const codeHashForTesting = blake.blake2b(bytecodeForTesting, undefined, 32)
+    this.bytecodeForTesting = binToHex(bytecodeForTesting)
+    this.codeHashForTesting = binToHex(codeHashForTesting)
+    return this.bytecodeForTesting
+  }
+
+  hasCodeHash(hash: string): boolean {
+    return this.codeHash === hash || this.codeHashDebug === hash || this.codeHashForTesting === hash
+  }
+
+  getDecodedMethod(methodIndex: number): Method {
+    return this.decodedDebugContract.methods[`${methodIndex}`]
   }
 
   publicFunctions(): FunctionSig[] {
-    return this.functions.filter((_, index) => this.decodedMethods[`${index}`].isPublic)
+    return this.functions.filter((_, index) => this.getDecodedMethod(index).isPublic)
   }
 
   usingPreapprovedAssetsFunctions(): FunctionSig[] {
-    return this.functions.filter((_, index) => this.decodedMethods[`${index}`].usePreapprovedAssets)
+    return this.functions.filter((_, index) => this.getDecodedMethod(index).usePreapprovedAssets)
   }
 
   usingAssetsInContractFunctions(): FunctionSig[] {
-    return this.functions.filter((_, index) => this.decodedMethods[`${index}`].useContractAssets)
+    return this.functions.filter((_, index) => this.getDecodedMethod(index).useContractAssets)
+  }
+
+  isMethodUsePreapprovedAssets(methodIndex: number): boolean {
+    return this.getDecodedMethod(methodIndex).usePreapprovedAssets
   }
 
   // TODO: safely parse json
@@ -526,11 +563,12 @@ export class Contract extends Artifact {
 
   async txParamsForDeployment<P extends Fields>(
     signer: SignerProvider,
-    params: DeployContractParams<P>
+    params: DeployContractParams<P>,
+    exposePrivateFunctions = false
   ): Promise<SignDeployContractTxParams> {
     const isDevnet = await this.isDevnet(signer)
     const initialFields: Fields = params.initialFields ?? {}
-    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields), isDevnet)
+    const bytecode = this.buildByteCodeToDeploy(addStdIdToFields(this, initialFields), isDevnet, exposePrivateFunctions)
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractTxParams = {
       signerAddress: selectedAccount.address,
@@ -546,14 +584,15 @@ export class Contract extends Artifact {
     return signerParams
   }
 
-  buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean): string {
+  buildByteCodeToDeploy(initialFields: Fields, isDevnet: boolean, exposePrivateFunctions = false): string {
     try {
-      return ralph.buildContractByteCode(
-        isDevnet ? this.bytecodeDebug : this.bytecode,
-        initialFields,
-        this.fieldsSig,
-        this.structs
-      )
+      const bytecode =
+        exposePrivateFunctions && isDevnet
+          ? this.getByteCodeForTesting()
+          : isDevnet
+          ? this.bytecodeDebug
+          : this.bytecode
+      return ralph.buildContractByteCode(bytecode, initialFields, this.fieldsSig, this.structs)
     } catch (error) {
       throw new Error(`Failed to build bytecode for contract ${this.name}, error: ${error}`)
     }
@@ -998,11 +1037,19 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
 
   abstract at(address: string): I
 
-  async deploy(signer: SignerProvider, deployParams: DeployContractParams<F>): Promise<DeployContractResult<I>> {
-    const signerParams = await this.contract.txParamsForDeployment(signer, {
-      ...deployParams,
-      initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
-    })
+  async deploy(
+    signer: SignerProvider,
+    deployParams: DeployContractParams<F>,
+    exposePrivateFunctions = false
+  ): Promise<DeployContractResult<I>> {
+    const signerParams = await this.contract.txParamsForDeployment(
+      signer,
+      {
+        ...deployParams,
+        initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
+      },
+      exposePrivateFunctions
+    )
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
       ...result,
@@ -1687,7 +1734,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
 ): Promise<SignExecuteScriptTxResult> {
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const functionSig = contract.contract.functions[methodIndex]
-  const methodUsePreapprovedAssets = contract.contract.decodedMethods[methodIndex].usePreapprovedAssets
+  const methodUsePreapprovedAssets = contract.contract.isMethodUsePreapprovedAssets(methodIndex)
   const bytecodeTemplate = getBytecodeTemplate(
     methodIndex,
     methodUsePreapprovedAssets,
