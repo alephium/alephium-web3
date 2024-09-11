@@ -526,7 +526,7 @@ describe('contract', function () {
       initialFields: { inner: mapTestId },
       existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
     })
-    const mapTestState0 = insertResult.contracts.find((c) => c.address === mapTestAddress)! as ContractStateWithMaps
+    const mapTestState0 = insertResult.contracts.find((c) => c.address === mapTestAddress)!
     expect(mapTestState0.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
     expect(mapTestState0.maps?.map1?.get(1n)).toEqual(10n)
     expect(mapTestState0.maps?.map2?.get('0011')).toEqual(10n)
@@ -543,7 +543,7 @@ describe('contract', function () {
         })
       ]
     })
-    const mapTestState1 = updateResult.contracts.find((c) => c.address === mapTestAddress)! as ContractStateWithMaps
+    const mapTestState1 = updateResult.contracts.find((c) => c.address === mapTestAddress)!
     expect(mapTestState1.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
     expect(mapTestState1.maps?.map1?.get(1n)).toEqual(11n)
     expect(mapTestState1.maps?.map2?.get('0011')).toEqual(11n)
@@ -560,7 +560,7 @@ describe('contract', function () {
         })
       ]
     })
-    const mapTestState2 = removeResult.contracts.find((c) => c.address === mapTestAddress)! as ContractStateWithMaps
+    const mapTestState2 = removeResult.contracts.find((c) => c.address === mapTestAddress)!
     expect(mapTestState2.maps?.map0?.get(signer.address)).toEqual(undefined)
     expect(mapTestState2.maps?.map1?.get(1n)).toEqual(undefined)
     expect(mapTestState2.maps?.map2?.get('0011')).toEqual(undefined)

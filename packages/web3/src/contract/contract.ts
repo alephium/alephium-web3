@@ -949,7 +949,7 @@ export interface TestContractParams<
   initialMaps?: M
   initialAsset?: Asset // default 1 ALPH
   testArgs: A
-  existingContracts?: (ContractState | ContractStateWithMaps)[] // default no existing contracts
+  existingContracts?: ContractStateWithMaps[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
 }
 
@@ -972,7 +972,7 @@ export interface TestContractResult<R, M extends Record<string, Map<Val, Val>> =
   returns: R
   gasUsed: number
   maps?: M
-  contracts: (ContractState | ContractStateWithMaps)[]
+  contracts: ContractStateWithMaps[]
   txOutputs: Output[]
   events: ContractEvent[]
   debugMessages: DebugMessage[]
@@ -1403,6 +1403,56 @@ function hasMap(state: ContractState): state is ContractStateWithMaps {
   return (state as ContractStateWithMaps).maps !== undefined
 }
 
+function getTestExistingContracts(
+  selfContract: Contract,
+  selfContractId: string,
+  group: number,
+  params: Optional<TestContractParams, 'testArgs' | 'initialFields'>,
+  getContractByCodeHash: (codeHash: string) => Contract
+): ContractState[] {
+  const selfMaps = params.initialMaps ?? {}
+  const selfMapEntries = mapsToExistingContracts(selfContract, selfContractId, group, selfMaps)
+  const existingContracts = params.existingContracts ?? []
+  const existingMapEntries = existingContracts.flatMap((contractState) => {
+    return hasMap(contractState)
+      ? mapsToExistingContracts(
+          getContractByCodeHash(contractState.codeHash),
+          contractState.contractId,
+          group,
+          contractState.maps ?? {}
+        )
+      : []
+  })
+  return existingContracts.concat(selfMapEntries, existingMapEntries)
+}
+
+export function extractMapsFromApiResult(
+  selfAddress: string,
+  params: Optional<TestContractParams, 'testArgs' | 'initialFields'>,
+  group: number,
+  apiResult: node.TestContractResult,
+  getContractByCodeHash: (codeHash: string) => Contract
+): { address: string; maps: Record<string, Map<Val, Val>> }[] {
+  const selfMaps = params.initialMaps ?? {}
+  const existingContracts = params.existingContracts ?? []
+  const filtered = apiResult.contracts.filter(
+    (c) => c.address === selfAddress || existingContracts.find((s) => s.address === c.address) !== undefined
+  )
+  const allMaps: { address: string; maps: Record<string, Map<Val, Val>> }[] = []
+  filtered.forEach((state) => {
+    const artifact = getContractByCodeHash(state.codeHash)
+    if (artifact.mapsSig !== undefined) {
+      const originMaps =
+        state.address === selfAddress
+          ? selfMaps
+          : (existingContracts.find((s) => s.address === state.address) as ContractStateWithMaps).maps
+      const maps = existingContractsToMaps(artifact, state.address, group, apiResult, originMaps ?? {})
+      allMaps.push({ address: state.address, maps })
+    }
+  })
+  return allMaps
+}
+
 export async function testMethod<
   I extends ContractInstance,
   F extends Fields,
@@ -1420,19 +1470,7 @@ export async function testMethod<
   const selfAddress = params.address ?? addressFromContractId(binToHex(crypto.getRandomValues(new Uint8Array(32))))
   const selfContractId = binToHex(contractIdFromAddress(selfAddress))
   const group = params.group ?? 0
-  const selfMaps = params.initialMaps ?? {}
-  const selfMapEntries = mapsToExistingContracts(selfContract, selfContractId, group, selfMaps)
-  const existingContracts = params.existingContracts ?? []
-  const existingMapEntries = existingContracts.flatMap((contractState) => {
-    return hasMap(contractState)
-      ? mapsToExistingContracts(
-          getContractByCodeHash(contractState.codeHash),
-          contractState.contractId,
-          group,
-          contractState.maps ?? {}
-        )
-      : []
-  })
+  const existingContracts = getTestExistingContracts(selfContract, selfContractId, group, params, getContractByCodeHash)
 
   const apiParams = selfContract.toApiTestContractParams(methodName, {
     ...params,
@@ -1440,24 +1478,10 @@ export async function testMethod<
     txId: txId,
     initialFields: addStdIdToFields(selfContract, params.initialFields ?? {}),
     testArgs: params.testArgs === undefined ? {} : params.testArgs,
-    existingContracts: Array.prototype.concat(existingContracts, selfMapEntries, existingMapEntries)
+    existingContracts
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
-  const filtered = apiResult.contracts.filter(
-    (c) => c.address === selfAddress || existingContracts.find((s) => s.address === c.address) !== undefined
-  )
-  const allMaps: { address: string; maps: Record<string, Map<Val, Val>> }[] = []
-  filtered.forEach((state) => {
-    const artifact = getContractByCodeHash(state.codeHash)
-    if (artifact.mapsSig !== undefined) {
-      const originMaps =
-        state.address === selfAddress
-          ? selfMaps
-          : (existingContracts.find((s) => s.address === state.address) as ContractStateWithMaps).maps
-      const maps = existingContractsToMaps(artifact, state.address, group, apiResult, originMaps ?? {})
-      allMaps.push({ address: state.address, maps })
-    }
-  })
+  const allMaps = extractMapsFromApiResult(selfAddress, params, group, apiResult, getContractByCodeHash)
   const testResult = selfContract.fromApiTestContractResult(methodName, apiResult, txId, getContractByCodeHash)
   testResult.contracts.forEach((c) => {
     const maps = allMaps.find((v) => v.address === c.address)?.maps
