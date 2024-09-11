@@ -156,6 +156,14 @@ export function concatBytes(arrays: Uint8Array[]): Uint8Array {
   return result
 }
 
+export function xorByte(intValue: number): number {
+  const byte0 = (intValue >> 24) & 0xff
+  const byte1 = (intValue >> 16) & 0xff
+  const byte2 = (intValue >> 8) & 0xff
+  const byte3 = intValue & 0xff
+  return (byte0 ^ byte1 ^ byte2 ^ byte3) & 0xff
+}
+
 type _Eq<X, Y> = (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? true : false
 export type Eq<X, Y> = _Eq<{ [P in keyof X]: X[P] }, { [P in keyof Y]: Y[P] }>
 // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars

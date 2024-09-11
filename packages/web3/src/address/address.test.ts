@@ -28,9 +28,13 @@ import {
   validateAddress,
   isAssetAddress,
   isContractAddress,
-  isValidAddress
+  isValidAddress,
+  addressFromScript,
+  groupOfLockupScript
 } from './address'
-import { binToHex } from '../utils'
+import { binToHex, bs58 } from '../utils'
+import { randomBytes } from 'crypto'
+import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
 
 describe('address', function () {
   it('should validate address', () => {
@@ -115,6 +119,28 @@ describe('address', function () {
       expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kk')).toBe(1),
       expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9km')).toBe(2),
       expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kn')).toBe(3)
+  })
+
+  it('should calculate the group of lockup script', () => {
+    const bytes0 = new Uint8Array(randomBytes(32))
+    const bytes1 = new Uint8Array(randomBytes(32))
+    const bytes2 = new Uint8Array(randomBytes(32))
+
+    const p2pkh: LockupScript = { kind: 'P2PKH', value: new Uint8Array(bytes0) }
+    const p2pkhAddress = bs58.encode(new Uint8Array([0x00, ...bytes0]))
+    expect(groupOfAddress(p2pkhAddress)).toBe(groupOfLockupScript(p2pkh))
+
+    const p2mpkh: LockupScript = { kind: 'P2MPKH', value: { publicKeyHashes: [bytes0, bytes1, bytes2], m: 2 } }
+    const p2mpkhAddress = bs58.encode(new Uint8Array([0x01, 0x03, ...bytes0, ...bytes1, ...bytes2, 0x02]))
+    expect(groupOfAddress(p2mpkhAddress)).toBe(groupOfLockupScript(p2mpkh))
+
+    const p2sh: LockupScript = { kind: 'P2SH', value: bytes0 }
+    const p2shAddress = bs58.encode(new Uint8Array([0x02, ...bytes0]))
+    expect(groupOfAddress(p2shAddress)).toBe(groupOfLockupScript(p2sh))
+
+    const p2c: LockupScript = { kind: 'P2C', value: bytes0 }
+    const p2cAddress = bs58.encode(new Uint8Array([0x03, ...bytes0]))
+    expect(groupOfAddress(p2cAddress)).toBe(groupOfLockupScript(p2c))
   })
 
   it('should extract token id from addresses', () => {

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { binToHex } from '../utils'
+import { binToHex, hexToBinUnsafe } from '../utils'
 import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiTokens } from '../api'
 import { addressFromPublicKey, contractIdFromAddress } from '../address'
 import { toApiDestinations } from './signer'
@@ -32,6 +32,9 @@ import {
   SignUnsignedTxParams,
   SignUnsignedTxResult
 } from './types'
+import { unsignedTxCodec, UnsignedTxCodec } from '../codec'
+import { groupIndexOfTransaction } from '../transaction'
+import { blakeHash } from '../codec/hash'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -113,16 +116,18 @@ export abstract class TransactionBuilder {
     return { ...response, groupIndex: response.fromGroup, gasPrice: fromApiNumber256(response.gasPrice) }
   }
 
-  async buildUnsignedTx(params: SignUnsignedTxParams): Promise<Omit<SignUnsignedTxResult, 'signature'>> {
-    const data = { unsignedTx: params.unsignedTx }
-    const decoded = await this.nodeProvider.transactions.postTransactionsDecodeUnsignedTx(data)
+  buildUnsignedTx(params: SignUnsignedTxParams): Omit<SignUnsignedTxResult, 'signature'> {
+    const unsignedTxBin = hexToBinUnsafe(params.unsignedTx)
+    const decoded = unsignedTxCodec.decode(unsignedTxBin)
+    const txId = binToHex(blakeHash(unsignedTxBin))
+    const [fromGroup, toGroup] = groupIndexOfTransaction(decoded)
     return {
-      fromGroup: decoded.fromGroup,
-      toGroup: decoded.toGroup,
+      fromGroup: fromGroup,
+      toGroup: toGroup,
       unsignedTx: params.unsignedTx,
-      txId: decoded.unsignedTx.txId,
-      gasAmount: decoded.unsignedTx.gasAmount,
-      gasPrice: fromApiNumber256(decoded.unsignedTx.gasPrice)
+      txId: txId,
+      gasAmount: decoded.gasAmount,
+      gasPrice: decoded.gasPrice
     }
   }
 }

@@ -21,11 +21,12 @@ import BN from 'bn.js'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import blake from 'blakejs'
 import bs58 from '../utils/bs58'
-import djb2 from '../utils/djb2'
-import { binToHex, concatBytes, hexToBinUnsafe, isHexString } from '../utils'
+import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
 import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { i32Codec } from '../codec'
+import { LockupScript } from '../codec/lockup-script-codec'
+import djb2 from '../utils/djb2'
 
 const ec = new EC('secp256k1')
 const PublicKeyHashSize = 32
@@ -112,26 +113,19 @@ export function groupOfAddress(address: string): number {
   }
 }
 
-function groupOfAddressBytes(bytes: Uint8Array): number {
-  const hint = djb2(bytes) | 1
-  const hash = xorByte(hint)
-  const group = hash % TOTAL_NUMBER_OF_GROUPS
-  return group
-}
-
 // Pay to public key hash address
 function groupOfP2pkhAddress(address: Uint8Array): number {
-  return groupOfAddressBytes(address)
+  return groupFromBytesForAssetAddress(address)
 }
 
 // Pay to multiple public key hash address
 function groupOfP2mpkhAddress(address: Uint8Array): number {
-  return groupOfAddressBytes(address.slice(1, 33))
+  return groupFromBytesForAssetAddress(address.slice(1, 33))
 }
 
 // Pay to script hash address
 function groupOfP2shAddress(address: Uint8Array): number {
-  return groupOfAddressBytes(address)
+  return groupFromBytesForAssetAddress(address)
 }
 
 export function contractIdFromAddress(address: string): Uint8Array {
@@ -225,10 +219,22 @@ export function subContractId(parentContractId: string, pathInHex: string, group
   return binToHex(bytes)
 }
 
-export function xorByte(intValue: number): number {
-  const byte0 = (intValue >> 24) & 0xff
-  const byte1 = (intValue >> 16) & 0xff
-  const byte2 = (intValue >> 8) & 0xff
-  const byte3 = intValue & 0xff
-  return (byte0 ^ byte1 ^ byte2 ^ byte3) & 0xff
+export function groupOfLockupScript(lockupScript: LockupScript): number {
+  if (lockupScript.kind === 'P2PKH') {
+    return groupFromBytesForAssetAddress(lockupScript.value)
+  } else if (lockupScript.kind === 'P2MPKH') {
+    return groupFromBytesForAssetAddress(lockupScript.value.publicKeyHashes[0])
+  } else if (lockupScript.kind === 'P2SH') {
+    return groupFromBytesForAssetAddress(lockupScript.value)
+  } else {
+    // P2C
+    const contractId = lockupScript.value
+    return contractId[`${contractId.length - 1}`]
+  }
+}
+
+function groupFromBytesForAssetAddress(bytes: Uint8Array): number {
+  const hint = djb2(bytes) | 1
+  const hash = xorByte(hint)
+  return hash % TOTAL_NUMBER_OF_GROUPS
 }
