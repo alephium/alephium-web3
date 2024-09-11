@@ -33,6 +33,23 @@ Contract MapTest() {
   }
 }
 
+Contract MapTestWrapper(inner: MapTest) {
+  @using(preapprovedAssets = true, checkExternalCaller = false)
+  pub fn insert(key: Address, value: MapValue) -> () {
+    inner.insert{key -> ALPH: mapEntryDeposit!() * 3}(key, value)
+  }
+
+  @using(checkExternalCaller = false)
+  pub fn update(key: Address) -> () {
+    inner.update(key)
+  }
+
+  @using(checkExternalCaller = false)
+  pub fn remove(key: Address) -> () {
+    inner.remove(key)
+  }
+}
+
 TxScript InsertIntoMap(mapTest: MapTest, from: Address, value: MapValue) {
   mapTest.insert{from -> ALPH: mapEntryDeposit!() * 3}(from, value)
 }

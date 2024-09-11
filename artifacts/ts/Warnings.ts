@@ -21,6 +21,7 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
+  Asset,
   ContractInstance,
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
@@ -110,6 +111,14 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
       return testMethod(this, "foo", params, getContractByCodeHash);
     },
   };
+
+  stateForTest(
+    initFields: WarningsTypes.Fields,
+    asset?: Asset,
+    address?: string
+  ) {
+    return this.stateForTest_(initFields, asset, address, undefined);
+  }
 }
 
 // Use this object to test and deploy the contract

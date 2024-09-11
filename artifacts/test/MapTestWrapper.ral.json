@@ -1,0 +1,64 @@
+{
+  "version": "v3.6.2",
+  "name": "MapTestWrapper",
+  "bytecode": "01031d4030404301030303000dd3a9cdcc691600d10f2ca21600160116020f0cce000100010001010006d3c50ed2bb16000d0cce000101010001010006d392ac086616000d0cce000102",
+  "codeHash": "1d525d3e4cbd1c8f4c0431bf6881e888eeebae012a14532530097f62dd766e9a",
+  "fieldsSig": {
+    "names": [
+      "inner"
+    ],
+    "types": [
+      "MapTest"
+    ],
+    "isMutable": [
+      false
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "insert",
+      "paramNames": [
+        "key",
+        "value"
+      ],
+      "paramTypes": [
+        "Address",
+        "MapValue"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "update",
+      "paramNames": [
+        "key"
+      ],
+      "paramTypes": [
+        "Address"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "remove",
+      "paramNames": [
+        "key"
+      ],
+      "paramTypes": [
+        "Address"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

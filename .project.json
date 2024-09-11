@@ -180,19 +180,25 @@
     },
     "InsertIntoMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
+      "sourceCodeHash": "331b92fe6617c1c7ac7f742ceea1943a06717477a2bd03ca266d23c65d844de6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
     "MapTest": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
+      "sourceCodeHash": "331b92fe6617c1c7ac7f742ceea1943a06717477a2bd03ca266d23c65d844de6",
       "bytecodeDebugPatch": "=6-2+a8=1-3+128=2-2+ea=1+2=1-2+7=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=96",
       "codeHashDebug": "31aed0ff7b29f2cbc2d8360a83f31af4e9db00f0084a7406bd84b7745181373d"
     },
+    "MapTestWrapper": {
+      "sourceFile": "test/map.ral",
+      "sourceCodeHash": "331b92fe6617c1c7ac7f742ceea1943a06717477a2bd03ca266d23c65d844de6",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "1d525d3e4cbd1c8f4c0431bf6881e888eeebae012a14532530097f62dd766e9a"
+    },
     "MapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
+      "sourceCodeHash": "331b92fe6617c1c7ac7f742ceea1943a06717477a2bd03ca266d23c65d844de6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
@@ -258,7 +264,7 @@
     },
     "RemoveFromMap": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
+      "sourceCodeHash": "331b92fe6617c1c7ac7f742ceea1943a06717477a2bd03ca266d23c65d844de6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
@@ -306,7 +312,7 @@
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
-      "sourceCodeHash": "f797013ab9c7bf780bb8f452c0724703e877bbd9d71a60b400ed5009eb0f08e8",
+      "sourceCodeHash": "331b92fe6617c1c7ac7f742ceea1943a06717477a2bd03ca266d23c65d844de6",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },

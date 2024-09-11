@@ -15,6 +15,7 @@ export * from "./DeprecatedNFTTest7";
 export * from "./FakeTokenTest";
 export * from "./Greeter";
 export * from "./MapTest";
+export * from "./MapTestWrapper";
 export * from "./MetaData";
 export * from "./NFTCollectionTest";
 export * from "./NFTCollectionWithRoyaltyTest";
