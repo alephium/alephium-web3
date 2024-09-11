@@ -16,9 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { getSigners } from '@alephium/web3-test'
+import { getSigner, getSigners } from '@alephium/web3-test'
 import { groupIndexOfTransaction } from './utils'
-import { ONE_ALPH } from '../constants'
+import { ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import { bs58, hexToBinUnsafe } from '../utils'
 import { unsignedTxCodec } from '../codec'
 import { groupOfAddress } from '../address'
@@ -32,7 +32,8 @@ describe('transaction utils', () => {
   })
 
   it('should calculate the group of transfer transaction', async () => {
-    const [signer1, signer2] = await getSigners(2)
+    const signer1 = await getSigner(undefined, randomGroup())
+    const signer2 = await getSigner(undefined, randomGroup())
     const fromAccount = await signer1.getSelectedAccount()
     const toAccount = await signer2.getSelectedAccount()
 
@@ -50,7 +51,7 @@ describe('transaction utils', () => {
 
   it('should calculate the group of multisig transaction', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
-    const [signer1, signer2, signer3] = await getSigners(3)
+    const [signer1, signer2, signer3] = await getSigners(3, undefined, randomGroup())
     const pkh1 = toPublicKeyHash(signer1.publicKey)
     const pkh2 = toPublicKeyHash(signer2.publicKey)
     const pkh3 = toPublicKeyHash(signer3.publicKey)
@@ -86,8 +87,8 @@ describe('transaction utils', () => {
 
   it('should calculate the group of p2sh transaction', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
-    const [signer1] = await getSigners(2)
-    const schnorrSigner = PrivateKeyWallet.Random(undefined, nodeProvider, 'bip340-schnorr')
+    const signer1 = await getSigner(undefined, randomGroup())
+    const schnorrSigner = PrivateKeyWallet.Random(randomGroup(), nodeProvider, 'bip340-schnorr')
     const fromAccount = await signer1.getSelectedAccount()
 
     {
@@ -122,5 +123,9 @@ describe('transaction utils', () => {
 
   function toPublicKeyHash(publicKey: string): Uint8Array {
     return blake2b(hexToBinUnsafe(publicKey), undefined, 32)
+  }
+
+  function randomGroup(): number {
+    return Math.floor(Math.random() * TOTAL_NUMBER_OF_GROUPS)
   }
 })

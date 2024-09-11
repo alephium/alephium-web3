@@ -19,8 +19,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { groupOfLockupScript } from '../address'
 import { node } from '../api'
 import { UnsignedTx } from '../codec'
+import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import { getCurrentNodeProvider } from '../global'
-import { groupFromHint } from '../utils'
+import { xorByte } from '../utils'
 
 function isConfirmed(txStatus: node.TxStatus): txStatus is node.Confirmed {
   return txStatus.type === 'Confirmed'
@@ -55,4 +56,9 @@ export function groupIndexOfTransaction(unsignedTx: UnsignedTx): [number, number
   }
 
   return [fromGroup, toGroup]
+}
+
+function groupFromHint(hint: number): number {
+  const hash = xorByte(hint)
+  return hash % TOTAL_NUMBER_OF_GROUPS
 }

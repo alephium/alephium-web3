@@ -34,6 +34,7 @@ import {
 } from './types'
 import { unsignedTxCodec, UnsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
+import { blakeHash } from '../codec/hash'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -116,13 +117,15 @@ export abstract class TransactionBuilder {
   }
 
   buildUnsignedTx(params: SignUnsignedTxParams): Omit<SignUnsignedTxResult, 'signature'> {
-    const decoded = unsignedTxCodec.decode(hexToBinUnsafe(params.unsignedTx))
+    const unsignedTxBin = hexToBinUnsafe(params.unsignedTx)
+    const decoded = unsignedTxCodec.decode(unsignedTxBin)
+    const txId = binToHex(blakeHash(unsignedTxBin))
     const [fromGroup, toGroup] = groupIndexOfTransaction(decoded)
     return {
       fromGroup: fromGroup,
       toGroup: toGroup,
       unsignedTx: params.unsignedTx,
-      txId: UnsignedTxCodec.txId(decoded),
+      txId: txId,
       gasAmount: decoded.gasAmount,
       gasPrice: decoded.gasPrice
     }
