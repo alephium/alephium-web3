@@ -21,6 +21,7 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
+  Asset,
   ContractInstance,
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
@@ -130,6 +131,14 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
       );
     },
   };
+
+  stateForTest(
+    initFields: NFTTestTypes.Fields,
+    asset?: Asset,
+    address?: string
+  ) {
+    return this.stateForTest_(initFields, asset, address, undefined);
+  }
 }
 
 // Use this object to test and deploy the contract

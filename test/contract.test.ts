@@ -39,7 +39,8 @@ import {
   byteVecVal,
   u256Val,
   ZERO_ADDRESS,
-  MINIMAL_CONTRACT_DEPOSIT
+  MINIMAL_CONTRACT_DEPOSIT,
+  ContractStateWithMaps
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -70,7 +71,7 @@ import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, UserAccountTypes } from '../artifacts/ts'
+import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, MapTestWrapper, UserAccountTypes } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
@@ -266,13 +267,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(56)
-    sourceFiles.slice(0, 26).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(26, 41).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(41, 43).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(43, 50).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(50, 55).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[55].type).toEqual(5) // constants
+    expect(sourceFiles.length).toEqual(57)
+    sourceFiles.slice(0, 27).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(27, 42).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(42, 44).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(44, 51).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(51, 56).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[56].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -514,6 +515,55 @@ describe('contract', function () {
     expect(removeResult.maps?.map0?.get(signer.address)).toEqual(undefined)
     expect(removeResult.maps?.map1?.get(1n)).toEqual(undefined)
     expect(removeResult.maps?.map2?.get('0011')).toEqual(undefined)
+  })
+
+  it('should test nested map call(unit test)', async () => {
+    const mapTestId = randomContractId()
+    const mapTestAddress = addressFromContractId(mapTestId)
+    const insertResult = await MapTestWrapper.tests.insert({
+      testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }],
+      initialFields: { inner: mapTestId },
+      existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
+    })
+    const mapTestState0 = insertResult.contracts.find((c) => c.address === mapTestAddress)!
+    expect(mapTestState0.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
+    expect(mapTestState0.maps?.map1?.get(1n)).toEqual(10n)
+    expect(mapTestState0.maps?.map2?.get('0011')).toEqual(10n)
+
+    const updateResult = await MapTestWrapper.tests.update({
+      testArgs: { key: signer.address },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+      initialFields: { inner: mapTestId },
+      existingContracts: [
+        MapTest.stateForTest({}, undefined, mapTestAddress, {
+          map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
+          map1: new Map([[1n, 10n]]),
+          map2: new Map([['0011', 10n]])
+        })
+      ]
+    })
+    const mapTestState1 = updateResult.contracts.find((c) => c.address === mapTestAddress)!
+    expect(mapTestState1.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
+    expect(mapTestState1.maps?.map1?.get(1n)).toEqual(11n)
+    expect(mapTestState1.maps?.map2?.get('0011')).toEqual(11n)
+
+    const removeResult = await MapTestWrapper.tests.remove({
+      testArgs: { key: signer.address },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+      initialFields: { inner: mapTestId },
+      existingContracts: [
+        MapTest.stateForTest({}, undefined, mapTestAddress, {
+          map0: new Map([[signer.address, { id: 1n, balance: 10n }]]),
+          map1: new Map([[1n, 10n]]),
+          map2: new Map([['0011', 10n]])
+        })
+      ]
+    })
+    const mapTestState2 = removeResult.contracts.find((c) => c.address === mapTestAddress)!
+    expect(mapTestState2.maps?.map0?.get(signer.address)).toEqual(undefined)
+    expect(mapTestState2.maps?.map1?.get(1n)).toEqual(undefined)
+    expect(mapTestState2.maps?.map2?.get('0011')).toEqual(undefined)
   })
 
   it('should test map(integration test)', async () => {

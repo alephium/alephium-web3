@@ -21,6 +21,7 @@ import {
   callMethod,
   multicallMethods,
   fetchContractState,
+  Asset,
   ContractInstance,
   getContractEventsCurrentCount,
   TestContractParamsWithoutMaps,
@@ -104,6 +105,10 @@ class Factory extends ContractFactory<DebugInstance, {}> {
       );
     },
   };
+
+  stateForTest(initFields: {}, asset?: Asset, address?: string) {
+    return this.stateForTest_(initFields, asset, address, undefined);
+  }
 }
 
 // Use this object to test and deploy the contract
