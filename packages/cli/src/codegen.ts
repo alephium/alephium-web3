@@ -378,6 +378,17 @@ function genTestMethods(contract: Contract): string {
   `
 }
 
+function genStateForTest(contract: Contract, fieldType: string): string {
+  const hasMap = contract.mapsSig !== undefined
+  const mapsParam = hasMap ? `, maps?: ${genMapsType(contract)}` : ''
+  const mapsValue = hasMap ? 'maps' : 'undefined'
+  return `
+    stateForTest(initFields: ${fieldType}, asset?: Asset, address?: string${mapsParam}) {
+      return this.stateForTest_(initFields, asset, address, ${mapsValue})
+    }
+  `
+}
+
 function genCallMethodTypes(contract: Contract): string {
   const entities = contract.functions.map((functionSig) => {
     const funcHasArgs = functionSig.paramNames.length > 0
@@ -486,6 +497,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
   if (contractInfo === undefined) {
     throw new Error(`Contract info does not exist: ${contract.name}`)
   }
+  const fieldType = contractFieldType(contract.name, fieldsSig)
   return `
     ${header}
 
@@ -493,7 +505,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       Address, Contract, ContractState, TestContractResult, HexString, ContractFactory,
       EventSubscribeOptions, EventSubscription, CallContractParams, CallContractResult,
       TestContractParams, ContractEvent, subscribeContractEvent, subscribeContractEvents,
-      testMethod, callMethod, multicallMethods, fetchContractState,
+      testMethod, callMethod, multicallMethods, fetchContractState, Asset,
       ContractInstance, getContractEventsCurrentCount,
       TestContractParamsWithoutMaps, TestContractResultWithoutMaps, SignExecuteContractMethodParams,
       SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields
@@ -511,12 +523,13 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${genSignExecuteMethodTypes(contract)}
     }
 
-    class Factory extends ContractFactory<${contract.name}Instance, ${contractFieldType(contract.name, fieldsSig)}> {
+    class Factory extends ContractFactory<${contract.name}Instance, ${fieldType}> {
       ${genEncodeFieldsFunc(contract)}
       ${genEventIndex(contract)}
       ${genLocalConsts(contract)}
       ${genAttach(getInstanceName(contract))}
       ${genTestMethods(contract)}
+      ${genStateForTest(contract, fieldType)}
     }
 
     // Use this object to test and deploy the contract

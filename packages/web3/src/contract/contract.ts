@@ -59,7 +59,7 @@ import {
 import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
-import { ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
+import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import * as blake from 'blakejs'
 import { isContractDebugMessageEnabled } from '../debug'
 import {
@@ -885,6 +885,13 @@ export interface ContractState<T extends Fields = Fields> {
   asset: Asset
 }
 
+export interface ContractStateWithMaps<
+  T extends Fields = Fields,
+  M extends Record<string, Map<Val, Val>> = Record<string, Map<Val, Val>>
+> extends ContractState<T> {
+  maps?: M
+}
+
 function toApiContractState(state: ContractState, structs: Struct[]): node.ContractState {
   const stateFields = state.fields ?? {}
   const fieldsSig = state.fieldsSig
@@ -942,7 +949,7 @@ export interface TestContractParams<
   initialMaps?: M
   initialAsset?: Asset // default 1 ALPH
   testArgs: A
-  existingContracts?: ContractState[] // default no existing contracts
+  existingContracts?: (ContractState | ContractStateWithMaps)[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
 }
 
@@ -965,7 +972,7 @@ export interface TestContractResult<R, M extends Record<string, Map<Val, Val>> =
   returns: R
   gasUsed: number
   maps?: M
-  contracts: ContractState[]
+  contracts: (ContractState | ContractStateWithMaps)[]
   txOutputs: Output[]
   events: ContractEvent[]
   debugMessages: DebugMessage[]
@@ -1065,12 +1072,23 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
   }
 
   // This is used for testing contract functions
-  stateForTest(initFields: F, asset?: Asset, address?: string): ContractState<F> {
+  protected stateForTest_(
+    initFields: F,
+    asset?: Asset,
+    address?: string,
+    maps?: Record<string, Map<Val, Val>>
+  ): ContractState<F> | ContractStateWithMaps<F> {
     const newAsset = {
-      alphAmount: asset?.alphAmount ?? ONE_ALPH,
+      alphAmount: asset?.alphAmount ?? MINIMAL_CONTRACT_DEPOSIT,
       tokens: asset?.tokens
     }
-    return this.contract.toState(addStdIdToFields(this.contract, initFields), newAsset, address)
+    const state = this.contract.toState(addStdIdToFields(this.contract, initFields), newAsset, address)
+    return {
+      ...state,
+      bytecode: this.contract.bytecodeDebug,
+      codeHash: this.contract.codeHash,
+      maps: maps
+    }
   }
 }
 
@@ -1381,6 +1399,10 @@ function mapsToExistingContracts(
   return contractStates
 }
 
+function hasMap(state: ContractState): state is ContractStateWithMaps {
+  return (state as ContractStateWithMaps).maps !== undefined
+}
+
 export async function testMethod<
   I extends ContractInstance,
   F extends Fields,
@@ -1394,27 +1416,57 @@ export async function testMethod<
   getContractByCodeHash: (codeHash: string) => Contract
 ): Promise<TestContractResult<R, M>> {
   const txId = params?.txId ?? randomTxId()
-  const contract = factory.contract
-  const address = params.address ?? addressFromContractId(binToHex(crypto.getRandomValues(new Uint8Array(32))))
-  const contractId = binToHex(contractIdFromAddress(address))
+  const selfContract = factory.contract
+  const selfAddress = params.address ?? addressFromContractId(binToHex(crypto.getRandomValues(new Uint8Array(32))))
+  const selfContractId = binToHex(contractIdFromAddress(selfAddress))
   const group = params.group ?? 0
-  const initialMaps = params.initialMaps ?? {}
-  const contractStates = mapsToExistingContracts(contract, contractId, group, initialMaps)
-  const apiParams = contract.toApiTestContractParams(methodName, {
+  const selfMaps = params.initialMaps ?? {}
+  const selfMapEntries = mapsToExistingContracts(selfContract, selfContractId, group, selfMaps)
+  const existingContracts = params.existingContracts ?? []
+  const existingMapEntries = existingContracts.flatMap((contractState) => {
+    return hasMap(contractState)
+      ? mapsToExistingContracts(
+          getContractByCodeHash(contractState.codeHash),
+          contractState.contractId,
+          group,
+          contractState.maps ?? {}
+        )
+      : []
+  })
+
+  const apiParams = selfContract.toApiTestContractParams(methodName, {
     ...params,
-    address,
+    address: selfAddress,
     txId: txId,
-    initialFields: addStdIdToFields(contract, params.initialFields ?? {}),
+    initialFields: addStdIdToFields(selfContract, params.initialFields ?? {}),
     testArgs: params.testArgs === undefined ? {} : params.testArgs,
-    existingContracts: (params.existingContracts ?? []).concat(contractStates)
+    existingContracts: Array.prototype.concat(existingContracts, selfMapEntries, existingMapEntries)
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
-  const maps = existingContractsToMaps(contract, address, group, apiResult, initialMaps)
-  const testResult = contract.fromApiTestContractResult(methodName, apiResult, txId, getContractByCodeHash)
-  contract.printDebugMessages(methodName, testResult.debugMessages)
+  const filtered = apiResult.contracts.filter(
+    (c) => c.address === selfAddress || existingContracts.find((s) => s.address === c.address) !== undefined
+  )
+  const allMaps: { address: string; maps: Record<string, Map<Val, Val>> }[] = []
+  filtered.forEach((state) => {
+    const artifact = getContractByCodeHash(state.codeHash)
+    if (artifact.mapsSig !== undefined) {
+      const originMaps =
+        state.address === selfAddress
+          ? selfMaps
+          : (existingContracts.find((s) => s.address === state.address) as ContractStateWithMaps).maps
+      const maps = existingContractsToMaps(artifact, state.address, group, apiResult, originMaps ?? {})
+      allMaps.push({ address: state.address, maps })
+    }
+  })
+  const testResult = selfContract.fromApiTestContractResult(methodName, apiResult, txId, getContractByCodeHash)
+  testResult.contracts.forEach((c) => {
+    const maps = allMaps.find((v) => v.address === c.address)?.maps
+    if (maps !== undefined) c['maps'] = maps
+  })
+  selfContract.printDebugMessages(methodName, testResult.debugMessages)
   return {
     ...testResult,
-    maps
+    maps: allMaps.find((v) => v.address === selfAddress)?.maps
   } as TestContractResult<R, M>
 }
 
