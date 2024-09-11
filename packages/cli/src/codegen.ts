@@ -328,7 +328,11 @@ function genMapsType(contract: Contract): string {
     const [key, value] = parseMapType(mapType)
     return `${name}?: Map<${toTsType(key)}, ${toTsType(value)}>`
   })
-  return `{ ${mapFields.join(', ')} }`
+  return `export type Maps = { ${mapFields.join(', ')} }`
+}
+
+function getMapsType(contract: Contract): string {
+  return `${contractTypes(contract.name)}.Maps`
 }
 
 function genTestMethod(contract: Contract, functionSig: FunctionSig): string {
@@ -340,7 +344,7 @@ function genTestMethod(contract: Contract, functionSig: FunctionSig): string {
     : 'never'
   const fieldsType = contractHasFields ? contractFieldType(contract.name, fieldsSig) : 'never'
   const hasMapVars: boolean = contract.mapsSig !== undefined
-  const mapsType = genMapsType(contract)
+  const mapsType = getMapsType(contract)
   const baseParamsType = hasMapVars
     ? `TestContractParams<${fieldsType}, ${argsType}, ${mapsType}>`
     : `TestContractParamsWithoutMaps<${fieldsType}, ${argsType}>`
@@ -380,7 +384,7 @@ function genTestMethods(contract: Contract): string {
 
 function genStateForTest(contract: Contract, fieldType: string): string {
   const hasMap = contract.mapsSig !== undefined
-  const mapsParam = hasMap ? `, maps?: ${genMapsType(contract)}` : ''
+  const mapsParam = hasMap ? `, maps?: ${getMapsType(contract)}` : ''
   const mapsValue = hasMap ? 'maps' : 'undefined'
   return `
     stateForTest(initFields: ${fieldType}, asset?: Asset, address?: string${mapsParam}) {
@@ -521,6 +525,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       ${contract.eventsSig.map((e) => genEventType(e)).join('\n')}
       ${genCallMethodTypes(contract)}
       ${genSignExecuteMethodTypes(contract)}
+      ${genMapsType(contract)}
     }
 
     class Factory extends ContractFactory<${contract.name}Instance, ${fieldType}> {

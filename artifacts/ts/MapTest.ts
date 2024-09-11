@@ -107,6 +107,12 @@ export namespace MapTestTypes {
     SignExecuteMethodTable[T]["params"];
   export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
     SignExecuteMethodTable[T]["result"];
+
+  export type Maps = {
+    map0?: Map<Address, MapValue>;
+    map1?: Map<bigint, bigint>;
+    map2?: Map<HexString, bigint>;
+  };
 }
 
 class Factory extends ContractFactory<MapTestInstance, {}> {
@@ -124,99 +130,35 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         TestContractParams<
           never,
           { key: Address; value: MapValue },
-          {
-            map0?: Map<Address, MapValue>;
-            map1?: Map<bigint, bigint>;
-            map2?: Map<HexString, bigint>;
-          }
+          MapTestTypes.Maps
         >,
         "initialFields"
       >
-    ): Promise<
-      TestContractResult<
-        null,
-        {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-          map2?: Map<HexString, bigint>;
-        }
-      >
-    > => {
+    ): Promise<TestContractResult<null, MapTestTypes.Maps>> => {
       return testMethod(this, "insert", params, getContractByCodeHash);
     },
     update: async (
       params: Omit<
-        TestContractParams<
-          never,
-          { key: Address },
-          {
-            map0?: Map<Address, MapValue>;
-            map1?: Map<bigint, bigint>;
-            map2?: Map<HexString, bigint>;
-          }
-        >,
+        TestContractParams<never, { key: Address }, MapTestTypes.Maps>,
         "initialFields"
       >
-    ): Promise<
-      TestContractResult<
-        null,
-        {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-          map2?: Map<HexString, bigint>;
-        }
-      >
-    > => {
+    ): Promise<TestContractResult<null, MapTestTypes.Maps>> => {
       return testMethod(this, "update", params, getContractByCodeHash);
     },
     remove: async (
       params: Omit<
-        TestContractParams<
-          never,
-          { key: Address },
-          {
-            map0?: Map<Address, MapValue>;
-            map1?: Map<bigint, bigint>;
-            map2?: Map<HexString, bigint>;
-          }
-        >,
+        TestContractParams<never, { key: Address }, MapTestTypes.Maps>,
         "initialFields"
       >
-    ): Promise<
-      TestContractResult<
-        null,
-        {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-          map2?: Map<HexString, bigint>;
-        }
-      >
-    > => {
+    ): Promise<TestContractResult<null, MapTestTypes.Maps>> => {
       return testMethod(this, "remove", params, getContractByCodeHash);
     },
     getValue: async (
       params: Omit<
-        TestContractParams<
-          never,
-          { key: Address },
-          {
-            map0?: Map<Address, MapValue>;
-            map1?: Map<bigint, bigint>;
-            map2?: Map<HexString, bigint>;
-          }
-        >,
+        TestContractParams<never, { key: Address }, MapTestTypes.Maps>,
         "initialFields"
       >
-    ): Promise<
-      TestContractResult<
-        MapValue,
-        {
-          map0?: Map<Address, MapValue>;
-          map1?: Map<bigint, bigint>;
-          map2?: Map<HexString, bigint>;
-        }
-      >
-    > => {
+    ): Promise<TestContractResult<MapValue, MapTestTypes.Maps>> => {
       return testMethod(this, "getValue", params, getContractByCodeHash);
     },
   };
@@ -225,11 +167,7 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
     initFields: {},
     asset?: Asset,
     address?: string,
-    maps?: {
-      map0?: Map<Address, MapValue>;
-      map1?: Map<bigint, bigint>;
-      map2?: Map<HexString, bigint>;
-    }
+    maps?: MapTestTypes.Maps
   ) {
     return this.stateForTest_(initFields, asset, address, maps);
   }
