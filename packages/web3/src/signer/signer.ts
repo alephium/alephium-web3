@@ -65,6 +65,7 @@ export abstract class SignerProvider {
   }
 
   abstract signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
+  abstract signAndSubmitMultiGroupTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult[]>
   abstract signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
   abstract signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
   abstract signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
@@ -102,6 +103,13 @@ export abstract class SignerProviderSimple extends SignerProvider {
     await this.submitTransaction(signResult)
     return signResult
   }
+  async signAndSubmitMultiGroupTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult[]> {
+    const signResults = await this.signMultiGroupTransferTx(params)
+    for (const signedTx of signResults) {
+      await this.submitTransaction(signedTx)
+    }
+    return signResults
+  }
   async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     const signResult = await this.signDeployContractTx(params)
     await this.submitTransaction(signResult)
@@ -136,6 +144,23 @@ export abstract class SignerProviderSimple extends SignerProvider {
 
   async buildTransferTx(params: SignTransferTxParams): Promise<Omit<SignTransferTxResult, 'signature'>> {
     return TransactionBuilder.from(this.nodeProvider).buildTransferTx(
+      params,
+      await this.getPublicKey(params.signerAddress)
+    )
+  }
+
+  async signMultiGroupTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult[]> {
+    const results = await this.buildMultiGroupTransferTx(params)
+    const signedTxResults = await Promise.all(results.map(async (tx) => {
+      const signature = await this.signRaw(params.signerAddress, tx.txId)
+      return { ...tx, signature }
+    }))
+
+    return signedTxResults
+  }
+
+  async buildMultiGroupTransferTx(params: SignTransferTxParams): Promise<Omit<SignTransferTxResult, 'signature'>[]> {
+    return await TransactionBuilder.from(this.nodeProvider).buildMultiGroupTransferTx(
       params,
       await this.getPublicKey(params.signerAddress)
     )

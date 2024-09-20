@@ -22,6 +22,7 @@ export const PROVIDER_NAMESPACE = 'alephium'
 // 2. `alph_signUnsignedTx` can be used for complicated transactions (e.g. multisig).
 export const RELAY_METHODS = [
   'alph_signAndSubmitTransferTx',
+  'alph_signAndSubmitMultiGroupTransferTx',
   'alph_signAndSubmitDeployContractTx',
   'alph_signAndSubmitExecuteScriptTx',
   'alph_signAndSubmitUnsignedTx',
