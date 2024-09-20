@@ -151,11 +151,12 @@ export abstract class SignerProviderSimple extends SignerProvider {
 
   async signMultiGroupTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult[]> {
     const results = await this.buildMultiGroupTransferTx(params)
-    const signedTxResults = await Promise.all(results.map(async (tx) => {
-      const signature = await this.signRaw(params.signerAddress, tx.txId)
-      return { ...tx, signature }
-    }))
-
+    const signedTxResults = await Promise.all(
+      results.map(async (tx) => {
+        const signature = await this.signRaw(params.signerAddress, tx.txId)
+        return { ...tx, signature }
+      })
+    )
     return signedTxResults
   }
 

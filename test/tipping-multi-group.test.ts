@@ -88,7 +88,7 @@ describe('tippingbot', function () {
     const signerAddress = (await testWallet.getSelectedAccount()).address
 
     const users = ['user0', 'user1', 'user2']
-    const destinations = users.map(user => ({
+    const destinations = users.map((user) => ({
       address: tippingBot.addUser(user).address,
       attoAlphAmount: convertAlphAmountWithDecimals('1.0')!
     }))
@@ -104,8 +104,13 @@ describe('tippingbot', function () {
       expect(balance).toEqual(1.0)
     }
 
-    await tippingBot.sendTips('user0', [['user1', 0.1], ['user2', 0.2]])
-    await tippingBot.sendTips('user1', [['user2', 0.3]])
+    await tippingBot.sendTips('user0', [
+      ['user1', 0.1],
+      ['user2', 0.2]
+    ])
+    await tippingBot.sendTips('user1', [
+      ['user2', 0.3]
+    ])
 
     // check user balance
     const balance0 = await tippingBot.getUserBalance('user0')
