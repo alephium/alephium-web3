@@ -21,7 +21,7 @@ import { testNodeWallet } from '@alephium/web3-test'
 import { PrivateKeyWallet, deriveHDWalletPrivateKeyForGroup } from '@alephium/web3-wallet'
 import * as bip39 from 'bip39'
 
-class MultiGroupTippingBot {
+class LendingBot {
   private readonly nodeProvider: NodeProvider // This can be initialized with node url + api key in a real application
   private readonly mnemonic: string // This should be stored securely in a real application
   readonly userGroups: Map<string, number>
@@ -62,7 +62,7 @@ class MultiGroupTippingBot {
     return number256ToNumber(balance.balance, 18)
   }
 
-  async sendTips(fromUserId: string, toUserData: [string, number][]) {
+  async transfer(fromUserId: string, toUserData: [string, number][]) {
     const fromUserWallet = this.getUserWallet(fromUserId)
 
     const destinations = toUserData.map(([user, amount]) => ({
@@ -77,11 +77,13 @@ class MultiGroupTippingBot {
   }
 }
 
-describe('tippingbot', function () {
+jest.setTimeout(10_000)
+
+describe('lendingbot', function () {
   it('should work', async function () {
     const nodeProvider = new NodeProvider('http://127.0.0.1:22973')
     const mnemonic = bip39.generateMnemonic()
-    const tippingBot = new MultiGroupTippingBot(nodeProvider, mnemonic)
+    const lendingBot = new LendingBot(nodeProvider, mnemonic)
 
     // deposit 1 ALPH for each user
     const testWallet = await testNodeWallet()
@@ -89,7 +91,7 @@ describe('tippingbot', function () {
 
     const users = ['user0', 'user1', 'user2']
     const destinations = users.map((user) => ({
-      address: tippingBot.addUser(user).address,
+      address: lendingBot.addUser(user).address,
       attoAlphAmount: convertAlphAmountWithDecimals('1.0')!
     }))
 
@@ -100,24 +102,42 @@ describe('tippingbot', function () {
 
     // check user balance
     for (const user of users) {
-      const balance = await tippingBot.getUserBalance(user)
+      const balance = await lendingBot.getUserBalance(user)
       expect(balance).toEqual(1.0)
     }
 
-    await tippingBot.sendTips('user0', [
+    await lendingBot.transfer('user0', [
       ['user1', 0.1],
       ['user2', 0.2]
     ])
-    await tippingBot.sendTips('user1', [
+    await lendingBot.transfer('user1', [
       ['user2', 0.3]
     ])
 
     // check user balance
-    const balance0 = await tippingBot.getUserBalance('user0')
-    const balance1 = await tippingBot.getUserBalance('user1')
-    const balance2 = await tippingBot.getUserBalance('user2')
+    const balance0 = await lendingBot.getUserBalance('user0')
+    const balance1 = await lendingBot.getUserBalance('user1')
+    const balance2 = await lendingBot.getUserBalance('user2')
     expect(balance0).toEqual(1.0 - 0.1 - 0.2 - DEFAULT_GAS_ALPH_AMOUNT * 2)
-    expect(balance1).toEqual(1.0 - 0.2 - DEFAULT_GAS_ALPH_AMOUNT)
+    expect(balance1).toEqual(1.0 + 0.1 - 0.3 - DEFAULT_GAS_ALPH_AMOUNT)
     expect(balance2).toEqual(1.0 + 0.2 + 0.3)
+
+    // repay depts
+    await lendingBot.transfer('user1', [
+      ['user0', 0.1],
+    ])
+    await lendingBot.transfer('user2', [
+      ['user0', 0.2],
+      ['user1', 0.3]
+    ])
+
+    // check user balance
+    const balance3 = await lendingBot.getUserBalance('user0')
+    const balance4 = await lendingBot.getUserBalance('user1')
+    const balance5 = await lendingBot.getUserBalance('user2')
+    expect(balance3).toEqual(1.0 - 0.1 - 0.2 + 0.1 + 0.2 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+    expect(balance4).toEqual(1.0 + 0.1 - 0.3 - 0.1 + 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+    expect(balance5).toEqual(1.0 + 0.2 + 0.3 - 0.2 - 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+
   })
 })
