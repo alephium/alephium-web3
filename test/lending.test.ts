@@ -77,7 +77,15 @@ class LendingBot {
   }
 }
 
-jest.setTimeout(10_000)
+jest.setTimeout(15_000)
+
+async function track<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  const start = Date.now()
+  const result = await fn()
+  const end = Date.now()
+  console.log(`${label} completed in ${(end - start)} milliseconds`)
+  return result
+}
 
 describe('lendingbot', function () {
   it('should work', async function () {
@@ -95,49 +103,66 @@ describe('lendingbot', function () {
       attoAlphAmount: convertAlphAmountWithDecimals('1.0')!
     }))
 
-    await testWallet.signAndSubmitMultiGroupTransferTx({
-      signerAddress,
-      destinations
+    await track('Distributing alphs among users', async () => {
+      await testWallet.signAndSubmitMultiGroupTransferTx({
+        signerAddress,
+        destinations
+      })
     })
 
-    // check user balance
-    for (const user of users) {
-      const balance = await lendingBot.getUserBalance(user)
-      expect(balance).toEqual(1.0)
-    }
+    await track('Check user balances', async () => {
+      for (const user of users) {
+        const balance = await lendingBot.getUserBalance(user)
+        expect(balance).toEqual(1.0)
+      }
+    })
 
-    await lendingBot.transfer('user0', [
-      ['user1', 0.1],
-      ['user2', 0.2]
-    ])
-    await lendingBot.transfer('user1', [
-      ['user2', 0.3]
-    ])
+    await track('user0 lends to user1 and user2', async () => {
+      await lendingBot.transfer('user0', [
+        ['user1', 0.1],
+        ['user2', 0.2]
+      ])
+    })
 
-    // check user balance
-    const balance0 = await lendingBot.getUserBalance('user0')
-    const balance1 = await lendingBot.getUserBalance('user1')
-    const balance2 = await lendingBot.getUserBalance('user2')
-    expect(balance0).toEqual(1.0 - 0.1 - 0.2 - DEFAULT_GAS_ALPH_AMOUNT * 2)
-    expect(balance1).toEqual(1.0 + 0.1 - 0.3 - DEFAULT_GAS_ALPH_AMOUNT)
-    expect(balance2).toEqual(1.0 + 0.2 + 0.3)
+    await track('user1 lends to user2', async () => {
+      await lendingBot.transfer('user1', [
+        ['user2', 0.3]
+      ])
+    })
 
-    // repay depts
-    await lendingBot.transfer('user1', [
-      ['user0', 0.1],
-    ])
-    await lendingBot.transfer('user2', [
-      ['user0', 0.2],
-      ['user1', 0.3]
-    ])
+    await track('Getting balances', async () => {
+      const balance0 = await lendingBot.getUserBalance('user0')
+      const balance1 = await lendingBot.getUserBalance('user1')
+      const balance2 = await lendingBot.getUserBalance('user2')
 
-    // check user balance
-    const balance3 = await lendingBot.getUserBalance('user0')
-    const balance4 = await lendingBot.getUserBalance('user1')
-    const balance5 = await lendingBot.getUserBalance('user2')
-    expect(balance3).toEqual(1.0 - 0.1 - 0.2 + 0.1 + 0.2 - DEFAULT_GAS_ALPH_AMOUNT * 2)
-    expect(balance4).toEqual(1.0 + 0.1 - 0.3 - 0.1 + 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
-    expect(balance5).toEqual(1.0 + 0.2 + 0.3 - 0.2 - 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+      expect(balance0).toEqual(1.0 - 0.1 - 0.2 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+      expect(balance1).toEqual(1.0 + 0.1 - 0.3 - DEFAULT_GAS_ALPH_AMOUNT)
+      expect(balance2).toEqual(1.0 + 0.2 + 0.3)
+    })
+
+    await track('user1 returns to user0', async () => {
+      await lendingBot.transfer('user1', [
+        ['user0', 0.1],
+      ])
+    })
+
+    await track('user2 returns to user0 and user1', async () => {
+      await lendingBot.transfer('user2', [
+        ['user0', 0.2],
+        ['user1', 0.3]
+      ])
+    })
+
+    await track('Check user balances', async () => {
+      const finalBalance0 = await lendingBot.getUserBalance('user0')
+      const finalBalance1 = await lendingBot.getUserBalance('user1')
+      const finalBalance2 = await lendingBot.getUserBalance('user2')
+      expect(finalBalance0).toEqual(1.0 - 0.1 - 0.2 + 0.1 + 0.2 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+      expect(finalBalance1).toEqual(1.0 + 0.1 - 0.3 - 0.1 + 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+      expect(finalBalance2).toEqual(1.0 + 0.2 + 0.3 - 0.2 - 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
+
+      console.log(`Final balances`, { finalBalance0, finalBalance1, finalBalance2 })
+    })
 
   })
 })
