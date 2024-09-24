@@ -130,7 +130,7 @@ describe('lendingbot', function () {
       ])
     })
 
-    await track('Getting balances', async () => {
+    await track('Check user balances', async () => {
       const balance0 = await lendingBot.getUserBalance('user0')
       const balance1 = await lendingBot.getUserBalance('user1')
       const balance2 = await lendingBot.getUserBalance('user2')
@@ -161,7 +161,7 @@ describe('lendingbot', function () {
       expect(finalBalance1).toEqual(1.0 + 0.1 - 0.3 - 0.1 + 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
       expect(finalBalance2).toEqual(1.0 + 0.2 + 0.3 - 0.2 - 0.3 - DEFAULT_GAS_ALPH_AMOUNT * 2)
 
-      console.log(`Final balances`, { finalBalance0, finalBalance1, finalBalance2 })
+      console.log('Final balances', { finalBalance0, finalBalance1, finalBalance2 })
     })
 
   })
