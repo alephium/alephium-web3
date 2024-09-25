@@ -50,7 +50,14 @@ import {
   EnableOptionsBase
 } from '@alephium/web3'
 
-import { ALEPHIUM_DEEP_LINK, LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
+import {
+  ALEPHIUM_DEEP_LINK,
+  LOGGER,
+  PROVIDER_NAMESPACE,
+  RELAY_METHODS,
+  RELAY_URL,
+  VALID_ADDRESS_GROUPS
+} from './constants'
 import {
   AddressGroup,
   RelayMethodParams,
@@ -518,35 +525,81 @@ export function isCompatibleAddressGroup(group: number, expectedAddressGroup: Ad
   return expectedAddressGroup === undefined || expectedAddressGroup === group
 }
 
-export function formatChain(networkId: NetworkId, addressGroup: AddressGroup): string {
-  if (addressGroup !== undefined && addressGroup < 0) {
-    throw Error('Address group in provider needs to be either undefined or non-negative')
+export function parseChain(chainString: string): ChainInfo {
+  try {
+    const [namespace, _addressGroup, networkId] = chainString.replace(/_/g, ':').split(':')
+    if (namespace !== PROVIDER_NAMESPACE) {
+      throw Error(`Invalid namespace: expected ${PROVIDER_NAMESPACE}, but got ${namespace}`)
+    }
+    const addressGroup = parseInt(_addressGroup, 10)
+    validateAddressGroup(addressGroup)
+
+    const networkIdList = networkIds as ReadonlyArray<string>
+    if (!networkIdList.includes(networkId)) {
+      throw Error(`Invalid network id, expect one of ${networkIdList}`)
+    }
+    return {
+      networkId: networkId as NetworkId,
+      addressGroup: addressGroup === -1 ? undefined : addressGroup
+    }
+  } catch (error) {
+    console.debug('Failed to parse chain, falling back to legacy parsing', chainString)
+    return parseChainLegacy(chainString)
   }
-  const addressGroupEncoded = addressGroup !== undefined ? addressGroup : -1
-  return `${PROVIDER_NAMESPACE}:${networkId}/${addressGroupEncoded}`
 }
 
-export function parseChain(chainString: string): ChainInfo {
-  const [_namespace, networkId, addressGroup] = chainString.replace(/\//g, ':').split(':')
-  const addressGroupDecoded = parseInt(addressGroup, 10)
-  if (addressGroupDecoded < -1) {
-    throw Error('Address group in protocol needs to be either -1 or non-negative')
-  }
+export function parseChainLegacy(chainString: string): ChainInfo {
+  const [_namespace, networkId, _addressGroup] = chainString.replace(/\//g, ':').split(':')
+  const addressGroup = parseInt(_addressGroup, 10)
+  validateAddressGroup(addressGroup)
+
   const networkIdList = networkIds as ReadonlyArray<string>
   if (!networkIdList.includes(networkId)) {
     throw Error(`Invalid network id, expect one of ${networkIdList}`)
   }
   return {
     networkId: networkId as NetworkId,
-    addressGroup: addressGroupDecoded === -1 ? undefined : addressGroupDecoded
+    addressGroup: addressGroup === -1 ? undefined : addressGroup
   }
 }
 
+export function formatChain(networkId: NetworkId, addressGroup: AddressGroup): string {
+  const addressGroupNumber = toAddressGroupNumber(addressGroup)
+  return `${PROVIDER_NAMESPACE}:${addressGroupNumber}_${networkId}`
+}
+
+export function formatChainLegacy(networkId: NetworkId, addressGroup: AddressGroup): string {
+  if (addressGroup !== undefined && addressGroup < 0) {
+    throw Error('Address group in provider needs to be either undefined or non-negative')
+  }
+  const addressGroupNumber = toAddressGroupNumber(addressGroup)
+  return `${PROVIDER_NAMESPACE}:${networkId}/${addressGroupNumber}`
+}
+
 export function formatAccount(permittedChain: string, account: Account): string {
+  return `${permittedChain}:${account.publicKey}_${account.keyType}`
+}
+
+export function formatAccountLegacy(permittedChain: string, account: Account): string {
   return `${permittedChain}:${account.publicKey}/${account.keyType}`
 }
 
-export function parseAccount(account: string): Account & { networkId: NetworkId } {
+export function parseAccount(accountString: string): Account & { networkId: NetworkId } {
+  try {
+    const [_namespace, _group, networkId, publicKey, keyType] = accountString.replace(/_/g, ':').split(':')
+    const address = addressFromPublicKey(publicKey)
+    const group = groupOfAddress(address)
+    if (keyType !== 'default' && keyType !== 'bip340-schnorr') {
+      throw Error(`Invalid key type: ${keyType}`)
+    }
+    return { address, group, publicKey, keyType, networkId: networkId as NetworkId }
+  } catch (error) {
+    console.debug(`Failed to parse account ${accountString}, falling back to legacy parsing`)
+    return parseAccountLegacy(accountString)
+  }
+}
+
+export function parseAccountLegacy(account: string): Account & { networkId: NetworkId } {
   const [_namespace, networkId, _group, publicKey, keyType] = account.replace(/\//g, ':').split(':')
   const address = addressFromPublicKey(publicKey)
   const group = groupOfAddress(address)
@@ -575,5 +628,17 @@ function RateLimit(rps: number) {
     }
     await sema.acquire()
     setTimeout(() => sema.release(), delay)
+  }
+}
+
+function toAddressGroupNumber(addressGroup: AddressGroup): number {
+  const groupNumber = addressGroup !== undefined ? addressGroup : -1
+  validateAddressGroup(groupNumber)
+  return groupNumber
+}
+
+function validateAddressGroup(addressGroup: number) {
+  if (!VALID_ADDRESS_GROUPS.includes(addressGroup)) {
+    throw Error('Address group must be -1 (for any groups) or between 0 and 3 (inclusive)')
   }
 }
