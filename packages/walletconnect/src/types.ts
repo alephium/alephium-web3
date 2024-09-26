@@ -43,10 +43,6 @@ type RelayMethodsTable = {
     params: SignTransferTxParams
     result: SignTransferTxResult
   }
-  alph_signAndSubmitMultiGroupTransferTx: {
-    params: SignTransferTxParams
-    result: SignTransferTxResult[]
-  }
   alph_signAndSubmitDeployContractTx: {
     params: SignDeployContractTxParams
     result: SignDeployContractTxResult

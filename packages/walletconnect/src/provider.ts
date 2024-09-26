@@ -210,10 +210,6 @@ export class WalletConnectProvider extends SignerProvider {
     return this.typedRequest('alph_signAndSubmitTransferTx', params)
   }
 
-  public async signAndSubmitMultiGroupTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult[]> {
-    return this.typedRequest('alph_signAndSubmitMultiGroupTransferTx', params)
-  }
-
   public async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
     return this.typedRequest('alph_signAndSubmitDeployContractTx', params)
   }

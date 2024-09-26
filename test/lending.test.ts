@@ -16,7 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NodeProvider, convertAlphAmountWithDecimals, number256ToNumber, DEFAULT_GAS_ALPH_AMOUNT } from '@alephium/web3'
+import {
+  convertAlphAmountWithDecimals,
+  DEFAULT_GAS_ALPH_AMOUNT,
+  NodeProvider,
+  number256ToNumber,
+  SignerProviderSimple,
+  SignTransferTxParams,
+  SignTransferTxResult,
+  TransactionBuilder
+} from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { PrivateKeyWallet, deriveHDWalletPrivateKeyForGroup } from '@alephium/web3-wallet'
 import * as bip39 from 'bip39'
@@ -48,12 +57,32 @@ class LendingBot {
       throw new Error(`User ${userId} does not exist`)
     }
 
-    const [privateKey, _addressIndex] = deriveHDWalletPrivateKeyForGroup(this.mnemonic, groupNumber, 'default')
+    const [privateKey, _] = deriveHDWalletPrivateKeyForGroup(this.mnemonic, groupNumber, 'default')
     return new PrivateKeyWallet({ privateKey, nodeProvider: this.nodeProvider })
   }
 
   getUserAddress(userId: string) {
     return this.getUserWallet(userId).address
+  }
+
+  async signAndSubmitMultiGroupTransferTx(
+    signer: SignerProviderSimple,
+    params: SignTransferTxParams
+  ): Promise<SignTransferTxResult[]> {
+    const buildTxResults = await TransactionBuilder.from(this.nodeProvider).buildMultiGroupTransferTx(
+      params,
+      await signer.getPublicKey(params.signerAddress)
+    )
+    const signedTxResults = await Promise.all(
+      buildTxResults.map(async (tx) => {
+        const signature = await signer.signRaw(params.signerAddress, tx.txId)
+        return { ...tx, signature }
+      })
+    )
+    for (const signedTx of signedTxResults) {
+      await signer.submitTransaction(signedTx)
+    }
+    return signedTxResults
   }
 
   async getUserBalance(userId: string) {
@@ -70,7 +99,7 @@ class LendingBot {
       attoAlphAmount: convertAlphAmountWithDecimals(amount)!
     }))
 
-    await fromUserWallet.signAndSubmitMultiGroupTransferTx({
+    await this.signAndSubmitMultiGroupTransferTx(fromUserWallet, {
       signerAddress: fromUserWallet.address,
       destinations: destinations
     })
@@ -83,7 +112,7 @@ async function track<T>(label: string, fn: () => Promise<T>): Promise<T> {
   const start = Date.now()
   const result = await fn()
   const end = Date.now()
-  console.log(`${label} completed in ${(end - start)} milliseconds`)
+  console.log(`${label} completed in ${end - start} milliseconds`)
   return result
 }
 
@@ -104,7 +133,7 @@ describe('lendingbot', function () {
     }))
 
     await track('Distributing alphs among users', async () => {
-      await testWallet.signAndSubmitMultiGroupTransferTx({
+      await lendingBot.signAndSubmitMultiGroupTransferTx(testWallet, {
         signerAddress,
         destinations
       })
@@ -125,9 +154,7 @@ describe('lendingbot', function () {
     })
 
     await track('user1 lends to user2', async () => {
-      await lendingBot.transfer('user1', [
-        ['user2', 0.3]
-      ])
+      await lendingBot.transfer('user1', [['user2', 0.3]])
     })
 
     await track('Check user balances', async () => {
@@ -141,9 +168,7 @@ describe('lendingbot', function () {
     })
 
     await track('user1 returns to user0', async () => {
-      await lendingBot.transfer('user1', [
-        ['user0', 0.1],
-      ])
+      await lendingBot.transfer('user1', [['user0', 0.1]])
     })
 
     await track('user2 returns to user0 and user1', async () => {
@@ -163,6 +188,5 @@ describe('lendingbot', function () {
 
       console.log('Final balances', { finalBalance0, finalBalance1, finalBalance2 })
     })
-
   })
 })

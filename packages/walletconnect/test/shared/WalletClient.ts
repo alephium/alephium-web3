@@ -277,9 +277,6 @@ export class WalletClient {
           case 'alph_signAndSubmitTransferTx':
             result = await this.signer.signAndSubmitTransferTx(request.params as any as SignTransferTxParams)
             break
-          case 'alph_signAndSubmitMultiGroupTransferTx':
-            result = await this.signer.signAndSubmitMultiGroupTransferTx(request.params as any as SignTransferTxParams)
-            break
           case 'alph_signAndSubmitDeployContractTx':
             result = await this.signer.signAndSubmitDeployContractTx(
               request.params as any as SignDeployContractTxParams
