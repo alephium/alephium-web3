@@ -2406,7 +2406,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Transactions
-     * @name PostTransactionsBuild
+     * @name postTransactionsBuildMultiGroup
      * @summary Build as many unsigned transactions as many destinations from different groups is passed
      * @request POST:/transactions/build-multi-group
      */
