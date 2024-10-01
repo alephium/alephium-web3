@@ -190,6 +190,7 @@ export interface AssetOutput {
 
 /** NFT */
 export interface NFT {
+  id: string
   type: string
 }
 
@@ -215,6 +216,14 @@ export interface AcceptedTransaction {
   gasPrice: string
   /** @format int64 */
   timestamp: number
+}
+
+/** HolderInfo */
+export interface HolderInfo {
+  /** @format address */
+  address: string
+  /** @format uint256 */
+  balance: string
 }
 
 /** TokenSupply */
@@ -317,6 +326,8 @@ export enum TokenStdInterfaceId {
 export interface ExplorerInfo {
   releaseVersion: string
   commit: string
+  /** @format int64 */
+  lastHoldersUpdate: number
   /** @format int32 */
   migrationsVersion: number
   /** @format int64 */
@@ -367,6 +378,7 @@ export interface Transaction {
 
 /** FungibleToken */
 export interface FungibleToken {
+  id: string
   type: string
 }
 
@@ -1589,6 +1601,40 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }).then(convertHttpResponse),
 
     /**
+     * @description Get a sorted list of top addresses by {token_id} balance. Updates once per day.
+     *
+     * @tags Tokens
+     * @name GetTokensHoldersTokenTokenId
+     * @request GET:/tokens/holders/token/{token_id}
+     */
+    getTokensHoldersTokenTokenId: (
+      tokenId: string,
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         * @min 1
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         * @min 0
+         * @max 100
+         */
+        limit?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HolderInfo[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/tokens/holders/token/${tokenId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
      * @description List token transactions
      *
      * @tags Tokens
@@ -1670,6 +1716,39 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/tokens/${tokenId}/addresses`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * @description Get a sorted list of top addresses by ALPH balance. Updates once per day.
+     *
+     * @tags Tokens
+     * @name GetTokensHoldersAlph
+     * @request GET:/tokens/holders/alph
+     */
+    getTokensHoldersAlph: (
+      query?: {
+        /**
+         * Page number
+         * @format int32
+         * @min 1
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         * @min 0
+         * @max 100
+         */
+        limit?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<HolderInfo[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/tokens/holders/alph`,
         method: 'GET',
         query: query,
         format: 'json',
