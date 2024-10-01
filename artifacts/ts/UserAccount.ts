@@ -232,14 +232,22 @@ export class UserAccountInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends UserAccountTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<UserAccountTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends UserAccountTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<UserAccountTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Callss
+  ): Promise<UserAccountTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | UserAccountTypes.MultiCallParams
+      | UserAccountTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       UserAccount,
       this,
       callss,
       getContractByCodeHash
-    )) as UserAccountTypes.MulticallReturnType<Callss>;
+    );
   }
 }

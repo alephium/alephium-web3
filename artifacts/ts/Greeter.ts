@@ -168,14 +168,15 @@ export class GreeterInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends GreeterTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<GreeterTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends GreeterTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<GreeterTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
-      Greeter,
-      this,
-      callss,
-      getContractByCodeHash
-    )) as GreeterTypes.MulticallReturnType<Callss>;
+    callss: Callss
+  ): Promise<GreeterTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends GreeterTypes.MultiCallParams | GreeterTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(Greeter, this, callss, getContractByCodeHash);
   }
 }

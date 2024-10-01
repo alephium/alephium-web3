@@ -403,14 +403,15 @@ export class AddInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends AddTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<AddTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends AddTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<AddTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
-      Add,
-      this,
-      callss,
-      getContractByCodeHash
-    )) as AddTypes.MulticallReturnType<Callss>;
+    callss: Callss
+  ): Promise<AddTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends AddTypes.MultiCallParams | AddTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(Add, this, callss, getContractByCodeHash);
   }
 }

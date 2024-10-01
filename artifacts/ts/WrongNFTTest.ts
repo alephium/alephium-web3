@@ -209,14 +209,22 @@ export class WrongNFTTestInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends WrongNFTTestTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<WrongNFTTestTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends WrongNFTTestTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<WrongNFTTestTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Callss
+  ): Promise<WrongNFTTestTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | WrongNFTTestTypes.MultiCallParams
+      | WrongNFTTestTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       WrongNFTTest,
       this,
       callss,
       getContractByCodeHash
-    )) as WrongNFTTestTypes.MulticallReturnType<Callss>;
+    );
   }
 }

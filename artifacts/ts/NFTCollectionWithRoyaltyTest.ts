@@ -485,15 +485,25 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
   };
 
   async multicall<
+    Calls extends NFTCollectionWithRoyaltyTestTypes.MultiCallParams
+  >(
+    calls: Calls
+  ): Promise<NFTCollectionWithRoyaltyTestTypes.MultiCallResults<Calls>>;
+  async multicall<
     Callss extends NFTCollectionWithRoyaltyTestTypes.MultiCallParams[]
   >(
-    ...callss: Callss
-  ): Promise<NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Callss
+  ): Promise<NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | NFTCollectionWithRoyaltyTestTypes.MultiCallParams
+      | NFTCollectionWithRoyaltyTestTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       NFTCollectionWithRoyaltyTest,
       this,
       callss,
       getContractByCodeHash
-    )) as NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>;
+    );
   }
 }

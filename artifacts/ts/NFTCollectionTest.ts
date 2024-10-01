@@ -314,14 +314,22 @@ export class NFTCollectionTestInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends NFTCollectionTestTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<NFTCollectionTestTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends NFTCollectionTestTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<NFTCollectionTestTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Callss
+  ): Promise<NFTCollectionTestTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | NFTCollectionTestTypes.MultiCallParams
+      | NFTCollectionTestTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       NFTCollectionTest,
       this,
       callss,
       getContractByCodeHash
-    )) as NFTCollectionTestTypes.MulticallReturnType<Callss>;
+    );
   }
 }

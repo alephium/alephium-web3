@@ -199,14 +199,15 @@ export class NFTTestInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends NFTTestTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<NFTTestTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends NFTTestTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<NFTTestTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
-      NFTTest,
-      this,
-      callss,
-      getContractByCodeHash
-    )) as NFTTestTypes.MulticallReturnType<Callss>;
+    callss: Callss
+  ): Promise<NFTTestTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends NFTTestTypes.MultiCallParams | NFTTestTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(NFTTest, this, callss, getContractByCodeHash);
   }
 }
