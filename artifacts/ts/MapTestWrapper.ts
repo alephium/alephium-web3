@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as MapTestWrapperContractJson } from "../test/MapTestWrapper.ral.json";
 import { getContractByCodeHash } from "./contracts";

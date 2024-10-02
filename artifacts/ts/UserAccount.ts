@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -236,7 +237,7 @@ export class UserAccountInstance extends ContractInstance {
     calls: Calls
   ): Promise<UserAccountTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends UserAccountTypes.MultiCallParams[]>(
-    callss: Callss
+    callss: Narrow<Callss>
   ): Promise<UserAccountTypes.MulticallReturnType<Callss>>;
   async multicall<
     Callss extends

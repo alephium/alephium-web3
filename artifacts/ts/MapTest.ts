@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -267,7 +268,7 @@ export class MapTestInstance extends ContractInstance {
     calls: Calls
   ): Promise<MapTestTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends MapTestTypes.MultiCallParams[]>(
-    callss: Callss
+    callss: Narrow<Callss>
   ): Promise<MapTestTypes.MulticallReturnType<Callss>>;
   async multicall<
     Callss extends MapTestTypes.MultiCallParams | MapTestTypes.MultiCallParams[]

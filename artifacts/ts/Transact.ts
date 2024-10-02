@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as TransactContractJson } from "../test/Transact.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -326,7 +327,7 @@ export class TransactInstance extends ContractInstance {
     calls: Calls
   ): Promise<TransactTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends TransactTypes.MultiCallParams[]>(
-    callss: Callss
+    callss: Narrow<Callss>
   ): Promise<TransactTypes.MulticallReturnType<Callss>>;
   async multicall<
     Callss extends

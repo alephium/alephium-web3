@@ -169,3 +169,11 @@ export type Eq<X, Y> = _Eq<{ [P in keyof X]: X[P] }, { [P in keyof Y]: Y[P] }>
 // eslint-disable-next-line @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars
 export function assertType<T extends true>(): void {}
 export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>
+
+export type Narrow<type> =
+  | (unknown extends type ? unknown : never)
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  | (type extends Function ? type : never)
+  | (type extends bigint | boolean | number | string ? type : never)
+  | (type extends [] ? [] : never)
+  | { [K in keyof type]: Narrow<type[K]> }

@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -172,7 +173,7 @@ export class GreeterInstance extends ContractInstance {
     calls: Calls
   ): Promise<GreeterTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends GreeterTypes.MultiCallParams[]>(
-    callss: Callss
+    callss: Narrow<Callss>
   ): Promise<GreeterTypes.MulticallReturnType<Callss>>;
   async multicall<
     Callss extends GreeterTypes.MultiCallParams | GreeterTypes.MultiCallParams[]

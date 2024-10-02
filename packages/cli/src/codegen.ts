@@ -467,7 +467,7 @@ function genMulticall(contract: Contract): string {
         calls: Calls
       ): Promise<${types}.MultiCallResults<Calls>>
       async multicall<Callss extends ${types}.MultiCallParams[]>(
-        callss: Callss
+        callss: Narrow<Callss>
       ): Promise<${types}.MulticallReturnType<Callss>>
       async multicall<Callss extends ${types}.MultiCallParams | ${types}.MultiCallParams[]>(
         callss: Callss
@@ -518,7 +518,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       testMethod, callMethod, multicallMethods, fetchContractState, Asset,
       ContractInstance, getContractEventsCurrentCount,
       TestContractParamsWithoutMaps, TestContractResultWithoutMaps, SignExecuteContractMethodParams,
-      SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields
+      SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields, Narrow
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'

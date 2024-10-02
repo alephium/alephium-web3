@@ -142,7 +142,7 @@ describe('nft collection', function () {
     const royaltyRate = 200n // basis points
 
     if (royalty) {
-      nftCollectionInstance = (
+      const _nftCollectionInstance = (
         await NFTCollectionWithRoyaltyTest.deploy(signer, {
           initialFields: {
             nftTemplateId,
@@ -157,7 +157,7 @@ describe('nft collection', function () {
 
       expect(
         (
-          await nftCollectionInstance.view.royaltyAmount({
+          await _nftCollectionInstance.view.royaltyAmount({
             args: {
               tokenId: nftTemplateId,
               salePrice: ONE_ALPH
@@ -165,6 +165,7 @@ describe('nft collection', function () {
           })
         ).returns
       ).toEqual((ONE_ALPH * royaltyRate) / 10000n)
+      nftCollectionInstance = _nftCollectionInstance
     } else {
       nftCollectionInstance = (
         await NFTCollectionTest.deploy(signer, {
