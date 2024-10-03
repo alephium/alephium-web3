@@ -40,10 +40,7 @@ import {
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
 import { blakeHash } from '../codec/hash'
-import {
-  BuildDeployContractTxResult,
-  BuildTransaction,
-} from '../api/api-alephium'
+import { BuildDeployContractTxResult, BuildTransaction } from '../api/api-alephium'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -183,7 +180,10 @@ export abstract class TransactionBuilder {
     }
   }
 
-  private buildDeployContractTxParams(params: SignDeployContractTxParams, publicKey: string): node.BuildDeployContractTx {
+  private buildDeployContractTxParams(
+    params: SignDeployContractTxParams,
+    publicKey: string
+  ): node.BuildDeployContractTx {
     TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
 
     const { initialAttoAlphAmount, initialTokenAmounts, issueTokenAmount, gasPrice, ...rest } = params
