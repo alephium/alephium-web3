@@ -1,0 +1,25 @@
+{
+  "version": "v3.7.0",
+  "name": "Withdraw",
+  "bytecodeTemplate": "010103000000040c0c{0}0101",
+  "fieldsSig": {
+    "names": [
+      "c"
+    ],
+    "types": [
+      "Transact"
+    ],
+    "isMutable": [
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

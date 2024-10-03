@@ -15,6 +15,7 @@ import { getContractByCodeHash } from "./contracts";
 import { default as AddMainScriptJson } from "../add/AddMain.ral.json";
 import { default as CallScript0ScriptJson } from "../test/CallScript0.ral.json";
 import { default as CallScript1ScriptJson } from "../test/CallScript1.ral.json";
+import { default as DepositScriptJson } from "../test/Deposit.ral.json";
 import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as InsertIntoMapScriptJson } from "../test/InsertIntoMap.ral.json";
@@ -26,6 +27,7 @@ import { default as TemplateArrayVarScriptJson } from "../test/TemplateArrayVar.
 import { default as TestAssertScriptJson } from "../test/TestAssert.ral.json";
 import { default as UpdateMapValueScriptJson } from "../test/UpdateMapValue.ral.json";
 import { default as UpdateUserAccountScriptJson } from "../test/UpdateUserAccount.ral.json";
+import { default as WithdrawScriptJson } from "../test/Withdraw.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
 import {
   AddStruct1,
@@ -54,6 +56,11 @@ export const CallScript1 = new ExecutableScript<
   [MapValue, Balances]
 >(
   Script.fromJson(CallScript1ScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
+
+export const Deposit = new ExecutableScript<{ c: HexString }>(
+  Script.fromJson(DepositScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
@@ -142,6 +149,11 @@ export const UpdateUserAccount = new ExecutableScript<{
   address: Address;
 }>(
   Script.fromJson(UpdateUserAccountScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
+
+export const Withdraw = new ExecutableScript<{ c: HexString }>(
+  Script.fromJson(WithdrawScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 

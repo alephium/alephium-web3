@@ -64,6 +64,12 @@
       "bytecodeDebugPatch": "=4-2+18=11-1+3=10+ca7e020748656c6c6f2c200121",
       "codeHashDebug": "eb4209d8f543d9f623d72578f7ed9b271d62cf396dcce42d10f5e68dba3cecd3"
     },
+    "Deposit": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
     "DeprecatedNFTTest1": {
       "sourceFile": "nft/deprecated_nft.ral",
       "sourceCodeHash": "ef29c0be80692016b71dc5a400cf093884acef3e07ed2c7ead78bc3927e0f478",
@@ -216,13 +222,13 @@
     },
     "MultiDeposit": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
+      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
     "MultiWithdraw": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
+      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
@@ -306,7 +312,7 @@
     },
     "Transact": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "04184bcb0fbfe358d2175574d6479ec9882445ef09a1bc521f3e742847afceb6",
+      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55"
     },
@@ -333,6 +339,12 @@
       "sourceCodeHash": "974d69b74d3b88e9c5c23e8c8674d78dcd2e9b261fcae7be5adafddb777a3d01",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "873e095edb39cdb4b11b1157003daeacad06d259a938cd270e22b8e89b75feea"
+    },
+    "Withdraw": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
     },
     "WithdrawNFTCollectionTest": {
       "sourceFile": "nft/withdraw_nft_collection_test.ral",

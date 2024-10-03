@@ -1,0 +1,25 @@
+{
+  "version": "v3.7.0",
+  "name": "Deposit",
+  "bytecodeTemplate": "01010300000007b413c40de0b6b3a7640000a20c0c{0}0100",
+  "fieldsSig": {
+    "names": [
+      "c"
+    ],
+    "types": [
+      "Transact"
+    ],
+    "isMutable": [
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

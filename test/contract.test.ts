@@ -267,13 +267,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(57)
+    expect(sourceFiles.length).toEqual(59)
     sourceFiles.slice(0, 27).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(27, 42).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(42, 44).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(44, 51).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(51, 56).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[56].type).toEqual(5) // constants
+    sourceFiles.slice(27, 44).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(44, 46).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(46, 53).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(53, 58).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[58].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {

@@ -41,7 +41,9 @@ import {
   SignExecuteScriptTxParams,
   SignerProvider,
   Address,
-  SignExecuteScriptTxResult
+  SignExecuteScriptTxResult,
+  SignDeployContractChainedTxParams,
+  SignExecuteScriptChainedTxParams
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -565,7 +567,7 @@ export class Contract extends Artifact {
   async txParamsForDeployment<P extends Fields>(
     signer: SignerProvider,
     params: DeployContractParams<P>
-  ): Promise<SignDeployContractTxParams> {
+  ): Promise<SignDeployContractChainedTxParams> {
     const isDevnet = await this.isDevnet(signer)
     const initialFields: Fields = params.initialFields ?? {}
     const bytecode = this.buildByteCodeToDeploy(
@@ -574,7 +576,9 @@ export class Contract extends Artifact {
       params.exposePrivateFunctions ?? false
     )
     const selectedAccount = await signer.getSelectedAccount()
-    const signerParams: SignDeployContractTxParams = {
+    const signerParams: SignDeployContractChainedTxParams = {
+      type: 'DeployContract',
+      publicKey: selectedAccount.publicKey,
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
       bytecode: bytecode,
@@ -752,9 +756,11 @@ export class Script extends Artifact {
   async txParamsForExecution<P extends Fields>(
     signer: SignerProvider,
     params: ExecuteScriptParams<P>
-  ): Promise<SignExecuteScriptTxParams> {
+  ): Promise<SignExecuteScriptChainedTxParams> {
     const selectedAccount = await signer.getSelectedAccount()
-    const signerParams: SignExecuteScriptTxParams = {
+    const signerParams: SignExecuteScriptChainedTxParams = {
+      type: 'ExecuteScript',
+      publicKey: selectedAccount.publicKey,
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
