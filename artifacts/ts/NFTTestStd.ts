@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as NFTTestStdContractJson } from "../nft/NFTTestStd.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -236,14 +237,22 @@ export class NFTTestStdInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends NFTTestStdTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<NFTTestStdTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends NFTTestStdTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<NFTTestStdTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Narrow<Callss>
+  ): Promise<NFTTestStdTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | NFTTestStdTypes.MultiCallParams
+      | NFTTestStdTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       NFTTestStd,
       this,
       callss,
       getContractByCodeHash
-    )) as NFTTestStdTypes.MulticallReturnType<Callss>;
+    );
   }
 }

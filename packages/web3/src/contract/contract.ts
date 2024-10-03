@@ -2046,12 +2046,14 @@ function toFieldsSig(contractName: string, functionSig: FunctionSig): FieldsSig 
   }
 }
 
+type Calls = Record<string, Optional<CallContractParams<any>, 'args'>>
 export async function multicallMethods<I extends ContractInstance, F extends Fields>(
   contract: ContractFactory<I, F>,
   instance: ContractInstance,
-  callss: Record<string, Optional<CallContractParams<any>, 'args'>>[],
+  _callss: Calls | Calls[],
   getContractByCodeHash: (codeHash: string) => Contract
 ): Promise<Record<string, CallContractResult<any>>[] | Record<string, CallContractResult<any>>> {
+  const callss = Array.isArray(_callss) ? _callss : [_callss]
   const callEntries = callss.map((calls) => Object.entries(calls))
   const callsParams = callEntries.map((entries) => {
     return entries.map((entry) => {
@@ -2068,7 +2070,7 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
   })
   const result = await getCurrentNodeProvider().contracts.postContractsMulticallContract({ calls: callsParams.flat() })
   let callResultIndex = 0
-  return callsParams.map((calls, index0) => {
+  const results = callsParams.map((calls, index0) => {
     const callsResult: Record<string, CallContractResult<any>> = {}
     const entries = callEntries[`${index0}`]
     calls.forEach((call, index1) => {
@@ -2085,6 +2087,7 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
     })
     return callsResult
   })
+  return Array.isArray(_callss) ? results : results[0]
 }
 
 export async function getContractEventsCurrentCount(contractAddress: Address): Promise<number> {
