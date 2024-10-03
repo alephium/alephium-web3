@@ -108,8 +108,8 @@ describe('transactions', function () {
   it('should build chained transfer txs across groups', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
     const signer1 = await getSigner(100n * ONE_ALPH, 1)
-    const signer2 = await getSigner(1n * ONE_ALPH, 2)
-    const signer3 = await getSigner(1n * ONE_ALPH, 3)
+    const signer2 = await getSigner(0n, 2)
+    const signer3 = await getSigner(0n, 3)
 
     const transferFrom1To2: SignTransferChainedTxParams = {
       signerAddress: signer1.address,
@@ -126,7 +126,7 @@ describe('transactions', function () {
     }
 
     await expect(signer2.signAndSubmitTransferTx(transferFrom2To3)).rejects.toThrow(
-      `[API Error] - Not enough balance: got 1000000000000000000, expected 5001000000000000000 - Status code: 500`
+      `[API Error] - Not enough balance: got 0, expected 5001000000000000000 - Status code: 500`
     )
 
     const [transferFrom1To2Result, transferFrom2To3Result] = await TransactionBuilder.from(nodeProvider).buildChainedTx(
@@ -150,8 +150,8 @@ describe('transactions', function () {
     const gasCostTransferFrom1To2 = BigInt(signedTransferFrom1To2.gasAmount) * BigInt(signedTransferFrom1To2.gasPrice)
     const gasCostTransferFrom2To3 = BigInt(signedTransferFrom2To3.gasAmount) * BigInt(signedTransferFrom2To3.gasPrice)
     const expectedSigner1Balance = 100n * ONE_ALPH - 10n * ONE_ALPH - gasCostTransferFrom1To2
-    const expectedSigner2Balance = 1n * ONE_ALPH + 10n * ONE_ALPH - 5n * ONE_ALPH - gasCostTransferFrom2To3
-    const expectedSigner3Balance = 1n * ONE_ALPH + 5n * ONE_ALPH
+    const expectedSigner2Balance = 10n * ONE_ALPH - 5n * ONE_ALPH - gasCostTransferFrom2To3
+    const expectedSigner3Balance = 5n * ONE_ALPH
 
     expect(BigInt(signer1Balance.balance)).toBe(expectedSigner1Balance)
     expect(BigInt(signer2Balance.balance)).toBe(expectedSigner2Balance)
@@ -161,7 +161,7 @@ describe('transactions', function () {
   it('should build chain txs that deploy contract in another group', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
     const signer1 = await getSigner(100n * ONE_ALPH, 1)
-    const signer2 = await getSigner((1n * ONE_ALPH) / 10n, 2)
+    const signer2 = await getSigner(0n, 2)
 
     const deployTxParams = await Transact.contract.txParamsForDeployment(signer2, {
       initialAttoAlphAmount: ONE_ALPH,
@@ -169,7 +169,7 @@ describe('transactions', function () {
     })
 
     await expect(signer2.signAndSubmitDeployContractTx(deployTxParams)).rejects.toThrow(
-      `[API Error] - Execution error when estimating gas for tx script or contract: Not enough approved balance for address ${signer2.address}, tokenId: ALPH, expected: ${ONE_ALPH}, got: 98000000000000000 - Status code: 400`
+      `[API Error] - Insufficient funds for gas`
     )
 
     const transferTxParams: SignTransferChainedTxParams = {
@@ -200,7 +200,7 @@ describe('transactions', function () {
     const transferTxGasCost = BigInt(transferResult.gasAmount) * BigInt(transferResult.gasPrice)
     const deployTxGasCost = BigInt(deployResult.gasAmount) * BigInt(deployResult.gasPrice)
     const expectedSigner1Balance = 100n * ONE_ALPH - 10n * ONE_ALPH - transferTxGasCost
-    const expectedSigner2Balance = (1n * ONE_ALPH) / 10n + 10n * ONE_ALPH - deployTxGasCost - ONE_ALPH
+    const expectedSigner2Balance = 10n * ONE_ALPH - deployTxGasCost - ONE_ALPH
 
     expect(BigInt(signer1Balance.balance)).toBe(expectedSigner1Balance)
     expect(BigInt(signer2Balance.balance)).toBe(expectedSigner2Balance)
@@ -214,7 +214,7 @@ describe('transactions', function () {
   it('should build chain txs that interact with dApp in another group', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
     const signer1 = await getSigner(100n * ONE_ALPH, 1)
-    const signer2 = await getSigner((1n * ONE_ALPH) / 10n, 2)
+    const signer2 = await getSigner(0n, 2)
 
     // Deploy contract in group 2
     const deployer = await getSigner(100n * ONE_ALPH, 2)
@@ -232,7 +232,7 @@ describe('transactions', function () {
     })
 
     await expect(signer2.signAndSubmitExecuteScriptTx(depositTxParams)).rejects.toThrow(
-      `[API Error] - Execution error when estimating gas for tx script or contract: Not enough approved balance for address ${signer2.address}, tokenId: ALPH, expected: ${ONE_ALPH}, got: 98000000000000000 - Status code: 400`
+      `[API Error] - Insufficient funds for gas`
     )
 
     const transferTxParams: SignTransferChainedTxParams = {
@@ -264,7 +264,7 @@ describe('transactions', function () {
     const transferTxGasCost = BigInt(transferResult.gasAmount) * BigInt(transferResult.gasPrice)
     const depositTxGasCost = BigInt(depositResult.gasAmount) * BigInt(depositResult.gasPrice)
     const expectedSigner1Balance = 100n * ONE_ALPH - 10n * ONE_ALPH - transferTxGasCost
-    const expectedSigner2Balance = ONE_ALPH / 10n + 10n * ONE_ALPH - depositTxGasCost - ONE_ALPH
+    const expectedSigner2Balance = 10n * ONE_ALPH - depositTxGasCost - ONE_ALPH
     const expectedContractBalance = ONE_ALPH * 2n
 
     expect(BigInt(signer1Balance.balance)).toBe(expectedSigner1Balance)

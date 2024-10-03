@@ -96,8 +96,10 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promis
     }
     const rootWallet = new PrivateKeyWallet({ privateKey: testPrivateKey })
     const wallet = PrivateKeyWallet.Random(group)
-    const destinations = [{ address: wallet.address, attoAlphAmount: alphAmount }]
-    await rootWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
+    if (alphAmount > 0n) {
+      const destinations = [{ address: wallet.address, attoAlphAmount: alphAmount }]
+      await rootWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
+    }
     return wallet
   } catch (_) {
     throw new Error('Failed to get signer, please restart the devnet')
