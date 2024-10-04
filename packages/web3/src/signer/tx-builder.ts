@@ -70,7 +70,7 @@ export abstract class TransactionBuilder {
   ): Promise<Omit<SignTransferTxResult, 'signature'>> {
     const data = this.buildTransferTxParams(params, publicKey)
     const response = await this.nodeProvider.transactions.postTransactionsBuild(data)
-    return { ...response, gasPrice: fromApiNumber256(response.gasPrice) }
+    return this.convertTransferTxResult(response)
   }
 
   async buildDeployContractTx(
@@ -79,8 +79,7 @@ export abstract class TransactionBuilder {
   ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
     const data = this.buildDeployContractTxParams(params, publicKey)
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
-    const contractId = binToHex(contractIdFromAddress(response.contractAddress))
-    return { ...response, groupIndex: response.fromGroup, contractId, gasPrice: fromApiNumber256(response.gasPrice) }
+    return this.convertDeployContractTxResult(response)
   }
 
   async buildExecuteScriptTx(
@@ -89,22 +88,28 @@ export abstract class TransactionBuilder {
   ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
     const data = this.buildExecuteScriptTxParams(params, publicKey)
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
-    return { ...response, groupIndex: response.fromGroup, gasPrice: fromApiNumber256(response.gasPrice) }
+    return this.convertExecuteScriptTxResult(response)
   }
 
-  async buildChainedTx(params: BuildChainedTxParams[]): Promise<BuildChainedTxResult[]> {
-    const data: BuildTransaction[] = params.map((param) => {
+  async buildChainedTx(params: BuildChainedTxParams[], publicKeys: string[]): Promise<BuildChainedTxResult[]> {
+    if (params.length !== publicKeys.length) {
+      throw new Error(
+        'The number of build chained transaction parameters must match the number of public keys provided'
+      )
+    }
+
+    const data: BuildTransaction[] = params.map((param, index) => {
       switch (param.type) {
         case 'Transfer': {
-          const value = this.buildTransferTxParams(param, param.publicKey)
+          const value = this.buildTransferTxParams(param, publicKeys[index])
           return { type: param.type, value }
         }
         case 'DeployContract': {
-          const value = this.buildDeployContractTxParams(param, param.publicKey)
+          const value = this.buildDeployContractTxParams(param, publicKeys[index])
           return { type: param.type, value }
         }
         case 'ExecuteScript': {
-          const value = this.buildExecuteScriptTxParams(param, param.publicKey)
+          const value = this.buildExecuteScriptTxParams(param, publicKeys[index])
           return { type: param.type, value }
         }
         default:
@@ -119,28 +124,21 @@ export abstract class TransactionBuilder {
         case 'Transfer': {
           const buildTransferTxResult = buildResult.value
           return {
-            ...buildTransferTxResult,
-            gasPrice: fromApiNumber256(buildTransferTxResult.gasPrice),
+            ...this.convertTransferTxResult(buildTransferTxResult),
             type: buildResult.type
-          } as SignTransferChainedTxResult
+          }
         }
         case 'DeployContract': {
           const buildDeployContractTxResult = buildResult.value as BuildDeployContractTxResult
-          const contractId = binToHex(contractIdFromAddress(buildDeployContractTxResult.contractAddress))
           return {
-            ...buildDeployContractTxResult,
-            groupIndex: buildDeployContractTxResult.fromGroup,
-            contractId,
-            gasPrice: fromApiNumber256(buildDeployContractTxResult.gasPrice),
+            ...this.convertDeployContractTxResult(buildDeployContractTxResult),
             type: buildResult.type
           } as SignDeployContractChainedTxResult
         }
         case 'ExecuteScript': {
           const buildExecuteScriptTxResult = buildResult.value
           return {
-            ...buildExecuteScriptTxResult,
-            groupIndex: buildExecuteScriptTxResult.fromGroup,
-            gasPrice: fromApiNumber256(buildExecuteScriptTxResult.gasPrice),
+            ...this.convertExecuteScriptTxResult(buildExecuteScriptTxResult),
             type: buildResult.type
           } as SignExecuteScriptChainedTxResult
         }
@@ -209,6 +207,35 @@ export abstract class TransactionBuilder {
       tokens: toApiTokens(tokens),
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
+    }
+  }
+
+  private convertTransferTxResult(result: node.BuildTransferTxResult): Omit<SignTransferTxResult, 'signature'> {
+    return {
+      ...result,
+      gasPrice: fromApiNumber256(result.gasPrice)
+    }
+  }
+
+  private convertDeployContractTxResult(
+    result: node.BuildDeployContractTxResult
+  ): Omit<SignDeployContractTxResult, 'signature'> {
+    const contractId = binToHex(contractIdFromAddress(result.contractAddress))
+    return {
+      ...result,
+      groupIndex: result.fromGroup,
+      contractId,
+      gasPrice: fromApiNumber256(result.gasPrice)
+    }
+  }
+
+  private convertExecuteScriptTxResult(
+    result: node.BuildExecuteScriptTxResult
+  ): Omit<SignExecuteScriptTxResult, 'signature'> {
+    return {
+      ...result,
+      groupIndex: result.fromGroup,
+      gasPrice: fromApiNumber256(result.gasPrice)
     }
   }
 }

@@ -138,12 +138,11 @@ export interface SignUnsignedTxResult {
 }
 assertType<Eq<SignUnsignedTxResult, SignTransferTxResult>>
 
-export type SignTransferChainedTxParams = SignTransferTxParams & { type: 'Transfer'; publicKey: string }
+export type SignTransferChainedTxParams = SignTransferTxParams & { type: 'Transfer' }
 export type SignDeployContractChainedTxParams = SignDeployContractTxParams & {
   type: 'DeployContract'
-  publicKey: string
 }
-export type SignExecuteScriptChainedTxParams = SignExecuteScriptTxParams & { type: 'ExecuteScript'; publicKey: string }
+export type SignExecuteScriptChainedTxParams = SignExecuteScriptTxParams & { type: 'ExecuteScript' }
 export type BuildChainedTxParams =
   | SignTransferChainedTxParams
   | SignDeployContractChainedTxParams

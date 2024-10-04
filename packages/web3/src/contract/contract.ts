@@ -578,7 +578,6 @@ export class Contract extends Artifact {
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignDeployContractChainedTxParams = {
       type: 'DeployContract',
-      publicKey: selectedAccount.publicKey,
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
       bytecode: bytecode,
@@ -760,7 +759,6 @@ export class Script extends Artifact {
     const selectedAccount = await signer.getSelectedAccount()
     const signerParams: SignExecuteScriptChainedTxParams = {
       type: 'ExecuteScript',
-      publicKey: selectedAccount.publicKey,
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
       bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),

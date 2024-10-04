@@ -114,14 +114,12 @@ describe('transactions', function () {
     const transferFrom1To2: SignTransferChainedTxParams = {
       signerAddress: signer1.address,
       destinations: [{ address: signer2.address, attoAlphAmount: 10n * ONE_ALPH }],
-      publicKey: signer1.publicKey,
       type: 'Transfer'
     }
 
     const transferFrom2To3: SignTransferChainedTxParams = {
       signerAddress: signer2.address,
       destinations: [{ address: signer3.address, attoAlphAmount: 5n * ONE_ALPH }],
-      publicKey: signer2.publicKey,
       type: 'Transfer'
     }
 
@@ -130,7 +128,8 @@ describe('transactions', function () {
     )
 
     const [transferFrom1To2Result, transferFrom2To3Result] = await TransactionBuilder.from(nodeProvider).buildChainedTx(
-      [transferFrom1To2, transferFrom2To3]
+      [transferFrom1To2, transferFrom2To3],
+      [signer1.publicKey, signer2.publicKey]
     )
 
     const signedTransferFrom1To2 = await signer1.signAndSubmitUnsignedTx({
@@ -175,14 +174,13 @@ describe('transactions', function () {
     const transferTxParams: SignTransferChainedTxParams = {
       signerAddress: signer1.address,
       destinations: [{ address: signer2.address, attoAlphAmount: 10n * ONE_ALPH }],
-      type: 'Transfer',
-      publicKey: signer1.publicKey
+      type: 'Transfer'
     }
 
-    const [transferResult, deployResult] = await TransactionBuilder.from(nodeProvider).buildChainedTx([
-      transferTxParams,
-      deployTxParams
-    ])
+    const [transferResult, deployResult] = await TransactionBuilder.from(nodeProvider).buildChainedTx(
+      [transferTxParams, deployTxParams],
+      [signer1.publicKey, signer2.publicKey]
+    )
 
     await signer1.signAndSubmitUnsignedTx({
       unsignedTx: transferResult.unsignedTx,
@@ -238,14 +236,13 @@ describe('transactions', function () {
     const transferTxParams: SignTransferChainedTxParams = {
       signerAddress: signer1.address,
       destinations: [{ address: signer2.address, attoAlphAmount: 10n * ONE_ALPH }],
-      type: 'Transfer',
-      publicKey: signer1.publicKey
+      type: 'Transfer'
     }
 
-    const [transferResult, depositResult] = await TransactionBuilder.from(nodeProvider).buildChainedTx([
-      transferTxParams,
-      depositTxParams
-    ])
+    const [transferResult, depositResult] = await TransactionBuilder.from(nodeProvider).buildChainedTx(
+      [transferTxParams, depositTxParams],
+      [signer1.publicKey, signer2.publicKey]
+    )
 
     await signer1.signAndSubmitUnsignedTx({
       unsignedTx: transferResult.unsignedTx,
@@ -273,5 +270,46 @@ describe('transactions', function () {
 
     const contractState = await transactInstance.fetchState()
     expect(contractState.fields.totalALPH).toEqual(ONE_ALPH)
+  })
+
+  it.only('should fail when public keys do not match the build chained transactions parameters', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const signer1 = await getSigner(100n * ONE_ALPH, 1)
+    const signer2 = await getSigner(0n, 2)
+    const signer3 = await getSigner(0n, 3)
+
+    const transferFrom1To2: SignTransferChainedTxParams = {
+      signerAddress: signer1.address,
+      destinations: [{ address: signer2.address, attoAlphAmount: 10n * ONE_ALPH }],
+      type: 'Transfer'
+    }
+
+    const transferFrom2To3: SignTransferChainedTxParams = {
+      signerAddress: signer2.address,
+      destinations: [{ address: signer3.address, attoAlphAmount: 5n * ONE_ALPH }],
+      type: 'Transfer'
+    }
+
+    await expect(
+      TransactionBuilder.from(nodeProvider).buildChainedTx([transferFrom1To2, transferFrom2To3], [signer1.publicKey])
+    ).rejects.toThrow(
+      'The number of build chained transaction parameters must match the number of public keys provided'
+    )
+
+    await expect(
+      TransactionBuilder.from(nodeProvider).buildChainedTx(
+        [transferFrom1To2, transferFrom2To3],
+        [signer1.publicKey, signer2.publicKey, signer1.publicKey]
+      )
+    ).rejects.toThrow(
+      'The number of build chained transaction parameters must match the number of public keys provided'
+    )
+
+    await expect(
+      TransactionBuilder.from(nodeProvider).buildChainedTx(
+        [transferFrom1To2, transferFrom2To3],
+        [signer2.publicKey, signer1.publicKey]
+      )
+    ).rejects.toThrow('Unmatched public key')
   })
 })
