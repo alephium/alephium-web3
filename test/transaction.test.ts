@@ -272,7 +272,7 @@ describe('transactions', function () {
     expect(contractState.fields.totalALPH).toEqual(ONE_ALPH)
   })
 
-  it.only('should fail when public keys do not match the build chained transactions parameters', async () => {
+  it('should fail when public keys do not match the build chained transactions parameters', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
     const signer1 = await getSigner(100n * ONE_ALPH, 1)
     const signer2 = await getSigner(0n, 2)

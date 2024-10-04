@@ -21,8 +21,8 @@ import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiToke
 import { addressFromPublicKey, contractIdFromAddress } from '../address'
 import { toApiDestinations } from './signer'
 import {
-  BuildChainedTxParams,
-  BuildChainedTxResult,
+  SignChainedTxParams,
+  SignChainedTxResult,
   KeyType,
   SignDeployContractChainedTxResult,
   SignDeployContractTxParams,
@@ -40,7 +40,7 @@ import {
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
 import { blakeHash } from '../codec/hash'
-import { BuildDeployContractTxResult, BuildTransaction } from '../api/api-alephium'
+import { BuildDeployContractTxResult, BuildChainedTx, BuildChainedTxResult } from '../api/api-alephium'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -91,59 +91,61 @@ export abstract class TransactionBuilder {
     return this.convertExecuteScriptTxResult(response)
   }
 
-  async buildChainedTx(params: BuildChainedTxParams[], publicKeys: string[]): Promise<BuildChainedTxResult[]> {
+  async buildChainedTx(params: SignChainedTxParams[], publicKeys: string[]): Promise<SignChainedTxResult[]> {
     if (params.length !== publicKeys.length) {
       throw new Error(
         'The number of build chained transaction parameters must match the number of public keys provided'
       )
     }
 
-    const data: BuildTransaction[] = params.map((param, index) => {
-      switch (param.type) {
+    const data: BuildChainedTx[] = params.map((param, index) => {
+      const paramType = param.type
+      switch (paramType) {
         case 'Transfer': {
           const value = this.buildTransferTxParams(param, publicKeys[index])
-          return { type: param.type, value }
+          return { type: paramType, value }
         }
         case 'DeployContract': {
           const value = this.buildDeployContractTxParams(param, publicKeys[index])
-          return { type: param.type, value }
+          return { type: paramType, value }
         }
         case 'ExecuteScript': {
           const value = this.buildExecuteScriptTxParams(param, publicKeys[index])
-          return { type: param.type, value }
+          return { type: paramType, value }
         }
         default:
-          throw new Error(`Unsupported transaction type: ${(param as any).type}`)
+          throw new Error(`Unsupported transaction type: ${paramType}`)
       }
     })
 
     const buildChainedTxsResponse = await this.nodeProvider.transactions.postTransactionsBuildChained(data)
 
     const results = buildChainedTxsResponse.map((buildResult) => {
-      switch (buildResult.type) {
+      const buildResultType = buildResult.type
+      switch (buildResultType) {
         case 'Transfer': {
           const buildTransferTxResult = buildResult.value
           return {
             ...this.convertTransferTxResult(buildTransferTxResult),
-            type: buildResult.type
+            type: buildResultType
           }
         }
         case 'DeployContract': {
           const buildDeployContractTxResult = buildResult.value as BuildDeployContractTxResult
           return {
             ...this.convertDeployContractTxResult(buildDeployContractTxResult),
-            type: buildResult.type
+            type: buildResultType
           } as SignDeployContractChainedTxResult
         }
         case 'ExecuteScript': {
           const buildExecuteScriptTxResult = buildResult.value
           return {
             ...this.convertExecuteScriptTxResult(buildExecuteScriptTxResult),
-            type: buildResult.type
+            type: buildResultType
           } as SignExecuteScriptChainedTxResult
         }
         default:
-          throw new Error(`Unexpected transaction type: ${buildResult.type} for ${buildResult.value.txId}`)
+          throw new Error(`Unexpected transaction type: ${buildResultType} for ${buildResult.value.txId}`)
       }
     })
 

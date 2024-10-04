@@ -41,12 +41,12 @@ import {
   SubmitTransactionParams,
   KeyType,
   MessageHasher,
-  BuildChainedTxParams,
-  BuildChainedTxResult
+  SignChainedTxParams,
+  SignChainedTxResult
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
-import { BuildTransaction, BuildTransactionResult } from '../api/api-alephium'
+import { BuildChainedTx, BuildChainedTxResult } from '../api/api-alephium'
 
 export abstract class SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined

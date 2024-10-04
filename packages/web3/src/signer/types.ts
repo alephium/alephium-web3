@@ -143,7 +143,7 @@ export type SignDeployContractChainedTxParams = SignDeployContractTxParams & {
   type: 'DeployContract'
 }
 export type SignExecuteScriptChainedTxParams = SignExecuteScriptTxParams & { type: 'ExecuteScript' }
-export type BuildChainedTxParams =
+export type SignChainedTxParams =
   | SignTransferChainedTxParams
   | SignDeployContractChainedTxParams
   | SignExecuteScriptChainedTxParams
@@ -153,7 +153,7 @@ export type SignDeployContractChainedTxResult = Omit<SignDeployContractTxResult,
   type: 'DeployContract'
 }
 export type SignExecuteScriptChainedTxResult = Omit<SignExecuteScriptTxResult, 'signature'> & { type: 'ExecuteScript' }
-export type BuildChainedTxResult =
+export type SignChainedTxResult =
   | SignTransferChainedTxResult
   | SignDeployContractChainedTxResult
   | SignExecuteScriptChainedTxResult

@@ -189,6 +189,51 @@ export interface BrokerInfo {
   }
 }
 
+/** BuildChainedDeployContractTx */
+export interface BuildChainedDeployContractTx {
+  value: BuildDeployContractTx
+  type: string
+}
+
+/** BuildChainedDeployContractTxResult */
+export interface BuildChainedDeployContractTxResult {
+  value: BuildDeployContractTxResult
+  type: string
+}
+
+/** BuildChainedExecuteScriptTx */
+export interface BuildChainedExecuteScriptTx {
+  value: BuildExecuteScriptTx
+  type: string
+}
+
+/** BuildChainedExecuteScriptTxResult */
+export interface BuildChainedExecuteScriptTxResult {
+  value: BuildExecuteScriptTxResult
+  type: string
+}
+
+/** BuildChainedTransferTx */
+export interface BuildChainedTransferTx {
+  value: BuildTransferTx
+  type: string
+}
+
+/** BuildChainedTransferTxResult */
+export interface BuildChainedTransferTxResult {
+  value: BuildTransferTxResult
+  type: string
+}
+
+/** BuildChainedTx */
+export type BuildChainedTx = BuildChainedDeployContractTx | BuildChainedExecuteScriptTx | BuildChainedTransferTx
+
+/** BuildChainedTxResult */
+export type BuildChainedTxResult =
+  | BuildChainedDeployContractTxResult
+  | BuildChainedExecuteScriptTxResult
+  | BuildChainedTransferTxResult
+
 /** BuildDeployContractTx */
 export interface BuildDeployContractTx {
   /** @format hex-string */
@@ -352,12 +397,6 @@ export interface BuildSweepMultisig {
   /** @format block-hash */
   targetBlockHash?: string
 }
-
-/** BuildTransaction */
-export type BuildTransaction = DeployContract | ExecuteScript | Transfer1
-
-/** BuildTransactionResult */
-export type BuildTransactionResult = DeployContract1 | ExecuteScript1 | Transfer2
 
 /** BuildTransferTx */
 export interface BuildTransferTx {
@@ -667,18 +706,6 @@ export interface DecodeUnsignedTxResult {
   unsignedTx: UnsignedTx
 }
 
-/** DeployContract */
-export interface DeployContract {
-  value: BuildDeployContractTx
-  type: string
-}
-
-/** DeployContract */
-export interface DeployContract1 {
-  value: BuildDeployContractTxResult
-  type: string
-}
-
 /** Destination */
 export interface Destination {
   /** @format address */
@@ -712,18 +739,6 @@ export interface EventSig {
   name: string
   fieldNames: string[]
   fieldTypes: string[]
-}
-
-/** ExecuteScript */
-export interface ExecuteScript {
-  value: BuildExecuteScriptTx
-  type: string
-}
-
-/** ExecuteScript */
-export interface ExecuteScript1 {
-  value: BuildExecuteScriptTxResult
-  type: string
 }
 
 /** FieldsSig */
@@ -1247,18 +1262,6 @@ export interface Transfer {
   gasPrice?: string
   /** @format int32 */
   utxosLimit?: number
-}
-
-/** Transfer */
-export interface Transfer1 {
-  value: BuildTransferTx
-  type: string
-}
-
-/** Transfer */
-export interface Transfer2 {
-  value: BuildTransferTxResult
-  type: string
 }
 
 /** TransferResult */
@@ -2808,9 +2811,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Build a chain of transactions
      * @request POST:/transactions/build-chained
      */
-    postTransactionsBuildChained: (data: BuildTransaction[], params: RequestParams = {}) =>
+    postTransactionsBuildChained: (data: BuildChainedTx[], params: RequestParams = {}) =>
       this.request<
-        BuildTransactionResult[],
+        BuildChainedTxResult[],
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/transactions/build-chained`,
