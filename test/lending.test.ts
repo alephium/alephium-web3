@@ -91,6 +91,22 @@ class LendingBot {
     return number256ToNumber(balance.balance, 18)
   }
 
+  async distributeWealth(users: string[], deposit: bigint) {
+    const testWallet = await testNodeWallet()
+    const signerAddress = (await testWallet.getSelectedAccount()).address
+
+    const destinations = users.map((user) => ({
+      address: this.addUser(user).address,
+      attoAlphAmount: deposit
+    }))
+
+    await this.signAndSubmitMultiGroupTransferTx(testWallet, {
+      signerAddress,
+      destinations
+    })
+
+  }
+
   async transfer(fromUserId: string, toUserData: [string, number][]) {
     const fromUserWallet = this.getUserWallet(fromUserId)
 
@@ -122,21 +138,12 @@ describe('lendingbot', function () {
     const mnemonic = bip39.generateMnemonic()
     const lendingBot = new LendingBot(nodeProvider, mnemonic)
 
-    // deposit 1 ALPH for each user
-    const testWallet = await testNodeWallet()
-    const signerAddress = (await testWallet.getSelectedAccount()).address
-
+    // each user will start with 1 ALPH
     const users = ['user0', 'user1', 'user2']
-    const destinations = users.map((user) => ({
-      address: lendingBot.addUser(user).address,
-      attoAlphAmount: convertAlphAmountWithDecimals('1.0')!
-    }))
+    const deposit = convertAlphAmountWithDecimals('1.0')!
 
     await track('Distributing alphs among users', async () => {
-      await lendingBot.signAndSubmitMultiGroupTransferTx(testWallet, {
-        signerAddress,
-        destinations
-      })
+      await lendingBot.distributeWealth(users, deposit)
     })
 
     await track('Check user balances', async () => {
