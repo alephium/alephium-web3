@@ -178,7 +178,7 @@ describe('transactions', function () {
     }
 
     const [transferResult, deployResult] = await TransactionBuilder.from(nodeProvider).buildChainedTx(
-      [transferTxParams, deployTxParams],
+      [transferTxParams, { ...deployTxParams, type: 'DeployContract' }],
       [signer1.publicKey, signer2.publicKey]
     )
 
@@ -240,7 +240,7 @@ describe('transactions', function () {
     }
 
     const [transferResult, depositResult] = await TransactionBuilder.from(nodeProvider).buildChainedTx(
-      [transferTxParams, depositTxParams],
+      [transferTxParams, { ...depositTxParams, type: 'ExecuteScript' }],
       [signer1.publicKey, signer2.publicKey]
     )
 

@@ -40,9 +40,7 @@ import {
   SubmissionResult,
   SubmitTransactionParams,
   KeyType,
-  MessageHasher,
-  SignChainedTxParams,
-  SignChainedTxResult
+  MessageHasher
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
