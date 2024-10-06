@@ -25,6 +25,7 @@ import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { ONE_ALPH } from '../packages/web3/src'
 import { Add, Sub, AddMain } from '../artifacts/ts'
 import { getSigner } from '@alephium/web3-test'
+import { TransactionBuilder } from '@alephium/web3/dist/src/signer/tx-builder'
 
 describe('transactions', function () {
   let signer: PrivateKeyWallet
@@ -32,6 +33,90 @@ describe('transactions', function () {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await getSigner()
+  })
+
+  it('should build multi-group transfer', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const signer0 = await getSigner(100n * ONE_ALPH, 0)
+    const signer1 = await getSigner(0n, 1)
+    const signer2 = await getSigner(0n, 2)
+    const signer3 = await getSigner(0n, 3)
+    const signer4 = await getSigner(0n, 0)
+
+    const transferFrom0to1and2 = await TransactionBuilder.from(nodeProvider).buildMultiGroupTransferTx(
+      {
+        signerAddress: signer0.address,
+        destinations: [signer1, signer2].map((signer) => ({
+          address: signer.address,
+          attoAlphAmount: 2n * ONE_ALPH
+        }))
+      },
+      signer0.publicKey
+    )
+
+    const transferFrom0to1and2Result = await Promise.all(
+      transferFrom0to1and2.map(async (tx) => {
+        return await signer.signAndSubmitUnsignedTx({
+          signerAddress: signer0.publicKey,
+          unsignedTx: tx.unsignedTx
+        })
+      })
+    )
+
+    const transferFrom1to3and4 = await TransactionBuilder.from(nodeProvider).buildMultiGroupTransferTx(
+      {
+        signerAddress: signer1.address,
+        destinations: [signer3, signer4].map((signer) => ({
+          address: signer.address,
+          attoAlphAmount: ONE_ALPH
+        }))
+      },
+      signer1.publicKey
+    )
+
+    const transferFrom1to3and4Result = await Promise.all(
+      transferFrom1to3and4.map(async (tx) => {
+        return await signer.signAndSubmitUnsignedTx({
+          signerAddress: signer1.publicKey,
+          unsignedTx: tx.unsignedTx
+        })
+      })
+    )
+
+    const transferFrom2to3and4 = await TransactionBuilder.from(nodeProvider).buildMultiGroupTransferTx(
+      {
+        signerAddress: signer2.address,
+        destinations: [signer3, signer4].map((signer) => ({
+          address: signer.address,
+          attoAlphAmount: ONE_ALPH
+        }))
+      },
+      signer2.publicKey
+    )
+
+    const transferFrom2to3and4Result = await Promise.all(
+      transferFrom2to3and4.map(async (tx) => {
+        return await signer.signAndSubmitUnsignedTx({
+          signerAddress: signer2.publicKey,
+          unsignedTx: tx.unsignedTx
+        })
+      })
+    )
+
+    const signer1Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer0.address)
+    const signer2Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer1.address)
+    const signer3Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer2.address)
+
+    const gasCostTransferFrom0to1and2 = transferFrom0to1and2Result.reduce((sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice), BigInt(0))
+    const gasCostTransferFrom1to3and4 = transferFrom1to3and4Result.reduce((sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice), BigInt(0))
+    const gasCostTransferFrom2to3and4 = transferFrom2to3and4Result.reduce((sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice), BigInt(0))
+    const expectedSigner1Balance = 100n * ONE_ALPH - 10n * ONE_ALPH - gasCostTransferFrom0to1and2
+    const expectedSigner2Balance = 10n * ONE_ALPH - 5n * ONE_ALPH - gasCostTransferFrom1to3and4
+    const expectedSigner3Balance = 5n * ONE_ALPH
+
+    expect(BigInt(signer1Balance.balance)).toBe(expectedSigner1Balance)
+    expect(BigInt(signer2Balance.balance)).toBe(expectedSigner2Balance)
+    expect(BigInt(signer3Balance.balance)).toBe(expectedSigner3Balance)
   })
 
   it('should subscribe transaction status', async () => {

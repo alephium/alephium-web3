@@ -28,17 +28,16 @@ import {
 } from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { PrivateKeyWallet, deriveHDWalletPrivateKeyForGroup } from '@alephium/web3-wallet'
-import * as bip39 from 'bip39'
 
 class LendingBot {
   private readonly nodeProvider: NodeProvider // This can be initialized with node url + api key in a real application
-  private readonly mnemonic: string // This should be stored securely in a real application
   readonly userGroups: Map<string, number>
+  readonly userWallets: Map<string, PrivateKeyWallet>
 
-  constructor(nodeProvider: NodeProvider, mnemonic: string) {
+  constructor(nodeProvider: NodeProvider) {
     this.nodeProvider = nodeProvider
-    this.mnemonic = mnemonic
     this.userGroups = new Map()
+    this.userWallets = new Map()
   }
 
   addUser(userId: string): PrivateKeyWallet {
@@ -47,7 +46,9 @@ class LendingBot {
     }
 
     const groupNumber = this.userGroups.size
+    const wallet = PrivateKeyWallet.Random(groupNumber, this.nodeProvider)
     this.userGroups.set(userId, groupNumber)
+    this.userWallets.set(userId, wallet)
     return this.getUserWallet(userId)
   }
 
@@ -56,9 +57,11 @@ class LendingBot {
     if (groupNumber === undefined) {
       throw new Error(`User ${userId} does not exist`)
     }
-
-    const [privateKey, _] = deriveHDWalletPrivateKeyForGroup(this.mnemonic, groupNumber, 'default')
-    return new PrivateKeyWallet({ privateKey, nodeProvider: this.nodeProvider })
+    const wallet = this.userWallets.get(userId)
+    if (wallet === undefined) {
+      throw new Error(`User ${userId} wallet does not exist`)
+    }
+    return wallet as PrivateKeyWallet
   }
 
   getUserAddress(userId: string) {
@@ -73,16 +76,14 @@ class LendingBot {
       params,
       await signer.getPublicKey(params.signerAddress)
     )
-    const signedTxResults = await Promise.all(
+    return await Promise.all(
       buildTxResults.map(async (tx) => {
-        const signature = await signer.signRaw(params.signerAddress, tx.txId)
-        return { ...tx, signature }
+        return await signer.signAndSubmitUnsignedTx({
+          signerAddress: params.signerAddress,
+          unsignedTx: tx.unsignedTx
+        })
       })
     )
-    for (const signedTx of signedTxResults) {
-      await signer.submitTransaction(signedTx)
-    }
-    return signedTxResults
   }
 
   async getUserBalance(userId: string) {
@@ -92,15 +93,15 @@ class LendingBot {
   }
 
   async distributeWealth(users: string[], deposit: bigint) {
-    const testWallet = await testNodeWallet()
-    const signerAddress = (await testWallet.getSelectedAccount()).address
+    const signer = await testNodeWallet()
+    const signerAddress = (await signer.getSelectedAccount()).address
 
     const destinations = users.map((user) => ({
       address: this.addUser(user).address,
       attoAlphAmount: deposit
     }))
 
-    await this.signAndSubmitMultiGroupTransferTx(testWallet, {
+    await this.signAndSubmitMultiGroupTransferTx(signer, {
       signerAddress,
       destinations
     })
@@ -108,16 +109,17 @@ class LendingBot {
   }
 
   async transfer(fromUserId: string, toUserData: [string, number][]) {
-    const fromUserWallet = this.getUserWallet(fromUserId)
+    const signer = this.getUserWallet(fromUserId)
+    const signerAddress = signer.address
 
     const destinations = toUserData.map(([user, amount]) => ({
       address: this.getUserAddress(user),
       attoAlphAmount: convertAlphAmountWithDecimals(amount)!
     }))
 
-    await this.signAndSubmitMultiGroupTransferTx(fromUserWallet, {
-      signerAddress: fromUserWallet.address,
-      destinations: destinations
+    await this.signAndSubmitMultiGroupTransferTx(signer, {
+      signerAddress,
+      destinations
     })
   }
 }
@@ -134,9 +136,7 @@ async function track<T>(label: string, fn: () => Promise<T>): Promise<T> {
 
 describe('lendingbot', function () {
   it('should work', async function () {
-    const nodeProvider = new NodeProvider('http://127.0.0.1:22973')
-    const mnemonic = bip39.generateMnemonic()
-    const lendingBot = new LendingBot(nodeProvider, mnemonic)
+    const lendingBot = new LendingBot(new NodeProvider('http://127.0.0.1:22973'))
 
     // each user will start with 1 ALPH
     const users = ['user0', 'user1', 'user2']
