@@ -148,11 +148,11 @@ export type SignChainedTxParams =
   | SignDeployContractChainedTxParams
   | SignExecuteScriptChainedTxParams
 
-export type SignTransferChainedTxResult = Omit<SignTransferTxResult, 'signature'> & { type: 'Transfer' }
-export type SignDeployContractChainedTxResult = Omit<SignDeployContractTxResult, 'signature'> & {
+export type SignTransferChainedTxResult = SignTransferTxResult & { type: 'Transfer' }
+export type SignDeployContractChainedTxResult = SignDeployContractTxResult & {
   type: 'DeployContract'
 }
-export type SignExecuteScriptChainedTxResult = Omit<SignExecuteScriptTxResult, 'signature'> & { type: 'ExecuteScript' }
+export type SignExecuteScriptChainedTxResult = SignExecuteScriptTxResult & { type: 'ExecuteScript' }
 export type SignChainedTxResult =
   | SignTransferChainedTxResult
   | SignDeployContractChainedTxResult
