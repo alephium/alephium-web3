@@ -26,6 +26,10 @@ import * as bip39 from 'bip39'
 import { bip32 } from './noble-wrapper'
 import { PrivateKeyWallet } from './privatekey-wallet'
 
+export function generateMnemonic(wordLength?: 12 | 24): string {
+  return bip39.generateMnemonic(wordLength === 12 ? 128 : 256)
+}
+
 export function deriveHDWalletPrivateKey(
   mnemonic: string,
   keyType: KeyType,
