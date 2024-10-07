@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { disableContractDebugMessage } from '@alephium/web3'
 
-export { testMnemonic, testWalletName, testAddress, testPrivateKey, testPassword } from './const'
+export { testMnemonic, testWalletName, testAddress, testPrivateKey, testPrivateKeyWallet, testPassword } from './const'
 export { mintToken } from './token'
 export * from './test-wallet'
 

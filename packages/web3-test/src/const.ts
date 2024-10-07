@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { NodeProvider, web3 } from '@alephium/web3'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 export const testPrivateKeys = [
   'a642942e67258589cd2b1822c631506632db5a12aabcf413604e785300d762a5',
@@ -31,6 +32,7 @@ export const testWalletName = 'alephium-web3-test-only-wallet'
 export const testAddress = '1DrDyTr9RpRsQnDnXo2YRiPzPW4ooHX5LLoqXrqfMrpQH'
 export const testPrivateKey = testPrivateKeys[0]
 export const testPassword = 'alph'
+export const testPrivateKeyWallet = new PrivateKeyWallet({ privateKey: testPrivateKey })
 
 export async function tryGetDevnetNodeProvider(): Promise<NodeProvider> {
   const currentNodeProvider = (() => {

@@ -30,8 +30,16 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   readonly publicKey: string
   readonly address: string
   readonly group: number
-  readonly nodeProvider: NodeProvider
-  readonly explorerProvider: ExplorerProvider | undefined
+  readonly _nodeProvider: NodeProvider | undefined
+  readonly _explorerProvider: ExplorerProvider | undefined
+
+  public get nodeProvider(): NodeProvider {
+    return this._nodeProvider ?? web3.getCurrentNodeProvider()
+  }
+
+  public get explorerProvider(): ExplorerProvider | undefined {
+    return this._explorerProvider ?? web3.getCurrentExplorerProvider()
+  }
 
   protected unsafeGetSelectedAccount(): Promise<Account> {
     return Promise.resolve(this.account)
@@ -66,8 +74,8 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     this.publicKey = publicKeyFromPrivateKey(privateKey, this.keyType)
     this.address = addressFromPublicKey(this.publicKey, this.keyType)
     this.group = groupOfAddress(this.address)
-    this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
-    this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
+    this._nodeProvider = nodeProvider
+    this._explorerProvider = explorerProvider
   }
 
   static Random(targetGroup?: number, nodeProvider?: NodeProvider, keyType?: KeyType): PrivateKeyWallet {
