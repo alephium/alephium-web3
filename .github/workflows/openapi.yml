@@ -16,8 +16,6 @@ jobs:
         with:
           node-version: 20
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9.4
       - run: cd packages/web3 && pnpm i
       # Wait for this issue to be resolved: https://github.com/acacode/swagger-typescript-api/issues/370
       - run: npm run update-schemas && test -z "$(git status --porcelain)"

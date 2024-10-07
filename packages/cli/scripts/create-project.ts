@@ -104,3 +104,23 @@ export function createProject(templateType: string, packageRoot: string, project
   console.log(`Next step: checkout the readme under <${projectRoot}>`)
   console.log()
 }
+
+export function genRalph(packageRoot: string, projectRoot: string) {
+  console.log('Creating the Ralph Template for the existing project')
+  for (const dir of ['contracts', 'scripts', 'test', 'alephium.config.ts']) {
+    fsExtra.copySync(path.join(packageRoot, 'templates/base', dir), path.join(projectRoot, dir))
+  }
+  console.log('✅ Done.')
+  console.log(`
+Please install the dependencies:
+    @alephium/web3
+    @alephium/web3-wallet
+
+Dev dependencies:
+    @alephium/web3-test
+
+And add the following to your package.json scripts:
+    "compile": "npx cli compile",
+    "deploy": "npx cli deploy",
+`)
+}
