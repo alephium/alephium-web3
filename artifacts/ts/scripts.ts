@@ -16,6 +16,7 @@ import { default as AddMainScriptJson } from "../add/AddMain.ral.json";
 import { default as CallScript0ScriptJson } from "../test/CallScript0.ral.json";
 import { default as CallScript1ScriptJson } from "../test/CallScript1.ral.json";
 import { default as DepositScriptJson } from "../test/Deposit.ral.json";
+import { default as DepositTokenScriptJson } from "../test/DepositToken.ral.json";
 import { default as DestroyAddScriptJson } from "../add/DestroyAdd.ral.json";
 import { default as GreeterMainScriptJson } from "../greeter/GreeterMain.ral.json";
 import { default as InsertIntoMapScriptJson } from "../test/InsertIntoMap.ral.json";
@@ -61,6 +62,15 @@ export const CallScript1 = new ExecutableScript<
 
 export const Deposit = new ExecutableScript<{ c: HexString }>(
   Script.fromJson(DepositScriptJson, "", AllStructs),
+  getContractByCodeHash
+);
+
+export const DepositToken = new ExecutableScript<{
+  c: HexString;
+  tokenId: HexString;
+  amount: bigint;
+}>(
+  Script.fromJson(DepositTokenScriptJson, "", AllStructs),
   getContractByCodeHash
 );
 
