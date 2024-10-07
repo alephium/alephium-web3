@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest7ContractJson } from "../nft/DeprecatedNFTTest7.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -212,14 +213,22 @@ export class DeprecatedNFTTest7Instance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends DeprecatedNFTTest7Types.MultiCallParams>(
+    calls: Calls
+  ): Promise<DeprecatedNFTTest7Types.MultiCallResults<Calls>>;
   async multicall<Callss extends DeprecatedNFTTest7Types.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<DeprecatedNFTTest7Types.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Narrow<Callss>
+  ): Promise<DeprecatedNFTTest7Types.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | DeprecatedNFTTest7Types.MultiCallParams
+      | DeprecatedNFTTest7Types.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       DeprecatedNFTTest7,
       this,
       callss,
       getContractByCodeHash
-    )) as DeprecatedNFTTest7Types.MulticallReturnType<Callss>;
+    );
   }
 }

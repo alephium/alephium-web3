@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as WrongNFTTestContractJson } from "../nft/WrongNFTTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -209,14 +210,22 @@ export class WrongNFTTestInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends WrongNFTTestTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<WrongNFTTestTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends WrongNFTTestTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<WrongNFTTestTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Narrow<Callss>
+  ): Promise<WrongNFTTestTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | WrongNFTTestTypes.MultiCallParams
+      | WrongNFTTestTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       WrongNFTTest,
       this,
       callss,
       getContractByCodeHash
-    )) as WrongNFTTestTypes.MulticallReturnType<Callss>;
+    );
   }
 }

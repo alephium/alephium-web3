@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -293,14 +294,22 @@ export class FakeTokenTestInstance extends ContractInstance {
     },
   };
 
+  async multicall<Calls extends FakeTokenTestTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<FakeTokenTestTypes.MultiCallResults<Calls>>;
   async multicall<Callss extends FakeTokenTestTypes.MultiCallParams[]>(
-    ...callss: Callss
-  ): Promise<FakeTokenTestTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Narrow<Callss>
+  ): Promise<FakeTokenTestTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | FakeTokenTestTypes.MultiCallParams
+      | FakeTokenTestTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       FakeTokenTest,
       this,
       callss,
       getContractByCodeHash
-    )) as FakeTokenTestTypes.MulticallReturnType<Callss>;
+    );
   }
 }

@@ -463,10 +463,16 @@ function genMulticall(contract: Contract): string {
   const supportMulticall = contract.functions.filter((functionSig) => functionSig.returnTypes.length > 0).length > 0
   return supportMulticall
     ? `
+      async multicall<Calls extends ${types}.MultiCallParams>(
+        calls: Calls
+      ): Promise<${types}.MultiCallResults<Calls>>
       async multicall<Callss extends ${types}.MultiCallParams[]>(
-        ...callss: Callss
-      ): Promise<${types}.MulticallReturnType<Callss>> {
-        return (await multicallMethods(${contract.name}, this, callss, getContractByCodeHash)) as ${types}.MulticallReturnType<Callss>
+        callss: Narrow<Callss>
+      ): Promise<${types}.MulticallReturnType<Callss>>
+      async multicall<Callss extends ${types}.MultiCallParams | ${types}.MultiCallParams[]>(
+        callss: Callss
+      ): Promise<unknown> {
+        return (await multicallMethods(${contract.name}, this, callss, getContractByCodeHash))
       }
     `
     : ''
@@ -512,7 +518,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       testMethod, callMethod, multicallMethods, fetchContractState, Asset,
       ContractInstance, getContractEventsCurrentCount,
       TestContractParamsWithoutMaps, TestContractResultWithoutMaps, SignExecuteContractMethodParams,
-      SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields
+      SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields, Narrow
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash } from './contracts'

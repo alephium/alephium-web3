@@ -31,6 +31,7 @@ import {
   signExecuteMethod,
   addStdIdToFields,
   encodeContractFields,
+  Narrow,
 } from "@alephium/web3";
 import { default as NFTCollectionWithRoyaltyTestContractJson } from "../nft/NFTCollectionWithRoyaltyTest.ral.json";
 import { getContractByCodeHash } from "./contracts";
@@ -485,15 +486,25 @@ export class NFTCollectionWithRoyaltyTestInstance extends ContractInstance {
   };
 
   async multicall<
+    Calls extends NFTCollectionWithRoyaltyTestTypes.MultiCallParams
+  >(
+    calls: Calls
+  ): Promise<NFTCollectionWithRoyaltyTestTypes.MultiCallResults<Calls>>;
+  async multicall<
     Callss extends NFTCollectionWithRoyaltyTestTypes.MultiCallParams[]
   >(
-    ...callss: Callss
-  ): Promise<NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>> {
-    return (await multicallMethods(
+    callss: Narrow<Callss>
+  ): Promise<NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | NFTCollectionWithRoyaltyTestTypes.MultiCallParams
+      | NFTCollectionWithRoyaltyTestTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
       NFTCollectionWithRoyaltyTest,
       this,
       callss,
       getContractByCodeHash
-    )) as NFTCollectionWithRoyaltyTestTypes.MulticallReturnType<Callss>;
+    );
   }
 }

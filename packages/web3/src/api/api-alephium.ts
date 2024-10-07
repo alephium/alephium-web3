@@ -926,6 +926,97 @@ export interface RevealMnemonicResult {
   mnemonic: string
 }
 
+/** RichAssetInput */
+export interface RichAssetInput {
+  /** @format int32 */
+  hint: number
+  /** @format 32-byte-hash */
+  key: string
+  /** @format hex-string */
+  unlockScript: string
+  /** @format uint256 */
+  attoAlphAmount: string
+  /** @format address */
+  address: string
+  tokens: Token[]
+}
+
+/** RichBlockAndEvents */
+export interface RichBlockAndEvents {
+  block: RichBlockEntry
+  events: ContractEventByBlockHash[]
+}
+
+/** RichBlockEntry */
+export interface RichBlockEntry {
+  /** @format block-hash */
+  hash: string
+  /** @format int64 */
+  timestamp: number
+  /** @format int32 */
+  chainFrom: number
+  /** @format int32 */
+  chainTo: number
+  /** @format int32 */
+  height: number
+  deps: string[]
+  transactions: RichTransaction[]
+  /** @format hex-string */
+  nonce: string
+  version: number
+  /** @format 32-byte-hash */
+  depStateHash: string
+  /** @format 32-byte-hash */
+  txsHash: string
+  /** @format hex-string */
+  target: string
+  ghostUncles: GhostUncleBlockEntry[]
+}
+
+/** RichBlocksAndEventsPerTimeStampRange */
+export interface RichBlocksAndEventsPerTimeStampRange {
+  blocksAndEvents: RichBlockAndEvents[][]
+}
+
+/** RichContractInput */
+export interface RichContractInput {
+  /** @format int32 */
+  hint: number
+  /** @format 32-byte-hash */
+  key: string
+  /** @format uint256 */
+  attoAlphAmount: string
+  /** @format address */
+  address: string
+  tokens: Token[]
+}
+
+/** RichTransaction */
+export interface RichTransaction {
+  unsigned: RichUnsignedTx
+  scriptExecutionOk: boolean
+  contractInputs: RichContractInput[]
+  generatedOutputs: Output[]
+  inputSignatures: string[]
+  scriptSignatures: string[]
+}
+
+/** RichUnsignedTx */
+export interface RichUnsignedTx {
+  /** @format 32-byte-hash */
+  txId: string
+  version: number
+  networkId: number
+  /** @format script */
+  scriptOpt?: string
+  /** @format int32 */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  inputs: RichAssetInput[]
+  fixedOutputs: FixedAssetOutput[]
+}
+
 /** Script */
 export interface Script {
   code: string
@@ -1512,7 +1603,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.6.2
+ * @version 3.7.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2173,6 +2264,40 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Blockflow
+     * @name GetBlockflowRichBlocks
+     * @summary Given a time interval, list blocks containing events and transactions with enriched input information when node indexes are enabled.
+     * @request GET:/blockflow/rich-blocks
+     */
+    getBlockflowRichBlocks: (
+      query: {
+        /**
+         * @format int64
+         * @min 0
+         */
+        fromTs: number
+        /**
+         * @format int64
+         * @min 0
+         */
+        toTs?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        RichBlocksAndEventsPerTimeStampRange,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/blockflow/rich-blocks`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Blockflow
      * @name GetBlockflowBlocksBlockHash
      * @summary Get a block with hash
      * @request GET:/blockflow/blocks/{block_hash}
@@ -2216,6 +2341,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: 'json',
         ...params
       }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Blockflow
+     * @name GetBlockflowRichBlocksBlockHash
+     * @summary Get a block containing events and transactions with enriched input information when node indexes are enabled.
+     * @request GET:/blockflow/rich-blocks/{block_hash}
+     */
+    getBlockflowRichBlocksBlockHash: (blockHash: string, params: RequestParams = {}) =>
+      this.request<RichBlockAndEvents, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>(
+        {
+          path: `/blockflow/rich-blocks/${blockHash}`,
+          method: 'GET',
+          format: 'json',
+          ...params
+        }
+      ).then(convertHttpResponse),
 
     /**
      * No description

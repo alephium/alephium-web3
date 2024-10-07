@@ -22,7 +22,7 @@ import { run as runJestTests } from 'jest'
 import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
-import { createProject } from './scripts/create-project'
+import { createProject, genRalph } from './scripts/create-project'
 import {
   checkFullNodeVersion,
   codegen,
@@ -79,6 +79,13 @@ program
     }
     const projectRoot = path.resolve(dir as string)
     createProject(templateType, __dirname, projectRoot)
+  })
+
+program
+  .command('gen-ralph')
+  .description('generate ralph contract template for an existing project')
+  .action(() => {
+    genRalph(__dirname, process.cwd())
   })
 
 program
