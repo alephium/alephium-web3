@@ -101,8 +101,8 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promis
       await rootWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
     }
     return wallet
-  } catch (_) {
-    throw new Error('Failed to get signer, please restart the devnet')
+  } catch (error) {
+    throw new Error(`Failed to get signer, please restart the devnet: ${error}`)
   }
 }
 
