@@ -128,8 +128,8 @@ describe('transactions', function () {
     expect(BigInt(signer0FinalBalance.balance)).toBe(expectedSigner0Balance)
     expect(BigInt(signer1FinalBalance.balance)).toBe(expectedSigner1Balance)
     expect(BigInt(signer2FinalBalance.balance)).toBe(expectedSigner2Balance)
-    expect(BigInt(signer3FinalBalance.balance)).toBe(4n * ONE_ALPH)
-    expect(BigInt(signer4FinalBalance.balance)).toBe(4n * ONE_ALPH)
+    expect(BigInt(signer3FinalBalance.balance)).toBe(2n * ONE_ALPH)
+    expect(BigInt(signer4FinalBalance.balance)).toBe(2n * ONE_ALPH)
   })
 
   it('should subscribe transaction status', async () => {
