@@ -29,20 +29,20 @@ import { getSigner } from '@alephium/web3-test'
 jest.setTimeout(10_000)
 
 async function signAndSubmitTransactions(
-  transactions: Omit<SignTransferTxResult, "signature">[],
+  transactions: Omit<SignTransferTxResult, 'signature'>[],
   signer: PrivateKeyWallet
 ): Promise<SignUnsignedTxResult[]> {
-  const signedResults: SignTransferTxResult[] = [];
+  const signedResults: SignTransferTxResult[] = []
 
   for (const tx of transactions) {
     const result = await signer.signAndSubmitUnsignedTx({
       signerAddress: signer.address,
       unsignedTx: tx.unsignedTx
-    });
-    signedResults.push(result);
+    })
+    signedResults.push(result)
   }
 
-  return signedResults;
+  return signedResults
 }
 
 describe('transactions', function () {
@@ -106,7 +106,6 @@ describe('transactions', function () {
       signer2.publicKey
     )
 
-
     const transferFrom2to3and4Result = await signAndSubmitTransactions(transferFrom2to3and4, signer2)
 
     const signer0FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer0.address)
@@ -115,9 +114,18 @@ describe('transactions', function () {
     const signer3FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer3.address)
     const signer4FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer4.address)
 
-    const gasCostTransferFrom0to1and2 = transferFrom0to1and2Result.reduce((sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice), BigInt(0))
-    const gasCostTransferFrom1to3and4 = transferFrom1to3and4Result.reduce((sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice), BigInt(0))
-    const gasCostTransferFrom2to3and4 = transferFrom2to3and4Result.reduce((sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice), BigInt(0))
+    const gasCostTransferFrom0to1and2 = transferFrom0to1and2Result.reduce(
+      (sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice),
+      BigInt(0)
+    )
+    const gasCostTransferFrom1to3and4 = transferFrom1to3and4Result.reduce(
+      (sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice),
+      BigInt(0)
+    )
+    const gasCostTransferFrom2to3and4 = transferFrom2to3and4Result.reduce(
+      (sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice),
+      BigInt(0)
+    )
     const expectedSigner0Balance = 100n * ONE_ALPH - 20n * ONE_ALPH - gasCostTransferFrom0to1and2
     const expectedSigner1Balance = 10n * ONE_ALPH - 2n * ONE_ALPH - gasCostTransferFrom1to3and4
     const expectedSigner2Balance = 10n * ONE_ALPH - 2n * ONE_ALPH - gasCostTransferFrom2to3and4

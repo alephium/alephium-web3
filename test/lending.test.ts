@@ -107,7 +107,6 @@ class LendingBot {
       signerAddress,
       destinations
     })
-
   }
 
   async transfer(fromUserId: string, toUserData: [string, number][]) {
