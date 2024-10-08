@@ -21,6 +21,7 @@ import {
   DEFAULT_GAS_ALPH_AMOUNT,
   NodeProvider,
   number256ToNumber,
+  ONE_ALPH,
   SignerProviderSimple,
   SignTransferTxParams,
   SignTransferTxResult,
@@ -76,14 +77,15 @@ class LendingBot {
       params,
       await signer.getPublicKey(params.signerAddress)
     )
-    return await Promise.all(
-      buildTxResults.map(async (tx) => {
-        return await signer.signAndSubmitUnsignedTx({
-          signerAddress: params.signerAddress,
-          unsignedTx: tx.unsignedTx
-        })
+    const results: SignTransferTxResult[] = []
+    for (const tx of buildTxResults) {
+      const result = await signer.signAndSubmitUnsignedTx({
+        signerAddress: params.signerAddress,
+        unsignedTx: tx.unsignedTx
       })
-    )
+      results.push(result)
+    }
+    return results
   }
 
   async getUserBalance(userId: string) {
@@ -140,7 +142,7 @@ describe('lendingbot', function () {
 
     // each user will start with 1 ALPH
     const users = ['user0', 'user1', 'user2']
-    const deposit = convertAlphAmountWithDecimals('1.0')!
+    const deposit = ONE_ALPH
 
     await track('Distributing alphs among users', async () => {
       await lendingBot.distributeWealth(users, deposit)

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { subscribeToTxStatus, TransactionBuilder } from '../packages/web3'
+import { SignTransferTxResult, SignUnsignedTxResult, subscribeToTxStatus, TransactionBuilder } from '../packages/web3'
 import { node } from '../packages/web3'
 import { SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
@@ -27,6 +27,23 @@ import { Add, Sub, AddMain } from '../artifacts/ts'
 import { getSigner } from '@alephium/web3-test'
 
 jest.setTimeout(10_000)
+
+async function signAndSubmitTransactions(
+  transactions: Omit<SignTransferTxResult, "signature">[],
+  signer: PrivateKeyWallet
+): Promise<SignUnsignedTxResult[]> {
+  const signedResults: SignTransferTxResult[] = [];
+
+  for (const tx of transactions) {
+    const result = await signer.signAndSubmitUnsignedTx({
+      signerAddress: signer.address,
+      unsignedTx: tx.unsignedTx
+    });
+    signedResults.push(result);
+  }
+
+  return signedResults;
+}
 
 describe('transactions', function () {
   let signer: PrivateKeyWallet
@@ -58,14 +75,7 @@ describe('transactions', function () {
       await signer0.getPublicKey(signer0.address)
     )
 
-    const transferFrom0to1and2Result = await Promise.all(
-      transferFrom0to1and2.map(async (tx) => {
-        return await signer0.signAndSubmitUnsignedTx({
-          signerAddress: signer0.address,
-          unsignedTx: tx.unsignedTx
-        })
-      })
-    )
+    const transferFrom0to1and2Result = await signAndSubmitTransactions(transferFrom0to1and2, signer0)
 
     const signer1Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer1.address)
     expect(BigInt(signer1Balance.balance)).toBe(10n * ONE_ALPH)
@@ -83,14 +93,7 @@ describe('transactions', function () {
       signer1.publicKey
     )
 
-    const transferFrom1to3and4Result = await Promise.all(
-      transferFrom1to3and4.map(async (tx) => {
-        return await signer1.signAndSubmitUnsignedTx({
-          signerAddress: signer1.address,
-          unsignedTx: tx.unsignedTx
-        })
-      })
-    )
+    const transferFrom1to3and4Result = await signAndSubmitTransactions(transferFrom1to3and4, signer1)
 
     const transferFrom2to3and4 = await TransactionBuilder.from(nodeProvider).buildMultiGroupTransferTx(
       {
@@ -103,14 +106,8 @@ describe('transactions', function () {
       signer2.publicKey
     )
 
-    const transferFrom2to3and4Result = await Promise.all(
-      transferFrom2to3and4.map(async (tx) => {
-        return await signer2.signAndSubmitUnsignedTx({
-          signerAddress: signer2.address,
-          unsignedTx: tx.unsignedTx
-        })
-      })
-    )
+
+    const transferFrom2to3and4Result = await signAndSubmitTransactions(transferFrom2to3and4, signer2)
 
     const signer0FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer0.address)
     const signer1FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer1.address)
