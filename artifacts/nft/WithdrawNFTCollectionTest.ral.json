@@ -1,5 +1,5 @@
 {
-  "version": "v3.7.0",
+  "version": "v3.6.4",
   "name": "WithdrawNFTCollectionTest",
   "bytecodeTemplate": "01010300000006b4{1}0e0c{0}0106",
   "fieldsSig": {

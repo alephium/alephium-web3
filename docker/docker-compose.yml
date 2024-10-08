@@ -29,7 +29,7 @@ services:
         condition: service_healthy
 
   alephium:
-    image: alephium/alephium:v3.7.0
+    image: pragmaxim/dev-alephium:3.6.4_120-61c57fd2_20241007-1739-SNAPSHOT
     restart: unless-stopped
     ports:
       - 19973:19973/tcp

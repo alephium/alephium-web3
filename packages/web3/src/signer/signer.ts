@@ -118,7 +118,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
     return signResult
   }
 
-  protected abstract getPublicKey(address: string): Promise<string>
+  abstract getPublicKey(address: string): Promise<string>
 
   private async usePublicKey<T extends SignerAddress>(
     params: T
