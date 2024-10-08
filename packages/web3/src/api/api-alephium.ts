@@ -1498,8 +1498,8 @@ export class HttpClient<SecurityDataType = unknown> {
           property instanceof Blob
             ? property
             : typeof property === 'object' && property !== null
-              ? JSON.stringify(property)
-              : `${property}`
+            ? JSON.stringify(property)
+            : `${property}`
         )
         return formData
       }, new FormData()),
@@ -1579,18 +1579,18 @@ export class HttpClient<SecurityDataType = unknown> {
       const data = !responseFormat
         ? r
         : await response[responseFormat]()
-          .then((data) => {
-            if (r.ok) {
-              r.data = data
-            } else {
-              r.error = data
-            }
-            return r
-          })
-          .catch((e) => {
-            r.error = e
-            return r
-          })
+            .then((data) => {
+              if (r.ok) {
+                r.data = data
+              } else {
+                r.error = data
+              }
+              return r
+            })
+            .catch((e) => {
+              r.error = e
+              return r
+            })
 
       if (cancelToken) {
         this.abortControllers.delete(cancelToken)
@@ -2544,28 +2544,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         format: 'json',
         ...params
       }).then(convertHttpResponse),
-
-    /**
-     * No description
-     *
-     * @tags Transactions
-     * @name postTransactionsBuildMultiGroup
-     * @summary Build as many unsigned transactions as many destinations from different groups is passed
-     * @request POST:/transactions/build-multi-group
-     */
-    postTransactionsBuildMultiGroup: (data: BuildTransaction, params: RequestParams = {}) =>
-      this.request<
-        BuildTransactionResult[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
-      >({
-        path: `/transactions/build-multi-group`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params
-      }).then(convertHttpResponse),
-
 
     /**
      * No description
