@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 export const PROVIDER_NAMESPACE = 'alephium'
+export const VALID_ADDRESS_GROUPS = [-1, 0, 1, 2, 3]
 
 // Note:
 // 1. the wallet client could potentially submit the signed transaction.
