@@ -1,18 +1,15 @@
 {
   "version": "v3.8.1",
-  "name": "AddMain",
-  "bytecodeTemplate": "0101030002000c{1}{2}17011700160016010e0e{0}01001818",
+  "name": "Withdraw",
+  "bytecodeTemplate": "010103000000040c0c{0}0101",
   "fieldsSig": {
     "names": [
-      "add",
-      "array"
+      "c"
     ],
     "types": [
-      "Add",
-      "[U256;2]"
+      "Transact"
     ],
     "isMutable": [
-      false,
       false
     ]
   },

@@ -189,6 +189,51 @@ export interface BrokerInfo {
   }
 }
 
+/** BuildChainedDeployContractTx */
+export interface BuildChainedDeployContractTx {
+  value: BuildDeployContractTx
+  type: string
+}
+
+/** BuildChainedDeployContractTxResult */
+export interface BuildChainedDeployContractTxResult {
+  value: BuildDeployContractTxResult
+  type: string
+}
+
+/** BuildChainedExecuteScriptTx */
+export interface BuildChainedExecuteScriptTx {
+  value: BuildExecuteScriptTx
+  type: string
+}
+
+/** BuildChainedExecuteScriptTxResult */
+export interface BuildChainedExecuteScriptTxResult {
+  value: BuildExecuteScriptTxResult
+  type: string
+}
+
+/** BuildChainedTransferTx */
+export interface BuildChainedTransferTx {
+  value: BuildTransferTx
+  type: string
+}
+
+/** BuildChainedTransferTxResult */
+export interface BuildChainedTransferTxResult {
+  value: BuildTransferTxResult
+  type: string
+}
+
+/** BuildChainedTx */
+export type BuildChainedTx = BuildChainedDeployContractTx | BuildChainedExecuteScriptTx | BuildChainedTransferTx
+
+/** BuildChainedTxResult */
+export type BuildChainedTxResult =
+  | BuildChainedDeployContractTxResult
+  | BuildChainedExecuteScriptTxResult
+  | BuildChainedTransferTxResult
+
 /** BuildDeployContractTx */
 export interface BuildDeployContractTx {
   /** @format hex-string */
@@ -353,8 +398,8 @@ export interface BuildSweepMultisig {
   targetBlockHash?: string
 }
 
-/** BuildTransaction */
-export interface BuildTransaction {
+/** BuildTransferTx */
+export interface BuildTransferTx {
   /** @format hex-string */
   fromPublicKey: string
   /** @format hex-string */
@@ -369,8 +414,8 @@ export interface BuildTransaction {
   targetBlockHash?: string
 }
 
-/** BuildTransactionResult */
-export interface BuildTransactionResult {
+/** BuildTransferTxResult */
+export interface BuildTransferTxResult {
   unsignedTx: string
   /** @format gas */
   gasAmount: number
@@ -1204,6 +1249,8 @@ export interface TransactionTemplate {
   unsigned: UnsignedTx
   inputSignatures: string[]
   scriptSignatures: string[]
+  /** @format int64 */
+  seenAt: number
 }
 
 /** Transfer */
@@ -1603,7 +1650,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.7.0
+ * @version 3.8.1
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2529,12 +2576,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags Transactions
      * @name PostTransactionsBuild
-     * @summary Build an unsigned transaction to a number of recipients
+     * @summary Build an unsigned transfer transaction to a number of recipients
      * @request POST:/transactions/build
      */
-    postTransactionsBuild: (data: BuildTransaction, params: RequestParams = {}) =>
+    postTransactionsBuild: (data: BuildTransferTx, params: RequestParams = {}) =>
       this.request<
-        BuildTransactionResult,
+        BuildTransferTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/transactions/build`,
@@ -2555,7 +2602,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postTransactionsBuildMultiAddresses: (data: BuildMultiAddressesTransaction, params: RequestParams = {}) =>
       this.request<
-        BuildTransactionResult,
+        BuildTransferTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/transactions/build-multi-addresses`,
@@ -2656,6 +2703,32 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Transactions
+     * @name GetTransactionsRichDetailsTxid
+     * @summary Get transaction with enriched input information when node indexes are enabled.
+     * @request GET:/transactions/rich-details/{txId}
+     */
+    getTransactionsRichDetailsTxid: (
+      txId: string,
+      query?: {
+        /** @format int32 */
+        fromGroup?: number
+        /** @format int32 */
+        toGroup?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<RichTransaction, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/transactions/rich-details/${txId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
      * @name GetTransactionsRawTxid
      * @summary Get raw transaction in hex format
      * @request GET:/transactions/raw/{txId}
@@ -2726,6 +2799,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/transactions/tx-id-from-outputref`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
+     * @name PostTransactionsBuildChained
+     * @summary Build a chain of transactions
+     * @request POST:/transactions/build-chained
+     */
+    postTransactionsBuildChained: (data: BuildChainedTx[], params: RequestParams = {}) =>
+      this.request<
+        BuildChainedTxResult[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/transactions/build-chained`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params
       }).then(convertHttpResponse)
@@ -3095,7 +3189,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postMultisigBuild: (data: BuildMultisig, params: RequestParams = {}) =>
       this.request<
-        BuildTransactionResult,
+        BuildTransferTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/multisig/build`,

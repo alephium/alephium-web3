@@ -25,6 +25,7 @@ export const RELAY_METHODS = [
   'alph_signAndSubmitDeployContractTx',
   'alph_signAndSubmitExecuteScriptTx',
   'alph_signAndSubmitUnsignedTx',
+  'alph_signAndSubmitChainedTx',
   'alph_signUnsignedTx',
   'alph_signMessage',
   'alph_requestNodeApi',

@@ -53,3 +53,15 @@ TxScript MultiWithdraw(c: [Transact; 2]) {
     c[0].withdrawToken(1e18)
     c[1].withdrawToken(1e18)
 }
+
+TxScript Deposit(c: Transact) {
+    c.deposit{callerAddress!() -> ALPH: 1 alph}()
+}
+
+TxScript DepositToken(c: Transact, tokenId: ByteVec, amount: U256) {
+    c.depositToken{callerAddress!() -> tokenId: amount}(amount)
+}
+
+TxScript Withdraw(c: Transact) {
+    c.withdraw()
+}

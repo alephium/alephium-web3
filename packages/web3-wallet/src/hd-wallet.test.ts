@@ -30,6 +30,7 @@ import {
   deriveSchnorrPrivateKeyForGroup,
   deriveSecp256K1PrivateKey,
   deriveSecp256K1PrivateKeyForGroup,
+  generateMnemonic,
   HDWallet
 } from './hd-wallet'
 
@@ -40,6 +41,12 @@ describe('HD wallet', () => {
 
   const testMnemonic =
     'vault alarm sad mass witness property virus style good flower rice alpha viable evidence run glare pretty scout evil judge enroll refuse another lava'
+
+  it('should gerate mnemonic', () => {
+    expect(generateMnemonic().split(' ').length).toBe(24)
+    expect(generateMnemonic(12).split(' ').length).toBe(12)
+    expect(generateMnemonic(24).split(' ').length).toBe(24)
+  })
 
   it('should derive private key based on index for secp256k1', () => {
     expect(deriveSecp256K1PrivateKey(testMnemonic, 0)).toEqual(

@@ -21,20 +21,26 @@ import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiToke
 import { addressFromPublicKey, contractIdFromAddress } from '../address'
 import { toApiDestinations } from './signer'
 import {
+  SignChainedTxParams,
+  SignChainedTxResult,
   KeyType,
+  SignDeployContractChainedTxResult,
   SignDeployContractTxParams,
   SignDeployContractTxResult,
   SignerAddress,
+  SignExecuteScriptChainedTxResult,
   SignExecuteScriptTxParams,
   SignExecuteScriptTxResult,
+  SignTransferChainedTxResult,
   SignTransferTxParams,
   SignTransferTxResult,
   SignUnsignedTxParams,
   SignUnsignedTxResult
 } from './types'
-import { unsignedTxCodec, UnsignedTxCodec } from '../codec'
+import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
 import { blakeHash } from '../codec/hash'
+import { BuildDeployContractTxResult, BuildChainedTx, BuildChainedTxResult } from '../api/api-alephium'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -62,58 +68,91 @@ export abstract class TransactionBuilder {
     params: SignTransferTxParams,
     publicKey: string
   ): Promise<Omit<SignTransferTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
-
-    const { destinations, gasPrice, ...rest } = params
-    const data: node.BuildTransaction = {
-      fromPublicKey: publicKey,
-      fromPublicKeyType: params.signerKeyType,
-      destinations: toApiDestinations(destinations),
-      gasPrice: toApiNumber256Optional(gasPrice),
-      ...rest
-    }
+    const data = this.buildTransferTxParams(params, publicKey)
     const response = await this.nodeProvider.transactions.postTransactionsBuild(data)
-    return { ...response, gasPrice: fromApiNumber256(response.gasPrice) }
+    return this.convertTransferTxResult(response)
   }
 
   async buildDeployContractTx(
     params: SignDeployContractTxParams,
     publicKey: string
   ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
-
-    const { initialAttoAlphAmount, initialTokenAmounts, issueTokenAmount, gasPrice, ...rest } = params
-    const data: node.BuildDeployContractTx = {
-      fromPublicKey: publicKey,
-      fromPublicKeyType: params.signerKeyType,
-      initialAttoAlphAmount: toApiNumber256Optional(initialAttoAlphAmount),
-      initialTokenAmounts: toApiTokens(initialTokenAmounts),
-      issueTokenAmount: toApiNumber256Optional(issueTokenAmount),
-      gasPrice: toApiNumber256Optional(gasPrice),
-      ...rest
-    }
+    const data = this.buildDeployContractTxParams(params, publicKey)
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
-    const contractId = binToHex(contractIdFromAddress(response.contractAddress))
-    return { ...response, groupIndex: response.fromGroup, contractId, gasPrice: fromApiNumber256(response.gasPrice) }
+    return this.convertDeployContractTxResult(response)
   }
 
   async buildExecuteScriptTx(
     params: SignExecuteScriptTxParams,
     publicKey: string
   ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
-    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
-
-    const { attoAlphAmount, tokens, gasPrice, ...rest } = params
-    const data: node.BuildExecuteScriptTx = {
-      fromPublicKey: publicKey,
-      fromPublicKeyType: params.signerKeyType,
-      attoAlphAmount: toApiNumber256Optional(attoAlphAmount),
-      tokens: toApiTokens(tokens),
-      gasPrice: toApiNumber256Optional(gasPrice),
-      ...rest
-    }
+    const data = this.buildExecuteScriptTxParams(params, publicKey)
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
-    return { ...response, groupIndex: response.fromGroup, gasPrice: fromApiNumber256(response.gasPrice) }
+    return this.convertExecuteScriptTxResult(response)
+  }
+
+  async buildChainedTx(
+    params: SignChainedTxParams[],
+    publicKeys: string[]
+  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+    if (params.length !== publicKeys.length) {
+      throw new Error(
+        'The number of build chained transaction parameters must match the number of public keys provided'
+      )
+    }
+
+    const data: BuildChainedTx[] = params.map((param, index) => {
+      const paramType = param.type
+      switch (paramType) {
+        case 'Transfer': {
+          const value = this.buildTransferTxParams(param, publicKeys[index])
+          return { type: paramType, value }
+        }
+        case 'DeployContract': {
+          const value = this.buildDeployContractTxParams(param, publicKeys[index])
+          return { type: paramType, value }
+        }
+        case 'ExecuteScript': {
+          const value = this.buildExecuteScriptTxParams(param, publicKeys[index])
+          return { type: paramType, value }
+        }
+        default:
+          throw new Error(`Unsupported transaction type: ${paramType}`)
+      }
+    })
+
+    const buildChainedTxsResponse = await this.nodeProvider.transactions.postTransactionsBuildChained(data)
+
+    const results = buildChainedTxsResponse.map((buildResult) => {
+      const buildResultType = buildResult.type
+      switch (buildResultType) {
+        case 'Transfer': {
+          const buildTransferTxResult = buildResult.value
+          return {
+            ...this.convertTransferTxResult(buildTransferTxResult),
+            type: buildResultType
+          }
+        }
+        case 'DeployContract': {
+          const buildDeployContractTxResult = buildResult.value as BuildDeployContractTxResult
+          return {
+            ...this.convertDeployContractTxResult(buildDeployContractTxResult),
+            type: buildResultType
+          } as SignDeployContractChainedTxResult
+        }
+        case 'ExecuteScript': {
+          const buildExecuteScriptTxResult = buildResult.value
+          return {
+            ...this.convertExecuteScriptTxResult(buildExecuteScriptTxResult),
+            type: buildResultType
+          } as SignExecuteScriptChainedTxResult
+        }
+        default:
+          throw new Error(`Unexpected transaction type: ${buildResultType} for ${buildResult.value.txId}`)
+      }
+    })
+
+    return results
   }
 
   buildUnsignedTx(params: SignUnsignedTxParams): Omit<SignUnsignedTxResult, 'signature'> {
@@ -128,6 +167,80 @@ export abstract class TransactionBuilder {
       txId: txId,
       gasAmount: decoded.gasAmount,
       gasPrice: decoded.gasPrice
+    }
+  }
+
+  private buildTransferTxParams(params: SignTransferTxParams, publicKey: string): node.BuildTransferTx {
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+
+    const { destinations, gasPrice, ...rest } = params
+    return {
+      fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
+      destinations: toApiDestinations(destinations),
+      gasPrice: toApiNumber256Optional(gasPrice),
+      ...rest
+    }
+  }
+
+  private buildDeployContractTxParams(
+    params: SignDeployContractTxParams,
+    publicKey: string
+  ): node.BuildDeployContractTx {
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+
+    const { initialAttoAlphAmount, initialTokenAmounts, issueTokenAmount, gasPrice, ...rest } = params
+    return {
+      fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
+      initialAttoAlphAmount: toApiNumber256Optional(initialAttoAlphAmount),
+      initialTokenAmounts: toApiTokens(initialTokenAmounts),
+      issueTokenAmount: toApiNumber256Optional(issueTokenAmount),
+      gasPrice: toApiNumber256Optional(gasPrice),
+      ...rest
+    }
+  }
+
+  private buildExecuteScriptTxParams(params: SignExecuteScriptTxParams, publicKey: string): node.BuildExecuteScriptTx {
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+
+    const { attoAlphAmount, tokens, gasPrice, ...rest } = params
+    return {
+      fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
+      attoAlphAmount: toApiNumber256Optional(attoAlphAmount),
+      tokens: toApiTokens(tokens),
+      gasPrice: toApiNumber256Optional(gasPrice),
+      ...rest
+    }
+  }
+
+  private convertTransferTxResult(result: node.BuildTransferTxResult): Omit<SignTransferTxResult, 'signature'> {
+    return {
+      ...result,
+      gasPrice: fromApiNumber256(result.gasPrice)
+    }
+  }
+
+  private convertDeployContractTxResult(
+    result: node.BuildDeployContractTxResult
+  ): Omit<SignDeployContractTxResult, 'signature'> {
+    const contractId = binToHex(contractIdFromAddress(result.contractAddress))
+    return {
+      ...result,
+      groupIndex: result.fromGroup,
+      contractId,
+      gasPrice: fromApiNumber256(result.gasPrice)
+    }
+  }
+
+  private convertExecuteScriptTxResult(
+    result: node.BuildExecuteScriptTxResult
+  ): Omit<SignExecuteScriptTxResult, 'signature'> {
+    return {
+      ...result,
+      groupIndex: result.fromGroup,
+      gasPrice: fromApiNumber256(result.gasPrice)
     }
   }
 }

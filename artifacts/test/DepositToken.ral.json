@@ -1,17 +1,20 @@
 {
   "version": "v3.8.1",
-  "name": "AddMain",
-  "bytecodeTemplate": "0101030002000c{1}{2}17011700160016010e0e{0}01001818",
+  "name": "DepositToken",
+  "bytecodeTemplate": "01010300000009b4{1}{2}a3{2}0d0c{0}0102",
   "fieldsSig": {
     "names": [
-      "add",
-      "array"
+      "c",
+      "tokenId",
+      "amount"
     ],
     "types": [
-      "Add",
-      "[U256;2]"
+      "Transact",
+      "ByteVec",
+      "U256"
     ],
     "isMutable": [
+      false,
       false,
       false
     ]
