@@ -1,0 +1,31 @@
+{
+  "version": "v3.8.1",
+  "name": "DepositToken",
+  "bytecodeTemplate": "01010300000009b4{1}{2}a3{2}0d0c{0}0102",
+  "fieldsSig": {
+    "names": [
+      "c",
+      "tokenId",
+      "amount"
+    ],
+    "types": [
+      "Transact",
+      "ByteVec",
+      "U256"
+    ],
+    "isMutable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "functions": [
+    {
+      "name": "main",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": []
+    }
+  ]
+}

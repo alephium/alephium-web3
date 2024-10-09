@@ -91,7 +91,10 @@ export abstract class TransactionBuilder {
     return this.convertExecuteScriptTxResult(response)
   }
 
-  async buildChainedTx(params: SignChainedTxParams[], publicKeys: string[]): Promise<SignChainedTxResult[]> {
+  async buildChainedTx(
+    params: SignChainedTxParams[],
+    publicKeys: string[]
+  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
     if (params.length !== publicKeys.length) {
       throw new Error(
         'The number of build chained transaction parameters must match the number of public keys provided'

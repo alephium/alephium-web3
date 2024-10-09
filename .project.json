@@ -66,7 +66,13 @@
     },
     "Deposit": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
+      "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
+    "DepositToken": {
+      "sourceFile": "test/transact.ral",
+      "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
@@ -222,13 +228,13 @@
     },
     "MultiDeposit": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
+      "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
     "MultiWithdraw": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
+      "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
@@ -312,7 +318,7 @@
     },
     "Transact": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
+      "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55"
     },
@@ -342,7 +348,7 @@
     },
     "Withdraw": {
       "sourceFile": "test/transact.ral",
-      "sourceCodeHash": "9280bdda186be31318d56d5fb1dfb8153fc8350a83ac37015de0f1cd20dc78cc",
+      "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },

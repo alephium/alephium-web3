@@ -47,7 +47,9 @@ import {
   ApiRequestArguments,
   NetworkId,
   networkIds,
-  EnableOptionsBase
+  EnableOptionsBase,
+  SignChainedTxParams,
+  SignChainedTxResult
 } from '@alephium/web3'
 
 import { ALEPHIUM_DEEP_LINK, LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -220,6 +222,10 @@ export class WalletConnectProvider extends SignerProvider {
 
   public async signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
     return this.typedRequest('alph_signAndSubmitUnsignedTx', params)
+  }
+
+  public async signAndSubmitChainedTx(params: SignChainedTxParams[]): Promise<SignChainedTxResult[]> {
+    return this.typedRequest('alph_signAndSubmitChainedTx', params)
   }
 
   public async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {

@@ -35,7 +35,7 @@ import {
   testAddress,
   testMnemonic,
   testPassword,
-  testPrivateKey,
+  testPrivateKeyWallet,
   testWalletName,
   tryGetDevnetNodeProvider
 } from './const'
@@ -94,11 +94,10 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promis
     if (availableBalance < alphAmount) {
       throw new Error('Not enough balance, please restart the devnet')
     }
-    const rootWallet = new PrivateKeyWallet({ privateKey: testPrivateKey })
     const wallet = PrivateKeyWallet.Random(group)
     if (alphAmount > 0n) {
       const destinations = [{ address: wallet.address, attoAlphAmount: alphAmount }]
-      await rootWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
+      await testPrivateKeyWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
     }
     return wallet
   } catch (error) {
