@@ -1,6 +1,0 @@
-Contract Greeter(btcPrice: U256) implements GreeterInterface {
-    pub fn greet() -> U256 {
-        checkCaller!(true, 0)
-        return btcPrice
-    }
-}
