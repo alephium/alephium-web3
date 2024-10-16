@@ -19,18 +19,27 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import fsExtra from 'fs-extra'
 import path from 'path'
-import { execSync } from 'child_process'
+import { execFileSync } from 'child_process'
 
 function prepareNextJs(templateType: string, _packageRoot: string, projectRoot: string) {
   console.log('Creating the Nextjs app')
   const prefix = templateType === 'nextjs' ? 'nextjs-app' : templateType
-  execSync(`npx create-next-app ${projectRoot} --example https://github.com/alephium/${prefix}-dapp-template --typescript`)
-  execSync('npm install && npm run prettier', { cwd: projectRoot })
+  execFileSync(
+    'npx',
+    [
+      'create-next-app',
+      projectRoot,
+      '--example',
+      `https://github.com/alephium/${prefix}-dapp-template`,
+      '--typescript'
+    ],
+    { stdio: 'inherit' }
+  )
   console.log()
 }
 
 function gitClone(url: string, projectRoot: string) {
-  execSync(`git clone ${url} ${projectRoot}`)
+  execFileSync('git', ['clone', url, projectRoot], { stdio: 'inherit' })
 }
 
 export function createProject(templateType: string, packageRoot: string, projectRoot: string): void {
