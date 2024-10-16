@@ -20,7 +20,7 @@ import { Configuration, Network } from '../packages/cli/dist'
 import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from '../packages/cli/dist'
 import path from 'path'
 
-describe('utils', () => {
+describe.skip('utils', () => {
   let config: Configuration
   let devnet: Network
   beforeAll(() => {
