@@ -21,9 +21,10 @@ import fsExtra from 'fs-extra'
 import path from 'path'
 import { execSync } from 'child_process'
 
-function prepareNextJs(_packageRoot: string, projectRoot: string) {
+function prepareNextJs(templateType: string, _packageRoot: string, projectRoot: string) {
   console.log('Creating the Nextjs app')
-  execSync(`npx create-next-app ${projectRoot} --example https://github.com/alephium/nextjs-template --typescript`)
+  const prefix = templateType === 'nextjs' ? 'nextjs-app' : templateType
+  execSync(`npx create-next-app ${projectRoot} --example https://github.com/alephium/${prefix}-dapp-template --typescript`)
   execSync('npm install && npm run prettier', { cwd: projectRoot })
   console.log()
 }
@@ -48,10 +49,14 @@ export function createProject(templateType: string, packageRoot: string, project
       gitClone('https://github.com/alephium/react-dapp-template.git', projectRoot)
       break
     case 'nextjs':
-      prepareNextJs(packageRoot, projectRoot)
+    case 'nextjs-app':
+    case 'nextjs-pages':
+      prepareNextJs(templateType, packageRoot, projectRoot)
       break
     default:
-      console.error(`Invalid template type ${templateType}, expect one of base, react, nextjs`)
+      console.error(
+        `Invalid template type ${templateType}, expect one of base, react, nextjs, nextjs-app, nextjs-pages`
+      )
       process.exit(1)
   }
 
