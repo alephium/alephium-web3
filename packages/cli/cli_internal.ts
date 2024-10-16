@@ -58,7 +58,7 @@ function buildErrorOutput(error: Error, isDebug: boolean): string {
   return isDebug ? debugMsg : error.message
 }
 
-const templateTypes = ['base', 'react', 'nextjs']
+const templateTypes = ['base', 'react', 'nextjs', 'nextjs-app', 'nextjs-pages']
 
 program
   .command('init')
