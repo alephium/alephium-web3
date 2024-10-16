@@ -48,7 +48,7 @@ export function getConfigFile(): string {
   if (fs.existsSync(jsConfig)) {
     return jsConfig
   }
-  return path.join(__dirname, '../templates/base/alephium.config.ts')
+  throw new Error('No config file `alephium.config.ts` or `alephium.config.js` found')
 }
 
 export async function isNetworkLive(url: string): Promise<boolean> {
