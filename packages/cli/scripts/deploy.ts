@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Configuration } from '../src/types'
 import { deploy, Deployments } from '../src/deployment'
 import { getDeploymentFilePath } from '../src'
-import { NetworkId } from '@alephium/web3'
+import { NetworkId, TraceableError } from '@alephium/web3'
 
 export async function deployAndSaveProgress<Settings = unknown>(
   configuration: Configuration<Settings>,
@@ -35,8 +35,10 @@ export async function deployAndSaveProgress<Settings = unknown>(
     scriptExecuted = await deploy(configuration, networkId, deployments, fromIndex, toIndex, silent)
   } catch (error) {
     await deployments.saveToFile(deploymentsFile, configuration, false)
-    console.error(`Failed to deploy the project`)
-    throw error
+    if (configuration.enableDebugMode) {
+      console.log(`Failed to deploy the project, error: `, error)
+    }
+    throw new TraceableError('Failed to deploy the project', error)
   }
 
   await deployments.saveToFile(deploymentsFile, configuration, true)

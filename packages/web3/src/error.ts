@@ -16,31 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/** This source is under MIT License and come originally from https://github.com/cryptocoinjs/bs58 **/
-import basex from 'base-x'
-import { TraceableError } from '../error'
+export class TraceableError extends Error {
+  trace: any | undefined
 
-const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+  constructor(message?: string, innerError?: any) {
+    const innerErrorMessage =
+      innerError === undefined ? undefined : innerError instanceof Error ? innerError.message : `${innerError}`
+    super(innerErrorMessage ? `${message}, error: ${innerErrorMessage}` : message)
+    this.trace = innerError
 
-export const bs58 = basex(ALPHABET)
+    const actualProto = new.target.prototype
 
-export function isBase58(s: string): boolean {
-  if (s === '' || s.trim() === '') {
-    return false
-  }
-  try {
-    return bs58.encode(bs58.decode(s)) === s
-  } catch (err) {
-    return false
-  }
-}
-
-export function base58ToBytes(s: string): Uint8Array {
-  try {
-    return bs58.decode(s)
-  } catch (e) {
-    throw new TraceableError(`Invalid base58 string ${s}`, e)
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(this, actualProto)
+    } else {
+      const object = this as any
+      object.__proto__ = actualProto
+    }
   }
 }
-
-export default bs58

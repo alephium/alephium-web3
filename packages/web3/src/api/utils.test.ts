@@ -17,14 +17,18 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ONE_ALPH } from '../constants'
+import { TraceableError } from '../error'
 import { NodeProvider, isBalanceEqual, node } from './index'
 
 describe('utils', function () {
   it('should throw API error', async () => {
     const provider = new NodeProvider('http://127.0.0.1:22973')
     await expect(provider.addresses.getAddressesAddressGroup('000')).rejects.toThrowError(
-      new Error(
-        '[API Error] - Invalid value for: path parameter address (Unable to decode address from 000: 000) - Status code: 400'
+      new TraceableError(
+        'Failed to request getAddressesAddressGroup',
+        new Error(
+          '[API Error] - Invalid value for: path parameter address (Unable to decode address from 000: 000) - Status code: 400'
+        )
       )
     )
   })

@@ -20,13 +20,14 @@ import { ec as EC } from 'elliptic'
 import BN from 'bn.js'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import blake from 'blakejs'
-import bs58 from '../utils/bs58'
+import bs58, { base58ToBytes } from '../utils/bs58'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
 import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { i32Codec } from '../codec'
 import { LockupScript } from '../codec/lockup-script-codec'
 import djb2 from '../utils/djb2'
+import { TraceableError } from '../error'
 
 const ec = new EC('secp256k1')
 const PublicKeyHashSize = 32
@@ -52,21 +53,15 @@ export function isValidAddress(address: string): boolean {
 }
 
 function decodeAndValidateAddress(address: string): Uint8Array {
-  let decoded: Uint8Array
-  try {
-    decoded = bs58.decode(address)
-  } catch (_) {
-    throw new Error('Invalid base58 string')
-  }
-
+  const decoded = base58ToBytes(address)
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType === AddressType.P2MPKH) {
     let multisig: P2MPKH
     try {
       multisig = lockupScriptCodec.decode(decoded).value as P2MPKH
-    } catch (_) {
-      throw new Error(`Invalid multisig address: ${address}`)
+    } catch (error) {
+      throw new TraceableError(`Invalid multisig address: ${address}`, error)
     }
     const n = multisig.publicKeyHashes.length
     const m = multisig.m
@@ -137,8 +132,7 @@ export function tokenIdFromAddress(address: string): Uint8Array {
 }
 
 function idFromAddress(address: string): Uint8Array {
-  const decoded = bs58.decode(address)
-
+  const decoded = base58ToBytes(address)
   if (decoded.length == 0) throw new Error('Address string is empty')
   const addressType = decoded[0]
   const addressBody = decoded.slice(1)

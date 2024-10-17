@@ -27,7 +27,8 @@ import {
   DUST_AMOUNT,
   Address,
   TOTAL_NUMBER_OF_GROUPS,
-  binToHex
+  binToHex,
+  TraceableError
 } from '@alephium/web3'
 import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
@@ -101,7 +102,7 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promis
     }
     return wallet
   } catch (error) {
-    throw new Error(`Failed to get signer, please restart the devnet: ${error}`)
+    throw new TraceableError(`Failed to get signer, please restart the devnet`, error)
   }
 }
 
@@ -119,8 +120,8 @@ export async function getSigners(
       wallets.push(wallet)
     }
     return wallets
-  } catch (_) {
-    throw new Error('Failed to get signers, please restart the devnet')
+  } catch (error) {
+    throw new TraceableError('Failed to get signers, please restart the devnet', error)
   }
 }
 

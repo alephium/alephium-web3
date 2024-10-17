@@ -121,7 +121,7 @@ describe('contract', function () {
       name: 'TF'
     }
     await expect(TokenTest.deploy(signer, { initialFields: invalidInitialFields0 })).rejects.toThrowError(
-      'Failed to build bytecode for contract TokenTest, error: Error: Invalid name, error: Invalid hex-string: TF'
+      'Failed to build bytecode for contract TokenTest, error: Failed to encode the field name, error: Invalid hex-string: TF'
     )
 
     const invalidInitialFields1 = {
@@ -129,7 +129,7 @@ describe('contract', function () {
       symbol: 'TokenFaucet'
     }
     await expect(TokenTest.deploy(signer, { initialFields: invalidInitialFields1 })).rejects.toThrowError(
-      'Failed to build bytecode for contract TokenTest, error: Error: Invalid symbol, error: Invalid hex-string: TokenFaucet'
+      'Failed to build bytecode for contract TokenTest, error: Failed to encode the field symbol, error: Invalid hex-string: TokenFaucet'
     )
   })
 })
