@@ -1524,7 +1524,7 @@ export async function getDebugMessagesFromTx(txId: HexString, provider?: NodePro
 
 export async function printDebugMessagesFromTx(txId: HexString, provider?: NodeProvider) {
   const messages = await getDebugMessagesFromTx(txId, provider)
-  if (isContractDebugMessageEnabled() && messages.length > 0) {
+  if (messages.length > 0) {
     messages.forEach((m) => printDebugMessage(m))
   }
 }
@@ -1877,7 +1877,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
   }
 
   const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
-  if (await contract.contract.isDevnet(signer)) {
+  if (isContractDebugMessageEnabled() && (await contract.contract.isDevnet(signer))) {
     await printDebugMessagesFromTx(result.txId, signer.nodeProvider)
   }
   return result
