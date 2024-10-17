@@ -29,7 +29,8 @@ import {
   WebCrypto,
   CompilerOptions,
   Constant,
-  Enum
+  Enum,
+  TraceableError
 } from '@alephium/web3'
 import * as path from 'path'
 import fs from 'fs'
@@ -484,7 +485,7 @@ export class Project {
     try {
       oldArtifact = await Contract.fromArtifactFile(artifactPath, '', '')
     } catch (error) {
-      throw new Error(`Failed to load contract artifact, error: ${error}, contract: ${newArtifact.sourceInfo.name}`)
+      throw new TraceableError(`Failed to load contract artifact, contract: ${newArtifact.sourceInfo.name}`, error)
     }
     newArtifact.artifact.functions.forEach((newFuncSig, index) => {
       const oldFuncSig = oldArtifact.functions[`${index}`]
@@ -566,18 +567,19 @@ export class Project {
         compilerOptions: compilerOptions
       })
     } catch (error) {
+      const traceableError = new TraceableError('Failed to compile the project', error)
       if (!(error instanceof Error)) {
-        throw error
+        throw traceableError
       }
 
       const parsed = parseError(error.message)
       if (!parsed) {
-        throw error
+        throw traceableError
       }
 
       const sourceInfo = findSourceInfoAtLineNumber(sources, parsed.lineStart)
       if (!sourceInfo) {
-        throw error
+        throw traceableError
       }
 
       const shiftIndex = parsed.lineStart - sourceInfo.startIndex + 1

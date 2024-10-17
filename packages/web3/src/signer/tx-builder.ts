@@ -31,7 +31,6 @@ import {
   SignExecuteScriptChainedTxResult,
   SignExecuteScriptTxParams,
   SignExecuteScriptTxResult,
-  SignTransferChainedTxResult,
   SignTransferTxParams,
   SignTransferTxResult,
   SignUnsignedTxParams,
@@ -40,7 +39,7 @@ import {
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
 import { blakeHash } from '../codec/hash'
-import { BuildDeployContractTxResult, BuildChainedTx, BuildChainedTxResult } from '../api/api-alephium'
+import { BuildDeployContractTxResult, BuildChainedTx } from '../api/api-alephium'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider

@@ -87,6 +87,7 @@ import {
   i32Codec,
   BytesConst
 } from '../codec'
+import { TraceableError } from '../error'
 
 const crypto = new WebCrypto()
 
@@ -602,7 +603,7 @@ export class Contract extends Artifact {
           : this.bytecode
       return ralph.buildContractByteCode(bytecode, initialFields, this.fieldsSig, this.structs)
     } catch (error) {
-      throw new Error(`Failed to build bytecode for contract ${this.name}, error: ${error}`)
+      throw new TraceableError(`Failed to build bytecode for contract ${this.name}`, error)
     }
   }
 
@@ -770,7 +771,7 @@ export class Script extends Artifact {
     try {
       return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig, this.structs)
     } catch (error) {
-      throw new Error(`Failed to build bytecode for script ${this.name}, error: ${error}`)
+      throw new TraceableError(`Failed to build bytecode for script ${this.name}`, error)
     }
   }
 }
@@ -1546,7 +1547,10 @@ export async function getMapItem<R extends Val>(
       // the map item contract does not exist
       return undefined
     }
-    throw error
+    throw new TraceableError(
+      `Failed to get value from map ${mapName}, key: ${key}, parent contract id: ${parentContractId}`,
+      error
+    )
   }
 }
 
@@ -2097,7 +2101,7 @@ export async function getContractEventsCurrentCount(contractAddress: Address): P
       if (error instanceof Error && error.message.includes(`${contractAddress} not found`)) {
         return 0
       }
-      throw error
+      throw new TraceableError(`Failed to get the event count for the contract ${contractAddress}`, error)
     })
 }
 

@@ -46,6 +46,7 @@ import {
   U256Const5
 } from '../codec'
 import { boolCodec } from '../codec/codec'
+import { TraceableError } from '../error'
 
 export function encodeByteVec(hex: string): Uint8Array {
   if (!isHexString(hex)) {
@@ -423,10 +424,7 @@ function _encodeField<T>(fieldName: string, encodeFunc: () => T): T {
   try {
     return encodeFunc()
   } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(`Invalid ${fieldName}, error: ${error.message}`)
-    }
-    throw error
+    throw new TraceableError(`Failed to encode the field ${fieldName}`, error)
   }
 }
 
