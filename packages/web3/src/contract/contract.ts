@@ -54,7 +54,9 @@ import {
   WebCrypto,
   hexToBinUnsafe,
   isDevnet,
-  HexString
+  HexString,
+  isHexString,
+  hexToString
 } from '../utils'
 import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
 import { getCurrentNodeProvider } from '../global'
@@ -406,7 +408,7 @@ export class Contract extends Artifact {
   printDebugMessages(funcName: string, messages: DebugMessage[]) {
     if (isContractDebugMessageEnabled() && messages.length != 0) {
       console.log(`Testing ${this.name}.${funcName}:`)
-      messages.forEach((m) => console.log(`> Contract @ ${m.contractAddress} - ${m.message}`))
+      messages.forEach((m) => printDebugMessage(m))
     }
   }
 
@@ -504,6 +506,7 @@ export class Contract extends Artifact {
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
+  static DebugEventIndex = -3
 
   static fromApiEvent(
     event: node.ContractEventByTxId,
@@ -1495,6 +1498,38 @@ export async function testMethod<
   } as TestContractResult<R, M>
 }
 
+function printDebugMessage(m: node.DebugMessage) {
+  console.log(`> Contract @ ${m.contractAddress} - ${m.message}`)
+}
+
+export async function getDebugMessagesFromTx(txId: HexString, provider?: NodeProvider) {
+  if (isHexString(txId) && txId.length === 64) {
+    const nodeProvider = provider ?? getCurrentNodeProvider()
+    const events = await nodeProvider.events.getEventsTxIdTxid(txId)
+    return events.events
+      .filter((e) => e.eventIndex === Contract.DebugEventIndex)
+      .map((e) => {
+        if (e.fields.length === 1 && e.fields[0].type === 'ByteVec') {
+          return {
+            contractAddress: e.contractAddress,
+            message: hexToString(e.fields[0].value as string)
+          }
+        } else {
+          throw new Error(`Invalid debug log: ${JSON.stringify(e.fields)}`)
+        }
+      })
+  } else {
+    throw new Error(`Invalid tx id: ${txId}`)
+  }
+}
+
+export async function printDebugMessagesFromTx(txId: HexString, provider?: NodeProvider) {
+  const messages = await getDebugMessagesFromTx(txId, provider)
+  if (messages.length > 0) {
+    messages.forEach((m) => printDebugMessage(m))
+  }
+}
+
 export class RalphMap<K extends Val, V extends Val> {
   private readonly groupIndex: number
   constructor(
@@ -1845,7 +1880,11 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
     gasPrice: params.gasPrice
   }
 
-  return await signer.signAndSubmitExecuteScriptTx(signerParams)
+  const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
+  if (isContractDebugMessageEnabled() && (await contract.contract.isDevnet(signer))) {
+    await printDebugMessagesFromTx(result.txId, signer.nodeProvider)
+  }
+  return result
 }
 
 function getBytecodeTemplate(

@@ -40,7 +40,9 @@ import {
   u256Val,
   ZERO_ADDRESS,
   MINIMAL_CONTRACT_DEPOSIT,
-  ContractStateWithMaps
+  ContractStateWithMaps,
+  getDebugMessagesFromTx,
+  printDebugMessagesFromTx
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -308,6 +310,15 @@ describe('contract', function () {
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
     const nullContractAddress = addressFromContractId('0'.repeat(64))
     expect(result.debugMessages[0].message).toEqual(`Hello, ${nullContractAddress}!`)
+  })
+
+  it('should get debug messages from tx', async () => {
+    const deployResult = await Debug.deploy(signer, { initialFields: {} })
+    const txResult = await deployResult.contractInstance.transact.debug({ signer })
+    const messages = await getDebugMessagesFromTx(txResult.txId)
+    expect(messages).toEqual([
+      { contractAddress: deployResult.contractInstance.address, message: `Hello, ${ZERO_ADDRESS}!` }
+    ])
   })
 
   it('should test assert!', async () => {
