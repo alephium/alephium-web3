@@ -35,7 +35,9 @@ export async function deployAndSaveProgress<Settings = unknown>(
     scriptExecuted = await deploy(configuration, networkId, deployments, fromIndex, toIndex, silent)
   } catch (error) {
     await deployments.saveToFile(deploymentsFile, configuration, false)
-    console.error(`Failed to deploy the project, error: `, error)
+    if (configuration.enableDebugMode) {
+      console.log(`Failed to deploy the project, error: `, error)
+    }
     throw new TraceableError('Failed to deploy the project', error)
   }
 
