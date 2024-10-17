@@ -319,7 +319,6 @@ describe('contract', function () {
     expect(messages).toEqual([
       { contractAddress: deployResult.contractInstance.address, message: `Hello, ${ZERO_ADDRESS}!` }
     ])
-    await printDebugMessagesFromTx(txResult.txId)
   })
 
   it('should test assert!', async () => {
