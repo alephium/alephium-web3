@@ -2,6 +2,10 @@
   "name": "@alephium/web3",
   "version": "1.8.2",
   "description": "A JS/TS library to interact with the Alephium platform",
+  "keywords": [
+    "alephium",
+    "web3"
+  ],
   "license": "GPL",
   "repository": {
     "type": "git",
