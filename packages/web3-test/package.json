@@ -18,7 +18,6 @@
   "author": "Alephium dev <dev@alephium.org>",
   "main": "dist/_cjs/index.js",
   "module": "dist/_esm/index.js",
-  "browser": "dist/alephium-web3-wallet.min.js",
   "types": "dist/_types/index.d.ts",
   "exports": {
     ".": {
@@ -27,7 +26,7 @@
       "import": "./dist/_esm/index.js"
     }
   },
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "rm -rf dist/* && npm run build:cjs && npm run build:esm && npm run build:dts",
     "build:esm": "tsc --module esnext --outDir dist/_esm --declaration false --declarationMap false --sourceMap true",
