@@ -3,26 +3,6 @@
   "version": "1.8.2",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
-  "main": "dist/src/index.js",
-  "browser": "dist/alephium-web3.min.js",
-  "types": "dist/src/index.d.ts",
-  "exports": {
-    "node": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
-    },
-    "default": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/alephium-web3.min.js"
-    }
-  },
-  "typesVersions": {
-    "*": {
-      "test": [
-        "dist/src/test/"
-      ]
-    }
-  },
   "repository": {
     "type": "git",
     "url": "git@github.com:alephium/alephium-web3.git"
@@ -32,19 +12,33 @@
     "url": "https://github.com/alephium/alephium-web3/issues"
   },
   "author": "Alephium dev <dev@alephium.org>",
+  "main": "dist/_cjs/src/index.js",
+  "module": "dist/_esm/src/index.js",
+  "browser": "dist/alephium-web3.min.js",
+  "types": "dist/_types/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/_types/src/index.d.ts",
+      "require": "./dist/_cjs/src/index.js",
+      "import": "./dist/_esm/src/index.js"
+    }
+  },
+  "type": "module",
   "config": {
     "alephium_version": "3.8.1",
     "explorer_backend_version": "2.2.3"
   },
   "scripts": {
-    "build": "rm -rf dist/* && npx tsc --build . && webpack",
+    "build": "rm -rf dist/* && npm run build:cjs && npm run build:esm && npm run build:dts && webpack",
+    "build:esm": "tsc --module esnext --outDir dist/_esm --declaration false --declarationMap false --sourceMap true",
+    "build:cjs": "tsc --module commonjs --outDir dist/_cjs --declaration false --declarationMap false --sourceMap true",
+    "build:dts": "tsc --module esnext --outDir dist/_types --declaration true --declarationMap true --sourceMap false --emitDeclarationOnly",
     "test": "jest -i --config ./jest-config.json",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
     "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
     "update-schema:explorer": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
     "check-versions": "node scripts/check-versions.js ${npm_package_config_alephium_version} ${npm_package_config_explorer_backend_version}"
   },
-  "type": "commonjs",
   "dependencies": {
     "@noble/secp256k1": "1.7.1",
     "base-x": "4.0.0",

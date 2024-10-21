@@ -21,7 +21,7 @@ const webpack = require('webpack')
 module.exports = {
   mode: 'production',
   entry: {
-    alephium: './dist/src/index.js'
+    alephium: './dist/_cjs/src/index.js'
   },
   plugins: [
     new webpack.SourceMapDevToolPlugin({ filename: '[file].map' }),
