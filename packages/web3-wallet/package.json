@@ -27,7 +27,7 @@
       "import": "./dist/_esm/index.js"
     }
   },
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "build": "rm -rf dist/* && npm run build:cjs && npm run build:esm && npm run build:dts && webpack",
     "build:esm": "tsc --module esnext --outDir dist/_esm --declaration false --declarationMap false --sourceMap true",

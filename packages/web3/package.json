@@ -27,7 +27,7 @@
       "import": "./dist/_esm/src/index.js"
     }
   },
-  "type": "module",
+  "type": "commonjs",
   "config": {
     "alephium_version": "3.8.1",
     "explorer_backend_version": "2.2.3"
