@@ -5,6 +5,8 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  react: ^18.0.0
+  react-dom: ^18.0.0
   semver@<7.5.2: '>=7.5.2'
   protobufjs@>=6.10.0 <7.2.4: '>=7.2.4'
   '@babel/traverse': '>=7.23.2'
@@ -493,10 +495,10 @@ importers:
         specifier: ^1.5.1
         version: 1.5.1
       react:
-        specifier: 17.x || 18.x
+        specifier: ^18.0.0
         version: 18.2.0
       react-dom:
-        specifier: 17.x || 18.x
+        specifier: ^18.0.0
         version: 18.2.0(react@18.2.0)
       react-transition-state:
         specifier: ^1.1.5
@@ -3616,8 +3618,8 @@ packages:
   framer-motion@6.5.1:
     resolution: {integrity: sha512-o1BGqqposwi7cgDrtg0dNONhkmPsUFDaLcKXigzuTFC5x58mE8iyTazxSudFzmT6MEyJKfjjU8ItoMe3W+3fiw==}
     peerDependencies:
-      react: '>=16.8 || ^17.0.0 || ^18.0.0'
-      react-dom: '>=16.8 || ^17.0.0 || ^18.0.0'
+      react: ^18.0.0
+      react-dom: ^18.0.0
 
   framesync@6.0.1:
     resolution: {integrity: sha512-fUY88kXvGiIItgNC7wcTOl0SNRCVXMKSWW2Yzfmn7EKNc+MpCzcz9DhdHcdjbrtN3c6R4H5dTY2jiCpPdysEjA==}
@@ -5121,7 +5123,7 @@ packages:
   react-dom@18.2.0:
     resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
     peerDependencies:
-      react: ^18.2.0
+      react: ^18.0.0
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -5135,14 +5137,14 @@ packages:
   react-transition-state@1.1.5:
     resolution: {integrity: sha512-ITY2mZqc2dWG2eitJkYNdcSFW8aKeOlkL2A/vowRrLL8GH3J6Re/SpD/BLvQzrVOTqjsP0b5S9N10vgNNzwMUQ==}
     peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
+      react: ^18.0.0
+      react-dom: ^18.0.0
 
   react-use-measure@2.1.1:
     resolution: {integrity: sha512-nocZhN26cproIiIduswYpV5y5lQpSQS1y/4KuvUCjSKmw7ZWIS/+g3aFnX3WdBkyuGUtTLif3UTqnLLhbDoQig==}
     peerDependencies:
-      react: '>=16.13'
-      react-dom: '>=16.13'
+      react: ^18.0.0
+      react-dom: ^18.0.0
 
   react@18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
@@ -5611,8 +5613,8 @@ packages:
     resolution: {integrity: sha512-Aj3kb13B75DQBo2oRwRa/APdB5rSmwUfN5exyarpX+x/tlM/rwZA2vVk2vQgVSP6WKaZJHWwiFrzgHt+CLtB4A==}
     engines: {node: '>=10'}
     peerDependencies:
-      react: '>= 16.8.0'
-      react-dom: '>= 16.8.0'
+      react: ^18.0.0
+      react-dom: ^18.0.0
       react-is: '>= 16.8.0'
 
   supports-color@5.5.0:
