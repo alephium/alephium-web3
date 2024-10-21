@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Configuration, Network } from '../packages/cli/dist'
-import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from '../packages/cli/dist'
+import { Configuration, Network } from '@alephium/cli'
+import { getConfigFile, getDeploymentFilePath, getNetwork, loadConfig } from '@alephium/cli'
 import path from 'path'
 
 describe.skip('utils', () => {
