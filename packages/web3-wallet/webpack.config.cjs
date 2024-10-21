@@ -41,7 +41,7 @@ module.exports = {
     }
   },
   output: {
-    filename: 'alephium-web3-wallet.min.js',
+    filename: '_umd/alephium-web3-wallet.min.js',
     library: {
       name: 'alephium',
       type: 'umd'

@@ -41,7 +41,7 @@ module.exports = {
     }
   },
   output: {
-    filename: 'alephium-web3.min.js',
+    filename: '_umd/alephium-web3.min.js',
     library: {
       name: 'alephium',
       type: 'umd'

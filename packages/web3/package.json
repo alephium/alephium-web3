@@ -18,7 +18,7 @@
   "author": "Alephium dev <dev@alephium.org>",
   "main": "dist/_cjs/src/index.js",
   "module": "dist/_esm/src/index.js",
-  "browser": "dist/alephium-web3.min.js",
+  "browser": "dist/_umd/alephium-web3.min.js",
   "types": "dist/_types/src/index.d.ts",
   "exports": {
     ".": {
