@@ -115,7 +115,8 @@ export const DEFAULT_NODE_COMPILER_OPTIONS: node.CompilerOptions = {
   ignoreUnusedPrivateFunctionsWarnings: false,
   ignoreUpdateFieldsCheckWarnings: false,
   ignoreCheckExternalCallerWarnings: false,
-  ignoreUnusedFunctionReturnWarnings: false
+  ignoreUnusedFunctionReturnWarnings: false,
+  skipAbstractContractCheck: false
 }
 
 export const DEFAULT_COMPILER_OPTIONS: CompilerOptions = { errorOnWarnings: true, ...DEFAULT_NODE_COMPILER_OPTIONS }

@@ -571,6 +571,7 @@ export interface CompilerOptions {
   ignoreUpdateFieldsCheckWarnings?: boolean
   ignoreCheckExternalCallerWarnings?: boolean
   ignoreUnusedFunctionReturnWarnings?: boolean
+  skipAbstractContractCheck?: boolean
 }
 
 /** Confirmed */
@@ -1650,7 +1651,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.8.1
+ * @version 3.8.6
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
