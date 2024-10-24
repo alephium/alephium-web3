@@ -154,7 +154,7 @@ export abstract class TransactionBuilder {
     return results
   }
 
-  buildUnsignedTx(params: SignUnsignedTxParams): Omit<SignUnsignedTxResult, 'signature'> {
+  static buildUnsignedTx(params: SignUnsignedTxParams): Omit<SignUnsignedTxResult, 'signature'> {
     const unsignedTxBin = hexToBinUnsafe(params.unsignedTx)
     const decoded = unsignedTxCodec.decode(unsignedTxBin)
     const txId = binToHex(blakeHash(unsignedTxBin))
