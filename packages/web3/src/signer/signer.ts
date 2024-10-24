@@ -186,7 +186,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
-    const response = await TransactionBuilder.from(this.nodeProvider).buildUnsignedTx(params)
+    const response = TransactionBuilder.buildUnsignedTx(params)
     const signature = await this.signRaw(params.signerAddress, response.txId)
     return { signature, ...response }
   }
