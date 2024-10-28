@@ -33,7 +33,8 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { WarningsContractArtifact, getContractByCodeHash } from "./contracts";
+import { default as WarningsContractJson } from "../test/Warnings.ral.json";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -122,7 +123,15 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
 }
 
 // Use this object to test and deploy the contract
-export const Warnings = new Factory(WarningsContractArtifact);
+export const Warnings = new Factory(
+  Contract.fromJson(
+    WarningsContractJson,
+    "",
+    "873e095edb39cdb4b11b1157003daeacad06d259a938cd270e22b8e89b75feea",
+    AllStructs
+  )
+);
+registerContract(Warnings);
 
 // Use this class to interact with the blockchain
 export class WarningsInstance extends ContractInstance {

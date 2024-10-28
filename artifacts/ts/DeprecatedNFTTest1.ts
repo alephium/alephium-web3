@@ -33,10 +33,8 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import {
-  DeprecatedNFTTest1ContractArtifact,
-  getContractByCodeHash,
-} from "./contracts";
+import { default as DeprecatedNFTTest1ContractJson } from "../nft/DeprecatedNFTTest1.ral.json";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -127,8 +125,14 @@ class Factory extends ContractFactory<
 
 // Use this object to test and deploy the contract
 export const DeprecatedNFTTest1 = new Factory(
-  DeprecatedNFTTest1ContractArtifact
+  Contract.fromJson(
+    DeprecatedNFTTest1ContractJson,
+    "",
+    "cc6928c9c6777077abcb5b9c4f7c5d620d6cae07ec6f00f5e8b0efe6a7b913c4",
+    AllStructs
+  )
 );
+registerContract(DeprecatedNFTTest1);
 
 // Use this class to interact with the blockchain
 export class DeprecatedNFTTest1Instance extends ContractInstance {

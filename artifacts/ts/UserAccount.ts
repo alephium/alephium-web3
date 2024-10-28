@@ -33,10 +33,8 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import {
-  UserAccountContractArtifact,
-  getContractByCodeHash,
-} from "./contracts";
+import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -162,7 +160,15 @@ class Factory extends ContractFactory<
 }
 
 // Use this object to test and deploy the contract
-export const UserAccount = new Factory(UserAccountContractArtifact);
+export const UserAccount = new Factory(
+  Contract.fromJson(
+    UserAccountContractJson,
+    "",
+    "4e9f7eac1b76eaa2268b5af6ebb5640252892dc170aad6c1ee7b639131a55816",
+    AllStructs
+  )
+);
+registerContract(UserAccount);
 
 // Use this class to interact with the blockchain
 export class UserAccountInstance extends ContractInstance {

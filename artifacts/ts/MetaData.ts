@@ -33,7 +33,8 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { MetaDataContractArtifact, getContractByCodeHash } from "./contracts";
+import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -154,7 +155,15 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
 }
 
 // Use this object to test and deploy the contract
-export const MetaData = new Factory(MetaDataContractArtifact);
+export const MetaData = new Factory(
+  Contract.fromJson(
+    MetaDataContractJson,
+    "",
+    "5b113459525557465f1cc5aeee453dfd5823d1a6094372cee6067f7466b40896",
+    AllStructs
+  )
+);
+registerContract(MetaData);
 
 // Use this class to interact with the blockchain
 export class MetaDataInstance extends ContractInstance {

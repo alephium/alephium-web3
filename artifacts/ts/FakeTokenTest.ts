@@ -33,10 +33,8 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import {
-  FakeTokenTestContractArtifact,
-  getContractByCodeHash,
-} from "./contracts";
+import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -189,7 +187,15 @@ class Factory extends ContractFactory<
 }
 
 // Use this object to test and deploy the contract
-export const FakeTokenTest = new Factory(FakeTokenTestContractArtifact);
+export const FakeTokenTest = new Factory(
+  Contract.fromJson(
+    FakeTokenTestContractJson,
+    "",
+    "52f971cb44d54a5353e94dc8db991d2726f76760af782e79bd8a66a9b5b294b7",
+    AllStructs
+  )
+);
+registerContract(FakeTokenTest);
 
 // Use this class to interact with the blockchain
 export class FakeTokenTestInstance extends ContractInstance {
