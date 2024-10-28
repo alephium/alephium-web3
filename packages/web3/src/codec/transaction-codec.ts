@@ -26,7 +26,7 @@ import { FixedAssetOutput, Transaction as ApiTransaction } from '../api/api-alep
 import { binToHex, hexToBinUnsafe } from '../utils'
 import { ContractOutput as ApiContractOutput } from '../api/api-alephium'
 import { byteCodec, ObjectCodec } from './codec'
-import { Output, outputCodec, outputsCodec } from './output-codec'
+import { Output, outputsCodec } from './output-codec'
 
 export interface Transaction {
   unsigned: UnsignedTx

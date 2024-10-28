@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 /** This source is under MIT License and come originally from https://github.com/cryptocoinjs/bs58 **/
 import basex from 'base-x'
+import { TraceableError } from '../error'
 
 const ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
@@ -31,6 +32,14 @@ export function isBase58(s: string): boolean {
     return bs58.encode(bs58.decode(s)) === s
   } catch (err) {
     return false
+  }
+}
+
+export function base58ToBytes(s: string): Uint8Array {
+  try {
+    return bs58.decode(s)
+  } catch (e) {
+    throw new TraceableError(`Invalid base58 string ${s}`, e)
   }
 }
 

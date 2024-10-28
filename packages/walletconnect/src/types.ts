@@ -30,7 +30,9 @@ import {
   ApiRequestArguments,
   assertType,
   Eq,
-  NetworkId
+  NetworkId,
+  SignChainedTxParams,
+  SignChainedTxResult
 } from '@alephium/web3'
 import { SignClientTypes } from '@walletconnect/types'
 import { RELAY_METHODS } from './constants'
@@ -54,6 +56,10 @@ type RelayMethodsTable = {
   alph_signAndSubmitUnsignedTx: {
     params: SignUnsignedTxParams
     result: SignUnsignedTxResult
+  }
+  alph_signAndSubmitChainedTx: {
+    params: SignChainedTxParams[]
+    result: SignChainedTxResult[]
   }
   alph_signUnsignedTx: {
     params: SignUnsignedTxParams

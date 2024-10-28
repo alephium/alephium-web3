@@ -1,5 +1,5 @@
 {
-  "version": "v3.6.4",
+  "version": "v3.8.6",
   "name": "DestroyAdd",
   "bytecodeTemplate": "01010300000005{1}0d0c{0}0105",
   "fieldsSig": {

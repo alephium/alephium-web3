@@ -21,6 +21,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import 'cross-fetch/polyfill'
 import { NFTCollectionUriMetaData, NFTTokenUriMetaData } from '../api'
+import { TraceableError } from '../error'
 
 export const validNFTTokenUriMetaDataFields = ['name', 'description', 'image', 'attributes']
 export const validNFTTokenUriMetaDataAttributesFields = ['trait_type', 'value']
@@ -130,7 +131,7 @@ async function fetchNFTMetadata(nftBaseUri: string, index: number) {
   try {
     return await (await fetch(`${nftBaseUri}${index}`)).json()
   } catch (e) {
-    throw new Error(`Error fetching NFT metadata from ${nftBaseUri}${index}: ${e}`)
+    throw new TraceableError(`Error fetching NFT metadata from ${nftBaseUri}${index}`, e)
   }
 }
 

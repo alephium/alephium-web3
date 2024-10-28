@@ -54,7 +54,9 @@ import {
   WebCrypto,
   hexToBinUnsafe,
   isDevnet,
-  HexString
+  HexString,
+  isHexString,
+  hexToString
 } from '../utils'
 import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
 import { getCurrentNodeProvider } from '../global'
@@ -87,6 +89,7 @@ import {
   i32Codec,
   BytesConst
 } from '../codec'
+import { TraceableError } from '../error'
 
 const crypto = new WebCrypto()
 
@@ -112,7 +115,8 @@ export const DEFAULT_NODE_COMPILER_OPTIONS: node.CompilerOptions = {
   ignoreUnusedPrivateFunctionsWarnings: false,
   ignoreUpdateFieldsCheckWarnings: false,
   ignoreCheckExternalCallerWarnings: false,
-  ignoreUnusedFunctionReturnWarnings: false
+  ignoreUnusedFunctionReturnWarnings: false,
+  skipAbstractContractCheck: false
 }
 
 export const DEFAULT_COMPILER_OPTIONS: CompilerOptions = { errorOnWarnings: true, ...DEFAULT_NODE_COMPILER_OPTIONS }
@@ -405,7 +409,7 @@ export class Contract extends Artifact {
   printDebugMessages(funcName: string, messages: DebugMessage[]) {
     if (isContractDebugMessageEnabled() && messages.length != 0) {
       console.log(`Testing ${this.name}.${funcName}:`)
-      messages.forEach((m) => console.log(`> Contract @ ${m.contractAddress} - ${m.message}`))
+      messages.forEach((m) => printDebugMessage(m))
     }
   }
 
@@ -503,6 +507,7 @@ export class Contract extends Artifact {
     fieldNames: ['address'],
     fieldTypes: ['Address']
   }
+  static DebugEventIndex = -3
 
   static fromApiEvent(
     event: node.ContractEventByTxId,
@@ -602,7 +607,7 @@ export class Contract extends Artifact {
           : this.bytecode
       return ralph.buildContractByteCode(bytecode, initialFields, this.fieldsSig, this.structs)
     } catch (error) {
-      throw new Error(`Failed to build bytecode for contract ${this.name}, error: ${error}`)
+      throw new TraceableError(`Failed to build bytecode for contract ${this.name}`, error)
     }
   }
 
@@ -770,7 +775,7 @@ export class Script extends Artifact {
     try {
       return ralph.buildScriptByteCode(this.bytecodeTemplate, initialFields, this.fieldsSig, this.structs)
     } catch (error) {
-      throw new Error(`Failed to build bytecode for script ${this.name}, error: ${error}`)
+      throw new TraceableError(`Failed to build bytecode for script ${this.name}`, error)
     }
   }
 }
@@ -1494,6 +1499,38 @@ export async function testMethod<
   } as TestContractResult<R, M>
 }
 
+function printDebugMessage(m: node.DebugMessage) {
+  console.log(`> Contract @ ${m.contractAddress} - ${m.message}`)
+}
+
+export async function getDebugMessagesFromTx(txId: HexString, provider?: NodeProvider) {
+  if (isHexString(txId) && txId.length === 64) {
+    const nodeProvider = provider ?? getCurrentNodeProvider()
+    const events = await nodeProvider.events.getEventsTxIdTxid(txId)
+    return events.events
+      .filter((e) => e.eventIndex === Contract.DebugEventIndex)
+      .map((e) => {
+        if (e.fields.length === 1 && e.fields[0].type === 'ByteVec') {
+          return {
+            contractAddress: e.contractAddress,
+            message: hexToString(e.fields[0].value as string)
+          }
+        } else {
+          throw new Error(`Invalid debug log: ${JSON.stringify(e.fields)}`)
+        }
+      })
+  } else {
+    throw new Error(`Invalid tx id: ${txId}`)
+  }
+}
+
+export async function printDebugMessagesFromTx(txId: HexString, provider?: NodeProvider) {
+  const messages = await getDebugMessagesFromTx(txId, provider)
+  if (messages.length > 0) {
+    messages.forEach((m) => printDebugMessage(m))
+  }
+}
+
 export class RalphMap<K extends Val, V extends Val> {
   private readonly groupIndex: number
   constructor(
@@ -1546,7 +1583,10 @@ export async function getMapItem<R extends Val>(
       // the map item contract does not exist
       return undefined
     }
-    throw error
+    throw new TraceableError(
+      `Failed to get value from map ${mapName}, key: ${key}, parent contract id: ${parentContractId}`,
+      error
+    )
   }
 }
 
@@ -1841,7 +1881,11 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
     gasPrice: params.gasPrice
   }
 
-  return await signer.signAndSubmitExecuteScriptTx(signerParams)
+  const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
+  if (isContractDebugMessageEnabled() && (await contract.contract.isDevnet(signer))) {
+    await printDebugMessagesFromTx(result.txId, signer.nodeProvider)
+  }
+  return result
 }
 
 function getBytecodeTemplate(
@@ -2097,7 +2141,7 @@ export async function getContractEventsCurrentCount(contractAddress: Address): P
       if (error instanceof Error && error.message.includes(`${contractAddress} not found`)) {
         return 0
       }
-      throw error
+      throw new TraceableError(`Failed to get the event count for the contract ${contractAddress}`, error)
     })
 }
 

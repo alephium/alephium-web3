@@ -19,62 +19,27 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import fsExtra from 'fs-extra'
 import path from 'path'
-import { execSync } from 'child_process'
+import { execFileSync } from 'child_process'
 
-function copy(packageRoot: string, projectRoot: string, dir: string, files: string[]) {
-  const packageDevDir = path.join(packageRoot, dir)
-  const projectDevDir = path.join(projectRoot, dir)
-  if (!fsExtra.existsSync(projectDevDir)) {
-    fsExtra.mkdirSync(projectDevDir)
-  }
-  for (const file of files) {
-    fsExtra.copyFileSync(path.join(packageDevDir, file), path.join(projectDevDir, file))
-  }
-}
-
-function prepareShared(packageRoot: string, projectRoot: string) {
-  console.log('Copying files')
-  console.log(`  from ${packageRoot}`)
-  console.log(`  to ${projectRoot}`)
-
-  fsExtra.copySync(path.join(packageRoot, 'templates/shared'), projectRoot)
-  copy(packageRoot, projectRoot, '', ['.editorconfig', '.eslintignore', '.gitattributes', 'jest-config.json'])
-  const outputDir = path.join(packageRoot, 'dist')
-  fsExtra.copySync(path.join(outputDir, 'gitignore'), path.join(projectRoot, '.gitignore'))
-  fsExtra.copySync(path.join(outputDir, 'npmignore'), path.join(projectRoot, '.npmignore'))
-  console.log()
-}
-
-function prepareBase(packageRoot: string, projectRoot: string) {
-  prepareShared(packageRoot, projectRoot)
-  fsExtra.copySync(path.join(packageRoot, 'templates/base'), projectRoot)
-
-  console.log('Initializing the project')
-  execSync('npm install', { cwd: projectRoot })
-  console.log()
-}
-
-function prepareReact(packageRoot: string, projectRoot: string) {
-  console.log('Creating the React app')
-  execSync(`npx create-react-app ${projectRoot} --template typescript`)
-
-  prepareShared(packageRoot, projectRoot)
-  fsExtra.copySync(path.join(packageRoot, 'templates/react'), projectRoot)
-
-  console.log('Initializing the project')
-  execSync(
-    'npm install --save-dev react-app-rewired crypto-browserify stream-browserify buffer process eslint-config-prettier eslint-plugin-header eslint-plugin-prettier eslint-plugin-react',
-    { cwd: projectRoot }
-  )
-  execSync('npm install && npm run prettier', { cwd: projectRoot })
-  console.log()
-}
-
-function prepareNextJs(_packageRoot: string, projectRoot: string) {
+function prepareNextJs(templateType: string, _packageRoot: string, projectRoot: string) {
   console.log('Creating the Nextjs app')
-  execSync(`npx create-next-app ${projectRoot} --example https://github.com/alephium/nextjs-template --typescript`)
-  execSync('npm install && npm run prettier', { cwd: projectRoot })
+  const prefix = templateType === 'nextjs' ? 'nextjs-app' : templateType
+  execFileSync(
+    'npx',
+    [
+      'create-next-app',
+      projectRoot,
+      '--example',
+      `https://github.com/alephium/${prefix}-dapp-template`,
+      '--typescript'
+    ],
+    { stdio: 'inherit' }
+  )
   console.log()
+}
+
+function gitClone(url: string, projectRoot: string) {
+  execFileSync('git', ['clone', url, projectRoot], { stdio: 'inherit' })
 }
 
 export function createProject(templateType: string, packageRoot: string, projectRoot: string): void {
@@ -87,14 +52,21 @@ export function createProject(templateType: string, packageRoot: string, project
   }
   switch (templateType) {
     case 'base':
-      prepareBase(packageRoot, projectRoot)
+      gitClone('https://github.com/alephium/nodejs-dapp-template.git', projectRoot)
       break
     case 'react':
-      prepareReact(packageRoot, projectRoot)
+      gitClone('https://github.com/alephium/react-dapp-template.git', projectRoot)
       break
     case 'nextjs':
-      prepareNextJs(packageRoot, projectRoot)
+    case 'nextjs-app':
+    case 'nextjs-pages':
+      prepareNextJs(templateType, packageRoot, projectRoot)
       break
+    default:
+      console.error(
+        `Invalid template type ${templateType}, expect one of base, react, nextjs, nextjs-app, nextjs-pages`
+      )
+      process.exit(1)
   }
 
   console.log('✅ Done.')

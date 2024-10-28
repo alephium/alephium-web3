@@ -35,7 +35,8 @@ import {
   ContractInstance,
   ExecutableScript,
   isHexString,
-  isDevnet
+  isDevnet,
+  TraceableError
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
@@ -647,10 +648,10 @@ export async function deploy<Settings = unknown>(
           func: content.default as DeployFunction<Settings>
         })
       } else {
-        throw new Error(`no default deploy function exported from ${scriptFilePath}`)
+        throw new Error(`No default deploy function exported from ${scriptFilePath}`)
       }
     } catch (error) {
-      throw new Error(`failed to load deploy script, filepath: ${scriptFilePath}, error: ${error}`)
+      throw new TraceableError(`Failed to load deploy script, filepath: ${scriptFilePath}`, error)
     }
   }
 
@@ -789,7 +790,7 @@ async function deployToGroup<Settings = unknown>(
         deployments.migrations.set(script.func.id, Date.now())
       }
     } catch (error) {
-      throw new Error(`failed to execute deploy script, filepath: ${script.scriptFilePath}, error: ${error}`)
+      throw new TraceableError(`Failed to execute deploy script, filepath: ${script.scriptFilePath}`, error)
     }
   }
 }

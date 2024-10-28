@@ -34,7 +34,7 @@ import {
   Narrow,
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest6ContractJson } from "../nft/DeprecatedNFTTest6.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -148,6 +148,7 @@ export const DeprecatedNFTTest6 = new Factory(
     AllStructs
   )
 );
+registerContract(DeprecatedNFTTest6);
 
 // Use this class to interact with the blockchain
 export class DeprecatedNFTTest6Instance extends ContractInstance {

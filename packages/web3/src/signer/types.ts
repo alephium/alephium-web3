@@ -54,7 +54,7 @@ export interface SignTransferTxParams {
   gasAmount?: number
   gasPrice?: Number256
 }
-assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransaction>>>()
+assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransferTx>>>()
 export interface SignTransferTxResult {
   fromGroup: number
   toGroup: number
@@ -64,7 +64,7 @@ export interface SignTransferTxResult {
   gasAmount: number
   gasPrice: Number256
 }
-assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransactionResult>>>()
+assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransferTxResult>>>()
 
 export interface SignDeployContractTxParams {
   signerAddress: string
@@ -137,6 +137,26 @@ export interface SignUnsignedTxResult {
   gasPrice: Number256
 }
 assertType<Eq<SignUnsignedTxResult, SignTransferTxResult>>
+
+export type SignTransferChainedTxParams = SignTransferTxParams & { type: 'Transfer' }
+export type SignDeployContractChainedTxParams = SignDeployContractTxParams & {
+  type: 'DeployContract'
+}
+export type SignExecuteScriptChainedTxParams = SignExecuteScriptTxParams & { type: 'ExecuteScript' }
+export type SignChainedTxParams =
+  | SignTransferChainedTxParams
+  | SignDeployContractChainedTxParams
+  | SignExecuteScriptChainedTxParams
+
+export type SignTransferChainedTxResult = SignTransferTxResult & { type: 'Transfer' }
+export type SignDeployContractChainedTxResult = SignDeployContractTxResult & {
+  type: 'DeployContract'
+}
+export type SignExecuteScriptChainedTxResult = SignExecuteScriptTxResult & { type: 'ExecuteScript' }
+export type SignChainedTxResult =
+  | SignTransferChainedTxResult
+  | SignDeployContractChainedTxResult
+  | SignExecuteScriptChainedTxResult
 
 export type MessageHasher =
   | 'alephium' // Message is prefixed with 'Alephium signed message: ' before hashed with blake2b

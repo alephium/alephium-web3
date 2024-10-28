@@ -1,15 +1,21 @@
 {
   "version": "v3.8.6",
-  "name": "TestAssert",
-  "bytecodeTemplate": "010103000000040c0c{0}0100",
+  "name": "DepositToken",
+  "bytecodeTemplate": "01010300000009b4{1}{2}a3{2}0d0c{0}0102",
   "fieldsSig": {
     "names": [
-      "assert"
+      "c",
+      "tokenId",
+      "amount"
     ],
     "types": [
-      "Assert"
+      "Transact",
+      "ByteVec",
+      "U256"
     ],
     "isMutable": [
+      false,
+      false,
       false
     ]
   },

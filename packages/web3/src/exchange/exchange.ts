@@ -17,19 +17,15 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { AddressType, addressFromPublicKey, addressFromScript } from '../address'
-import { binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
+import { base58ToBytes, binToHex, hexToBinUnsafe, isHexString } from '../utils'
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 import { P2SH, unlockScriptCodec } from '../codec/unlock-script-codec'
 import { scriptCodec } from '../codec/script-codec'
+import { TraceableError } from '../error'
 
 export function validateExchangeAddress(address: string) {
-  let decoded: Uint8Array
-  try {
-    decoded = bs58.decode(address)
-  } catch (_) {
-    throw new Error('Invalid base58 string')
-  }
+  const decoded = base58ToBytes(address)
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType !== AddressType.P2PKH && addressType !== AddressType.P2SH) {
@@ -106,8 +102,8 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
     let p2sh: P2SH
     try {
       p2sh = unlockScriptCodec.decode(decoded).value as P2SH
-    } catch (_) {
-      throw new Error(`Invalid p2sh unlock script: ${unlockScript}`)
+    } catch (e) {
+      throw new TraceableError(`Invalid p2sh unlock script: ${unlockScript}`, e)
     }
     return addressFromScript(scriptCodec.encode(p2sh.script))
   }

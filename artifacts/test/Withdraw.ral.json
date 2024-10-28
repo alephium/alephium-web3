@@ -1,13 +1,13 @@
 {
   "version": "v3.8.6",
-  "name": "TestAssert",
-  "bytecodeTemplate": "010103000000040c0c{0}0100",
+  "name": "Withdraw",
+  "bytecodeTemplate": "010103000000040c0c{0}0101",
   "fieldsSig": {
     "names": [
-      "assert"
+      "c"
     ],
     "types": [
-      "Assert"
+      "Transact"
     ],
     "isMutable": [
       false

@@ -28,7 +28,6 @@ import {
   Destination,
   SignDeployContractTxParams,
   SignDeployContractTxResult,
-  SignerAddress,
   SignExecuteScriptTxParams,
   SignExecuteScriptTxResult,
   SignMessageParams,
@@ -40,7 +39,9 @@ import {
   SubmissionResult,
   SubmitTransactionParams,
   KeyType,
-  MessageHasher
+  MessageHasher,
+  SignChainedTxParams,
+  SignChainedTxResult
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
@@ -68,6 +69,7 @@ export abstract class SignerProvider {
   abstract signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
   abstract signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
   abstract signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
+  abstract signAndSubmitChainedTx(params: SignChainedTxParams[]): Promise<SignChainedTxResult[]>
 
   abstract signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
   // The message will be prefixed with 'Alephium Signed Message: ' before signing
@@ -117,16 +119,15 @@ export abstract class SignerProviderSimple extends SignerProvider {
     await this.submitTransaction(signResult)
     return signResult
   }
+  override async signAndSubmitChainedTx(params: SignChainedTxParams[]): Promise<SignChainedTxResult[]> {
+    const signResults = await this.signChainedTx(params)
+    for (const r of signResults) {
+      await this.submitTransaction(r)
+    }
+    return signResults
+  }
 
   abstract getPublicKey(address: string): Promise<string>
-
-  private async usePublicKey<T extends SignerAddress>(
-    params: T
-  ): Promise<Omit<T, 'signerAddress'> & { fromPublicKey: string }> {
-    const { signerAddress, ...restParams } = params
-    const publicKey = await this.getPublicKey(signerAddress)
-    return { fromPublicKey: publicKey, ...restParams }
-  }
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const response = await this.buildTransferTx(params)
@@ -169,10 +170,23 @@ export abstract class SignerProviderSimple extends SignerProvider {
     )
   }
 
+  async signChainedTx(params: SignChainedTxParams[]): Promise<SignChainedTxResult[]> {
+    const response = await this.buildChainedTx(params)
+    const signatures = await Promise.all(response.map((r, i) => this.signRaw(params[`${i}`].signerAddress, r.txId)))
+    return response.map((r, i) => ({ ...r, signature: signatures[`${i}`] } as SignChainedTxResult))
+  }
+
+  async buildChainedTx(params: SignChainedTxParams[]): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+    return TransactionBuilder.from(this.nodeProvider).buildChainedTx(
+      params,
+      await Promise.all(params.map((p) => this.getPublicKey(p.signerAddress)))
+    )
+  }
+
   // in general, wallet should show the decoded information to user for confirmation
   // please overwrite this function for real wallet
   async signUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
-    const response = await TransactionBuilder.from(this.nodeProvider).buildUnsignedTx(params)
+    const response = TransactionBuilder.buildUnsignedTx(params)
     const signature = await this.signRaw(params.signerAddress, response.txId)
     return { signature, ...response }
   }

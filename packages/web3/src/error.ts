@@ -16,12 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { disableContractDebugMessage } from '@alephium/web3'
+export class TraceableError extends Error {
+  trace: any | undefined
 
-export { testMnemonic, testWalletName, testAddress, testPrivateKey, testPrivateKeyWallet, testPassword } from './const'
-export { mintToken } from './token'
-export * from './test-wallet'
+  constructor(message?: string, innerError?: any) {
+    const innerErrorMessage =
+      innerError === undefined ? undefined : innerError instanceof Error ? innerError.message : `${innerError}`
+    super(innerErrorMessage ? `${message}, error: ${innerErrorMessage}` : message)
+    this.trace = innerError
 
-if (process.env.ALEPHIUM_CONTRACT_DEBUG_MESSAGE === 'false') {
-  disableContractDebugMessage()
+    const actualProto = new.target.prototype
+
+    if (Object.setPrototypeOf) {
+      Object.setPrototypeOf(this, actualProto)
+    } else {
+      const object = this as any
+      object.__proto__ = actualProto
+    }
+  }
 }

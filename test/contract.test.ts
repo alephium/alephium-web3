@@ -40,7 +40,9 @@ import {
   u256Val,
   ZERO_ADDRESS,
   MINIMAL_CONTRACT_DEPOSIT,
-  ContractStateWithMaps
+  ContractStateWithMaps,
+  getDebugMessagesFromTx,
+  printDebugMessagesFromTx
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -267,13 +269,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(57)
+    expect(sourceFiles.length).toEqual(60)
     sourceFiles.slice(0, 27).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(27, 42).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(42, 44).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(44, 51).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(51, 56).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[56].type).toEqual(5) // constants
+    sourceFiles.slice(27, 45).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(45, 47).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(47, 54).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(54, 59).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[59].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -308,6 +310,15 @@ describe('contract', function () {
     expect(result.debugMessages[0].contractAddress).toEqual(result.contractAddress)
     const nullContractAddress = addressFromContractId('0'.repeat(64))
     expect(result.debugMessages[0].message).toEqual(`Hello, ${nullContractAddress}!`)
+  })
+
+  it('should get debug messages from tx', async () => {
+    const deployResult = await Debug.deploy(signer, { initialFields: {} })
+    const txResult = await deployResult.contractInstance.transact.debug({ signer })
+    const messages = await getDebugMessagesFromTx(txResult.txId)
+    expect(messages).toEqual([
+      { contractAddress: deployResult.contractInstance.address, message: `Hello, ${ZERO_ADDRESS}!` }
+    ])
   })
 
   it('should test assert!', async () => {

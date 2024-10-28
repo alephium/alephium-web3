@@ -1,6 +1,6 @@
 {
   "name": "@alephium/cli",
-  "version": "1.7.4",
+  "version": "1.8.4",
   "description": "Alephium command line tool",
   "license": "GPL",
   "repository": {
@@ -17,7 +17,7 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "build": "rm -rf dist/* && npx tsc --build . && node scripts/copy-template.js"
+    "build": "rm -rf dist/* && npx tsc --build ."
   },
   "bin": "cli.js",
   "type": "commonjs",

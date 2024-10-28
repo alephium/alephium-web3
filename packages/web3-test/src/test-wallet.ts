@@ -27,7 +27,8 @@ import {
   DUST_AMOUNT,
   Address,
   TOTAL_NUMBER_OF_GROUPS,
-  binToHex
+  binToHex,
+  TraceableError
 } from '@alephium/web3'
 import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
@@ -35,7 +36,7 @@ import {
   testAddress,
   testMnemonic,
   testPassword,
-  testPrivateKey,
+  testPrivateKeyWallet,
   testWalletName,
   tryGetDevnetNodeProvider
 } from './const'
@@ -94,15 +95,14 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promis
     if (availableBalance < alphAmount) {
       throw new Error('Not enough balance, please restart the devnet')
     }
-    const rootWallet = new PrivateKeyWallet({ privateKey: testPrivateKey })
     const wallet = PrivateKeyWallet.Random(group)
     if (alphAmount > 0n) {
       const destinations = [{ address: wallet.address, attoAlphAmount: alphAmount }]
-      await rootWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
+      await testPrivateKeyWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })
     }
     return wallet
   } catch (error) {
-    throw new Error(`Failed to get signer, please restart the devnet due to : ${error}`)
+    throw new TraceableError(`Failed to get signer, please restart the devnet`, error)
   }
 }
 
@@ -121,7 +121,7 @@ export async function getSigners(
     }
     return wallets
   } catch (error) {
-    throw new Error(`Failed to get signers, please restart the devnet due tot : ${error}`)
+    throw new TraceableError('Failed to get signers, please restart the devnet', error)
   }
 }
 

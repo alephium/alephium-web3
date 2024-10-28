@@ -18,7 +18,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { ZERO_ADDRESS } from '../constants'
 import { isDebugModeEnabled } from '../debug'
-import { assertType, binToHex, bs58, Eq, isBase58, isHexString } from '../utils'
+import { TraceableError } from '../error'
+import { assertType, base58ToBytes, binToHex, bs58, Eq, isBase58, isHexString } from '../utils'
 import * as node from './api-alephium'
 
 export type Number256 = bigint | string
@@ -68,8 +69,8 @@ export function toApiNumber256(v: Val): string {
       if (BigInt(v).toString() === v) {
         return v
       }
-    } catch (_) {
-      throw new Error(`Invalid value: ${v}, expected a 256 bit number`)
+    } catch (error) {
+      throw new TraceableError(`Invalid value: ${v}, expected a 256 bit number`, error)
     }
   }
   throw new Error(`Invalid value: ${v}, expected a 256 bit number`)
@@ -90,13 +91,9 @@ export function toApiByteVec(v: Val): string {
   if (isHexString(v)) return v
   if (isBase58(v)) {
     // try to convert from address to contract id
-    try {
-      const address = bs58.decode(v)
-      if (address.length == 33 && address[0] == 3) {
-        return binToHex(address.slice(1))
-      }
-    } catch (_) {
-      throw new Error(`Invalid hex-string: ${v}`)
+    const address = base58ToBytes(v)
+    if (address.length === 33 && address[0] === 3) {
+      return binToHex(address.slice(1))
     }
   }
   throw new Error(`Invalid hex-string: ${v}`)
@@ -104,12 +101,10 @@ export function toApiByteVec(v: Val): string {
 
 export function toApiAddress(v: Val): string {
   if (typeof v === 'string') {
-    try {
-      bs58.decode(v)
-      return v as string
-    } catch (error) {
-      throw new Error(`Invalid base58 string: ${v}`)
+    if (isBase58(v)) {
+      return v
     }
+    throw new Error(`Invalid base58 string: ${v}`)
   } else {
     throw new Error(`Invalid value: ${v}, expected a base58 string`)
   }
@@ -201,7 +196,7 @@ async function call(args: ApiRequestArguments, handler: ApiRequestHandler): Prom
     if (debugModeEnabled) {
       console.error(`[ERROR] ${path} ${method} `, error)
     }
-    throw error
+    throw new TraceableError(`Failed to request ${method}`, error)
   }
 }
 
