@@ -34,7 +34,7 @@ import {
   Narrow,
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -163,6 +163,7 @@ export const MetaData = new Factory(
     AllStructs
   )
 );
+registerContract(MetaData);
 
 // Use this class to interact with the blockchain
 export class MetaDataInstance extends ContractInstance {

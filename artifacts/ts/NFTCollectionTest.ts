@@ -34,7 +34,7 @@ import {
   Narrow,
 } from "@alephium/web3";
 import { default as NFTCollectionTestContractJson } from "../nft/NFTCollectionTest.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -205,6 +205,7 @@ export const NFTCollectionTest = new Factory(
     AllStructs
   )
 );
+registerContract(NFTCollectionTest);
 
 // Use this class to interact with the blockchain
 export class NFTCollectionTestInstance extends ContractInstance {

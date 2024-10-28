@@ -34,7 +34,7 @@ import {
   Narrow,
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/Assert.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -121,6 +121,7 @@ export const Assert = new Factory(
     AllStructs
   )
 );
+registerContract(Assert);
 
 // Use this class to interact with the blockchain
 export class AssertInstance extends ContractInstance {
