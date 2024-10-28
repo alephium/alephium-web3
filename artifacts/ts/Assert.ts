@@ -33,8 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as AssertContractJson } from "../test/Assert.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { AssertContractArtifact, getContractByCodeHash } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -113,14 +112,7 @@ class Factory extends ContractFactory<AssertInstance, {}> {
 }
 
 // Use this object to test and deploy the contract
-export const Assert = new Factory(
-  Contract.fromJson(
-    AssertContractJson,
-    "",
-    "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b",
-    AllStructs
-  )
-);
+export const Assert = new Factory(AssertContractArtifact);
 
 // Use this class to interact with the blockchain
 export class AssertInstance extends ContractInstance {

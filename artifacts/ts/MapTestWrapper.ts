@@ -33,8 +33,10 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as MapTestWrapperContractJson } from "../test/MapTestWrapper.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import {
+  MapTestWrapperContractArtifact,
+  getContractByCodeHash,
+} from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -158,14 +160,7 @@ class Factory extends ContractFactory<
 }
 
 // Use this object to test and deploy the contract
-export const MapTestWrapper = new Factory(
-  Contract.fromJson(
-    MapTestWrapperContractJson,
-    "",
-    "1d525d3e4cbd1c8f4c0431bf6881e888eeebae012a14532530097f62dd766e9a",
-    AllStructs
-  )
-);
+export const MapTestWrapper = new Factory(MapTestWrapperContractArtifact);
 
 // Use this class to interact with the blockchain
 export class MapTestWrapperInstance extends ContractInstance {

@@ -33,8 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as DebugContractJson } from "../test/Debug.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { DebugContractArtifact, getContractByCodeHash } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -113,14 +112,7 @@ class Factory extends ContractFactory<DebugInstance, {}> {
 }
 
 // Use this object to test and deploy the contract
-export const Debug = new Factory(
-  Contract.fromJson(
-    DebugContractJson,
-    "=4-2+18=11-1+3=10+ca7e020748656c6c6f2c200121",
-    "eb4209d8f543d9f623d72578f7ed9b271d62cf396dcce42d10f5e68dba3cecd3",
-    AllStructs
-  )
-);
+export const Debug = new Factory(DebugContractArtifact);
 
 // Use this class to interact with the blockchain
 export class DebugInstance extends ContractInstance {

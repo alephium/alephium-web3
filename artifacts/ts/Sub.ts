@@ -33,8 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as SubContractJson } from "../sub/Sub.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { SubContractArtifact, getContractByCodeHash } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -120,14 +119,7 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
 }
 
 // Use this object to test and deploy the contract
-export const Sub = new Factory(
-  Contract.fromJson(
-    SubContractJson,
-    "",
-    "3461ebfaca02ad0a3f587a5b67a461c0cbd82d14261407b1d9277ed4ad129234",
-    AllStructs
-  )
-);
+export const Sub = new Factory(SubContractArtifact);
 
 // Use this class to interact with the blockchain
 export class SubInstance extends ContractInstance {

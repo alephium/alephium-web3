@@ -33,8 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as TokenTestContractJson } from "../token/TokenTest.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { TokenTestContractArtifact, getContractByCodeHash } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -174,14 +173,7 @@ class Factory extends ContractFactory<
 }
 
 // Use this object to test and deploy the contract
-export const TokenTest = new Factory(
-  Contract.fromJson(
-    TokenTestContractJson,
-    "",
-    "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
-    AllStructs
-  )
-);
+export const TokenTest = new Factory(TokenTestContractArtifact);
 
 // Use this class to interact with the blockchain
 export class TokenTestInstance extends ContractInstance {

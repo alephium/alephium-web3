@@ -33,8 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { GreeterContractArtifact, getContractByCodeHash } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -128,14 +127,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
 }
 
 // Use this object to test and deploy the contract
-export const Greeter = new Factory(
-  Contract.fromJson(
-    GreeterContractJson,
-    "",
-    "4bbf82c83dcb0a3df905c290fbc12a19ce5160a7b655c1a347913481da12d747",
-    AllStructs
-  )
-);
+export const Greeter = new Factory(GreeterContractArtifact);
 
 // Use this class to interact with the blockchain
 export class GreeterInstance extends ContractInstance {

@@ -33,8 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { OwnerOnlyContractArtifact, getContractByCodeHash } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -123,14 +122,7 @@ class Factory extends ContractFactory<
 }
 
 // Use this object to test and deploy the contract
-export const OwnerOnly = new Factory(
-  Contract.fromJson(
-    OwnerOnlyContractJson,
-    "",
-    "c8ecfd7b7e1f3d0169d80e0abb59702516eeff301d47e0e7be70a631bd9414ca",
-    AllStructs
-  )
-);
+export const OwnerOnly = new Factory(OwnerOnlyContractArtifact);
 
 // Use this class to interact with the blockchain
 export class OwnerOnlyInstance extends ContractInstance {

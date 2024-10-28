@@ -33,8 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as MapTestContractJson } from "../test/MapTest.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { MapTestContractArtifact, getContractByCodeHash } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -175,14 +174,7 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
 }
 
 // Use this object to test and deploy the contract
-export const MapTest = new Factory(
-  Contract.fromJson(
-    MapTestContractJson,
-    "=6-2+a8=1-3+128=2-2+ea=1+2=1-2+7=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=96",
-    "31aed0ff7b29f2cbc2d8360a83f31af4e9db00f0084a7406bd84b7745181373d",
-    AllStructs
-  )
-);
+export const MapTest = new Factory(MapTestContractArtifact);
 
 // Use this class to interact with the blockchain
 export class MapTestInstance extends ContractInstance {
