@@ -30,7 +30,9 @@ import {
   web3,
   DEFAULT_COMPILER_OPTIONS,
   NetworkId,
-  ContractInstance
+  ContractInstance,
+  DeployContractExecutionResult,
+  RunScriptResult
 } from '@alephium/web3'
 import { getConfigFile, loadConfig } from './utils'
 import { Project } from './project'
@@ -102,27 +104,6 @@ export function getEnv<Settings = unknown>(configFileName?: string, networkId?: 
     network: network,
     nodeProvider: web3.getCurrentNodeProvider()
   }
-}
-
-export interface ExecutionResult {
-  txId: string
-  unsignedTx: string
-  signature: string
-  gasAmount: number
-  gasPrice: string
-  blockHash: string
-  codeHash: string
-  attoAlphAmount?: string
-  tokens?: Record<string, string>
-}
-
-export interface DeployContractExecutionResult<I extends ContractInstance = ContractInstance> extends ExecutionResult {
-  contractInstance: I
-  issueTokenAmount?: string
-}
-
-export interface RunScriptResult extends ExecutionResult {
-  groupIndex: number
 }
 
 export interface Deployer {
