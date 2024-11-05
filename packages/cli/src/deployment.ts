@@ -36,22 +36,16 @@ import {
   ExecutableScript,
   isHexString,
   isDevnet,
-  TraceableError
+  TraceableError,
+  DeployContractExecutionResult,
+  RunScriptResult,
+  ExecutionResult
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import path from 'path'
 import fs, { promises as fsPromises } from 'fs'
 import * as cryptojs from 'crypto-js'
-import {
-  DeployContractExecutionResult,
-  RunScriptResult,
-  Network,
-  Deployer,
-  DeployFunction,
-  Configuration,
-  ExecutionResult,
-  DEFAULT_CONFIGURATION_VALUES
-} from './types'
+import { Network, Deployer, DeployFunction, Configuration, DEFAULT_CONFIGURATION_VALUES } from './types'
 import {
   getConfigFile,
   getDeploymentFilePath,

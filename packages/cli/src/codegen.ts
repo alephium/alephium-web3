@@ -815,8 +815,7 @@ export async function genLoadDeployments(config: Configuration) {
   const source = `
     ${header}
 
-    import { RunScriptResult, DeployContractExecutionResult } from '@alephium/cli'
-    import { NetworkId } from '@alephium/web3'
+    import { RunScriptResult, DeployContractExecutionResult, NetworkId } from '@alephium/web3'
     import { ${contractInstanceTypes} } from '.'
     ${imports}
 
