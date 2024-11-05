@@ -1406,11 +1406,6 @@ export interface WalletCreationResult {
   mnemonic: string
 }
 
-/** WalletDeletion */
-export interface WalletDeletion {
-  password: string
-}
-
 /** WalletRestore */
 export interface WalletRestore {
   password: string
@@ -1651,7 +1646,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.8.6
+ * @version 3.8.8
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -1738,12 +1733,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Delete your wallet file (can be recovered with your mnemonic)
      * @request DELETE:/wallets/{wallet_name}
      */
-    deleteWalletsWalletName: (walletName: string, data: WalletDeletion, params: RequestParams = {}) =>
+    deleteWalletsWalletName: (
+      walletName: string,
+      query: {
+        password: string
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/wallets/${walletName}`,
         method: 'DELETE',
-        body: data,
-        type: ContentType.Json,
+        query: query,
         ...params
       }).then(convertHttpResponse),
 
@@ -2586,6 +2586,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
         path: `/transactions/build`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
+     * @name PostTransactionsBuildMultiTransfer
+     * @summary Build as many unsigned transactions as many unique groups is among given destinations
+     * @request POST:/transactions/build-multi-transfer
+     */
+    postTransactionsBuildMultiTransfer: (data: BuildTransferTx, params: RequestParams = {}) =>
+      this.request<
+        BuildTransferTxResult[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+      >({
+        path: `/transactions/build-multi-transfer`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
