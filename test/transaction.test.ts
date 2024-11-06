@@ -314,7 +314,7 @@ describe('transactions', function () {
     expect(BigInt(contractBalance.balance)).toBe(ONE_ALPH)
   })
 
-  it.only('should build chain txs that interact with dApp in another group', async () => {
+  it('should build chain txs that interact with dApp in another group', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
     const [wallet, account1, account2] = await prepareChainedTxTest()
 
