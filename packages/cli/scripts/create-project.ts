@@ -57,15 +57,16 @@ export function createProject(templateType: string, packageRoot: string, project
     case 'react':
       gitClone('https://github.com/alephium/react-dapp-template.git', projectRoot)
       break
+    case 'remix':
+      gitClone('https://github.com/alephium/remix-dapp-template.git', projectRoot)
+      break
     case 'nextjs':
     case 'nextjs-app':
     case 'nextjs-pages':
       prepareNextJs(templateType, packageRoot, projectRoot)
       break
     default:
-      console.error(
-        `Invalid template type ${templateType}, expect one of base, react, nextjs, nextjs-app, nextjs-pages`
-      )
+      console.error(`Invalid template type ${templateType}`)
       process.exit(1)
   }
 
