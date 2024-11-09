@@ -34,7 +34,7 @@ import {
   Narrow,
 } from "@alephium/web3";
 import { default as TokenTestStdContractJson } from "../token/TokenTestStd.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -198,6 +198,7 @@ export const TokenTestStd = new Factory(
     AllStructs
   )
 );
+registerContract(TokenTestStd);
 
 // Use this class to interact with the blockchain
 export class TokenTestStdInstance extends ContractInstance {

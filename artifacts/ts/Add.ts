@@ -34,7 +34,7 @@ import {
   Narrow,
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -256,6 +256,7 @@ export const Add = new Factory(
     AllStructs
   )
 );
+registerContract(Add);
 
 // Use this class to interact with the blockchain
 export class AddInstance extends ContractInstance {

@@ -34,7 +34,7 @@ import {
   Narrow,
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
-import { getContractByCodeHash } from "./contracts";
+import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
   AddStruct2,
@@ -136,6 +136,7 @@ export const Greeter = new Factory(
     AllStructs
   )
 );
+registerContract(Greeter);
 
 // Use this class to interact with the blockchain
 export class GreeterInstance extends ContractInstance {

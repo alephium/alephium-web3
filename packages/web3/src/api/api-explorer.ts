@@ -491,6 +491,17 @@ export type StdInterfaceId = FungibleToken | NFT | NFTCollection | NFTCollection
 /** Output */
 export type Output = AssetOutput | ContractOutput
 
+/** TransactionInfo */
+export interface TransactionInfo {
+  /** @format block-hash */
+  blockHash: string
+  coinbase: boolean
+  /** @format 32-byte-hash */
+  hash: string
+  /** @format int64 */
+  timestamp: number
+}
+
 /** Unauthorized */
 export interface Unauthorized {
   detail: string
@@ -510,10 +521,19 @@ export interface ValAddress {
   value: string
 }
 
+export enum PaginationPageDefault {
+  Value1 = 1
+}
+
 /** ValBool */
 export interface ValBool {
   type: string
   value: boolean
+}
+
+export enum PaginationLimitMax {
+  Value100 = 100,
+  Value20 = 20
 }
 
 /** FungibleTokenMetadata */
@@ -543,6 +563,11 @@ export enum Currencies {
   Try = 'try',
   Cad = 'cad',
   Aud = 'aud'
+}
+
+export enum PaginationLimitDefault {
+  Value20 = 20,
+  Value10 = 10
 }
 
 /** AddressInfo */
@@ -1009,6 +1034,21 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }).then(convertHttpResponse),
 
     /**
+     * @description Get latest transaction information of a given address
+     *
+     * @tags Addresses
+     * @name GetAddressesAddressLatestTransaction
+     * @request GET:/addresses/{address}/latest-transaction
+     */
+    getAddressesAddressLatestTransaction: (address: string, params: RequestParams = {}) =>
+      this.request<TransactionInfo, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/addresses/${address}/latest-transaction`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
      * @description Get total transactions of a given address
      *
      * @tags Addresses
@@ -1053,7 +1093,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * Number of items per page
          * @format int32
          * @min 0
-         * @max 1000
+         * @max 100
          */
         limit?: number
       },
@@ -1142,6 +1182,18 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postAddressesTransactions: (
       query?: {
+        /**
+         * inclusive
+         * @format int64
+         * @min 0
+         */
+        fromTs?: number
+        /**
+         * exclusive
+         * @format int64
+         * @min 0
+         */
+        toTs?: number
         /**
          * Page number
          * @format int32

@@ -3,70 +3,18 @@
 /* eslint-disable */
 
 import { Contract, ContractFactory } from "@alephium/web3";
-import {
-  Add,
-  Assert,
-  Debug,
-  DeprecatedNFTTest1,
-  DeprecatedNFTTest2,
-  DeprecatedNFTTest3,
-  DeprecatedNFTTest4,
-  DeprecatedNFTTest5,
-  DeprecatedNFTTest6,
-  DeprecatedNFTTest7,
-  FakeTokenTest,
-  Greeter,
-  MapTest,
-  MapTestWrapper,
-  MetaData,
-  NFTCollectionTest,
-  NFTCollectionWithRoyaltyTest,
-  NFTTest,
-  NFTTestStd,
-  OwnerOnly,
-  Sub,
-  TokenTest,
-  TokenTestStd,
-  Transact,
-  UserAccount,
-  Warnings,
-  WrongNFTTest,
-} from ".";
 
 let contracts: ContractFactory<any>[] | undefined = undefined;
-export function getContractByCodeHash(codeHash: string): Contract {
+
+export function registerContract(factory: ContractFactory<any>) {
   if (contracts === undefined) {
-    contracts = [
-      Add,
-      Assert,
-      Debug,
-      DeprecatedNFTTest1,
-      DeprecatedNFTTest2,
-      DeprecatedNFTTest3,
-      DeprecatedNFTTest4,
-      DeprecatedNFTTest5,
-      DeprecatedNFTTest6,
-      DeprecatedNFTTest7,
-      FakeTokenTest,
-      Greeter,
-      MapTest,
-      MapTestWrapper,
-      MetaData,
-      NFTCollectionTest,
-      NFTCollectionWithRoyaltyTest,
-      NFTTest,
-      NFTTestStd,
-      OwnerOnly,
-      Sub,
-      TokenTest,
-      TokenTestStd,
-      Transact,
-      UserAccount,
-      Warnings,
-      WrongNFTTest,
-    ];
+    contracts = [factory];
+  } else {
+    contracts.push(factory);
   }
-  const c = contracts.find((c) => c.contract.hasCodeHash(codeHash));
+}
+export function getContractByCodeHash(codeHash: string): Contract {
+  const c = contracts?.find((c) => c.contract.hasCodeHash(codeHash));
   if (c === undefined) {
     throw new Error("Unknown code with code hash: " + codeHash);
   }

@@ -521,7 +521,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields, Narrow
     } from '@alephium/web3'
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
-    import { getContractByCodeHash } from './contracts'
+    import { getContractByCodeHash, registerContract } from './contracts'
     ${importStructs()}
     ${importRalphMap(contract)}
 
@@ -550,6 +550,7 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       '${contractInfo.codeHashDebug}',
       ${getStructs()}
     ))
+    registerContract(${contract.name})
 
     // Use this class to interact with the blockchain
     export class ${contract.name}Instance extends ContractInstance {
@@ -634,20 +635,23 @@ function genIndexTs(outDir: string, exports: string[]) {
   formatAndSaveToFile(indexPath, header + exportStatements)
 }
 
-function genContractByCodeHash(outDir: string, contractNames: string[]) {
-  const contracts = contractNames.join(',')
+function genContractByCodeHash(outDir: string) {
   const source = `
     ${header}
 
     import { Contract, ContractFactory } from '@alephium/web3'
-    ${contracts.length === 0 ? '' : `import { ${contracts} } from '.'`}
 
     let contracts: ContractFactory<any>[] | undefined = undefined
-    export function getContractByCodeHash(codeHash: string): Contract {
+
+    export function registerContract(factory: ContractFactory<any>) {
       if (contracts === undefined) {
-        contracts = [${contracts}]
+        contracts = [factory]
+      } else {
+        contracts.push(factory)
       }
-      const c = contracts.find((c) => c.contract.hasCodeHash(codeHash))
+    }
+    export function getContractByCodeHash(codeHash: string): Contract {
+      const c = contracts?.find((c) => c.contract.hasCodeHash(codeHash))
       if (c === undefined) {
         throw new Error("Unknown code with code hash: " + codeHash)
       }
@@ -811,8 +815,7 @@ export async function genLoadDeployments(config: Configuration) {
   const source = `
     ${header}
 
-    import { RunScriptResult, DeployContractExecutionResult } from '@alephium/cli'
-    import { NetworkId } from '@alephium/web3'
+    import { RunScriptResult, DeployContractExecutionResult, NetworkId } from '@alephium/web3'
     import { ${contractInstanceTypes} } from '.'
     ${imports}
 
@@ -911,8 +914,7 @@ export function codegen(project: Project) {
     genStructTypes(outDir)
     genGlobalConstants(project, outDir)
     genContracts(outDir, artifactDir, exports)
-    const contractNames = exports.map((p) => p.slice(2))
-    genContractByCodeHash(outDir, contractNames)
+    genContractByCodeHash(outDir)
     genScripts(outDir, artifactDir, exports)
     genIndexTs(outDir, exports)
   } catch (error) {
