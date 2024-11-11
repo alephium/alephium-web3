@@ -21,7 +21,7 @@ import { getSigner } from '@alephium/web3-test';
 
 const WS_ENDPOINT = 'ws://127.0.0.1:22973/ws';
 
-describe('WebSocket', () => {
+describe('WebSocketClient', () => {
   let signer: SignerProviderSimple;
   let wsClient: WebSocketClient;
 
