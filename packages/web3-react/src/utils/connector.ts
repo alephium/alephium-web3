@@ -20,7 +20,7 @@ import { Account, NetworkId, SignerProvider, KeyType } from '@alephium/web3'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
 import QRCodeModal from '@alephium/walletconnect-qrcode-modal'
 import { AlephiumWindowObject, getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { getLastConnectedAccount, setLastConnectedAccount } from './storage'
+import { setLastConnectedAccount } from './storage'
 import { ConnectorId } from '../types'
 
 const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
@@ -38,7 +38,11 @@ export type ConnectOptions = {
   onConnected: (result: ConnectResult) => Promise<void> | void
 }
 
-export type ConnectFunc = (options: ConnectOptions) => Promise<Account | undefined>
+export type InjectedConnectOptions = ConnectOptions & {
+  injectedProvider?: AlephiumWindowObject
+}
+
+export type ConnectFunc = (options: ConnectOptions | InjectedConnectOptions) => Promise<Account | undefined>
 
 export type Connector = {
   connect: ConnectFunc
@@ -118,10 +122,16 @@ const wcDisconnect = async (signerProvider: SignerProvider): Promise<void> => {
   await (signerProvider as WalletConnectProvider).disconnect()
 }
 
-const injectedConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
+const injectedConnect = async (options: InjectedConnectOptions): Promise<Account | undefined> => {
   try {
-    const windowAlephium = await getDefaultAlephiumWallet()
-    const enabledAccount = await windowAlephium?.enable({ ...options, networkId: options.network })
+    const windowAlephium = options.injectedProvider ?? (await getDefaultAlephiumWallet())
+    const enableOptions = {
+      addressGroup: options.addressGroup,
+      keyType: options.keyType,
+      networkId: options.network,
+      onDisconnected: options.onDisconnected
+    }
+    const enabledAccount = await windowAlephium?.enable(enableOptions)
 
     if (windowAlephium && enabledAccount) {
       await options.onConnected({ account: enabledAccount, signerProvider: windowAlephium })

@@ -47,6 +47,7 @@ import {
 } from '../contexts/alephiumConnect'
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
 import { ConnectResult, getConnectorById } from '../utils/connector'
+import { useInjectedProviders } from '../hooks/useInjectedProviders'
 
 export const ConnectSettingProvider: React.FC<{
   theme?: Theme
