@@ -42,7 +42,13 @@ export type InjectedConnectOptions = ConnectOptions & {
   injectedProvider?: AlephiumWindowObject
 }
 
-export type ConnectFunc = (options: ConnectOptions | InjectedConnectOptions) => Promise<Account | undefined>
+export type InjectedAutoConnectOptions = ConnectOptions & {
+  allInjectedProviders?: AlephiumWindowObject[]
+}
+
+export type ConnectFunc = (
+  options: ConnectOptions | InjectedConnectOptions | InjectedAutoConnectOptions
+) => Promise<Account | undefined>
 
 export type Connector = {
   connect: ConnectFunc
@@ -149,17 +155,30 @@ const injectedDisconnect = async (signerProvider: SignerProvider): Promise<void>
   return await (signerProvider as AlephiumWindowObject).disconnect()
 }
 
-const injectedAutoConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
+const injectedAutoConnect = async (options: InjectedAutoConnectOptions): Promise<Account | undefined> => {
   try {
-    const windowAlephium = await getDefaultAlephiumWallet()
-    const enabledAccount = await windowAlephium?.enableIfConnected({ ...options, networkId: options.network })
-
-    if (windowAlephium && enabledAccount) {
-      await options.onConnected({ account: enabledAccount, signerProvider: windowAlephium })
-      setLastConnectedAccount('injected', enabledAccount, options.network)
+    const allProviders = options.allInjectedProviders ?? []
+    if (allProviders.length === 0) {
+      const windowAlephium = await getDefaultAlephiumWallet()
+      if (windowAlephium !== undefined) {
+        allProviders.push(windowAlephium)
+      }
     }
-
-    return enabledAccount
+    const enableOptions = {
+      addressGroup: options.addressGroup,
+      keyType: options.keyType,
+      networkId: options.network,
+      onDisconnected: options.onDisconnected
+    }
+    for (const provider of allProviders) {
+      const enabledAccount = await provider.enableIfConnected(enableOptions)
+      if (enabledAccount) {
+        await options.onConnected({ account: enabledAccount, signerProvider: provider })
+        setLastConnectedAccount('injected', enabledAccount, options.network)
+        return enabledAccount
+      }
+    }
+    return undefined
   } catch (error) {
     console.error(`Wallet auto-connect error:`, error)
     options.onDisconnected()

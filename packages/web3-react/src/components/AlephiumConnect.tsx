@@ -133,6 +133,7 @@ export const AlephiumConnectProvider: React.FC<{
   const [_network, setNetwork] = useState<NetworkId>(network)
   const [_addressGroup, setAddressGroup] = useState<number | undefined>(addressGroup)
   const [_keyType, setKeyType] = useState<KeyType>(keyType ?? 'default')
+  const allInjectedProviders = useInjectedProviders()
 
   useEffect(() => setNetwork(network), [network])
   useEffect(() => setAddressGroup(addressGroup), [addressGroup])
@@ -197,7 +198,14 @@ export const AlephiumConnectProvider: React.FC<{
         for (const connectorId of sortedConnectorIds) {
           const connector = getConnectorById(connectorId)
           if (connector.autoConnect !== undefined) {
-            const result = await connector.autoConnect({ network, addressGroup, keyType, onDisconnected, onConnected })
+            const result = await connector.autoConnect({
+              network,
+              addressGroup,
+              keyType,
+              onDisconnected,
+              onConnected,
+              allInjectedProviders: connectorId === 'injected' ? allInjectedProviders : undefined
+            })
             if (result !== undefined) {
               return
             }
