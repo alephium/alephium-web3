@@ -168,13 +168,15 @@ const injectedAutoConnect = async (options: InjectedAutoConnectOptions): Promise
       addressGroup: options.addressGroup,
       keyType: options.keyType,
       networkId: options.network,
-      onDisconnected: options.onDisconnected
+      onDisconnected: undefined as any
     }
     for (const provider of allProviders) {
-      const enabledAccount = await provider.enableIfConnected(enableOptions)
+      const enabledAccount = await provider.enableIfConnected(enableOptions as any)
       if (enabledAccount) {
         await options.onConnected({ account: enabledAccount, signerProvider: provider })
         setLastConnectedAccount('injected', enabledAccount, options.network)
+        // eslint-disable-next-line
+        ;(provider as any)['onDisconnected'] = options.onDisconnected
         return enabledAccount
       }
     }
