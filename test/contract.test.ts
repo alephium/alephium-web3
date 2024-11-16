@@ -38,7 +38,7 @@ import {
   addressVal,
   byteVecVal,
   u256Val,
-  ZERO_ADDRESS,
+  NULL_CONTRACT_ADDRESS,
   MINIMAL_CONTRACT_DEPOSIT,
   ContractStateWithMaps,
   getDebugMessagesFromTx,
@@ -317,7 +317,7 @@ describe('contract', function () {
     const txResult = await deployResult.contractInstance.transact.debug({ signer })
     const messages = await getDebugMessagesFromTx(txResult.txId)
     expect(messages).toEqual([
-      { contractAddress: deployResult.contractInstance.address, message: `Hello, ${ZERO_ADDRESS}!` }
+      { contractAddress: deployResult.contractInstance.address, message: `Hello, ${NULL_CONTRACT_ADDRESS}!` }
     ])
   })
 
@@ -458,7 +458,7 @@ describe('contract', function () {
   it('should test struct', async () => {
     const initialFields = {
       id: '',
-      address: ZERO_ADDRESS,
+      address: NULL_CONTRACT_ADDRESS,
       balances: {
         totalAmount: 0n,
         tokens: [
@@ -794,7 +794,7 @@ describe('contract', function () {
 
     const initialFields = {
       id: '',
-      address: ZERO_ADDRESS,
+      address: NULL_CONTRACT_ADDRESS,
       balances: {
         totalAmount: 0n,
         tokens: [
@@ -838,7 +838,7 @@ describe('contract', function () {
     const state2 = await template2.contractInstance.fetchState()
     expect(state2.fields).toEqual({
       id: '',
-      address: ZERO_ADDRESS,
+      address: NULL_CONTRACT_ADDRESS,
       balances: {
         totalAmount: 0n,
         tokens: [
