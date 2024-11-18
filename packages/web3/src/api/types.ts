@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NULL_CONTRACT_ADDRESS } from '../constants'
+import { ZERO_ADDRESS } from '../constants'
 import { isDebugModeEnabled } from '../debug'
 import { TraceableError } from '../error'
 import { assertType, base58ToBytes, binToHex, bs58, Eq, isBase58, isHexString } from '../utils'
@@ -169,7 +169,7 @@ export function getDefaultPrimitiveValue(tpe: string): Val {
   if (tpe === 'U256' || tpe === 'I256') return 0n
   if (tpe === 'Bool') return false
   if (tpe === 'ByteVec') return ''
-  if (tpe === 'Address') return NULL_CONTRACT_ADDRESS
+  if (tpe === 'Address') return ZERO_ADDRESS
   throw Error(`Expected primitive type, got ${tpe}`)
 }
 

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NULL_CONTRACT_ADDRESS } from '../constants'
+import { ZERO_ADDRESS } from '../constants'
 import { getDefaultPrimitiveValue, toApiAddress, toApiByteVec, toApiNumber256 } from './index'
 
 describe('ralph types', function () {
@@ -60,7 +60,7 @@ describe('ralph types', function () {
     expect(getDefaultPrimitiveValue('I256')).toEqual(0n)
     expect(getDefaultPrimitiveValue('U256')).toEqual(0n)
     expect(getDefaultPrimitiveValue('Bool')).toEqual(false)
-    expect(getDefaultPrimitiveValue('Address')).toEqual(NULL_CONTRACT_ADDRESS)
+    expect(getDefaultPrimitiveValue('Address')).toEqual(ZERO_ADDRESS)
     expect(getDefaultPrimitiveValue('ByteVec')).toEqual('')
 
     expect(() => getDefaultPrimitiveValue('[Bool;4]')).toThrowError('Expected primitive type, got [Bool;4]')
