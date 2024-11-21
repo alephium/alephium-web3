@@ -609,16 +609,6 @@ export enum MaxSizeAddresses {
   Value80 = 80
 }
 
-export enum TokensWithPrice {
-  WETH = 'WETH',
-  ALPH = 'ALPH',
-  USDT = 'USDT',
-  AYIN = 'AYIN',
-  DAI = 'DAI',
-  USDC = 'USDC',
-  WBTC = 'WBTC'
-}
-
 export enum Currencies {
   Btc = 'btc',
   Eth = 'eth',
