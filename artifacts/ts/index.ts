@@ -23,6 +23,7 @@ export * from "./NFTTest";
 export * from "./NFTTestStd";
 export * from "./OwnerOnly";
 export * from "./Sub";
+export * from "./TokenRemainingTest";
 export * from "./TokenTest";
 export * from "./TokenTestStd";
 export * from "./Transact";

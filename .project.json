@@ -305,6 +305,12 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": ""
     },
+    "TokenRemainingTest": {
+      "sourceFile": "token_remaining_test.ral",
+      "sourceCodeHash": "5c587cd2f838aeddadd30012eb243feea36c555751b479631f5fb7615debe00a",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "d3c596a5356a122d24fc0fd5d1669447dcfc53a77fb8abea3230fc6525c05c0c"
+    },
     "TokenTest": {
       "sourceFile": "token/token_test.ral",
       "sourceCodeHash": "c1e103565399f5caa255ce48c8b441001c928754cea5722467521446d36ca3f4",

@@ -1,0 +1,31 @@
+{
+  "version": "v3.8.6",
+  "name": "TokenRemainingTest",
+  "bytecode": "000110010201010105d3fcc654b1b21600a502",
+  "codeHash": "d3c596a5356a122d24fc0fd5d1669447dcfc53a77fb8abea3230fc6525c05c0c",
+  "fieldsSig": {
+    "names": [],
+    "types": [],
+    "isMutable": []
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "getTokenRemaining",
+      "paramNames": [
+        "tokenId"
+      ],
+      "paramTypes": [
+        "ByteVec"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": [
+        "U256"
+      ]
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

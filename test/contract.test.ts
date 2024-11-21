@@ -73,7 +73,7 @@ import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, MapTestWrapper, UserAccountTypes } from '../artifacts/ts'
+import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, MapTestWrapper, UserAccountTypes, TokenRemainingTest } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
@@ -884,5 +884,14 @@ describe('contract', function () {
     expect(state0.fields.result).toEqual(3n)
     const state1 = await sub.fetchState()
     expect(state1.fields.result).toEqual(1n)
+  })
+
+  it.only('should get remaining token', async () => {
+    const tokenId = randomContractId()
+    const result = await TokenRemainingTest.tests.getTokenRemaining({
+      initialAsset: { alphAmount: ONE_ALPH, tokens: [{ id: tokenId, amount: ONE_ALPH * 2n }] },
+      testArgs: { tokenId }
+    })
+    expect(result.returns).toEqual(ONE_ALPH * 2n)
   })
 })

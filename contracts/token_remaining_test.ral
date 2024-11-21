@@ -1,0 +1,6 @@
+Contract TokenRemainingTest() {
+  @using(assetsInContract = true)
+  pub fn getTokenRemaining(tokenId: ByteVec) -> U256 {
+    return tokenRemaining!(selfAddress!(), tokenId)
+  }
+}
