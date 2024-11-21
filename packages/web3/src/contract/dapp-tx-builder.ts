@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { contractIdFromAddress } from '../address'
+import { contractIdFromAddress, isContractAddress } from '../address'
 import { Val } from '../api'
 import {
   AddressConst,
@@ -70,8 +70,7 @@ export class DappTransactionBuilder {
     if (!isBase58(params.contractAddress)) {
       throw new Error(`Invalid contract address: ${params.contractAddress}, expected a base58 string`)
     }
-    const contractLockupScript = lockupScriptCodec.decode(base58ToBytes(params.contractAddress))
-    if (contractLockupScript.kind !== 'P2C') {
+    if (!isContractAddress(params.contractAddress)) {
       throw new Error(`Invalid contract address: ${params.contractAddress}, expected a P2C address`)
     }
 
