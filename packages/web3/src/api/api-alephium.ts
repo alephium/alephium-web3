@@ -308,6 +308,7 @@ export interface BuildExecuteScriptTxResult {
   gasPrice: string
   /** @format 32-byte-hash */
   txId: string
+  simulatedOutputs: Output[]
 }
 
 /** BuildInfo */
@@ -1646,7 +1647,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.8.8
+ * @version 3.9.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
