@@ -17,33 +17,28 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import WebSocket from 'ws';
+import EventEmitter from 'eventemitter3';
 
-type WsMessageType = string;
-type WsSubscription = [WsMessageType, (params: any) => void];
+export type WsMessageType = string;
+export type WsSubscription = [WsMessageType, (params: any) => void];
 
-export class WebSocketClient {
+export class WebSocketClient extends EventEmitter {
   private ws: WebSocket;
-  private subscriptions: WsSubscription[] = [];
 
   constructor(endpoint: string, eventSubscriptions: WsSubscription[] = []) {
+    super();
     this.ws = new WebSocket(endpoint);
-    eventSubscriptions.forEach(([messageType, callback]) => {
-      this.subscriptions.push([messageType, callback]);
-    });
 
     this.ws.on('open', () => {
       console.log('WebSocket connection opened');
-      this.subscribeToEvents();
+      this.emit('open');
+      this.subscribeToEvents(eventSubscriptions);
     });
 
     this.ws.on('message', (data) => {
       try {
         const parsedData = JSON.parse(data.toString());
-        this.subscriptions.forEach(([method, callback]) => {
-          if (parsedData.method === method) {
-            callback(parsedData.params);
-          }
-        });
+        this.emit(parsedData.method, parsedData.params);
       } catch (error) {
         console.error('Error parsing message:', error);
       }
@@ -51,17 +46,20 @@ export class WebSocketClient {
 
     this.ws.on('error', (error) => {
       console.error('WebSocket error:', error);
+      this.emit('error', error);
     });
 
     this.ws.on('close', () => {
       console.log('WebSocket connection closed');
+      this.emit('close');
     });
   }
 
-  private subscribeToEvents() {
-    this.subscriptions.forEach(([method]) => {
-      console.log(`Subscribing to ${method}`);
-      this.ws.send(`subscribe:${method}`);
+  private subscribeToEvents(eventSubscriptions: WsSubscription[]) {
+    eventSubscriptions.forEach(([messageType, callback]) => {
+      this.on(messageType, callback);
+      console.log(`Subscribing to ${messageType}`);
+      this.ws.send(`subscribe:${messageType}`);
     });
   }
 
@@ -73,4 +71,3 @@ export class WebSocketClient {
     this.ws.close();
   }
 }
-
