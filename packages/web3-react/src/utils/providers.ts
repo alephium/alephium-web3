@@ -16,7 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { alephiumProvider, AlephiumWindowObject, getWalletObject, isWalletObj } from '@alephium/get-extension-wallet'
+import {
+  alephiumProvider,
+  AlephiumWindowObject,
+  getWalletObject,
+  isWalletObj,
+  providerInitializedEvent
+} from '@alephium/get-extension-wallet'
 
 export type InjectedProviderListener = (providers: AlephiumWindowObject[]) => void
 
@@ -31,17 +37,36 @@ function createProviderStore() {
     }
   }
 
+  const detectOneKeyProvider = () => {
+    const oneKeyProvider = window['alephium']
+    if (!!oneKeyProvider && isWalletObj(oneKeyProvider)) {
+      addNewProvider(oneKeyProvider)
+    }
+  }
+
+  const detectDefaultProvider = () => {
+    const defaultProvider = getWalletObject(alephiumProvider.id)
+    if (defaultProvider !== undefined) {
+      addNewProvider(defaultProvider)
+      return
+    }
+
+    window.addEventListener(
+      providerInitializedEvent(alephiumProvider.id),
+      () => {
+        const defaultProvider = getWalletObject(alephiumProvider.id)
+        if (defaultProvider !== undefined) {
+          addNewProvider(defaultProvider)
+        }
+      },
+      { once: true }
+    )
+  }
+
   const detectProviders = () => {
     if (typeof window !== 'undefined') {
-      const oneKeyProvider = window['alephium']
-      if (!!oneKeyProvider && isWalletObj(oneKeyProvider)) {
-        addNewProvider(oneKeyProvider)
-      }
-
-      const defaultProvider = getWalletObject(alephiumProvider.id)
-      if (defaultProvider !== undefined) {
-        addNewProvider(defaultProvider)
-      }
+      detectOneKeyProvider()
+      detectDefaultProvider()
 
       const handler = (event) => {
         if (!!event.detail && isWalletObj(event.detail.provider)) {

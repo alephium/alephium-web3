@@ -16,19 +16,12 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { AlephiumWindowObject } from '@alephium/get-extension-wallet'
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'use-sync-external-store/shim'
 import { injectedProviderStore } from '../utils/providers'
 
-export function useInjectedProviders() {
-  const [providers, setProviders] = useState<AlephiumWindowObject[]>(injectedProviderStore.getProviders())
-
-  useEffect(() => {
-    const cancel = injectedProviderStore.subscribe(setProviders)
-    return () => {
-      cancel()
-    }
-  }, [setProviders])
-
-  return providers
-}
+export const useInjectedProviders = () =>
+  useSyncExternalStore(
+    injectedProviderStore.subscribe,
+    injectedProviderStore.getProviders,
+    injectedProviderStore.getProviders
+  )
