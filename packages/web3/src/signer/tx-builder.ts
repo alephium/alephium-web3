@@ -72,7 +72,7 @@ export abstract class TransactionBuilder {
     return this.convertTransferTxResult(response)
   }
 
-  async buildMultiTransferTx(
+  async buildTransferFromOneToManyGroups(
     params: SignTransferTxParams,
     publicKey: string
   ): Promise<Omit<SignTransferTxResult, 'signature'>[]> {
@@ -86,7 +86,7 @@ export abstract class TransactionBuilder {
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
     }
-    const results = await this.nodeProvider.transactions.postTransactionsBuildMultiTransfer(data)
+    const results = await this.nodeProvider.transactions.postTransactionsBuildTransferFromOneToManyGroups(data)
     const response = results.map((result) => ({
       ...result,
       gasPrice: fromApiNumber256(result.gasPrice)

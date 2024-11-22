@@ -65,7 +65,7 @@ describe('transactions', function () {
     const signer0Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer0.address)
     expect(BigInt(signer0Balance.balance)).toBe(100n * ONE_ALPH)
 
-    const transferFrom0to1and2 = await TransactionBuilder.from(nodeProvider).buildMultiTransferTx(
+    const transferFrom0to1and2 = await TransactionBuilder.from(nodeProvider).buildTransferFromOneToManyGroups(
       {
         signerAddress: signer0.address,
         destinations: [signer1, signer2].map((signer) => ({
@@ -83,7 +83,7 @@ describe('transactions', function () {
     const signer2Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer2.address)
     expect(BigInt(signer2Balance.balance)).toBe(10n * ONE_ALPH)
 
-    const transferFrom1to3and4 = await TransactionBuilder.from(nodeProvider).buildMultiTransferTx(
+    const transferFrom1to3and4 = await TransactionBuilder.from(nodeProvider).buildTransferFromOneToManyGroups(
       {
         signerAddress: signer1.address,
         destinations: [signer3, signer4].map((signer) => ({
@@ -96,7 +96,7 @@ describe('transactions', function () {
 
     const transferFrom1to3and4Result = await signAndSubmitTransactions(transferFrom1to3and4, signer1)
 
-    const transferFrom2to3and4 = await TransactionBuilder.from(nodeProvider).buildMultiTransferTx(
+    const transferFrom2to3and4 = await TransactionBuilder.from(nodeProvider).buildTransferFromOneToManyGroups(
       {
         signerAddress: signer2.address,
         destinations: [signer3, signer4].map((signer) => ({

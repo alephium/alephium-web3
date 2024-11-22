@@ -2597,16 +2597,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Transactions
-     * @name PostTransactionsBuildMultiTransfer
-     * @summary Build as many unsigned transactions as many unique groups is among given destinations
-     * @request POST:/transactions/build-multi-transfer
+     * @name PostTransactionsBuildTransferFromOneToManyGroups
+     * @summary Build unsigned transfer transactions from an address of one group to addresses of many groups. Each target group requires a dedicated transaction or more in case large number of outputs needed to be split.
+     * @request POST:/transactions/build-transfer-from-one-to-many-groups
      */
-    postTransactionsBuildMultiTransfer: (data: BuildTransferTx, params: RequestParams = {}) =>
+    postTransactionsBuildTransferFromOneToManyGroups: (data: BuildTransferTx, params: RequestParams = {}) =>
       this.request<
         BuildTransferTxResult[],
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
       >({
-        path: `/transactions/build-multi-transfer`,
+        path: `/transactions/build-transfer-from-one-to-many-groups`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

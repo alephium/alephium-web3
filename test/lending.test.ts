@@ -69,11 +69,11 @@ class LendingBot {
     return this.getUserWallet(userId).address
   }
 
-  async signAndSubmitMultiTransferTx(
+  async signAndSubmitTransferFromOneToManyGroups(
     signer: SignerProviderSimple,
     params: SignTransferTxParams
   ): Promise<SignTransferTxResult[]> {
-    const buildTxResults = await TransactionBuilder.from(this.nodeProvider).buildMultiTransferTx(
+    const buildTxResults = await TransactionBuilder.from(this.nodeProvider).buildTransferFromOneToManyGroups(
       params,
       await signer.getPublicKey(params.signerAddress)
     )
@@ -103,7 +103,7 @@ class LendingBot {
       attoAlphAmount: deposit
     }))
 
-    await this.signAndSubmitMultiTransferTx(signer, {
+    await this.signAndSubmitTransferFromOneToManyGroups(signer, {
       signerAddress,
       destinations
     })
@@ -118,7 +118,7 @@ class LendingBot {
       attoAlphAmount: convertAlphAmountWithDecimals(amount)!
     }))
 
-    await this.signAndSubmitMultiTransferTx(signer, {
+    await this.signAndSubmitTransferFromOneToManyGroups(signer, {
       signerAddress,
       destinations
     })
