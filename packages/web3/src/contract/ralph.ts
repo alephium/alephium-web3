@@ -26,24 +26,11 @@ import {
   ConstFalse,
   ConstTrue,
   i256Codec,
-  I256Const,
-  I256Const0,
-  I256Const1,
-  I256Const2,
-  I256Const3,
-  I256Const4,
-  I256Const5,
-  I256ConstN1,
   i32Codec,
   instrCodec,
   u256Codec,
-  U256Const,
-  U256Const0,
-  U256Const1,
-  U256Const2,
-  U256Const3,
-  U256Const4,
-  U256Const5
+  toU256,
+  toI256
 } from '../codec'
 import { boolCodec } from '../codec/codec'
 import { TraceableError } from '../error'
@@ -118,43 +105,11 @@ function invalidScriptField(tpe: string, value: Val): Error {
 }
 
 function encodeScriptFieldI256(value: bigint): Uint8Array {
-  switch (value) {
-    case 0n:
-      return instrCodec.encode(I256Const0)
-    case 1n:
-      return instrCodec.encode(I256Const1)
-    case 2n:
-      return instrCodec.encode(I256Const2)
-    case 3n:
-      return instrCodec.encode(I256Const3)
-    case 4n:
-      return instrCodec.encode(I256Const4)
-    case 5n:
-      return instrCodec.encode(I256Const5)
-    case -1n:
-      return instrCodec.encode(I256ConstN1)
-    default:
-      return instrCodec.encode(I256Const(value))
-  }
+  return instrCodec.encode(toI256(value))
 }
 
 function encodeScriptFieldU256(value: bigint): Uint8Array {
-  switch (value) {
-    case 0n:
-      return instrCodec.encode(U256Const0)
-    case 1n:
-      return instrCodec.encode(U256Const1)
-    case 2n:
-      return instrCodec.encode(U256Const2)
-    case 3n:
-      return instrCodec.encode(U256Const3)
-    case 4n:
-      return instrCodec.encode(U256Const4)
-    case 5n:
-      return instrCodec.encode(U256Const5)
-    default:
-      return instrCodec.encode(U256Const(value))
-  }
+  return instrCodec.encode(toU256(value))
 }
 
 export function encodeScriptFieldAsString(tpe: string, value: Val): string {

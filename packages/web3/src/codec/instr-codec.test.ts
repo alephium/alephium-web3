@@ -233,4 +233,20 @@ describe('Encode & decode instrs', function () {
       expect(instrCodec.decode(encoded)).toEqual(instr)
     })
   })
+
+  it('should check the numeric bounds', () => {
+    expect(() => instr.toU256(0n)).not.toThrow()
+    expect(() => instr.toU256(1n)).not.toThrow()
+    expect(() => instr.toU256((1n << 256n) - 1n)).not.toThrow()
+    expect(() => instr.toU256(-1n)).toThrow('Invalid u256')
+    expect(() => instr.toU256(1n << 256n)).toThrow('Invalid u256')
+
+    expect(() => instr.toI256(0n)).not.toThrow()
+    expect(() => instr.toI256(-1n)).not.toThrow()
+    expect(() => instr.toI256(1n)).not.toThrow()
+    expect(() => instr.toI256(-(1n << 255n))).not.toThrow()
+    expect(() => instr.toI256((1n << 255n) - 1n)).not.toThrow()
+    expect(() => instr.toI256(1n << 255n)).toThrow('Invalid i256')
+    expect(() => instr.toI256(-(1n << 255n) - 1n)).toThrow('Invalid i256')
+  })
 })

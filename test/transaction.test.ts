@@ -16,14 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { SignTransferTxResult, SignTransferChainedTxParams, SignUnsignedTxResult, subscribeToTxStatus, TransactionBuilder } from '../packages/web3'
-import { node, ONE_ALPH, DUST_AMOUNT } from '../packages/web3'
-import { SubscribeOptions, sleep } from '../packages/web3'
+import { SignTransferTxResult, SignTransferChainedTxParams, SignUnsignedTxResult } from '../packages/web3'
+import { node, ONE_ALPH, DUST_AMOUNT, MINIMAL_CONTRACT_DEPOSIT } from '../packages/web3'
+import { subscribeToTxStatus, SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { TxStatus } from '../packages/web3'
 import { HDWallet, HDWalletAccount, PrivateKeyWallet, generateMnemonic } from '@alephium/web3-wallet'
 import { Add, Sub, AddMain, Transact, Deposit, DepositToken } from '../artifacts/ts'
 import { getSigner, mintToken, testPrivateKeyWallet } from '../packages/web3-test'
+import { DappTransactionBuilder, TransactionBuilder } from '../packages/web3'
 import { ALPH_TOKEN_ID } from '../packages/web3'
 import { Balance } from '@alephium/web3/src/api/api-alephium'
 
@@ -54,7 +55,7 @@ describe('transactions', function () {
     signer = await getSigner()
   })
 
-  it('should build multi-transfer', async () => {
+  it('should build transfer-from-one-to-many-groups', async () => {
     const nodeProvider = web3.getCurrentNodeProvider()
     const signer0 = await getSigner(100n * ONE_ALPH, 1)
     const signer1 = await getSigner(0n, 2)
@@ -422,6 +423,77 @@ describe('transactions', function () {
         [signer2.publicKey, signer1.publicKey]
       )
     ).rejects.toThrow('Unmatched public key')
+  })
+
+  it('should build dapp transactions', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const { tokenId } = await mintToken(signer.address, 10n * 10n ** 18n)
+    const initBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer.address)
+    let alphBalance = BigInt(initBalance.balance)
+    const result0 = await Transact.deploy(signer, {
+      initialAttoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
+      initialFields: { tokenId, totalALPH: 0n, totalTokens: 0n }
+    })
+    const contractAddress0 = result0.contractInstance.address
+    const builder = new DappTransactionBuilder(signer.address)
+    const unsignedTx0 = builder
+      .callContract({
+        contractAddress: contractAddress0,
+        methodIndex: 0, // Transact.depositAlph
+        args: [],
+        attoAlphAmount: ONE_ALPH
+      })
+      .getResult()
+    const tx0 = await signer.signAndSubmitExecuteScriptTx(unsignedTx0)
+    const balance0 = await nodeProvider.addresses.getAddressesAddressBalance(signer.address)
+    expect(BigInt(tokenBalance(balance0, tokenId)!)).toEqual(ONE_ALPH * 10n)
+    expect(BigInt(balance0.balance)).toEqual(
+      alphBalance -
+        MINIMAL_CONTRACT_DEPOSIT -
+        BigInt(result0.gasAmount) * BigInt(result0.gasPrice) -
+        ONE_ALPH -
+        BigInt(tx0.gasAmount) * BigInt(tx0.gasPrice)
+    )
+    alphBalance = BigInt(balance0.balance)
+
+    const result1 = await Sub.deploy(signer, {
+      initialAttoAlphAmount: MINIMAL_CONTRACT_DEPOSIT,
+      initialFields: { result: 0n }
+    })
+    const contractAddress1 = result1.contractInstance.address
+    const unsignedTx1 = builder
+      .callContract({
+        contractAddress: contractAddress0,
+        methodIndex: 0, // Transact.depositAlph
+        args: [],
+        attoAlphAmount: ONE_ALPH
+      })
+      .callContract({
+        contractAddress: contractAddress0,
+        methodIndex: 2, // Transact.depositToken
+        args: [ONE_ALPH],
+        tokens: [{ id: tokenId, amount: ONE_ALPH }]
+      })
+      .callContract({
+        contractAddress: contractAddress1,
+        methodIndex: 0, // Sub.sub
+        args: [5n, 1n],
+        retLength: 1
+      })
+      .getResult()
+    const tx1 = await signer.signAndSubmitExecuteScriptTx(unsignedTx1)
+    const balance1 = await nodeProvider.addresses.getAddressesAddressBalance(signer.address)
+    expect(BigInt(tokenBalance(balance1, tokenId)!)).toEqual(ONE_ALPH * 9n)
+    expect(BigInt(balance1.balance)).toEqual(
+      alphBalance -
+        MINIMAL_CONTRACT_DEPOSIT -
+        BigInt(result1.gasAmount) * BigInt(result1.gasPrice) -
+        ONE_ALPH -
+        BigInt(tx1.gasAmount) * BigInt(tx1.gasPrice)
+    )
+
+    const subContractState = await result1.contractInstance.fetchState()
+    expect(subContractState.fields.result).toEqual(4n)
   })
 
   function tokenBalance(balance: Balance, tokenId: string): string | undefined {

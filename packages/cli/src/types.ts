@@ -111,13 +111,13 @@ export interface Deployer {
   account: Account
 
   deployContract<T extends ContractInstance, P extends Fields>(
-    constractFactory: ContractFactory<T, P>,
+    contractFactory: ContractFactory<T, P>,
     params: DeployContractParams<P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>>
 
   deployContractTemplate<T extends ContractInstance, P extends Fields>(
-    constractFactory: ContractFactory<T, P>,
+    contractFactory: ContractFactory<T, P>,
     taskTag?: string
   ): Promise<DeployContractResult<T>>
 

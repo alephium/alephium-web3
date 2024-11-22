@@ -20,7 +20,7 @@ import { ArrayCodec } from './array-codec'
 import { i256Codec, u256Codec, i32Codec } from './compact-int-codec'
 import { ByteString, byteStringCodec, byteStringsCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
-import { byteCodec, Codec } from './codec'
+import { assert, byteCodec, Codec } from './codec'
 import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { Reader } from './reader'
 export type Instr =
@@ -1263,3 +1263,58 @@ export class InstrCodec extends Codec<Instr> {
 }
 export const instrCodec = new InstrCodec()
 export const instrsCodec = new ArrayCodec<Instr>(instrCodec)
+
+function checkU256(number: bigint) {
+  if (number < 0n || number >= 2n ** 256n) {
+    throw new Error(`Invalid u256 number: ${number}`)
+  }
+}
+
+export function toU256(number: bigint) {
+  checkU256(number)
+  switch (number) {
+    case 0n:
+      return U256Const0
+    case 1n:
+      return U256Const1
+    case 2n:
+      return U256Const2
+    case 3n:
+      return U256Const3
+    case 4n:
+      return U256Const4
+    case 5n:
+      return U256Const5
+    default:
+      return U256Const(number)
+  }
+}
+
+function checkI256(number: bigint) {
+  const upperBound = 2n ** 255n
+  if (number < -upperBound || number >= upperBound) {
+    throw new Error(`Invalid i256 number: ${number}`)
+  }
+}
+
+export function toI256(number: bigint) {
+  checkI256(number)
+  switch (number) {
+    case 0n:
+      return I256Const0
+    case 1n:
+      return I256Const1
+    case 2n:
+      return I256Const2
+    case 3n:
+      return I256Const3
+    case 4n:
+      return I256Const4
+    case 5n:
+      return I256Const5
+    case -1n:
+      return I256ConstN1
+    default:
+      return I256Const(number)
+  }
+}
