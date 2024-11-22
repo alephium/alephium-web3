@@ -113,6 +113,7 @@ export interface SignExecuteScriptTxResult {
   signature: string
   gasAmount: number
   gasPrice: Number256
+  simulatedOutputs: node.Output[]
 }
 assertType<
   Eq<
