@@ -1,0 +1,8 @@
+// Defines a transaction script.
+// A transaction script is a piece of code to interact with contracts on the blockchain.
+// Transaction scripts can use the input assets of transactions in general.
+// A script is disposable and will only be executed once along with the holder transaction.
+TxScript Withdraw(token: TokenFaucet, amount: U256) {
+    // Call token contract's withdraw function.
+    token.withdraw(amount)
+}
