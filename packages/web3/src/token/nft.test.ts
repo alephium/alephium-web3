@@ -18,116 +18,127 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { validateNFTCollectionUriMetaData, validateNFTTokenUriMetaData, validateNFTBaseUri } from './nft'
 
-describe('nft', function () {
-  it('should validate NFT and NFT collection metadata', () => {
-    const validWithoutAttributes = {
+describe('NFT Metadata Validation', () => {
+  describe('Token URI Metadata', () => {
+    const validMetadataWithoutAttributes = {
       name: 'NFT name',
       description: 'NFT description',
       image: 'https://example.com/'
     }
 
-    expect(validateNFTTokenUriMetaData(validWithoutAttributes)).toEqual(validWithoutAttributes)
-    expect(validateNFTCollectionUriMetaData(validWithoutAttributes)).toEqual(validWithoutAttributes)
-
-    const validWithAttributes = {
+    const validMetadataWithAttributes = {
       name: 'NFT name',
       description: 'NFT description',
       image: 'https://example.com/',
       attributes: [
-        {
-          trait_type: 'color',
-          value: 'blue'
-        },
-        {
-          trait_type: 'size',
-          value: 100
-        },
-        {
-          trait_type: 'valid',
-          value: true
-        }
+        { trait_type: 'color', value: 'blue' },
+        { trait_type: 'size', value: 100 },
+        { trait_type: 'valid', value: true }
       ]
     }
 
-    expect(validateNFTTokenUriMetaData(validWithAttributes)).toEqual(validWithAttributes)
-    expect(() => validateNFTCollectionUriMetaData(validWithAttributes)).toThrow(Error)
+    it('validates metadata without attributes', () => {
+      expect(validateNFTTokenUriMetaData(validMetadataWithoutAttributes)).toEqual(validMetadataWithoutAttributes)
+    })
 
-    const withEmptyDescription = {
-      name: 'NFT name',
-      description: '',
-      image: 'https://example.com/'
-    }
-    expect(() => validateNFTTokenUriMetaData(withEmptyDescription)).toThrow(Error)
-    expect(() => validateNFTCollectionUriMetaData(withEmptyDescription)).toThrow(Error)
+    it('validates metadata with attributes', () => {
+      expect(validateNFTTokenUriMetaData(validMetadataWithAttributes)).toEqual(validMetadataWithAttributes)
+    })
 
-    const withEmptyName = {
-      name: '',
-      description: 'NFT description',
-      image: 'https://example.com/'
-    }
-    expect(() => validateNFTTokenUriMetaData(withEmptyName)).toThrow(Error)
-    expect(() => validateNFTCollectionUriMetaData(withEmptyName)).toThrow(Error)
+    it('throws an error for empty description', () => {
+      const metadata = { ...validMetadataWithoutAttributes, description: '' }
+      expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+    })
 
-    const withWrongField = {
-      name: 'NFT name',
-      description: '',
-      url: 'https://example.com/'
-    }
-    expect(() => validateNFTTokenUriMetaData(withWrongField)).toThrow(Error)
-    expect(() => validateNFTCollectionUriMetaData(withWrongField)).toThrow(Error)
+    it('throws an error for empty name', () => {
+      const metadata = { ...validMetadataWithoutAttributes, name: '' }
+      expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+    })
 
-    const withMissingDescription = {
-      name: 'NFT name',
-      image: 'https://example.com/'
-    }
-    expect(validateNFTTokenUriMetaData(withMissingDescription)).toEqual(withMissingDescription)
-    expect(() => validateNFTCollectionUriMetaData(withMissingDescription)).toThrow(Error)
+    it('throws an error for missing required fields', () => {
+      const metadata = { description: 'NFT description', image: 'https://example.com/' }
+      expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+    })
 
-    const withMissingName = {
-      description: 'NFT description',
-      image: 'https://example.com/'
-    }
-    expect(() => validateNFTTokenUriMetaData(withMissingName)).toThrow(Error)
-    expect(() => validateNFTCollectionUriMetaData(withMissingName)).toThrow(Error)
+    it('throws an error for invalid field names', () => {
+      const metadata = { ...validMetadataWithoutAttributes, url: 'https://example.com/' }
+      expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+    })
 
-    const notAJson = 'not-a-json'
-    expect(() => validateNFTTokenUriMetaData(notAJson)).toThrow(Error)
-    expect(() => validateNFTCollectionUriMetaData(notAJson)).toThrow(Error)
+    it('throws an error for non-JSON input', () => {
+      expect(() => validateNFTTokenUriMetaData('not-a-json')).toThrow(Error)
+    })
 
-    const withWrongAttributesType = {
-      ...validWithAttributes,
-      attributes: 'not-an-array'
-    }
-    expect(() => validateNFTTokenUriMetaData(withWrongAttributesType)).toThrow(Error)
+    describe('Attributes Validation', () => {
+      it('throws an error for invalid attributes type', () => {
+        const metadata = { ...validMetadataWithAttributes, attributes: 'not-an-array' }
+        expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+      })
 
-    const withWrongAttributesValueType = {
-      ...validWithAttributes,
-      attributes: [{ trait_type: 'color', value: [] }]
-    }
-    expect(() => validateNFTTokenUriMetaData(withWrongAttributesValueType)).toThrow(Error)
+      it('throws an error for invalid attribute value type', () => {
+        const metadata = { ...validMetadataWithAttributes, attributes: [{ trait_type: 'color', value: [] }] }
+        expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+      })
 
-    const withWrongAttributesTraitType = {
-      ...validWithAttributes,
-      attributes: [{ trait_type: 1, value: 'blue' }]
-    }
-    expect(() => validateNFTTokenUriMetaData(withWrongAttributesTraitType)).toThrow(Error)
+      it('throws an error for invalid attribute trait_type type', () => {
+        const metadata = { ...validMetadataWithAttributes, attributes: [{ trait_type: 1, value: 'blue' }] }
+        expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+      })
 
-    const withWrongAttributesField = {
-      ...validWithAttributes,
-      attributes: [{ trait_type: 'color', trait_type_2: 'color', value: 'blue' }]
-    }
-    expect(() => validateNFTTokenUriMetaData(withWrongAttributesField)).toThrow(Error)
+      it('throws an error for additional unexpected fields in attributes', () => {
+        const metadata = {
+          ...validMetadataWithAttributes,
+          attributes: [{ trait_type: 'color', extra: 'blue', value: 'blue' }]
+        }
+        expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+      })
 
-    const withWrongEmptyAttributesField = {
-      ...validWithAttributes,
-      attributes: [{ trait_type: '', value: '' }]
-    }
-    expect(() => validateNFTTokenUriMetaData(withWrongEmptyAttributesField)).toThrow(Error)
+      it('throws an error for empty trait_type and value', () => {
+        const metadata = { ...validMetadataWithAttributes, attributes: [{ trait_type: '', value: '' }] }
+        expect(() => validateNFTTokenUriMetaData(metadata)).toThrow(Error)
+      })
+    })
   })
 
-  it.skip('should validate NFT collection token base URL', async () => {
-    const validUri = 'https://ipfs.io/ipfs/QmU7N7JMP3sF3YpSZ1v2G763BE8hHoaH7e6jJmxiu6N6Sh/'
-    expect(await validateNFTBaseUri(validUri, 2)).toEqual([
+  describe('Collection URI Metadata', () => {
+    const validCollectionMetadata = {
+      name: 'NFT name',
+      description: 'NFT description',
+      image: 'https://example.com/'
+    }
+
+    it('validates collection metadata', () => {
+      expect(validateNFTCollectionUriMetaData(validCollectionMetadata)).toEqual(validCollectionMetadata)
+    })
+
+    it('throws an error for metadata with attributes', () => {
+      const metadata = {
+        ...validCollectionMetadata,
+        attributes: [{ trait_type: 'color', value: 'blue' }]
+      }
+      expect(() => validateNFTCollectionUriMetaData(metadata)).toThrow(Error)
+    })
+
+    it('throws an error for missing required fields', () => {
+      const metadata = { name: 'NFT name', image: 'https://example.com/' }
+      expect(() => validateNFTCollectionUriMetaData(metadata)).toThrow(Error)
+    })
+
+    it('throws an error for empty name or description', () => {
+      const metadata = { ...validCollectionMetadata, name: '' }
+      expect(() => validateNFTCollectionUriMetaData(metadata)).toThrow(Error)
+
+      const metadataWithEmptyDescription = { ...validCollectionMetadata, description: '' }
+      expect(() => validateNFTCollectionUriMetaData(metadataWithEmptyDescription)).toThrow(Error)
+    })
+  })
+})
+
+describe('NFT Base URI Validation', () => {
+  const validUri = 'https://ipfs.io/ipfs/QmU7N7JMP3sF3YpSZ1v2G763BE8hHoaH7e6jJmxiu6N6Sh/'
+
+  it('validates a valid base URI with a specified token count', async () => {
+    const expectedTokens = [
       {
         name: 'Tom',
         description: 'Tom is a grumpy brown male cat',
@@ -138,22 +149,54 @@ describe('nft', function () {
         description: 'Leslie is a grumpy grey female cat',
         image: 'https://ipfs.io/ipfs/QmPUSyTUkWNiMotLusWauo6wnFb9sPnh4bgwU5c5JQT4vS/1'
       }
-    ])
+    ]
+    await expect(validateNFTBaseUri(validUri, 2)).resolves.toEqual(expectedTokens)
+  })
 
-    expect(await validateNFTBaseUri(validUri, 1)).toEqual([
+  it('validates with fewer tokens than the URI provides', async () => {
+    const expectedTokens = [
       {
         name: 'Tom',
         description: 'Tom is a grumpy brown male cat',
         image: 'https://ipfs.io/ipfs/QmPUSyTUkWNiMotLusWauo6wnFb9sPnh4bgwU5c5JQT4vS/0'
       }
-    ])
+    ]
+    await expect(validateNFTBaseUri(validUri, 1)).resolves.toEqual(expectedTokens)
+  })
 
-    expect(async () => await validateNFTBaseUri(validUri, 3)).rejects.toThrow(Error)
-    expect(async () => await validateNFTBaseUri(validUri, 0)).rejects.toThrow(Error)
-    expect(async () => await validateNFTBaseUri(validUri, -5)).rejects.toThrow(Error)
-    expect(async () => await validateNFTBaseUri(validUri, 1.1)).rejects.toThrow(Error)
+  it('throws an error for invalid token count', async () => {
+    await expect(validateNFTBaseUri(validUri, 0)).rejects.toThrow(Error)
+    await expect(validateNFTBaseUri(validUri, -1)).rejects.toThrow(Error)
+    await expect(validateNFTBaseUri(validUri, 1.1)).rejects.toThrow(Error)
+  })
 
+  it('throws an error for invalid base URI', async () => {
     const invalidUri = 'https://ipfs.io/ipfs/invalid'
-    expect(async () => await validateNFTBaseUri(invalidUri, 2)).rejects.toThrow(Error)
-  }, 10000)
+    await expect(validateNFTBaseUri(invalidUri, 2)).rejects.toThrow(Error)
+  })
+
+  it('throws an error if attributes contains non-object items', () => {
+    const metadata = {
+      name: 'NFT name',
+      description: 'NFT description',
+      image: 'https://example.com/',
+      attributes: ['not-an-object', 42, true] // Invalid entries
+    }
+
+    expect(() => validateNFTTokenUriMetaData(metadata)).toThrowError("Field 'attributes' should be an array of objects")
+  })
+
+  it('does not throw an error if attributes contains only objects', () => {
+    const metadata = {
+      name: 'NFT name',
+      description: 'NFT description',
+      image: 'https://example.com/',
+      attributes: [
+        { trait_type: 'color', value: 'blue' },
+        { trait_type: 'size', value: 10 }
+      ] // Valid entries
+    }
+
+    expect(() => validateNFTTokenUriMetaData(metadata)).not.toThrow()
+  })
 })
