@@ -40,3 +40,26 @@ Please refer to `package.json`.
 [prettier-badge]: https://img.shields.io/badge/code_style-prettier-ff69b4.svg
 [prettier-link]: https://github.com/prettier/prettier
 [release-notes]: https://github.com/alephium/alephium-web3/releases
+
+## Test
+Follow steps shown below to run test cases
+
+1. Open terminal ( use git bash if your OS = windows)
+2. Run the following command 
+    ```
+    pnpm install
+    ```
+3. Run the following command
+    ```
+    pnpm build
+    ```
+4. Run a devnet node by following this document: 
+https://docs.alephium.org/full-node/getting-started#devnet
+
+5. Successfull node running should display 3 servers are running:
+![image info](./documents/successful_node_running.png)
+
+6. Run command on terminal 
+    ```
+    pnpm test
+    ```
