@@ -201,7 +201,7 @@ describe('BlockSubscription implementation', () => {
     const now = Date.now()
     const block: node.BlockEntry = {
       hash: 'test',
-      timestamp: now - 30000, // Older than EXPIRE_DURATION
+      timestamp: now - 30000,
       chainFrom: 0,
       chainTo: 0,
       height: 1,
