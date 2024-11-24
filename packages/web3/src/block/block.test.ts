@@ -16,9 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { BlockSubscribeOptions, BlockSubscriptionBase, ReorgCallback } from './block'
+import { BlockSubscribeOptions, BlockSubscriptionBase, BlockSubscription, ReorgCallback } from './block'
 import * as node from '../api/api-alephium'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
+import { NodeProvider } from '../api'
 
 describe('block subscription', function () {
   let orphanHashes: string[] = []
@@ -162,4 +163,230 @@ describe('block subscription', function () {
       this.blockByHash = buildBlockByHashMap(chains)
     }
   }
+})
+
+describe('BlockSubscription implementation', () => {
+  let nodeProvider: NodeProvider
+  let subscription: BlockSubscription
+  
+  beforeEach(() => {
+    nodeProvider = {
+      blockflow: {
+        getBlockflowHashes: jest.fn(),
+        getBlockflowBlocksBlockHash: jest.fn(),
+        getBlockflowBlocks: jest.fn()
+      }
+    } as unknown as NodeProvider
+    
+    subscription = new BlockSubscription(
+      {
+        pollingInterval: 1000,
+        messageCallback: jest.fn(),
+        errorCallback: jest.fn()
+      },
+      Date.now(),
+      nodeProvider
+    )
+  })
+
+  it('should handle empty blocks response', async () => {
+    const now = Date.now()
+    nodeProvider.blockflow.getBlockflowBlocks = jest.fn().mockResolvedValue({ blocks: [] })
+    
+    await subscription.polling()
+    expect(subscription['messageCallback']).not.toHaveBeenCalled()
+  })
+
+  it('should handle cache expiration correctly', async () => {
+    const now = Date.now()
+    const block: node.BlockEntry = {
+      hash: 'test',
+      timestamp: now - 30000, // Older than EXPIRE_DURATION
+      chainFrom: 0,
+      chainTo: 0,
+      height: 1,
+      deps: ['parent'],
+      transactions: [],
+      nonce: '',
+      version: 0,
+      depStateHash: '',
+      txsHash: '',
+      target: '',
+      ghostUncles: []
+    }
+    
+    nodeProvider.blockflow.getBlockflowBlocks = jest.fn().mockResolvedValue({
+      blocks: [[block]]
+    })
+    
+    await subscription.polling()
+    expect(subscription['cache'].has('test')).toBeFalsy()
+  })
+
+  it('should handle multiple chains in blocks response', async () => {
+    const now = Date.now()
+    const blocks: node.BlockEntry[][] = [
+      [{
+        hash: 'chain0-block',
+        timestamp: now - 1000,
+        chainFrom: 0,
+        chainTo: 0,
+        height: 1,
+        deps: ['parent'],
+        transactions: [],
+        nonce: '',
+        version: 0,
+        depStateHash: '',
+        txsHash: '',
+        target: '',
+        ghostUncles: []
+      }],
+      [{
+        hash: 'chain1-block',
+        timestamp: now - 500,
+        chainFrom: 1,
+        chainTo: 1,
+        height: 1,
+        deps: ['parent'],
+        transactions: [],
+        nonce: '',
+        version: 0,
+        depStateHash: '',
+        txsHash: '',
+        target: '',
+        ghostUncles: []
+      }]
+    ]
+    
+    nodeProvider.blockflow.getBlockflowBlocks = jest.fn().mockResolvedValue({ blocks })
+    
+    await subscription.polling()
+    expect(subscription['messageCallback']).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ hash: 'chain0-block' }),
+        expect.objectContaining({ hash: 'chain1-block' })
+      ])
+    )
+  })
+
+  it('should handle errors during polling', async () => {
+    const error = new Error('Network error')
+    nodeProvider.blockflow.getBlockflowBlocks = jest.fn().mockRejectedValue(error)
+    
+    await subscription.polling()
+    expect(subscription['errorCallback']).toHaveBeenCalledWith(error, subscription)
+  })
+
+  it('should handle missing blocks correctly', async () => {
+    const now = Date.now()
+    const block1: node.BlockEntry = {
+      hash: 'block1',
+      timestamp: now - 2000,
+      chainFrom: 0,
+      chainTo: 0,
+      height: 2,
+      deps: ['parent1'],
+      transactions: [],
+      nonce: '',
+      version: 0,
+      depStateHash: '',
+      txsHash: '',
+      target: '',
+      ghostUncles: []
+    }
+    
+    const block2: node.BlockEntry = {
+      hash: 'block2',
+      timestamp: now - 1000,
+      chainFrom: 0,
+      chainTo: 0,
+      height: 3,
+      deps: ['block1'],
+      transactions: [],
+      nonce: '',
+      version: 0,
+      depStateHash: '',
+      txsHash: '',
+      target: '',
+      ghostUncles: []
+    }
+    
+    nodeProvider.blockflow.getBlockflowBlocksBlockHash = jest.fn()
+      .mockResolvedValueOnce(block1)
+      .mockResolvedValueOnce(block2)
+    
+    nodeProvider.blockflow.getBlockflowBlocks = jest.fn().mockResolvedValue({
+      blocks: [[block2]]
+    })
+    
+    subscription['parents'][0] = { hash: 'parent1', height: 1 }
+    
+    await subscription.polling()
+    expect(subscription['messageCallback']).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ hash: 'block1' }),
+        expect.objectContaining({ hash: 'block2' })
+      ])
+    )
+  })
+})
+
+// Base class edge case tests
+describe('BlockSubscriptionBase edge cases', () => {
+  class TestBlockSubscription extends BlockSubscriptionBase {
+    reorgCallback?: ReorgCallback
+    constructor(options: BlockSubscribeOptions) {
+      super(options)
+      this.reorgCallback = options.reorgCallback
+    }
+    
+    getHashesAtHeight(): Promise<string[]> {
+      return Promise.resolve([])
+    }
+    
+    getBlockByHash(): Promise<node.BlockEntry> {
+      return Promise.resolve({} as node.BlockEntry)
+    }
+    
+    polling(): Promise<void> {
+      return Promise.resolve()
+    }
+  }
+
+  it('should handle undefined reorgCallback', async () => {
+    const subscription = new TestBlockSubscription({
+      pollingInterval: 1000,
+      messageCallback: jest.fn(),
+      errorCallback: jest.fn()
+    })
+    
+    // Should not throw error when reorgCallback is undefined
+    await (subscription as any).handleReorg(0, 1, 'orphan', 'new')
+  })
+
+  it('should handle empty deps array', () => {
+    const subscription = new TestBlockSubscription({
+      pollingInterval: 1000,
+      messageCallback: jest.fn(),
+      errorCallback: jest.fn()
+    })
+    
+    const block: node.BlockEntry = {
+      hash: 'test',
+      timestamp: Date.now(),
+      chainFrom: 0,
+      chainTo: 0,
+      height: 1,
+      deps: [],
+      transactions: [],
+      nonce: '',
+      version: 0,
+      depStateHash: '',
+      txsHash: '',
+      target: '',
+      ghostUncles: []
+    }
+    
+    expect(() => subscription['getParentHash'](block)).toThrow()
+  })
 })
