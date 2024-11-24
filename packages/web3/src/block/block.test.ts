@@ -331,7 +331,6 @@ describe('BlockSubscription implementation', () => {
   })
 })
 
-// Base class edge case tests
 describe('BlockSubscriptionBase edge cases', () => {
   class TestBlockSubscription extends BlockSubscriptionBase {
     reorgCallback?: ReorgCallback
