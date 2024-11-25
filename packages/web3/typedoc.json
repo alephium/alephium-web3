@@ -1,0 +1,12 @@
+{
+    "entryPoints": ["src/index.ts"], 
+    "out": "docs",                  
+    "tsconfig": "./tsconfig.json", 
+    "plugin": ["typedoc-plugin-markdown"], 
+    "name": "Web3 SDK",             
+    "includeVersion": true,         
+    "excludeExternals": true,       
+    "excludePrivate": true,         
+    "theme": "default"            
+  }
+  
