@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { Account, NetworkId, SignerProvider, KeyType } from '@alephium/web3'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
 import QRCodeModal from '@alephium/walletconnect-qrcode-modal'
-import { alephiumProvider, AlephiumWindowObject, getWalletObject } from '@alephium/get-extension-wallet'
+import { AlephiumWindowObject, getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import { setLastConnectedAccount } from './storage'
 import { ConnectorId } from '../types'
 
@@ -130,7 +130,7 @@ const wcDisconnect = async (signerProvider: SignerProvider): Promise<void> => {
 
 const injectedConnect = async (options: InjectedConnectOptions): Promise<Account | undefined> => {
   try {
-    const windowAlephium = options.injectedProvider ?? getWalletObject(alephiumProvider.id)
+    const windowAlephium = options.injectedProvider ?? (await getDefaultAlephiumWallet())
     const enableOptions = {
       addressGroup: options.addressGroup,
       keyType: options.keyType,
@@ -159,7 +159,7 @@ const injectedAutoConnect = async (options: InjectedAutoConnectOptions): Promise
   try {
     const allProviders = options.allInjectedProviders ?? []
     if (allProviders.length === 0) {
-      const windowAlephium = getWalletObject(alephiumProvider.id)
+      const windowAlephium = await getDefaultAlephiumWallet()
       if (windowAlephium !== undefined) {
         allProviders.push(windowAlephium)
       }

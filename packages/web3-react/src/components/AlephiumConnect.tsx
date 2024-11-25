@@ -34,7 +34,7 @@ import {
   subscribeToTxStatus,
   web3
 } from '@alephium/web3'
-import { Theme, Mode, CustomTheme, ProviderTheme } from '../types'
+import { Theme, Mode, CustomTheme, connectorIds, ProviderTheme } from '../types'
 import { routes } from './Common/Modal'
 import {
   AlephiumBalanceContext,
@@ -48,8 +48,6 @@ import {
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
 import { ConnectResult, getConnectorById } from '../utils/connector'
 import { useInjectedProviders } from '../hooks/useInjectedProviders'
-import { injectedProviderStore } from '../utils/providers'
-import { AlephiumWindowObject } from '@alephium/get-extension-wallet'
 
 export const ConnectSettingProvider: React.FC<{
   theme?: Theme
@@ -178,57 +176,39 @@ export const AlephiumConnectProvider: React.FC<{
   )
 
   useEffect(() => {
-    const onDisconnected = () => {
-      removeLastConnectedAccount()
-      updateAccount(undefined)
-      updateSignerProvider(undefined)
-    }
-    const onConnected = (result: ConnectResult) => {
-      updateAccount(result.account)
-      updateSignerProvider(result.signerProvider)
-    }
-
-    const reconnectByInjected = async (providers: AlephiumWindowObject[], times = 0) => {
-      if (times >= 20) {
-        onDisconnected()
-        return
-      }
-      const result = await getConnectorById('injected').autoConnect?.({
-        network,
-        addressGroup,
-        keyType,
-        onDisconnected,
-        onConnected,
-        allInjectedProviders: providers
-      })
-      if (result !== undefined) return
-      setTimeout(() => reconnectByInjected(injectedProviderStore.getProviders(), times + 1), 100)
-    }
-
     const func = async () => {
+      const onDisconnected = () => {
+        removeLastConnectedAccount()
+        updateAccount(undefined)
+        updateSignerProvider(undefined)
+      }
+      const onConnected = (result: ConnectResult) => {
+        updateAccount(result.account)
+        updateSignerProvider(result.signerProvider)
+      }
+
       try {
         const lastConnectorId = lastConnectedAccount?.connectorId
-        if (lastConnectorId === undefined) {
-          onDisconnected()
-          return
-        }
+        const allConnectorIds = Array.from(connectorIds)
+        const sortedConnectorIds =
+          lastConnectorId === undefined
+            ? allConnectorIds
+            : [lastConnectorId].concat(allConnectorIds.filter((c) => c !== lastConnectorId))
 
-        if (lastConnectorId === 'injected') {
-          reconnectByInjected(allInjectedProviders)
-          return
-        }
-
-        const connector = getConnectorById(lastConnectorId)
-        if (connector.autoConnect !== undefined) {
-          const result = await connector.autoConnect({
-            network,
-            addressGroup,
-            keyType,
-            onDisconnected,
-            onConnected
-          })
-          if (result !== undefined) {
-            return
+        for (const connectorId of sortedConnectorIds) {
+          const connector = getConnectorById(connectorId)
+          if (connector.autoConnect !== undefined) {
+            const result = await connector.autoConnect({
+              network,
+              addressGroup,
+              keyType,
+              onDisconnected,
+              onConnected,
+              allInjectedProviders: connectorId === 'injected' ? allInjectedProviders : undefined
+            })
+            if (result !== undefined) {
+              return
+            }
           }
         }
       } catch (error) {
