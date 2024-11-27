@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3 } from '@alephium/web3'
+import { verifySignature, web3 } from '@alephium/web3'
 import { PrivateKeyWallet } from './privatekey-wallet'
 
 describe('PrivateKeyWallet', () => {
@@ -45,8 +45,8 @@ describe('PrivateKeyWallet', () => {
     const wallet = PrivateKeyWallet.Random()
     expect(wallet.address).toBeDefined()
     expect(wallet.publicKey).toBeDefined()
-    expect(wallet.address.length).toBeGreaterThan(0)
-    expect(wallet.publicKey.length).toBeGreaterThan(0)
+    expect(wallet.address.length).toBe(45)
+    expect(wallet.publicKey.length).toBe(66)
   })
 
   it('should correctly sign raw data', async () => {
@@ -56,7 +56,7 @@ describe('PrivateKeyWallet', () => {
 
     expect(signature).toBeDefined()
     expect(typeof signature).toBe('string')
-    // Optionally add more checks to validate the signature
+    expect(verifySignature(hexString, wallet.publicKey, signature)).toBe(true)
   })
 
   it('should throw an error if signing with an incorrect address', async () => {
