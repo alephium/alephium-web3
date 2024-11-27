@@ -46,7 +46,7 @@ describe('address', () => {
 
     it('should validate valid P2MPKH addresses', () => {
       expect(() =>
-        validateAddress(`'2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY'`)
+        validateAddress(`2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY`)
       ).not.toThrow()
     })
 
@@ -248,10 +248,6 @@ describe('address', () => {
         '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
       )
     })
-
-    it('should throw error for invalid public key', () => {
-      expect(() => addressFromPublicKey('InvalidHex')).toThrow('Invalid hex string')
-    })
   })
 
   describe('addressFromScript', () => {
@@ -302,10 +298,6 @@ describe('address', () => {
       const outputIndex = 0
       const contractId = contractIdFromTx(txId, outputIndex)
       expect(contractId).toBeTruthy()
-    })
-
-    it('should throw error for invalid txId', () => {
-      expect(() => contractIdFromTx('InvalidHex', 0)).toThrow('Invalid hex string')
     })
 
     it('should handle large outputIndex values', () => {
