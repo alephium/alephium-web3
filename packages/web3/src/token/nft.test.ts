@@ -123,9 +123,19 @@ describe('nft', function () {
       attributes: [{ trait_type: '', value: '' }]
     }
     expect(() => validateNFTTokenUriMetaData(withWrongEmptyAttributesField)).toThrow(Error)
+
+    const withNoneObjectItems = {
+      name: 'NFT name',
+      description: 'NFT description',
+      image: 'https://example.com/',
+      attributes: ['not-an-object', 42, true] // Invalid entries
+    }
+    expect(() => validateNFTTokenUriMetaData(withNoneObjectItems)).toThrowError(
+      "Field 'attributes' should be an array of objects"
+    )
   })
 
-  it.skip('should validate NFT collection token base URL', async () => {
+  it('should validate NFT collection token base URL', async () => {
     const validUri = 'https://ipfs.io/ipfs/QmU7N7JMP3sF3YpSZ1v2G763BE8hHoaH7e6jJmxiu6N6Sh/'
     expect(await validateNFTBaseUri(validUri, 2)).toEqual([
       {
@@ -148,6 +158,9 @@ describe('nft', function () {
       }
     ])
 
+    expect(async () => await validateNFTBaseUri(validUri, 2)).rejects.toThrow(
+      `Error fetching NFT metadata from ${validUri}${2}`
+    )
     expect(async () => await validateNFTBaseUri(validUri, 3)).rejects.toThrow(Error)
     expect(async () => await validateNFTBaseUri(validUri, 0)).rejects.toThrow(Error)
     expect(async () => await validateNFTBaseUri(validUri, -5)).rejects.toThrow(Error)
