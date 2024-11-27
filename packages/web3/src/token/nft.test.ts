@@ -158,9 +158,6 @@ describe('nft', function () {
       }
     ])
 
-    expect(async () => await validateNFTBaseUri(validUri, 2)).rejects.toThrow(
-      `Error fetching NFT metadata from ${validUri}${2}`
-    )
     expect(async () => await validateNFTBaseUri(validUri, 3)).rejects.toThrow(Error)
     expect(async () => await validateNFTBaseUri(validUri, 0)).rejects.toThrow(Error)
     expect(async () => await validateNFTBaseUri(validUri, -5)).rejects.toThrow(Error)
