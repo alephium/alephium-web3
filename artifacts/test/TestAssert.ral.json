@@ -1,5 +1,5 @@
 {
-  "version": "v3.8.6",
+  "version": "v3.9.0",
   "name": "TestAssert",
   "bytecodeTemplate": "010103000000040c0c{0}0100",
   "fieldsSig": {
