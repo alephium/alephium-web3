@@ -43,6 +43,9 @@ export abstract class BlockSubscriptionBase extends Subscription<node.BlockEntry
   abstract getBlockByHash(hash: string): Promise<node.BlockEntry>
 
   protected getParentHash(block: node.BlockEntry): string {
+    if (block.deps.length === 0) {
+      throw new Error('Block deps array is empty');
+    }
     const index = Math.floor(block.deps.length / 2) + block.chainTo
     return block.deps[index]
   }
@@ -143,6 +146,8 @@ export class BlockSubscription extends BlockSubscriptionBase {
       this.parents[index] = { hash: latestBlock.hash, height: latestBlock.height }
     }
 
+    if (allBlocks.length === 0) return;
+
     const sortedBlocks = allBlocks.sort((a, b) => a.timestamp - b.timestamp)
     try {
       await this.messageCallback(sortedBlocks)
@@ -169,7 +174,8 @@ export class BlockSubscription extends BlockSubscriptionBase {
         const result = await this.nodeProvider.blockflow.getBlockflowBlocks({ fromTs: this.fromTimeStamp, toTs })
         await this.handleBlocks(result.blocks, now)
       } catch (err) {
-        await this.errorCallback(err, this)
+        await this.errorCallback(err, this);
+        return;
       }
 
       if (this.fromTimeStamp + EXPIRE_DURATION < now) {
