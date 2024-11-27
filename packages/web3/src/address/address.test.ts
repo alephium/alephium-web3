@@ -248,6 +248,12 @@ describe('address', () => {
         '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
       )
     })
+
+    it('should throw error for invalid public key', () => {
+      expect(() => tokenIdFromAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toThrow(
+        'Invalid contract address type: 2'
+      )
+    })
   })
 
   describe('addressFromScript', () => {
@@ -298,6 +304,12 @@ describe('address', () => {
       const outputIndex = 0
       const contractId = contractIdFromTx(txId, outputIndex)
       expect(contractId).toBeTruthy()
+    })
+
+    it('should throw error for invalid tx', () => {
+      expect(() => tokenIdFromAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toThrow(
+        'Invalid contract address type: 2'
+      )
     })
 
     it('should handle large outputIndex values', () => {
