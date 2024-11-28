@@ -20,7 +20,7 @@ address
 
 #### Defined in
 
-[src/api/api-alephium.ts:672](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L672)
+[src/api/api-alephium.ts:672](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L672)
 
 ***
 
@@ -30,7 +30,7 @@ address
 
 #### Defined in
 
-[src/api/api-alephium.ts:681](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L681)
+[src/api/api-alephium.ts:681](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L681)
 
 ***
 
@@ -44,7 +44,7 @@ contract
 
 #### Defined in
 
-[src/api/api-alephium.ts:674](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L674)
+[src/api/api-alephium.ts:674](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L674)
 
 ***
 
@@ -58,7 +58,7 @@ contract
 
 #### Defined in
 
-[src/api/api-alephium.ts:676](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L676)
+[src/api/api-alephium.ts:676](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L676)
 
 ***
 
@@ -68,7 +68,7 @@ contract
 
 #### Defined in
 
-[src/api/api-alephium.ts:679](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L679)
+[src/api/api-alephium.ts:679](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L679)
 
 ***
 
@@ -82,7 +82,7 @@ contract
 
 #### Defined in
 
-[src/api/api-alephium.ts:678](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L678)
+[src/api/api-alephium.ts:678](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L678)
 
 ***
 
@@ -92,4 +92,4 @@ contract
 
 #### Defined in
 
-[src/api/api-alephium.ts:680](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L680)
+[src/api/api-alephium.ts:680](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L680)

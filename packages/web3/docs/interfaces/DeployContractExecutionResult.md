@@ -26,7 +26,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:29](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L29)
+[src/contract/deployment.ts:29](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L29)
 
 ***
 
@@ -40,7 +40,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:27](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L27)
+[src/contract/deployment.ts:27](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L27)
 
 ***
 
@@ -54,7 +54,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:28](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L28)
+[src/contract/deployment.ts:28](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L28)
 
 ***
 
@@ -64,7 +64,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:34](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L34)
+[src/contract/deployment.ts:34](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L34)
 
 ***
 
@@ -78,7 +78,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:25](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L25)
+[src/contract/deployment.ts:25](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L25)
 
 ***
 
@@ -92,7 +92,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L26)
+[src/contract/deployment.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L26)
 
 ***
 
@@ -102,7 +102,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:35](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L35)
+[src/contract/deployment.ts:35](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L35)
 
 ***
 
@@ -116,7 +116,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L24)
+[src/contract/deployment.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L24)
 
 ***
 
@@ -130,7 +130,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:30](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L30)
+[src/contract/deployment.ts:30](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L30)
 
 ***
 
@@ -144,7 +144,7 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:22](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L22)
+[src/contract/deployment.ts:22](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L22)
 
 ***
 
@@ -158,4 +158,4 @@
 
 #### Defined in
 
-[src/contract/deployment.ts:23](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/deployment.ts#L23)
+[src/contract/deployment.ts:23](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/deployment.ts#L23)

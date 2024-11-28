@@ -38,7 +38,7 @@
 
 #### Defined in
 
-[src/transaction/status.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/transaction/status.ts#L31)
+[src/transaction/status.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/transaction/status.ts#L31)
 
 ## Properties
 
@@ -52,7 +52,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:37](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L37)
+[src/utils/subscription.ts:37](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L37)
 
 ***
 
@@ -62,7 +62,7 @@
 
 #### Defined in
 
-[src/transaction/status.ts:29](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/transaction/status.ts#L29)
+[src/transaction/status.ts:29](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/transaction/status.ts#L29)
 
 ***
 
@@ -76,7 +76,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:34](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L34)
+[src/utils/subscription.ts:34](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L34)
 
 ***
 
@@ -90,7 +90,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:36](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L36)
+[src/utils/subscription.ts:36](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L36)
 
 ***
 
@@ -100,7 +100,7 @@
 
 #### Defined in
 
-[src/transaction/status.ts:27](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/transaction/status.ts#L27)
+[src/transaction/status.ts:27](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/transaction/status.ts#L27)
 
 ***
 
@@ -114,7 +114,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:33](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L33)
+[src/utils/subscription.ts:33](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L33)
 
 ***
 
@@ -128,7 +128,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L31)
+[src/utils/subscription.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L31)
 
 ***
 
@@ -142,7 +142,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:35](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L35)
+[src/utils/subscription.ts:35](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L35)
 
 ***
 
@@ -152,7 +152,7 @@
 
 #### Defined in
 
-[src/transaction/status.ts:28](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/transaction/status.ts#L28)
+[src/transaction/status.ts:28](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/transaction/status.ts#L28)
 
 ***
 
@@ -162,7 +162,7 @@
 
 #### Defined in
 
-[src/transaction/status.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/transaction/status.ts#L26)
+[src/transaction/status.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/transaction/status.ts#L26)
 
 ## Methods
 
@@ -180,7 +180,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:67](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L67)
+[src/utils/subscription.ts:67](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L67)
 
 ***
 
@@ -198,7 +198,7 @@
 
 #### Defined in
 
-[src/transaction/status.ts:45](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/transaction/status.ts#L45)
+[src/transaction/status.ts:45](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/transaction/status.ts#L45)
 
 ***
 
@@ -216,7 +216,7 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:48](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L48)
+[src/utils/subscription.ts:48](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L48)
 
 ***
 
@@ -234,4 +234,4 @@
 
 #### Defined in
 
-[src/utils/subscription.ts:59](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/utils/subscription.ts#L59)
+[src/utils/subscription.ts:59](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/utils/subscription.ts#L59)

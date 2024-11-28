@@ -22,7 +22,7 @@
 
 #### Defined in
 
-[src/contract/dapp-tx-builder.ts:49](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/dapp-tx-builder.ts#L49)
+[src/contract/dapp-tx-builder.ts:49](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/dapp-tx-builder.ts#L49)
 
 ## Properties
 
@@ -32,7 +32,7 @@
 
 #### Defined in
 
-[src/contract/dapp-tx-builder.ts:49](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/dapp-tx-builder.ts#L49)
+[src/contract/dapp-tx-builder.ts:49](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/dapp-tx-builder.ts#L49)
 
 ## Methods
 
@@ -62,7 +62,7 @@
 
 #### Defined in
 
-[src/contract/dapp-tx-builder.ts:62](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/dapp-tx-builder.ts#L62)
+[src/contract/dapp-tx-builder.ts:62](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/dapp-tx-builder.ts#L62)
 
 ***
 
@@ -76,4 +76,4 @@
 
 #### Defined in
 
-[src/contract/dapp-tx-builder.ts:90](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/dapp-tx-builder.ts#L90)
+[src/contract/dapp-tx-builder.ts:90](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/dapp-tx-builder.ts#L90)

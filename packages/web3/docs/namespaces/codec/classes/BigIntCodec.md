@@ -32,7 +32,7 @@
 
 #### Defined in
 
-[src/codec/bigint-codec.ts:81](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/bigint-codec.ts#L81)
+[src/codec/bigint-codec.ts:81](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/bigint-codec.ts#L81)
 
 ***
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[src/codec/bigint-codec.ts:67](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/bigint-codec.ts#L67)
+[src/codec/bigint-codec.ts:67](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/bigint-codec.ts#L67)
 
 ***
 
@@ -68,4 +68,4 @@
 
 #### Defined in
 
-[src/codec/bigint-codec.ts:19](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/bigint-codec.ts#L19)
+[src/codec/bigint-codec.ts:19](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/bigint-codec.ts#L19)

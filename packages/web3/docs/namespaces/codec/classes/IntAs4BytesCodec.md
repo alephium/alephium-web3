@@ -44,7 +44,7 @@
 
 #### Defined in
 
-[src/codec/int-as-4bytes-codec.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/int-as-4bytes-codec.ts#L26)
+[src/codec/int-as-4bytes-codec.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/int-as-4bytes-codec.ts#L26)
 
 ***
 
@@ -72,7 +72,7 @@
 
 #### Defined in
 
-[src/codec/codec.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/codec.ts#L31)
+[src/codec/codec.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/codec.ts#L31)
 
 ***
 
@@ -94,7 +94,7 @@
 
 #### Defined in
 
-[src/codec/codec.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/codec.ts#L24)
+[src/codec/codec.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/codec.ts#L24)
 
 ***
 
@@ -116,4 +116,4 @@
 
 #### Defined in
 
-[src/codec/int-as-4bytes-codec.ts:22](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/int-as-4bytes-codec.ts#L22)
+[src/codec/int-as-4bytes-codec.ts:22](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/int-as-4bytes-codec.ts#L22)

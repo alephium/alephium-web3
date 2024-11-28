@@ -32,7 +32,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1536](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1536)
+[src/contract/contract.ts:1536](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1536)
 
 ## Methods
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1548](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1548)
+[src/contract/contract.ts:1548](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1548)
 
 ***
 
@@ -68,7 +68,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1544](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1544)
+[src/contract/contract.ts:1544](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1544)
 
 ***
 
@@ -94,4 +94,4 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1552](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1552)
+[src/contract/contract.ts:1552](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1552)

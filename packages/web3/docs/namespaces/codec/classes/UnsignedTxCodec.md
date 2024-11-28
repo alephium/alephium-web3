@@ -44,7 +44,7 @@
 
 #### Defined in
 
-[src/codec/codec.ts:71](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/codec.ts#L71)
+[src/codec/codec.ts:71](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/codec.ts#L71)
 
 ## Methods
 
@@ -66,7 +66,7 @@
 
 #### Defined in
 
-[src/codec/codec.ts:84](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/codec.ts#L84)
+[src/codec/codec.ts:84](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/codec.ts#L84)
 
 ***
 
@@ -94,7 +94,7 @@
 
 #### Defined in
 
-[src/codec/codec.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/codec.ts#L31)
+[src/codec/codec.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/codec.ts#L31)
 
 ***
 
@@ -116,7 +116,7 @@
 
 #### Defined in
 
-[src/codec/codec.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/codec.ts#L24)
+[src/codec/codec.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/codec.ts#L24)
 
 ***
 
@@ -134,7 +134,7 @@
 
 #### Defined in
 
-[src/codec/unsigned-tx-codec.ts:44](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/unsigned-tx-codec.ts#L44)
+[src/codec/unsigned-tx-codec.ts:44](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/unsigned-tx-codec.ts#L44)
 
 ***
 
@@ -156,7 +156,7 @@
 
 #### Defined in
 
-[src/codec/codec.ts:76](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/codec.ts#L76)
+[src/codec/codec.ts:76](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/codec.ts#L76)
 
 ***
 
@@ -174,7 +174,7 @@
 
 #### Defined in
 
-[src/codec/unsigned-tx-codec.ts:39](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/unsigned-tx-codec.ts#L39)
+[src/codec/unsigned-tx-codec.ts:39](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/unsigned-tx-codec.ts#L39)
 
 ***
 
@@ -192,7 +192,7 @@
 
 #### Defined in
 
-[src/codec/unsigned-tx-codec.ts:70](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/unsigned-tx-codec.ts#L70)
+[src/codec/unsigned-tx-codec.ts:70](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/unsigned-tx-codec.ts#L70)
 
 ***
 
@@ -210,7 +210,7 @@
 
 #### Defined in
 
-[src/codec/unsigned-tx-codec.ts:53](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/unsigned-tx-codec.ts#L53)
+[src/codec/unsigned-tx-codec.ts:53](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/unsigned-tx-codec.ts#L53)
 
 ***
 
@@ -228,4 +228,4 @@
 
 #### Defined in
 
-[src/codec/unsigned-tx-codec.ts:49](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/unsigned-tx-codec.ts#L49)
+[src/codec/unsigned-tx-codec.ts:49](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/unsigned-tx-codec.ts#L49)

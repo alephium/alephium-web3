@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:30](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L30)
+[src/codec/method-codec.ts:30](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L30)
 
 ***
 
@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:33](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L33)
+[src/codec/method-codec.ts:33](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L33)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L26)
+[src/codec/method-codec.ts:26](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L26)
 
 ***
 
@@ -44,7 +44,7 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L31)
+[src/codec/method-codec.ts:31](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L31)
 
 ***
 
@@ -54,7 +54,7 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:32](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L32)
+[src/codec/method-codec.ts:32](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L32)
 
 ***
 
@@ -64,7 +64,7 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:28](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L28)
+[src/codec/method-codec.ts:28](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L28)
 
 ***
 
@@ -74,7 +74,7 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:29](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L29)
+[src/codec/method-codec.ts:29](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L29)
 
 ***
 
@@ -84,4 +84,4 @@
 
 #### Defined in
 
-[src/codec/method-codec.ts:27](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/method-codec.ts#L27)
+[src/codec/method-codec.ts:27](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/method-codec.ts#L27)

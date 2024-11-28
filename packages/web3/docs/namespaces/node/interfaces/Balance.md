@@ -20,7 +20,7 @@ uint256
 
 #### Defined in
 
-[src/api/api-alephium.ts:84](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L84)
+[src/api/api-alephium.ts:84](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L84)
 
 ***
 
@@ -34,7 +34,7 @@ x.x ALPH
 
 #### Defined in
 
-[src/api/api-alephium.ts:86](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L86)
+[src/api/api-alephium.ts:86](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L86)
 
 ***
 
@@ -48,7 +48,7 @@ uint256
 
 #### Defined in
 
-[src/api/api-alephium.ts:88](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L88)
+[src/api/api-alephium.ts:88](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L88)
 
 ***
 
@@ -62,7 +62,7 @@ x.x ALPH
 
 #### Defined in
 
-[src/api/api-alephium.ts:90](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L90)
+[src/api/api-alephium.ts:90](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L90)
 
 ***
 
@@ -72,7 +72,7 @@ x.x ALPH
 
 #### Defined in
 
-[src/api/api-alephium.ts:92](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L92)
+[src/api/api-alephium.ts:92](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L92)
 
 ***
 
@@ -82,7 +82,7 @@ x.x ALPH
 
 #### Defined in
 
-[src/api/api-alephium.ts:91](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L91)
+[src/api/api-alephium.ts:91](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L91)
 
 ***
 
@@ -96,4 +96,4 @@ int32
 
 #### Defined in
 
-[src/api/api-alephium.ts:94](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L94)
+[src/api/api-alephium.ts:94](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L94)

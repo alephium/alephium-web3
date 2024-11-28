@@ -16,7 +16,7 @@ WalletRestore
 
 #### Defined in
 
-[src/api/api-alephium.ts:1415](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1415)
+[src/api/api-alephium.ts:1415](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1415)
 
 ***
 
@@ -26,7 +26,7 @@ WalletRestore
 
 #### Defined in
 
-[src/api/api-alephium.ts:1413](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1413)
+[src/api/api-alephium.ts:1413](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1413)
 
 ***
 
@@ -36,7 +36,7 @@ WalletRestore
 
 #### Defined in
 
-[src/api/api-alephium.ts:1416](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1416)
+[src/api/api-alephium.ts:1416](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1416)
 
 ***
 
@@ -46,7 +46,7 @@ WalletRestore
 
 #### Defined in
 
-[src/api/api-alephium.ts:1412](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1412)
+[src/api/api-alephium.ts:1412](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1412)
 
 ***
 
@@ -56,4 +56,4 @@ WalletRestore
 
 #### Defined in
 
-[src/api/api-alephium.ts:1414](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1414)
+[src/api/api-alephium.ts:1414](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1414)

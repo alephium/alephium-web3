@@ -20,7 +20,7 @@ address
 
 #### Defined in
 
-[src/api/api-alephium.ts:664](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L664)
+[src/api/api-alephium.ts:664](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L664)
 
 ***
 
@@ -34,7 +34,7 @@ uint256
 
 #### Defined in
 
-[src/api/api-alephium.ts:662](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L662)
+[src/api/api-alephium.ts:662](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L662)
 
 ***
 
@@ -48,7 +48,7 @@ int32
 
 #### Defined in
 
-[src/api/api-alephium.ts:658](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L658)
+[src/api/api-alephium.ts:658](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L658)
 
 ***
 
@@ -62,7 +62,7 @@ int32
 
 #### Defined in
 
-[src/api/api-alephium.ts:660](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L660)
+[src/api/api-alephium.ts:660](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L660)
 
 ***
 
@@ -72,7 +72,7 @@ int32
 
 #### Defined in
 
-[src/api/api-alephium.ts:665](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L665)
+[src/api/api-alephium.ts:665](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L665)
 
 ***
 
@@ -82,4 +82,4 @@ int32
 
 #### Defined in
 
-[src/api/api-alephium.ts:666](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L666)
+[src/api/api-alephium.ts:666](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L666)

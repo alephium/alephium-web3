@@ -16,7 +16,7 @@ CompileProjectResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:550](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L550)
+[src/api/api-alephium.ts:550](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L550)
 
 ***
 
@@ -26,7 +26,7 @@ CompileProjectResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:547](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L547)
+[src/api/api-alephium.ts:547](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L547)
 
 ***
 
@@ -36,7 +36,7 @@ CompileProjectResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:551](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L551)
+[src/api/api-alephium.ts:551](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L551)
 
 ***
 
@@ -46,7 +46,7 @@ CompileProjectResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:548](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L548)
+[src/api/api-alephium.ts:548](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L548)
 
 ***
 
@@ -56,7 +56,7 @@ CompileProjectResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:549](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L549)
+[src/api/api-alephium.ts:549](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L549)
 
 ***
 
@@ -66,4 +66,4 @@ CompileProjectResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:552](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L552)
+[src/api/api-alephium.ts:552](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L552)

@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:171](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L171)
+[src/signer/types.ts:171](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L171)
 
 ***
 
@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:172](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L172)
+[src/signer/types.ts:172](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L172)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:169](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L169)
+[src/signer/types.ts:169](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L169)
 
 ***
 
@@ -44,4 +44,4 @@
 
 #### Defined in
 
-[src/signer/types.ts:170](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L170)
+[src/signer/types.ts:170](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L170)

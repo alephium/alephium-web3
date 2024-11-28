@@ -30,7 +30,7 @@
 
 #### Defined in
 
-[src/signer/tx-builder.ts:45](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L45)
+[src/signer/tx-builder.ts:45](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L45)
 
 ## Methods
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[src/signer/tx-builder.ts:93](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L93)
+[src/signer/tx-builder.ts:93](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L93)
 
 ***
 
@@ -70,7 +70,7 @@
 
 #### Defined in
 
-[src/signer/tx-builder.ts:75](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L75)
+[src/signer/tx-builder.ts:75](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L75)
 
 ***
 
@@ -90,7 +90,7 @@
 
 #### Defined in
 
-[src/signer/tx-builder.ts:84](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L84)
+[src/signer/tx-builder.ts:84](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L84)
 
 ***
 
@@ -110,7 +110,7 @@
 
 #### Defined in
 
-[src/signer/tx-builder.ts:66](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L66)
+[src/signer/tx-builder.ts:66](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L66)
 
 ***
 
@@ -128,7 +128,7 @@
 
 #### Defined in
 
-[src/signer/tx-builder.ts:157](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L157)
+[src/signer/tx-builder.ts:157](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L157)
 
 ***
 
@@ -148,7 +148,7 @@
 
 ##### Defined in
 
-[src/signer/tx-builder.ts:47](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L47)
+[src/signer/tx-builder.ts:47](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L47)
 
 #### from(baseUrl, apiKey, customFetch)
 
@@ -168,4 +168,4 @@
 
 ##### Defined in
 
-[src/signer/tx-builder.ts:48](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/tx-builder.ts#L48)
+[src/signer/tx-builder.ts:48](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/tx-builder.ts#L48)

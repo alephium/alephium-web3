@@ -46,7 +46,7 @@ Alephium API
 
 #### Defined in
 
-[src/api/api-alephium.ts:1498](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1498)
+[src/api/api-alephium.ts:1498](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1498)
 
 ## Properties
 
@@ -156,7 +156,7 @@ GET:/addresses/{address}/utxos
 
 #### Defined in
 
-[src/api/api-alephium.ts:2519](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L2519)
+[src/api/api-alephium.ts:2519](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L2519)
 
 ***
 
@@ -170,7 +170,7 @@ GET:/addresses/{address}/utxos
 
 #### Defined in
 
-[src/api/api-alephium.ts:1485](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1485)
+[src/api/api-alephium.ts:1485](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1485)
 
 ***
 
@@ -660,7 +660,7 @@ GET:/blockflow/rich-blocks/{block_hash}
 
 #### Defined in
 
-[src/api/api-alephium.ts:2243](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L2243)
+[src/api/api-alephium.ts:2243](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L2243)
 
 ***
 
@@ -1100,7 +1100,7 @@ POST:/contracts/unsigned-tx/execute-script
 
 #### Defined in
 
-[src/api/api-alephium.ts:2922](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L2922)
+[src/api/api-alephium.ts:2922](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L2922)
 
 ***
 
@@ -1274,7 +1274,7 @@ GET:/events/tx-id/{txId}
 
 #### Defined in
 
-[src/api/api-alephium.ts:3346](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L3346)
+[src/api/api-alephium.ts:3346](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L3346)
 
 ***
 
@@ -1712,7 +1712,7 @@ POST:/infos/misbehaviors
 
 #### Defined in
 
-[src/api/api-alephium.ts:2004](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L2004)
+[src/api/api-alephium.ts:2004](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L2004)
 
 ***
 
@@ -1850,7 +1850,7 @@ PUT:/mempool/transactions/validate
 
 #### Defined in
 
-[src/api/api-alephium.ts:2850](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L2850)
+[src/api/api-alephium.ts:2850](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L2850)
 
 ***
 
@@ -2000,7 +2000,7 @@ PUT:/miners/addresses
 
 #### Defined in
 
-[src/api/api-alephium.ts:3265](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L3265)
+[src/api/api-alephium.ts:3265](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L3265)
 
 ***
 
@@ -2138,7 +2138,7 @@ POST:/multisig/sweep
 
 #### Defined in
 
-[src/api/api-alephium.ts:3183](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L3183)
+[src/api/api-alephium.ts:3183](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L3183)
 
 ***
 
@@ -2604,7 +2604,7 @@ POST:/transactions/sweep-address/build
 
 #### Defined in
 
-[src/api/api-alephium.ts:2575](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L2575)
+[src/api/api-alephium.ts:2575](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L2575)
 
 ***
 
@@ -2708,7 +2708,7 @@ PUT:/utils/check-hash-indexing
 
 #### Defined in
 
-[src/api/api-alephium.ts:3445](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L3445)
+[src/api/api-alephium.ts:3445](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L3445)
 
 ***
 
@@ -3360,7 +3360,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1654](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1654)
+[src/api/api-alephium.ts:1654](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1654)
 
 ## Methods
 
@@ -3382,7 +3382,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1580](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1580)
+[src/api/api-alephium.ts:1580](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1580)
 
 ***
 
@@ -3406,7 +3406,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1515](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1515)
+[src/api/api-alephium.ts:1515](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1515)
 
 ***
 
@@ -3430,7 +3430,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1511](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1511)
+[src/api/api-alephium.ts:1511](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1511)
 
 ***
 
@@ -3452,7 +3452,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1528](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1528)
+[src/api/api-alephium.ts:1528](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1528)
 
 ***
 
@@ -3474,7 +3474,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1566](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1566)
+[src/api/api-alephium.ts:1566](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1566)
 
 ***
 
@@ -3498,7 +3498,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1506](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1506)
+[src/api/api-alephium.ts:1506](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1506)
 
 ***
 
@@ -3522,7 +3522,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1553](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1553)
+[src/api/api-alephium.ts:1553](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1553)
 
 ***
 
@@ -3550,7 +3550,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1589](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1589)
+[src/api/api-alephium.ts:1589](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1589)
 
 ***
 
@@ -3572,7 +3572,7 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1502](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1502)
+[src/api/api-alephium.ts:1502](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1502)
 
 ***
 
@@ -3594,4 +3594,4 @@ PUT:/wallets
 
 #### Defined in
 
-[src/api/api-alephium.ts:1520](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1520)
+[src/api/api-alephium.ts:1520](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1520)

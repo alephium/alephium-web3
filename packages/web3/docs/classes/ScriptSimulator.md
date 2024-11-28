@@ -32,7 +32,7 @@
 
 #### Defined in
 
-[src/contract/script-simulator.ts:48](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/script-simulator.ts#L48)
+[src/contract/script-simulator.ts:48](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/script-simulator.ts#L48)
 
 ***
 
@@ -50,7 +50,7 @@
 
 #### Defined in
 
-[src/contract/script-simulator.ts:81](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/script-simulator.ts#L81)
+[src/contract/script-simulator.ts:81](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/script-simulator.ts#L81)
 
 ***
 
@@ -68,7 +68,7 @@
 
 #### Defined in
 
-[src/contract/script-simulator.ts:71](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/script-simulator.ts#L71)
+[src/contract/script-simulator.ts:71](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/script-simulator.ts#L71)
 
 ***
 
@@ -86,4 +86,4 @@
 
 #### Defined in
 
-[src/contract/script-simulator.ts:57](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/script-simulator.ts#L57)
+[src/contract/script-simulator.ts:57](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/script-simulator.ts#L57)

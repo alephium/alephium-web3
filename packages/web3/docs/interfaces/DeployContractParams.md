@@ -18,7 +18,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1037](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1037)
+[src/contract/contract.ts:1037](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1037)
 
 ***
 
@@ -28,7 +28,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1035](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1035)
+[src/contract/contract.ts:1035](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1035)
 
 ***
 
@@ -38,7 +38,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1036](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1036)
+[src/contract/contract.ts:1036](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1036)
 
 ***
 
@@ -48,7 +48,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1031](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1031)
+[src/contract/contract.ts:1031](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1031)
 
 ***
 
@@ -58,7 +58,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1030](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1030)
+[src/contract/contract.ts:1030](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1030)
 
 ***
 
@@ -68,7 +68,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1032](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1032)
+[src/contract/contract.ts:1032](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1032)
 
 ***
 
@@ -78,7 +78,7 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1033](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1033)
+[src/contract/contract.ts:1033](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1033)
 
 ***
 
@@ -88,4 +88,4 @@
 
 #### Defined in
 
-[src/contract/contract.ts:1034](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/contract.ts#L1034)
+[src/contract/contract.ts:1034](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/contract.ts#L1034)

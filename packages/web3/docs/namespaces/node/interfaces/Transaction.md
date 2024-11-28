@@ -16,7 +16,7 @@ Transaction
 
 #### Defined in
 
-[src/api/api-alephium.ts:1243](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1243)
+[src/api/api-alephium.ts:1243](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1243)
 
 ***
 
@@ -26,7 +26,7 @@ Transaction
 
 #### Defined in
 
-[src/api/api-alephium.ts:1244](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1244)
+[src/api/api-alephium.ts:1244](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1244)
 
 ***
 
@@ -36,7 +36,7 @@ Transaction
 
 #### Defined in
 
-[src/api/api-alephium.ts:1245](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1245)
+[src/api/api-alephium.ts:1245](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1245)
 
 ***
 
@@ -46,7 +46,7 @@ Transaction
 
 #### Defined in
 
-[src/api/api-alephium.ts:1242](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1242)
+[src/api/api-alephium.ts:1242](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1242)
 
 ***
 
@@ -56,7 +56,7 @@ Transaction
 
 #### Defined in
 
-[src/api/api-alephium.ts:1246](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1246)
+[src/api/api-alephium.ts:1246](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1246)
 
 ***
 
@@ -66,4 +66,4 @@ Transaction
 
 #### Defined in
 
-[src/api/api-alephium.ts:1241](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1241)
+[src/api/api-alephium.ts:1241](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1241)

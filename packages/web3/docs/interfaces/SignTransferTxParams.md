@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:52](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L52)
+[src/signer/types.ts:52](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L52)
 
 ***
 
@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:54](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L54)
+[src/signer/types.ts:54](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L54)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:55](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L55)
+[src/signer/types.ts:55](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L55)
 
 ***
 
@@ -44,7 +44,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:50](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L50)
+[src/signer/types.ts:50](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L50)
 
 ***
 
@@ -54,7 +54,7 @@
 
 #### Defined in
 
-[src/signer/types.ts:51](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L51)
+[src/signer/types.ts:51](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L51)
 
 ***
 
@@ -64,4 +64,4 @@
 
 #### Defined in
 
-[src/signer/types.ts:53](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/signer/types.ts#L53)
+[src/signer/types.ts:53](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/signer/types.ts#L53)

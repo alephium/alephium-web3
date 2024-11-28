@@ -16,7 +16,7 @@ TransactionTemplate
 
 #### Defined in
 
-[src/api/api-alephium.ts:1252](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1252)
+[src/api/api-alephium.ts:1252](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1252)
 
 ***
 
@@ -26,7 +26,7 @@ TransactionTemplate
 
 #### Defined in
 
-[src/api/api-alephium.ts:1253](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1253)
+[src/api/api-alephium.ts:1253](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1253)
 
 ***
 
@@ -40,7 +40,7 @@ int64
 
 #### Defined in
 
-[src/api/api-alephium.ts:1255](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1255)
+[src/api/api-alephium.ts:1255](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1255)
 
 ***
 
@@ -50,4 +50,4 @@ int64
 
 #### Defined in
 
-[src/api/api-alephium.ts:1251](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1251)
+[src/api/api-alephium.ts:1251](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1251)

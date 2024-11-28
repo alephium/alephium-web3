@@ -16,7 +16,7 @@ BuildTransferTx
 
 #### Defined in
 
-[src/api/api-alephium.ts:408](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L408)
+[src/api/api-alephium.ts:408](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L408)
 
 ***
 
@@ -30,7 +30,7 @@ hex-string
 
 #### Defined in
 
-[src/api/api-alephium.ts:405](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L405)
+[src/api/api-alephium.ts:405](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L405)
 
 ***
 
@@ -44,7 +44,7 @@ hex-string
 
 #### Defined in
 
-[src/api/api-alephium.ts:407](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L407)
+[src/api/api-alephium.ts:407](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L407)
 
 ***
 
@@ -58,7 +58,7 @@ gas
 
 #### Defined in
 
-[src/api/api-alephium.ts:411](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L411)
+[src/api/api-alephium.ts:411](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L411)
 
 ***
 
@@ -72,7 +72,7 @@ uint256
 
 #### Defined in
 
-[src/api/api-alephium.ts:413](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L413)
+[src/api/api-alephium.ts:413](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L413)
 
 ***
 
@@ -86,7 +86,7 @@ block-hash
 
 #### Defined in
 
-[src/api/api-alephium.ts:415](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L415)
+[src/api/api-alephium.ts:415](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L415)
 
 ***
 
@@ -96,4 +96,4 @@ block-hash
 
 #### Defined in
 
-[src/api/api-alephium.ts:409](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L409)
+[src/api/api-alephium.ts:409](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L409)

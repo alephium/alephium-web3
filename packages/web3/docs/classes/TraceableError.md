@@ -32,7 +32,7 @@
 
 #### Defined in
 
-[src/error.ts:22](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/error.ts#L22)
+[src/error.ts:22](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/error.ts#L22)
 
 ## Properties
 
@@ -42,4 +42,4 @@
 
 #### Defined in
 
-[src/error.ts:20](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/error.ts#L20)
+[src/error.ts:20](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/error.ts#L20)

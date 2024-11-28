@@ -42,7 +42,7 @@ Alephium Explorer API
 
 #### Defined in
 
-[src/api/api-explorer.ts:689](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L689)
+[src/api/api-explorer.ts:689](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L689)
 
 ## Properties
 
@@ -858,7 +858,7 @@ POST:/addresses/used
 
 #### Defined in
 
-[src/api/api-explorer.ts:945](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L945)
+[src/api/api-explorer.ts:945](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L945)
 
 ***
 
@@ -872,7 +872,7 @@ POST:/addresses/used
 
 #### Defined in
 
-[src/api/api-explorer.ts:676](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L676)
+[src/api/api-explorer.ts:676](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L676)
 
 ***
 
@@ -1034,7 +1034,7 @@ GET:/blocks/{block_hash}/transactions
 
 #### Defined in
 
-[src/api/api-explorer.ts:844](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L844)
+[src/api/api-explorer.ts:844](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L844)
 
 ***
 
@@ -1212,7 +1212,7 @@ GET:/charts/transactions-count-per-chain
 
 #### Defined in
 
-[src/api/api-explorer.ts:1844](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L1844)
+[src/api/api-explorer.ts:1844](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L1844)
 
 ***
 
@@ -1374,7 +1374,7 @@ GET:/contract-events/transaction-id/{transaction_id}
 
 #### Defined in
 
-[src/api/api-explorer.ts:1944](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L1944)
+[src/api/api-explorer.ts:1944](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L1944)
 
 ***
 
@@ -1504,7 +1504,7 @@ GET:/contracts/{contract_address}/sub-contracts
 
 #### Defined in
 
-[src/api/api-explorer.ts:2029](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L2029)
+[src/api/api-explorer.ts:2029](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L2029)
 
 ***
 
@@ -1796,7 +1796,7 @@ GET:/infos/total-transactions
 
 #### Defined in
 
-[src/api/api-explorer.ts:1403](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L1403)
+[src/api/api-explorer.ts:1403](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L1403)
 
 ***
 
@@ -1870,7 +1870,7 @@ POST:/market/prices
 
 #### Defined in
 
-[src/api/api-explorer.ts:2094](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L2094)
+[src/api/api-explorer.ts:2094](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L2094)
 
 ***
 
@@ -1938,7 +1938,7 @@ GET:/mempool/transactions
 
 #### Defined in
 
-[src/api/api-explorer.ts:1559](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L1559)
+[src/api/api-explorer.ts:1559](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L1559)
 
 ***
 
@@ -2372,7 +2372,7 @@ POST:/tokens/nft-metadata
 
 #### Defined in
 
-[src/api/api-explorer.ts:1596](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L1596)
+[src/api/api-explorer.ts:1596](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L1596)
 
 ***
 
@@ -2412,7 +2412,7 @@ GET:/transactions/{transaction_hash}
 
 #### Defined in
 
-[src/api/api-explorer.ts:929](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L929)
+[src/api/api-explorer.ts:929](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L929)
 
 ***
 
@@ -2510,7 +2510,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:2141](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L2141)
+[src/api/api-explorer.ts:2141](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L2141)
 
 ## Methods
 
@@ -2532,7 +2532,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:771](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L771)
+[src/api/api-explorer.ts:771](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L771)
 
 ***
 
@@ -2556,7 +2556,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:706](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L706)
+[src/api/api-explorer.ts:706](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L706)
 
 ***
 
@@ -2580,7 +2580,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:702](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L702)
+[src/api/api-explorer.ts:702](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L702)
 
 ***
 
@@ -2602,7 +2602,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:719](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L719)
+[src/api/api-explorer.ts:719](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L719)
 
 ***
 
@@ -2624,7 +2624,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:757](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L757)
+[src/api/api-explorer.ts:757](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L757)
 
 ***
 
@@ -2648,7 +2648,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:697](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L697)
+[src/api/api-explorer.ts:697](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L697)
 
 ***
 
@@ -2672,7 +2672,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:744](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L744)
+[src/api/api-explorer.ts:744](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L744)
 
 ***
 
@@ -2700,7 +2700,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:780](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L780)
+[src/api/api-explorer.ts:780](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L780)
 
 ***
 
@@ -2722,7 +2722,7 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:693](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L693)
+[src/api/api-explorer.ts:693](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L693)
 
 ***
 
@@ -2744,4 +2744,4 @@ PUT:/utils/update-log-config
 
 #### Defined in
 
-[src/api/api-explorer.ts:711](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L711)
+[src/api/api-explorer.ts:711](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L711)

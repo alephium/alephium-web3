@@ -16,7 +16,7 @@ CompileScriptResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:560](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L560)
+[src/api/api-alephium.ts:560](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L560)
 
 ***
 
@@ -26,7 +26,7 @@ CompileScriptResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:559](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L559)
+[src/api/api-alephium.ts:559](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L559)
 
 ***
 
@@ -36,7 +36,7 @@ CompileScriptResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:561](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L561)
+[src/api/api-alephium.ts:561](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L561)
 
 ***
 
@@ -46,7 +46,7 @@ CompileScriptResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:562](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L562)
+[src/api/api-alephium.ts:562](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L562)
 
 ***
 
@@ -56,7 +56,7 @@ CompileScriptResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:558](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L558)
+[src/api/api-alephium.ts:558](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L558)
 
 ***
 
@@ -66,7 +66,7 @@ CompileScriptResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:557](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L557)
+[src/api/api-alephium.ts:557](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L557)
 
 ***
 
@@ -76,4 +76,4 @@ CompileScriptResult
 
 #### Defined in
 
-[src/api/api-alephium.ts:563](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L563)
+[src/api/api-alephium.ts:563](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L563)

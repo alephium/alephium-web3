@@ -16,7 +16,7 @@ NodeInfo
 
 #### Defined in
 
-[src/api/api-alephium.ts:874](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L874)
+[src/api/api-alephium.ts:874](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L874)
 
 ***
 
@@ -42,7 +42,7 @@ inet-socket-address
 
 #### Defined in
 
-[src/api/api-alephium.ts:877](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L877)
+[src/api/api-alephium.ts:877](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L877)
 
 ***
 
@@ -52,4 +52,4 @@ inet-socket-address
 
 #### Defined in
 
-[src/api/api-alephium.ts:875](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L875)
+[src/api/api-alephium.ts:875](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L875)

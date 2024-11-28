@@ -14,7 +14,7 @@
 
 #### Defined in
 
-[src/api/types.ts:230](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/types.ts#L230)
+[src/api/types.ts:230](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/types.ts#L230)
 
 ***
 
@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/api/types.ts:232](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/types.ts#L232)
+[src/api/types.ts:232](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/types.ts#L232)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Defined in
 
-[src/api/types.ts:231](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/types.ts#L231)
+[src/api/types.ts:231](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/types.ts#L231)
 
 ***
 
@@ -44,4 +44,4 @@
 
 #### Defined in
 
-[src/api/types.ts:233](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/types.ts#L233)
+[src/api/types.ts:233](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/types.ts#L233)

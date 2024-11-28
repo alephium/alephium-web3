@@ -16,7 +16,7 @@ ValBool
 
 #### Defined in
 
-[src/api/api-alephium.ts:1361](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1361)
+[src/api/api-alephium.ts:1361](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1361)
 
 ***
 
@@ -26,4 +26,4 @@ ValBool
 
 #### Defined in
 
-[src/api/api-alephium.ts:1360](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-alephium.ts#L1360)
+[src/api/api-alephium.ts:1360](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-alephium.ts#L1360)

@@ -20,7 +20,7 @@ base url
 
 #### Defined in
 
-[src/api/api-explorer.ts:647](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L647)
+[src/api/api-explorer.ts:647](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L647)
 
 ***
 
@@ -32,7 +32,7 @@ request body
 
 #### Defined in
 
-[src/api/api-explorer.ts:645](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L645)
+[src/api/api-explorer.ts:645](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L645)
 
 ***
 
@@ -44,7 +44,7 @@ request cancellation token
 
 #### Defined in
 
-[src/api/api-explorer.ts:649](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L649)
+[src/api/api-explorer.ts:649](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L649)
 
 ***
 
@@ -56,7 +56,7 @@ format of response (i.e. response.json() -> format: "json")
 
 #### Defined in
 
-[src/api/api-explorer.ts:643](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L643)
+[src/api/api-explorer.ts:643](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L643)
 
 ***
 
@@ -68,7 +68,7 @@ request path
 
 #### Defined in
 
-[src/api/api-explorer.ts:637](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L637)
+[src/api/api-explorer.ts:637](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L637)
 
 ***
 
@@ -80,7 +80,7 @@ query params
 
 #### Defined in
 
-[src/api/api-explorer.ts:641](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L641)
+[src/api/api-explorer.ts:641](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L641)
 
 ***
 
@@ -92,7 +92,7 @@ set parameter to `true` for call `securityWorker` for this request
 
 #### Defined in
 
-[src/api/api-explorer.ts:635](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L635)
+[src/api/api-explorer.ts:635](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L635)
 
 ***
 
@@ -104,4 +104,4 @@ content type of request body
 
 #### Defined in
 
-[src/api/api-explorer.ts:639](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L639)
+[src/api/api-explorer.ts:639](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L639)

@@ -30,7 +30,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:689](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L689)
+[src/api/api-explorer.ts:689](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L689)
 
 ## Properties
 
@@ -40,7 +40,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:676](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L676)
+[src/api/api-explorer.ts:676](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L676)
 
 ## Methods
 
@@ -58,7 +58,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:771](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L771)
+[src/api/api-explorer.ts:771](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L771)
 
 ***
 
@@ -78,7 +78,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:706](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L706)
+[src/api/api-explorer.ts:706](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L706)
 
 ***
 
@@ -98,7 +98,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:702](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L702)
+[src/api/api-explorer.ts:702](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L702)
 
 ***
 
@@ -116,7 +116,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:719](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L719)
+[src/api/api-explorer.ts:719](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L719)
 
 ***
 
@@ -134,7 +134,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:757](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L757)
+[src/api/api-explorer.ts:757](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L757)
 
 ***
 
@@ -154,7 +154,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:697](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L697)
+[src/api/api-explorer.ts:697](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L697)
 
 ***
 
@@ -174,7 +174,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:744](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L744)
+[src/api/api-explorer.ts:744](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L744)
 
 ***
 
@@ -198,7 +198,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:780](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L780)
+[src/api/api-explorer.ts:780](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L780)
 
 ***
 
@@ -216,7 +216,7 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:693](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L693)
+[src/api/api-explorer.ts:693](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L693)
 
 ***
 
@@ -234,4 +234,4 @@
 
 #### Defined in
 
-[src/api/api-explorer.ts:711](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L711)
+[src/api/api-explorer.ts:711](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L711)

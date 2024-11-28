@@ -24,7 +24,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:58](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L58)
+[src/codec/compact-int-codec.ts:58](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L58)
 
 ***
 
@@ -34,7 +34,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:56](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L56)
+[src/codec/compact-int-codec.ts:56](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L56)
 
 ***
 
@@ -44,7 +44,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:57](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L57)
+[src/codec/compact-int-codec.ts:57](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L57)
 
 ***
 
@@ -54,7 +54,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:59](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L59)
+[src/codec/compact-int-codec.ts:59](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L59)
 
 ***
 
@@ -64,7 +64,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:60](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L60)
+[src/codec/compact-int-codec.ts:60](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L60)
 
 ## Methods
 
@@ -84,7 +84,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:103](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L103)
+[src/codec/compact-int-codec.ts:103](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L103)
 
 ***
 
@@ -104,7 +104,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:135](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L135)
+[src/codec/compact-int-codec.ts:135](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L135)
 
 ***
 
@@ -124,7 +124,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:119](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L119)
+[src/codec/compact-int-codec.ts:119](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L119)
 
 ***
 
@@ -142,7 +142,7 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:87](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L87)
+[src/codec/compact-int-codec.ts:87](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L87)
 
 ***
 
@@ -160,4 +160,4 @@
 
 #### Defined in
 
-[src/codec/compact-int-codec.ts:62](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/codec/compact-int-codec.ts#L62)
+[src/codec/compact-int-codec.ts:62](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/codec/compact-int-codec.ts#L62)

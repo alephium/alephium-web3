@@ -34,7 +34,7 @@ the tokens approved to the contract
 
 #### Defined in
 
-[src/contract/script-simulator.ts:42](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/script-simulator.ts#L42)
+[src/contract/script-simulator.ts:42](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/script-simulator.ts#L42)
 
 ***
 
@@ -44,7 +44,7 @@ the tokens approved to the contract
 
 #### Defined in
 
-[src/contract/script-simulator.ts:43](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/script-simulator.ts#L43)
+[src/contract/script-simulator.ts:43](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/script-simulator.ts#L43)
 
 ***
 
@@ -54,4 +54,4 @@ the tokens approved to the contract
 
 #### Defined in
 
-[src/contract/script-simulator.ts:41](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/contract/script-simulator.ts#L41)
+[src/contract/script-simulator.ts:41](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/contract/script-simulator.ts#L41)

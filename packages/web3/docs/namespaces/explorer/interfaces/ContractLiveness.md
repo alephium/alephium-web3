@@ -16,7 +16,7 @@ ContractLiveness
 
 #### Defined in
 
-[src/api/api-explorer.ts:150](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L150)
+[src/api/api-explorer.ts:150](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L150)
 
 ***
 
@@ -26,7 +26,7 @@ ContractLiveness
 
 #### Defined in
 
-[src/api/api-explorer.ts:151](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L151)
+[src/api/api-explorer.ts:151](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L151)
 
 ***
 
@@ -36,7 +36,7 @@ ContractLiveness
 
 #### Defined in
 
-[src/api/api-explorer.ts:152](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L152)
+[src/api/api-explorer.ts:152](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L152)
 
 ***
 
@@ -50,4 +50,4 @@ address
 
 #### Defined in
 
-[src/api/api-explorer.ts:149](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/api/api-explorer.ts#L149)
+[src/api/api-explorer.ts:149](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/api/api-explorer.ts#L149)

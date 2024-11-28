@@ -20,7 +20,7 @@
 
 ### Defined in
 
-[src/global.ts:23](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/global.ts#L23)
+[src/global.ts:23](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/global.ts#L23)
 
 ## setCurrentNodeProvider(baseUrl, apiKey, customFetch)
 
@@ -40,4 +40,4 @@
 
 ### Defined in
 
-[src/global.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/c1afd789a197ce5fe21f08c2965942090157c33d/packages/web3/src/global.ts#L24)
+[src/global.ts:24](https://github.com/Mystic-Nayy/alephium-web3/blob/ee41f5e0e7d7fb0b155fe62f05b2ac03772895ca/packages/web3/src/global.ts#L24)
