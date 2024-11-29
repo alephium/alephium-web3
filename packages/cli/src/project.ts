@@ -37,6 +37,7 @@ import * as path from 'path'
 import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import { parseError } from './error'
+import * as fetchRetry from 'fetch-retry'
 
 const crypto = new WebCrypto()
 const defaultMainnetNodeUrl = 'https://node.mainnet.alephium.org'
@@ -595,7 +596,19 @@ export class Project {
     sourceInfos: SourceInfo[],
     artifactsRootDir: string
   ): Promise<string[]> {
-    const nodeProvider = new NodeProvider(mainnetNodeUrl ?? defaultMainnetNodeUrl)
+    const nodeProvider = new NodeProvider(
+      mainnetNodeUrl ?? defaultMainnetNodeUrl,
+      undefined,
+      fetchRetry.default(fetch, {
+        retryOn: [429],
+        retries: 3,
+        retryDelay: 1000
+      })
+    )
+    const networkId = (await nodeProvider.infos.getInfosChainParams()).networkId
+    if (networkId !== 0) {
+      throw new Error(`The node url ${mainnetNodeUrl} does not point to the mainnet`)
+    }
     const result: string[] = []
     for (const sourceInfo of sourceInfos) {
       const artifactPath = sourceInfo.getArtifactPath(artifactsRootDir)
