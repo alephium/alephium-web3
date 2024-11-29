@@ -2166,7 +2166,7 @@ export async function getContractCodeByCodeHash(
 ): Promise<HexString | undefined> {
   if (isHexString(codeHash) && codeHash.length === 64) {
     try {
-      return await nodeProvider.contracts.getContractsCodeHashCode(codeHash)
+      return await nodeProvider.contracts.getContractsCodehashCode(codeHash)
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         return undefined

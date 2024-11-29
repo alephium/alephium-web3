@@ -1647,7 +1647,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.9.0
+ * @version 3.9.1
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -3045,11 +3045,11 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Contracts
-     * @name GetContractsCodeHashCode
+     * @name GetContractsCodehashCode
      * @summary Get contract code by code hash
-     * @request GET:/contracts/{code-hash}/code
+     * @request GET:/contracts/{codeHash}/code
      */
-    getContractsCodeHashCode: (codeHash: string, params: RequestParams = {}) =>
+    getContractsCodehashCode: (codeHash: string, params: RequestParams = {}) =>
       this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
         path: `/contracts/${codeHash}/code`,
         method: 'GET',
