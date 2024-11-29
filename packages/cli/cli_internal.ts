@@ -23,15 +23,7 @@ import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { createProject, genRalph } from './scripts/create-project'
-import {
-  checkFullNodeVersion,
-  codegen,
-  getConfigFile,
-  getSdkFullNodeVersion,
-  isDeployed,
-  isNetworkLive,
-  loadConfig
-} from './src'
+import { checkFullNodeVersion, codegen, getConfigFile, getSdkFullNodeVersion, isNetworkLive, loadConfig } from './src'
 import { Project } from './src/project'
 
 function getConfig(options: any): Configuration {
@@ -111,17 +103,13 @@ program
       console.log(`Full node version: ${connectedFullNodeVersion}`)
 
       const cwd = path.resolve(process.cwd())
-      const isContractDeployed = isDeployed(config)
-      if (!config.forceRecompile && isContractDeployed) {
-        console.warn(`The contracts has been deployed on testnet/mainnet, and the artifacts will not be updated.`)
-      }
       const project = await Project.compile(
         config.compilerOptions,
         cwd,
         config.sourceDir,
         config.artifactDir,
         connectedFullNodeVersion,
-        config.forceRecompile || !isContractDeployed
+        config.forceRecompile
       )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
