@@ -595,7 +595,7 @@ export async function deploy<Settings = unknown>(
   const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
   const artifactDir = configuration.artifactDir ?? DEFAULT_CONFIGURATION_VALUES.artifactDir
   let project: Project | undefined = undefined
-  if (configuration.skipRecompile !== true) {
+  if (configuration.skipRecompileOnDeployment !== true) {
     project = await Project.compile(
       configuration.compilerOptions,
       path.resolve(process.cwd()),

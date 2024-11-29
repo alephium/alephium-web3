@@ -30,7 +30,8 @@ import {
   CompilerOptions,
   Constant,
   Enum,
-  TraceableError
+  TraceableError,
+  getContractByCodeHash
 } from '@alephium/web3'
 import * as path from 'path'
 import fs from 'fs'
@@ -38,6 +39,7 @@ import { promises as fsPromises } from 'fs'
 import { parseError } from './error'
 
 const crypto = new WebCrypto()
+const mainnetNodeUrl = 'https://node.mainnet.alephium.org'
 
 class TypedMatcher<T extends SourceKind> {
   matcher: RegExp
@@ -390,18 +392,18 @@ export class Project {
     contracts: Map<string, Compiled<Contract>>,
     scripts: Map<string, Compiled<Script>>,
     globalWarnings: string[],
-    changedSources: string[],
+    changedContracts: string[],
     forceRecompile: boolean,
     errorOnWarnings: boolean
   ): void {
     const warnings: string[] = forceRecompile ? globalWarnings : []
     contracts.forEach((contract) => {
-      if (Project.needToUpdate(forceRecompile, changedSources, contract.sourceInfo.name)) {
+      if (Project.needToUpdate(forceRecompile, changedContracts, contract.sourceInfo.name)) {
         warnings.push(...contract.warnings)
       }
     })
     scripts.forEach((script) => {
-      if (Project.needToUpdate(forceRecompile, changedSources, script.sourceInfo.name)) {
+      if (Project.needToUpdate(forceRecompile, changedContracts, script.sourceInfo.name)) {
         warnings.push(...script.warnings)
       }
     })
@@ -475,8 +477,8 @@ export class Project {
     return fsPromises.writeFile(filePath, JSON.stringify(object, null, 2))
   }
 
-  private static needToUpdate(forceRecompile: boolean, changedSources: string[], name: string): boolean {
-    return forceRecompile || changedSources.includes(name)
+  private static needToUpdate(forceRecompile: boolean, changedContracts: string[], name: string): boolean {
+    return forceRecompile || changedContracts.includes(name)
   }
 
   private async checkMethodIndex(newArtifact: Compiled<Contract>) {
@@ -500,7 +502,7 @@ export class Project {
   private async saveArtifactsToFile(
     projectRootDir: string,
     forceRecompile: boolean,
-    changedSources: string[]
+    changedContracts: string[]
   ): Promise<void> {
     const artifactsRootDir = this.artifactsRootDir
     const saveToFile = async function (compiled: Compiled<Artifact>): Promise<void> {
@@ -512,29 +514,29 @@ export class Project {
       return fsPromises.writeFile(artifactPath, compiled.artifact.toString())
     }
     for (const [_, contract] of this.contracts) {
-      if (Project.needToUpdate(forceRecompile, changedSources, contract.sourceInfo.name)) {
+      if (Project.needToUpdate(forceRecompile, changedContracts, contract.sourceInfo.name)) {
         await saveToFile(contract)
       } else {
         await this.checkMethodIndex(contract)
       }
     }
     for (const [_, script] of this.scripts) {
-      if (Project.needToUpdate(forceRecompile, changedSources, script.sourceInfo.name)) {
+      if (Project.needToUpdate(forceRecompile, changedContracts, script.sourceInfo.name)) {
         await saveToFile(script)
       }
     }
     await this.saveStructsToFile()
     await this.saveConstantsToFile()
-    await this.saveProjectArtifact(projectRootDir, forceRecompile, changedSources)
+    await this.saveProjectArtifact(projectRootDir, forceRecompile, changedContracts)
   }
 
-  private async saveProjectArtifact(projectRootDir: string, forceRecompile: boolean, changedSources: string[]) {
+  private async saveProjectArtifact(projectRootDir: string, forceRecompile: boolean, changedContracts: string[]) {
     if (!forceRecompile) {
       // we should not update the `codeHashDebug` if the `forceRecompile` is disable
       const prevProjectArtifact = await ProjectArtifact.from(projectRootDir)
       if (prevProjectArtifact !== undefined) {
         for (const [name, info] of this.projectArtifact.infos) {
-          if (!changedSources.includes(name)) {
+          if (!changedContracts.includes(name)) {
             const prevInfo = prevProjectArtifact.infos.get(name)
             info.bytecodeDebugPatch = prevInfo?.bytecodeDebugPatch ?? info.bytecodeDebugPatch
             info.codeHashDebug = prevInfo?.codeHashDebug ?? info.codeHashDebug
@@ -588,6 +590,48 @@ export class Project {
     }
   }
 
+  private static async getDeployedContracts(sourceInfos: SourceInfo[], artifactsRootDir: string): Promise<string[]> {
+    const nodeProvider = new NodeProvider(mainnetNodeUrl)
+    const result: string[] = []
+    for (const sourceInfo of sourceInfos) {
+      const artifactPath = sourceInfo.getArtifactPath(artifactsRootDir)
+      if (sourceInfo.type === SourceKind.Contract) {
+        try {
+          const content = await fsPromises.readFile(artifactPath)
+          const artifact = JSON.parse(content.toString())
+          const codeHash = artifact['codeHash']
+          const contractCode = await getContractByCodeHash(nodeProvider, codeHash)
+          if (contractCode !== undefined) result.push(artifact.name)
+        } catch (error) {
+          console.error(`Failed to load contract artifact: ${sourceInfo.name}`)
+        }
+      }
+    }
+    return result
+  }
+
+  private static async filterChangedContracts(
+    sourceInfos: SourceInfo[],
+    artifactsRootDir: string,
+    changedContracts: string[],
+    skipRecompileIfDeployedOnMainnet: boolean
+  ): Promise<string[]> {
+    if (!skipRecompileIfDeployedOnMainnet) return changedContracts
+    const deployedContracts = await this.getDeployedContracts(sourceInfos, artifactsRootDir)
+    const filteredChangedContracts: string[] = []
+    changedContracts.forEach((c) => {
+      if (deployedContracts.includes(c)) {
+        console.warn(
+          `The contract ${c} has already been deployed to the mainnet. Even if the contract is updated, the bytecode will not be regenerated. ` +
+            `To regenerate the bytecode, please enable the forceCompile flag`
+        )
+      } else {
+        filteredChangedContracts.push(c)
+      }
+    })
+    return filteredChangedContracts
+  }
+
   private static async compile_(
     fullNodeVersion: string,
     provider: NodeProvider,
@@ -597,8 +641,9 @@ export class Project {
     artifactsRootDir: string,
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions,
-    changedSources: string[],
-    forceRecompile: boolean
+    changedContracts: string[],
+    forceRecompile: boolean,
+    skipRecompileIfDeployedOnMainnet: boolean
   ): Promise<Project> {
     const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
       if (acc.find((info) => info.sourceCodeHash === sourceInfo.sourceCodeHash) === undefined) {
@@ -644,7 +689,7 @@ export class Project {
       contracts,
       scripts,
       result.warnings ?? [],
-      changedSources,
+      changedContracts,
       forceRecompile,
       errorOnWarnings
     )
@@ -659,7 +704,13 @@ export class Project {
       result.enums ?? [],
       projectArtifact
     )
-    await project.saveArtifactsToFile(projectRootDir, forceRecompile, changedSources)
+    const filteredChangedContracts = await Project.filterChangedContracts(
+      sourceInfos,
+      artifactsRootDir,
+      changedContracts,
+      skipRecompileIfDeployedOnMainnet
+    )
+    await project.saveArtifactsToFile(projectRootDir, forceRecompile, filteredChangedContracts)
     return project
   }
 
@@ -671,8 +722,9 @@ export class Project {
     artifactsRootDir: string,
     errorOnWarnings: boolean,
     compilerOptions: node.CompilerOptions,
-    changedSources: string[],
-    forceRecompile: boolean
+    changedContracts: string[],
+    forceRecompile: boolean,
+    skipRecompileIfDeployedOnMainnet: boolean
   ): Promise<Project> {
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
     if (projectArtifact === undefined) {
@@ -725,8 +777,9 @@ export class Project {
         artifactsRootDir,
         errorOnWarnings,
         compilerOptions,
-        changedSources,
-        forceRecompile
+        changedContracts,
+        forceRecompile,
+        skipRecompileIfDeployedOnMainnet
       )
     }
   }
@@ -856,19 +909,20 @@ export class Project {
     contractsRootDir = Project.DEFAULT_CONTRACTS_DIR,
     artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR,
     defaultFullNodeVersion: string | undefined = undefined,
-    forceRecompile = false
+    forceRecompile = false,
+    skipRecompileIfDeployedOnMainnet = false
   ): Promise<Project> {
     const provider = web3.getCurrentNodeProvider()
     const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosVersion()).version
     const sourceFiles = await Project.loadSourceFiles(projectRootDir, contractsRootDir)
     const { errorOnWarnings, ...nodeCompilerOptions } = { ...DEFAULT_COMPILER_OPTIONS, ...compilerOptionsPartial }
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
-    const changedSources = projectArtifact?.getChangedSources(sourceFiles) ?? sourceFiles.map((s) => s.name)
+    const changedContracts = projectArtifact?.getChangedSources(sourceFiles) ?? sourceFiles.map((s) => s.name)
     if (
       forceRecompile ||
       projectArtifact === undefined ||
       projectArtifact.needToReCompile(nodeCompilerOptions, fullNodeVersion) ||
-      changedSources.length > 0
+      changedContracts.length > 0
     ) {
       if (fs.existsSync(artifactsRootDir)) {
         removeOldArtifacts(artifactsRootDir, sourceFiles)
@@ -883,8 +937,9 @@ export class Project {
         artifactsRootDir,
         errorOnWarnings,
         nodeCompilerOptions,
-        changedSources,
-        forceRecompile
+        changedContracts,
+        forceRecompile,
+        skipRecompileIfDeployedOnMainnet
       )
     }
     // we need to reload those contracts that did not regenerate bytecode
@@ -896,8 +951,9 @@ export class Project {
       artifactsRootDir,
       errorOnWarnings,
       nodeCompilerOptions,
-      changedSources,
-      forceRecompile
+      changedContracts,
+      forceRecompile,
+      skipRecompileIfDeployedOnMainnet
     )
   }
 }

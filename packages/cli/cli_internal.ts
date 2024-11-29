@@ -96,6 +96,12 @@ program
         throw new Error(`${networkId} is not live`)
       }
 
+      if (config.forceRecompile && config.skipRecompileIfDeployedOnMainnet) {
+        throw new Error(
+          `The forceRecompile and skipRecompileIfDeployedOnMainnet flags cannot be enabled at the same time`
+        )
+      }
+
       web3.setCurrentNodeProvider(nodeUrl)
       const connectedFullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
       const sdkFullNodeVersion = getSdkFullNodeVersion()
@@ -109,7 +115,8 @@ program
         config.sourceDir,
         config.artifactDir,
         connectedFullNodeVersion,
-        config.forceRecompile
+        config.forceRecompile,
+        config.skipRecompileIfDeployedOnMainnet
       )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
