@@ -602,7 +602,10 @@ export async function deploy<Settings = unknown>(
       configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
       artifactDir,
       undefined,
-      configuration.forceRecompile
+      configuration.forceRecompile,
+      configuration.skipRecompileIfDeployedOnMainnet,
+      configuration.skipRecompileContracts ?? [],
+      configuration.networks['mainnet'].nodeUrl
     )
   }
 

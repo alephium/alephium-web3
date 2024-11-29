@@ -30,6 +30,14 @@ function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   const config = loadConfig(configFile)
+  if (config.forceRecompile && config.skipRecompileIfDeployedOnMainnet) {
+    throw new Error(`The forceRecompile and skipRecompileIfDeployedOnMainnet flags cannot be enabled at the same time`)
+  }
+
+  if (config.forceRecompile && (config.skipRecompileContracts ?? []).length > 0) {
+    throw new Error(`The skipRecompileContracts cannot be specified when forceRecompile is enabled`)
+  }
+
   const isDebugModeEnabled = config.enableDebugMode || options.debug
   if (isDebugModeEnabled) enableDebugMode()
   return { ...config, enableDebugMode: isDebugModeEnabled }
@@ -96,16 +104,6 @@ program
         throw new Error(`${networkId} is not live`)
       }
 
-      if (config.forceRecompile && config.skipRecompileIfDeployedOnMainnet) {
-        throw new Error(
-          `The forceRecompile and skipRecompileIfDeployedOnMainnet flags cannot be enabled at the same time`
-        )
-      }
-
-      if (config.forceRecompile && (config.skipRecompileContracts ?? []).length > 0) {
-        throw new Error(`The skipRecompileContracts cannot be specified when forceRecompile is enabled`)
-      }
-
       web3.setCurrentNodeProvider(nodeUrl)
       const connectedFullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
       const sdkFullNodeVersion = getSdkFullNodeVersion()
@@ -121,7 +119,8 @@ program
         connectedFullNodeVersion,
         config.forceRecompile,
         config.skipRecompileIfDeployedOnMainnet,
-        config.skipRecompileContracts ?? []
+        config.skipRecompileContracts ?? [],
+        config.networks['mainnet'].nodeUrl
       )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {

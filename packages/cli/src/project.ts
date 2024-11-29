@@ -39,7 +39,7 @@ import { promises as fsPromises } from 'fs'
 import { parseError } from './error'
 
 const crypto = new WebCrypto()
-const mainnetNodeUrl = 'https://node.mainnet.alephium.org'
+const defaultMainnetNodeUrl = 'https://node.mainnet.alephium.org'
 
 class TypedMatcher<T extends SourceKind> {
   matcher: RegExp
@@ -590,8 +590,12 @@ export class Project {
     }
   }
 
-  private static async getDeployedContracts(sourceInfos: SourceInfo[], artifactsRootDir: string): Promise<string[]> {
-    const nodeProvider = new NodeProvider(mainnetNodeUrl)
+  private static async getDeployedContracts(
+    mainnetNodeUrl: string | undefined,
+    sourceInfos: SourceInfo[],
+    artifactsRootDir: string
+  ): Promise<string[]> {
+    const nodeProvider = new NodeProvider(mainnetNodeUrl ?? defaultMainnetNodeUrl)
     const result: string[] = []
     for (const sourceInfo of sourceInfos) {
       const artifactPath = sourceInfo.getArtifactPath(artifactsRootDir)
@@ -611,6 +615,7 @@ export class Project {
   }
 
   private static async filterChangedContracts(
+    mainnetNodeUrl: string | undefined,
     sourceInfos: SourceInfo[],
     artifactsRootDir: string,
     changedContracts: string[],
@@ -622,7 +627,7 @@ export class Project {
       const remainSourceInfo = sourceInfos.filter(
         (s) => s.type === SourceKind.Contract && !skipRecompileContracts.includes(s.name)
       )
-      deployedContracts = await this.getDeployedContracts(remainSourceInfo, artifactsRootDir)
+      deployedContracts = await this.getDeployedContracts(mainnetNodeUrl, remainSourceInfo, artifactsRootDir)
     } else {
       deployedContracts = []
     }
@@ -658,7 +663,8 @@ export class Project {
     changedContracts: string[],
     forceRecompile: boolean,
     skipRecompileIfDeployedOnMainnet: boolean,
-    skipRecompileContracts: string[]
+    skipRecompileContracts: string[],
+    mainnetNodeUrl: string | undefined
   ): Promise<Project> {
     const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
       if (acc.find((info) => info.sourceCodeHash === sourceInfo.sourceCodeHash) === undefined) {
@@ -720,6 +726,7 @@ export class Project {
       projectArtifact
     )
     const filteredChangedContracts = await Project.filterChangedContracts(
+      mainnetNodeUrl,
       sourceInfos,
       artifactsRootDir,
       changedContracts,
@@ -741,7 +748,8 @@ export class Project {
     changedContracts: string[],
     forceRecompile: boolean,
     skipRecompileIfDeployedOnMainnet: boolean,
-    skipRecompileContracts: string[]
+    skipRecompileContracts: string[],
+    mainnetNodeUrl: string | undefined
   ): Promise<Project> {
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
     if (projectArtifact === undefined) {
@@ -797,7 +805,8 @@ export class Project {
         changedContracts,
         forceRecompile,
         skipRecompileIfDeployedOnMainnet,
-        skipRecompileContracts
+        skipRecompileContracts,
+        mainnetNodeUrl
       )
     }
   }
@@ -929,7 +938,8 @@ export class Project {
     defaultFullNodeVersion: string | undefined = undefined,
     forceRecompile = false,
     skipRecompileIfDeployedOnMainnet = false,
-    skipRecompileContracts: string[] = []
+    skipRecompileContracts: string[] = [],
+    mainnetNodeUrl: string | undefined = undefined
   ): Promise<Project> {
     const provider = web3.getCurrentNodeProvider()
     const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosVersion()).version
@@ -959,7 +969,8 @@ export class Project {
         changedContracts,
         forceRecompile,
         skipRecompileIfDeployedOnMainnet,
-        skipRecompileContracts
+        skipRecompileContracts,
+        mainnetNodeUrl
       )
     }
     // we need to reload those contracts that did not regenerate bytecode
@@ -974,7 +985,8 @@ export class Project {
       changedContracts,
       forceRecompile,
       skipRecompileIfDeployedOnMainnet,
-      skipRecompileContracts
+      skipRecompileContracts,
+      mainnetNodeUrl
     )
   }
 }
