@@ -31,7 +31,7 @@ import {
   Constant,
   Enum,
   TraceableError,
-  getContractByCodeHash
+  getContractCodeByCodeHash
 } from '@alephium/web3'
 import * as path from 'path'
 import fs from 'fs'
@@ -604,7 +604,7 @@ export class Project {
           const content = await fsPromises.readFile(artifactPath)
           const artifact = JSON.parse(content.toString())
           const codeHash = artifact['codeHash']
-          const contractCode = await getContractByCodeHash(nodeProvider, codeHash)
+          const contractCode = await getContractCodeByCodeHash(nodeProvider, codeHash)
           if (contractCode !== undefined) result.push(artifact.name)
         } catch (error) {
           console.error(`Failed to check the contract deployment: ${sourceInfo.name}, error: ${error}`)

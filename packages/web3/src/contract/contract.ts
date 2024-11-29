@@ -2160,7 +2160,7 @@ export const getContractIdFromUnsignedTx = async (
 // This function only works in the simple case where a single non-subcontract is created in the tx
 export const getTokenIdFromUnsignedTx = getContractIdFromUnsignedTx
 
-export async function getContractByCodeHash(
+export async function getContractCodeByCodeHash(
   nodeProvider: NodeProvider,
   codeHash: HexString
 ): Promise<HexString | undefined> {
