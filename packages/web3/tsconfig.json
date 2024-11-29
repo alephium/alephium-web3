@@ -1,8 +1,24 @@
+// EVENT.TEST
 {
   "extends": "../../tsconfig.json",
   "include": ["src/**/*", "scripts/**/*"],
   "exclude": ["node_modules", "templates", "src/**/*.test.ts", "src/**/fixtures/*"],
   "compilerOptions": {
-    "outDir": "dist"
-  },
+    "target": "es2020", // Changed from es2018 to es2020 to support BigInt literals
+    "module": "commonjs",
+    "lib": ["es2020", "dom"],
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "types": ["jest", "node", "node-fetch"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
 }
