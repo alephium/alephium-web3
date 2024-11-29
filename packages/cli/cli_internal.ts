@@ -102,6 +102,10 @@ program
         )
       }
 
+      if (config.forceRecompile && (config.skipRecompileContracts ?? []).length > 0) {
+        throw new Error(`The skipRecompileContracts cannot be specified when forceRecompile is enabled`)
+      }
+
       web3.setCurrentNodeProvider(nodeUrl)
       const connectedFullNodeVersion = (await web3.getCurrentNodeProvider().infos.getInfosVersion()).version
       const sdkFullNodeVersion = getSdkFullNodeVersion()
@@ -116,7 +120,8 @@ program
         config.artifactDir,
         connectedFullNodeVersion,
         config.forceRecompile,
-        config.skipRecompileIfDeployedOnMainnet
+        config.skipRecompileIfDeployedOnMainnet,
+        config.skipRecompileContracts ?? []
       )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {

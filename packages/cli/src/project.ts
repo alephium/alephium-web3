@@ -603,7 +603,7 @@ export class Project {
           const contractCode = await getContractByCodeHash(nodeProvider, codeHash)
           if (contractCode !== undefined) result.push(artifact.name)
         } catch (error) {
-          console.error(`Failed to load contract artifact: ${sourceInfo.name}`)
+          console.error(`Failed to check the contract deployment: ${sourceInfo.name}, error: ${error}`)
         }
       }
     }
@@ -614,16 +614,30 @@ export class Project {
     sourceInfos: SourceInfo[],
     artifactsRootDir: string,
     changedContracts: string[],
-    skipRecompileIfDeployedOnMainnet: boolean
+    skipRecompileIfDeployedOnMainnet: boolean,
+    skipRecompileContracts: string[]
   ): Promise<string[]> {
-    if (!skipRecompileIfDeployedOnMainnet) return changedContracts
-    const deployedContracts = await this.getDeployedContracts(sourceInfos, artifactsRootDir)
+    let deployedContracts: string[]
+    if (skipRecompileIfDeployedOnMainnet) {
+      const remainSourceInfo = sourceInfos.filter(
+        (s) => s.type === SourceKind.Contract && !skipRecompileContracts.includes(s.name)
+      )
+      deployedContracts = await this.getDeployedContracts(remainSourceInfo, artifactsRootDir)
+    } else {
+      deployedContracts = []
+    }
+
     const filteredChangedContracts: string[] = []
     changedContracts.forEach((c) => {
-      if (deployedContracts.includes(c)) {
+      if (skipRecompileContracts.includes(c)) {
+        console.warn(
+          `The contract ${c} is in the skipRecompileContracts list. Even if the contract is updated, the code will not be regenerated. ` +
+            `To regenerate the bytecode, please remove the contract from the skipRecompileContracts list.`
+        )
+      } else if (deployedContracts.includes(c)) {
         console.warn(
           `The contract ${c} has already been deployed to the mainnet. Even if the contract is updated, the bytecode will not be regenerated. ` +
-            `To regenerate the bytecode, please enable the forceCompile flag`
+            `To regenerate the bytecode, please enable the forceCompile flag.`
         )
       } else {
         filteredChangedContracts.push(c)
@@ -643,7 +657,8 @@ export class Project {
     compilerOptions: node.CompilerOptions,
     changedContracts: string[],
     forceRecompile: boolean,
-    skipRecompileIfDeployedOnMainnet: boolean
+    skipRecompileIfDeployedOnMainnet: boolean,
+    skipRecompileContracts: string[]
   ): Promise<Project> {
     const removeDuplicates = sourceInfos.reduce((acc: SourceInfo[], sourceInfo: SourceInfo) => {
       if (acc.find((info) => info.sourceCodeHash === sourceInfo.sourceCodeHash) === undefined) {
@@ -708,7 +723,8 @@ export class Project {
       sourceInfos,
       artifactsRootDir,
       changedContracts,
-      skipRecompileIfDeployedOnMainnet
+      skipRecompileIfDeployedOnMainnet,
+      skipRecompileContracts
     )
     await project.saveArtifactsToFile(projectRootDir, forceRecompile, filteredChangedContracts)
     return project
@@ -724,7 +740,8 @@ export class Project {
     compilerOptions: node.CompilerOptions,
     changedContracts: string[],
     forceRecompile: boolean,
-    skipRecompileIfDeployedOnMainnet: boolean
+    skipRecompileIfDeployedOnMainnet: boolean,
+    skipRecompileContracts: string[]
   ): Promise<Project> {
     const projectArtifact = await ProjectArtifact.from(projectRootDir)
     if (projectArtifact === undefined) {
@@ -779,7 +796,8 @@ export class Project {
         compilerOptions,
         changedContracts,
         forceRecompile,
-        skipRecompileIfDeployedOnMainnet
+        skipRecompileIfDeployedOnMainnet,
+        skipRecompileContracts
       )
     }
   }
@@ -910,7 +928,8 @@ export class Project {
     artifactsRootDir = Project.DEFAULT_ARTIFACTS_DIR,
     defaultFullNodeVersion: string | undefined = undefined,
     forceRecompile = false,
-    skipRecompileIfDeployedOnMainnet = false
+    skipRecompileIfDeployedOnMainnet = false,
+    skipRecompileContracts: string[] = []
   ): Promise<Project> {
     const provider = web3.getCurrentNodeProvider()
     const fullNodeVersion = defaultFullNodeVersion ?? (await provider.infos.getInfosVersion()).version
@@ -939,7 +958,8 @@ export class Project {
         nodeCompilerOptions,
         changedContracts,
         forceRecompile,
-        skipRecompileIfDeployedOnMainnet
+        skipRecompileIfDeployedOnMainnet,
+        skipRecompileContracts
       )
     }
     // we need to reload those contracts that did not regenerate bytecode
@@ -953,7 +973,8 @@ export class Project {
       nodeCompilerOptions,
       changedContracts,
       forceRecompile,
-      skipRecompileIfDeployedOnMainnet
+      skipRecompileIfDeployedOnMainnet,
+      skipRecompileContracts
     )
   }
 }
