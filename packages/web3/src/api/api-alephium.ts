@@ -3045,6 +3045,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Contracts
+     * @name GetContractsCodeHashCode
+     * @summary Get contract code by code hash
+     * @request GET:/contracts/{code-hash}/code
+     */
+    getContractsCodeHashCode: (codeHash: string, params: RequestParams = {}) =>
+      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+        path: `/contracts/${codeHash}/code`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Contracts
      * @name PostContractsTestContract
      * @summary Test contract
      * @request POST:/contracts/test-contract
