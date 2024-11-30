@@ -36,11 +36,13 @@ export function isBase58(s: string): boolean {
 }
 
 export function base58ToBytes(s: string): Uint8Array {
+  if (s === '') {
+    throw new TraceableError('Invalid base58 string ', new Error('Empty string'))
+  }
   try {
     return bs58.decode(s)
   } catch (e) {
     throw new TraceableError(`Invalid base58 string ${s}`, e)
   }
 }
-
 export default bs58
