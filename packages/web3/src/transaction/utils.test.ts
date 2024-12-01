@@ -220,138 +220,57 @@ describe('transaction utils', () => {
     })
 
     it('should handle network errors during polling', async () => {
-      const mockConfirmed: node.Confirmed = {
-        type: 'Confirmed',
-        blockHash: '1234',
-        txIndex: 0,
-        chainConfirmations: 1,
-        fromGroupConfirmations: 1,
-        toGroupConfirmations: 1
-      }
-  
       const mockProvider = {
         transactions: {
-          getTransactionsStatus: jest.fn()
-            .mockRejectedValueOnce(new Error('Network error'))
-            .mockResolvedValueOnce(mockConfirmed)
-            .mockResolvedValueOnce(mockConfirmed) 
+          getTransactionsStatus: jest.fn().mockRejectedValue(new Error('Network error'))
         }
       }
       web3.setCurrentNodeProvider(mockProvider as any)
+
+      await expect(waitForTxConfirmation('test-tx-id', 1, 10))
+      .rejects
+      .toThrowError('Network error')
   
-      try {
-        await waitForTxConfirmation('test-tx-id', 1, 10)
-      } catch (error) {
-        const result = await waitForTxConfirmation('test-tx-id', 1, 10)
-        expect(result.type).toBe('Confirmed')
-        expect(mockProvider.transactions.getTransactionsStatus).toHaveBeenCalled()
-      }
-    })      
+      expect(mockProvider.transactions.getTransactionsStatus).toHaveBeenCalled()
+    }) 
 
   })
 
-  describe('transaction types', () => {
-    it('should identify confirmed transactions', () => {
-      const confirmedTx: node.Confirmed = {
-        type: 'Confirmed',
-        blockHash: '1234',
-        txIndex: 0,
-        chainConfirmations: 1,
-        fromGroupConfirmations: 1,
-        toGroupConfirmations: 1
-      }
-
-      const confirmedTxHighConfirm: node.Confirmed = {
-        type: 'Confirmed',
-        blockHash: '5678',
-        txIndex: 1,
-        chainConfirmations: 10,
-        fromGroupConfirmations: 8,
-        toGroupConfirmations: 9
-      }
-
-      expect(confirmedTx.type).toBe('Confirmed')
-      expect(confirmedTxHighConfirm.type).toBe('Confirmed')
-      expect(confirmedTx.chainConfirmations).toBeLessThan(confirmedTxHighConfirm.chainConfirmations)
-    })
-
-    it('should identify non-confirmed transactions', () => {
-      const mempoolTx: node.MemPooled = {
-        type: 'MemPooled'
-      }
-      expect(mempoolTx.type === 'Confirmed').toBe(false)
-    })
-
-    it('should identify mempool transactions', () => {
-      const mempoolTx: node.MemPooled = { type: 'MemPooled' }
-      expect(mempoolTx.type).toBe('MemPooled')
-      expect(mempoolTx.type).not.toBe('Confirmed')
-
-      const mempoolTxs: node.MemPooled[] = [
-        { type: 'MemPooled' },
-        { type: 'MemPooled' }
+  describe('waitForTxConfirmation', () => {
+    it('should poll until required confirmations are reached', async () => {
+      const mockSequence = [
+        { type: 'MemPooled' } as node.MemPooled,
+        {
+          type: 'Confirmed',
+          blockHash: '1234',
+          txIndex: 0,
+          chainConfirmations: 1,
+          fromGroupConfirmations: 1,
+          toGroupConfirmations: 1
+        } as node.Confirmed,
+        {
+          type: 'Confirmed',
+          blockHash: '1234',
+          txIndex: 0,
+          chainConfirmations: 3,
+          fromGroupConfirmations: 3,
+          toGroupConfirmations: 3
+        } as node.Confirmed
       ]
-      mempoolTxs.forEach(tx => {
-        expect(tx.type).toBe('MemPooled')
-      })
-    })
 
-    it('should handle transition from mempool to confirmed', () => {
-      const mempoolTx: node.MemPooled = { type: 'MemPooled' }
-      const confirmedTx1: node.Confirmed = {
-        type: 'Confirmed',
-        blockHash: '1234',
-        txIndex: 0,
-        chainConfirmations: 1,
-        fromGroupConfirmations: 1,
-        toGroupConfirmations: 1
+      const mockProvider = {
+        transactions: {
+          getTransactionsStatus: jest.fn()
+            .mockResolvedValueOnce(mockSequence[0])
+            .mockResolvedValueOnce(mockSequence[1])
+            .mockResolvedValueOnce(mockSequence[2])
+        }
       }
-      const confirmedTx2: node.Confirmed = {
-        type: 'Confirmed',
-        blockHash: '1234',
-        txIndex: 0,
-        chainConfirmations: 2,
-        fromGroupConfirmations: 2,
-        toGroupConfirmations: 2
-      }
+      web3.setCurrentNodeProvider(mockProvider as any)
 
-      expect(mempoolTx.type).toBe('MemPooled')
-      expect(confirmedTx1.type).toBe('Confirmed')
-      expect(confirmedTx2.type).toBe('Confirmed')
-      expect(confirmedTx2.chainConfirmations).toBeGreaterThan(confirmedTx1.chainConfirmations)
-    })
-
-    it('should validate confirmed transaction properties', () => {
-      const confirmedTx: node.Confirmed = {
-        type: 'Confirmed',
-        blockHash: '1234',
-        txIndex: 0,
-        chainConfirmations: 5,
-        fromGroupConfirmations: 4,
-        toGroupConfirmations: 4
-      }
-
-      expect(confirmedTx.type).toBe('Confirmed')
-      expect(confirmedTx.blockHash).toBeTruthy()
-      expect(typeof confirmedTx.txIndex).toBe('number')
-      expect(confirmedTx.chainConfirmations).toBeGreaterThan(0)
-      expect(confirmedTx.fromGroupConfirmations).toBeLessThanOrEqual(confirmedTx.chainConfirmations)
-      expect(confirmedTx.toGroupConfirmations).toBeLessThanOrEqual(confirmedTx.chainConfirmations)
-    })
-
-    it('should identify transaction types correctly', () => {
-      const confirmedTx: node.TxStatus = {
-        type: 'Confirmed',
-        blockHash: '1234',
-        txIndex: 0,
-        chainConfirmations: 1,
-        fromGroupConfirmations: 1,
-        toGroupConfirmations: 1
-      }
-      const mempoolTx: node.TxStatus = { type: 'MemPooled' }
-
-      expect(confirmedTx.type).toBe('Confirmed')
-      expect(mempoolTx.type).toBe('MemPooled')
+      const result = await waitForTxConfirmation('test-tx-id', 3, 10)
+      expect(result.chainConfirmations).toBe(3)
+      expect(mockProvider.transactions.getTransactionsStatus).toHaveBeenCalledTimes(3)
     })
   })
 
