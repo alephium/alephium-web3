@@ -29,14 +29,12 @@ import {
   addressFromPublicKey,
   addressFromScript,
   addressFromContractId,
-  contractIdFromTx,
   subContractId,
   groupOfLockupScript
 } from './address'
 import { binToHex, bs58 } from '../utils'
 import { randomBytes } from 'crypto'
 import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
-// import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('address', () => {
   describe('validateAddress', () => {
@@ -290,25 +288,26 @@ describe('address', () => {
     })
   })
 
-  // describe('publicKeyFromPrivateKey', () => {
-  //   it('should compute public key from private key', () => {
-  //     const wallet = PrivateKeyWallet.Random()
-  //     const privateKey = wallet.privateKey
-  //     const expectedPublicKey = publicKeyFromPrivateKey(privateKey)
-  //     expect(publicKeyFromPrivateKey(privateKey)).toBe(expectedPublicKey)
-  //   })
-  // })
+  describe('publicKeyFromPrivateKey', () => {
+    it('should compute public key from private key', () => {
+      expect(publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
+        '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
+      )
+    })
+  })
+  describe('addressFromPublicKey', () => {
+    it('should compute address from public key', () => {
+      expect(addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
+        '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
+      )
+    })
 
-  // describe('addressFromPublicKey', () => {
-  //   it('should compute address from public key', () => {
-  //     const wallet = PrivateKeyWallet.Random()
-  //     const privateKey = wallet.privateKey
-  //     const publicKey = publicKeyFromPrivateKey(privateKey)
-  //     const expectedAddress = addressFromPublicKey(publicKey)
-
-  //     expect(addressFromPublicKey(publicKey)).toBe(expectedAddress)
-  //   })
-  // })
+    it('should throw error for invalid public key', () => {
+      expect(() => tokenIdFromAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toThrow(
+        'Invalid contract address type: 2'
+      )
+    })
+  })
 
   describe('addressFromScript', () => {
     it('should compute address from script', () => {
