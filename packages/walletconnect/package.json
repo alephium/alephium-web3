@@ -10,6 +10,7 @@
   },
   "license": "Apache-2.0",
   "main": "dist/cjs/index.js",
+  "browser": "dist/umd/index.min.js",
   "types": "dist/cjs/index.d.ts",
   "unpkg": "dist/umd/index.min.js",
   "files": [
