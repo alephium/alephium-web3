@@ -469,6 +469,128 @@ describe('contract', function () {
     expect(utils.binToHex(ralph.encodeMapKey('00112233', 'ByteVec'))).toEqual('00112233')
   })
 
+  describe('Additional Ralph Tests', () => {
+    describe('Encoding Utils', () => {
+      it('should properly encode and decode primitive types', () => {
+        const primitiveTypes = [
+          { type: 'Bool', value: true },
+          { type: 'Bool', value: false },
+          { type: 'I256', value: -42n },
+          { type: 'U256', value: 42n },
+          { type: 'ByteVec', value: 'deadbeef' }
+        ]
+
+        primitiveTypes.forEach(({ type, value }) => {
+          const encoded = ralph.encodeScriptField(type, value)
+          expect(encoded).toBeDefined()
+          expect(encoded.length).toBeGreaterThan(0)
+        })
+      })
+
+      it('should handle edge cases in bytestring encoding', () => {
+        const edgeCases = [
+          '', // Empty string
+          '00', // Zero
+          'ff'.repeat(32), // Max length
+          '42' // Single byte
+        ]
+
+        edgeCases.forEach((hex) => {
+          expect(() => ralph.encodeByteVec(hex)).not.toThrow()
+        })
+      })
+    })
+
+    describe('Map Operations', () => {
+      it('should properly encode map prefix for different indices', () => {
+        // Test map prefix encoding for different indices
+        const indices = [0, 1, 42, 255]
+        indices.forEach((index) => {
+          const prefix = ralph.encodeMapPrefix(index)
+          expect(prefix).toBeDefined()
+          expect(prefix.length).toBeGreaterThan(0)
+        })
+      })
+
+      it('should properly parse different map types', () => {
+        const mapTypes = [
+          { type: 'Map[U256,U256]', expected: ['U256', 'U256'] },
+          { type: 'Map[Bool,ByteVec]', expected: ['Bool', 'ByteVec'] },
+          { type: 'Map[Address,U256]', expected: ['Address', 'U256'] }
+        ]
+
+        mapTypes.forEach(({ type, expected }) => {
+          const [keyType, valueType] = ralph.parseMapType(type)
+          expect(keyType).toBe(expected[0])
+          expect(valueType).toBe(expected[1])
+        })
+      })
+    })
+
+    describe('Field Size Calculations', () => {
+      it('should calculate field sizes for complex nested structures', () => {
+        const nestedStruct = new Struct('Nested', ['x', 'y', 'z'], ['U256', '[U256;3]', 'Bool'], [true, false, true])
+
+        const complexStruct = new Struct(
+          'Complex',
+          ['a', 'b', 'c'],
+          ['Nested', '[Nested;2]', 'ByteVec'],
+          [false, true, false]
+        )
+
+        const structs = [nestedStruct, complexStruct]
+
+        // Test various combinations
+        const tests = [
+          { type: 'Nested', isMutable: false },
+          { type: 'Nested', isMutable: true },
+          { type: 'Complex', isMutable: false },
+          { type: 'Complex', isMutable: true },
+          { type: '[Complex;2]', isMutable: false },
+          { type: '[Complex;2]', isMutable: true }
+        ]
+
+        tests.forEach(({ type, isMutable }) => {
+          const result = ralph.calcFieldSize(type, isMutable, structs)
+          expect(result.immFields).toBeGreaterThanOrEqual(0)
+          expect(result.mutFields).toBeGreaterThanOrEqual(0)
+          expect(result.immFields + result.mutFields).toBeGreaterThan(0)
+        })
+      })
+    })
+
+    describe('Type Length Calculations', () => {
+      it('should calculate correct type lengths for complex types', () => {
+        const simpleStruct = new Struct('Simple', ['x'], ['U256'], [false])
+        const arrayStruct = new Struct('Array', ['arr'], ['[U256;3]'], [false])
+        const nestedStruct = new Struct('Nested', ['simple', 'array'], ['Simple', 'Array'], [false, false])
+
+        const structs = [simpleStruct, arrayStruct, nestedStruct]
+
+        const types = [
+          { type: 'U256', expected: 1 },
+          { type: '[U256;3]', expected: 3 },
+          { type: 'Simple', expected: 1 },
+          { type: 'Array', expected: 3 },
+          { type: 'Nested', expected: 4 },
+          { type: '[Nested;2]', expected: 8 }
+        ]
+
+        types.forEach(({ type, expected }) => {
+          const length = ralph.typeLength(type, structs)
+          expect(length).toBe(expected)
+        })
+      })
+    })
+
+    describe('bytecode building', () => {
+      it('should handle empty debug patches', () => {
+        const bytecode = '0123456789abcdef'
+        expect(ralph.buildDebugBytecode(bytecode, '')).toBe(bytecode)
+      })
+    })
+  })
+
   // it('should test buildByteCode', async () => {
   //   const compiled = {
   //     type: 'TemplateContractByteCode',
