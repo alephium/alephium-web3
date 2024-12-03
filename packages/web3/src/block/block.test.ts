@@ -225,13 +225,14 @@ describe('BlockSubscription implementation', () => {
 
   it('should handle missing blocks correctly', async () => {
     const now = Date.now()
-    const block1: node.BlockEntry = {
-      hash: 'block1',
+
+    const baseBlock: node.BlockEntry = {
+      hash: '',
       timestamp: now - 2000,
       chainFrom: 0,
       chainTo: 0,
-      height: 2,
-      deps: ['parent1'],
+      height: 0,
+      deps: [],
       transactions: [],
       nonce: '',
       version: 0,
@@ -241,20 +242,20 @@ describe('BlockSubscription implementation', () => {
       ghostUncles: []
     }
     
+    const block1: node.BlockEntry = {
+      ...baseBlock,
+      hash: 'block1',
+      timestamp: now - 2000,
+      height: 2,
+      deps: ['parent1']
+    }
+    
     const block2: node.BlockEntry = {
+      ...baseBlock,
       hash: 'block2',
       timestamp: now - 1000,
-      chainFrom: 0,
-      chainTo: 0,
       height: 3,
-      deps: ['block1'],
-      transactions: [],
-      nonce: '',
-      version: 0,
-      depStateHash: '',
-      txsHash: '',
-      target: '',
-      ghostUncles: []
+      deps: ['block1']
     }
     
     nodeProvider.blockflow.getBlockflowBlocksBlockHash = jest.fn()
