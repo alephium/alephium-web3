@@ -88,20 +88,59 @@ class ApprovedAccumulator {
   }
 
   addApprovedAttoAlph(amount: any): void {
-    if (amount.kind === 'U256') {
-      this.approvedTokens[0].amount += amount.value
+    if (this.approvedTokens === 'unknown') {
+      return
+    }
+
+    switch (amount.kind) {
+      case 'U256':
+        this.approvedTokens[0].amount += amount.value
+        break
+
+      case 'Symbol-U256':
+        this.setUnknown()
+        break
+
+      case 'undefined':
+      case null:
+        this.setUnknown()
+        break
+
+      default:
+        this.setUnknown()
+        break
     }
   }
 
   addApprovedToken(tokenId: any, amount: any): void {
-    if (tokenId.kind === 'ByteVec' && amount.kind === 'U256') {
-      const id = binToHex(tokenId.value)
-      const existing = this.approvedTokens.find((t) => t.id === id)
-      if (existing) {
-        existing.amount += amount.value
-      } else {
-        this.approvedTokens.push({ id, amount: amount.value })
-      }
+    if (this.approvedTokens === 'unknown') {
+      return
+    }
+
+    if (tokenId.kind !== 'ByteVec') {
+      this.setUnknown()
+      return
+    }
+
+    switch (amount.kind) {
+      case 'U256':
+        const id = binToHex(tokenId.value)
+        const existing = this.approvedTokens.find((t) => t.id === id)
+
+        if (existing) {
+          existing.amount += amount.value
+        } else {
+          this.approvedTokens.push({ id, amount: amount.value })
+        }
+        break
+
+      case 'Symbol-U256':
+        this.setUnknown()
+        break
+
+      default:
+        this.setUnknown()
+        break
     }
   }
 }
