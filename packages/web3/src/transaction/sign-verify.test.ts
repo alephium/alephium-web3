@@ -30,13 +30,16 @@ describe('transaction', () => {
   const validTxHash = generateRandomTxId()
   const validSignature = transactionSign(validTxHash, testWallet.privateKey)
 
+  // Basic functionality tests
   it('should verify signature', () => {
     const testWallet = PrivateKeyWallet.Random()
     const testTxHash = generateRandomTxId()
     const validSignature = transactionSign(testTxHash, testWallet.privateKey)
 
+    // Test normal verification
     expect(transactionVerifySignature(testTxHash, testWallet.publicKey, validSignature)).toEqual(true)
 
+    // Test with modified signatures
     const unnormalizedSig = validSignature.slice(0, -2) + 'ff'
     const wrongSig = '1' + validSignature.slice(1)
     expect(transactionVerifySignature(testTxHash, testWallet.publicKey, unnormalizedSig)).toEqual(false)
