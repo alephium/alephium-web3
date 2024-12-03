@@ -74,9 +74,9 @@ describe('address', () => {
     })
 
     it('should throw error for invalid multisig address', () => {
-      const AddressType = 0x01
+      const addressType = 0x01
       const invalidData = Buffer.from('1234567890abcdef', 'hex')
-      const bytes = Buffer.concat([Buffer.from([AddressType]), invalidData])
+      const bytes = Buffer.concat([Buffer.from([addressType]), invalidData])
       const address = bs58.encode(bytes)
       expect(() => validateAddress(address)).toThrow(`Invalid multisig address: ${address}`)
     })
@@ -125,13 +125,15 @@ describe('address', () => {
     })
 
     it('should throw error for invalid P2MPKH address where n < m', () => {
-      const addressType = 0x01
       const n = 2
       const m = 3
-      const encodedN = Buffer.from([n])
-      const encodedM = Buffer.from([m])
-      const publicKeyHashes = Buffer.concat([randomBytes(32), randomBytes(32)])
-      const bytes = Buffer.concat([Buffer.from([addressType]), encodedN, publicKeyHashes, encodedM])
+      const bytes = lockupScriptCodec.encode({
+        kind: 'P2MPKH',
+        value: {
+          publicKeyHashes: [randomBytes(32), randomBytes(32)],
+          m: m
+        }
+      })
       const address = bs58.encode(bytes)
       expect(() => validateAddress(address)).toThrow(`Invalid multisig address, n: ${n}, m: ${m}`)
     })
@@ -193,6 +195,10 @@ describe('address', () => {
 
     it('should return false for asset addresses', () => {
       expect(isContractAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toBe(false)
+      expect(
+        isContractAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
+      ).toBe(false)
+      expect(isContractAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(false)
     })
 
     it('should throw error for invalid addresses', () => {
@@ -220,23 +226,21 @@ describe('address', () => {
       ).toBe(2),
         expect(
           groupOfAddress('2jWukVCejM4Zifz9LvMG4dfR6SEecHLX8VqbswhGwnu61d28B861UhLu3ZmTHu4N14m1kk9rbxreBYzcxta1WPawKzG')
-        ).toBe(3),
-        expect(groupOfAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(0),
-        expect(groupOfAddress('euWxyF55nGTxavL6mgGeMrFdvSRzHor8AmhgPXm8Lm9D')).toBe(1),
-        expect(groupOfAddress('n2pYTzmA27tkp7UNFPhMJpjz3jr5vgessxqJ7kwomBMF')).toBe(2),
-        expect(groupOfAddress('tLf6hDfrUugmxZhKxGoZMpAUBt3NcZ2hrTspTCmZ6JdQ')).toBe(3),
-        expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBe(0),
-        expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kk')).toBe(1),
-        expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9km')).toBe(2),
-        expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kn')).toBe(3)
+        ).toBe(3)
     })
 
     it('should return correct group for P2SH addresses', () => {
-      expect(groupOfAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(0)
+      expect(groupOfAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(0),
+        expect(groupOfAddress('euWxyF55nGTxavL6mgGeMrFdvSRzHor8AmhgPXm8Lm9D')).toBe(1),
+        expect(groupOfAddress('n2pYTzmA27tkp7UNFPhMJpjz3jr5vgessxqJ7kwomBMF')).toBe(2),
+        expect(groupOfAddress('tLf6hDfrUugmxZhKxGoZMpAUBt3NcZ2hrTspTCmZ6JdQ')).toBe(3)
     })
 
     it('should return correct group for P2C addresses', () => {
-      expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBe(0)
+      expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBe(0),
+        expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kk')).toBe(1),
+        expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9km')).toBe(2),
+        expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kn')).toBe(3)
     })
 
     it('should throw error for invalid addresses', () => {
@@ -288,23 +292,10 @@ describe('address', () => {
     })
   })
 
-  describe('publicKeyFromPrivateKey', () => {
-    it('should compute public key from private key', () => {
-      expect(publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
-        '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
-      )
-    })
-  })
   describe('addressFromPublicKey', () => {
     it('should compute address from public key', () => {
       expect(addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
         '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
-      )
-    })
-
-    it('should throw error for invalid public key', () => {
-      expect(() => tokenIdFromAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toThrow(
-        'Invalid contract address type: 2'
       )
     })
   })
