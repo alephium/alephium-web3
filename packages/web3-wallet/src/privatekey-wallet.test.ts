@@ -21,7 +21,6 @@ import { PrivateKeyWallet } from './privatekey-wallet'
 
 describe('PrivateKeyWallet', () => {
   beforeAll(() => {
-    // Set the node provider before running the tests
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   })
 
