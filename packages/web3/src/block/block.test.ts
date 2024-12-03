@@ -26,6 +26,22 @@ describe('block subscription', function () {
   let newHashes: string[] = []
   let options: BlockSubscribeOptions
 
+  const baseBlock: node.BlockEntry = {
+    hash: '',
+    timestamp: 0,
+    chainFrom: 0,
+    chainTo: 0,
+    height: 0,
+    deps: Array(TOTAL_NUMBER_OF_GROUPS * 2 - 1).fill(''),
+    transactions: [],
+    nonce: '',
+    version: 0,
+    depStateHash: '',
+    txsHash: '',
+    target: '',
+    ghostUncles: []
+  }
+
   beforeEach(() => {
     orphanHashes = []
     newHashes = []
@@ -115,19 +131,10 @@ describe('block subscription', function () {
         const parentIndex = Math.floor(depsLength / 2) + 0
         deps[parentIndex] = parentHash
         const blockEntry: node.BlockEntry = {
+          ...baseBlock,
           hash: hash,
-          timestamp: 0,
-          chainFrom: 0,
-          chainTo: 0,
           height: index,
-          deps,
-          transactions: [],
-          nonce: '',
-          version: 0,
-          depStateHash: '',
-          txsHash: '',
-          target: '',
-          ghostUncles: []
+          deps
         }
         blockByHash.set(hash, blockEntry)
       }
@@ -168,6 +175,22 @@ describe('block subscription', function () {
 describe('BlockSubscription implementation', () => {
   let nodeProvider: NodeProvider
   let subscription: BlockSubscription
+
+  const baseBlock: node.BlockEntry = {
+    hash: '',
+    timestamp: 0,
+    chainFrom: 0,
+    chainTo: 0,
+    height: 0,
+    deps: Array(TOTAL_NUMBER_OF_GROUPS * 2 - 1).fill(''),
+    transactions: [],
+    nonce: '',
+    version: 0,
+    depStateHash: '',
+    txsHash: '',
+    target: '',
+    ghostUncles: []
+  }
   
   beforeEach(() => {
     nodeProvider = {
@@ -200,19 +223,11 @@ describe('BlockSubscription implementation', () => {
   it('should handle cache expiration correctly', async () => {
     const now = Date.now()
     const block: node.BlockEntry = {
+      ...baseBlock,
       hash: 'test',
       timestamp: now - 30000,
-      chainFrom: 0,
-      chainTo: 0,
       height: 1,
-      deps: ['parent'],
-      transactions: [],
-      nonce: '',
-      version: 0,
-      depStateHash: '',
-      txsHash: '',
-      target: '',
-      ghostUncles: []
+      deps: ['parent']
     }
     
     nodeProvider.blockflow.getBlockflowBlocks = jest.fn().mockResolvedValue({
@@ -226,22 +241,6 @@ describe('BlockSubscription implementation', () => {
   it('should handle missing blocks correctly', async () => {
     const now = Date.now()
 
-    const baseBlock: node.BlockEntry = {
-      hash: '',
-      timestamp: now - 2000,
-      chainFrom: 0,
-      chainTo: 0,
-      height: 0,
-      deps: [],
-      transactions: [],
-      nonce: '',
-      version: 0,
-      depStateHash: '',
-      txsHash: '',
-      target: '',
-      ghostUncles: []
-    }
-    
     const block1: node.BlockEntry = {
       ...baseBlock,
       hash: 'block1',
@@ -249,7 +248,7 @@ describe('BlockSubscription implementation', () => {
       height: 2,
       deps: ['parent1']
     }
-    
+
     const block2: node.BlockEntry = {
       ...baseBlock,
       hash: 'block2',
