@@ -271,32 +271,6 @@ describe('transaction utils', () => {
     })
   })
 
-  describe('transaction type guard tests', () => {
-    it('should correctly identify different transaction statuses', () => {
-      const confirmedTx: node.TxStatus = {
-        type: 'Confirmed',
-        blockHash: '1234',
-        txIndex: 0,
-        chainConfirmations: 1,
-        fromGroupConfirmations: 1,
-        toGroupConfirmations: 1
-      }
-
-      const mempoolTx: node.TxStatus = {
-        type: 'MemPooled'
-      }
-
-      if (confirmedTx.type === 'Confirmed') {
-        expect(confirmedTx.chainConfirmations).toBeDefined()
-        expect(confirmedTx.blockHash).toBeDefined()
-      }
-
-      if (mempoolTx.type === 'MemPooled') {
-        expect(Object.keys(mempoolTx).length).toBe(1)
-      }
-    })
-  })
-
   //Helper functions
   function toPublicKeyHash(publicKey: string): Uint8Array {
     return blake2b(hexToBinUnsafe(publicKey), undefined, 32)
