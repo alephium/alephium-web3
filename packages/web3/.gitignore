@@ -3,5 +3,5 @@ coverage/
 lerna-debug.log
 /dist
 /dev
-.ralph-lsp/
 docs/
+.ralph-lsp/
