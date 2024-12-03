@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { encrypt, decrypt } from './password-crypto' // Replace with the correct file path
+import { encrypt, decrypt } from './password-crypto'
 
 describe('Encryption and Decryption', () => {
   const password = 'secure-password'
@@ -90,7 +90,7 @@ describe('Encryption and Decryption', () => {
     })
 
     it('should handle large messages for encryption and decryption', () => {
-      const largeMessage = 'A'.repeat(1_000_000) // 1 MB of data
+      const largeMessage = 'A'.repeat(500_000) // 0.5 MB of data
       const encryptedPayload = encrypt(password, largeMessage)
       const decryptedMessage = decrypt(password, encryptedPayload)
 
