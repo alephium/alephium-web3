@@ -159,9 +159,7 @@ describe('transaction utils', () => {
 
       const mockProvider = {
         transactions: {
-          getTransactionsStatus: jest.fn()
-            .mockResolvedValueOnce(mockMempool)
-            .mockResolvedValueOnce(mockConfirmed)
+          getTransactionsStatus: jest.fn().mockResolvedValueOnce(mockMempool).mockResolvedValueOnce(mockConfirmed)
         }
       }
       web3.setCurrentNodeProvider(mockProvider as any)
@@ -205,7 +203,8 @@ describe('transaction utils', () => {
 
       const mockProvider = {
         transactions: {
-          getTransactionsStatus: jest.fn()
+          getTransactionsStatus: jest
+            .fn()
             .mockResolvedValueOnce(mockSequence[0])
             .mockResolvedValueOnce(mockSequence[1])
             .mockResolvedValueOnce(mockSequence[2])
@@ -227,13 +226,10 @@ describe('transaction utils', () => {
       }
       web3.setCurrentNodeProvider(mockProvider as any)
 
-      await expect(waitForTxConfirmation('test-tx-id', 1, 10))
-      .rejects
-      .toThrowError('Network error')
-  
-      expect(mockProvider.transactions.getTransactionsStatus).toHaveBeenCalled()
-    }) 
+      await expect(waitForTxConfirmation('test-tx-id', 1, 10)).rejects.toThrowError('Network error')
 
+      expect(mockProvider.transactions.getTransactionsStatus).toHaveBeenCalled()
+    })
   })
 
   describe('waitForTxConfirmation', () => {
@@ -260,7 +256,8 @@ describe('transaction utils', () => {
 
       const mockProvider = {
         transactions: {
-          getTransactionsStatus: jest.fn()
+          getTransactionsStatus: jest
+            .fn()
             .mockResolvedValueOnce(mockSequence[0])
             .mockResolvedValueOnce(mockSequence[1])
             .mockResolvedValueOnce(mockSequence[2])
@@ -284,7 +281,7 @@ describe('transaction utils', () => {
         fromGroupConfirmations: 1,
         toGroupConfirmations: 1
       }
-      
+
       const mempoolTx: node.TxStatus = {
         type: 'MemPooled'
       }
@@ -300,7 +297,7 @@ describe('transaction utils', () => {
     })
   })
 
-  //Helper functions 
+  //Helper functions
   function toPublicKeyHash(publicKey: string): Uint8Array {
     return blake2b(hexToBinUnsafe(publicKey), undefined, 32)
   }
