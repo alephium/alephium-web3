@@ -156,29 +156,48 @@ describe('DappTransactionBuilder', () => {
       expect(result.tokens || []).toHaveLength(1)
     })
 
-    it('should accumulate token amounts correctly', () => {
+    it('should correctly accumulate amounts when calling multiple contracts with the same token', () => {
+      // Given
       const builder = new DappTransactionBuilder(mockCallerAddress)
+      const firstAmount = 100n
+      const secondAmount = 150n
+      const expectedTotal = firstAmount + secondAmount
 
+      // When - Make multiple contract calls with the same token
       builder.callContract({
         contractAddress: mockContractAddress,
         methodIndex: 0,
         args: [],
-        tokens: [{ id: testTokenId, amount: 100n }]
+        tokens: [
+          {
+            id: testTokenId,
+            amount: firstAmount
+          }
+        ]
       })
 
       builder.callContract({
         contractAddress: mockContractAddress,
         methodIndex: 0,
         args: [],
-        tokens: [{ id: testTokenId, amount: 150n }]
+        tokens: [
+          {
+            id: testTokenId,
+            amount: secondAmount
+          }
+        ]
       })
 
+      // Then - Verify token accumulation
       const result = builder.getResult()
-      const tokens = result.tokens || []
-      expect(tokens).toHaveLength(1)
-      if (tokens.length > 0) {
-        expect(tokens[0].amount).toBe(250n)
-      }
+      expect(result.tokens).toBeDefined()
+      expect(result.tokens).toHaveLength(1)
+
+      const accumulatedToken = result.tokens?.[0]
+      expect(accumulatedToken).toEqual({
+        id: testTokenId,
+        amount: expectedTotal
+      })
     })
   })
 })
