@@ -36,33 +36,39 @@ import { binToHex, bs58 } from '../utils'
 import { randomBytes } from 'crypto'
 import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
 
+const emptyAddress = ''
+const validP2PKHAddress1 = '15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu'
+const validP2PKHAddress2 = '1D59jXR9NpD9ZQqZTRVcVbKVh6ko5TUMt89WvkA8P9P7w'
+const validP2MPKHAddress = '2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY'
+const validP2SHAddress = 'eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4'
+const validP2CAddress = 'yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj'
+const invalidBase58String = 'InvalidBase58!!'
+
 describe('address', () => {
   describe('validateAddress', () => {
     it('should validate valid P2PKH addresses', () => {
-      expect(() => validateAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).not.toThrow()
-      expect(() => validateAddress('1D59jXR9NpD9ZQqZTRVcVbKVh6ko5TUMt89WvkA8P9P7w')).not.toThrow()
+      expect(() => validateAddress(validP2PKHAddress1)).not.toThrow()
+      expect(() => validateAddress(validP2PKHAddress2)).not.toThrow()
     })
 
     it('should validate valid P2MPKH addresses', () => {
-      expect(() =>
-        validateAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
-      ).not.toThrow()
+      expect(() => validateAddress(validP2MPKHAddress)).not.toThrow()
     })
 
     it('should validate valid P2SH addresses', () => {
-      expect(() => validateAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).not.toThrow()
+      expect(() => validateAddress(validP2SHAddress)).not.toThrow()
     })
 
     it('should validate valid P2C addresses', () => {
-      expect(() => validateAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).not.toThrow()
+      expect(() => validateAddress(validP2CAddress)).not.toThrow()
     })
 
     it('should throw error for empty address', () => {
-      expect(() => validateAddress('')).toThrow('Address is empty')
+      expect(() => validateAddress(emptyAddress)).toThrow('Address is empty')
     })
 
     it('should throw error for invalid base58 string', () => {
-      expect(() => validateAddress('InvalidBase58!!')).toThrow('Non-base58 character')
+      expect(() => validateAddress(invalidBase58String)).toThrow('Non-base58 character')
     })
 
     it('should throw error for invalid address type', () => {
@@ -140,31 +146,27 @@ describe('address', () => {
   })
 
   it('should return if an address is valid', () => {
-    expect(isValidAddress('')).toEqual(false)
+    expect(isValidAddress(emptyAddress)).toEqual(false)
     expect(isValidAddress('asdasdf')).toEqual(false)
     expect(
       isValidAddress('2jVWAcAPphJ8ueZNG1BPwbfPFjjbvorprceuqzgmJQ1ZRyELRpWgARvdB3T9trqpiJs7f4GkudPt6rQLnGbQYqq2NCi')
     ).toEqual(false)
-    expect(isValidAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toEqual(true)
-    expect(isValidAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toEqual(true)
-    expect(
-      isValidAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
-    ).toEqual(true)
+    expect(isValidAddress(validP2PKHAddress1)).toEqual(true)
+    expect(isValidAddress(validP2CAddress)).toEqual(true)
+    expect(isValidAddress(validP2MPKHAddress)).toEqual(true)
   })
 
   describe('isValidAddress', () => {
     it('should return true for valid addresses', () => {
-      expect(isValidAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toBe(true)
-      expect(
-        isValidAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
-      ).toBe(true)
-      expect(isValidAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(true)
-      expect(isValidAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBe(true)
+      expect(isValidAddress(validP2PKHAddress1)).toBe(true)
+      expect(isValidAddress(validP2MPKHAddress)).toBe(true)
+      expect(isValidAddress(validP2SHAddress)).toBe(true)
+      expect(isValidAddress(validP2CAddress)).toBe(true)
     })
 
     it('should return false for invalid addresses', () => {
-      expect(isValidAddress('')).toBe(false)
-      expect(isValidAddress('InvalidBase58!!')).toBe(false)
+      expect(isValidAddress(emptyAddress)).toBe(false)
+      expect(isValidAddress(invalidBase58String)).toBe(false)
       expect(isValidAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGF')).toBe(false)
       expect(isValidAddress('asdasdf')).toBe(false)
     })
@@ -172,52 +174,46 @@ describe('address', () => {
 
   describe('isAssetAddress', () => {
     it('should return true for valid asset addresses', () => {
-      expect(isAssetAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toBe(true)
-      expect(
-        isAssetAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
-      ).toBe(true)
-      expect(isAssetAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(true)
+      expect(isAssetAddress(validP2PKHAddress1)).toBe(true)
+      expect(isAssetAddress(validP2MPKHAddress)).toBe(true)
+      expect(isAssetAddress(validP2SHAddress)).toBe(true)
     })
 
     it('should return false for contract addresses', () => {
-      expect(isAssetAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBe(false)
+      expect(isAssetAddress(validP2CAddress)).toBe(false)
     })
 
     it('should throw error for invalid addresses', () => {
-      expect(() => isAssetAddress('InvalidBase58!!')).toThrow()
+      expect(() => isAssetAddress(invalidBase58String)).toThrow()
     })
   })
 
   describe('isContractAddress', () => {
     it('should return true for valid contract addresses', () => {
-      expect(isContractAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBe(true)
+      expect(isContractAddress(validP2CAddress)).toBe(true)
     })
 
     it('should return false for asset addresses', () => {
-      expect(isContractAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toBe(false)
-      expect(
-        isContractAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
-      ).toBe(false)
-      expect(isContractAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(false)
+      expect(isContractAddress(validP2PKHAddress1)).toBe(false)
+      expect(isContractAddress(validP2MPKHAddress)).toBe(false)
+      expect(isContractAddress(validP2SHAddress)).toBe(false)
     })
 
     it('should throw error for invalid addresses', () => {
-      expect(() => isContractAddress('InvalidBase58!!')).toThrow()
+      expect(() => isContractAddress(invalidBase58String)).toThrow()
     })
   })
 
   describe('groupOfAddress', () => {
     it('should return correct group for P2PKH addresses', () => {
-      expect(groupOfAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toBe(0)
-      expect(groupOfAddress('1D59jXR9NpD9ZQqZTRVcVbKVh6ko5TUMt89WvkA8P9P7w')).toBe(1)
+      expect(groupOfAddress(validP2PKHAddress1)).toBe(0)
+      expect(groupOfAddress(validP2PKHAddress2)).toBe(1)
       expect(groupOfAddress('14tAT3nm7UqVP7gZ35icSdT3AEffv1kaUUMbWQK5PFygr')).toBe(2)
       expect(groupOfAddress('12F5aVQoQ7cNrgsVN2YPciwYvwmtJp4ohLa2x4R5KgLbG')).toBe(3)
     })
 
     it('should return correct group for P2MPKH addresses', () => {
-      expect(
-        groupOfAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfAY')
-      ).toBe(0)
+      expect(groupOfAddress(validP2MPKHAddress)).toBe(0)
       expect(
         groupOfAddress('2jXboVD9p66wrAHkPHx2AQocAzYXUWeppmRT3PuVT3ccxX9u8puTnwLeQ2VbTd4sNkgSEgk1cLbyVGLFshGweJCk1Mr')
       ).toBe(1)
@@ -230,21 +226,21 @@ describe('address', () => {
     })
 
     it('should return correct group for P2SH addresses', () => {
-      expect(groupOfAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBe(0),
+      expect(groupOfAddress(validP2SHAddress)).toBe(0),
         expect(groupOfAddress('euWxyF55nGTxavL6mgGeMrFdvSRzHor8AmhgPXm8Lm9D')).toBe(1),
         expect(groupOfAddress('n2pYTzmA27tkp7UNFPhMJpjz3jr5vgessxqJ7kwomBMF')).toBe(2),
         expect(groupOfAddress('tLf6hDfrUugmxZhKxGoZMpAUBt3NcZ2hrTspTCmZ6JdQ')).toBe(3)
     })
 
     it('should return correct group for P2C addresses', () => {
-      expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBe(0),
+      expect(groupOfAddress(validP2CAddress)).toBe(0),
         expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kk')).toBe(1),
         expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9km')).toBe(2),
         expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kn')).toBe(3)
     })
 
     it('should throw error for invalid addresses', () => {
-      expect(() => groupOfAddress('InvalidBase58!!')).toThrow()
+      expect(() => groupOfAddress(invalidBase58String)).toThrow()
     })
   })
 
@@ -310,18 +306,15 @@ describe('address', () => {
 
   describe('contractIdFromAddress', () => {
     it('should convert between contract id and address', () => {
-      expect(addressFromContractId('1f6b937b935d7fac894fb22ffe2b974cae9c8c166501372f1b9155144e0ff4ae')).toBe(
-        'vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3'
-      )
-      expect(binToHex(contractIdFromAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3'))).toBe(
-        '1f6b937b935d7fac894fb22ffe2b974cae9c8c166501372f1b9155144e0ff4ae'
-      )
+      const address = 'vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3'
+      const contractId = '1f6b937b935d7fac894fb22ffe2b974cae9c8c166501372f1b9155144e0ff4ae'
+
+      expect(binToHex(contractIdFromAddress(address))).toBe(contractId)
+      expect(addressFromContractId(contractId)).toBe(address)
     })
 
     it('should throw error for non-contract addresses', () => {
-      expect(() => contractIdFromAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu')).toThrow(
-        'Invalid contract address type: 0'
-      )
+      expect(() => contractIdFromAddress(validP2PKHAddress1)).toThrow('Invalid contract address type: 0')
     })
   })
 
@@ -336,18 +329,14 @@ describe('address', () => {
     })
 
     it('should throw error for non-contract addresses', () => {
-      expect(() => tokenIdFromAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toThrow(
-        'Invalid contract address type: 2'
-      )
+      expect(() => tokenIdFromAddress(validP2SHAddress)).toThrow('Invalid contract address type: 2')
       expect(() => tokenIdFromAddress('..')).toThrow('Non-base58 character')
     })
   })
 
   describe('contractIdFromTx', () => {
     it('should throw error for invalid tx', () => {
-      expect(() => tokenIdFromAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toThrow(
-        'Invalid contract address type: 2'
-      )
+      expect(() => tokenIdFromAddress(validP2SHAddress)).toThrow('Invalid contract address type: 2')
       expect(() => tokenIdFromAddress('..')).toThrow('Non-base58 character')
     })
   })
