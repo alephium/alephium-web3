@@ -37,7 +37,7 @@ export function isBase58(s: string): boolean {
 
 export function base58ToBytes(s: string): Uint8Array {
   if (s === '') {
-    throw new TraceableError('Invalid base58 string ', new Error('Empty string'))
+    return new Uint8Array(0)
   }
   try {
     return bs58.decode(s)

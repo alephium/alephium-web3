@@ -34,5 +34,3 @@ describe('djb2 Hashing Algorithm', function () {
     check('bar', 193487034);
   });
 });
-
-
