@@ -33,6 +33,7 @@ import {
   loadConfig
 } from './src'
 import { Project } from './src/project'
+import { genInterfaces } from './src/gen-interfaces'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
@@ -209,6 +210,19 @@ program
       await deployAndSaveProgress(config, networkId, options.silent, fromIndex, toIndex)
     } catch (error) {
       program.error(`✘ Failed to deploy contracts, error: ${buildErrorOutput(error, isDebugModeEnabled())}`)
+    }
+  })
+
+program
+  .command('gen-interfaces')
+  .description('generate interfaces based on contract artifacts')
+  .requiredOption('-a, --artifactDir <artifact-dir>', 'the contract artifacts root dir')
+  .requiredOption('-o, --outputDir <output-dir>', 'the dir where the generated interfaces will be saved')
+  .action(async (options) => {
+    try {
+      await genInterfaces(options.artifactDir, options.outputDir)
+    } catch (error) {
+      program.error(`✘ Failed to generate interfaces, error: `, error)
     }
   })
 
