@@ -433,7 +433,7 @@ export class Project {
     return script.artifact
   }
 
-  private static async loadStructs(artifactsRootDir: string): Promise<Struct[]> {
+  static async loadStructs(artifactsRootDir: string): Promise<Struct[]> {
     const filePath = path.join(artifactsRootDir, Project.structArtifactFileName)
     if (!fs.existsSync(filePath)) return []
     const content = await fsPromises.readFile(filePath)
@@ -471,7 +471,7 @@ export class Project {
     if (this.enums.length !== 0) {
       object['enums'] = this.enums
     }
-    const filePath = path.join(this.artifactsRootDir, 'constants.ral.json')
+    const filePath = path.join(this.artifactsRootDir, Project.constantArtifactFileName)
     return fsPromises.writeFile(filePath, JSON.stringify(object, null, 2))
   }
 
