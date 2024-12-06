@@ -42,7 +42,8 @@ import {
   MINIMAL_CONTRACT_DEPOSIT,
   ContractStateWithMaps,
   getDebugMessagesFromTx,
-  printDebugMessagesFromTx
+  printDebugMessagesFromTx,
+  getContractCodeByCodeHash
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -884,5 +885,14 @@ describe('contract', function () {
     expect(state0.fields.result).toEqual(3n)
     const state1 = await sub.fetchState()
     expect(state1.fields.result).toEqual(1n)
+  })
+
+  it('should get contract code by code hash', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const contractCode = await getContractCodeByCodeHash(nodeProvider, Sub.contract.codeHash)
+    expect(contractCode).toEqual(Sub.contract.bytecode)
+    const randomHash = binToHex(randomBytes(32))
+    const notExist = await getContractCodeByCodeHash(nodeProvider, randomHash)
+    expect(notExist).toEqual(undefined)
   })
 })

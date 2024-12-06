@@ -2159,3 +2159,20 @@ export const getContractIdFromUnsignedTx = async (
 
 // This function only works in the simple case where a single non-subcontract is created in the tx
 export const getTokenIdFromUnsignedTx = getContractIdFromUnsignedTx
+
+export async function getContractCodeByCodeHash(
+  nodeProvider: NodeProvider,
+  codeHash: HexString
+): Promise<HexString | undefined> {
+  if (isHexString(codeHash) && codeHash.length === 64) {
+    try {
+      return await nodeProvider.contracts.getContractsCodehashCode(codeHash)
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('not found')) {
+        return undefined
+      }
+      throw new TraceableError(`Failed to get contract by code hash ${codeHash}`, error)
+    }
+  }
+  throw new Error(`Invalid code hash: ${codeHash}`)
+}

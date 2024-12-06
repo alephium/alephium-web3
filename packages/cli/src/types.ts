@@ -53,12 +53,14 @@ export interface Configuration<Settings = unknown> {
   deploymentScriptDir?: string
   deploymentsDir?: string
   compilerOptions?: CompilerOptions
-  skipRecompile?: boolean
+  skipRecompileOnDeployment?: boolean
 
   networks: Record<NetworkId, Network<Settings>>
 
   enableDebugMode?: boolean
   forceRecompile?: boolean
+  skipRecompileIfDeployedOnMainnet?: boolean
+  skipRecompileContracts?: string[]
 }
 
 export const DEFAULT_CONFIGURATION_VALUES = {

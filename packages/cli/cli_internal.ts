@@ -23,21 +23,21 @@ import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
 import { createProject, genRalph } from './scripts/create-project'
-import {
-  checkFullNodeVersion,
-  codegen,
-  getConfigFile,
-  getSdkFullNodeVersion,
-  isDeployed,
-  isNetworkLive,
-  loadConfig
-} from './src'
+import { checkFullNodeVersion, codegen, getConfigFile, getSdkFullNodeVersion, isNetworkLive, loadConfig } from './src'
 import { Project } from './src/project'
 
 function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   const config = loadConfig(configFile)
+  if (config.forceRecompile && config.skipRecompileIfDeployedOnMainnet) {
+    throw new Error(`The forceRecompile and skipRecompileIfDeployedOnMainnet flags cannot be enabled at the same time`)
+  }
+
+  if (config.forceRecompile && (config.skipRecompileContracts ?? []).length > 0) {
+    throw new Error(`The skipRecompileContracts cannot be specified when forceRecompile is enabled`)
+  }
+
   const isDebugModeEnabled = config.enableDebugMode || options.debug
   if (isDebugModeEnabled) enableDebugMode()
   return { ...config, enableDebugMode: isDebugModeEnabled }
@@ -111,17 +111,16 @@ program
       console.log(`Full node version: ${connectedFullNodeVersion}`)
 
       const cwd = path.resolve(process.cwd())
-      const isContractDeployed = isDeployed(config)
-      if (!config.forceRecompile && isContractDeployed) {
-        console.warn(`The contracts has been deployed on testnet/mainnet, and the artifacts will not be updated.`)
-      }
       const project = await Project.compile(
         config.compilerOptions,
         cwd,
         config.sourceDir,
         config.artifactDir,
         connectedFullNodeVersion,
-        config.forceRecompile || !isContractDeployed
+        config.forceRecompile,
+        config.skipRecompileIfDeployedOnMainnet,
+        config.skipRecompileContracts ?? [],
+        config.networks['mainnet'].nodeUrl
       )
       console.log('✅ Compilation completed!')
       if (options.skipGenerate) {
