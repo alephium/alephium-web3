@@ -20,7 +20,7 @@ import { Account, NetworkId, SignerProvider, KeyType } from '@alephium/web3'
 import { WalletConnectProvider } from '@alephium/walletconnect-provider'
 import QRCodeModal from '@alephium/walletconnect-qrcode-modal'
 import { AlephiumWindowObject, getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
-import { getLastConnectedAccount, setLastConnectedAccount } from './storage'
+import { setLastConnectedAccount } from './storage'
 import { ConnectorId } from '../types'
 
 const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
@@ -38,7 +38,17 @@ export type ConnectOptions = {
   onConnected: (result: ConnectResult) => Promise<void> | void
 }
 
-export type ConnectFunc = (options: ConnectOptions) => Promise<Account | undefined>
+export type InjectedConnectOptions = ConnectOptions & {
+  injectedProvider?: AlephiumWindowObject
+}
+
+export type InjectedAutoConnectOptions = ConnectOptions & {
+  allInjectedProviders?: AlephiumWindowObject[]
+}
+
+export type ConnectFunc = (
+  options: ConnectOptions | InjectedConnectOptions | InjectedAutoConnectOptions
+) => Promise<Account | undefined>
 
 export type Connector = {
   connect: ConnectFunc
@@ -118,10 +128,16 @@ const wcDisconnect = async (signerProvider: SignerProvider): Promise<void> => {
   await (signerProvider as WalletConnectProvider).disconnect()
 }
 
-const injectedConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
+const injectedConnect = async (options: InjectedConnectOptions): Promise<Account | undefined> => {
   try {
-    const windowAlephium = await getDefaultAlephiumWallet()
-    const enabledAccount = await windowAlephium?.enable({ ...options, networkId: options.network })
+    const windowAlephium = options.injectedProvider ?? (await getDefaultAlephiumWallet())
+    const enableOptions = {
+      addressGroup: options.addressGroup,
+      keyType: options.keyType,
+      networkId: options.network,
+      onDisconnected: options.onDisconnected
+    }
+    const enabledAccount = await windowAlephium?.enable(enableOptions)
 
     if (windowAlephium && enabledAccount) {
       await options.onConnected({ account: enabledAccount, signerProvider: windowAlephium })
@@ -139,17 +155,32 @@ const injectedDisconnect = async (signerProvider: SignerProvider): Promise<void>
   return await (signerProvider as AlephiumWindowObject).disconnect()
 }
 
-const injectedAutoConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
+const injectedAutoConnect = async (options: InjectedAutoConnectOptions): Promise<Account | undefined> => {
   try {
-    const windowAlephium = await getDefaultAlephiumWallet()
-    const enabledAccount = await windowAlephium?.enableIfConnected({ ...options, networkId: options.network })
-
-    if (windowAlephium && enabledAccount) {
-      await options.onConnected({ account: enabledAccount, signerProvider: windowAlephium })
-      setLastConnectedAccount('injected', enabledAccount, options.network)
+    const allProviders = options.allInjectedProviders ?? []
+    if (allProviders.length === 0) {
+      const windowAlephium = await getDefaultAlephiumWallet()
+      if (windowAlephium !== undefined) {
+        allProviders.push(windowAlephium)
+      }
     }
-
-    return enabledAccount
+    const enableOptions = {
+      addressGroup: options.addressGroup,
+      keyType: options.keyType,
+      networkId: options.network,
+      onDisconnected: undefined as any
+    }
+    for (const provider of allProviders) {
+      const enabledAccount = await provider.enableIfConnected(enableOptions as any)
+      if (enabledAccount) {
+        await options.onConnected({ account: enabledAccount, signerProvider: provider })
+        setLastConnectedAccount('injected', enabledAccount, options.network)
+        // eslint-disable-next-line
+        ;(provider as any)['onDisconnected'] = options.onDisconnected
+        return enabledAccount
+      }
+    }
+    return undefined
   } catch (error) {
     console.error(`Wallet auto-connect error:`, error)
     options.onDisconnected()

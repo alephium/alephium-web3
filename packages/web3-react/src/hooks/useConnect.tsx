@@ -54,9 +54,9 @@ export function useConnect() {
   }, [connectorId])
 
   const connect = useMemo(() => {
-    return async () => {
+    return async (injectedProvider?) => {
       setConnectionStatus('connecting')
-      return await connector.connect(connectOptions)
+      return await connector.connect({ ...connectOptions, injectedProvider })
     }
   }, [connector, connectOptions, setConnectionStatus])
 
