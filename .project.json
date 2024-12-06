@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v3.9.1",
+  "fullNodeVersion": "v3.10.0",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -15,7 +15,7 @@
       "sourceFile": "add/add.ral",
       "sourceCodeHash": "e53e74ff98c352525e856abd4311868176d45c61c957791c3d42eae274088df0",
       "bytecodeDebugPatch": "=12-2+5c=2-2+81=3-1+e=2-2+bc=83-1+97e010a61646450726976617465=266",
-      "codeHashDebug": "c46db1ae7bae8b332c115869126eb1402bc71574925608a2adcea3cf7b9f8e7e"
+      "codeHashDebug": "c8b4522606d53c50b6ff00009a5072ceba32fd8de32b77033e8d74500ccba6d3"
     },
     "AddMain": {
       "sourceFile": "add/add.ral",
@@ -321,7 +321,7 @@
       "sourceFile": "test/transact.ral",
       "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
       "bytecodeDebugPatch": "",
-      "codeHashDebug": "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55"
+      "codeHashDebug": "0b6427253638fa8f32b04e7c5915d41d51b0148a8e219e4881eba5548a42ae41"
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
