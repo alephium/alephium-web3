@@ -96,8 +96,6 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
     );
   }
 
-  consts = { C: BigInt("0") };
-
   at(address: string): WarningsInstance {
     return new WarningsInstance(address);
   }
