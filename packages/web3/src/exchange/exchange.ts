@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { AddressType, addressFromPublicKey, addressFromScript } from '../address'
-import { base58ToBytes, binToHex, hexToBinUnsafe, isHexString } from '../utils'
+import { base58ToBytes, binToHex, HexString, hexToBinUnsafe, isHexString } from '../utils'
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
 import { P2SH, unlockScriptCodec } from '../codec/unlock-script-codec'
@@ -41,18 +41,9 @@ export function isALPHTransferTx(tx: Transaction): boolean {
 }
 
 export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint }[] {
-  if (!isALPHTransferTx(tx)) {
-    return []
-  }
-  const inputAddresses: Address[] = []
-  for (const input of tx.unsigned.inputs) {
-    try {
-      const address = getAddressFromUnlockScript(input.unlockScript)
-      if (!inputAddresses.includes(address)) {
-        inputAddresses.push(address)
-      }
-    } catch (_) {}
-  }
+  if (!isALPHTransferTx(tx)) return []
+
+  const inputAddresses = getInputAddresses(tx)
   const result = new Map<Address, bigint>()
   tx.unsigned.fixedOutputs.forEach((o) => {
     if (!inputAddresses.includes(o.address)) {
@@ -67,7 +58,54 @@ export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; d
   return Array.from(result.entries()).map(([key, value]) => ({ targetAddress: key, depositAmount: value }))
 }
 
-// we assume that the tx is a simple transfer tx, i.e. isSimpleALPHTransferTx(tx) == true
+function getInputAddresses(tx: Transaction): Address[] {
+  const inputAddresses: Address[] = []
+  for (const input of tx.unsigned.inputs) {
+    try {
+      const address = getAddressFromUnlockScript(input.unlockScript)
+      if (!inputAddresses.includes(address)) {
+        inputAddresses.push(address)
+      }
+    } catch (error) {
+      throw new TraceableError(`Failed to decode address from unlock script`, error)
+    }
+  }
+  return inputAddresses
+}
+
+export function isTokenTransferTx(tx: Transaction): boolean {
+  return isTransferTx(tx) && checkTokenOutput(tx)
+}
+
+export function getTokenDepositInfo(tx: Transaction): {
+  tokenId: HexString
+  targetAddress: Address
+  depositAmount: bigint
+}[] {
+  if (!isTokenTransferTx(tx)) return []
+
+  const inputAddresses = getInputAddresses(tx)
+  const result = new Map<HexString, Map<Address, bigint>>()
+  tx.unsigned.fixedOutputs.forEach((o) => {
+    if (!inputAddresses.includes(o.address) && o.tokens.length > 0) {
+      o.tokens.forEach((token) => {
+        const depositPerToken = result.get(token.id) ?? new Map<Address, bigint>()
+        const currentAmount = depositPerToken.get(o.address) ?? 0n
+        depositPerToken.set(o.address, currentAmount + BigInt(token.amount))
+        result.set(token.id, depositPerToken)
+      })
+    }
+  })
+  return Array.from(result.entries()).flatMap(([tokenId, depositPerToken]) => {
+    return Array.from(depositPerToken.entries()).map(([targetAddress, depositAmount]) => ({
+      tokenId,
+      targetAddress,
+      depositAmount
+    }))
+  })
+}
+
+// we assume that the tx is a simple transfer tx, i.e. isALPHTransferTx(tx) || isTokenTransferTx(tx)
 export function getSenderAddress(tx: Transaction): Address {
   return getAddressFromUnlockScript(tx.unsigned.inputs[0].unlockScript)
 }
@@ -113,6 +151,11 @@ export function getAddressFromUnlockScript(unlockScript: string): Address {
 function checkALPHOutput(tx: Transaction): boolean {
   const outputs = tx.unsigned.fixedOutputs
   return outputs.every((o) => o.tokens.length === 0)
+}
+
+function checkTokenOutput(tx: Transaction): boolean {
+  const outputs = tx.unsigned.fixedOutputs
+  return outputs.some((o) => o.tokens.length > 0)
 }
 
 function isTransferTx(tx: Transaction): boolean {
