@@ -62,6 +62,7 @@ function getInputAddresses(tx: Transaction): Address[] {
   const inputAddresses: Address[] = []
   for (const input of tx.unsigned.inputs) {
     try {
+      if (input.unlockScript === '03') continue // SameAsPrevious
       const address = getAddressFromUnlockScript(input.unlockScript)
       if (!inputAddresses.includes(address)) {
         inputAddresses.push(address)
