@@ -206,7 +206,7 @@ export const Transact = new Factory(
   Contract.fromJson(
     TransactContractJson,
     "",
-    "85e3e9a803741af8e92bd43b1b07cde53f39b86cab0ef1a85bab12b10d691b55",
+    "0b6427253638fa8f32b04e7c5915d41d51b0148a8e219e4881eba5548a42ae41",
     AllStructs
   )
 );
