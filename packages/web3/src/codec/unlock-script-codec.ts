@@ -20,6 +20,7 @@ import { i32Codec } from './compact-int-codec'
 import { Codec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
 import { Script, scriptCodec } from './script-codec'
 import { Val, valsCodec } from './val'
+import { Reader } from './reader'
 
 export type P2PKH = Uint8Array
 export interface KeyWithIndex {
@@ -33,11 +34,14 @@ export interface P2SH {
 }
 export type SameAsPrevious = 'SameAsPrevious'
 
+export type P2PK = 'SecP256K1' | 'Passkey'
+
 export type UnlockScript =
   | { kind: 'P2PKH'; value: P2PKH }
   | { kind: 'P2MPKH'; value: P2MPKH }
   | { kind: 'P2SH'; value: P2SH }
   | { kind: 'SameAsPrevious'; value: SameAsPrevious }
+  | { kind: 'P2PK'; value: P2PK }
 
 const p2pkhCodec = new FixedSizeCodec(33)
 const keyWithIndexCodec = new ObjectCodec<KeyWithIndex>({
@@ -58,9 +62,27 @@ const sameAsPreviousCodec = new (class extends Codec<SameAsPrevious> {
   }
 })()
 
+const p2pkCodec = new (class extends Codec<P2PK> {
+  encode(input: P2PK): Uint8Array {
+    return input === 'SecP256K1' ? new Uint8Array([0]) : new Uint8Array([1])
+  }
+  _decode(input: Reader): P2PK {
+    const kind = input.consumeByte()
+    switch (kind) {
+      case 0:
+        return 'SecP256K1'
+      case 1:
+        return 'Passkey'
+      default:
+        throw new Error(`Invalid p2pk unlock script: ${kind}`)
+    }
+  }
+})()
+
 export const unlockScriptCodec = new EnumCodec<UnlockScript>('unlock script', {
   P2PKH: p2pkhCodec,
   P2MPKH: p2mpkhCodec,
   P2SH: p2shCodec,
-  SameAsPrevious: sameAsPreviousCodec
+  SameAsPrevious: sameAsPreviousCodec,
+  P2PK: p2pkCodec
 })

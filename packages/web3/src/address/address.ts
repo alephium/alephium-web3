@@ -23,7 +23,7 @@ import blake from 'blakejs'
 import bs58, { base58ToBytes } from '../utils/bs58'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
-import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
+import { P2MPKH, P2PK, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { i32Codec } from '../codec'
 import { LockupScript } from '../codec/lockup-script-codec'
 import djb2 from '../utils/djb2'
@@ -36,7 +36,8 @@ export enum AddressType {
   P2PKH = 0x00,
   P2MPKH = 0x01,
   P2SH = 0x02,
-  P2C = 0x03
+  P2C = 0x03,
+  P2PK = 0x04
 }
 
 export function validateAddress(address: string) {
@@ -75,6 +76,8 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
+  } else if (addressType === AddressType.P2PK) {
+    if (decoded.length === 39) return decoded
   }
 
   throw new Error(`Invalid address: ${address}`)
@@ -82,7 +85,7 @@ function decodeAndValidateAddress(address: string): Uint8Array {
 
 export function isAssetAddress(address: string) {
   const addressType = decodeAndValidateAddress(address)[0]
-  return addressType === AddressType.P2PKH || addressType === AddressType.P2MPKH || addressType === AddressType.P2SH
+  return addressType !== AddressType.P2C
 }
 
 export function isContractAddress(address: string) {
@@ -95,16 +98,19 @@ export function groupOfAddress(address: string): number {
   const addressType = decoded[0]
   const addressBody = decoded.slice(1)
 
-  if (addressType == AddressType.P2PKH) {
+  if (addressType === AddressType.P2PKH) {
     return groupOfP2pkhAddress(addressBody)
-  } else if (addressType == AddressType.P2MPKH) {
+  } else if (addressType === AddressType.P2MPKH) {
     return groupOfP2mpkhAddress(addressBody)
-  } else if (addressType == AddressType.P2SH) {
+  } else if (addressType === AddressType.P2SH) {
     return groupOfP2shAddress(addressBody)
-  } else {
-    // Contract Address
+  } else if (addressType === AddressType.P2C) {
     const id = contractIdFromAddress(address)
     return id[`${id.length - 1}`]
+  } else {
+    // P2PK address
+    const lockupScript = lockupScriptCodec.decode(decoded).value as P2PK
+    return groupFromBytesForAssetAddress(lockupScript.type.value)
   }
 }
 
@@ -166,9 +172,16 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
     const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
     const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
     return bs58.encode(bytes)
-  } else {
+  } else if (keyType === 'bip340-schnorr') {
     const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
     return addressFromScript(lockupScript)
+  } else {
+    // passkey
+    const lockupScript: LockupScript = {
+      kind: 'P2PK',
+      value: { type: { kind: 'Passkey', value: hexToBinUnsafe(publicKey) } }
+    }
+    return bs58.encode(lockupScriptCodec.encode(lockupScript))
   }
 }
 
@@ -220,10 +233,11 @@ export function groupOfLockupScript(lockupScript: LockupScript): number {
     return groupFromBytesForAssetAddress(lockupScript.value.publicKeyHashes[0])
   } else if (lockupScript.kind === 'P2SH') {
     return groupFromBytesForAssetAddress(lockupScript.value)
-  } else {
-    // P2C
+  } else if (lockupScript.kind === 'P2C') {
     const contractId = lockupScript.value
     return contractId[`${contractId.length - 1}`]
+  } else {
+    return groupFromBytesForAssetAddress(lockupScript.value.type.value)
   }
 }
 

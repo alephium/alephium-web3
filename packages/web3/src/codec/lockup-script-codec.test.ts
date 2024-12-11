@@ -17,6 +17,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { randomBytes } from 'crypto'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
+import { concatBytes } from '../utils'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
+import djb2 from '../utils/djb2'
 
 describe('LockupScript', function () {
   it('should encode & decode lockup script', function () {
@@ -30,6 +33,14 @@ describe('LockupScript', function () {
     test(encodedMultisig, { kind: 'P2MPKH', value: p2mpkh })
     test(new Uint8Array([0x02, ...bytes0]), { kind: 'P2SH', value: new Uint8Array(bytes0) })
     test(new Uint8Array([0x03, ...bytes0]), { kind: 'P2C', value: new Uint8Array(bytes0) })
+
+    const publicKey = new Uint8Array(randomBytes(33))
+    const publicKeyBytes = new Uint8Array([0x01, ...publicKey])
+    const checksum = intAs4BytesCodec.encode(djb2(publicKeyBytes))
+    test(concatBytes([new Uint8Array([0x04]), publicKeyBytes, checksum]), {
+      kind: 'P2PK',
+      value: { type: { kind: 'Passkey', value: publicKey } }
+    })
   })
 
   function test(encoded: Uint8Array, expected: LockupScript) {

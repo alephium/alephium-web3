@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import djb2 from './djb2'
+import { hexToBinUnsafe } from './utils'
 
 describe('djb2', function () {
   it('djb2', () => {
@@ -30,5 +31,7 @@ describe('djb2', function () {
     check('z', 177695)
     check('foo', 193491849)
     check('bar', 193487034)
+
+    expect(djb2(hexToBinUnsafe('5dab0c1f9d3eede2'))).toEqual(-649440638)
   })
 })

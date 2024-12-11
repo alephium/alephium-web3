@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 export class Reader {
   private index: number
-  private bytes: Uint8Array
+  private readonly bytes: Uint8Array
 
   constructor(bytes: Uint8Array) {
     this.index = 0
@@ -52,5 +52,18 @@ export class Reader {
 
   consumeAll(): Uint8Array {
     return this.consumeBytes(this.bytes.length - this.index)
+  }
+
+  getIndex(): number {
+    return this.index
+  }
+
+  getFromRange(from: number, to: number): Uint8Array {
+    if (from > to || to > this.bytes.length) {
+      throw new Error(
+        `Index out of range: unable to get bytes from index ${from} to ${to}, data length: ${this.bytes.length}`
+      )
+    }
+    return this.bytes.slice(from, to)
   }
 }
