@@ -33,7 +33,7 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
-export type KeyType = 'default' | 'bip340-schnorr'
+export type KeyType = 'default' | 'bip340-schnorr' | 'passkey'
 
 export interface Account {
   keyType: KeyType

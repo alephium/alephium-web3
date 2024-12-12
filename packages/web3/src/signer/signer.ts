@@ -46,6 +46,8 @@ import {
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
 
+const signatureHexLength = 128
+
 export abstract class SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
   abstract get explorerProvider(): ExplorerProvider | undefined
@@ -95,8 +97,21 @@ export abstract class SignerProviderSimple extends SignerProvider {
   abstract override get nodeProvider(): NodeProvider
 
   async submitTransaction(params: SubmitTransactionParams): Promise<SubmissionResult> {
+    if (params.signature.length % signatureHexLength !== 0) {
+      throw new Error(`Invalid signature ${params.signature}`)
+    }
     const data: node.SubmitTransaction = { unsignedTx: params.unsignedTx, signature: params.signature }
-    return this.nodeProvider.transactions.postTransactionsSubmit(data)
+    if (params.signature.length === signatureHexLength) {
+      return this.nodeProvider.transactions.postTransactionsSubmit(data)
+    } else {
+      const signatures = Array.from({ length: params.signature.length / signatureHexLength }, (_, i) =>
+        params.signature.slice(i * signatureHexLength, (i + 1) * signatureHexLength)
+      )
+      return this.nodeProvider.multisig.postMultisigSubmit({
+        unsignedTx: params.unsignedTx,
+        signatures
+      })
+    }
   }
 
   async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
