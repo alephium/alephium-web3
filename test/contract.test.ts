@@ -40,9 +40,7 @@ import {
   u256Val,
   ZERO_ADDRESS,
   MINIMAL_CONTRACT_DEPOSIT,
-  ContractStateWithMaps,
   getDebugMessagesFromTx,
-  printDebugMessagesFromTx,
   getContractCodeByCodeHash
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
@@ -74,7 +72,16 @@ import { MetaData } from '../artifacts/ts/MetaData'
 import { Assert } from '../artifacts/ts/Assert'
 import { Debug } from '../artifacts/ts/Debug'
 import { getContractByCodeHash } from '../artifacts/ts/contracts'
-import { UserAccount, NFTTest, OwnerOnly, TokenTest, MapTest, MapTestWrapper, UserAccountTypes } from '../artifacts/ts'
+import {
+  UserAccount,
+  NFTTest,
+  OwnerOnly,
+  TokenTest,
+  MapTest,
+  MapTestWrapper,
+  UserAccountTypes,
+  InlineTest
+} from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
@@ -270,13 +277,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(60)
-    sourceFiles.slice(0, 27).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(27, 45).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(45, 47).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(47, 54).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(54, 59).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[59].type).toEqual(5) // constants
+    expect(sourceFiles.length).toEqual(61)
+    sourceFiles.slice(0, 28).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(28, 46).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(46, 48).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(48, 55).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(58, 60).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[60].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -894,5 +901,60 @@ describe('contract', function () {
     const randomHash = binToHex(randomBytes(32))
     const notExist = await getContractCodeByCodeHash(nodeProvider, randomHash)
     expect(notExist).toEqual(undefined)
+  })
+
+  it('should test inline functions(unit test)', async () => {
+    const contractAddress = randomContractAddress()
+    const result0 = await InlineTest.tests.nextCountWithPay({
+      address: contractAddress,
+      initialFields: { count: 0n },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+      initialAsset: { alphAmount: ONE_ALPH }
+    })
+    expect(result0.returns).toEqual(1n)
+    const assets0 = result0.contracts.find((c) => c.address === contractAddress)!.asset
+    expect(assets0.alphAmount).toEqual(ONE_ALPH + ONE_ALPH / 100n)
+
+    const result1 = await InlineTest.tests.nextCountWithoutPay({
+      address: contractAddress,
+      initialFields: { count: 0n },
+      initialAsset: { alphAmount: ONE_ALPH }
+    })
+    expect(result1.returns).toEqual(1n)
+    const assets1 = result1.contracts.find((c) => c.address === contractAddress)!.asset
+    expect(assets1.alphAmount).toEqual(ONE_ALPH)
+
+    const result2 = await InlineTest.tests.nextCount({
+      address: contractAddress,
+      initialFields: { count: 0n },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+      initialAsset: { alphAmount: ONE_ALPH }
+    })
+    expect(result2.returns).toEqual(2n)
+    const assets2 = result2.contracts.find((c) => c.address === contractAddress)!.asset
+    expect(assets2.alphAmount).toEqual(ONE_ALPH + ONE_ALPH / 100n)
+  })
+
+  it('should test inline functions(integration test)', async () => {
+    const deployResult0 = await InlineTest.deploy(signer, {
+      initialFields: { count: 0n },
+      initialAttoAlphAmount: ONE_ALPH,
+      exposePrivateFunctions: true
+    })
+    const instance = deployResult0.contractInstance
+    await instance.transact.nextCountWithPay({ signer, attoAlphAmount: ONE_ALPH })
+    const state0 = await instance.fetchState()
+    expect(state0.fields.count).toEqual(1n)
+    expect(state0.asset.alphAmount).toEqual(ONE_ALPH + ONE_ALPH / 100n)
+
+    await instance.transact.nextCountWithoutPay({ signer })
+    const state1 = await instance.fetchState()
+    expect(state1.fields.count).toEqual(2n)
+    expect(state1.asset.alphAmount).toEqual(ONE_ALPH + ONE_ALPH / 100n)
+
+    await instance.transact.nextCount({ signer, attoAlphAmount: ONE_ALPH })
+    const state2 = await instance.fetchState()
+    expect(state2.fields.count).toEqual(4n)
+    expect(state2.asset.alphAmount).toEqual(ONE_ALPH + (ONE_ALPH / 100n) * 2n)
   })
 })
