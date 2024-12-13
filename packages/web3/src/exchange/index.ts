@@ -16,4 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-export { validateExchangeAddress, isALPHTransferTx, getSenderAddress, getALPHDepositInfo } from './exchange'
+export {
+  validateExchangeAddress,
+  getSenderAddress,
+  isALPHTransferTx,
+  getALPHDepositInfo,
+  BaseDepositInfo,
+  TokenDepositInfo,
+  DepositInfo,
+  getDepositInfo
+} from './exchange'
