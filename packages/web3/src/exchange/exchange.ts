@@ -20,7 +20,7 @@ import { AddressType, addressFromPublicKey, addressFromScript } from '../address
 import { base58ToBytes, binToHex, HexString, hexToBinUnsafe, isHexString } from '../utils'
 import { Transaction } from '../api/api-alephium'
 import { Address } from '../signer'
-import { P2SH, unlockScriptCodec } from '../codec/unlock-script-codec'
+import { encodedSameAsPrevious, P2SH, unlockScriptCodec } from '../codec/unlock-script-codec'
 import { scriptCodec } from '../codec/script-codec'
 import { TraceableError } from '../error'
 
@@ -40,7 +40,12 @@ export function isALPHTransferTx(tx: Transaction): boolean {
   return isTransferTx(tx) && checkALPHOutput(tx)
 }
 
-export function getALPHDepositInfo(tx: Transaction): { targetAddress: Address; depositAmount: bigint }[] {
+export interface BaseDepositInfo {
+  targetAddress: Address
+  depositAmount: bigint
+}
+
+export function getALPHDepositInfo(tx: Transaction): BaseDepositInfo[] {
   if (!isALPHTransferTx(tx)) return []
 
   const inputAddresses = getInputAddresses(tx)
@@ -62,7 +67,7 @@ function getInputAddresses(tx: Transaction): Address[] {
   const inputAddresses: Address[] = []
   for (const input of tx.unsigned.inputs) {
     try {
-      if (input.unlockScript === '03') continue // SameAsPrevious
+      if (input.unlockScript === binToHex(encodedSameAsPrevious)) continue
       const address = getAddressFromUnlockScript(input.unlockScript)
       if (!inputAddresses.includes(address)) {
         inputAddresses.push(address)
@@ -74,36 +79,44 @@ function getInputAddresses(tx: Transaction): Address[] {
   return inputAddresses
 }
 
-export function isTokenTransferTx(tx: Transaction): boolean {
-  return isTransferTx(tx) && checkTokenOutput(tx)
+export interface TokenDepositInfo extends BaseDepositInfo {
+  tokenId: HexString
 }
 
-export function getTokenDepositInfo(tx: Transaction): {
-  tokenId: HexString
-  targetAddress: Address
-  depositAmount: bigint
-}[] {
-  if (!isTokenTransferTx(tx)) return []
+export interface DepositInfo {
+  alph: BaseDepositInfo[]
+  tokens: TokenDepositInfo[]
+}
+
+export function getDepositInfo(tx: Transaction): DepositInfo {
+  if (!isTransferTx) return { alph: [], tokens: [] }
 
   const inputAddresses = getInputAddresses(tx)
-  const result = new Map<HexString, Map<Address, bigint>>()
+  const alphDepositInfos = new Map<Address, bigint>()
+  const tokenDepositInfos = new Map<HexString, Map<Address, bigint>>()
   tx.unsigned.fixedOutputs.forEach((o) => {
-    if (!inputAddresses.includes(o.address) && o.tokens.length > 0) {
+    if (!inputAddresses.includes(o.address)) {
+      const alphAmount = alphDepositInfos.get(o.address) ?? 0n
+      alphDepositInfos.set(o.address, alphAmount + BigInt(o.attoAlphAmount))
+
       o.tokens.forEach((token) => {
-        const depositPerToken = result.get(token.id) ?? new Map<Address, bigint>()
+        const depositPerToken = tokenDepositInfos.get(token.id) ?? new Map<Address, bigint>()
         const currentAmount = depositPerToken.get(o.address) ?? 0n
         depositPerToken.set(o.address, currentAmount + BigInt(token.amount))
-        result.set(token.id, depositPerToken)
+        tokenDepositInfos.set(token.id, depositPerToken)
       })
     }
   })
-  return Array.from(result.entries()).flatMap(([tokenId, depositPerToken]) => {
-    return Array.from(depositPerToken.entries()).map(([targetAddress, depositAmount]) => ({
-      tokenId,
-      targetAddress,
-      depositAmount
-    }))
-  })
+  return {
+    alph: Array.from(alphDepositInfos.entries()).map(([key, value]) => ({ targetAddress: key, depositAmount: value })),
+    tokens: Array.from(tokenDepositInfos.entries()).flatMap(([tokenId, depositPerToken]) => {
+      return Array.from(depositPerToken.entries()).map(([targetAddress, depositAmount]) => ({
+        tokenId,
+        targetAddress,
+        depositAmount
+      }))
+    })
+  }
 }
 
 // we assume that the tx is a simple transfer tx, i.e. isALPHTransferTx(tx) || isTokenTransferTx(tx)
@@ -154,12 +167,7 @@ function checkALPHOutput(tx: Transaction): boolean {
   return outputs.every((o) => o.tokens.length === 0)
 }
 
-function checkTokenOutput(tx: Transaction): boolean {
-  const outputs = tx.unsigned.fixedOutputs
-  return outputs.some((o) => o.tokens.length > 0)
-}
-
-function isTransferTx(tx: Transaction): boolean {
+export function isTransferTx(tx: Transaction): boolean {
   if (
     tx.contractInputs.length !== 0 ||
     tx.generatedOutputs.length !== 0 ||
