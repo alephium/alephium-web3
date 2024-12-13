@@ -20,7 +20,7 @@
   },
   "scripts": {
     "clean": "rm -rf .parcel-cache && pnpm -r run clean",
-    "build": "pnpm --stream -r run build",
+    "build": "pnpm --sequential -r run build",
     "codegen": "ts-node --swc gen.ts",
     "test": "jest -i --config ./jest-config.json --forceExit",
     "lint": "eslint . --ext ts,.tsx",
