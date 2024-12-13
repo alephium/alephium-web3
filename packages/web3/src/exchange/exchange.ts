@@ -89,7 +89,7 @@ export interface DepositInfo {
 }
 
 export function getDepositInfo(tx: Transaction): DepositInfo {
-  if (!isTransferTx) return { alph: [], tokens: [] }
+  if (!isTransferTx(tx)) return { alph: [], tokens: [] }
 
   const inputAddresses = getInputAddresses(tx)
   const alphDepositInfos = new Map<Address, bigint>()

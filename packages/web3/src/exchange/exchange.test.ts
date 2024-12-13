@@ -222,7 +222,10 @@ describe('exchange', function () {
     const tx1: Transaction = { ...tokenTxTemplate, contractInputs: [outputRef] }
     const tx2: Transaction = { ...tokenTxTemplate, generatedOutputs: [{ ...outputTemplate, type: 'AssetOutput' }] }
     const tx3: Transaction = { ...tokenTxTemplate, unsigned: { ...unsignedTokenTxTemplate, inputs: [] } }
-    ;[tx0, tx1, tx2, tx3].forEach((tx) => expect(isTransferTx(tx)).toEqual(false))
+    ;[tx0, tx1, tx2, tx3].forEach((tx) => {
+      expect(isTransferTx(tx)).toEqual(false)
+      expect(getDepositInfo(tx)).toEqual({ alph: [], tokens: [] })
+    })
 
     const multipleTargetAddressOutputTx: Transaction = {
       ...tokenTxTemplate,
