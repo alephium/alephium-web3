@@ -19,6 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import * as web3 from '../global'
 import { node } from '../api'
 import { Subscription, SubscribeOptions } from '../utils'
+import { ContractEvents } from '../api/api-alephium'
 
 export interface EventSubscribeOptions<Message> extends SubscribeOptions<Message> {
   onEventCountChanged?: (eventCount: number) => Promise<void> | void
@@ -40,11 +41,22 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
     return this.fromCount
   }
 
+  private async getEvents(start: number): Promise<ContractEvents> {
+    try {
+      return await web3
+        .getCurrentNodeProvider()
+        .events.getEventsContractContractaddress(this.contractAddress, { start })
+    } catch (error) {
+      if (error instanceof Error && error.message.includes(`Contract events of ${this.contractAddress} not found`)) {
+        return { events: [], nextStart: start }
+      }
+      throw error
+    }
+  }
+
   override async polling(): Promise<void> {
     try {
-      const events = await web3.getCurrentNodeProvider().events.getEventsContractContractaddress(this.contractAddress, {
-        start: this.fromCount
-      })
+      const events = await this.getEvents(this.fromCount)
       if (this.fromCount === events.nextStart) {
         return
       }

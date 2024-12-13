@@ -252,7 +252,7 @@ export const Add = new Factory(
   Contract.fromJson(
     AddContractJson,
     "=12-2+5c=2-2+81=3-1+e=2-2+bc=83-1+97e010a61646450726976617465=266",
-    "c46db1ae7bae8b332c115869126eb1402bc71574925608a2adcea3cf7b9f8e7e",
+    "c8b4522606d53c50b6ff00009a5072ceba32fd8de32b77033e8d74500ccba6d3",
     AllStructs
   )
 );

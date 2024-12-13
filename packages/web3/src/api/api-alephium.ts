@@ -367,6 +367,8 @@ export interface BuildSweepAddressTransactions {
   gasPrice?: string
   /** @format block-hash */
   targetBlockHash?: string
+  /** @format int32 */
+  utxosLimit?: number
 }
 
 /** BuildSweepAddressTransactionsResult */
@@ -1647,7 +1649,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.9.1
+ * @version 3.10.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
