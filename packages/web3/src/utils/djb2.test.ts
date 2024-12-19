@@ -18,17 +18,19 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import djb2 from './djb2'
 
-describe('djb2', function () {
-  it('djb2', () => {
-    function check(str: string, expected: number) {
-      const bytes = new TextEncoder().encode(str)
-      expect(djb2(bytes)).toEqual(expected)
-    }
+describe('djb2 Hashing Algorithm', function () {
+  function check(str: string, expected: number) {
+    const bytes = new TextEncoder().encode(str);
+    expect(djb2(bytes)).toEqual(expected);
+  }
 
-    check('', 5381)
-    check('a', 177670)
-    check('z', 177695)
-    check('foo', 193491849)
-    check('bar', 193487034)
-  })
-})
+  it('should handle empty string', () => check('', 5381));
+  it('should handle single characters', () => {
+    check('a', 177670);
+    check('z', 177695);
+  });
+  it('should handle short strings', () => {
+    check('foo', 193491849);
+    check('bar', 193487034);
+  });
+});
