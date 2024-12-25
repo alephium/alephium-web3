@@ -235,8 +235,12 @@ export class WalletConnectProvider extends SignerProvider {
 
   // ---------- Private ----------------------------------------------- //
 
+  private getCustomStoragePrefix(): string {
+    return this.providerOpts.customStoragePrefix ?? 'alephium'
+  }
+
   private getWCStorageKey(prefix: string, version: string, name: string): string {
-    const customStoragePrefix = this.providerOpts.customStoragePrefix ? `:${this.providerOpts.customStoragePrefix}` : ''
+    const customStoragePrefix = `:${this.getCustomStoragePrefix()}`
     return prefix + version + customStoragePrefix + '//' + name
   }
 
@@ -333,7 +337,8 @@ export class WalletConnectProvider extends SignerProvider {
       (await SignClient.init({
         ...this.providerOpts,
         logger: this.providerOpts.logger || LOGGER,
-        relayUrl: this.providerOpts.relayUrl || RELAY_URL
+        relayUrl: this.providerOpts.relayUrl || RELAY_URL,
+        customStoragePrefix: this.getCustomStoragePrefix()
       }))
   }
 
