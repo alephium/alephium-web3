@@ -17,11 +17,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Account, NetworkId, SignerProvider, KeyType } from '@alephium/web3'
-import { WalletConnectProvider } from '@alephium/walletconnect-provider'
+import { WalletConnectProvider, SignClientOptions } from '@alephium/walletconnect-provider'
 import QRCodeModal from '@alephium/walletconnect-qrcode-modal'
 import { AlephiumWindowObject, getDefaultAlephiumWallet } from '@alephium/get-extension-wallet'
 import { setLastConnectedAccount } from './storage'
-import { ConnectorId } from '../types'
+import { ConnectorId, InjectedProviderId } from '../types'
+import { getInjectedProvider } from './injectedProviders'
 
 const WALLET_CONNECT_PROJECT_ID = '6e2562e43678dd68a9070a62b6d52207'
 
@@ -39,30 +40,139 @@ export type ConnectOptions = {
 }
 
 export type InjectedConnectOptions = ConnectOptions & {
-  injectedProvider?: AlephiumWindowObject
+  injectedProviderId?: InjectedProviderId
 }
-
-export type InjectedAutoConnectOptions = ConnectOptions & {
-  allInjectedProviders?: AlephiumWindowObject[]
-}
-
-export type ConnectFunc = (
-  options: ConnectOptions | InjectedConnectOptions | InjectedAutoConnectOptions
-) => Promise<Account | undefined>
 
 export type Connector = {
-  connect: ConnectFunc
+  connect: (opts: InjectedConnectOptions | ConnectOptions) => Promise<Account | undefined>
   disconnect: (signerProvider: SignerProvider) => Promise<void>
-  autoConnect?: ConnectFunc
+  autoConnect?: (opts: ConnectOptions) => Promise<Account | undefined>
+}
+
+export type Connectors = {
+  injected: Connector
+  walletConnect: Connector
+  desktopWallet: Connector
+}
+
+export function createWalletConnectConnector(signClientOptions?: SignClientOptions): Connector {
+  const connectorId: ConnectorId = 'walletConnect'
+  return {
+    connect: async (options: ConnectOptions): Promise<Account | undefined> => {
+      const result = await _wcConnect(
+        (uri) => QRCodeModal.open(uri, () => console.log('qr closed')),
+        { ...options, signClientOptions },
+        connectorId
+      )
+      QRCodeModal.close()
+      return result
+    },
+    disconnect: wcDisconnect,
+    autoConnect: async (options: ConnectOptions): Promise<Account | undefined> => {
+      return await wcAutoConnect({ ...options, signClientOptions }, connectorId)
+    }
+  }
+}
+
+export function createDesktopWalletConnector(signClientOptions?: SignClientOptions): Connector {
+  const connectorId: ConnectorId = 'desktopWallet'
+  return {
+    connect: async (options: ConnectOptions): Promise<Account | undefined> => {
+      return await _wcConnect(
+        (uri) => window.open(`alephium://wc?uri=${uri}`),
+        { ...options, signClientOptions },
+        connectorId
+      )
+    },
+    disconnect: wcDisconnect,
+    autoConnect: async (options: ConnectOptions): Promise<Account | undefined> => {
+      return await wcAutoConnect({ ...options, signClientOptions }, connectorId)
+    }
+  }
+}
+
+export function createInjectedConnector(providers: AlephiumWindowObject[]): Connector {
+  return {
+    connect: async (options: InjectedConnectOptions): Promise<Account | undefined> => {
+      try {
+        const windowAlephium = await getInjectedProvider(providers, options.injectedProviderId)
+        const enableOptions = {
+          addressGroup: options.addressGroup,
+          keyType: options.keyType,
+          networkId: options.network,
+          onDisconnected: options.onDisconnected
+        }
+        const enabledAccount = await windowAlephium?.enable(enableOptions)
+
+        if (windowAlephium && enabledAccount) {
+          await options.onConnected({ account: enabledAccount, signerProvider: windowAlephium })
+          setLastConnectedAccount('injected', enabledAccount, options.network)
+          return enabledAccount
+        }
+      } catch (error) {
+        console.error(`Wallet connect error:`, error)
+        options.onDisconnected()
+      }
+      return undefined
+    },
+    disconnect: async (signerProvider: SignerProvider): Promise<void> => {
+      return await (signerProvider as AlephiumWindowObject).disconnect()
+    },
+    autoConnect: async (options: ConnectOptions): Promise<Account | undefined> => {
+      try {
+        const allProviders = [...providers]
+        if (allProviders.length === 0) {
+          const windowAlephium = await getDefaultAlephiumWallet()
+          if (windowAlephium !== undefined) {
+            allProviders.push(windowAlephium)
+          }
+        }
+        const enableOptions = {
+          addressGroup: options.addressGroup,
+          keyType: options.keyType,
+          networkId: options.network,
+          onDisconnected: undefined as any
+        }
+        for (const provider of allProviders) {
+          const enabledAccount = await provider.enableIfConnected(enableOptions as any)
+          if (enabledAccount) {
+            await options.onConnected({ account: enabledAccount, signerProvider: provider })
+            setLastConnectedAccount('injected', enabledAccount, options.network)
+            // eslint-disable-next-line
+            ;(provider as any)['onDisconnected'] = options.onDisconnected
+            return enabledAccount
+          }
+        }
+        return undefined
+      } catch (error) {
+        console.error(`Wallet auto-connect error:`, error)
+        options.onDisconnected()
+      }
+      return undefined
+    }
+  }
+}
+
+export function createDefaultConnectors(injectedProviders: AlephiumWindowObject[]): Connectors {
+  return {
+    injected: createInjectedConnector(injectedProviders),
+    walletConnect: createWalletConnectConnector(undefined),
+    desktopWallet: createDesktopWalletConnector(undefined)
+  }
 }
 
 // TODO: handle error properly
-async function _wcConnect(onDisplayUri: (uri: string) => void, options: ConnectOptions, connectorId: ConnectorId) {
+async function _wcConnect(
+  onDisplayUri: (uri: string) => void,
+  options: ConnectOptions & { signClientOptions?: SignClientOptions },
+  connectorId: 'walletConnect' | 'desktopWallet'
+) {
   const wcProvider = await WalletConnectProvider.init({
     projectId: WALLET_CONNECT_PROJECT_ID,
     networkId: options.network,
     addressGroup: options.addressGroup,
-    onDisconnected: options.onDisconnected
+    onDisconnected: options.onDisconnected,
+    ...options.signClientOptions
   })
 
   wcProvider.on('displayUri', onDisplayUri)
@@ -83,13 +193,17 @@ async function _wcConnect(onDisplayUri: (uri: string) => void, options: ConnectO
   return undefined
 }
 
-const wcAutoConnect = async (options: ConnectOptions, connectorId: ConnectorId): Promise<Account | undefined> => {
+const wcAutoConnect = async (
+  options: ConnectOptions & { signClientOptions?: SignClientOptions },
+  connectorId: 'walletConnect' | 'desktopWallet'
+): Promise<Account | undefined> => {
   try {
     const wcProvider = await WalletConnectProvider.init({
       projectId: WALLET_CONNECT_PROJECT_ID,
       networkId: options.network,
       addressGroup: options.addressGroup,
-      onDisconnected: options.onDisconnected
+      onDisconnected: options.onDisconnected,
+      ...options.signClientOptions
     })
     wcProvider.on('session_delete', options.onDisconnected)
 
@@ -110,102 +224,6 @@ const wcAutoConnect = async (options: ConnectOptions, connectorId: ConnectorId):
   return undefined
 }
 
-const wcConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
-  const result = await _wcConnect(
-    (uri) => QRCodeModal.open(uri, () => console.log('qr closed')),
-    options,
-    'walletConnect'
-  )
-  QRCodeModal.close()
-  return result
-}
-
-const desktopWalletConnect = async (options: ConnectOptions): Promise<Account | undefined> => {
-  return await _wcConnect((uri) => window.open(`alephium://wc?uri=${uri}`), options, 'desktopWallet')
-}
-
 const wcDisconnect = async (signerProvider: SignerProvider): Promise<void> => {
   await (signerProvider as WalletConnectProvider).disconnect()
-}
-
-const injectedConnect = async (options: InjectedConnectOptions): Promise<Account | undefined> => {
-  try {
-    const windowAlephium = options.injectedProvider ?? (await getDefaultAlephiumWallet())
-    const enableOptions = {
-      addressGroup: options.addressGroup,
-      keyType: options.keyType,
-      networkId: options.network,
-      onDisconnected: options.onDisconnected
-    }
-    const enabledAccount = await windowAlephium?.enable(enableOptions)
-
-    if (windowAlephium && enabledAccount) {
-      await options.onConnected({ account: enabledAccount, signerProvider: windowAlephium })
-      setLastConnectedAccount('injected', enabledAccount, options.network)
-      return enabledAccount
-    }
-  } catch (error) {
-    console.error(`Wallet connect error:`, error)
-    options.onDisconnected()
-  }
-  return undefined
-}
-
-const injectedDisconnect = async (signerProvider: SignerProvider): Promise<void> => {
-  return await (signerProvider as AlephiumWindowObject).disconnect()
-}
-
-const injectedAutoConnect = async (options: InjectedAutoConnectOptions): Promise<Account | undefined> => {
-  try {
-    const allProviders = options.allInjectedProviders ?? []
-    if (allProviders.length === 0) {
-      const windowAlephium = await getDefaultAlephiumWallet()
-      if (windowAlephium !== undefined) {
-        allProviders.push(windowAlephium)
-      }
-    }
-    const enableOptions = {
-      addressGroup: options.addressGroup,
-      keyType: options.keyType,
-      networkId: options.network,
-      onDisconnected: undefined as any
-    }
-    for (const provider of allProviders) {
-      const enabledAccount = await provider.enableIfConnected(enableOptions as any)
-      if (enabledAccount) {
-        await options.onConnected({ account: enabledAccount, signerProvider: provider })
-        setLastConnectedAccount('injected', enabledAccount, options.network)
-        // eslint-disable-next-line
-        ;(provider as any)['onDisconnected'] = options.onDisconnected
-        return enabledAccount
-      }
-    }
-    return undefined
-  } catch (error) {
-    console.error(`Wallet auto-connect error:`, error)
-    options.onDisconnected()
-  }
-  return undefined
-}
-
-const connectors: Record<ConnectorId, Connector> = {
-  injected: {
-    connect: injectedConnect,
-    disconnect: injectedDisconnect,
-    autoConnect: injectedAutoConnect
-  },
-  walletConnect: {
-    connect: wcConnect,
-    disconnect: wcDisconnect,
-    autoConnect: (options) => wcAutoConnect(options, 'walletConnect')
-  },
-  desktopWallet: {
-    connect: desktopWalletConnect,
-    disconnect: wcDisconnect,
-    autoConnect: (options) => wcAutoConnect(options, 'desktopWallet')
-  }
-}
-
-export function getConnectorById(connectorId: ConnectorId) {
-  return connectors[`${connectorId}`]
 }

@@ -33,6 +33,7 @@ export type Mode = 'light' | 'dark' | 'auto'
 export type CustomTheme = any // TODO: define type
 export const connectorIds = ['injected', 'walletConnect', 'desktopWallet'] as const
 export type ConnectorId = (typeof connectorIds)[number]
+export type InjectedProviderId = 'Alephium' | 'OneKey'
 
 export type CustomStyle = {
   theme?: Theme

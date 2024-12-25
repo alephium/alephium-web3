@@ -19,10 +19,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import {
   alephiumProvider,
   AlephiumWindowObject,
+  getDefaultAlephiumWallet,
   getWalletObject,
   isWalletObj,
   providerInitializedEvent
 } from '@alephium/get-extension-wallet'
+import { InjectedProviderId } from '../types'
 
 export type InjectedProviderListener = (providers: AlephiumWindowObject[]) => void
 
@@ -99,3 +101,18 @@ function createProviderStore() {
 }
 
 export const injectedProviderStore = createProviderStore()
+
+export function getInjectedProviderId(provider: AlephiumWindowObject): InjectedProviderId {
+  if (provider.icon.includes('onekey')) {
+    return 'OneKey'
+  }
+  return 'Alephium'
+}
+
+export async function getInjectedProvider(
+  providers: AlephiumWindowObject[],
+  id?: InjectedProviderId
+): Promise<AlephiumWindowObject | undefined> {
+  if (id === undefined) return getDefaultAlephiumWallet()
+  return providers.find((p) => getInjectedProviderId(p) === id)
+}

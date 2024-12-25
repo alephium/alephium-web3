@@ -46,7 +46,7 @@ import {
   useConnectSettingContext
 } from '../contexts/alephiumConnect'
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
-import { ConnectResult, getConnectorById } from '../utils/connector'
+import { Connectors, ConnectResult, createDefaultConnectors } from '../utils/connector'
 import { useInjectedProviders } from '../hooks/useInjectedProviders'
 
 export const ConnectSettingProvider: React.FC<{
@@ -121,8 +121,9 @@ export const AlephiumConnectProvider: React.FC<{
   network: NetworkId
   addressGroup?: number
   keyType?: KeyType
+  connectors?: Partial<Connectors>
   children?: React.ReactNode
-}> = ({ network, addressGroup, keyType, children }) => {
+}> = ({ network, addressGroup, keyType, children, connectors }) => {
   // Only allow for mounting AlephiumConnectProvider once, so we avoid weird global
   // state collisions.
   const context = useContext(AlephiumConnectContext)
@@ -134,6 +135,14 @@ export const AlephiumConnectProvider: React.FC<{
   const [_addressGroup, setAddressGroup] = useState<number | undefined>(addressGroup)
   const [_keyType, setKeyType] = useState<KeyType>(keyType ?? 'default')
   const allInjectedProviders = useInjectedProviders()
+  const defaultConnectors = useMemo(() => createDefaultConnectors(allInjectedProviders), [allInjectedProviders])
+  const allConnectors: Connectors = useMemo(() => {
+    if (connectors === undefined || Object.keys(connectors).length === 0) {
+      return defaultConnectors
+    } else {
+      return { ...defaultConnectors, ...connectors }
+    }
+  }, [defaultConnectors, connectors])
 
   useEffect(() => setNetwork(network), [network])
   useEffect(() => setAddressGroup(addressGroup), [addressGroup])
@@ -196,15 +205,14 @@ export const AlephiumConnectProvider: React.FC<{
             : [lastConnectorId].concat(allConnectorIds.filter((c) => c !== lastConnectorId))
 
         for (const connectorId of sortedConnectorIds) {
-          const connector = getConnectorById(connectorId)
+          const connector = allConnectors[`${connectorId}`]
           if (connector.autoConnect !== undefined) {
             const result = await connector.autoConnect({
               network,
               addressGroup,
               keyType,
               onDisconnected,
-              onConnected,
-              allInjectedProviders: connectorId === 'injected' ? allInjectedProviders : undefined
+              onConnected
             })
             if (result !== undefined) {
               return
@@ -234,7 +242,8 @@ export const AlephiumConnectProvider: React.FC<{
     setConnectionStatus,
     setAccount: updateAccount,
     signerProvider,
-    setSignerProvider: updateSignerProvider
+    setSignerProvider: updateSignerProvider,
+    connectors: allConnectors
   }
 
   return <AlephiumConnectContext.Provider value={value}>{children}</AlephiumConnectContext.Provider>
@@ -313,6 +322,7 @@ type AlephiumWalletProviderProps = {
   network: NetworkId
   addressGroup?: number
   keyType?: KeyType
+  connectors?: Partial<Connectors>
   csrModeOnly?: boolean // whether to show the connect button only in CSR mode
   children?: React.ReactNode
 }
@@ -323,11 +333,12 @@ export const AlephiumWalletProvider = ({
   network,
   addressGroup,
   keyType,
+  connectors,
   csrModeOnly,
   children
 }: AlephiumWalletProviderProps) => {
   return (
-    <AlephiumConnectProvider network={network} addressGroup={addressGroup} keyType={keyType}>
+    <AlephiumConnectProvider network={network} addressGroup={addressGroup} keyType={keyType} connectors={connectors}>
       <ConnectSettingProvider
         theme={theme === 'simple-light' || theme === 'simple-dark' ? 'auto' : theme}
         mode={theme === 'simple-light' ? 'light' : theme === 'simple-dark' ? 'dark' : 'auto'}

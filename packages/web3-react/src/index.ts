@@ -31,3 +31,4 @@ export { useBalance } from './hooks/useBalance'
 export { useWallet, Wallet, useWalletConfig, WalletConfig } from './hooks/useWallet'
 
 export * from './contexts/alephiumConnect'
+export * from './utils/connector'

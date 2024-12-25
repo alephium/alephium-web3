@@ -18,12 +18,21 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { useAlephiumConnectContext, useConnectSettingContext } from '../contexts/alephiumConnect'
 import { useCallback, useMemo } from 'react'
 import { removeLastConnectedAccount } from '../utils/storage'
-import { ConnectResult, getConnectorById } from '../utils/connector'
+import { ConnectResult } from '../utils/connector'
+import { InjectedProviderId } from '../types'
 
 export function useConnect() {
   const { connectorId } = useConnectSettingContext()
-  const { signerProvider, setSignerProvider, setConnectionStatus, setAccount, addressGroup, network, keyType } =
-    useAlephiumConnectContext()
+  const {
+    signerProvider,
+    setSignerProvider,
+    setConnectionStatus,
+    setAccount,
+    addressGroup,
+    network,
+    keyType,
+    connectors
+  } = useAlephiumConnectContext()
 
   const onDisconnected = useCallback(() => {
     removeLastConnectedAccount()
@@ -50,13 +59,13 @@ export function useConnect() {
   }, [onDisconnected, onConnected, network, addressGroup, keyType])
 
   const connector = useMemo(() => {
-    return getConnectorById(connectorId)
-  }, [connectorId])
+    return connectors[`${connectorId}`]
+  }, [connectorId, connectors])
 
   const connect = useMemo(() => {
-    return async (injectedProvider?) => {
+    return async (injectedProviderId?: InjectedProviderId) => {
       setConnectionStatus('connecting')
-      return await connector.connect({ ...connectOptions, injectedProvider })
+      return await connector.connect({ ...connectOptions, injectedProviderId })
     }
   }, [connector, connectOptions, setConnectionStatus])
 

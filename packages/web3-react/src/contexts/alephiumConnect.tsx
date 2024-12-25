@@ -20,6 +20,7 @@ import React, { createContext, useContext } from 'react'
 import { Account, KeyType, SignerProvider, NetworkId } from '@alephium/web3'
 import { Theme, Mode, CustomTheme, ConnectorId } from '../types'
 import { node } from '@alephium/web3'
+import { Connectors } from '../utils/connector'
 
 type Error = string | React.ReactNode | null
 
@@ -64,6 +65,7 @@ export type AlephiumConnectContextValue = {
   setConnectionStatus: (status: ConnectionStatus) => void
   signerProvider?: SignerProvider
   setSignerProvider: (signerProvider: SignerProvider | undefined) => void
+  connectors: Connectors
 }
 
 export const AlephiumConnectContext = createContext<AlephiumConnectContextValue | null>(null)
