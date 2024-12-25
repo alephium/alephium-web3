@@ -45,6 +45,8 @@ import { useConnect } from '../../../hooks/useConnect'
 import { AlephiumWindowObject } from '@alephium/get-extension-wallet'
 import { ConnectorButton, ConnectorIcon, ConnectorLabel, ConnectorsContainer } from '../../Pages/Connectors/styles'
 import { useInjectedProviders } from '../../../hooks/useInjectedProviders'
+import { getInjectedProviderId } from '../../../utils/injectedProviders'
+import { InjectedProviderId } from '../../../types'
 
 const states = {
   CONNECTED: 'connected',
@@ -93,8 +95,8 @@ const ConnectWithInjector: React.FC<{
 }> = ({ connectorId, switchConnectMethod, forceState }) => {
   const { setOpen } = useConnectSettingContext()
   const providers = useInjectedProviders()
-  const [injectedProvider, setInjectedProvider] = useState<AlephiumWindowObject | undefined>(
-    providers.length !== 0 ? providers[0] : undefined
+  const [injectedProviderId, setInjectedProviderId] = useState<InjectedProviderId | undefined>(
+    providers.length !== 0 ? getInjectedProviderId(providers[0]) : undefined
   )
   console.log(`providers size: ${providers.length}`)
   const { connect } = useConnect()
@@ -127,23 +129,23 @@ const ConnectWithInjector: React.FC<{
   )
 
   const handleConnect = useCallback(
-    (injectedProvider) => {
-      setInjectedProvider(injectedProvider)
+    (injectedProviderId) => {
+      setInjectedProviderId(injectedProviderId)
       setStatus(states.CONNECTING)
     },
-    [setStatus, setInjectedProvider]
+    [setStatus, setInjectedProviderId]
   )
 
   const runConnect = useCallback(() => {
     if (!hasExtensionInstalled || status === states.LISTING) return
 
-    connect(injectedProvider).then((address) => {
+    connect(injectedProviderId).then((address) => {
       if (!!address) {
         setStatus(states.CONNECTED)
       }
       setOpen(false)
     })
-  }, [hasExtensionInstalled, setOpen, connect, status, injectedProvider])
+  }, [hasExtensionInstalled, setOpen, connect, status, injectedProviderId])
 
   const connectTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
   useEffect(() => {
@@ -210,13 +212,13 @@ const ConnectWithInjector: React.FC<{
           <>
             <ConnectorsContainer>
               {providers.map((provider) => {
-                const name = getProviderName(provider)
+                const id = getInjectedProviderId(provider)
                 return (
-                  <ConnectorButton key={name} onClick={() => handleConnect(provider)}>
+                  <ConnectorButton key={id} onClick={() => handleConnect(id)}>
                     <ConnectorIcon>
                       <img src={provider.icon} alt="Icon" />
                     </ConnectorIcon>
-                    <ConnectorLabel>{name}</ConnectorLabel>
+                    <ConnectorLabel>{id}</ConnectorLabel>
                   </ConnectorButton>
                 )
               })}
@@ -497,10 +499,3 @@ const ConnectWithInjector: React.FC<{
 }
 
 export default ConnectWithInjector
-
-function getProviderName(provider: AlephiumWindowObject): string {
-  if (provider.icon.includes('onekey')) {
-    return 'OneKey'
-  }
-  return 'Alephium'
-}

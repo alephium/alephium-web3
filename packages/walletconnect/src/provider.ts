@@ -61,7 +61,7 @@ import {
   ProviderEvent,
   ProviderEventArgument,
   RelayMethod,
-  ProjectMetaData,
+  SignClientOptions,
   ChainInfo
 } from './types'
 import { isMobile } from './utils'
@@ -80,18 +80,14 @@ import { Sema } from 'async-sema'
 
 const REQUESTS_PER_SECOND_LIMIT = 5
 
-export interface ProviderOptions extends EnableOptionsBase {
+export interface ProviderOptions extends EnableOptionsBase, SignClientOptions {
   // Alephium options
   networkId: NetworkId // the id of the network, e.g. mainnet, testnet or devnet.
   addressGroup?: number // either a specific group or undefined to support all groups
   methods?: RelayMethod[] // all of the methods to be used in relay; no need to configure in most cases
 
   // WalletConnect options
-  projectId?: string
-  metadata?: ProjectMetaData // metadata used to initialize a sign client
-  logger?: string // default logger level is Error; no need to configure in most cases
   client?: SignClient // existing sign client; no need to configure in most cases
-  relayUrl?: string // the url of the relay server; no need to configure in most cases
 }
 
 export class WalletConnectProvider extends SignerProvider {
@@ -240,7 +236,8 @@ export class WalletConnectProvider extends SignerProvider {
   // ---------- Private ----------------------------------------------- //
 
   private getWCStorageKey(prefix: string, version: string, name: string): string {
-    return prefix + version + '//' + name
+    const customStoragePrefix = this.providerOpts.customStoragePrefix ? `:${this.providerOpts.customStoragePrefix}` : ''
+    return prefix + version + customStoragePrefix + '//' + name
   }
 
   private async getSessionTopics(storage: KeyValueStorage): Promise<string[]> {
@@ -334,10 +331,9 @@ export class WalletConnectProvider extends SignerProvider {
     this.client =
       this.providerOpts.client ||
       (await SignClient.init({
+        ...this.providerOpts,
         logger: this.providerOpts.logger || LOGGER,
-        relayUrl: this.providerOpts.relayUrl || RELAY_URL,
-        projectId: this.providerOpts.projectId,
-        metadata: this.providerOpts.metadata // fetch metadata automatically if not provided?
+        relayUrl: this.providerOpts.relayUrl || RELAY_URL
       }))
   }
 

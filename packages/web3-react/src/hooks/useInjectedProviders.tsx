@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'use-sync-external-store/shim'
-import { injectedProviderStore } from '../utils/providers'
+import { injectedProviderStore } from '../utils/injectedProviders'
 
 export const useInjectedProviders = () =>
   useSyncExternalStore(

@@ -108,3 +108,4 @@ export interface ChainInfo {
 }
 
 export type ProjectMetaData = SignClientTypes.Metadata
+export type SignClientOptions = SignClientTypes.Options
