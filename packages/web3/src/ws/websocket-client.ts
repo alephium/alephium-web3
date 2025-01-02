@@ -15,59 +15,124 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-
 import WebSocket from 'ws';
-import EventEmitter from 'eventemitter3';
-
-export type WsMessageType = string;
-export type WsSubscription = [WsMessageType, (params: any) => void];
+import { EventEmitter } from 'eventemitter3';
 
 export class WebSocketClient extends EventEmitter {
   private ws: WebSocket;
+  private requestId: number;
+  private isConnected: boolean;
+  private notifications: any[];
 
-  constructor(endpoint: string, eventSubscriptions: WsSubscription[] = []) {
+  constructor(url: string) {
     super();
-    this.ws = new WebSocket(endpoint);
+    this.ws = new WebSocket(url);
+    this.requestId = 0;
+    this.isConnected = false;
+    this.notifications = [];
 
     this.ws.on('open', () => {
-      console.log('WebSocket connection opened');
-      this.emit('open');
-      this.subscribeToEvents(eventSubscriptions);
+      this.isConnected = true;
+      this.emit('connected');
     });
 
-    this.ws.on('message', (data) => {
+    this.ws.on('message', (data: WebSocket.Data) => {
       try {
-        const parsedData = JSON.parse(data.toString());
-        this.emit(parsedData.method, parsedData.params);
+        const message = JSON.parse(data.toString());
+        if (message.method === 'subscription') {
+          // Emit and store notifications
+          const params = message.params;
+          this.notifications.push(params);
+          this.emit('notification', params);
+        } else {
+          this.emit(`response_${message.id}`, message);
+        }
       } catch (error) {
-        console.error('Error parsing message:', error);
+        this.emit('error', error);
       }
     });
 
-    this.ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-      this.emit('error', error);
-    });
-
     this.ws.on('close', () => {
-      console.log('WebSocket connection closed');
-      this.emit('close');
+      this.isConnected = false;
+      this.emit('disconnected');
     });
   }
 
-  private subscribeToEvents(eventSubscriptions: WsSubscription[]) {
-    eventSubscriptions.forEach(([messageType, callback]) => {
-      this.on(messageType, callback);
-      console.log(`Subscribing to ${messageType}`);
-      this.ws.send(`subscribe:${messageType}`);
+  public subscribe(method: string, params: unknown[] = []): Promise<string> {
+    const id = this.getRequestId();
+    const request = {
+      jsonrpc: '2.0',
+      id,
+      method,
+      params
+    };
+
+    return new Promise((resolve, reject) => {
+      this.once(`response_${id}`, (response) => {
+        if (response.result) {
+          resolve(response.result);
+        } else {
+          reject(response.error);
+        }
+      });
+      this.ws.send(JSON.stringify(request));
     });
   }
 
-  onOpen(callback: () => void) {
-    this.ws.on('open', callback);
+  public unsubscribe(subscriptionId: string): Promise<boolean> {
+    const id = this.getRequestId();
+    const request = {
+      jsonrpc: '2.0',
+      id,
+      method: 'unsubscribe',
+      params: [subscriptionId]
+    };
+
+    return new Promise((resolve, reject) => {
+      this.once(`response_${id}`, (response) => {
+        if (response.result === true) {
+          resolve(true);
+        } else {
+          reject(response.error);
+        }
+      });
+      this.ws.send(JSON.stringify(request));
+    });
   }
 
-  close() {
+  public async subscribeToBlock(): Promise<string> {
+    return this.subscribe('subscribe', ['block']);
+  }
+
+  public async subscribeToTx(): Promise<string> {
+    return this.subscribe('subscribe', ['tx']);
+  }
+
+  public async subscribeToContractEvents(eventIndex: number, addresses: string[]): Promise<string> {
+    return this.subscribe('subscribe', ['contract', eventIndex, addresses]);
+  }
+
+  public onConnected(callback: () => void) {
+    if (this.isConnected) {
+      callback();
+    } else {
+      this.on('connected', callback);
+    }
+  }
+
+  public onNotification(callback: (params: any) => void) {
+    for (const notification of this.notifications) {
+      callback(notification);
+    }
+
+    this.on('notification', callback);
+  }
+
+  public disconnect() {
     this.ws.close();
+  }
+
+  private getRequestId(): number {
+    return ++this.requestId;
   }
 }

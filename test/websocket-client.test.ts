@@ -16,46 +16,79 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ONE_ALPH, SignerProviderSimple, web3, WebSocketClient } from '@alephium/web3';
-import { getSigner } from '@alephium/web3-test';
+import {ONE_ALPH, SignerProviderSimple, SignTransferTxResult, utils, web3, WebSocketClient} from '@alephium/web3';
+import {getSigner, randomContractAddress} from '@alephium/web3-test';
 
+const NODE_PROVIDER = 'http://127.0.0.1:22973'
 const WS_ENDPOINT = 'ws://127.0.0.1:22973/ws';
 
 describe('WebSocketClient', () => {
+  let client: WebSocketClient;
   let signer: SignerProviderSimple;
-  let wsClient: WebSocketClient;
-
-  beforeAll(async () => {
-    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch);
+  
+  async function signAndSubmitTx(): Promise<SignTransferTxResult> {
+    const address = (await signer.getSelectedAccount()).address;
+    const attoAlphAmount = ONE_ALPH;
+    return await signer.signAndSubmitTransferTx({
+      signerAddress: address,
+      destinations: [{ address, attoAlphAmount }],
+    });
+  }
+  
+  beforeEach(async () => {
+    client = new WebSocketClient(WS_ENDPOINT);
     signer = await getSigner();
+    web3.setCurrentNodeProvider(NODE_PROVIDER, undefined, fetch);
   });
 
-  it('should connect, subscribe, and receive block event after a transaction is submitted', async () => {
-    await new Promise<boolean>((resolve, reject) => {
-      wsClient = new WebSocketClient(WS_ENDPOINT, [
-        ['block', async (params: any) => {
-          console.log('Received block event:', params);
-          expect(params).toBeDefined();
-        }],
-      ]);
-      wsClient.onOpen(() => {
-        (async () => {
-          try {
-            const address = (await signer.getSelectedAccount()).address;
-            const attoAlphAmount = ONE_ALPH;
+  afterEach(() => {
+    client.disconnect();
+  });
 
-            await signer.signAndSubmitTransferTx({
-              signerAddress: address,
-              destinations: [{ address, attoAlphAmount }],
-            });
-            resolve(true);
-            wsClient.close();
-          } catch (error) {
-            console.error('Error during transaction submission:', error);
-            reject(error);
-          }
-        })();
-      });
+  test('should subscribe, receive notifications and unsubscribe', (done) => {
+    let notificationCount = 0;
+    let blockNotificationReceived = false;
+    let txNotificationReceived = false;
+    let blockSubscriptionId: string;
+    let txSubscriptionId: string;
+    let contractEventsSubscriptionId: string;
+
+    
+    client.onConnected(async () => {
+      try {
+        blockSubscriptionId = await client.subscribeToBlock();
+        txSubscriptionId = await client.subscribeToTx();
+        contractEventsSubscriptionId = await client.subscribeToContractEvents(0, [randomContractAddress()]);
+        await signAndSubmitTx();
+      } catch (error) {
+        done(error);
+      }
+    });
+    
+    client.onNotification(async (params) => {
+      expect(params).toBeDefined();
+      if (params.result.block) {
+        blockNotificationReceived = true;
+      } else if (params.result.unsigned) {
+        txNotificationReceived = true;
+      }
+
+      notificationCount += 1;
+      if (notificationCount === 2) {
+        try {
+          expect(blockNotificationReceived).toBe(true);
+          expect(txNotificationReceived).toBe(true);
+          const blockUnsubscriptionResponse = await client.unsubscribe(blockSubscriptionId);
+          expect(blockUnsubscriptionResponse).toBe(true);
+          const txUnsubscriptionResponse = await client.unsubscribe(txSubscriptionId);
+          expect(txUnsubscriptionResponse).toBe(true);
+          const contractEventsUnsubscriptionResponse = await client.unsubscribe(contractEventsSubscriptionId);
+          expect(contractEventsUnsubscriptionResponse).toBe(true);
+          done();
+        } catch (error) {
+          done(error);
+        }
+      }
     });
   });
 });
