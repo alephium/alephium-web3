@@ -58,7 +58,7 @@ describe('WebSocketClient', () => {
       try {
         blockSubscriptionId = await client.subscribeToBlock();
         txSubscriptionId = await client.subscribeToTx();
-        contractEventsSubscriptionId = await client.subscribeToContractEvents(0, [randomContractAddress()]);
+        contractEventsSubscriptionId = await client.subscribeToContractEvents([randomContractAddress()]);
         await signAndSubmitTx();
       } catch (error) {
         done(error);

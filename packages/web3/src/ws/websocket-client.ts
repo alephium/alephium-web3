@@ -108,8 +108,12 @@ export class WebSocketClient extends EventEmitter {
     return this.subscribe('subscribe', ['tx']);
   }
 
-  public async subscribeToContractEvents(eventIndex: number, addresses: string[]): Promise<string> {
-    return this.subscribe('subscribe', ['contract', eventIndex, addresses]);
+  public async subscribeToContractEvents(addresses: string[]): Promise<string> {
+    return this.subscribe('subscribe', ['contract', {addresses: addresses}]);
+  }
+
+  public async subscribeToFilteredContractEvents(eventIndex: number, addresses: string[]): Promise<string> {
+    return this.subscribe('subscribe', ['contract', {eventIndex: eventIndex, addresses: addresses}]);
   }
 
   public onConnected(callback: () => void) {
