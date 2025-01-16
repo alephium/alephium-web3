@@ -106,7 +106,10 @@ export function getInjectedProviderId(provider: AlephiumWindowObject): InjectedP
   if (provider.icon.includes('onekey')) {
     return 'OneKey'
   }
-  return 'Alephium'
+  if (provider.id === 'alephium' && provider.name === 'Alephium') {
+    return 'Alephium'
+  }
+  return provider.name
 }
 
 export async function getInjectedProvider(
