@@ -278,13 +278,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(61)
-    sourceFiles.slice(0, 28).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(28, 46).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(46, 48).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(48, 55).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(58, 60).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[60].type).toEqual(5) // constants
+    expect(sourceFiles.length).toEqual(62)
+    sourceFiles.slice(0, 29).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(29, 47).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(47, 49).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(49, 56).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(59, 56).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[61].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -586,7 +586,7 @@ describe('contract', function () {
     expect(mapTestState2.maps?.map2?.get('0011')).toEqual(undefined)
   })
 
-  fit('should test map subcontract(unit test)', async () => {
+  it('should test map subcontract(unit test)', async () => {
     const mapTestId = randomContractId()
     const mapTestAddress = addressFromContractId(mapTestId)
     const initResult = await MapTestSub.tests.init({
