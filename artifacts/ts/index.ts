@@ -16,6 +16,7 @@ export * from "./FakeTokenTest";
 export * from "./Greeter";
 export * from "./InlineTest";
 export * from "./MapTest";
+export * from "./MapTestSub";
 export * from "./MapTestWrapper";
 export * from "./MetaData";
 export * from "./NFTCollectionTest";

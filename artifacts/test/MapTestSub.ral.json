@@ -1,0 +1,38 @@
+{
+  "version": "v3.10.0",
+  "name": "MapTestSub",
+  "bytecode": "0101404301030307004021d35670e42814046d61703a160047441703130064130064170517041600d1a21603ce0016041605c117061600d10f2ca21600160116020f0c16060100",
+  "codeHash": "0d30814a6068aab2c3da0de073191fa643d50d7bdc7c0068805056c511bec720",
+  "fieldsSig": {
+    "names": [
+      "mapTestTemplateId"
+    ],
+    "types": [
+      "ByteVec"
+    ],
+    "isMutable": [
+      false
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "init",
+      "paramNames": [
+        "caller",
+        "value"
+      ],
+      "paramTypes": [
+        "Address",
+        "MapValue"
+      ],
+      "paramIsMutable": [
+        false,
+        false
+      ],
+      "returnTypes": []
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

@@ -7,13 +7,14 @@ Contract MapTest() {
   mapping[U256, U256] map1
   mapping[ByteVec, U256] map2
 
-  @using(preapprovedAssets = true)
+  @using(preapprovedAssets = true, checkExternalCaller = false)
   pub fn insert(key: Address, value: MapValue) -> () {
     map0.insert!(key, key, value)
     map1.insert!(key, value.id, value.balance)
     map2.insert!(key, #0011, value.balance)
   }
 
+  @using(checkExternalCaller = false)
   pub fn update(key: Address) -> () {
     let value = map0[key]
     map0[key].balance = value.balance + 1
@@ -21,6 +22,7 @@ Contract MapTest() {
     map2[#0011] = value.balance + 1
   }
 
+  @using(checkExternalCaller = false)
   pub fn remove(key: Address) -> () {
     let value = map0[key]
     map0.remove!(key, key)
@@ -60,4 +62,19 @@ TxScript RemoveFromMap(mapTest: MapTest, key: Address) {
 
 TxScript UpdateMapValue(mapTest: MapTest, key: Address) {
   mapTest.update(key)
+}
+
+Contract MapTestSub(mapTestTemplateId: ByteVec) {
+  @using(preapprovedAssets = true, checkExternalCaller = false)
+  pub fn init(caller: Address, value: MapValue) -> () {
+    let path = b`map:` ++ toByteVec!(caller)
+    let (encodedImmFields, encodedMutFields) = MapTest.encodeFields!()
+    let mapTestId = copyCreateSubContract!{caller -> ALPH: minimalContractDeposit!()}(
+      path,
+      mapTestTemplateId,
+      encodedImmFields,
+      encodedMutFields
+    )
+    MapTest(mapTestId).insert{caller -> ALPH: mapEntryDeposit!() * 3}(caller, value)
+  }
 }

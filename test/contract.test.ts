@@ -79,6 +79,7 @@ import {
   TokenTest,
   MapTest,
   MapTestWrapper,
+  MapTestSub,
   UserAccountTypes,
   InlineTest
 } from '../artifacts/ts'
@@ -583,6 +584,21 @@ describe('contract', function () {
     expect(mapTestState2.maps?.map0?.get(signer.address)).toEqual(undefined)
     expect(mapTestState2.maps?.map1?.get(1n)).toEqual(undefined)
     expect(mapTestState2.maps?.map2?.get('0011')).toEqual(undefined)
+  })
+
+  fit('should test map subcontract(unit test)', async () => {
+    const mapTestId = randomContractId()
+    const mapTestAddress = addressFromContractId(mapTestId)
+    const initResult = await MapTestSub.tests.init({
+      testArgs: { caller: signer.address, value: { id: 1n, balance: 10n } },
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }],
+      initialFields: { mapTestTemplateId: mapTestId },
+      existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
+    })
+    const mapTestSubState = initResult.contracts.find((c) => c.address !== mapTestAddress && c.address !== initResult.contractAddress)!
+    expect(mapTestSubState.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
+    expect(mapTestSubState.maps?.map1?.get(1n)).toEqual(10n)
+    expect(mapTestSubState.maps?.map2?.get('0011')).toEqual(10n)
   })
 
   it('should test map(integration test)', async () => {
