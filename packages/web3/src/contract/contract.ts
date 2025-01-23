@@ -398,10 +398,10 @@ export class Contract extends Artifact {
       this.stdInterfaceId === undefined
         ? this.fieldsSig
         : {
-            names: this.fieldsSig.names.slice(0, -1),
-            types: this.fieldsSig.types.slice(0, -1),
-            isMutable: this.fieldsSig.isMutable.slice(0, -1)
-          }
+          names: this.fieldsSig.names.slice(0, -1),
+          types: this.fieldsSig.types.slice(0, -1),
+          isMutable: this.fieldsSig.isMutable.slice(0, -1)
+        }
     return getDefaultValue(fields, this.structs)
   }
 
@@ -467,12 +467,12 @@ export class Contract extends Artifact {
       params.initialFields === undefined
         ? []
         : ralph.flattenFields(
-            params.initialFields,
-            this.fieldsSig.names,
-            this.fieldsSig.types,
-            this.fieldsSig.isMutable,
-            this.structs
-          )
+          params.initialFields,
+          this.fieldsSig.names,
+          this.fieldsSig.types,
+          this.fieldsSig.isMutable,
+          this.structs
+        )
     const immFields = allFields.filter((f) => !f.isMutable).map((f) => toApiVal(f.value, f.type))
     const mutFields = allFields.filter((f) => f.isMutable).map((f) => toApiVal(f.value, f.type))
     const methodIndex = this.getMethodIndex(funcName)
@@ -624,8 +624,8 @@ export class Contract extends Artifact {
         exposePrivateFunctions && isDevnet
           ? this.getByteCodeForTesting()
           : isDevnet
-          ? this.bytecodeDebug
-          : this.bytecode
+            ? this.bytecodeDebug
+            : this.bytecode
       return ralph.buildContractByteCode(bytecode, initialFields, this.fieldsSig, this.structs)
     } catch (error) {
       throw new TraceableError(`Failed to build bytecode for contract ${this.name}`, error)
@@ -1442,11 +1442,11 @@ function getTestExistingContracts(
   const existingMapEntries = existingContracts.flatMap((contractState) => {
     return hasMap(contractState)
       ? mapsToExistingContracts(
-          getContractByCodeHash(contractState.codeHash),
-          contractState.contractId,
-          group,
-          contractState.maps ?? {}
-        )
+        getContractByCodeHash(contractState.codeHash),
+        contractState.contractId,
+        group,
+        contractState.maps ?? {}
+      )
       : []
   })
   return existingContracts.concat(selfMapEntries, existingMapEntries)
@@ -1461,19 +1461,25 @@ export function extractMapsFromApiResult(
 ): { address: string; maps: Record<string, Map<Val, Val>> }[] {
   const selfMaps = params.initialMaps ?? {}
   const existingContracts = params.existingContracts ?? []
-  const filtered = apiResult.contracts.filter(
-    (c) => c.address === selfAddress || existingContracts.find((s) => s.address === c.address) !== undefined
-  )
+
   const allMaps: { address: string; maps: Record<string, Map<Val, Val>> }[] = []
-  filtered.forEach((state) => {
-    const artifact = getContractByCodeHash(state.codeHash)
-    if (artifact.mapsSig !== undefined) {
-      const originMaps =
-        state.address === selfAddress
-          ? selfMaps
-          : (existingContracts.find((s) => s.address === state.address) as ContractStateWithMaps).maps
-      const maps = existingContractsToMaps(artifact, state.address, group, apiResult, originMaps ?? {})
-      allMaps.push({ address: state.address, maps })
+  apiResult.contracts.forEach((state) => {
+    try {
+      const artifact = getContractByCodeHash(state.codeHash)
+      if (artifact.mapsSig !== undefined) {
+        const originMaps =
+          state.address === selfAddress
+            ? selfMaps
+            : (existingContracts.find((s) => s.address === state.address))?.maps
+        const maps = existingContractsToMaps(artifact, state.address, group, apiResult, originMaps ?? {})
+        allMaps.push({ address: state.address, maps })
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Unknown code with code hash')) {
+        // the contract does not exist, because it is a map item contract
+        return;
+      }
+      throw new TraceableError(`Failed to get contract from hash ${state.codeHash}`, error);
     }
   })
   return allMaps
@@ -1953,12 +1959,12 @@ function getBytecodeTemplate(
   const externalCallInstr = encodeInstr(CallExternal(methodIndex))
   const numberOfInstrs = encodeI32(
     callerInstrs.length +
-      approveAlphInstrs.length +
-      approveTokensInstrs.length +
-      templateVarStoreLocalInstrs.length +
-      templateVarLoadLocalInstrs.length +
-      functionReturnTypesLength +
-      4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
+    approveAlphInstrs.length +
+    approveTokensInstrs.length +
+    templateVarStoreLocalInstrs.length +
+    templateVarLoadLocalInstrs.length +
+    functionReturnTypesLength +
+    4 // functionArgsNum, functionReturnNum, contractTemplate, externalCallInstr
   )
 
   return (
