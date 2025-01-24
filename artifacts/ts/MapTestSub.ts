@@ -55,7 +55,7 @@ export namespace MapTestSubTypes {
   export interface CallMethodTable {
     init: {
       params: CallContractParams<{ caller: Address; value: MapValue }>;
-      result: CallContractResult<null>;
+      result: CallContractResult<HexString>;
     };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
@@ -111,7 +111,7 @@ class Factory extends ContractFactory<
         MapTestSubTypes.Fields,
         { caller: Address; value: MapValue }
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
+    ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "init", params, getContractByCodeHash);
     },
   };
@@ -130,7 +130,7 @@ export const MapTestSub = new Factory(
   Contract.fromJson(
     MapTestSubContractJson,
     "",
-    "0d30814a6068aab2c3da0de073191fa643d50d7bdc7c0068805056c511bec720",
+    "755ebb4ca4c436991cc8363fedb6840abf16857a6c326983376db9e68fe8c985",
     AllStructs
   )
 );
@@ -167,4 +167,23 @@ export class MapTestSubInstance extends ContractInstance {
       return signExecuteMethod(MapTestSub, this, "init", params);
     },
   };
+
+  async multicall<Calls extends MapTestSubTypes.MultiCallParams>(
+    calls: Calls
+  ): Promise<MapTestSubTypes.MultiCallResults<Calls>>;
+  async multicall<Callss extends MapTestSubTypes.MultiCallParams[]>(
+    callss: Narrow<Callss>
+  ): Promise<MapTestSubTypes.MulticallReturnType<Callss>>;
+  async multicall<
+    Callss extends
+      | MapTestSubTypes.MultiCallParams
+      | MapTestSubTypes.MultiCallParams[]
+  >(callss: Callss): Promise<unknown> {
+    return await multicallMethods(
+      MapTestSub,
+      this,
+      callss,
+      getContractByCodeHash
+    );
+  }
 }

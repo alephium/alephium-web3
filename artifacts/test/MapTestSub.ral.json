@@ -1,8 +1,8 @@
 {
   "version": "v3.10.0",
   "name": "MapTestSub",
-  "bytecode": "0101404301030307004021d35670e42814046d61703a160047441703130064130064170517041600d1a21603ce0016041605c117061600d10f2ca21600160116020f0c16060100",
-  "codeHash": "0d30814a6068aab2c3da0de073191fa643d50d7bdc7c0068805056c511bec720",
+  "bytecode": "0101404601030307014023d3cef11f5a14046d61703a160047441703130064130064170517041600d1a21603ce0016041605c117061600d10f2ca21600160116020f0c16060100160602",
+  "codeHash": "755ebb4ca4c436991cc8363fedb6840abf16857a6c326983376db9e68fe8c985",
   "fieldsSig": {
     "names": [
       "mapTestTemplateId"
@@ -30,7 +30,9 @@
         false,
         false
       ],
-      "returnTypes": []
+      "returnTypes": [
+        "ByteVec"
+      ]
     }
   ],
   "constants": [],
