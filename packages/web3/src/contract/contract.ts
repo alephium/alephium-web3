@@ -1452,6 +1452,36 @@ function getTestExistingContracts(
   return existingContracts.concat(selfMapEntries, existingMapEntries)
 }
 
+function getNewCreatedContractExceptMaps(
+  result: node.TestContractResult,
+  getContractByCodeHash: (codeHash: string) => Contract
+) {
+  const isMapContract = (codeHash: string): boolean => {
+    try {
+      getContractByCodeHash(codeHash)
+      return false
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Unknown code with code hash')) {
+        // the contract does not exist, because it is a map item contract
+        return true
+      }
+      throw error
+    }
+  }
+
+  const states: node.ContractState[] = []
+  result.events.forEach((event) => {
+    if (event.eventIndex === Contract.ContractCreatedEventIndex) {
+      const contractAddress = event.fields[0].value as string
+      const contractState = result.contracts.find((c) => c.address === contractAddress)
+      if (contractState !== undefined && !isMapContract(contractState.codeHash)) {
+        states.push(contractState)
+      }
+    }
+  })
+  return states
+}
+
 export function extractMapsFromApiResult(
   selfAddress: string,
   params: Optional<TestContractParams, 'testArgs' | 'initialFields'>,
@@ -1461,23 +1491,18 @@ export function extractMapsFromApiResult(
 ): { address: string; maps: Record<string, Map<Val, Val>> }[] {
   const selfMaps = params.initialMaps ?? {}
   const existingContracts = params.existingContracts ?? []
-
+  const updatedExistingContracts = apiResult.contracts.filter(
+    (c) => c.address === selfAddress || existingContracts.find((s) => s.address === c.address) !== undefined
+  )
+  const newCreateContracts = getNewCreatedContractExceptMaps(apiResult, getContractByCodeHash)
   const allMaps: { address: string; maps: Record<string, Map<Val, Val>> }[] = []
-  apiResult.contracts.forEach((state) => {
-    try {
-      const artifact = getContractByCodeHash(state.codeHash)
-      if (artifact.mapsSig !== undefined) {
-        const originMaps =
-          state.address === selfAddress ? selfMaps : existingContracts.find((s) => s.address === state.address)?.maps
-        const maps = existingContractsToMaps(artifact, state.address, group, apiResult, originMaps ?? {})
-        allMaps.push({ address: state.address, maps })
-      }
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('Unknown code with code hash')) {
-        // the contract does not exist, because it is a map item contract
-        return
-      }
-      throw new TraceableError(`Failed to get contract from hash ${state.codeHash}`, error)
+  updatedExistingContracts.concat(newCreateContracts).forEach((state) => {
+    const artifact = getContractByCodeHash(state.codeHash)
+    if (artifact.mapsSig !== undefined) {
+      const originMaps =
+        state.address === selfAddress ? selfMaps : existingContracts.find((s) => s.address === state.address)?.maps
+      const maps = existingContractsToMaps(artifact, state.address, group, apiResult, originMaps ?? {})
+      allMaps.push({ address: state.address, maps })
     }
   })
   return allMaps
