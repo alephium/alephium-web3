@@ -595,9 +595,7 @@ describe('contract', function () {
       initialFields: { mapTestTemplateId: mapTestId },
       existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
     })
-    const mapTestSubState = initResult.contracts.find(
-      (c) => c.address !== mapTestAddress && c.address !== initResult.contractAddress
-    )!
+    const mapTestSubState = initResult.contracts.find((c) => c.address === addressFromContractId(initResult.returns))!
     expect(mapTestSubState.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
     expect(mapTestSubState.maps?.map1?.get(1n)).toEqual(10n)
     expect(mapTestSubState.maps?.map2?.get('0011')).toEqual(10n)

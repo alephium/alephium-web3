@@ -66,7 +66,7 @@ TxScript UpdateMapValue(mapTest: MapTest, key: Address) {
 
 Contract MapTestSub(mapTestTemplateId: ByteVec) {
   @using(preapprovedAssets = true, checkExternalCaller = false)
-  pub fn init(caller: Address, value: MapValue) -> () {
+  pub fn init(caller: Address, value: MapValue) -> ByteVec {
     let path = b`map:` ++ toByteVec!(caller)
     let (encodedImmFields, encodedMutFields) = MapTest.encodeFields!()
     let mapTestId = copyCreateSubContract!{caller -> ALPH: minimalContractDeposit!()}(
@@ -76,5 +76,6 @@ Contract MapTestSub(mapTestTemplateId: ByteVec) {
       encodedMutFields
     )
     MapTest(mapTestId).insert{caller -> ALPH: mapEntryDeposit!() * 3}(caller, value)
+    return mapTestId
   }
 }
