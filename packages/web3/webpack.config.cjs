@@ -21,7 +21,7 @@ const webpack = require('webpack')
 module.exports = {
   mode: 'production',
   entry: {
-    alephium: './dist/src/index.js'
+    alephium: './dist/_cjs/src/index.js'
   },
   plugins: [
     new webpack.SourceMapDevToolPlugin({ filename: '[file].map' }),
@@ -41,7 +41,7 @@ module.exports = {
     }
   },
   output: {
-    filename: 'alephium-web3.min.js',
+    filename: '_umd/alephium-web3.min.js',
     library: {
       name: 'alephium',
       type: 'umd'
