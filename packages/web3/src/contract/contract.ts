@@ -482,7 +482,7 @@ export class Contract extends Artifact {
       blockTimeStamp: params.blockTimeStamp,
       txId: params.txId,
       address: params.address,
-      callerAddress: params.callerAddress,
+      callerContractAddress: params.callerContractAddress,
       bytecode: this.isInlineFunc(methodIndex) ? this.getByteCodeForTesting() : this.bytecodeDebug,
       initialImmFields: immFields,
       initialMutFields: mutFields,
@@ -967,7 +967,7 @@ export interface TestContractParams<
 > {
   group?: number // default 0
   address?: string
-  callerAddress?: string
+  callerContractAddress?: string
   blockHash?: string
   blockTimeStamp?: number
   txId?: string

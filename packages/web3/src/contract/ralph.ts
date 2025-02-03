@@ -30,10 +30,12 @@ import {
   instrCodec,
   u256Codec,
   toU256,
-  toI256
+  toI256,
+  intAs4BytesCodec
 } from '../codec'
 import { boolCodec } from '../codec/codec'
 import { TraceableError } from '../error'
+import djb2 from '../utils/djb2'
 
 export function encodeByteVec(hex: string): Uint8Array {
   if (!isHexString(hex)) {
@@ -45,7 +47,19 @@ export function encodeByteVec(hex: string): Uint8Array {
 }
 
 export function encodeAddress(address: string): Uint8Array {
-  return bs58.decode(address)
+  // Check if address has group suffix (e.g. "@0")
+  if (address.length > 2 && address[address.length - 2] === '@') {
+    throw new Error("TODO: support groupless address with @group")
+  } else {
+    const decoded = bs58.decode(address)
+    if (decoded[0] === 0x04 && decoded.length === 39) {
+      // If it is groupless address without @group, we need to add script hint
+      const publicKeyBytes = decoded.slice(2, 35)
+      const scriptHintBytes = intAs4BytesCodec.encode(djb2(publicKeyBytes) | 1)
+      return new Uint8Array([...decoded, ...scriptHintBytes])
+    }
+    return decoded
+  }
 }
 
 export enum VmValType {

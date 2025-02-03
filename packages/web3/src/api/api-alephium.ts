@@ -9,6 +9,15 @@
  * ---------------------------------------------------------------
  */
 
+/** AddressAssetState */
+export interface AddressAssetState {
+  /** @format address */
+  address: string
+  /** @format uint256 */
+  attoAlphAmount: string
+  tokens?: Token[]
+}
+
 /** AddressBalance */
 export interface AddressBalance {
   /** @format address */
@@ -308,7 +317,66 @@ export interface BuildExecuteScriptTxResult {
   gasPrice: string
   /** @format 32-byte-hash */
   txId: string
-  simulatedOutputs: Output[]
+  simulationResult: SimulationResult
+}
+
+/** BuildGrouplessDeployContractTx */
+export interface BuildGrouplessDeployContractTx {
+  /** @format address */
+  fromAddress: string
+  /** @format hex-string */
+  bytecode: string
+  /** @format uint256 */
+  initialAttoAlphAmount?: string
+  initialTokenAmounts?: Token[]
+  /** @format uint256 */
+  issueTokenAmount?: string
+  /** @format address */
+  issueTokenTo?: string
+  /** @format uint256 */
+  gasPrice?: string
+  /** @format block-hash */
+  targetBlockHash?: string
+}
+
+/** BuildGrouplessDeployContractTxResult */
+export interface BuildGrouplessDeployContractTxResult {
+  transferTxs: BuildTransferTxResult[]
+  deployContractTx: BuildDeployContractTxResult
+}
+
+/** BuildGrouplessExecuteScriptTx */
+export interface BuildGrouplessExecuteScriptTx {
+  /** @format address */
+  fromAddress: string
+  /** @format hex-string */
+  bytecode: string
+  /** @format uint256 */
+  attoAlphAmount?: string
+  tokens?: Token[]
+  /** @format uint256 */
+  gasPrice?: string
+  /** @format block-hash */
+  targetBlockHash?: string
+  /** @format double */
+  gasEstimationMultiplier?: number
+}
+
+/** BuildGrouplessExecuteScriptTxResult */
+export interface BuildGrouplessExecuteScriptTxResult {
+  transferTxs: BuildTransferTxResult[]
+  executeScriptTx: BuildExecuteScriptTxResult
+}
+
+/** BuildGrouplessTransferTx */
+export interface BuildGrouplessTransferTx {
+  /** @format address */
+  fromAddress: string
+  destinations: Destination[]
+  /** @format uint256 */
+  gasPrice?: string
+  /** @format block-hash */
+  targetBlockHash?: string
 }
 
 /** BuildInfo */
@@ -715,7 +783,7 @@ export interface Destination {
   /** @format address */
   address: string
   /** @format uint256 */
-  attoAlphAmount: string
+  attoAlphAmount?: string
   tokens?: Token[]
   /** @format int64 */
   lockTime?: number
@@ -779,6 +847,11 @@ export interface FunctionSig {
   paramTypes: string[]
   paramIsMutable: boolean[]
   returnTypes: string[]
+}
+
+/** GatewayTimeout */
+export interface GatewayTimeout {
+  detail: string
 }
 
 /** GhostUncleBlockEntry */
@@ -1098,6 +1171,12 @@ export interface SignResult {
   signature: string
 }
 
+/** SimulationResult */
+export interface SimulationResult {
+  contractInputs: AddressAssetState[]
+  generatedOutputs: AddressAssetState[]
+}
+
 /** Source */
 export interface Source {
   /** @format hex-string */
@@ -1194,7 +1273,7 @@ export interface TestContract {
   /** @format address */
   address?: string
   /** @format address */
-  callerAddress?: string
+  callerContractAddress?: string
   /** @format contract */
   bytecode: string
   initialImmFields?: Val[]
@@ -1649,7 +1728,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.10.0
+ * @version 3.12.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -1663,7 +1742,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/wallets
      */
     getWallets: (params: RequestParams = {}) =>
-      this.request<WalletStatus[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        WalletStatus[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets`,
         method: 'GET',
         format: 'json',
@@ -1681,7 +1763,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     putWallets: (data: WalletRestore, params: RequestParams = {}) =>
       this.request<
         WalletRestoreResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/wallets`,
         method: 'PUT',
@@ -1702,7 +1784,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postWallets: (data: WalletCreation, params: RequestParams = {}) =>
       this.request<
         WalletCreationResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/wallets`,
         method: 'POST',
@@ -1721,7 +1803,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/wallets/{wallet_name}
      */
     getWalletsWalletName: (walletName: string, params: RequestParams = {}) =>
-      this.request<WalletStatus, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        WalletStatus,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}`,
         method: 'GET',
         format: 'json',
@@ -1743,7 +1828,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}`,
         method: 'DELETE',
         query: query,
@@ -1759,7 +1847,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/wallets/{wallet_name}/lock
      */
     postWalletsWalletNameLock: (walletName: string, params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/lock`,
         method: 'POST',
         ...params
@@ -1774,7 +1865,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/wallets/{wallet_name}/unlock
      */
     postWalletsWalletNameUnlock: (walletName: string, data: WalletUnlock, params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/unlock`,
         method: 'POST',
         body: data,
@@ -1791,7 +1885,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/wallets/{wallet_name}/balances
      */
     getWalletsWalletNameBalances: (walletName: string, params: RequestParams = {}) =>
-      this.request<Balances, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        Balances,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/balances`,
         method: 'GET',
         format: 'json',
@@ -1809,7 +1906,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postWalletsWalletNameRevealMnemonic: (walletName: string, data: RevealMnemonic, params: RequestParams = {}) =>
       this.request<
         RevealMnemonicResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/wallets/${walletName}/reveal-mnemonic`,
         method: 'POST',
@@ -1828,7 +1925,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/wallets/{wallet_name}/transfer
      */
     postWalletsWalletNameTransfer: (walletName: string, data: Transfer, params: RequestParams = {}) =>
-      this.request<TransferResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        TransferResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/transfer`,
         method: 'POST',
         body: data,
@@ -1846,7 +1946,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/wallets/{wallet_name}/sweep-active-address
      */
     postWalletsWalletNameSweepActiveAddress: (walletName: string, data: Sweep, params: RequestParams = {}) =>
-      this.request<TransferResults, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        TransferResults,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/sweep-active-address`,
         method: 'POST',
         body: data,
@@ -1864,7 +1967,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/wallets/{wallet_name}/sweep-all-addresses
      */
     postWalletsWalletNameSweepAllAddresses: (walletName: string, data: Sweep, params: RequestParams = {}) =>
-      this.request<TransferResults, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        TransferResults,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/sweep-all-addresses`,
         method: 'POST',
         body: data,
@@ -1882,7 +1988,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/wallets/{wallet_name}/sign
      */
     postWalletsWalletNameSign: (walletName: string, data: Sign, params: RequestParams = {}) =>
-      this.request<SignResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        SignResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/sign`,
         method: 'POST',
         body: data,
@@ -1900,7 +2009,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/wallets/{wallet_name}/addresses
      */
     getWalletsWalletNameAddresses: (walletName: string, params: RequestParams = {}) =>
-      this.request<Addresses, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        Addresses,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/addresses`,
         method: 'GET',
         format: 'json',
@@ -1916,7 +2028,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/wallets/{wallet_name}/addresses/{address}
      */
     getWalletsWalletNameAddressesAddress: (walletName: string, address: string, params: RequestParams = {}) =>
-      this.request<AddressInfo, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        AddressInfo,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/addresses/${address}`,
         method: 'GET',
         format: 'json',
@@ -1934,7 +2049,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getWalletsWalletNameMinerAddresses: (walletName: string, params: RequestParams = {}) =>
       this.request<
         MinerAddressesInfo[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/wallets/${walletName}/miner-addresses`,
         method: 'GET',
@@ -1958,7 +2073,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<AddressInfo, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        AddressInfo,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/derive-next-address`,
         method: 'POST',
         query: query,
@@ -1975,7 +2093,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/wallets/{wallet_name}/derive-next-miner-addresses
      */
     postWalletsWalletNameDeriveNextMinerAddresses: (walletName: string, params: RequestParams = {}) =>
-      this.request<AddressInfo[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        AddressInfo[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/derive-next-miner-addresses`,
         method: 'POST',
         format: 'json',
@@ -1995,7 +2116,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       data: ChangeActiveAddress,
       params: RequestParams = {}
     ) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/wallets/${walletName}/change-active-address`,
         method: 'POST',
         body: data,
@@ -2013,7 +2137,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/node
      */
     getInfosNode: (params: RequestParams = {}) =>
-      this.request<NodeInfo, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        NodeInfo,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/node`,
         method: 'GET',
         format: 'json',
@@ -2029,7 +2156,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/version
      */
     getInfosVersion: (params: RequestParams = {}) =>
-      this.request<NodeVersion, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        NodeVersion,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/version`,
         method: 'GET',
         format: 'json',
@@ -2045,7 +2175,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/chain-params
      */
     getInfosChainParams: (params: RequestParams = {}) =>
-      this.request<ChainParams, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        ChainParams,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/chain-params`,
         method: 'GET',
         format: 'json',
@@ -2061,7 +2194,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/self-clique
      */
     getInfosSelfClique: (params: RequestParams = {}) =>
-      this.request<SelfClique, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        SelfClique,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/self-clique`,
         method: 'GET',
         format: 'json',
@@ -2079,7 +2215,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getInfosInterCliquePeerInfo: (params: RequestParams = {}) =>
       this.request<
         InterCliquePeerInfo[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/infos/inter-clique-peer-info`,
         method: 'GET',
@@ -2096,7 +2232,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/discovered-neighbors
      */
     getInfosDiscoveredNeighbors: (params: RequestParams = {}) =>
-      this.request<BrokerInfo[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        BrokerInfo[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/discovered-neighbors`,
         method: 'GET',
         format: 'json',
@@ -2112,7 +2251,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/misbehaviors
      */
     getInfosMisbehaviors: (params: RequestParams = {}) =>
-      this.request<PeerMisbehavior[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        PeerMisbehavior[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/misbehaviors`,
         method: 'GET',
         format: 'json',
@@ -2128,7 +2270,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/infos/misbehaviors
      */
     postInfosMisbehaviors: (data: MisbehaviorAction, params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/misbehaviors`,
         method: 'POST',
         body: data,
@@ -2145,7 +2290,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/unreachable
      */
     getInfosUnreachable: (params: RequestParams = {}) =>
-      this.request<string[], BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        string[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/unreachable`,
         method: 'GET',
         format: 'json',
@@ -2161,7 +2309,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/infos/discovery
      */
     postInfosDiscovery: (data: DiscoveryAction, params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/discovery`,
         method: 'POST',
         body: data,
@@ -2192,7 +2343,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<HashRateResponse, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        HashRateResponse,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/history-hashrate`,
         method: 'GET',
         query: query,
@@ -2218,7 +2372,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<HashRateResponse, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        HashRateResponse,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/current-hashrate`,
         method: 'GET',
         query: query,
@@ -2235,7 +2392,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/infos/current-difficulty
      */
     getInfosCurrentDifficulty: (params: RequestParams = {}) =>
-      this.request<CurrentDifficulty, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        CurrentDifficulty,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/infos/current-difficulty`,
         method: 'GET',
         format: 'json',
@@ -2268,7 +2428,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         BlocksPerTimeStampRange,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/blockflow/blocks`,
         method: 'GET',
@@ -2302,7 +2462,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         BlocksAndEventsPerTimeStampRange,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/blockflow/blocks-with-events`,
         method: 'GET',
@@ -2336,7 +2496,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         RichBlocksAndEventsPerTimeStampRange,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/blockflow/rich-blocks`,
         method: 'GET',
@@ -2354,7 +2514,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/blockflow/blocks/{block_hash}
      */
     getBlockflowBlocksBlockHash: (blockHash: string, params: RequestParams = {}) =>
-      this.request<BlockEntry, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        BlockEntry,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/blocks/${blockHash}`,
         method: 'GET',
         format: 'json',
@@ -2370,7 +2533,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/blockflow/main-chain-block-by-ghost-uncle/{ghost_uncle_hash}
      */
     getBlockflowMainChainBlockByGhostUncleGhostUncleHash: (ghostUncleHash: string, params: RequestParams = {}) =>
-      this.request<BlockEntry, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        BlockEntry,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/main-chain-block-by-ghost-uncle/${ghostUncleHash}`,
         method: 'GET',
         format: 'json',
@@ -2386,7 +2552,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/blockflow/blocks-with-events/{block_hash}
      */
     getBlockflowBlocksWithEventsBlockHash: (blockHash: string, params: RequestParams = {}) =>
-      this.request<BlockAndEvents, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        BlockAndEvents,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/blocks-with-events/${blockHash}`,
         method: 'GET',
         format: 'json',
@@ -2402,14 +2571,15 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/blockflow/rich-blocks/{block_hash}
      */
     getBlockflowRichBlocksBlockHash: (blockHash: string, params: RequestParams = {}) =>
-      this.request<RichBlockAndEvents, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>(
-        {
-          path: `/blockflow/rich-blocks/${blockHash}`,
-          method: 'GET',
-          format: 'json',
-          ...params
-        }
-      ).then(convertHttpResponse),
+      this.request<
+        RichBlockAndEvents,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/blockflow/rich-blocks/${blockHash}`,
+        method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -2426,7 +2596,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        boolean,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/is-block-in-main-chain`,
         method: 'GET',
         query: query,
@@ -2453,7 +2626,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<HashesAtHeight, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        HashesAtHeight,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/hashes`,
         method: 'GET',
         query: query,
@@ -2478,7 +2654,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<ChainInfo, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        ChainInfo,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/chain-info`,
         method: 'GET',
         query: query,
@@ -2495,7 +2674,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/blockflow/headers/{block_hash}
      */
     getBlockflowHeadersBlockHash: (blockHash: string, params: RequestParams = {}) =>
-      this.request<BlockHeaderEntry, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        BlockHeaderEntry,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/headers/${blockHash}`,
         method: 'GET',
         format: 'json',
@@ -2511,7 +2693,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/blockflow/raw-blocks/{block_hash}
      */
     getBlockflowRawBlocksBlockHash: (blockHash: string, params: RequestParams = {}) =>
-      this.request<RawBlock, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        RawBlock,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/blockflow/raw-blocks/${blockHash}`,
         method: 'GET',
         format: 'json',
@@ -2534,7 +2719,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<Balance, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        Balance,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/addresses/${address}/balance`,
         method: 'GET',
         query: query,
@@ -2551,7 +2739,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/addresses/{address}/utxos
      */
     getAddressesAddressUtxos: (address: string, params: RequestParams = {}) =>
-      this.request<UTXOs, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        UTXOs,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/addresses/${address}/utxos`,
         method: 'GET',
         format: 'json',
@@ -2567,7 +2758,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/addresses/{address}/group
      */
     getAddressesAddressGroup: (address: string, params: RequestParams = {}) =>
-      this.request<Group, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        Group,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/addresses/${address}/group`,
         method: 'GET',
         format: 'json',
@@ -2586,7 +2780,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postTransactionsBuild: (data: BuildTransferTx, params: RequestParams = {}) =>
       this.request<
         BuildTransferTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/build`,
         method: 'POST',
@@ -2607,7 +2801,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postTransactionsBuildTransferFromOneToManyGroups: (data: BuildTransferTx, params: RequestParams = {}) =>
       this.request<
         BuildTransferTxResult[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/build-transfer-from-one-to-many-groups`,
         method: 'POST',
@@ -2628,7 +2822,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postTransactionsBuildMultiAddresses: (data: BuildMultiAddressesTransaction, params: RequestParams = {}) =>
       this.request<
         BuildTransferTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/build-multi-addresses`,
         method: 'POST',
@@ -2649,7 +2843,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postTransactionsSweepAddressBuild: (data: BuildSweepAddressTransactions, params: RequestParams = {}) =>
       this.request<
         BuildSweepAddressTransactionsResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/sweep-address/build`,
         method: 'POST',
@@ -2668,7 +2862,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/transactions/submit
      */
     postTransactionsSubmit: (data: SubmitTransaction, params: RequestParams = {}) =>
-      this.request<SubmitTxResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        SubmitTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/transactions/submit`,
         method: 'POST',
         body: data,
@@ -2688,7 +2885,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postTransactionsDecodeUnsignedTx: (data: DecodeUnsignedTx, params: RequestParams = {}) =>
       this.request<
         DecodeUnsignedTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/decode-unsigned-tx`,
         method: 'POST',
@@ -2716,7 +2913,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<Transaction, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        Transaction,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/transactions/details/${txId}`,
         method: 'GET',
         query: query,
@@ -2742,7 +2942,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<RichTransaction, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        RichTransaction,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/transactions/rich-details/${txId}`,
         method: 'GET',
         query: query,
@@ -2768,7 +2971,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<RawTransaction, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        RawTransaction,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/transactions/raw/${txId}`,
         method: 'GET',
         query: query,
@@ -2795,7 +3001,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<TxStatus, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        TxStatus,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/transactions/status`,
         method: 'GET',
         query: query,
@@ -2820,7 +3029,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        string,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/transactions/tx-id-from-outputref`,
         method: 'GET',
         query: query,
@@ -2839,7 +3051,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postTransactionsBuildChained: (data: BuildChainedTx[], params: RequestParams = {}) =>
       this.request<
         BuildChainedTxResult[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/build-chained`,
         method: 'POST',
@@ -2861,7 +3073,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     getMempoolTransactions: (params: RequestParams = {}) =>
       this.request<
         MempoolTransactions[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/mempool/transactions`,
         method: 'GET',
@@ -2878,7 +3090,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request DELETE:/mempool/transactions
      */
     deleteMempoolTransactions: (params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/mempool/transactions`,
         method: 'DELETE',
         ...params
@@ -2899,7 +3114,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/mempool/transactions/rebroadcast`,
         method: 'PUT',
         query: query,
@@ -2915,7 +3133,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/mempool/transactions/validate
      */
     putMempoolTransactionsValidate: (params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/mempool/transactions/validate`,
         method: 'PUT',
         ...params
@@ -2933,7 +3154,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postContractsCompileScript: (data: Script, params: RequestParams = {}) =>
       this.request<
         CompileScriptResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/contracts/compile-script`,
         method: 'POST',
@@ -2954,7 +3175,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postContractsUnsignedTxExecuteScript: (data: BuildExecuteScriptTx, params: RequestParams = {}) =>
       this.request<
         BuildExecuteScriptTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/contracts/unsigned-tx/execute-script`,
         method: 'POST',
@@ -2975,7 +3196,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postContractsCompileContract: (data: Contract, params: RequestParams = {}) =>
       this.request<
         CompileContractResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/contracts/compile-contract`,
         method: 'POST',
@@ -2996,7 +3217,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postContractsCompileProject: (data: Project, params: RequestParams = {}) =>
       this.request<
         CompileProjectResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/contracts/compile-project`,
         method: 'POST',
@@ -3017,7 +3238,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postContractsUnsignedTxDeployContract: (data: BuildDeployContractTx, params: RequestParams = {}) =>
       this.request<
         BuildDeployContractTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/contracts/unsigned-tx/deploy-contract`,
         method: 'POST',
@@ -3036,7 +3257,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/contracts/{address}/state
      */
     getContractsAddressState: (address: string, params: RequestParams = {}) =>
-      this.request<ContractState, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        ContractState,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/contracts/${address}/state`,
         method: 'GET',
         format: 'json',
@@ -3052,7 +3276,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/contracts/{codeHash}/code
      */
     getContractsCodehashCode: (codeHash: string, params: RequestParams = {}) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        string,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/contracts/${codeHash}/code`,
         method: 'GET',
         format: 'json',
@@ -3068,16 +3295,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/contracts/test-contract
      */
     postContractsTestContract: (data: TestContract, params: RequestParams = {}) =>
-      this.request<TestContractResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>(
-        {
-          path: `/contracts/test-contract`,
-          method: 'POST',
-          body: data,
-          type: ContentType.Json,
-          format: 'json',
-          ...params
-        }
-      ).then(convertHttpResponse),
+      this.request<
+        TestContractResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/contracts/test-contract`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -3088,16 +3316,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/contracts/call-contract
      */
     postContractsCallContract: (data: CallContract, params: RequestParams = {}) =>
-      this.request<CallContractResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>(
-        {
-          path: `/contracts/call-contract`,
-          method: 'POST',
-          body: data,
-          type: ContentType.Json,
-          format: 'json',
-          ...params
-        }
-      ).then(convertHttpResponse),
+      this.request<
+        CallContractResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/contracts/call-contract`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
 
     /**
      * No description
@@ -3110,7 +3339,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postContractsMulticallContract: (data: MultipleCallContract, params: RequestParams = {}) =>
       this.request<
         MultipleCallContractResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/contracts/multicall-contract`,
         method: 'POST',
@@ -3129,7 +3358,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/contracts/{address}/parent
      */
     getContractsAddressParent: (address: string, params: RequestParams = {}) =>
-      this.request<string, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        string,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/contracts/${address}/parent`,
         method: 'GET',
         format: 'json',
@@ -3154,7 +3386,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<SubContracts, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        SubContracts,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/contracts/${address}/sub-contracts`,
         method: 'GET',
         query: query,
@@ -3171,7 +3406,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/contracts/{address}/sub-contracts/current-count
      */
     getContractsAddressSubContractsCurrentCount: (address: string, params: RequestParams = {}) =>
-      this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        number,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/contracts/${address}/sub-contracts/current-count`,
         method: 'GET',
         format: 'json',
@@ -3187,16 +3425,17 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/contracts/call-tx-script
      */
     postContractsCallTxScript: (data: CallTxScript, params: RequestParams = {}) =>
-      this.request<CallTxScriptResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>(
-        {
-          path: `/contracts/call-tx-script`,
-          method: 'POST',
-          body: data,
-          type: ContentType.Json,
-          format: 'json',
-          ...params
-        }
-      ).then(convertHttpResponse)
+      this.request<
+        CallTxScriptResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/contracts/call-tx-script`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse)
   }
   multisig = {
     /**
@@ -3210,7 +3449,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postMultisigAddress: (data: BuildMultisigAddress, params: RequestParams = {}) =>
       this.request<
         BuildMultisigAddressResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/multisig/address`,
         method: 'POST',
@@ -3231,7 +3470,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postMultisigBuild: (data: BuildMultisig, params: RequestParams = {}) =>
       this.request<
         BuildTransferTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/multisig/build`,
         method: 'POST',
@@ -3252,7 +3491,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     postMultisigSweep: (data: BuildSweepMultisig, params: RequestParams = {}) =>
       this.request<
         BuildSweepAddressTransactionsResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/multisig/sweep`,
         method: 'POST',
@@ -3271,7 +3510,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/multisig/submit
      */
     postMultisigSubmit: (data: SubmitMultisig, params: RequestParams = {}) =>
-      this.request<SubmitTxResult, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        SubmitTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/multisig/submit`,
         method: 'POST',
         body: data,
@@ -3295,7 +3537,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        boolean,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/miners/cpu-mining`,
         method: 'POST',
         query: query,
@@ -3320,7 +3565,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        boolean,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/miners/cpu-mining/mine-one-block`,
         method: 'POST',
         query: query,
@@ -3337,7 +3585,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/miners/addresses
      */
     getMinersAddresses: (params: RequestParams = {}) =>
-      this.request<MinerAddresses, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        MinerAddresses,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/miners/addresses`,
         method: 'GET',
         format: 'json',
@@ -3353,7 +3604,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/miners/addresses
      */
     putMinersAddresses: (data: MinerAddresses, params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/miners/addresses`,
         method: 'PUT',
         body: data,
@@ -3382,7 +3636,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       },
       params: RequestParams = {}
     ) =>
-      this.request<ContractEvents, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        ContractEvents,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/events/contract/${contractAddress}`,
         method: 'GET',
         query: query,
@@ -3399,7 +3656,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request GET:/events/contract/{contractAddress}/current-count
      */
     getEventsContractContractaddressCurrentCount: (contractAddress: string, params: RequestParams = {}) =>
-      this.request<number, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        number,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/events/contract/${contractAddress}/current-count`,
         method: 'GET',
         format: 'json',
@@ -3424,7 +3684,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         ContractEventsByTxId,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/events/tx-id/${txId}`,
         method: 'GET',
@@ -3451,7 +3711,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         ContractEventsByBlockHash,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/events/block-hash/${blockHash}`,
         method: 'GET',
@@ -3470,7 +3730,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/utils/verify-signature
      */
     postUtilsVerifySignature: (data: VerifySignature, params: RequestParams = {}) =>
-      this.request<boolean, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        boolean,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/utils/verify-signature`,
         method: 'POST',
         body: data,
@@ -3488,7 +3751,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/utils/target-to-hashrate
      */
     postUtilsTargetToHashrate: (data: TargetToHashrate, params: RequestParams = {}) =>
-      this.request<Result, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        Result,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/utils/target-to-hashrate`,
         method: 'POST',
         body: data,
@@ -3506,9 +3772,102 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request PUT:/utils/check-hash-indexing
      */
     putUtilsCheckHashIndexing: (params: RequestParams = {}) =>
-      this.request<void, BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable>({
+      this.request<
+        void,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
         path: `/utils/check-hash-indexing`,
         method: 'PUT',
+        ...params
+      }).then(convertHttpResponse)
+  }
+  groupless = {
+    /**
+     * No description
+     *
+     * @tags Groupless
+     * @name PostGrouplessTransfer
+     * @summary Build unsigned transfer transactions from a groupless address
+     * @request POST:/groupless/transfer
+     */
+    postGrouplessTransfer: (data: BuildGrouplessTransferTx, params: RequestParams = {}) =>
+      this.request<
+        BuildTransferTxResult[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/groupless/transfer`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Groupless
+     * @name PostGrouplessExecuteScript
+     * @summary Build an unsigned execute script transaction from a groupless address
+     * @request POST:/groupless/execute-script
+     */
+    postGrouplessExecuteScript: (data: BuildGrouplessExecuteScriptTx, params: RequestParams = {}) =>
+      this.request<
+        BuildGrouplessExecuteScriptTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/groupless/execute-script`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Groupless
+     * @name PostGrouplessDeployContract
+     * @summary Build an unsigned deploy contract transaction from a groupless address
+     * @request POST:/groupless/deploy-contract
+     */
+    postGrouplessDeployContract: (data: BuildGrouplessDeployContractTx, params: RequestParams = {}) =>
+      this.request<
+        BuildGrouplessDeployContractTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/groupless/deploy-contract`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Groupless
+     * @name GetGrouplessAddressBalance
+     * @summary Get the balance of a groupless address
+     * @request GET:/groupless/{address}/balance
+     */
+    getGrouplessAddressBalance: (
+      address: string,
+      query?: {
+        mempool?: boolean
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        Balance,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/groupless/${address}/balance`,
+        method: 'GET',
+        query: query,
+        format: 'json',
         ...params
       }).then(convertHttpResponse)
   }

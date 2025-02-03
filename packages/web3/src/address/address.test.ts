@@ -29,12 +29,14 @@ import {
   isAssetAddress,
   isContractAddress,
   isValidAddress,
-  addressFromScript,
-  groupOfLockupScript
+  groupOfLockupScript,
+  isGrouplessAddress
 } from './address'
 import { binToHex, bs58 } from '../utils'
 import { randomBytes } from 'crypto'
-import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
+import { LockupScript } from '../codec/lockup-script-codec'
+import { intAs4BytesCodec } from '../codec/int-as-4bytes-codec'
+import djb2 from '../utils/djb2'
 
 describe('address', function () {
   it('should validate address', () => {
@@ -62,6 +64,8 @@ describe('address', function () {
       validateAddress('2jVWAcAPphJ8ueZNG1BPwbfPFjjbvorprceuqzgmJQ1ZRyELRpWgARvdB3T9trqpiJs7f4GkudPt6rQLnGbQYqq2NCi')
     ).toThrow('Invalid multisig address, n: 2, m: 3')
     expect(() => validateAddress('thebear')).toThrow('Invalid multisig address')
+    expect(validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toBeUndefined()
+    expect(() => validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8Bdjfv')).toThrow('Invalid checksum for P2PK address:')
   })
 
   it('should return if an address is valid', () => {
@@ -92,6 +96,10 @@ describe('address', function () {
     expect(isContractAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(true)
     expect(() => isAssetAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGF')).toThrow('Invalid address:')
     expect(() => isContractAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9k')).toThrow('Invalid address:')
+    expect(isGrouplessAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toEqual(true)
+    expect(isGrouplessAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(false)
+    expect(isGrouplessAddress('qeKk7r92Vn2Xjn4GcMEcJ2EwVfVs27kWUpptrWcWsUWC')).toEqual(false)
+    expect(() => isGrouplessAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9k')).toThrow('Invalid address:')
   })
 
   it('should calculate the group of addresses', () => {
@@ -125,6 +133,7 @@ describe('address', function () {
     const bytes0 = new Uint8Array(randomBytes(32))
     const bytes1 = new Uint8Array(randomBytes(32))
     const bytes2 = new Uint8Array(randomBytes(32))
+    const bytes4 = new Uint8Array(randomBytes(33))
 
     const p2pkh: LockupScript = { kind: 'P2PKH', value: new Uint8Array(bytes0) }
     const p2pkhAddress = bs58.encode(new Uint8Array([0x00, ...bytes0]))
@@ -141,6 +150,13 @@ describe('address', function () {
     const p2c: LockupScript = { kind: 'P2C', value: bytes0 }
     const p2cAddress = bs58.encode(new Uint8Array([0x03, ...bytes0]))
     expect(groupOfAddress(p2cAddress)).toBe(groupOfLockupScript(p2c))
+
+    const publicKeyLike = new Uint8Array([0x00, ...bytes4])
+    const checkSum = intAs4BytesCodec.encode(djb2(publicKeyLike))
+    const scriptHint = djb2(bytes4) | 1
+    const p2pk: LockupScript = { kind: 'P2PK', value: { type: 0, publicKey: bytes4, scriptHint, checkSum} }
+    const p2pkAddress = bs58.encode(new Uint8Array([0x04, 0x00, ...bytes4, ...checkSum]))
+    expect(groupOfAddress(p2pkAddress)).toBe(groupOfLockupScript(p2pk))
   })
 
   it('should extract token id from addresses', () => {
@@ -175,6 +191,12 @@ describe('address', function () {
     )
     expect(addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
       '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
+    )
+    expect(addressFromPublicKey('029592852f5d289785904b89a073ff80ee6155c894b1d13ecb16bcf3ac02473e1a', 'groupless')).toBe(
+      '3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK'
+    )
+    expect(addressFromPublicKey('aecfc38a48f5fe7e050fca59de9f8d77fa7a7d9e63af608a95f8839de397f48a', 'bip340-schnorr')).toBe(
+      'qvegNNcKFBtkMcZTLj42pki2YDYTvHaGyBxBaWrPaHwj'
     )
   })
 

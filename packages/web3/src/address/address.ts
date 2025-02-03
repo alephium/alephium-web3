@@ -24,7 +24,7 @@ import bs58, { base58ToBytes } from '../utils/bs58'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
 import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
-import { i32Codec } from '../codec'
+import { i32Codec, intAs4BytesCodec } from '../codec'
 import { LockupScript } from '../codec/lockup-script-codec'
 import djb2 from '../utils/djb2'
 import { TraceableError } from '../error'
@@ -36,7 +36,8 @@ export enum AddressType {
   P2PKH = 0x00,
   P2MPKH = 0x01,
   P2SH = 0x02,
-  P2C = 0x03
+  P2C = 0x03,
+  P2PK = 0x04
 }
 
 export function validateAddress(address: string) {
@@ -53,6 +54,7 @@ export function isValidAddress(address: string): boolean {
 }
 
 function decodeAndValidateAddress(address: string): Uint8Array {
+  // TODO: Need to consider groupless address with @group
   const decoded = base58ToBytes(address)
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
@@ -75,6 +77,17 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
+  } else if (addressType === AddressType.P2PK) {
+    // [type, keyType, ...publicKey, ...checkSum]
+    if (decoded.length === 39) {
+      const publicKeyLikeBytes = decoded.slice(1, 35) // Include the keyType byte
+      const checksum = binToHex(decoded.slice(35, 39))
+      const expectedChecksum = binToHex(intAs4BytesCodec.encode(djb2(publicKeyLikeBytes)))
+      if (checksum !== expectedChecksum) {
+        throw new Error(`Invalid checksum for P2PK address: ${address}`)
+      }
+      return decoded
+    }
   }
 
   throw new Error(`Invalid address: ${address}`)
@@ -82,7 +95,12 @@ function decodeAndValidateAddress(address: string): Uint8Array {
 
 export function isAssetAddress(address: string) {
   const addressType = decodeAndValidateAddress(address)[0]
-  return addressType === AddressType.P2PKH || addressType === AddressType.P2MPKH || addressType === AddressType.P2SH
+  return addressType === AddressType.P2PKH || addressType === AddressType.P2MPKH || addressType === AddressType.P2SH || addressType === AddressType.P2PK
+}
+
+export function isGrouplessAddress(address: string) {
+  const addressType = decodeAndValidateAddress(address)[0]
+  return addressType === AddressType.P2PK
 }
 
 export function isContractAddress(address: string) {
@@ -101,6 +119,8 @@ export function groupOfAddress(address: string): number {
     return groupOfP2mpkhAddress(addressBody)
   } else if (addressType == AddressType.P2SH) {
     return groupOfP2shAddress(addressBody)
+  } else if (addressType == AddressType.P2PK) {
+    return groupOfP2pkAddress(addressBody)
   } else {
     // Contract Address
     const id = contractIdFromAddress(address)
@@ -110,17 +130,21 @@ export function groupOfAddress(address: string): number {
 
 // Pay to public key hash address
 function groupOfP2pkhAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address)
+  return groupFromBytes(address)
 }
 
 // Pay to multiple public key hash address
 function groupOfP2mpkhAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address.slice(1, 33))
+  return groupFromBytes(address.slice(1, 33))
+}
+
+function groupOfP2pkAddress(address: Uint8Array): number {
+  return groupFromBytes(address.slice(1, 34))
 }
 
 // Pay to script hash address
 function groupOfP2shAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address)
+  return groupFromBytes(address)
 }
 
 export function contractIdFromAddress(address: string): Uint8Array {
@@ -151,7 +175,7 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
 export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default') {
+  if (keyType === 'default' || keyType === 'groupless') {
     const key = ec.keyFromPrivate(privateKey)
     return key.getPublic(true, 'hex')
   } else {
@@ -165,6 +189,11 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
   if (keyType === 'default') {
     const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
     const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
+    return bs58.encode(bytes)
+  } else if (keyType === 'groupless') {
+    const publicKeyBytes = new Uint8Array([0x00, ...hexToBinUnsafe(publicKey)])
+    const hashBytes = intAs4BytesCodec.encode(djb2(publicKeyBytes))
+    const bytes = new Uint8Array([0x04, ...publicKeyBytes, ...hashBytes])
     return bs58.encode(bytes)
   } else {
     const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
@@ -215,11 +244,14 @@ export function subContractId(parentContractId: string, pathInHex: string, group
 
 export function groupOfLockupScript(lockupScript: LockupScript): number {
   if (lockupScript.kind === 'P2PKH') {
-    return groupFromBytesForAssetAddress(lockupScript.value)
+    return groupFromBytes(lockupScript.value)
   } else if (lockupScript.kind === 'P2MPKH') {
-    return groupFromBytesForAssetAddress(lockupScript.value.publicKeyHashes[0])
+    return groupFromBytes(lockupScript.value.publicKeyHashes[0])
   } else if (lockupScript.kind === 'P2SH') {
-    return groupFromBytesForAssetAddress(lockupScript.value)
+    return groupFromBytes(lockupScript.value)
+  } else if (lockupScript.kind === 'P2PK') {
+    // FIXME: support @group for groupless address
+    return groupFromBytes(lockupScript.value.publicKey)
   } else {
     // P2C
     const contractId = lockupScript.value
@@ -227,7 +259,7 @@ export function groupOfLockupScript(lockupScript: LockupScript): number {
   }
 }
 
-function groupFromBytesForAssetAddress(bytes: Uint8Array): number {
+export function groupFromBytes(bytes: Uint8Array): number {
   const hint = djb2(bytes) | 1
   const hash = xorByte(hint)
   return hash % TOTAL_NUMBER_OF_GROUPS

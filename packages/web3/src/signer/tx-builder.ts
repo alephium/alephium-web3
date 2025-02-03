@@ -34,7 +34,11 @@ import {
   SignTransferTxParams,
   SignTransferTxResult,
   SignUnsignedTxParams,
-  SignUnsignedTxResult
+  SignUnsignedTxResult,
+  SignGrouplessTransferTxParams,
+  SignGrouplessDeployContractTxParams,
+  SignTransferChainedTxResult,
+  SignGrouplessExecuteScriptTxParams
 } from './types'
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
@@ -154,6 +158,51 @@ export abstract class TransactionBuilder {
     return results
   }
 
+  async buildGrouplessTransferTx(
+    params: SignGrouplessTransferTxParams
+  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+    const data = this.buildGrouplessTransferTxParams(params)
+    const response = await this.nodeProvider.groupless.postGrouplessTransfer(data)
+    return response.map((result) => {
+      return {
+        ...this.convertTransferTxResult(result),
+        type: 'Transfer' as const
+      }
+    })
+  }
+
+  async buildGrouplessDeployContractTx(
+    params: SignGrouplessDeployContractTxParams
+  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+    const data = this.buildGrouplessDeployContractTxParams(params)
+    const response = await this.nodeProvider.groupless.postGrouplessDeployContract(data)
+    const transferTxs = response.transferTxs.map((result) => ({
+      ...this.convertTransferTxResult(result),
+      type: 'Transfer' as const
+    }))
+    const deployContractTx = {
+      ...this.convertDeployContractTxResult(response.deployContractTx),
+      type: 'DeployContract' as const
+    }
+    return [...transferTxs, deployContractTx]
+  }
+
+  async buildGrouplessExecuteScriptTx(
+    params: SignGrouplessExecuteScriptTxParams
+  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+    const data = this.buildGrouplessExecuteScriptTxParams(params)
+    const response = await this.nodeProvider.groupless.postGrouplessExecuteScript(data)
+    const transferTxs = response.transferTxs.map((result) => ({
+      ...this.convertTransferTxResult(result),
+      type: 'Transfer' as const
+    }))
+    const executeScriptTx = {
+      ...this.convertExecuteScriptTxResult(response.executeScriptTx),
+      type: 'ExecuteScript' as const
+    }
+    return [...transferTxs, executeScriptTx]
+  }
+
   static buildUnsignedTx(params: SignUnsignedTxParams): Omit<SignUnsignedTxResult, 'signature'> {
     const unsignedTxBin = hexToBinUnsafe(params.unsignedTx)
     const decoded = unsignedTxCodec.decode(unsignedTxBin)
@@ -179,6 +228,41 @@ export abstract class TransactionBuilder {
       destinations: toApiDestinations(destinations),
       gasPrice: toApiNumber256Optional(gasPrice),
       ...rest
+    }
+  }
+
+  private buildGrouplessTransferTxParams(params: SignGrouplessTransferTxParams): node.BuildGrouplessTransferTx {
+    return {
+      fromAddress: params.fromAddress,
+      destinations: toApiDestinations(params.destinations),
+      gasPrice: toApiNumber256Optional(params.gasPrice),
+      targetBlockHash: params.targetBlockHash
+    }
+  }
+
+  private buildGrouplessDeployContractTxParams(params: SignGrouplessDeployContractTxParams): node.BuildGrouplessDeployContractTx {
+    return {
+      fromAddress: params.fromAddress,
+      bytecode: params.bytecode,
+      initialAttoAlphAmount: toApiNumber256Optional(params.initialAttoAlphAmount),
+      initialTokenAmounts: toApiTokens(params.initialTokenAmounts),
+      issueTokenAmount: toApiNumber256Optional(params.issueTokenAmount),
+      issueTokenTo: params.issueTokenTo,
+      gasPrice: toApiNumber256Optional(params.gasPrice),
+      targetBlockHash: params.targetBlockHash
+    }
+  }
+
+
+  private buildGrouplessExecuteScriptTxParams(params: SignGrouplessExecuteScriptTxParams): node.BuildGrouplessExecuteScriptTx {
+    return {
+      fromAddress: params.fromAddress,
+      bytecode: params.bytecode,
+      attoAlphAmount: toApiNumber256Optional(params.attoAlphAmount),
+      tokens: toApiTokens(params.tokens),
+      gasPrice: toApiNumber256Optional(params.gasPrice),
+      targetBlockHash: params.targetBlockHash,
+      gasEstimationMultiplier: params.gasEstimationMultiplier
     }
   }
 
