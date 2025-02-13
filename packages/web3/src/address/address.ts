@@ -54,8 +54,7 @@ export function isValidAddress(address: string): boolean {
 }
 
 function decodeAndValidateAddress(address: string): Uint8Array {
-  // TODO: Need to consider groupless address with @group
-  const decoded = base58ToBytes(address)
+  const decoded = addressToBytes(address)
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType === AddressType.P2MPKH) {
@@ -78,14 +77,15 @@ function decodeAndValidateAddress(address: string): Uint8Array {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
   } else if (addressType === AddressType.P2PK) {
-    // [type, keyType, ...publicKey, ...checkSum]
-    if (decoded.length === 39) {
-      const publicKeyLikeBytes = decoded.slice(1, 35) // Include the keyType byte
+    if (decoded.length === 43) {
+      // [type, keyType, ...publicKey, ...checkSum, ...scriptHint]
+      const publicKeyLikeBytes = decoded.slice(1, 35)
       const checksum = binToHex(decoded.slice(35, 39))
       const expectedChecksum = binToHex(intAs4BytesCodec.encode(djb2(publicKeyLikeBytes)))
       if (checksum !== expectedChecksum) {
         throw new Error(`Invalid checksum for P2PK address: ${address}`)
       }
+
       return decoded
     }
   }
@@ -93,9 +93,36 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   throw new Error(`Invalid address: ${address}`)
 }
 
+export function addressToBytes(address: string): Uint8Array {
+  if (address.length > 2 && address[address.length - 2] === '@') {
+    const groupIndex = parseGroupIndex(address[address.length - 1])
+    const decoded = base58ToBytes(address.slice(0, address.length - 2))
+    if (decoded[0] === 0x04 && decoded.length === 39) {
+      const publicKeyBytes = decoded.slice(2, 35)
+      const scriptHint = findScriptHint(djb2(publicKeyBytes) | 1, groupIndex)
+      const scriptHintBytes = intAs4BytesCodec.encode(scriptHint)
+      return new Uint8Array([...decoded, ...scriptHintBytes])
+    }
+    throw new Error(`Invalid groupless address: ${address}`)
+  } else {
+    const decoded = base58ToBytes(address)
+    if (decoded[0] === 0x04 && decoded.length === 39) {
+      const publicKeyBytes = decoded.slice(2, 35)
+      const scriptHintBytes = intAs4BytesCodec.encode(djb2(publicKeyBytes) | 1)
+      return new Uint8Array([...decoded, ...scriptHintBytes])
+    }
+    return decoded
+  }
+}
+
 export function isAssetAddress(address: string) {
   const addressType = decodeAndValidateAddress(address)[0]
-  return addressType === AddressType.P2PKH || addressType === AddressType.P2MPKH || addressType === AddressType.P2SH || addressType === AddressType.P2PK
+  return (
+    addressType === AddressType.P2PKH ||
+    addressType === AddressType.P2MPKH ||
+    addressType === AddressType.P2SH ||
+    addressType === AddressType.P2PK
+  )
 }
 
 export function isGrouplessAddress(address: string) {
@@ -139,7 +166,7 @@ function groupOfP2mpkhAddress(address: Uint8Array): number {
 }
 
 function groupOfP2pkAddress(address: Uint8Array): number {
-  return groupFromBytes(address.slice(1, 34))
+  return groupFromHint(intAs4BytesCodec.decode(address.slice(38, 42)))
 }
 
 // Pay to script hash address
@@ -250,8 +277,7 @@ export function groupOfLockupScript(lockupScript: LockupScript): number {
   } else if (lockupScript.kind === 'P2SH') {
     return groupFromBytes(lockupScript.value)
   } else if (lockupScript.kind === 'P2PK') {
-    // FIXME: support @group for groupless address
-    return groupFromBytes(lockupScript.value.publicKey)
+    return groupFromHint(lockupScript.value.scriptHint)
   } else {
     // P2C
     const contractId = lockupScript.value
@@ -261,6 +287,26 @@ export function groupOfLockupScript(lockupScript: LockupScript): number {
 
 export function groupFromBytes(bytes: Uint8Array): number {
   const hint = djb2(bytes) | 1
+  return groupFromHint(hint)
+}
+
+export function groupFromHint(hint: number): number {
   const hash = xorByte(hint)
   return hash % TOTAL_NUMBER_OF_GROUPS
+}
+
+function findScriptHint(hint: number, groupIndex: number): number {
+  if (groupFromHint(hint) === groupIndex) {
+    return hint
+  } else {
+    return findScriptHint(hint + 1, groupIndex)
+  }
+}
+
+function parseGroupIndex(groupIndexStr: string): number {
+  const groupIndex = parseInt(groupIndexStr)
+  if (isNaN(groupIndex) || groupIndex < 0 || groupIndex >= TOTAL_NUMBER_OF_GROUPS) {
+    throw new Error(`Invalid group index: ${groupIndexStr}`)
+  }
+  return groupIndex
 }

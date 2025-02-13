@@ -240,7 +240,9 @@ export abstract class TransactionBuilder {
     }
   }
 
-  private buildGrouplessDeployContractTxParams(params: SignGrouplessDeployContractTxParams): node.BuildGrouplessDeployContractTx {
+  private buildGrouplessDeployContractTxParams(
+    params: SignGrouplessDeployContractTxParams
+  ): node.BuildGrouplessDeployContractTx {
     return {
       fromAddress: params.fromAddress,
       bytecode: params.bytecode,
@@ -253,8 +255,9 @@ export abstract class TransactionBuilder {
     }
   }
 
-
-  private buildGrouplessExecuteScriptTxParams(params: SignGrouplessExecuteScriptTxParams): node.BuildGrouplessExecuteScriptTx {
+  private buildGrouplessExecuteScriptTxParams(
+    params: SignGrouplessExecuteScriptTxParams
+  ): node.BuildGrouplessExecuteScriptTx {
     return {
       fromAddress: params.fromAddress,
       bytecode: params.bytecode,
