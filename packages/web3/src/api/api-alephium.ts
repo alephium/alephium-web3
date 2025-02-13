@@ -322,7 +322,6 @@ export interface BuildExecuteScriptTxResult {
 
 /** BuildGrouplessDeployContractTx */
 export interface BuildGrouplessDeployContractTx {
-  /** @format address */
   fromAddress: string
   /** @format hex-string */
   bytecode: string
@@ -347,7 +346,6 @@ export interface BuildGrouplessDeployContractTxResult {
 
 /** BuildGrouplessExecuteScriptTx */
 export interface BuildGrouplessExecuteScriptTx {
-  /** @format address */
   fromAddress: string
   /** @format hex-string */
   bytecode: string
@@ -370,7 +368,6 @@ export interface BuildGrouplessExecuteScriptTxResult {
 
 /** BuildGrouplessTransferTx */
 export interface BuildGrouplessTransferTx {
-  /** @format address */
   fromAddress: string
   destinations: Destination[]
   /** @format uint256 */
@@ -3841,32 +3838,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: 'POST',
         body: data,
         type: ContentType.Json,
-        format: 'json',
-        ...params
-      }).then(convertHttpResponse),
-
-    /**
-     * No description
-     *
-     * @tags Groupless
-     * @name GetGrouplessAddressBalance
-     * @summary Get the balance of a groupless address
-     * @request GET:/groupless/{address}/balance
-     */
-    getGrouplessAddressBalance: (
-      address: string,
-      query?: {
-        mempool?: boolean
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<
-        Balance,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
-      >({
-        path: `/groupless/${address}/balance`,
-        method: 'GET',
-        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse)
