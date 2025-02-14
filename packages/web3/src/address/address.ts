@@ -94,7 +94,7 @@ function decodeAndValidateAddress(address: string): Uint8Array {
 }
 
 export function addressToBytes(address: string): Uint8Array {
-  if (address.length > 2 && address[address.length - 2] === '@') {
+  if (hasExplicitGroupIndex(address)) {
     const groupIndex = parseGroupIndex(address[address.length - 1])
     const decoded = base58ToBytes(address.slice(0, address.length - 2))
     if (decoded[0] === 0x04 && decoded.length === 39) {
@@ -293,6 +293,10 @@ export function groupFromBytes(bytes: Uint8Array): number {
 export function groupFromHint(hint: number): number {
   const hash = xorByte(hint)
   return hash % TOTAL_NUMBER_OF_GROUPS
+}
+
+export function hasExplicitGroupIndex(address: string): boolean {
+  return address.length > 2 && address[address.length - 2] === '@'
 }
 
 function findScriptHint(hint: number, groupIndex: number): number {
