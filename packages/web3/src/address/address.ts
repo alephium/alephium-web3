@@ -296,7 +296,7 @@ export function groupFromHint(hint: number): number {
 }
 
 export function hasExplicitGroupIndex(address: string): boolean {
-  return address.length > 2 && address[address.length - 2] === '@'
+  return address.length > 2 && address[address.length - 2] === '/'
 }
 
 function findScriptHint(hint: number, groupIndex: number): number {
