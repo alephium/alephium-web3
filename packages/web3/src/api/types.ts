@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { hasExplicitGroupIndex } from '../address'
 import { ZERO_ADDRESS } from '../constants'
 import { isDebugModeEnabled } from '../debug'
 import { TraceableError } from '../error'
@@ -99,14 +100,18 @@ export function toApiByteVec(v: Val): string {
   throw new Error(`Invalid hex-string: ${v}`)
 }
 
-export function toApiAddress(v: Val): string {
-  if (typeof v === 'string') {
-    if (isBase58(v)) {
-      return v
+export function toApiAddress(v0: Val): string {
+  if (typeof v0 === 'string') {
+    let v = v0
+    if (hasExplicitGroupIndex(v)) {
+      v = v.slice(0, -2)
     }
-    throw new Error(`Invalid base58 string: ${v}`)
+    if (isBase58(v)) {
+      return v0
+    }
+    throw new Error(`Invalid base58 string: ${v0}`)
   } else {
-    throw new Error(`Invalid value: ${v}, expected a base58 string`)
+    throw new Error(`Invalid value: ${v0}, expected a base58 string`)
   }
 }
 
