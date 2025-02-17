@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Number256, Token } from '../api'
 import { node } from '../api'
+import { SimulationResult } from '../api/api-alephium'
 import { Eq, assertType, NetworkId } from '../utils'
 
 export type Address = string
@@ -33,7 +34,7 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
-export type KeyType = 'default' | 'bip340-schnorr'
+export type KeyType = 'default' | 'bip340-schnorr' | 'groupless'
 
 export interface Account {
   keyType: KeyType
@@ -113,7 +114,7 @@ export interface SignExecuteScriptTxResult {
   signature: string
   gasAmount: number
   gasPrice: Number256
-  simulatedOutputs: node.Output[]
+  simulationResult: SimulationResult
 }
 assertType<
   Eq<
@@ -158,6 +159,39 @@ export type SignChainedTxResult =
   | SignTransferChainedTxResult
   | SignDeployContractChainedTxResult
   | SignExecuteScriptChainedTxResult
+
+export interface SignGrouplessTransferTxParams {
+  fromAddress: string
+  destinations: Destination[]
+  gasPrice?: Number256
+  targetBlockHash?: string
+}
+assertType<Eq<keyof SignGrouplessTransferTxParams, keyof node.BuildGrouplessTransferTx>>()
+export interface SignGrouplessDeployContractTxParams {
+  fromAddress: string
+  bytecode: string
+  initialAttoAlphAmount?: Number256
+  initialTokenAmounts?: Token[]
+  issueTokenAmount?: Number256
+  issueTokenTo?: string
+  gasPrice?: Number256
+  targetBlockHash?: string
+}
+assertType<Eq<keyof SignGrouplessDeployContractTxParams, keyof node.BuildGrouplessDeployContractTx>>()
+export interface SignGrouplessExecuteScriptTxParams {
+  fromAddress: string
+  bytecode: string
+  attoAlphAmount?: Number256
+  tokens?: Token[]
+  gasPrice?: Number256
+  targetBlockHash?: string
+  gasEstimationMultiplier?: number
+}
+assertType<Eq<keyof SignGrouplessExecuteScriptTxParams, keyof node.BuildGrouplessExecuteScriptTx>>()
+export type SignGrouplessTxParams =
+  | SignGrouplessTransferTxParams
+  | SignGrouplessDeployContractTxParams
+  | SignGrouplessExecuteScriptTxParams
 
 export type MessageHasher =
   | 'alephium' // Message is prefixed with 'Alephium signed message: ' before hashed with blake2b

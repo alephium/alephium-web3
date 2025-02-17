@@ -298,5 +298,5 @@ export function toApiDestinations(data: Destination[]): node.Destination[] {
 }
 
 export function fromApiDestination(data: node.Destination): Destination {
-  return { ...data, attoAlphAmount: fromApiNumber256(data.attoAlphAmount), tokens: fromApiTokens(data.tokens) }
+  return { ...data, attoAlphAmount: fromApiNumber256(data.attoAlphAmount ?? '0'), tokens: fromApiTokens(data.tokens) }
 }

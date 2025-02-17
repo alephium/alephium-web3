@@ -40,7 +40,7 @@ necc.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8A
 export function sign(hash: string, privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default') {
+  if (keyType === 'default' || keyType === 'groupless') {
     const key = ec.keyFromPrivate(privateKey)
     const signature = key.sign(hash)
     return encodeSignature(signature)
@@ -54,7 +54,7 @@ export function verifySignature(hash: string, publicKey: string, signature: stri
   const keyType = _keyType ?? 'default'
 
   try {
-    if (keyType === 'default') {
+    if (keyType === 'default' || keyType === 'groupless') {
       const key = ec.keyFromPublic(publicKey, 'hex')
       return key.verify(hash, signatureDecode(ec, signature))
     } else {
