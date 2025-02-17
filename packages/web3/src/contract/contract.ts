@@ -606,7 +606,7 @@ export class Contract extends Artifact {
       if (group === undefined) {
         throw new Error('Groupless address requires a group number')
       }
-      signerAddress = `${selectedAccount.address}/${group}`
+      signerAddress = `${selectedAccount.address}:${group}`
     }
 
     const signerParams: SignDeployContractTxParams = {
