@@ -883,9 +883,7 @@ export class Project {
     isExternal: boolean
   ): Promise<SourceInfo[]> {
     const contractRelativePath = path.relative(contractsRootDir, sourcePath)
-    if (!sourcePath.endsWith('.ral')) {
-      throw new Error(`Invalid filename: ${sourcePath}, smart contract file name should end with ".ral"`)
-    }
+    if (!sourcePath.endsWith('.ral')) return []
 
     const sourceBuffer = await fsPromises.readFile(sourcePath)
     const [sourceStr, externalSourceInfos] = await Project.handleImports(
