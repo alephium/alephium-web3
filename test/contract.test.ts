@@ -451,14 +451,14 @@ describe('contract', function () {
     const test0 = OwnerOnly.tests.testOwner({
       initialFields: { owner: parentAddress },
       address: address,
-      callerAddress: randomContractAddress()
+      callerContractAddress: randomContractAddress()
     })
     expectAssertionError(test0, address, 0)
 
     const test1 = await OwnerOnly.tests.testOwner({
       initialFields: { owner: parentAddress },
       address: address,
-      callerAddress: parentAddress
+      callerContractAddress: parentAddress
     })
     // expectAssertionError(test2, address, 0)
     expect(test1.returns).toEqual(null)

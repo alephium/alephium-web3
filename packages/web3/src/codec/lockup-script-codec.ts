@@ -16,8 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { i32Codec } from './compact-int-codec'
-import { byte32Codec, EnumCodec, ObjectCodec } from './codec'
+import { byte32Codec, byteCodec, EnumCodec, FixedSizeCodec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
+import { intAs4BytesCodec } from './int-as-4bytes-codec'
 
 export type PublicKeyHash = Uint8Array
 export type P2PKH = Uint8Array
@@ -31,9 +32,23 @@ export interface P2MPKH {
   m: number
 }
 
+export interface P2PC {
+  type: number
+  publicKey: Uint8Array
+  checkSum: Uint8Array
+  scriptHint: number
+}
+
 const p2mpkhCodec = new ObjectCodec<P2MPKH>({
   publicKeyHashes: new ArrayCodec(byte32Codec),
   m: i32Codec
+})
+
+const p2pkCodec = new ObjectCodec<P2PC>({
+  type: byteCodec,
+  publicKey: new FixedSizeCodec(33),
+  checkSum: new FixedSizeCodec(4),
+  scriptHint: intAs4BytesCodec
 })
 
 export type LockupScript =
@@ -41,10 +56,12 @@ export type LockupScript =
   | { kind: 'P2MPKH'; value: P2MPKH }
   | { kind: 'P2SH'; value: P2SH }
   | { kind: 'P2C'; value: P2C }
+  | { kind: 'P2PK'; value: P2PC }
 
 export const lockupScriptCodec = new EnumCodec<LockupScript>('lockup script', {
   P2PKH: byte32Codec,
   P2MPKH: p2mpkhCodec,
   P2SH: byte32Codec,
-  P2C: byte32Codec
+  P2C: byte32Codec,
+  P2PK: p2pkCodec
 })
