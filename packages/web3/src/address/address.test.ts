@@ -30,7 +30,9 @@ import {
   isContractAddress,
   isValidAddress,
   groupOfLockupScript,
-  isGrouplessAddress
+  isGrouplessAddress,
+  isGrouplessAddressWithGroupIndex,
+  isGrouplessAddressWithoutGroupIndex
 } from './address'
 import { binToHex, bs58 } from '../utils'
 import { randomBytes } from 'crypto'
@@ -118,6 +120,14 @@ describe('address', function () {
     expect(isGrouplessAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(false)
     expect(isGrouplessAddress('qeKk7r92Vn2Xjn4GcMEcJ2EwVfVs27kWUpptrWcWsUWC')).toEqual(false)
     expect(() => isGrouplessAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9k')).toThrow('Invalid address:')
+    expect(isGrouplessAddressWithoutGroupIndex('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toEqual(true)
+    expect(isGrouplessAddressWithoutGroupIndex('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:1')).toEqual(
+      false
+    )
+    expect(isGrouplessAddressWithoutGroupIndex('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(false)
+    expect(isGrouplessAddressWithGroupIndex('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:1')).toEqual(true)
+    expect(isGrouplessAddressWithGroupIndex('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toEqual(false)
+    expect(isGrouplessAddressWithGroupIndex('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(false)
   })
 
   it('should calculate the group of addresses', () => {

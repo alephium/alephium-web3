@@ -58,7 +58,13 @@ import {
   isHexString,
   hexToString
 } from '../utils'
-import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId, isGrouplessAddress, hasExplicitGroupIndex } from '../address'
+import {
+  contractIdFromAddress,
+  groupOfAddress,
+  addressFromContractId,
+  subContractId,
+  isGrouplessAddressWithoutGroupIndex,
+} from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
@@ -602,9 +608,9 @@ export class Contract extends Artifact {
     )
     const selectedAccount = await signer.getSelectedAccount()
     let signerAddress = selectedAccount.address
-    if (isGrouplessAddress(selectedAccount.address) && !hasExplicitGroupIndex(selectedAccount.address)) {
+    if (isGrouplessAddressWithoutGroupIndex(selectedAccount.address)) {
       if (group === undefined) {
-        throw new Error('Groupless address requires a group number')
+        throw new Error('Groupless address requires explicit group number for contract deployment')
       }
       signerAddress = `${selectedAccount.address}:${group}`
     }
@@ -1088,12 +1094,19 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
 
   abstract at(address: string): I
 
-  async deploy(signer: SignerProvider, deployParams: DeployContractParams<F>, group?: number): Promise<DeployContractResult<I>> {
-
-    const signerParams = await this.contract.txParamsForDeployment(signer, {
-      ...deployParams,
-      initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
-    }, group)
+  async deploy(
+    signer: SignerProvider,
+    deployParams: DeployContractParams<F>,
+    group?: number
+  ): Promise<DeployContractResult<I>> {
+    const signerParams = await this.contract.txParamsForDeployment(
+      signer,
+      {
+        ...deployParams,
+        initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
+      },
+      group
+    )
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     return {
       ...result,

@@ -130,6 +130,14 @@ export function isGrouplessAddress(address: string) {
   return addressType === AddressType.P2PK
 }
 
+export function isGrouplessAddressWithoutGroupIndex(address: string) {
+  return !hasExplicitGroupIndex(address) && isGrouplessAddress(address)
+}
+
+export function isGrouplessAddressWithGroupIndex(address: string) {
+  return hasExplicitGroupIndex(address) && isGrouplessAddress(address)
+}
+
 export function isContractAddress(address: string) {
   const addressType = decodeAndValidateAddress(address)[0]
   return addressType === AddressType.P2C
