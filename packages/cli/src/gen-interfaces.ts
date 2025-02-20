@@ -51,8 +51,9 @@ function genInterface(contract: Contract, structNames: string[], contractNames: 
   const interfaceName = `I${contract.name}__`
   const functions: string[] = []
   let publicFuncIndex = 0
-  contract.functions.forEach((funcSig, index) => {
-    const method = contract.decodedContract.methods[`${index}`]
+  const methods = contract.decodedContract.methods
+  methods.forEach((method, index) => {
+    const funcSig = contract.functions[`${index}`]
     if (!method.isPublic) return
     const usingAnnotations: string[] = []
     if (publicFuncIndex !== index) usingAnnotations.push(`methodIndex = ${index}`)
