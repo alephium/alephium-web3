@@ -643,6 +643,10 @@ function genContractByCodeHash(outDir: string) {
 
     let contracts: ContractFactory<any>[] | undefined = undefined
 
+    export function getAllContracts(): ContractFactory<any>[] {
+      return contracts ?? []
+    }
+
     export function registerContract(factory: ContractFactory<any>) {
       if (contracts === undefined) {
         contracts = [factory]

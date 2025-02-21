@@ -6,6 +6,10 @@ import { Contract, ContractFactory } from "@alephium/web3";
 
 let contracts: ContractFactory<any>[] | undefined = undefined;
 
+export function getAllContracts(): ContractFactory<any>[] {
+  return contracts ?? [];
+}
+
 export function registerContract(factory: ContractFactory<any>) {
   if (contracts === undefined) {
     contracts = [factory];
