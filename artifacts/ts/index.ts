@@ -31,4 +31,5 @@ export * from "./Transact";
 export * from "./UserAccount";
 export * from "./Warnings";
 export * from "./WrongNFTTest";
+export * from "./contracts";
 export * from "./scripts";
