@@ -18,6 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { Number256, Token } from '../api'
 import { node } from '../api'
+import { SimulationResult } from '../api/api-alephium'
 import { Eq, assertType, NetworkId } from '../utils'
 
 export type Address = string
@@ -113,7 +114,7 @@ export interface SignExecuteScriptTxResult {
   signature: string
   gasAmount: number
   gasPrice: Number256
-  simulatedOutputs: node.Output[]
+  simulationResult: SimulationResult
 }
 assertType<
   Eq<
