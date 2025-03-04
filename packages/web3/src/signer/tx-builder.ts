@@ -72,6 +72,28 @@ export abstract class TransactionBuilder {
     return this.convertTransferTxResult(response)
   }
 
+  async buildTransferFromOneToManyGroups(
+    params: SignTransferTxParams,
+    publicKey: string
+  ): Promise<Omit<SignTransferTxResult, 'signature'>[]> {
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+
+    const { destinations, gasPrice, ...rest } = params
+    const data: node.BuildTransferTx = {
+      fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
+      destinations: toApiDestinations(destinations),
+      gasPrice: toApiNumber256Optional(gasPrice),
+      ...rest
+    }
+    const results = await this.nodeProvider.transactions.postTransactionsBuildTransferFromOneToManyGroups(data)
+    const response = results.map((result) => ({
+      ...result,
+      gasPrice: fromApiNumber256(result.gasPrice)
+    }))
+    return response
+  }
+
   async buildDeployContractTx(
     params: SignDeployContractTxParams,
     publicKey: string
