@@ -22,7 +22,7 @@ import { SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { TxStatus } from '../packages/web3'
 import { HDWallet, HDWalletAccount, PrivateKeyWallet, generateMnemonic } from '@alephium/web3-wallet'
-import { Add, Sub, AddMain, Transact, Deposit, DepositToken } from '../artifacts/ts'
+import { Add, Sub, AddMain, Transact, Deposit, DepositToken, Withdraw } from '../artifacts/ts'
 import { getSigner, mintToken, testPrivateKeyWallet } from '../packages/web3-test'
 import { TransactionBuilder } from '../packages/web3'
 import { ALPH_TOKEN_ID } from '../packages/web3'
@@ -105,7 +105,9 @@ describe('transactions', function () {
     expect((await addInstance.fetchState()).fields.result).toBe(3n)
   })
 
-  async function prepareChainedTxTest(): Promise<[HDWallet, HDWalletAccount, HDWalletAccount, HDWalletAccount]> {
+  async function prepareChainedTxTest(
+    account1Balance: bigint = 100n * ONE_ALPH
+  ): Promise<[HDWallet, HDWalletAccount, HDWalletAccount, HDWalletAccount]> {
     const mnemonic = generateMnemonic()
     const wallet = new HDWallet({ mnemonic })
     const account1 = wallet.deriveAndAddNewAccount(1)
@@ -114,7 +116,7 @@ describe('transactions', function () {
 
     await testPrivateKeyWallet.signAndSubmitTransferTx({
       signerAddress: testPrivateKeyWallet.address,
-      destinations: [{ address: account1.address, attoAlphAmount: 100n * ONE_ALPH }]
+      destinations: [{ address: account1.address, attoAlphAmount: account1Balance }]
     })
 
     return [wallet, account1, account2, account3]
@@ -279,6 +281,47 @@ describe('transactions', function () {
 
     const contractState = await transactInstance.fetchState()
     expect(contractState.fields.totalALPH).toEqual(ONE_ALPH)
+  })
+
+  it('should build chained dApp transactions', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const [wallet, account1] = await prepareChainedTxTest(ONE_ALPH / 2n)
+
+    const deployer = await getSigner(100n * ONE_ALPH, 1)
+    const { tokenId } = await mintToken(deployer.address, 10n)
+    const deploy = await Transact.deploy(deployer, {
+      initialAttoAlphAmount: 10n * ONE_ALPH,
+      initialFields: { tokenId, totalALPH: 10n * ONE_ALPH, totalTokens: 0n }
+    })
+    const transactInstance = deploy.contractInstance
+    expect(transactInstance.groupIndex).toBe(1)
+
+    const account1BalanceBefore = await nodeProvider.addresses.getAddressesAddressBalance(account1.address)
+    expect(BigInt(account1BalanceBefore.balance)).toBe(ONE_ALPH / 2n)
+
+    await wallet.setSelectedAccount(account1.address)
+    const depositTxParams = await Deposit.script.txParamsForExecution(wallet, {
+      initialFields: { c: transactInstance.contractId },
+      attoAlphAmount: ONE_ALPH + DUST_AMOUNT * 3n
+    })
+    expect(depositTxParams.signerAddress).toBe(account1.address)
+    await expect(wallet.signAndSubmitExecuteScriptTx(depositTxParams)).rejects.toThrow(
+      `Failed to request postContractsUnsignedTxExecuteScript, error: [API Error] - Execution error when emulating tx script or contract: Not enough approved balance for address ${account1.address}, tokenId: ALPH, expected: 1000000000000000000, got: 498000000000000000 - Status code: 400`
+    )
+
+    const withdrawTxParams = await Withdraw.script.txParamsForExecution(wallet, {
+      initialFields: { c: transactInstance.contractId }
+    })
+
+    const [withdrawTxResult, depositTxResult] = await wallet.signAndSubmitChainedTx([
+      { ...withdrawTxParams, type: 'ExecuteScript' },
+      { ...depositTxParams, type: 'ExecuteScript' }
+    ])
+
+    const withdrawTxGasCost = BigInt(withdrawTxResult.gasAmount) * BigInt(withdrawTxResult.gasPrice)
+    const depositTxGasCost = BigInt(depositTxResult.gasAmount) * BigInt(depositTxResult.gasPrice)
+    const account1BalanceAfter = await nodeProvider.addresses.getAddressesAddressBalance(account1.address)
+    expect(BigInt(account1BalanceAfter.balance)).toBe(ONE_ALPH / 2n - withdrawTxGasCost - depositTxGasCost)
   })
 
   it('should fail when public keys do not match the build chained transactions parameters', async () => {

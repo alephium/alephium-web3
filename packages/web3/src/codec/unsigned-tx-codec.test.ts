@@ -117,7 +117,8 @@ describe('Encode & decode unsigned transactions', function () {
 
     const buildExecuteScriptTxResult = await signer1.buildExecuteScriptTx({
       signerAddress: signer1.address,
-      bytecode: scriptBytecode
+      bytecode: scriptBytecode,
+      attoAlphAmount: ONE_ALPH * 4n
     })
 
     await checkUnsignedTxCodec(buildExecuteScriptTxResult.unsignedTx)
