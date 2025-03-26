@@ -39,7 +39,7 @@ export async function genInterfaces(artifactDir: string, outDir: string) {
   }
   if (structs.length > 0) {
     const structDefs = genStructs(structs, structNames, contractNames)
-    await saveToFile(path.join(outPath, '__structs.ral'), structDefs)
+    await saveToFile(path.join(outPath, 'structs__.ral'), structDefs)
   }
 }
 
@@ -48,11 +48,12 @@ async function saveToFile(filePath: string, content: string) {
 }
 
 function genInterface(contract: Contract, structNames: string[], contractNames: string[]) {
-  const interfaceName = `__I${contract.name}`
+  const interfaceName = `I${contract.name}__`
   const functions: string[] = []
   let publicFuncIndex = 0
-  contract.functions.forEach((funcSig, index) => {
-    const method = contract.decodedContract.methods[`${index}`]
+  const methods = contract.decodedContract.methods
+  methods.forEach((method, index) => {
+    const funcSig = contract.functions[`${index}`]
     if (!method.isPublic) return
     const usingAnnotations: string[] = []
     if (publicFuncIndex !== index) usingAnnotations.push(`methodIndex = ${index}`)

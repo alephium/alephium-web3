@@ -635,13 +635,17 @@ function genIndexTs(outDir: string, exports: string[]) {
   formatAndSaveToFile(indexPath, header + exportStatements)
 }
 
-function genContractByCodeHash(outDir: string) {
+function genContractByCodeHash(outDir: string, exports: string[]) {
   const source = `
     ${header}
 
     import { Contract, ContractFactory } from '@alephium/web3'
 
     let contracts: ContractFactory<any>[] | undefined = undefined
+
+    export function getAllContracts(): ContractFactory<any>[] {
+      return contracts ?? []
+    }
 
     export function registerContract(factory: ContractFactory<any>) {
       if (contracts === undefined) {
@@ -659,6 +663,7 @@ function genContractByCodeHash(outDir: string) {
     }
   `
   const filename = 'contracts.ts'
+  exports.push('./contracts')
   const sourcePath = path.join(outDir, filename)
   formatAndSaveToFile(sourcePath, source)
 }
@@ -914,7 +919,7 @@ export function codegen(project: Project) {
     genStructTypes(outDir)
     genGlobalConstants(project, outDir)
     genContracts(outDir, artifactDir, exports)
-    genContractByCodeHash(outDir)
+    genContractByCodeHash(outDir, exports)
     genScripts(outDir, artifactDir, exports)
     genIndexTs(outDir, exports)
   } catch (error) {

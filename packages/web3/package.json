@@ -33,7 +33,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "3.10.0",
+    "alephium_version": "3.12.2",
     "explorer_backend_version": "2.3.2"
   },
   "scripts": {
@@ -53,7 +53,7 @@
     "bn.js": "5.2.1",
     "cross-fetch": "^3.1.5",
     "crypto-browserify": "^3.12.0",
-    "elliptic": "6.6.0",
+    "elliptic": "6.6.1",
     "eventemitter3": "^4.0.7",
     "path-browserify": "^1.0.1",
     "stream-browserify": "^3.0.0"
