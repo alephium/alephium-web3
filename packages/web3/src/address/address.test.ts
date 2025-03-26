@@ -39,6 +39,7 @@ import { randomBytes } from 'crypto'
 import { LockupScript } from '../codec/lockup-script-codec'
 import { intAs4BytesCodec } from '../codec/int-as-4bytes-codec'
 import djb2 from '../utils/djb2'
+import { byteCodec } from '../codec/codec'
 
 describe('address', function () {
   it('should validate address', () => {
@@ -155,7 +156,7 @@ describe('address', function () {
     expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kk')).toBe(1)
     expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9km')).toBe(2)
     expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kn')).toBe(3)
-    expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toBe(2)
+    expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toBe(0) // Default to 0
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:0')).toBe(0)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:1')).toBe(1)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:2')).toBe(2)
@@ -186,9 +187,10 @@ describe('address', function () {
 
     const publicKeyLike = new Uint8Array([0x00, ...bytes4])
     const checkSum = intAs4BytesCodec.encode(djb2(publicKeyLike))
-    const scriptHint = djb2(bytes4) | 1
-    const p2pk: LockupScript = { kind: 'P2PK', value: { type: 0, publicKey: bytes4, scriptHint, checkSum } }
-    const p2pkAddress = bs58.encode(new Uint8Array([0x04, 0x00, ...bytes4, ...checkSum]))
+    const group = 0
+    const groupByte = byteCodec.encode(group)
+    const p2pk: LockupScript = { kind: 'P2PK', value: { type: 0, publicKey: bytes4, checkSum, group } }
+    const p2pkAddress = bs58.encode(new Uint8Array([0x04, 0x00, ...bytes4, ...checkSum, ...groupByte]))
     expect(groupOfAddress(p2pkAddress)).toBe(groupOfLockupScript(p2pk))
   })
 

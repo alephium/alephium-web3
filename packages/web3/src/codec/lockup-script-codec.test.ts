@@ -21,6 +21,7 @@ import djb2 from '../utils/djb2'
 import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { binToHex, bs58, hexToBinUnsafe } from '../utils'
 import { tokenIdFromAddress } from '../address'
+import { byteCodec } from './codec'
 
 describe('LockupScript', function () {
   it('should encode & decode lockup script', function () {
@@ -37,10 +38,10 @@ describe('LockupScript', function () {
     test(new Uint8Array([0x03, ...bytes0]), { kind: 'P2C', value: new Uint8Array(bytes0) })
 
     const checkSum = intAs4BytesCodec.encode(djb2(bytes3))
-    const scriptHint = djb2(bytes3) | 1
-    const scriptHintBytes = intAs4BytesCodec.encode(scriptHint)
-    const p2pk = { type: 0x00, publicKey: bytes3, checkSum, scriptHint }
-    test(new Uint8Array([0x04, 0x00, ...bytes3, ...checkSum, ...scriptHintBytes]), { kind: 'P2PK', value: p2pk })
+    const group = 0
+    const groupByte = byteCodec.encode(group)
+    const p2pk = { type: 0x00, publicKey: bytes3, checkSum, group }
+    test(new Uint8Array([0x04, 0x00, ...bytes3, ...checkSum, ...groupByte]), { kind: 'P2PK', value: p2pk })
   })
 
   function test(encoded: Uint8Array, expected: LockupScript) {

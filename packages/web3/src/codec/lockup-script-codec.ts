@@ -36,7 +36,7 @@ export interface P2PC {
   type: number
   publicKey: Uint8Array
   checkSum: Uint8Array
-  scriptHint: number
+  group: number
 }
 
 const p2mpkhCodec = new ObjectCodec<P2MPKH>({
@@ -48,7 +48,7 @@ const p2pkCodec = new ObjectCodec<P2PC>({
   type: byteCodec,
   publicKey: new FixedSizeCodec(33),
   checkSum: new FixedSizeCodec(4),
-  scriptHint: intAs4BytesCodec
+  group: byteCodec
 })
 
 export type LockupScript =

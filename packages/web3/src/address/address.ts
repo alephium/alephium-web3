@@ -28,6 +28,7 @@ import { i32Codec, intAs4BytesCodec } from '../codec'
 import { LockupScript } from '../codec/lockup-script-codec'
 import djb2 from '../utils/djb2'
 import { TraceableError } from '../error'
+import { byteCodec } from '../codec/codec'
 
 const ec = new EC('secp256k1')
 const PublicKeyHashSize = 32
@@ -77,8 +78,8 @@ function decodeAndValidateAddress(address: string): Uint8Array {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
   } else if (addressType === AddressType.P2PK) {
-    if (decoded.length === 43) {
-      // [type, keyType, ...publicKey, ...checkSum, ...scriptHint]
+    if (decoded.length === 40) {
+      // [type, keyType, ...publicKey, ...checkSum, ...groupByte]
       const publicKeyLikeBytes = decoded.slice(1, 35)
       const checksum = binToHex(decoded.slice(35, 39))
       const expectedChecksum = binToHex(intAs4BytesCodec.encode(djb2(publicKeyLikeBytes)))
@@ -98,18 +99,15 @@ export function addressToBytes(address: string): Uint8Array {
     const groupIndex = parseGroupIndex(address[address.length - 1])
     const decoded = base58ToBytes(address.slice(0, address.length - 2))
     if (decoded[0] === 0x04 && decoded.length === 39) {
-      const publicKeyBytes = decoded.slice(2, 35)
-      const scriptHint = findScriptHint(djb2(publicKeyBytes) | 1, groupIndex)
-      const scriptHintBytes = intAs4BytesCodec.encode(scriptHint)
-      return new Uint8Array([...decoded, ...scriptHintBytes])
+      const groupByte = byteCodec.encode(groupIndex)
+      return new Uint8Array([...decoded, ...groupByte])
     }
     throw new Error(`Invalid groupless address: ${address}`)
   } else {
     const decoded = base58ToBytes(address)
     if (decoded[0] === 0x04 && decoded.length === 39) {
-      const publicKeyBytes = decoded.slice(2, 35)
-      const scriptHintBytes = intAs4BytesCodec.encode(djb2(publicKeyBytes) | 1)
-      return new Uint8Array([...decoded, ...scriptHintBytes])
+      const groupByte = byteCodec.encode(0)    // Default to 0?? or just return the decoded address without group?
+      return new Uint8Array([...decoded, ...groupByte])
     }
     return decoded
   }
@@ -174,7 +172,7 @@ function groupOfP2mpkhAddress(address: Uint8Array): number {
 }
 
 function groupOfP2pkAddress(address: Uint8Array): number {
-  return groupFromHint(intAs4BytesCodec.decode(address.slice(38, 42)))
+  return byteCodec.decode(address.slice(38, 39)) % TOTAL_NUMBER_OF_GROUPS
 }
 
 // Pay to script hash address
@@ -285,7 +283,7 @@ export function groupOfLockupScript(lockupScript: LockupScript): number {
   } else if (lockupScript.kind === 'P2SH') {
     return groupFromBytes(lockupScript.value)
   } else if (lockupScript.kind === 'P2PK') {
-    return groupFromHint(lockupScript.value.scriptHint)
+    return lockupScript.value.group % TOTAL_NUMBER_OF_GROUPS
   } else {
     // P2C
     const contractId = lockupScript.value
