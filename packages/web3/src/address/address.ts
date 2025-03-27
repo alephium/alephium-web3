@@ -86,6 +86,8 @@ function decodeAndValidateAddress(address: string): Uint8Array {
       if (checksum !== expectedChecksum) {
         throw new Error(`Invalid checksum for P2PK address: ${address}`)
       }
+      const group = byteCodec.decode(decoded.slice(39, 40))
+      validateGroupIndex(group)
 
       return decoded
     }
@@ -106,7 +108,8 @@ export function addressToBytes(address: string): Uint8Array {
   } else {
     const decoded = base58ToBytes(address)
     if (decoded[0] === 0x04 && decoded.length === 39) {
-      const groupByte = byteCodec.encode(0)    // Default to 0?? or just return the decoded address without group?
+      const group = defaultGroupOfGrouplessAddress(decoded.slice(2, 35))
+      const groupByte = byteCodec.encode(group)
       return new Uint8Array([...decoded, ...groupByte])
     }
     return decoded
@@ -134,6 +137,10 @@ export function isGrouplessAddressWithoutGroupIndex(address: string) {
 
 export function isGrouplessAddressWithGroupIndex(address: string) {
   return hasExplicitGroupIndex(address) && isGrouplessAddress(address)
+}
+
+export function defaultGroupOfGrouplessAddress(pubKey: Uint8Array): number {
+  return pubKey[pubKey.length - 1] & 0xff % TOTAL_NUMBER_OF_GROUPS
 }
 
 export function isContractAddress(address: string) {
@@ -314,9 +321,13 @@ function findScriptHint(hint: number, groupIndex: number): number {
 }
 
 function parseGroupIndex(groupIndexStr: string): number {
-  const groupIndex = parseInt(groupIndexStr)
+  return validateGroupIndex(parseInt(groupIndexStr), groupIndexStr)
+}
+
+function validateGroupIndex(groupIndex: number, groupIndexStr?: string): number {
   if (isNaN(groupIndex) || groupIndex < 0 || groupIndex >= TOTAL_NUMBER_OF_GROUPS) {
-    throw new Error(`Invalid group index: ${groupIndexStr}`)
+    throw new Error(`Invalid group index: ${groupIndexStr ?? groupIndex}`)
   }
+
   return groupIndex
 }

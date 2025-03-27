@@ -32,7 +32,8 @@ import {
   groupOfLockupScript,
   isGrouplessAddress,
   isGrouplessAddressWithGroupIndex,
-  isGrouplessAddressWithoutGroupIndex
+  isGrouplessAddressWithoutGroupIndex,
+  defaultGroupOfGrouplessAddress
 } from './address'
 import { binToHex, bs58 } from '../utils'
 import { randomBytes } from 'crypto'
@@ -156,7 +157,9 @@ describe('address', function () {
     expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kk')).toBe(1)
     expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9km')).toBe(2)
     expect(groupOfAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kn')).toBe(3)
-    expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toBe(0) // Default to 0
+    expect(groupOfAddress('3cUs6NYx4yS3n3t4ukgDcvHxvoer4i1tag2sJvEaadUjRottEiujx')).toBe(1)
+    expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toBe(2)
+    expect(groupOfAddress('3cUrFgcoKdfWTqXEX32JsJyJ5y7rufetcUjo7bemo5kcS9zQghv5K')).toBe(3)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:0')).toBe(0)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:1')).toBe(1)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:2')).toBe(2)
