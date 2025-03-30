@@ -32,6 +32,7 @@ export interface P2SH {
   params: Val[]
 }
 export type SameAsPrevious = 'SameAsPrevious'
+export type P2PK = 'P2PK'
 
 export type KeyType = number
 
@@ -41,7 +42,7 @@ export type UnlockScript =
   | { kind: 'P2SH'; value: P2SH }
   | { kind: 'SameAsPrevious'; value: SameAsPrevious }
   | { kind: 'PoLW'; value: PublicKey }
-  | { kind: 'P2PK'; value: KeyType }
+  | { kind: 'P2PK'; value: P2PK }
 
 const publicKeyCodec = new FixedSizeCodec(33)
 const keyWithIndexCodec = new ObjectCodec<KeyWithIndex>({
@@ -61,6 +62,14 @@ const sameAsPreviousCodec = new (class extends Codec<SameAsPrevious> {
     return 'SameAsPrevious'
   }
 })()
+const p2pkCodec = new (class extends Codec<P2PK> {
+  encode(): Uint8Array {
+    return new Uint8Array([])
+  }
+  _decode(): P2PK {
+    return 'P2PK'
+  }
+})()
 
 export const unlockScriptCodec = new EnumCodec<UnlockScript>('unlock script', {
   P2PKH: publicKeyCodec,
@@ -68,7 +77,7 @@ export const unlockScriptCodec = new EnumCodec<UnlockScript>('unlock script', {
   P2SH: p2shCodec,
   SameAsPrevious: sameAsPreviousCodec,
   PoLW: publicKeyCodec,
-  P2PK: byteCodec
+  P2PK: p2pkCodec
 })
 
 export const encodedSameAsPrevious = unlockScriptCodec.encode({ kind: 'SameAsPrevious', value: 'SameAsPrevious' })
