@@ -312,11 +312,13 @@ export function hasExplicitGroupIndex(address: string): boolean {
   return address.length > 2 && address[address.length - 2] === ':'
 }
 
-function findScriptHint(hint: number, groupIndex: number): number {
-  if (groupFromHint(hint) === groupIndex) {
-    return hint
+export function addressFromLockupScript(lockupScript: LockupScript): string {
+  if (lockupScript.kind === 'P2PK') {
+    const groupByte = lockupScriptCodec.encode(lockupScript).slice(-1)
+    const address = bs58.encode(lockupScriptCodec.encode(lockupScript).slice(0, -1))
+    return `${address}:${groupByte}`
   } else {
-    return findScriptHint(hint + 1, groupIndex)
+    return bs58.encode(lockupScriptCodec.encode(lockupScript))
   }
 }
 

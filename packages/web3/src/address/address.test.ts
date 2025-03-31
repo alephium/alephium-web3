@@ -33,14 +33,15 @@ import {
   isGrouplessAddress,
   isGrouplessAddressWithGroupIndex,
   isGrouplessAddressWithoutGroupIndex,
-  defaultGroupOfGrouplessAddress
+  addressToBytes,
+  addressFromLockupScript,
+  hasExplicitGroupIndex
 } from './address'
-import { binToHex, bs58 } from '../utils'
+import { binToHex } from '../utils'
 import { randomBytes } from 'crypto'
-import { LockupScript } from '../codec/lockup-script-codec'
+import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { intAs4BytesCodec } from '../codec/int-as-4bytes-codec'
 import djb2 from '../utils/djb2'
-import { byteCodec } from '../codec/codec'
 
 describe('address', function () {
   it('should validate address', () => {
@@ -173,28 +174,45 @@ describe('address', function () {
     const bytes4 = new Uint8Array(randomBytes(33))
 
     const p2pkh: LockupScript = { kind: 'P2PKH', value: new Uint8Array(bytes0) }
-    const p2pkhAddress = bs58.encode(new Uint8Array([0x00, ...bytes0]))
+    const p2pkhAddress = addressFromLockupScript(p2pkh)
     expect(groupOfAddress(p2pkhAddress)).toBe(groupOfLockupScript(p2pkh))
 
     const p2mpkh: LockupScript = { kind: 'P2MPKH', value: { publicKeyHashes: [bytes0, bytes1, bytes2], m: 2 } }
-    const p2mpkhAddress = bs58.encode(new Uint8Array([0x01, 0x03, ...bytes0, ...bytes1, ...bytes2, 0x02]))
+    const p2mpkhAddress = addressFromLockupScript(p2mpkh)
     expect(groupOfAddress(p2mpkhAddress)).toBe(groupOfLockupScript(p2mpkh))
 
     const p2sh: LockupScript = { kind: 'P2SH', value: bytes0 }
-    const p2shAddress = bs58.encode(new Uint8Array([0x02, ...bytes0]))
+    const p2shAddress = addressFromLockupScript(p2sh)
     expect(groupOfAddress(p2shAddress)).toBe(groupOfLockupScript(p2sh))
 
     const p2c: LockupScript = { kind: 'P2C', value: bytes0 }
-    const p2cAddress = bs58.encode(new Uint8Array([0x03, ...bytes0]))
+    const p2cAddress = addressFromLockupScript(p2c)
     expect(groupOfAddress(p2cAddress)).toBe(groupOfLockupScript(p2c))
 
     const publicKeyLike = new Uint8Array([0x00, ...bytes4])
     const checkSum = intAs4BytesCodec.encode(djb2(publicKeyLike))
     const group = 0
-    const groupByte = byteCodec.encode(group)
     const p2pk: LockupScript = { kind: 'P2PK', value: { type: 0, publicKey: bytes4, checkSum, group } }
-    const p2pkAddress = bs58.encode(new Uint8Array([0x04, 0x00, ...bytes4, ...checkSum, ...groupByte]))
+    const p2pkAddress = addressFromLockupScript(p2pk)
     expect(groupOfAddress(p2pkAddress)).toBe(groupOfLockupScript(p2pk))
+
+    const grouplessAddresses = [
+      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U',
+      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:0',
+      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:1',
+      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:2',
+      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3'
+    ]
+
+    grouplessAddresses.forEach(address => {
+      const decoded = lockupScriptCodec.decode(addressToBytes(address))
+      const encoded = addressFromLockupScript(decoded)
+      if (hasExplicitGroupIndex(address)) {
+        expect(encoded).toBe(address)
+      } else {
+        expect(encoded).toBe(`${address}:${groupOfAddress(address)}`)
+      }
+    })
   })
 
   it('should extract token id from addresses', () => {
