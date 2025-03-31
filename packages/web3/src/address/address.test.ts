@@ -35,7 +35,8 @@ import {
   isGrouplessAddressWithoutGroupIndex,
   addressToBytes,
   addressFromLockupScript,
-  hasExplicitGroupIndex
+  hasExplicitGroupIndex,
+  addressWithoutExplicitGroupIndex
 } from './address'
 import { binToHex } from '../utils'
 import { randomBytes } from 'crypto'
@@ -204,7 +205,7 @@ describe('address', function () {
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3'
     ]
 
-    grouplessAddresses.forEach(address => {
+    grouplessAddresses.forEach((address) => {
       const decoded = lockupScriptCodec.decode(addressToBytes(address))
       const encoded = addressFromLockupScript(decoded)
       if (hasExplicitGroupIndex(address)) {
@@ -213,6 +214,18 @@ describe('address', function () {
         expect(encoded).toBe(`${address}:${groupOfAddress(address)}`)
       }
     })
+  })
+
+  it('should remove explicit group index from addresses', () => {
+    let address = 'tLf6hDfrUugmxZhKxGoZMpAUBt3NcZ2hrTspTCmZ6JdQ'
+    expect(addressWithoutExplicitGroupIndex(address)).toBe(address)
+
+    address = '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U'
+    expect(addressWithoutExplicitGroupIndex(address)).toBe(address)
+    expect(addressWithoutExplicitGroupIndex(`${address}:0`)).toBe(address)
+    expect(addressWithoutExplicitGroupIndex(`${address}:1`)).toBe(address)
+    expect(addressWithoutExplicitGroupIndex(`${address}:2`)).toBe(address)
+    expect(addressWithoutExplicitGroupIndex(`${address}:3`)).toBe(address)
   })
 
   it('should extract token id from addresses', () => {

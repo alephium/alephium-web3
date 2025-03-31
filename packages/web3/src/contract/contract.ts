@@ -63,7 +63,7 @@ import {
   groupOfAddress,
   addressFromContractId,
   subContractId,
-  isGrouplessAddressWithoutGroupIndex,
+  isGrouplessAddressWithoutGroupIndex
 } from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'

@@ -312,6 +312,13 @@ export function hasExplicitGroupIndex(address: string): boolean {
   return address.length > 2 && address[address.length - 2] === ':'
 }
 
+export function addressWithoutExplicitGroupIndex(address: string): string {
+  if (hasExplicitGroupIndex(address)) {
+    return address.slice(0, address.length - 2)
+  }
+  return address
+}
+
 export function addressFromLockupScript(lockupScript: LockupScript): string {
   if (lockupScript.kind === 'P2PK') {
     const groupByte = lockupScriptCodec.encode(lockupScript).slice(-1)
