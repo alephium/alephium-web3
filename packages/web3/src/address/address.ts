@@ -77,38 +77,45 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
-  } else if (addressType === AddressType.P2PK) {
-    if (decoded.length === 40) {
-      // [type, keyType, ...publicKey, ...checkSum, ...groupByte]
-      const publicKeyLikeBytes = decoded.slice(1, 35)
-      const checksum = binToHex(decoded.slice(35, 39))
-      const expectedChecksum = binToHex(intAs4BytesCodec.encode(djb2(publicKeyLikeBytes)))
-      if (checksum !== expectedChecksum) {
-        throw new Error(`Invalid checksum for P2PK address: ${address}`)
-      }
-      const group = byteCodec.decode(decoded.slice(39, 40))
-      validateGroupIndex(group)
-
-      return decoded
+  } else if (isGrouplessAddressWithGroup(decoded)) {
+    // [type, keyType, ...publicKey, ...checkSum, ...groupByte]
+    const publicKeyToIndex = decoded.length - 1 - 4
+    const publicKeyLikeBytes = decoded.slice(1, publicKeyToIndex)
+    const checksum = binToHex(decoded.slice(publicKeyToIndex, publicKeyToIndex + 4))
+    const expectedChecksum = binToHex(intAs4BytesCodec.encode(djb2(publicKeyLikeBytes)))
+    if (checksum !== expectedChecksum) {
+      throw new Error(`Invalid checksum for P2PK address: ${address}`)
     }
+    const group = byteCodec.decode(decoded.slice(decoded.length - 1, decoded.length))
+    validateGroupIndex(group)
+
+    return decoded
   }
 
   throw new Error(`Invalid address: ${address}`)
+}
+
+function isGrouplessAddressWithoutGroup(decoded: Uint8Array): boolean {
+  return decoded[0] === AddressType.P2PK && (decoded.length === 38 || decoded.length === 39)
+}
+
+function isGrouplessAddressWithGroup(decoded: Uint8Array): boolean {
+  return decoded[0] === AddressType.P2PK && (decoded.length === 39 || decoded.length === 40)
 }
 
 export function addressToBytes(address: string): Uint8Array {
   if (hasExplicitGroupIndex(address)) {
     const groupIndex = parseGroupIndex(address[address.length - 1])
     const decoded = base58ToBytes(address.slice(0, address.length - 2))
-    if (decoded[0] === 0x04 && decoded.length === 39) {
+    if (isGrouplessAddressWithoutGroup(decoded)) {
       const groupByte = byteCodec.encode(groupIndex)
       return new Uint8Array([...decoded, ...groupByte])
     }
     throw new Error(`Invalid groupless address: ${address}`)
   } else {
     const decoded = base58ToBytes(address)
-    if (decoded[0] === 0x04 && decoded.length === 39) {
-      const group = defaultGroupOfGrouplessAddress(decoded.slice(2, 35))
+    if (isGrouplessAddressWithoutGroup(decoded)) {
+      const group = defaultGroupOfGrouplessAddress(decoded.slice(2, decoded.length - 4))
       const groupByte = byteCodec.encode(group)
       return new Uint8Array([...decoded, ...groupByte])
     }

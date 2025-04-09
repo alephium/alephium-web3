@@ -119,6 +119,7 @@ describe('address', function () {
     expect(isContractAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(true)
     expect(() => isAssetAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGF')).toThrow('Invalid address:')
     expect(() => isContractAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9k')).toThrow('Invalid address:')
+    expect(isGrouplessAddress('bQzqBqFx88QitLeX7oCJh1Xvpr9tKUAFoSo9rhAZukfj6SvTYXh')).toEqual(true)
     expect(isGrouplessAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toEqual(true)
     expect(isGrouplessAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(false)
     expect(isGrouplessAddress('qeKk7r92Vn2Xjn4GcMEcJ2EwVfVs27kWUpptrWcWsUWC')).toEqual(false)
@@ -204,7 +205,7 @@ describe('address', function () {
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3'
     ]
 
-    grouplessAddresses.forEach(address => {
+    grouplessAddresses.forEach((address) => {
       const decoded = lockupScriptCodec.decode(addressToBytes(address))
       const encoded = addressFromLockupScript(decoded)
       if (hasExplicitGroupIndex(address)) {
