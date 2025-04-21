@@ -16,7 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { DappTransactionBuilder, SignTransferChainedTxParams, subscribeToTxStatus } from '../packages/web3'
+import {
+  DappTransactionBuilder,
+  SignDeployContractTxResult,
+  SignExecuteScriptTxResult,
+  SignTransferChainedTxParams,
+  subscribeToTxStatus
+} from '../packages/web3'
 import { node, ONE_ALPH, DUST_AMOUNT, MINIMAL_CONTRACT_DEPOSIT } from '../packages/web3'
 import { SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
@@ -42,7 +48,7 @@ describe('transactions', function () {
       initialFields: { result: 0n },
       initialTokenAmounts: []
     })
-    const subDeployTx = await signer.buildDeployContractTx(txParams)
+    const subDeployTx = (await signer.buildDeployContractTx(txParams)) as SignDeployContractTxResult
 
     let txStatus: TxStatus | undefined = undefined
     let counter = 0
@@ -384,7 +390,7 @@ describe('transactions', function () {
         attoAlphAmount: ONE_ALPH
       })
       .getResult()
-    const tx0 = await signer.signAndSubmitExecuteScriptTx(unsignedTx0)
+    const tx0 = (await signer.signAndSubmitExecuteScriptTx(unsignedTx0)) as SignExecuteScriptTxResult
     const balance0 = await nodeProvider.addresses.getAddressesAddressBalance(signer.address)
     expect(BigInt(tokenBalance(balance0, tokenId)!)).toEqual(ONE_ALPH * 10n)
     expect(BigInt(balance0.balance)).toEqual(
@@ -421,7 +427,7 @@ describe('transactions', function () {
         retLength: 1
       })
       .getResult()
-    const tx1 = await signer.signAndSubmitExecuteScriptTx(unsignedTx1)
+    const tx1 = (await signer.signAndSubmitExecuteScriptTx(unsignedTx1)) as SignExecuteScriptTxResult
     const balance1 = await nodeProvider.addresses.getAddressesAddressBalance(signer.address)
     expect(BigInt(tokenBalance(balance1, tokenId)!)).toEqual(ONE_ALPH * 9n)
     expect(BigInt(balance1.balance)).toEqual(

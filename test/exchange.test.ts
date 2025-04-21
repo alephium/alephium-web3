@@ -31,7 +31,8 @@ import {
   getALPHDepositInfo,
   groupOfAddress,
   BlockSubscription,
-  waitForTxConfirmation
+  waitForTxConfirmation,
+  SignTransferTxResult
 } from '@alephium/web3'
 import * as bip39 from 'bip39'
 import { testPrivateKey } from '@alephium/web3-test'
@@ -86,7 +87,7 @@ class User {
   async deposit(amount: bigint) {
     console.log(`deposit ${prettifyAttoAlphAmount(amount)} to ${this.depositAddress}`)
     return transfer(this.wallet, this.depositAddress, ALPH_TOKEN_ID, amount).then((result) => {
-      this.depositTxs.push(result.txId)
+      this.depositTxs.push((result as SignTransferTxResult).txId)
       return result
     })
   }
@@ -196,7 +197,7 @@ class Exchange {
     if (balance < amount + WithdrawFee) {
       throw new Error('Not enough balance')
     }
-    const result = await transfer(this.wallet, user.address, ALPH_TOKEN_ID, amount)
+    const result = (await transfer(this.wallet, user.address, ALPH_TOKEN_ID, amount)) as SignTransferTxResult
     await waitForTxConfirmation(result.txId, 1, 1000)
     this.withdrawTxs.push(result.txId)
     const remain = balance - (amount + WithdrawFee)
@@ -261,7 +262,7 @@ describe('exchange', function () {
       })
 
       const results0 = await Promise.all(promises0)
-      await waitTxsConfirmed(results0.map((result) => result.txId))
+      await waitTxsConfirmed(results0.map((result) => (result as SignTransferTxResult).txId))
     }
 
     const depositTxNumber = depositTimes * userNumPerGroup * TOTAL_NUMBER_OF_GROUPS
@@ -292,10 +293,10 @@ describe('exchange', function () {
           attoAlphAmount: ONE_ALPH.toString()
         }))
       if (destinations.length > 0) {
-        const result = await testWallet.signAndSubmitTransferTx({
+        const result = (await testWallet.signAndSubmitTransferTx({
           signerAddress: testWallet.address,
           destinations
-        })
+        })) as SignTransferTxResult
         await waitForTxConfirmation(result.txId, 1, 1000)
         poolRewardTxNumber += 1
       }

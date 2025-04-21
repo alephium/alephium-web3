@@ -38,12 +38,19 @@ import {
   SignGrouplessTransferTxParams,
   SignGrouplessDeployContractTxParams,
   SignTransferChainedTxResult,
-  SignGrouplessExecuteScriptTxParams
+  SignGrouplessExecuteScriptTxParams,
+  BuildTxResult
 } from './types'
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
 import { blakeHash } from '../codec/hash'
-import { BuildDeployContractTxResult, BuildChainedTx, BuildExecuteScriptTxResult } from '../api/api-alephium'
+import {
+  BuildDeployContractTxResult,
+  BuildChainedTx,
+  BuildExecuteScriptTxResult,
+  BuildGrouplessDeployContractTxResult,
+  BuildTransferTxResult
+} from '../api/api-alephium'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -67,10 +74,7 @@ export abstract class TransactionBuilder {
     }
   }
 
-  async buildTransferTx(
-    params: SignTransferTxParams,
-    publicKey: string
-  ): Promise<Omit<SignTransferTxResult, 'signature'>> {
+  async buildTransferTx(params: SignTransferTxParams, publicKey: string): Promise<BuildTxResult<SignTransferTxResult>> {
     const data = this.buildTransferTxParams(params, publicKey)
     const response = await this.nodeProvider.transactions.postTransactionsBuild(data)
     return this.convertTransferTxResult(response)
@@ -79,7 +83,7 @@ export abstract class TransactionBuilder {
   async buildDeployContractTx(
     params: SignDeployContractTxParams,
     publicKey: string
-  ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
+  ): Promise<BuildTxResult<SignDeployContractTxResult>> {
     const data = this.buildDeployContractTxParams(params, publicKey)
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxDeployContract(data)
     return this.convertDeployContractTxResult(response)
@@ -88,7 +92,7 @@ export abstract class TransactionBuilder {
   async buildExecuteScriptTx(
     params: SignExecuteScriptTxParams,
     publicKey: string
-  ): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
+  ): Promise<BuildTxResult<SignExecuteScriptTxResult>> {
     const data = this.buildExecuteScriptTxParams(params, publicKey)
     const response = await this.nodeProvider.contracts.postContractsUnsignedTxExecuteScript(data)
     return this.convertExecuteScriptTxResult(response)
@@ -130,9 +134,9 @@ export abstract class TransactionBuilder {
       const buildResultType = buildResult.type
       switch (buildResultType) {
         case 'Transfer': {
-          const buildTransferTxResult = buildResult.value
+          const buildTransferTxResult = buildResult.value as BuildTransferTxResult
           return {
-            ...this.convertTransferTxResult(buildTransferTxResult),
+            ...(this.convertTransferTxResult(buildTransferTxResult) as Omit<SignTransferTxResult, 'signature'>),
             type: buildResultType
           }
         }
@@ -165,7 +169,7 @@ export abstract class TransactionBuilder {
     const response = await this.nodeProvider.groupless.postGrouplessTransfer(data)
     return response.map((result) => {
       return {
-        ...this.convertTransferTxResult(result),
+        ...(this.convertTransferTxResult(result) as Omit<SignTransferTxResult, 'signature'>),
         type: 'Transfer' as const
       }
     })
@@ -173,34 +177,38 @@ export abstract class TransactionBuilder {
 
   async buildGrouplessDeployContractTx(
     params: SignGrouplessDeployContractTxParams
-  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+  ): Promise<BuildTxResult<SignDeployContractTxResult>> {
     const data = this.buildGrouplessDeployContractTxParams(params)
     const response = await this.nodeProvider.groupless.postGrouplessDeployContract(data)
     const transferTxs = response.transferTxs.map((result) => ({
-      ...this.convertTransferTxResult(result),
-      type: 'Transfer' as const
+      ...(this.convertTransferTxResult(result) as Omit<SignTransferTxResult, 'signature'>)
     }))
-    const deployContractTx = {
-      ...this.convertDeployContractTxResult(response.deployContractTx),
-      type: 'DeployContract' as const
+    const deployContractTx = this.convertDeployContractTxResult(response.deployContractTx) as Omit<
+      SignDeployContractTxResult,
+      'signature'
+    >
+    return {
+      transferTxs,
+      tx: deployContractTx
     }
-    return [...transferTxs, deployContractTx]
   }
 
   async buildGrouplessExecuteScriptTx(
     params: SignGrouplessExecuteScriptTxParams
-  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+  ): Promise<BuildTxResult<SignExecuteScriptTxResult>> {
     const data = this.buildGrouplessExecuteScriptTxParams(params)
     const response = await this.nodeProvider.groupless.postGrouplessExecuteScript(data)
     const transferTxs = response.transferTxs.map((result) => ({
-      ...this.convertTransferTxResult(result),
-      type: 'Transfer' as const
+      ...(this.convertTransferTxResult(result) as Omit<SignTransferTxResult, 'signature'>)
     }))
-    const executeScriptTx = {
-      ...this.convertExecuteScriptTxResult(response.executeScriptTx),
-      type: 'ExecuteScript' as const
+    const executeScriptTx = this.convertExecuteScriptTxResult(response.executeScriptTx) as Omit<
+      SignExecuteScriptTxResult,
+      'signature'
+    >
+    return {
+      transferTxs,
+      tx: executeScriptTx
     }
-    return [...transferTxs, executeScriptTx]
   }
 
   static buildUnsignedTx(params: SignUnsignedTxParams): Omit<SignUnsignedTxResult, 'signature'> {
@@ -301,7 +309,21 @@ export abstract class TransactionBuilder {
     }
   }
 
-  private convertTransferTxResult(result: node.BuildTransferTxResult): Omit<SignTransferTxResult, 'signature'> {
+  private convertTransferTxResult(result: node.BuildTransferTxResult): BuildTxResult<SignTransferTxResult> {
+    // BuildGrouplessTransferTxResult
+    if ('transferTxs' in result) {
+      return {
+        transferTxs: result.transferTxs.map((r) => ({
+          ...r,
+          gasPrice: fromApiNumber256(r.gasPrice)
+        })),
+        tx: {
+          ...result.transferTx,
+          gasPrice: fromApiNumber256(result.transferTx.gasPrice)
+        }
+      }
+    }
+
     return {
       ...result,
       gasPrice: fromApiNumber256(result.gasPrice)
@@ -310,7 +332,23 @@ export abstract class TransactionBuilder {
 
   private convertDeployContractTxResult(
     result: node.BuildDeployContractTxResult
-  ): Omit<SignDeployContractTxResult, 'signature'> {
+  ): BuildTxResult<SignDeployContractTxResult> {
+    if ('transferTxs' in result) {
+      const contractId = binToHex(contractIdFromAddress(result.deployContractTx.contractAddress))
+      return {
+        transferTxs: result.transferTxs.map((r) => ({
+          ...r,
+          gasPrice: fromApiNumber256(r.gasPrice)
+        })),
+        tx: {
+          ...result.deployContractTx,
+          groupIndex: result.deployContractTx.fromGroup,
+          contractId,
+          gasPrice: fromApiNumber256(result.deployContractTx.gasPrice)
+        }
+      }
+    }
+
     const contractId = binToHex(contractIdFromAddress(result.contractAddress))
     return {
       ...result,
@@ -322,7 +360,21 @@ export abstract class TransactionBuilder {
 
   private convertExecuteScriptTxResult(
     result: node.BuildExecuteScriptTxResult
-  ): Omit<SignExecuteScriptTxResult, 'signature'> {
+  ): BuildTxResult<SignExecuteScriptTxResult> {
+    if ('transferTxs' in result) {
+      return {
+        transferTxs: result.transferTxs.map((r) => ({
+          ...r,
+          gasPrice: fromApiNumber256(r.gasPrice)
+        })),
+        tx: {
+          ...result.executeScriptTx,
+          groupIndex: result.executeScriptTx.fromGroup,
+          gasPrice: fromApiNumber256(result.executeScriptTx.gasPrice)
+        }
+      }
+    }
+
     return {
       ...result,
       groupIndex: result.fromGroup,

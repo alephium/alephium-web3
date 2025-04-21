@@ -45,7 +45,7 @@ export interface Account {
 
 export type SignerAddress = { signerAddress: string; signerKeyType?: KeyType }
 type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'fromPublicKeyType' | 'targetBlockHash'> & SignerAddress
-type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string; gasPrice: Number256 }
+type SignResult<T> = Omit<T, 'gasPrice' | 'type'> & { signature: string; gasPrice: Number256 }
 
 export interface SignTransferTxParams {
   signerAddress: string
@@ -54,6 +54,7 @@ export interface SignTransferTxParams {
   utxos?: OutputRef[]
   gasAmount?: number
   gasPrice?: Number256
+  group?: number
 }
 assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransferTx>>>()
 export interface SignTransferTxResult {
@@ -65,7 +66,7 @@ export interface SignTransferTxResult {
   gasAmount: number
   gasPrice: Number256
 }
-assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransferTxResult>>>()
+assertType<Eq<SignTransferTxResult, SignResult<node.BuildSimpleTransferTxResult>>>()
 
 export interface SignDeployContractTxParams {
   signerAddress: string
@@ -77,6 +78,7 @@ export interface SignDeployContractTxParams {
   issueTokenTo?: string
   gasAmount?: number
   gasPrice?: Number256
+  group?: number
 }
 assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignDeployContractTxResult {
@@ -92,7 +94,7 @@ export interface SignDeployContractTxResult {
 assertType<
   Eq<
     Omit<SignDeployContractTxResult, 'groupIndex'>,
-    Omit<SignResult<node.BuildDeployContractTxResult> & { contractId: string }, 'fromGroup' | 'toGroup'>
+    Omit<SignResult<node.BuildSimpleDeployContractTxResult> & { contractId: string }, 'fromGroup' | 'toGroup'>
   >
 >()
 
@@ -105,6 +107,7 @@ export interface SignExecuteScriptTxParams {
   gasAmount?: number
   gasPrice?: Number256
   gasEstimationMultiplier?: number
+  group?: number
 }
 assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {
@@ -119,9 +122,31 @@ export interface SignExecuteScriptTxResult {
 assertType<
   Eq<
     Omit<SignExecuteScriptTxResult, 'groupIndex'>,
-    Omit<SignResult<node.BuildExecuteScriptTxResult>, 'fromGroup' | 'toGroup'>
+    Omit<SignResult<node.BuildSimpleExecuteScriptTxResult>, 'fromGroup' | 'toGroup'>
   >
 >()
+
+export interface GrouplessBuildTxResult<
+  T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
+> {
+  transferTxs: Omit<SignTransferTxResult, 'signature'>[]
+  tx: Omit<T, 'signature'>
+}
+
+export type BuildTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
+  | GrouplessBuildTxResult<T>
+  | Omit<T, 'signature'>
+
+export interface GrouplessSignTxResult<
+  T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
+> {
+  transferTxs: SignTransferTxResult[]
+  tx: T
+}
+
+export type SignTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
+  | GrouplessSignTxResult<T>
+  | T
 
 export interface SignUnsignedTxParams {
   signerAddress: string

@@ -41,7 +41,8 @@ import {
   ZERO_ADDRESS,
   MINIMAL_CONTRACT_DEPOSIT,
   getDebugMessagesFromTx,
-  getContractCodeByCodeHash
+  getContractCodeByCodeHash,
+  SignDeployContractTxResult
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -792,10 +793,10 @@ describe('contract', function () {
     expect(encoded.encodedImmFields).toEqual(encodedImmFields)
     expect(encoded.encodedMutFields).toEqual(encodedMutFields)
 
-    const result = await signer.signAndSubmitDeployContractTx({
+    const result = (await signer.signAndSubmitDeployContractTx({
       signerAddress: signer.address,
       bytecode: UserAccount.contract.bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
-    })
+    })) as SignDeployContractTxResult
     const contractInstance = UserAccount.at(result.contractAddress)
     expect((await contractInstance.fetchState()).fields).toEqual(contractFields)
   })

@@ -23,6 +23,7 @@ import {
   NodeProvider,
   ONE_ALPH,
   Script,
+  SignExecuteScriptTxResult,
   SignerProvider,
   addressFromContractId,
   getContractIdFromUnsignedTx,
@@ -107,7 +108,7 @@ async function createAndTransferToken(
     initialFields: { recipient, totalSupply: amount },
     attoAlphAmount: ONE_ALPH + DUST_AMOUNT
   })
-  return await deployer.signAndSubmitExecuteScriptTx(params)
+  return (await deployer.signAndSubmitExecuteScriptTx(params)) as SignExecuteScriptTxResult
 }
 
 export async function mintToken(recipient: Address, amount: bigint) {

@@ -16,7 +16,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, ONE_ALPH, buildScriptByteCode, buildContractByteCode, binToHex, hexToBinUnsafe } from '@alephium/web3'
+import {
+  web3,
+  ONE_ALPH,
+  buildScriptByteCode,
+  buildContractByteCode,
+  binToHex,
+  hexToBinUnsafe,
+  SignTransferTxResult
+} from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
 import { unsignedTxCodec } from './index'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
@@ -33,10 +41,10 @@ describe('Encode & decode unsigned transactions', function () {
     const fromAccount = await signer1.getSelectedAccount()
     const toAccount = await signer2.getSelectedAccount()
 
-    const tx = await signer1.buildTransferTx({
+    const tx = (await signer1.buildTransferTx({
       signerAddress: fromAccount.address,
       destinations: [{ address: toAccount.address, attoAlphAmount: ONE_ALPH }]
-    })
+    })) as Omit<SignTransferTxResult, 'signature'>
 
     await checkUnsignedTxCodec(tx.unsignedTx)
   })
@@ -54,10 +62,10 @@ describe('Encode & decode unsigned transactions', function () {
     const multisigAddress = multisigAddressResult.address
 
     // Transfer to multisig address
-    const toMultiSig = await signer1.buildTransferTx({
+    const toMultiSig = (await signer1.buildTransferTx({
       signerAddress: fromAccount.address,
       destinations: [{ address: multisigAddress, attoAlphAmount: ONE_ALPH * 10n }]
-    })
+    })) as Omit<SignTransferTxResult, 'signature'>
 
     await checkUnsignedTxCodec(toMultiSig.unsignedTx)
 
@@ -130,18 +138,18 @@ describe('Encode & decode unsigned transactions', function () {
     const schnorrSigner = PrivateKeyWallet.Random(undefined, nodeProvider, 'bip340-schnorr')
     const fromAccount = await signer1.getSelectedAccount()
 
-    const toSchnorrAddressResult = await signer1.signAndSubmitTransferTx({
+    const toSchnorrAddressResult = (await signer1.signAndSubmitTransferTx({
       signerAddress: fromAccount.address,
       destinations: [{ address: schnorrSigner.address, attoAlphAmount: ONE_ALPH }]
-    })
+    })) as SignTransferTxResult
 
     await checkUnsignedTxCodec(toSchnorrAddressResult.unsignedTx)
 
-    const fromSchnorrAddressResult = await schnorrSigner.signAndSubmitTransferTx({
+    const fromSchnorrAddressResult = (await schnorrSigner.signAndSubmitTransferTx({
       signerAddress: schnorrSigner.address,
       signerKeyType: 'bip340-schnorr',
       destinations: [{ address: signer1.address, attoAlphAmount: ONE_ALPH / 2n }]
-    })
+    })) as SignTransferTxResult
 
     await checkUnsignedTxCodec(fromSchnorrAddressResult.unsignedTx)
   }, 100000)
@@ -194,7 +202,7 @@ describe('Encode & decode unsigned transactions', function () {
     })
 
     // Transfer token from signer1 to signer2
-    const transferTokenResult = await signer1.buildTransferTx({
+    const transferTokenResult = (await signer1.buildTransferTx({
       signerAddress: signer1.address,
       destinations: [
         {
@@ -203,7 +211,7 @@ describe('Encode & decode unsigned transactions', function () {
           tokens: [{ id: deployContractResult.contractId, amount: 1n }]
         }
       ]
-    })
+    })) as Omit<SignTransferTxResult, 'signature'>
 
     await checkUnsignedTxCodec(transferTokenResult.unsignedTx)
   }, 100000)

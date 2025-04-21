@@ -206,7 +206,7 @@ export interface BuildChainedDeployContractTx {
 
 /** BuildChainedDeployContractTxResult */
 export interface BuildChainedDeployContractTxResult {
-  value: BuildDeployContractTxResult
+  value: BuildSimpleDeployContractTxResult
   type: string
 }
 
@@ -218,7 +218,7 @@ export interface BuildChainedExecuteScriptTx {
 
 /** BuildChainedExecuteScriptTxResult */
 export interface BuildChainedExecuteScriptTxResult {
-  value: BuildExecuteScriptTxResult
+  value: BuildSimpleExecuteScriptTxResult
   type: string
 }
 
@@ -230,7 +230,7 @@ export interface BuildChainedTransferTx {
 
 /** BuildChainedTransferTxResult */
 export interface BuildChainedTransferTxResult {
-  value: BuildTransferTxResult
+  value: BuildSimpleTransferTxResult
   type: string
 }
 
@@ -262,26 +262,14 @@ export interface BuildDeployContractTx {
   gasAmount?: number
   /** @format uint256 */
   gasPrice?: string
+  /** @format group-index */
+  group?: number
   /** @format block-hash */
   targetBlockHash?: string
 }
 
 /** BuildDeployContractTxResult */
-export interface BuildDeployContractTxResult {
-  /** @format int32 */
-  fromGroup: number
-  /** @format int32 */
-  toGroup: number
-  unsignedTx: string
-  /** @format gas */
-  gasAmount: number
-  /** @format uint256 */
-  gasPrice: string
-  /** @format 32-byte-hash */
-  txId: string
-  /** @format address */
-  contractAddress: string
-}
+export type BuildDeployContractTxResult = BuildGrouplessDeployContractTxResult | BuildSimpleDeployContractTxResult
 
 /** BuildExecuteScriptTx */
 export interface BuildExecuteScriptTx {
@@ -300,28 +288,18 @@ export interface BuildExecuteScriptTx {
   gasPrice?: string
   /** @format block-hash */
   targetBlockHash?: string
+  /** @format group-index */
+  group?: number
   /** @format double */
   gasEstimationMultiplier?: number
 }
 
 /** BuildExecuteScriptTxResult */
-export interface BuildExecuteScriptTxResult {
-  /** @format int32 */
-  fromGroup: number
-  /** @format int32 */
-  toGroup: number
-  unsignedTx: string
-  /** @format gas */
-  gasAmount: number
-  /** @format uint256 */
-  gasPrice: string
-  /** @format 32-byte-hash */
-  txId: string
-  simulationResult: SimulationResult
-}
+export type BuildExecuteScriptTxResult = BuildGrouplessExecuteScriptTxResult | BuildSimpleExecuteScriptTxResult
 
 /** BuildGrouplessDeployContractTx */
 export interface BuildGrouplessDeployContractTx {
+  /** @format address */
   fromAddress: string
   /** @format hex-string */
   bytecode: string
@@ -340,12 +318,14 @@ export interface BuildGrouplessDeployContractTx {
 
 /** BuildGrouplessDeployContractTxResult */
 export interface BuildGrouplessDeployContractTxResult {
-  transferTxs: BuildTransferTxResult[]
-  deployContractTx: BuildDeployContractTxResult
+  transferTxs: BuildSimpleTransferTxResult[]
+  deployContractTx: BuildSimpleDeployContractTxResult
+  type: string
 }
 
 /** BuildGrouplessExecuteScriptTx */
 export interface BuildGrouplessExecuteScriptTx {
+  /** @format address */
   fromAddress: string
   /** @format hex-string */
   bytecode: string
@@ -362,18 +342,27 @@ export interface BuildGrouplessExecuteScriptTx {
 
 /** BuildGrouplessExecuteScriptTxResult */
 export interface BuildGrouplessExecuteScriptTxResult {
-  transferTxs: BuildTransferTxResult[]
-  executeScriptTx: BuildExecuteScriptTxResult
+  transferTxs: BuildSimpleTransferTxResult[]
+  executeScriptTx: BuildSimpleExecuteScriptTxResult
+  type: string
 }
 
 /** BuildGrouplessTransferTx */
 export interface BuildGrouplessTransferTx {
+  /** @format address */
   fromAddress: string
   destinations: Destination[]
   /** @format uint256 */
   gasPrice?: string
   /** @format block-hash */
   targetBlockHash?: string
+}
+
+/** BuildGrouplessTransferTxResult */
+export interface BuildGrouplessTransferTxResult {
+  transferTxs: BuildSimpleTransferTxResult[]
+  transferTx: BuildSimpleTransferTxResult
+  type: string
 }
 
 /** BuildInfo */
@@ -414,6 +403,57 @@ export interface BuildMultisigAddress {
 export interface BuildMultisigAddressResult {
   /** @format address */
   address: string
+}
+
+/** BuildSimpleDeployContractTxResult */
+export interface BuildSimpleDeployContractTxResult {
+  /** @format int32 */
+  fromGroup: number
+  /** @format int32 */
+  toGroup: number
+  unsignedTx: string
+  /** @format gas */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  /** @format 32-byte-hash */
+  txId: string
+  /** @format address */
+  contractAddress: string
+  type: string
+}
+
+/** BuildSimpleExecuteScriptTxResult */
+export interface BuildSimpleExecuteScriptTxResult {
+  /** @format int32 */
+  fromGroup: number
+  /** @format int32 */
+  toGroup: number
+  unsignedTx: string
+  /** @format gas */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  /** @format 32-byte-hash */
+  txId: string
+  simulationResult: SimulationResult
+  type: string
+}
+
+/** BuildSimpleTransferTxResult */
+export interface BuildSimpleTransferTxResult {
+  unsignedTx: string
+  /** @format gas */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  /** @format 32-byte-hash */
+  txId: string
+  /** @format int32 */
+  fromGroup: number
+  /** @format int32 */
+  toGroup: number
+  type: string
 }
 
 /** BuildSweepAddressTransactions */
@@ -478,24 +518,14 @@ export interface BuildTransferTx {
   gasAmount?: number
   /** @format uint256 */
   gasPrice?: string
+  /** @format group-index */
+  group?: number
   /** @format block-hash */
   targetBlockHash?: string
 }
 
 /** BuildTransferTxResult */
-export interface BuildTransferTxResult {
-  unsignedTx: string
-  /** @format gas */
-  gasAmount: number
-  /** @format uint256 */
-  gasPrice: string
-  /** @format 32-byte-hash */
-  txId: string
-  /** @format int32 */
-  fromGroup: number
-  /** @format int32 */
-  toGroup: number
-}
+export type BuildTransferTxResult = BuildGrouplessTransferTxResult | BuildSimpleTransferTxResult
 
 /** CallContract */
 export interface CallContract {
@@ -2797,7 +2827,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postTransactionsBuildTransferFromOneToManyGroups: (data: BuildTransferTx, params: RequestParams = {}) =>
       this.request<
-        BuildTransferTxResult[],
+        BuildSimpleTransferTxResult[],
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/build-transfer-from-one-to-many-groups`,
@@ -2818,7 +2848,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postTransactionsBuildMultiAddresses: (data: BuildMultiAddressesTransaction, params: RequestParams = {}) =>
       this.request<
-        BuildTransferTxResult,
+        BuildSimpleTransferTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/transactions/build-multi-addresses`,
@@ -3466,7 +3496,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postMultisigBuild: (data: BuildMultisig, params: RequestParams = {}) =>
       this.request<
-        BuildTransferTxResult,
+        BuildSimpleTransferTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/multisig/build`,
@@ -3789,7 +3819,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postGrouplessTransfer: (data: BuildGrouplessTransferTx, params: RequestParams = {}) =>
       this.request<
-        BuildTransferTxResult[],
+        BuildSimpleTransferTxResult[],
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/groupless/transfer`,

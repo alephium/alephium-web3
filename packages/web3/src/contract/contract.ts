@@ -96,6 +96,7 @@ import {
   BytesConst
 } from '../codec'
 import { TraceableError } from '../error'
+import { SimulationResult } from '../api/api-alephium'
 
 const crypto = new WebCrypto()
 
@@ -1071,6 +1072,7 @@ export interface DeployContractParams<P extends Fields = Fields> {
   gasAmount?: number
   gasPrice?: Number256
   exposePrivateFunctions?: boolean
+  group?: number
 }
 assertType<
   Eq<
@@ -1108,9 +1110,16 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
       group
     )
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
-    return {
-      ...result,
-      contractInstance: this.at(result.contractAddress)
+    if ('transferTxs' in result) {
+      return {
+        ...result.tx,
+        contractInstance: this.at(result.tx.contractAddress)
+      }
+    } else {
+      return {
+        ...result,
+        contractInstance: this.at(result.contractAddress)
+      }
     }
   }
 
@@ -1152,7 +1161,13 @@ export class ExecutableScript<P extends Fields = Fields, R extends Val | null = 
 
   async execute(signer: SignerProvider, params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
     const signerParams = await this.script.txParamsForExecution(signer, params)
-    return await signer.signAndSubmitExecuteScriptTx(signerParams)
+    const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
+
+    if ('transferTxs' in result) {
+      return result.tx
+    } else {
+      return result
+    }
   }
 
   async call(params: CallScriptParams<P>): Promise<CallScriptResult<R>> {
@@ -1190,6 +1205,7 @@ export interface ExecuteScriptResult {
   signature: string
   gasAmount: number
   gasPrice: Number256
+  simulationResult: SimulationResult
 }
 
 export interface CallScriptParams<P extends Fields = Fields> {
@@ -1955,7 +1971,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
     gasPrice: params.gasPrice
   }
 
-  const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
+  const result = (await signer.signAndSubmitExecuteScriptTx(signerParams)) as SignExecuteScriptTxResult
   if (isContractDebugMessageEnabled() && isDevnet) {
     await printDebugMessagesFromTx(result.txId, signer.nodeProvider)
   }
