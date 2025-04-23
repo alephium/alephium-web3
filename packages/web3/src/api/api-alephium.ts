@@ -297,25 +297,6 @@ export interface BuildExecuteScriptTx {
 /** BuildExecuteScriptTxResult */
 export type BuildExecuteScriptTxResult = BuildGrouplessExecuteScriptTxResult | BuildSimpleExecuteScriptTxResult
 
-/** BuildGrouplessDeployContractTx */
-export interface BuildGrouplessDeployContractTx {
-  /** @format address */
-  fromAddress: string
-  /** @format hex-string */
-  bytecode: string
-  /** @format uint256 */
-  initialAttoAlphAmount?: string
-  initialTokenAmounts?: Token[]
-  /** @format uint256 */
-  issueTokenAmount?: string
-  /** @format address */
-  issueTokenTo?: string
-  /** @format uint256 */
-  gasPrice?: string
-  /** @format block-hash */
-  targetBlockHash?: string
-}
-
 /** BuildGrouplessDeployContractTxResult */
 export interface BuildGrouplessDeployContractTxResult {
   transferTxs: BuildSimpleTransferTxResult[]
@@ -323,39 +304,11 @@ export interface BuildGrouplessDeployContractTxResult {
   type: string
 }
 
-/** BuildGrouplessExecuteScriptTx */
-export interface BuildGrouplessExecuteScriptTx {
-  /** @format address */
-  fromAddress: string
-  /** @format hex-string */
-  bytecode: string
-  /** @format uint256 */
-  attoAlphAmount?: string
-  tokens?: Token[]
-  /** @format uint256 */
-  gasPrice?: string
-  /** @format block-hash */
-  targetBlockHash?: string
-  /** @format double */
-  gasEstimationMultiplier?: number
-}
-
 /** BuildGrouplessExecuteScriptTxResult */
 export interface BuildGrouplessExecuteScriptTxResult {
   transferTxs: BuildSimpleTransferTxResult[]
   executeScriptTx: BuildSimpleExecuteScriptTxResult
   type: string
-}
-
-/** BuildGrouplessTransferTx */
-export interface BuildGrouplessTransferTx {
-  /** @format address */
-  fromAddress: string
-  destinations: Destination[]
-  /** @format uint256 */
-  gasPrice?: string
-  /** @format block-hash */
-  targetBlockHash?: string
 }
 
 /** BuildGrouplessTransferTxResult */
@@ -1650,8 +1603,8 @@ export class HttpClient<SecurityDataType = unknown> {
           property instanceof Blob
             ? property
             : typeof property === 'object' && property !== null
-              ? JSON.stringify(property)
-              : `${property}`
+            ? JSON.stringify(property)
+            : `${property}`
         )
         return formData
       }, new FormData()),
@@ -1731,18 +1684,18 @@ export class HttpClient<SecurityDataType = unknown> {
       const data = !responseFormat
         ? r
         : await response[responseFormat]()
-          .then((data) => {
-            if (r.ok) {
-              r.data = data
-            } else {
-              r.error = data
-            }
-            return r
-          })
-          .catch((e) => {
-            r.error = e
-            return r
-          })
+            .then((data) => {
+              if (r.ok) {
+                r.data = data
+              } else {
+                r.error = data
+              }
+              return r
+            })
+            .catch((e) => {
+              r.error = e
+              return r
+            })
 
       if (cancelToken) {
         this.abortControllers.delete(cancelToken)
@@ -3805,70 +3758,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       >({
         path: `/utils/check-hash-indexing`,
         method: 'PUT',
-        ...params
-      }).then(convertHttpResponse)
-  }
-  groupless = {
-    /**
-     * No description
-     *
-     * @tags Groupless
-     * @name PostGrouplessTransfer
-     * @summary Build unsigned transfer transactions from a groupless address
-     * @request POST:/groupless/transfer
-     */
-    postGrouplessTransfer: (data: BuildGrouplessTransferTx, params: RequestParams = {}) =>
-      this.request<
-        BuildSimpleTransferTxResult[],
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
-      >({
-        path: `/groupless/transfer`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params
-      }).then(convertHttpResponse),
-
-    /**
-     * No description
-     *
-     * @tags Groupless
-     * @name PostGrouplessExecuteScript
-     * @summary Build an unsigned execute script transaction from a groupless address
-     * @request POST:/groupless/execute-script
-     */
-    postGrouplessExecuteScript: (data: BuildGrouplessExecuteScriptTx, params: RequestParams = {}) =>
-      this.request<
-        BuildGrouplessExecuteScriptTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
-      >({
-        path: `/groupless/execute-script`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params
-      }).then(convertHttpResponse),
-
-    /**
-     * No description
-     *
-     * @tags Groupless
-     * @name PostGrouplessDeployContract
-     * @summary Build an unsigned deploy contract transaction from a groupless address
-     * @request POST:/groupless/deploy-contract
-     */
-    postGrouplessDeployContract: (data: BuildGrouplessDeployContractTx, params: RequestParams = {}) =>
-      this.request<
-        BuildGrouplessDeployContractTxResult,
-        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
-      >({
-        path: `/groupless/deploy-contract`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
         ...params
       }).then(convertHttpResponse)
   }

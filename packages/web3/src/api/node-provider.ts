@@ -55,7 +55,6 @@ interface NodeProviderApis {
   utils: NodeApi<string>['utils']
   miners: NodeApi<string>['miners']
   events: NodeApi<string>['events']
-  groupless: NodeApi<string>['groupless']
 }
 
 export class NodeProvider implements NodeProviderApis {
@@ -70,7 +69,6 @@ export class NodeProvider implements NodeProviderApis {
   readonly utils: NodeApi<string>['utils']
   readonly miners: NodeApi<string>['miners']
   readonly events: NodeApi<string>['events']
-  readonly groupless: NodeApi<string>['groupless']
 
   constructor(baseUrl: string, apiKey?: string, customFetch?: typeof fetch)
   constructor(provider: NodeProvider)
@@ -97,7 +95,6 @@ export class NodeProvider implements NodeProviderApis {
     this.utils = { ...nodeApi.utils }
     this.miners = { ...nodeApi.miners }
     this.events = { ...nodeApi.events }
-    this.groupless = { ...nodeApi.groupless }
     requestWithLog(this)
   }
 

@@ -185,39 +185,6 @@ export type SignChainedTxResult =
   | SignDeployContractChainedTxResult
   | SignExecuteScriptChainedTxResult
 
-export interface SignGrouplessTransferTxParams {
-  fromAddress: string
-  destinations: Destination[]
-  gasPrice?: Number256
-  targetBlockHash?: string
-}
-assertType<Eq<keyof SignGrouplessTransferTxParams, keyof node.BuildGrouplessTransferTx>>()
-export interface SignGrouplessDeployContractTxParams {
-  fromAddress: string
-  bytecode: string
-  initialAttoAlphAmount?: Number256
-  initialTokenAmounts?: Token[]
-  issueTokenAmount?: Number256
-  issueTokenTo?: string
-  gasPrice?: Number256
-  targetBlockHash?: string
-}
-assertType<Eq<keyof SignGrouplessDeployContractTxParams, keyof node.BuildGrouplessDeployContractTx>>()
-export interface SignGrouplessExecuteScriptTxParams {
-  fromAddress: string
-  bytecode: string
-  attoAlphAmount?: Number256
-  tokens?: Token[]
-  gasPrice?: Number256
-  targetBlockHash?: string
-  gasEstimationMultiplier?: number
-}
-assertType<Eq<keyof SignGrouplessExecuteScriptTxParams, keyof node.BuildGrouplessExecuteScriptTx>>()
-export type SignGrouplessTxParams =
-  | SignGrouplessTransferTxParams
-  | SignGrouplessDeployContractTxParams
-  | SignGrouplessExecuteScriptTxParams
-
 export type MessageHasher =
   | 'alephium' // Message is prefixed with 'Alephium signed message: ' before hashed with blake2b
   | 'sha256'
