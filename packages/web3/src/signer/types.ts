@@ -34,12 +34,12 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
-export type KeyType = 'default' | 'bip340-schnorr' | 'groupless'
+export type KeyType = 'default' | 'bip340-schnorr' | 'gl-secp256k1'
 
 export interface Account {
   keyType: KeyType
   address: string
-  group: number
+  group: number    // TODO: optional for groupless address
   publicKey: string
 }
 

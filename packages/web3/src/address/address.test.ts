@@ -262,7 +262,7 @@ describe('address', function () {
       '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
     )
     expect(
-      addressFromPublicKey('029592852f5d289785904b89a073ff80ee6155c894b1d13ecb16bcf3ac02473e1a', 'groupless')
+      addressFromPublicKey('029592852f5d289785904b89a073ff80ee6155c894b1d13ecb16bcf3ac02473e1a', 'gl-secp256k1')
     ).toBe('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')
     expect(
       addressFromPublicKey('aecfc38a48f5fe7e050fca59de9f8d77fa7a7d9e63af608a95f8839de397f48a', 'bip340-schnorr')

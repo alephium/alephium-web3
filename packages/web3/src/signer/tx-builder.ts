@@ -37,9 +37,9 @@ import {
   SignUnsignedTxResult,
   SignGrouplessTransferTxParams,
   SignGrouplessDeployContractTxParams,
-  SignTransferChainedTxResult,
   SignGrouplessExecuteScriptTxParams,
-  BuildTxResult
+  BuildTxResult,
+  GrouplessBuildTxResult
 } from './types'
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
@@ -48,7 +48,6 @@ import {
   BuildDeployContractTxResult,
   BuildChainedTx,
   BuildExecuteScriptTxResult,
-  BuildGrouplessDeployContractTxResult,
   BuildTransferTxResult
 } from '../api/api-alephium'
 
@@ -164,20 +163,28 @@ export abstract class TransactionBuilder {
 
   async buildGrouplessTransferTx(
     params: SignGrouplessTransferTxParams
-  ): Promise<Omit<SignChainedTxResult, 'signature'>[]> {
+  ): Promise<GrouplessBuildTxResult<SignTransferTxResult>> {
     const data = this.buildGrouplessTransferTxParams(params)
     const response = await this.nodeProvider.groupless.postGrouplessTransfer(data)
-    return response.map((result) => {
-      return {
-        ...(this.convertTransferTxResult(result) as Omit<SignTransferTxResult, 'signature'>),
-        type: 'Transfer' as const
+
+    if (response.length === 0) {
+      throw new Error(`No transfer txs returned from groupless transfer`)
+    }
+
+    const last = response.length - 1
+    return {
+      transferTxs: response.slice(0, last).map((result) => ({
+        ...(this.convertTransferTxResult(result) as Omit<SignTransferTxResult, 'signature'>)
+      })),
+      tx: {
+        ...(this.convertTransferTxResult(response[last]) as Omit<SignTransferTxResult, 'signature'>)
       }
-    })
+    }
   }
 
   async buildGrouplessDeployContractTx(
     params: SignGrouplessDeployContractTxParams
-  ): Promise<BuildTxResult<SignDeployContractTxResult>> {
+  ): Promise<GrouplessBuildTxResult<SignDeployContractTxResult>> {
     const data = this.buildGrouplessDeployContractTxParams(params)
     const response = await this.nodeProvider.groupless.postGrouplessDeployContract(data)
     const transferTxs = response.transferTxs.map((result) => ({
@@ -195,7 +202,7 @@ export abstract class TransactionBuilder {
 
   async buildGrouplessExecuteScriptTx(
     params: SignGrouplessExecuteScriptTxParams
-  ): Promise<BuildTxResult<SignExecuteScriptTxResult>> {
+  ): Promise<GrouplessBuildTxResult<SignExecuteScriptTxResult>> {
     const data = this.buildGrouplessExecuteScriptTxParams(params)
     const response = await this.nodeProvider.groupless.postGrouplessExecuteScript(data)
     const transferTxs = response.transferTxs.map((result) => ({

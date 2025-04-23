@@ -608,16 +608,14 @@ export class Contract extends Artifact {
       params.exposePrivateFunctions ?? false
     )
     const selectedAccount = await signer.getSelectedAccount()
-    let signerAddress = selectedAccount.address
-    if (isGrouplessAddressWithoutGroupIndex(selectedAccount.address)) {
+    if (selectedAccount.keyType === 'gl-secp256k1') {
       if (group === undefined) {
         throw new Error('Groupless address requires explicit group number for contract deployment')
       }
-      signerAddress = `${selectedAccount.address}:${group}`
     }
 
     const signerParams: SignDeployContractTxParams = {
-      signerAddress,
+      signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
       bytecode: bytecode,
       initialAttoAlphAmount: params?.initialAttoAlphAmount,
@@ -625,7 +623,8 @@ export class Contract extends Artifact {
       issueTokenTo: params?.issueTokenTo,
       initialTokenAmounts: params?.initialTokenAmounts,
       gasAmount: params?.gasAmount,
-      gasPrice: params?.gasPrice
+      gasPrice: params?.gasPrice,
+      group: group
     }
     return signerParams
   }

@@ -37,11 +37,11 @@ describe('Signing', function () {
     const ec = new EC.ec('secp256k1')
     const key = ec.genKeyPair()
     const privateKey = key.getPrivate().toString('hex', 64)
-    const publicKey = publicKeyFromPrivateKey(privateKey, 'groupless')
+    const publicKey = publicKeyFromPrivateKey(privateKey, 'gl-secp256k1')
 
     const hash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
-    const signature = sign(hash, privateKey, 'groupless')
-    expect(verifySignature(hash, publicKey, signature, 'groupless')).toEqual(true)
+    const signature = sign(hash, privateKey, 'gl-secp256k1')
+    expect(verifySignature(hash, publicKey, signature, 'gl-secp256k1')).toEqual(true)
   })
 
   it('should sign and verify schnorr signature', () => {

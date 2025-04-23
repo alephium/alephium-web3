@@ -215,7 +215,7 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
 export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default' || keyType === 'groupless') {
+  if (keyType === 'default' || keyType === 'gl-secp256k1') {
     const key = ec.keyFromPrivate(privateKey)
     return key.getPublic(true, 'hex')
   } else {
@@ -230,7 +230,7 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
     const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
     const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
     return bs58.encode(bytes)
-  } else if (keyType === 'groupless') {
+  } else if (keyType === 'gl-secp256k1') {
     const publicKeyBytes = new Uint8Array([0x00, ...hexToBinUnsafe(publicKey)])
     const hashBytes = intAs4BytesCodec.encode(djb2(publicKeyBytes))
     const bytes = new Uint8Array([0x04, ...publicKeyBytes, ...hashBytes])
