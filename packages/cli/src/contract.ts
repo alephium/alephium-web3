@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { WebCrypto } from '@alephium/web3'
+import { WebCrypto, TraceableError } from '@alephium/web3'
 import * as path from 'path'
 
 const crypto = new WebCrypto()
@@ -55,6 +55,7 @@ function removeParentsPrefix(parts: string[]): string {
 export class SourceInfo {
   type: SourceKind
   name: string
+  fromIndex: number | undefined
   contractRelativePath: string
   sourceCode: string
   sourceCodeHash: string
@@ -75,6 +76,7 @@ export class SourceInfo {
   constructor(
     type: SourceKind,
     name: string,
+    fromIndex: number | undefined,
     sourceCode: string,
     sourceCodeHash: string,
     contractRelativePath: string,
@@ -82,6 +84,7 @@ export class SourceInfo {
   ) {
     this.type = type
     this.name = name
+    this.fromIndex = fromIndex
     this.sourceCode = sourceCode
     this.sourceCodeHash = sourceCodeHash
     this.contractRelativePath = contractRelativePath
@@ -91,13 +94,14 @@ export class SourceInfo {
   static async from(
     type: SourceKind,
     name: string,
+    fromIndex: number | undefined,
     sourceCode: string,
     contractRelativePath: string,
     isExternal: boolean
   ): Promise<SourceInfo> {
     const sourceCodeHash = await crypto.subtle.digest('SHA-256', Buffer.from(sourceCode))
     const sourceCodeHashHex = Buffer.from(sourceCodeHash).toString('hex')
-    return new SourceInfo(type, name, sourceCode, sourceCodeHashHex, contractRelativePath, isExternal)
+    return new SourceInfo(type, name, fromIndex, sourceCode, sourceCodeHashHex, contractRelativePath, isExternal)
   }
 }
 
@@ -123,13 +127,99 @@ export async function loadSourceInfos(
     const results = Array.from(sourceCode.matchAll(matcher.matcher))
     if (isConstantsFile) isConstantsFile = results.length === 0
     for (const result of results) {
-      const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceCode, relativePath, isExternal)
+      const sourceInfo = await SourceInfo.from(
+        matcher.type,
+        result[1],
+        result.index,
+        sourceCode,
+        relativePath,
+        isExternal
+      )
       sourceInfos.push(sourceInfo)
     }
   }
   if (isConstantsFile) {
     const name = path.basename(sourcePath, path.extname(sourcePath))
-    sourceInfos.push(await SourceInfo.from(SourceKind.Constants, name, sourceCode, relativePath, false))
+    sourceInfos.push(await SourceInfo.from(SourceKind.Constants, name, undefined, sourceCode, relativePath, false))
   }
   return sourceInfos
+}
+
+export function getParents(sourceInfos: SourceInfo[]): Map<string, string[]> {
+  const parentsPerContract = new Map<string, string[]>()
+  sourceInfos.forEach((sourceInfo) => {
+    if (sourceInfo.fromIndex === undefined) return
+    if (
+      sourceInfo.type === SourceKind.Contract ||
+      sourceInfo.type === SourceKind.AbstractContract ||
+      sourceInfo.type === SourceKind.Interface
+    ) {
+      const contract = sourceInfo.name
+      const parents = getParentsFromSource(sourceInfo, sourceInfo.fromIndex)
+      parentsPerContract.set(contract, parents)
+    }
+  })
+  return parentsPerContract
+}
+
+function getParentsFromSource(sourceInfo: SourceInfo, index: number): string[] {
+  const sourceCode = sourceInfo.sourceCode
+  const fromIndex =
+    sourceInfo.type === SourceKind.Interface
+      ? sourceCode.indexOf(sourceInfo.name, index) + sourceInfo.name.length
+      : sourceCode.indexOf(')', index)
+  if (fromIndex === -1) return []
+  const toIndex = sourceCode.indexOf('{', fromIndex)
+  if (toIndex === -1) return []
+  return sourceCode
+    .slice(fromIndex + 1, toIndex - 1)
+    .replace(/\([^\)]*\)/g, '')
+    .replace('extends', ',')
+    .replace('implements', ',')
+    .split(',')
+    .map((str) => str.trim())
+    .filter((str) => str !== '')
+}
+
+function buildDependencies_(
+  sourceInfos: SourceInfo[],
+  contract: SourceInfo,
+  parentsPerContract: Map<string, string[]>,
+  dependencies: Map<string, string[]>,
+  visited: Set<string>
+) {
+  if (visited.has(contract.name)) {
+    throw new TraceableError(`Circular dependency detected: ${contract.name}`)
+  }
+  visited.add(contract.name)
+  const allParents = new Set<string>()
+  parentsPerContract.get(contract.name)?.forEach((parentId) => {
+    const parent = sourceInfos.find((s) => s.name === parentId)
+    if (parent === undefined) return
+    allParents.add(parentId)
+    if (!dependencies.has(parentId)) {
+      buildDependencies_(sourceInfos, parent, parentsPerContract, dependencies, visited)
+    }
+    const grandParents = dependencies.get(parentId) ?? []
+    grandParents.forEach((grandParent) => allParents.add(grandParent))
+  })
+  dependencies.set(contract.name, Array.from(allParents.values()))
+}
+
+export function buildDependencies(sources: SourceInfo[]): Map<string, string[]> {
+  const parentsPerContract = getParents(sources)
+  const dependencies = new Map<string, string[]>()
+  const visited = new Set<string>()
+  sources.forEach((source) => {
+    if (
+      source.type === SourceKind.Contract ||
+      source.type === SourceKind.AbstractContract ||
+      source.type === SourceKind.Interface
+    ) {
+      if (!dependencies.has(source.name)) {
+        buildDependencies_(sources, source, parentsPerContract, dependencies, visited)
+      }
+    }
+  })
+  return dependencies
 }

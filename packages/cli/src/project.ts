@@ -37,7 +37,7 @@ import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import { parseError } from './error'
 import * as fetchRetry from 'fetch-retry'
-import { SourceInfo, SourceKind, loadSourceInfos } from './contract'
+import { SourceInfo, SourceKind, buildDependencies, loadSourceInfos } from './contract'
 
 const defaultMainnetNodeUrl = 'https://node.mainnet.alephium.org'
 
@@ -132,21 +132,28 @@ export class ProjectArtifact {
   }
 
   getChangedSources(sourceInfos: SourceInfo[]): string[] {
-    const result: string[] = []
+    const dependencies = buildDependencies(sourceInfos)
+    const result = new Set<string>()
     // get all changed and new sources
     sourceInfos.forEach((sourceInfo) => {
       const info = this.infos.get(sourceInfo.name)
       if (info === undefined || info.sourceCodeHash !== sourceInfo.sourceCodeHash) {
-        result.push(sourceInfo.name)
+        result.add(sourceInfo.name)
+        dependencies.forEach((deps, key) => {
+          if (deps.includes(sourceInfo.name)) result.add(key)
+        })
       }
     })
     // get all removed sources
     this.infos.forEach((_, name) => {
       if (sourceInfos.find((s) => s.name === name) === undefined) {
-        result.push(name)
+        result.add(name)
+        dependencies.forEach((deps, key) => {
+          if (deps.includes(name)) result.add(key)
+        })
       }
     })
-    return result
+    return Array.from(result)
   }
 
   needToReCompile(compilerOptions: node.CompilerOptions, fullNodeVersion: string): boolean {

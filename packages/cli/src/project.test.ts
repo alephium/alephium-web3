@@ -17,7 +17,8 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { DEFAULT_NODE_COMPILER_OPTIONS } from '@alephium/web3'
-import { CodeInfo, ProjectArtifact, SourceInfo } from './project'
+import { CodeInfo, ProjectArtifact } from './project'
+import { SourceInfo } from './contract'
 
 describe('project', () => {
   function newCodeInfo(hash: string): CodeInfo {
@@ -30,7 +31,7 @@ describe('project', () => {
   }
 
   function newSourceInfo(name: string, hash: string): SourceInfo {
-    return new SourceInfo(0, name, '', hash, '', false)
+    return new SourceInfo(0, name, undefined, '', hash, '', false)
   }
 
   it('should get changed sources', () => {
