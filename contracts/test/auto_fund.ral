@@ -1,0 +1,9 @@
+Contract AutoFund() {
+  mapping[U256, U256] map
+
+  @using(checkExternalCaller = false, preapprovedAssets = true, assetsInContract = true)
+  pub fn insert() -> () {
+    transferTokenToSelf!(callerAddress!(), ALPH, 0.1 alph)
+    map.insert!(0, 0)
+  }
+}

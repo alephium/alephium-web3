@@ -41,6 +41,12 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b"
     },
+    "AutoFund": {
+      "sourceFile": "test/auto_fund.ral",
+      "sourceCodeHash": "9cb44ee8f48136f272dd2ffde19f81ea335b9f8d11fb5108e998c04805bb5e45",
+      "bytecodeDebugPatch": "=6-2+45=11-1+e=66+7a7e0214696e73657274206174206d617020706174683a2000=10",
+      "codeHashDebug": "f24dd51c57e2a3e42bf2c33332cd691295b3e4d2a59812969eb35e1f5a369c7f"
+    },
     "Balances": {
       "sourceFile": "test/struct.ral",
       "sourceCodeHash": "7690ad7d8b8c4b952fc6f439eb75648164532e055e6a47881882097c0600bb6a",

@@ -82,7 +82,8 @@ import {
   MapTestWrapper,
   MapTestSub,
   UserAccountTypes,
-  InlineTest
+  InlineTest,
+  AutoFund
 } from '../artifacts/ts'
 import { randomBytes } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
@@ -279,13 +280,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(62)
-    sourceFiles.slice(0, 29).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(29, 47).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(47, 49).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(49, 56).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(59, 56).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[61].type).toEqual(5) // constants
+    expect(sourceFiles.length).toEqual(63)
+    sourceFiles.slice(0, 30).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(30, 48).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(48, 50).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(50, 57).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(60, 57).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[62].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -973,5 +974,18 @@ describe('contract', function () {
     const state2 = await instance.fetchState()
     expect(state2.fields.count).toEqual(4n)
     expect(state2.asset.alphAmount).toEqual(ONE_ALPH + (ONE_ALPH / 100n) * 2n)
+  })
+
+  it('should test auto fund', async () => {
+    await expect(
+      AutoFund.tests.insert({
+        inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
+      })
+    ).rejects.toThrow('Insufficient funds to cover the minimum amount for contract UTXO')
+
+    await AutoFund.tests.insert({
+      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+      dustAmount: MINIMAL_CONTRACT_DEPOSIT
+    })
   })
 })
