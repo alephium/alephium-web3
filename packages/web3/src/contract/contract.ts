@@ -488,16 +488,19 @@ export class Contract extends Artifact {
       blockHash: params.blockHash,
       blockTimeStamp: params.blockTimeStamp,
       txId: params.txId,
-      address: params.address,
+      address: params.contractAddress,
       callerContractAddress: params.callerContractAddress,
       bytecode: this.isInlineFunc(methodIndex) ? this.getByteCodeForTesting() : this.bytecodeDebug,
       initialImmFields: immFields,
       initialMutFields: mutFields,
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
       methodIndex,
-      args: this.toApiArgs(funcName, params.testArgs),
+      args: this.toApiArgs(funcName, params.args),
       existingContracts: this.toApiContractStates(params.existingContracts),
-      inputAssets: toApiInputAssets(params.inputAssets)
+      inputAssets: toApiInputAssets(params.inputAssets),
+      gasAmount: params.gasAmount,
+      gasPrice: params.gasPrice?.toString(),
+      dustAmount: params.dustAmount?.toString()
     }
   }
 
@@ -981,7 +984,7 @@ export interface TestContractParams<
   M extends Record<string, Map<Val, Val>> = Record<string, Map<Val, Val>>
 > {
   group?: number // default 0
-  address?: string
+  contractAddress?: string
   callerContractAddress?: string
   blockHash?: string
   blockTimeStamp?: number
@@ -989,9 +992,12 @@ export interface TestContractParams<
   initialFields: F
   initialMaps?: M
   initialAsset?: Asset // default 1 ALPH
-  testArgs: A
+  args: A
   existingContracts?: ContractStateWithMaps[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
+  gasAmount?: number
+  gasPrice?: Number256
+  dustAmount?: Number256
 }
 
 export interface ContractEvent<T extends Fields = Fields> {
@@ -1471,7 +1477,7 @@ function getTestExistingContracts(
   selfContract: Contract,
   selfContractId: string,
   group: number,
-  params: Optional<TestContractParams, 'testArgs' | 'initialFields'>,
+  params: Optional<TestContractParams, 'args' | 'initialFields'>,
   getContractByCodeHash: (codeHash: string) => Contract
 ): ContractState[] {
   const selfMaps = params.initialMaps ?? {}
@@ -1522,7 +1528,7 @@ function getNewCreatedContractExceptMaps(
 
 export function extractMapsFromApiResult(
   selfAddress: string,
-  params: Optional<TestContractParams, 'testArgs' | 'initialFields'>,
+  params: Optional<TestContractParams, 'args' | 'initialFields'>,
   group: number,
   apiResult: node.TestContractResult,
   getContractByCodeHash: (codeHash: string) => Contract
@@ -1555,22 +1561,23 @@ export async function testMethod<
 >(
   factory: ContractFactory<I, F>,
   methodName: string,
-  params: Optional<TestContractParams<F, A, M>, 'testArgs' | 'initialFields'>,
+  params: Optional<TestContractParams<F, A, M>, 'args' | 'initialFields'>,
   getContractByCodeHash: (codeHash: string) => Contract
 ): Promise<TestContractResult<R, M>> {
   const txId = params?.txId ?? randomTxId()
   const selfContract = factory.contract
-  const selfAddress = params.address ?? addressFromContractId(binToHex(crypto.getRandomValues(new Uint8Array(32))))
+  const selfAddress =
+    params.contractAddress ?? addressFromContractId(binToHex(crypto.getRandomValues(new Uint8Array(32))))
   const selfContractId = binToHex(contractIdFromAddress(selfAddress))
   const group = params.group ?? 0
   const existingContracts = getTestExistingContracts(selfContract, selfContractId, group, params, getContractByCodeHash)
 
   const apiParams = selfContract.toApiTestContractParams(methodName, {
     ...params,
-    address: selfAddress,
+    contractAddress: selfAddress,
     txId: txId,
     initialFields: addStdIdToFields(selfContract, params.initialFields ?? {}),
-    testArgs: params.testArgs === undefined ? {} : params.testArgs,
+    args: params.args === undefined ? {} : params.args,
     existingContracts
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)

@@ -1264,6 +1264,9 @@ export interface TestContract {
   args?: Val[]
   existingContracts?: ContractState[]
   inputAssets?: TestInputAsset[]
+  gasAmount?: number
+  gasPrice?: string
+  dustAmount?: string
 }
 
 /** TestContractResult */
