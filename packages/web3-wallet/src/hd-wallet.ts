@@ -98,7 +98,7 @@ export function getHDWalletPath(keyType: KeyType, addressIndex: number): string 
   }
   // Being explicit: we always use coinType 1234 no matter the network.
   const coinType = "1234'"
-  const keyTypeNum = (keyType === 'default' || keyType === 'gl-secp256k1') ? 0 : 1
+  const keyTypeNum = keyType === 'default' || keyType === 'gl-secp256k1' ? 0 : 1
 
   return `m/44'/${coinType}/${keyTypeNum}'/0/${addressIndex}`
 }

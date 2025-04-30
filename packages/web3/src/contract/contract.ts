@@ -793,11 +793,8 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  async txParamsForExecution<P extends Fields>(
-    signer: SignerProvider,
-    params: ExecuteScriptParams<P>
-  ): Promise<SignExecuteScriptTxParams> {
-    const selectedAccount = await signer.getSelectedAccount()
+  async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
+    const selectedAccount = await params.signer.getSelectedAccount()
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
@@ -1164,9 +1161,9 @@ export class ExecutableScript<P extends Fields = Fields, R extends Val | null = 
     this.getContractByCodeHash = getContractByCodeHash
   }
 
-  async execute(signer: SignerProvider, params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
-    const signerParams = await this.script.txParamsForExecution(signer, params)
-    const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
+  async execute(params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
+    const signerParams = await this.script.txParamsForExecution(params)
+    const result = await params.signer.signAndSubmitExecuteScriptTx(signerParams)
 
     if ('transferTxs' in result) {
       return result.tx
@@ -1197,6 +1194,7 @@ export class ExecutableScript<P extends Fields = Fields, R extends Val | null = 
 
 export interface ExecuteScriptParams<P extends Fields = Fields> {
   initialFields: P
+  signer: SignerProvider
   attoAlphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number

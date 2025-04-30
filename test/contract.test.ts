@@ -199,7 +199,7 @@ describe('contract', function () {
     expect(addContractState0.address).toEqual(add.address)
     expect(addContractState0.contractId).toEqual(add.contractId)
 
-    const mainScriptTx = await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
+    const mainScriptTx = await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub after main script is executed
@@ -234,7 +234,7 @@ describe('contract', function () {
     expect(contractState.address).toEqual(greeter.address)
     expect(contractState.contractId).toEqual(greeter.contractId)
 
-    const mainScriptTx = await GreeterMain.execute(signer, { initialFields: { greeterContractId: greeter.contractId } })
+    const mainScriptTx = await GreeterMain.execute({ signer, initialFields: { greeterContractId: greeter.contractId } })
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
   })
 
@@ -342,13 +342,14 @@ describe('contract', function () {
     const assertAddress = assertDeployResult.contractInstance.address
 
     expectAssertionError(
-      TestAssert.execute(signer, { initialFields: { assert: assertAddress } }),
+      TestAssert.execute({ signer, initialFields: { assert: assertAddress } }),
       assertAddress,
       AssertError
     )
 
     expectAssertionError(
-      TestAssert.execute(signer, {
+      TestAssert.execute({
+        signer,
         initialFields: { assert: assertAddress },
         gasAmount: DEFAULT_GAS_AMOUNT
       }),
@@ -433,7 +434,8 @@ describe('contract', function () {
   })
 
   it('should support template array variables in script', async () => {
-    await TemplateArrayVar.execute(signer, {
+    await TemplateArrayVar.execute({
+      signer,
       initialFields: {
         address: testAddress,
         numbers0: [
@@ -486,7 +488,8 @@ describe('contract', function () {
     const balances0 = await result.contractInstance.view.getBalances()
     expect(balances0.returns).toEqual(initialFields.balances)
 
-    await UpdateUserAccount.execute(signer, {
+    await UpdateUserAccount.execute({
+      signer,
       initialFields: {
         address: signer.address,
         account: result.contractInstance.contractId,
@@ -607,7 +610,8 @@ describe('contract', function () {
     const result = await MapTest.deploy(signer, { initialFields: {}, exposePrivateFunctions })
 
     const mapTest = result.contractInstance
-    await InsertIntoMap.execute(signer, {
+    await InsertIntoMap.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         from: signer.address,
@@ -627,7 +631,8 @@ describe('contract', function () {
     expect(await mapTest.maps.map2.contains('0011')).toEqual(true)
     expect(await mapTest.maps.map2.get('0011')).toEqual(10n)
 
-    await UpdateMapValue.execute(signer, {
+    await UpdateMapValue.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         key: signer.address
@@ -638,7 +643,8 @@ describe('contract', function () {
     expect(await mapTest.maps.map1.get(1n)).toEqual(11n)
     expect(await mapTest.maps.map2.get('0011')).toEqual(11n)
 
-    await RemoveFromMap.execute(signer, {
+    await RemoveFromMap.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         key: signer.address
@@ -805,7 +811,8 @@ describe('contract', function () {
   it('should call TxScript', async () => {
     const result0 = await MapTest.deploy(signer, { initialFields: {}, exposePrivateFunctions })
     const mapTest = result0.contractInstance
-    await InsertIntoMap.execute(signer, {
+    await InsertIntoMap.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         from: signer.address,

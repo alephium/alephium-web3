@@ -39,7 +39,7 @@ export type KeyType = 'default' | 'bip340-schnorr' | 'gl-secp256k1'
 export interface Account {
   keyType: KeyType
   address: string
-  group: number    // TODO: optional for groupless address
+  group: number // TODO: optional for groupless address
   publicKey: string
 }
 
