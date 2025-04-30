@@ -1,8 +1,8 @@
 {
   "version": "v3.12.7",
   "name": "AutoFund",
-  "bytecode": "0001402c01010000000cd3f7240e07b413c4016345785d8a0000a9ca140a5f5f6d61705f5f305f5f0c4044b10cd20101",
-  "codeHash": "54d39719ad811f4433f3d9f3e83834deb6f7db6d6b16764532480419264b0089",
+  "bytecode": "00014040010101020017d3f59c1e39b413c4016345785d8a0000a90c170116011600314c0dca140a5f5f6d61705f5f305f5f16014044b11601d2010116010d2a17014a2f",
+  "codeHash": "a151f4b64bd66f02b83826d4aa26a0d1030f959f88fc8cb7579a55feaeee5869",
   "fieldsSig": {
     "names": [],
     "types": [],
@@ -12,9 +12,15 @@
   "functions": [
     {
       "name": "insert",
-      "paramNames": [],
-      "paramTypes": [],
-      "paramIsMutable": [],
+      "paramNames": [
+        "num"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
       "returnTypes": []
     }
   ],

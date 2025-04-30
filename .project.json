@@ -43,9 +43,9 @@
     },
     "AutoFund": {
       "sourceFile": "test/auto_fund.ral",
-      "sourceCodeHash": "9cb44ee8f48136f272dd2ffde19f81ea335b9f8d11fb5108e998c04805bb5e45",
-      "bytecodeDebugPatch": "=6-2+45=11-1+e=66+7a7e0214696e73657274206174206d617020706174683a2000=10",
-      "codeHashDebug": "f24dd51c57e2a3e42bf2c33332cd691295b3e4d2a59812969eb35e1f5a369c7f"
+      "sourceCodeHash": "befbef42289cb5d3a438bbddfe81724cb3b028f950e9ed2d3256a38092b2e61d",
+      "bytecodeDebugPatch": "=6-2+59=11-1+9=53-1+f=34+7a7e0214696e73657274206174206d617020706174683a2000=27-1+d",
+      "codeHashDebug": "04ee1668e2b37f74641ecaf98e8d34dd3384afe2c140bdbd4275cb36d62ae185"
     },
     "Balances": {
       "sourceFile": "test/struct.ral",

@@ -984,15 +984,19 @@ describe('contract', function () {
   })
 
   it('should test auto fund', async () => {
-    await expect(
-      AutoFund.tests.insert({
-        inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
+    for (let num = 0; num <= 3; num += 1) {
+      await AutoFund.tests.insert({
+        inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+        args: { num: BigInt(num) }
       })
-    ).rejects.toThrow('Insufficient funds to cover the minimum amount for contract UTXO')
-
-    await AutoFund.tests.insert({
-      inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
-      dustAmount: MINIMAL_CONTRACT_DEPOSIT
-    })
+    }
+    for (let num = 4; num <= 6; num += 1) {
+      await expect(
+        AutoFund.tests.insert({
+          inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+          args: { num: BigInt(num) }
+        })
+      ).rejects.toThrow('Insufficient funds to cover the minimum amount for contract UTXO')
+    }
   })
 })

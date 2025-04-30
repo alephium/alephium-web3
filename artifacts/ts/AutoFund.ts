@@ -51,7 +51,7 @@ export namespace AutoFundTypes {
 
   export interface CallMethodTable {
     insert: {
-      params: Omit<CallContractParams<{}>, "args">;
+      params: CallContractParams<{ num: bigint }>;
       result: CallContractResult<null>;
     };
   }
@@ -73,7 +73,7 @@ export namespace AutoFundTypes {
 
   export interface SignExecuteMethodTable {
     insert: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+      params: SignExecuteContractMethodParams<{ num: bigint }>;
       result: SignExecuteScriptTxResult;
     };
   }
@@ -96,17 +96,12 @@ class Factory extends ContractFactory<AutoFundInstance, {}> {
 
   tests = {
     insert: async (
-      params?: Omit<
-        TestContractParams<never, never, AutoFundTypes.Maps>,
-        "args" | "initialFields"
+      params: Omit<
+        TestContractParams<never, { num: bigint }, AutoFundTypes.Maps>,
+        "initialFields"
       >
     ): Promise<TestContractResult<null, AutoFundTypes.Maps>> => {
-      return testMethod(
-        this,
-        "insert",
-        params === undefined ? {} : params,
-        getContractByCodeHash
-      );
+      return testMethod(this, "insert", params, getContractByCodeHash);
     },
   };
 
@@ -124,8 +119,8 @@ class Factory extends ContractFactory<AutoFundInstance, {}> {
 export const AutoFund = new Factory(
   Contract.fromJson(
     AutoFundContractJson,
-    "=6-2+45=11-1+e=66+7a7e0214696e73657274206174206d617020706174683a2000=10",
-    "f24dd51c57e2a3e42bf2c33332cd691295b3e4d2a59812969eb35e1f5a369c7f",
+    "=6-2+59=11-1+9=53-1+f=34+7a7e0214696e73657274206174206d617020706174683a2000=27-1+d",
+    "04ee1668e2b37f74641ecaf98e8d34dd3384afe2c140bdbd4275cb36d62ae185",
     AllStructs
   )
 );
@@ -151,13 +146,13 @@ export class AutoFundInstance extends ContractInstance {
 
   view = {
     insert: async (
-      params?: AutoFundTypes.CallMethodParams<"insert">
+      params: AutoFundTypes.CallMethodParams<"insert">
     ): Promise<AutoFundTypes.CallMethodResult<"insert">> => {
       return callMethod(
         AutoFund,
         this,
         "insert",
-        params === undefined ? {} : params,
+        params,
         getContractByCodeHash
       );
     },

@@ -498,8 +498,6 @@ export class Contract extends Artifact {
       args: this.toApiArgs(funcName, params.args),
       existingContracts: this.toApiContractStates(params.existingContracts),
       inputAssets: toApiInputAssets(params.inputAssets),
-      gasAmount: params.gasAmount,
-      gasPrice: params.gasPrice?.toString(),
       dustAmount: params.dustAmount?.toString()
     }
   }
@@ -992,8 +990,6 @@ export interface TestContractParams<
   args: A
   existingContracts?: ContractStateWithMaps[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
-  gasAmount?: number
-  gasPrice?: Number256
   dustAmount?: Number256
 }
 
