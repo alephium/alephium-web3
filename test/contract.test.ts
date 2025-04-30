@@ -131,7 +131,7 @@ describe('contract', function () {
     const subState = Sub.stateForTest({ result: 0n })
     const testResult = await Add.tests.add({
       initialFields: { sub: subState.contractId, result: 0n },
-      testArgs: { array: [2n, 1n] },
+      args: { array: [2n, 1n] },
       existingContracts: [subState]
     })
     expect(testResult.returns).toEqual([3n, 1n])
@@ -174,7 +174,7 @@ describe('contract', function () {
 
     const testResultPrivate = await Add.tests.addPrivate({
       initialFields: { sub: subState.contractId, result: 0n },
-      testArgs: { array: [2n, 1n] },
+      args: { array: [2n, 1n] },
       existingContracts: [subState]
     })
     expect(testResultPrivate.returns).toEqual([3n, 1n])
@@ -249,10 +249,10 @@ describe('contract', function () {
     )
     const payer = signer.address
     const testResult = await Add.tests.createSubContract({
-      address: addAddress,
+      contractAddress: addAddress,
       group: groupIndex,
       initialFields: { sub: subState.contractId, result: 0n },
-      testArgs: { a: 0n, path: subContractPath, subContractId: subState.contractId, payer },
+      args: { a: 0n, path: subContractPath, subContractId: subState.contractId, payer },
       existingContracts: [subState],
       inputAssets: [{ address: payer, asset: { alphAmount: ONE_ALPH * 2n } }]
     })
@@ -335,7 +335,7 @@ describe('contract', function () {
     expect(Numbers.C).toEqual((1n << 256n) - 1n)
 
     const contractAddress = randomContractAddress()
-    expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, AssertError)
+    expectAssertionError(Assert.tests.test({ contractAddress }), contractAddress, AssertError)
 
     const assertDeployResult = await Assert.deploy(signer, { initialFields: {}, exposePrivateFunctions })
     const assertAddress = assertDeployResult.contractInstance.address
@@ -451,14 +451,14 @@ describe('contract', function () {
 
     const test0 = OwnerOnly.tests.testOwner({
       initialFields: { owner: parentAddress },
-      address: address,
+      contractAddress: address,
       callerContractAddress: randomContractAddress()
     })
     expectAssertionError(test0, address, 0)
 
     const test1 = await OwnerOnly.tests.testOwner({
       initialFields: { owner: parentAddress },
-      address: address,
+      contractAddress: address,
       callerContractAddress: parentAddress
     })
     // expectAssertionError(test2, address, 0)
@@ -504,7 +504,7 @@ describe('contract', function () {
 
   it('should test map(unit test)', async () => {
     const insertResult = await MapTest.tests.insert({
-      testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
+      args: { key: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }]
     })
     expect(insertResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
@@ -517,7 +517,7 @@ describe('contract', function () {
         map1: new Map([[1n, 10n]]),
         map2: new Map([['0011', 10n]])
       },
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
     expect(updateResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
@@ -530,7 +530,7 @@ describe('contract', function () {
         map1: new Map([[1n, 10n]]),
         map2: new Map([['0011', 10n]])
       },
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
     expect(removeResult.maps?.map0?.get(signer.address)).toEqual(undefined)
@@ -542,7 +542,7 @@ describe('contract', function () {
     const mapTestId = randomContractId()
     const mapTestAddress = addressFromContractId(mapTestId)
     const insertResult = await MapTestWrapper.tests.insert({
-      testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
+      args: { key: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }],
       initialFields: { inner: mapTestId },
       existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
@@ -553,7 +553,7 @@ describe('contract', function () {
     expect(mapTestState0.maps?.map2?.get('0011')).toEqual(10n)
 
     const updateResult = await MapTestWrapper.tests.update({
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialFields: { inner: mapTestId },
       existingContracts: [
@@ -570,7 +570,7 @@ describe('contract', function () {
     expect(mapTestState1.maps?.map2?.get('0011')).toEqual(11n)
 
     const removeResult = await MapTestWrapper.tests.remove({
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialFields: { inner: mapTestId },
       existingContracts: [
@@ -591,7 +591,7 @@ describe('contract', function () {
     const mapTestId = randomContractId()
     const mapTestAddress = addressFromContractId(mapTestId)
     const initResult = await MapTestSub.tests.init({
-      testArgs: { caller: signer.address, value: { id: 1n, balance: 10n } },
+      args: { caller: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }],
       initialFields: { mapTestTemplateId: mapTestId },
       existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
@@ -923,7 +923,7 @@ describe('contract', function () {
   it('should test inline functions(unit test)', async () => {
     const contractAddress = randomContractAddress()
     const result0 = await InlineTest.tests.nextCountWithPay({
-      address: contractAddress,
+      contractAddress: contractAddress,
       initialFields: { count: 0n },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialAsset: { alphAmount: ONE_ALPH }
@@ -933,7 +933,7 @@ describe('contract', function () {
     expect(assets0.alphAmount).toEqual(ONE_ALPH + ONE_ALPH / 100n)
 
     const result1 = await InlineTest.tests.nextCountWithoutPay({
-      address: contractAddress,
+      contractAddress: contractAddress,
       initialFields: { count: 0n },
       initialAsset: { alphAmount: ONE_ALPH }
     })
@@ -942,7 +942,7 @@ describe('contract', function () {
     expect(assets1.alphAmount).toEqual(ONE_ALPH)
 
     const result2 = await InlineTest.tests.nextCount({
-      address: contractAddress,
+      contractAddress: contractAddress,
       initialFields: { count: 0n },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialAsset: { alphAmount: ONE_ALPH }

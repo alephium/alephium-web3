@@ -95,7 +95,7 @@ class Factory extends ContractFactory<AssertInstance, {}> {
     test: async (
       params?: Omit<
         TestContractParamsWithoutMaps<never, never>,
-        "testArgs" | "initialFields"
+        "args" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(

@@ -143,7 +143,7 @@ class Factory extends ContractFactory<
     getBalances: async (
       params: Omit<
         TestContractParamsWithoutMaps<UserAccountTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<Balances>> => {
       return testMethod(this, "getBalances", params, getContractByCodeHash);
