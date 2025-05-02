@@ -33,7 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
-import { default as AssertContractJson } from "../test/Assert.ral.json";
+import { default as AutoFundContractJson } from "../test/AutoFund.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
 import {
   AddStruct1,
@@ -43,14 +43,15 @@ import {
   TokenBalance,
   AllStructs,
 } from "./types";
+import { RalphMap } from "@alephium/web3";
 
 // Custom types for the contract
-export namespace AssertTypes {
+export namespace AutoFundTypes {
   export type State = Omit<ContractState<any>, "fields">;
 
   export interface CallMethodTable {
-    test: {
-      params: Omit<CallContractParams<{}>, "args">;
+    insert: {
+      params: CallContractParams<{ num: bigint }>;
       result: CallContractResult<null>;
     };
   }
@@ -71,8 +72,8 @@ export namespace AssertTypes {
   };
 
   export interface SignExecuteMethodTable {
-    test: {
-      params: Omit<SignExecuteContractMethodParams<{}>, "args">;
+    insert: {
+      params: SignExecuteContractMethodParams<{ num: bigint }>;
       result: SignExecuteScriptTxResult;
     };
   }
@@ -80,78 +81,88 @@ export namespace AssertTypes {
     SignExecuteMethodTable[T]["params"];
   export type SignExecuteMethodResult<T extends keyof SignExecuteMethodTable> =
     SignExecuteMethodTable[T]["result"];
+
+  export type Maps = { map?: Map<bigint, bigint> };
 }
 
-class Factory extends ContractFactory<AssertInstance, {}> {
+class Factory extends ContractFactory<AutoFundInstance, {}> {
   encodeFields() {
     return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
   }
 
-  at(address: string): AssertInstance {
-    return new AssertInstance(address);
+  at(address: string): AutoFundInstance {
+    return new AutoFundInstance(address);
   }
 
   tests = {
-    test: async (
-      params?: Omit<
-        TestContractParamsWithoutMaps<never, never>,
-        "args" | "initialFields"
+    insert: async (
+      params: Omit<
+        TestContractParams<never, { num: bigint }, AutoFundTypes.Maps>,
+        "initialFields"
       >
-    ): Promise<TestContractResultWithoutMaps<null>> => {
-      return testMethod(
-        this,
-        "test",
-        params === undefined ? {} : params,
-        getContractByCodeHash
-      );
+    ): Promise<TestContractResult<null, AutoFundTypes.Maps>> => {
+      return testMethod(this, "insert", params, getContractByCodeHash);
     },
   };
 
-  stateForTest(initFields: {}, asset?: Asset, address?: string) {
-    return this.stateForTest_(initFields, asset, address, undefined);
+  stateForTest(
+    initFields: {},
+    asset?: Asset,
+    address?: string,
+    maps?: AutoFundTypes.Maps
+  ) {
+    return this.stateForTest_(initFields, asset, address, maps);
   }
 }
 
 // Use this object to test and deploy the contract
-export const Assert = new Factory(
+export const AutoFund = new Factory(
   Contract.fromJson(
-    AssertContractJson,
-    "",
-    "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b",
+    AutoFundContractJson,
+    "=6-2+59=11-1+9=53-1+f=34+7a7e0214696e73657274206174206d617020706174683a2000=27-1+d",
+    "04ee1668e2b37f74641ecaf98e8d34dd3384afe2c140bdbd4275cb36d62ae185",
     AllStructs
   )
 );
-registerContract(Assert);
+registerContract(AutoFund);
 
 // Use this class to interact with the blockchain
-export class AssertInstance extends ContractInstance {
+export class AutoFundInstance extends ContractInstance {
   constructor(address: Address) {
     super(address);
   }
 
-  async fetchState(): Promise<AssertTypes.State> {
-    return fetchContractState(Assert, this);
+  maps = {
+    map: new RalphMap<bigint, bigint>(
+      AutoFund.contract,
+      this.contractId,
+      "map"
+    ),
+  };
+
+  async fetchState(): Promise<AutoFundTypes.State> {
+    return fetchContractState(AutoFund, this);
   }
 
   view = {
-    test: async (
-      params?: AssertTypes.CallMethodParams<"test">
-    ): Promise<AssertTypes.CallMethodResult<"test">> => {
+    insert: async (
+      params: AutoFundTypes.CallMethodParams<"insert">
+    ): Promise<AutoFundTypes.CallMethodResult<"insert">> => {
       return callMethod(
-        Assert,
+        AutoFund,
         this,
-        "test",
-        params === undefined ? {} : params,
+        "insert",
+        params,
         getContractByCodeHash
       );
     },
   };
 
   transact = {
-    test: async (
-      params: AssertTypes.SignExecuteMethodParams<"test">
-    ): Promise<AssertTypes.SignExecuteMethodResult<"test">> => {
-      return signExecuteMethod(Assert, this, "test", params);
+    insert: async (
+      params: AutoFundTypes.SignExecuteMethodParams<"insert">
+    ): Promise<AutoFundTypes.SignExecuteMethodResult<"insert">> => {
+      return signExecuteMethod(AutoFund, this, "insert", params);
     },
   };
 }

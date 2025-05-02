@@ -26,7 +26,6 @@ import {
   Struct,
   node,
   web3,
-  WebCrypto,
   CompilerOptions,
   Constant,
   Enum,
@@ -38,89 +37,9 @@ import fs from 'fs'
 import { promises as fsPromises } from 'fs'
 import { parseError } from './error'
 import * as fetchRetry from 'fetch-retry'
+import { SourceInfo, SourceKind, buildDependencies, loadSourceInfos } from './contract'
 
-const crypto = new WebCrypto()
 const defaultMainnetNodeUrl = 'https://node.mainnet.alephium.org'
-
-class TypedMatcher<T extends SourceKind> {
-  matcher: RegExp
-  type: T
-
-  constructor(pattern: string, type: T) {
-    this.matcher = new RegExp(pattern, 'mg')
-    this.type = type
-  }
-}
-
-function removeParentsPrefix(parts: string[]): string {
-  let index = 0
-  for (let i = 0; i < parts.length; i++) {
-    if (parts[`${i}`] === '..') {
-      index += 1
-    } else {
-      break
-    }
-  }
-  return path.join(...parts.slice(index))
-}
-
-enum SourceKind {
-  Contract = 0,
-  Script = 1,
-  AbstractContract = 2,
-  Interface = 3,
-  Struct = 4,
-  Constants = 5
-}
-
-export class SourceInfo {
-  type: SourceKind
-  name: string
-  contractRelativePath: string
-  sourceCode: string
-  sourceCodeHash: string
-  isExternal: boolean
-
-  getArtifactPath(artifactsRootDir: string): string {
-    let fullPath: string
-    if (this.isExternal) {
-      const relativePath = removeParentsPrefix(this.contractRelativePath.split(path.sep))
-      const externalPath = path.join('.external', relativePath)
-      fullPath = path.join(artifactsRootDir, externalPath)
-    } else {
-      fullPath = path.join(artifactsRootDir, this.contractRelativePath)
-    }
-    return path.join(path.dirname(fullPath), `${this.name}.ral.json`)
-  }
-
-  constructor(
-    type: SourceKind,
-    name: string,
-    sourceCode: string,
-    sourceCodeHash: string,
-    contractRelativePath: string,
-    isExternal: boolean
-  ) {
-    this.type = type
-    this.name = name
-    this.sourceCode = sourceCode
-    this.sourceCodeHash = sourceCodeHash
-    this.contractRelativePath = contractRelativePath
-    this.isExternal = isExternal
-  }
-
-  static async from(
-    type: SourceKind,
-    name: string,
-    sourceCode: string,
-    contractRelativePath: string,
-    isExternal: boolean
-  ): Promise<SourceInfo> {
-    const sourceCodeHash = await crypto.subtle.digest('SHA-256', Buffer.from(sourceCode))
-    const sourceCodeHashHex = Buffer.from(sourceCodeHash).toString('hex')
-    return new SourceInfo(type, name, sourceCode, sourceCodeHashHex, contractRelativePath, isExternal)
-  }
-}
 
 class Compiled<T extends Artifact> {
   sourceInfo: SourceInfo
@@ -213,21 +132,28 @@ export class ProjectArtifact {
   }
 
   getChangedSources(sourceInfos: SourceInfo[]): string[] {
-    const result: string[] = []
+    const dependencies = buildDependencies(sourceInfos)
+    const result = new Set<string>()
     // get all changed and new sources
     sourceInfos.forEach((sourceInfo) => {
       const info = this.infos.get(sourceInfo.name)
       if (info === undefined || info.sourceCodeHash !== sourceInfo.sourceCodeHash) {
-        result.push(sourceInfo.name)
+        result.add(sourceInfo.name)
+        dependencies.forEach((deps, key) => {
+          if (deps.includes(sourceInfo.name)) result.add(key)
+        })
       }
     })
     // get all removed sources
     this.infos.forEach((_, name) => {
       if (sourceInfos.find((s) => s.name === name) === undefined) {
-        result.push(name)
+        result.add(name)
+        dependencies.forEach((deps, key) => {
+          if (deps.includes(name)) result.add(key)
+        })
       }
     })
-    return result
+    return Array.from(result)
   }
 
   needToReCompile(compilerOptions: node.CompilerOptions, fullNodeVersion: string): boolean {
@@ -312,22 +238,6 @@ export class Project {
   readonly artifactsRootDir: string
 
   static readonly importRegex = new RegExp('^import "[^"./]+/[^"]*[a-z][a-z_0-9]*(.ral)?"', 'mg')
-  static readonly abstractContractMatcher = new TypedMatcher<SourceKind>(
-    '^Abstract Contract ([A-Z][a-zA-Z0-9]*)',
-    SourceKind.AbstractContract
-  )
-  static readonly contractMatcher = new TypedMatcher('^Contract ([A-Z][a-zA-Z0-9]*)', SourceKind.Contract)
-  static readonly interfaceMatcher = new TypedMatcher('^Interface ([A-Z][a-zA-Z0-9]*)', SourceKind.Interface)
-  static readonly scriptMatcher = new TypedMatcher('^TxScript ([A-Z][a-zA-Z0-9]*)', SourceKind.Script)
-  static readonly structMatcher = new TypedMatcher('struct ([A-Z][a-zA-Z0-9]*)', SourceKind.Struct)
-  static readonly matchers = [
-    Project.abstractContractMatcher,
-    Project.contractMatcher,
-    Project.interfaceMatcher,
-    Project.scriptMatcher,
-    Project.structMatcher
-  ]
-
   static readonly structArtifactFileName = 'structs.ral.json'
   static readonly constantArtifactFileName = 'constants.ral.json'
 
@@ -895,21 +805,8 @@ export class Project {
     if (sourceStr.match(new RegExp('^import "', 'mg')) !== null) {
       throw new Error(`Invalid import statements, source: ${sourcePath}`)
     }
-    const sourceInfos = externalSourceInfos
-    let isConstantsFile = true
-    for (const matcher of this.matchers) {
-      const results = Array.from(sourceStr.matchAll(matcher.matcher))
-      if (isConstantsFile) isConstantsFile = results.length === 0
-      for (const result of results) {
-        const sourceInfo = await SourceInfo.from(matcher.type, result[1], sourceStr, contractRelativePath, isExternal)
-        sourceInfos.push(sourceInfo)
-      }
-    }
-    if (isConstantsFile) {
-      const name = path.basename(sourcePath, path.extname(sourcePath))
-      sourceInfos.push(await SourceInfo.from(SourceKind.Constants, name, sourceStr, contractRelativePath, false))
-    }
-    return sourceInfos
+    const sourceInfos = await loadSourceInfos(contractRelativePath, sourcePath, sourceStr, isExternal)
+    return externalSourceInfos.concat(sourceInfos)
   }
 
   private static async loadSourceFiles(projectRootDir: string, contractsRootDir: string): Promise<SourceInfo[]> {

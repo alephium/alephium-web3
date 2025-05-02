@@ -115,7 +115,7 @@ class Factory extends ContractFactory<
     getTokenUri: async (
       params: Omit<
         TestContractParamsWithoutMaps<DeprecatedNFTTest7Types.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params, getContractByCodeHash);
@@ -123,7 +123,7 @@ class Factory extends ContractFactory<
     returnNegativeIndex: async (
       params: Omit<
         TestContractParamsWithoutMaps<DeprecatedNFTTest7Types.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
       return testMethod(

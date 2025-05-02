@@ -181,7 +181,7 @@ class Factory extends ContractFactory<
           NFTCollectionWithRoyaltyTestTypes.Fields,
           never
         >,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(
@@ -197,7 +197,7 @@ class Factory extends ContractFactory<
           NFTCollectionWithRoyaltyTestTypes.Fields,
           never
         >,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "totalSupply", params, getContractByCodeHash);
