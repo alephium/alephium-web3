@@ -125,7 +125,7 @@ export interface Deployer {
 
   runScript<P extends Fields>(
     executableScript: ExecutableScript<P>,
-    params: ExecuteScriptParams<P>,
+    params: Omit<ExecuteScriptParams<P>, 'signer'>,
     taskTag?: string
   ): Promise<ExecuteScriptResult>
 

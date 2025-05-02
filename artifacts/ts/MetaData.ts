@@ -111,7 +111,7 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
     foo: async (
       params?: Omit<
         TestContractParamsWithoutMaps<never, never>,
-        "testArgs" | "initialFields"
+        "args" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(
@@ -124,7 +124,7 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
     bar: async (
       params?: Omit<
         TestContractParamsWithoutMaps<never, never>,
-        "testArgs" | "initialFields"
+        "args" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(
@@ -137,7 +137,7 @@ class Factory extends ContractFactory<MetaDataInstance, {}> {
     baz: async (
       params?: Omit<
         TestContractParamsWithoutMaps<never, never>,
-        "testArgs" | "initialFields"
+        "args" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(

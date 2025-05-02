@@ -24,10 +24,11 @@ import bs58, { base58ToBytes } from '../utils/bs58'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
 import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
-import { i32Codec } from '../codec'
+import { i32Codec, intAs4BytesCodec } from '../codec'
 import { LockupScript } from '../codec/lockup-script-codec'
 import djb2 from '../utils/djb2'
 import { TraceableError } from '../error'
+import { byteCodec } from '../codec/codec'
 
 const ec = new EC('secp256k1')
 const PublicKeyHashSize = 32
@@ -36,7 +37,8 @@ export enum AddressType {
   P2PKH = 0x00,
   P2MPKH = 0x01,
   P2SH = 0x02,
-  P2C = 0x03
+  P2C = 0x03,
+  P2PK = 0x04
 }
 
 export function validateAddress(address: string) {
@@ -53,7 +55,7 @@ export function isValidAddress(address: string): boolean {
 }
 
 function decodeAndValidateAddress(address: string): Uint8Array {
-  const decoded = base58ToBytes(address)
+  const decoded = addressToBytes(address)
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType === AddressType.P2MPKH) {
@@ -75,14 +77,70 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
+  } else if (addressType === AddressType.P2PK) {
+    if (decoded.length === 40) {
+      // [type, keyType, ...publicKey, ...checkSum, ...groupByte]
+      const publicKeyLikeBytes = decoded.slice(1, 35)
+      const checksum = binToHex(decoded.slice(35, 39))
+      const expectedChecksum = binToHex(intAs4BytesCodec.encode(djb2(publicKeyLikeBytes)))
+      if (checksum !== expectedChecksum) {
+        throw new Error(`Invalid checksum for P2PK address: ${address}`)
+      }
+      const group = byteCodec.decode(decoded.slice(39, 40))
+      validateGroupIndex(group)
+
+      return decoded
+    }
   }
 
   throw new Error(`Invalid address: ${address}`)
 }
 
+export function addressToBytes(address: string): Uint8Array {
+  if (hasExplicitGroupIndex(address)) {
+    const groupIndex = parseGroupIndex(address[address.length - 1])
+    const decoded = base58ToBytes(address.slice(0, address.length - 2))
+    if (decoded[0] === 0x04 && decoded.length === 39) {
+      const groupByte = byteCodec.encode(groupIndex)
+      return new Uint8Array([...decoded, ...groupByte])
+    }
+    throw new Error(`Invalid groupless address: ${address}`)
+  } else {
+    const decoded = base58ToBytes(address)
+    if (decoded[0] === 0x04 && decoded.length === 39) {
+      const group = defaultGroupOfGrouplessAddress(decoded.slice(2, 35))
+      const groupByte = byteCodec.encode(group)
+      return new Uint8Array([...decoded, ...groupByte])
+    }
+    return decoded
+  }
+}
+
 export function isAssetAddress(address: string) {
   const addressType = decodeAndValidateAddress(address)[0]
-  return addressType === AddressType.P2PKH || addressType === AddressType.P2MPKH || addressType === AddressType.P2SH
+  return (
+    addressType === AddressType.P2PKH ||
+    addressType === AddressType.P2MPKH ||
+    addressType === AddressType.P2SH ||
+    addressType === AddressType.P2PK
+  )
+}
+
+export function isGrouplessAddress(address: string) {
+  const addressType = decodeAndValidateAddress(address)[0]
+  return addressType === AddressType.P2PK
+}
+
+export function isGrouplessAddressWithoutGroupIndex(address: string) {
+  return !hasExplicitGroupIndex(address) && isGrouplessAddress(address)
+}
+
+export function isGrouplessAddressWithGroupIndex(address: string) {
+  return hasExplicitGroupIndex(address) && isGrouplessAddress(address)
+}
+
+export function defaultGroupOfGrouplessAddress(pubKey: Uint8Array): number {
+  return pubKey[pubKey.length - 1] & 0xff % TOTAL_NUMBER_OF_GROUPS
 }
 
 export function isContractAddress(address: string) {
@@ -101,6 +159,8 @@ export function groupOfAddress(address: string): number {
     return groupOfP2mpkhAddress(addressBody)
   } else if (addressType == AddressType.P2SH) {
     return groupOfP2shAddress(addressBody)
+  } else if (addressType == AddressType.P2PK) {
+    return groupOfP2pkAddress(addressBody)
   } else {
     // Contract Address
     const id = contractIdFromAddress(address)
@@ -110,17 +170,21 @@ export function groupOfAddress(address: string): number {
 
 // Pay to public key hash address
 function groupOfP2pkhAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address)
+  return groupFromBytes(address)
 }
 
 // Pay to multiple public key hash address
 function groupOfP2mpkhAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address.slice(1, 33))
+  return groupFromBytes(address.slice(1, 33))
+}
+
+function groupOfP2pkAddress(address: Uint8Array): number {
+  return byteCodec.decode(address.slice(38, 39)) % TOTAL_NUMBER_OF_GROUPS
 }
 
 // Pay to script hash address
 function groupOfP2shAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address)
+  return groupFromBytes(address)
 }
 
 export function contractIdFromAddress(address: string): Uint8Array {
@@ -151,7 +215,7 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
 export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default') {
+  if (keyType === 'default' || keyType === 'gl-secp256k1') {
     const key = ec.keyFromPrivate(privateKey)
     return key.getPublic(true, 'hex')
   } else {
@@ -165,6 +229,11 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
   if (keyType === 'default') {
     const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
     const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
+    return bs58.encode(bytes)
+  } else if (keyType === 'gl-secp256k1') {
+    const publicKeyBytes = new Uint8Array([0x00, ...hexToBinUnsafe(publicKey)])
+    const hashBytes = intAs4BytesCodec.encode(djb2(publicKeyBytes))
+    const bytes = new Uint8Array([0x04, ...publicKeyBytes, ...hashBytes])
     return bs58.encode(bytes)
   } else {
     const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
@@ -215,11 +284,13 @@ export function subContractId(parentContractId: string, pathInHex: string, group
 
 export function groupOfLockupScript(lockupScript: LockupScript): number {
   if (lockupScript.kind === 'P2PKH') {
-    return groupFromBytesForAssetAddress(lockupScript.value)
+    return groupFromBytes(lockupScript.value)
   } else if (lockupScript.kind === 'P2MPKH') {
-    return groupFromBytesForAssetAddress(lockupScript.value.publicKeyHashes[0])
+    return groupFromBytes(lockupScript.value.publicKeyHashes[0])
   } else if (lockupScript.kind === 'P2SH') {
-    return groupFromBytesForAssetAddress(lockupScript.value)
+    return groupFromBytes(lockupScript.value)
+  } else if (lockupScript.kind === 'P2PK') {
+    return lockupScript.value.group % TOTAL_NUMBER_OF_GROUPS
   } else {
     // P2C
     const contractId = lockupScript.value
@@ -227,8 +298,45 @@ export function groupOfLockupScript(lockupScript: LockupScript): number {
   }
 }
 
-function groupFromBytesForAssetAddress(bytes: Uint8Array): number {
+export function groupFromBytes(bytes: Uint8Array): number {
   const hint = djb2(bytes) | 1
+  return groupFromHint(hint)
+}
+
+export function groupFromHint(hint: number): number {
   const hash = xorByte(hint)
   return hash % TOTAL_NUMBER_OF_GROUPS
+}
+
+export function hasExplicitGroupIndex(address: string): boolean {
+  return address.length > 2 && address[address.length - 2] === ':'
+}
+
+export function addressWithoutExplicitGroupIndex(address: string): string {
+  if (hasExplicitGroupIndex(address)) {
+    return address.slice(0, address.length - 2)
+  }
+  return address
+}
+
+export function addressFromLockupScript(lockupScript: LockupScript): string {
+  if (lockupScript.kind === 'P2PK') {
+    const groupByte = lockupScriptCodec.encode(lockupScript).slice(-1)
+    const address = bs58.encode(lockupScriptCodec.encode(lockupScript).slice(0, -1))
+    return `${address}:${groupByte}`
+  } else {
+    return bs58.encode(lockupScriptCodec.encode(lockupScript))
+  }
+}
+
+function parseGroupIndex(groupIndexStr: string): number {
+  return validateGroupIndex(parseInt(groupIndexStr), groupIndexStr)
+}
+
+function validateGroupIndex(groupIndex: number, groupIndexStr?: string): number {
+  if (isNaN(groupIndex) || groupIndex < 0 || groupIndex >= TOTAL_NUMBER_OF_GROUPS) {
+    throw new Error(`Invalid group index: ${groupIndexStr ?? groupIndex}`)
+  }
+
+  return groupIndex
 }

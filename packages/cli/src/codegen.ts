@@ -354,8 +354,8 @@ function genTestMethod(contract: Contract, functionSig: FunctionSig): string {
       : funcHasArgs
       ? `params: Omit<${baseParamsType}, 'initialFields'>`
       : contractHasFields
-      ? `params: Omit<${baseParamsType}, 'testArgs'>`
-      : `params?: Omit<${baseParamsType}, 'testArgs' | 'initialFields'>`
+      ? `params: Omit<${baseParamsType}, 'args'>`
+      : `params?: Omit<${baseParamsType}, 'args' | 'initialFields'>`
   const tsReturnTypes = functionSig.returnTypes.map((tpe) => toTsType(tpe))
   const baseRetType =
     tsReturnTypes.length === 0

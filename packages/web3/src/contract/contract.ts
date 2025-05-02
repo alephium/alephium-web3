@@ -58,7 +58,13 @@ import {
   isHexString,
   hexToString
 } from '../utils'
-import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
+import {
+  contractIdFromAddress,
+  groupOfAddress,
+  addressFromContractId,
+  subContractId,
+  isGrouplessAddressWithoutGroupIndex
+} from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
@@ -90,6 +96,7 @@ import {
   BytesConst
 } from '../codec'
 import { TraceableError } from '../error'
+import { SimulationResult } from '../api/api-alephium'
 
 const crypto = new WebCrypto()
 
@@ -481,16 +488,17 @@ export class Contract extends Artifact {
       blockHash: params.blockHash,
       blockTimeStamp: params.blockTimeStamp,
       txId: params.txId,
-      address: params.address,
-      callerContractAddress: params.callerAddress,
+      address: params.contractAddress,
+      callerContractAddress: params.callerContractAddress,
       bytecode: this.isInlineFunc(methodIndex) ? this.getByteCodeForTesting() : this.bytecodeDebug,
       initialImmFields: immFields,
       initialMutFields: mutFields,
       initialAsset: typeof params.initialAsset !== 'undefined' ? toApiAsset(params.initialAsset) : undefined,
       methodIndex,
-      args: this.toApiArgs(funcName, params.testArgs),
+      args: this.toApiArgs(funcName, params.args),
       existingContracts: this.toApiContractStates(params.existingContracts),
-      inputAssets: toApiInputAssets(params.inputAssets)
+      inputAssets: toApiInputAssets(params.inputAssets),
+      dustAmount: params.dustAmount?.toString()
     }
   }
 
@@ -590,7 +598,8 @@ export class Contract extends Artifact {
 
   async txParamsForDeployment<P extends Fields>(
     signer: SignerProvider,
-    params: DeployContractParams<P>
+    params: DeployContractParams<P>,
+    group?: number
   ): Promise<SignDeployContractTxParams> {
     const isDevnet = await this.isDevnet(signer)
     const initialFields: Fields = params.initialFields ?? {}
@@ -600,6 +609,12 @@ export class Contract extends Artifact {
       params.exposePrivateFunctions ?? false
     )
     const selectedAccount = await signer.getSelectedAccount()
+    if (selectedAccount.keyType === 'gl-secp256k1') {
+      if (group === undefined) {
+        throw new Error('Groupless address requires explicit group number for contract deployment')
+      }
+    }
+
     const signerParams: SignDeployContractTxParams = {
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
@@ -609,7 +624,8 @@ export class Contract extends Artifact {
       issueTokenTo: params?.issueTokenTo,
       initialTokenAmounts: params?.initialTokenAmounts,
       gasAmount: params?.gasAmount,
-      gasPrice: params?.gasPrice
+      gasPrice: params?.gasPrice,
+      group: group
     }
     return signerParams
   }
@@ -775,11 +791,8 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  async txParamsForExecution<P extends Fields>(
-    signer: SignerProvider,
-    params: ExecuteScriptParams<P>
-  ): Promise<SignExecuteScriptTxParams> {
-    const selectedAccount = await signer.getSelectedAccount()
+  async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
+    const selectedAccount = await params.signer.getSelectedAccount()
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
@@ -966,17 +979,18 @@ export interface TestContractParams<
   M extends Record<string, Map<Val, Val>> = Record<string, Map<Val, Val>>
 > {
   group?: number // default 0
-  address?: string
-  callerAddress?: string
+  contractAddress?: string
+  callerContractAddress?: string
   blockHash?: string
   blockTimeStamp?: number
   txId?: string
   initialFields: F
   initialMaps?: M
   initialAsset?: Asset // default 1 ALPH
-  testArgs: A
+  args: A
   existingContracts?: ContractStateWithMaps[] // default no existing contracts
   inputAssets?: InputAsset[] // default no input asserts
+  dustAmount?: Number256
 }
 
 export interface ContractEvent<T extends Fields = Fields> {
@@ -1056,6 +1070,7 @@ export interface DeployContractParams<P extends Fields = Fields> {
   gasAmount?: number
   gasPrice?: Number256
   exposePrivateFunctions?: boolean
+  group?: number
 }
 assertType<
   Eq<
@@ -1079,15 +1094,30 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
 
   abstract at(address: string): I
 
-  async deploy(signer: SignerProvider, deployParams: DeployContractParams<F>): Promise<DeployContractResult<I>> {
-    const signerParams = await this.contract.txParamsForDeployment(signer, {
-      ...deployParams,
-      initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
-    })
+  async deploy(
+    signer: SignerProvider,
+    deployParams: DeployContractParams<F>,
+    group?: number
+  ): Promise<DeployContractResult<I>> {
+    const signerParams = await this.contract.txParamsForDeployment(
+      signer,
+      {
+        ...deployParams,
+        initialFields: addStdIdToFields(this.contract, deployParams.initialFields)
+      },
+      group
+    )
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
-    return {
-      ...result,
-      contractInstance: this.at(result.contractAddress)
+    if ('transferTxs' in result) {
+      return {
+        ...result.tx,
+        contractInstance: this.at(result.tx.contractAddress)
+      }
+    } else {
+      return {
+        ...result,
+        contractInstance: this.at(result.contractAddress)
+      }
     }
   }
 
@@ -1127,9 +1157,15 @@ export class ExecutableScript<P extends Fields = Fields, R extends Val | null = 
     this.getContractByCodeHash = getContractByCodeHash
   }
 
-  async execute(signer: SignerProvider, params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
-    const signerParams = await this.script.txParamsForExecution(signer, params)
-    return await signer.signAndSubmitExecuteScriptTx(signerParams)
+  async execute(params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
+    const signerParams = await this.script.txParamsForExecution(params)
+    const result = await params.signer.signAndSubmitExecuteScriptTx(signerParams)
+
+    if ('transferTxs' in result) {
+      return result.tx
+    } else {
+      return result
+    }
   }
 
   async call(params: CallScriptParams<P>): Promise<CallScriptResult<R>> {
@@ -1154,6 +1190,7 @@ export class ExecutableScript<P extends Fields = Fields, R extends Val | null = 
 
 export interface ExecuteScriptParams<P extends Fields = Fields> {
   initialFields: P
+  signer: SignerProvider
   attoAlphAmount?: Number256
   tokens?: Token[]
   gasAmount?: number
@@ -1167,6 +1204,7 @@ export interface ExecuteScriptResult {
   signature: string
   gasAmount: number
   gasPrice: Number256
+  simulationResult: SimulationResult
 }
 
 export interface CallScriptParams<P extends Fields = Fields> {
@@ -1433,7 +1471,7 @@ function getTestExistingContracts(
   selfContract: Contract,
   selfContractId: string,
   group: number,
-  params: Optional<TestContractParams, 'testArgs' | 'initialFields'>,
+  params: Optional<TestContractParams, 'args' | 'initialFields'>,
   getContractByCodeHash: (codeHash: string) => Contract
 ): ContractState[] {
   const selfMaps = params.initialMaps ?? {}
@@ -1484,7 +1522,7 @@ function getNewCreatedContractExceptMaps(
 
 export function extractMapsFromApiResult(
   selfAddress: string,
-  params: Optional<TestContractParams, 'testArgs' | 'initialFields'>,
+  params: Optional<TestContractParams, 'args' | 'initialFields'>,
   group: number,
   apiResult: node.TestContractResult,
   getContractByCodeHash: (codeHash: string) => Contract
@@ -1517,22 +1555,23 @@ export async function testMethod<
 >(
   factory: ContractFactory<I, F>,
   methodName: string,
-  params: Optional<TestContractParams<F, A, M>, 'testArgs' | 'initialFields'>,
+  params: Optional<TestContractParams<F, A, M>, 'args' | 'initialFields'>,
   getContractByCodeHash: (codeHash: string) => Contract
 ): Promise<TestContractResult<R, M>> {
   const txId = params?.txId ?? randomTxId()
   const selfContract = factory.contract
-  const selfAddress = params.address ?? addressFromContractId(binToHex(crypto.getRandomValues(new Uint8Array(32))))
+  const selfAddress =
+    params.contractAddress ?? addressFromContractId(binToHex(crypto.getRandomValues(new Uint8Array(32))))
   const selfContractId = binToHex(contractIdFromAddress(selfAddress))
   const group = params.group ?? 0
   const existingContracts = getTestExistingContracts(selfContract, selfContractId, group, params, getContractByCodeHash)
 
   const apiParams = selfContract.toApiTestContractParams(methodName, {
     ...params,
-    address: selfAddress,
+    contractAddress: selfAddress,
     txId: txId,
     initialFields: addStdIdToFields(selfContract, params.initialFields ?? {}),
-    testArgs: params.testArgs === undefined ? {} : params.testArgs,
+    args: params.args === undefined ? {} : params.args,
     existingContracts
   })
   const apiResult = await getCurrentNodeProvider().contracts.postContractsTestContract(apiParams)
@@ -1932,7 +1971,7 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
     gasPrice: params.gasPrice
   }
 
-  const result = await signer.signAndSubmitExecuteScriptTx(signerParams)
+  const result = (await signer.signAndSubmitExecuteScriptTx(signerParams)) as SignExecuteScriptTxResult
   if (isContractDebugMessageEnabled() && isDevnet) {
     await printDebugMessagesFromTx(result.txId, signer.nodeProvider)
   }
