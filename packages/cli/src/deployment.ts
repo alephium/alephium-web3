@@ -430,7 +430,7 @@ function createDeployer<Settings = unknown>(
 
   const runScript = async <P extends Fields>(
     executableScript: ExecutableScript<P>,
-    params: Omit<ExecuteScriptParams<P>, 'signer'>,
+    params: ExecuteScriptParams<P>,
     taskTag?: string
   ): Promise<ExecuteScriptResult> => {
     const initFieldsAndByteCode = executableScript.script.buildByteCodeToDeploy(params.initialFields ?? {})
@@ -456,7 +456,7 @@ function createDeployer<Settings = unknown>(
       return { ...previousExecuteResult }
     }
     deploymentLogger(`Executing script ${taskId}`)
-    const executeResult = await executableScript.execute({ ...params, signer })
+    const executeResult = await executableScript.execute(signer, params)
     const confirmed = await waitForTxConfirmation(executeResult.txId, confirmations, requestInterval)
     const runScriptResult: RunScriptResult = {
       ...executeResult,

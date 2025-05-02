@@ -95,7 +95,7 @@ class Factory extends ContractFactory<DebugInstance, {}> {
     debug: async (
       params?: Omit<
         TestContractParamsWithoutMaps<never, never>,
-        "args" | "initialFields"
+        "testArgs" | "initialFields"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(

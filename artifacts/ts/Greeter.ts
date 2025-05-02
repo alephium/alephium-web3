@@ -111,7 +111,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     greet: async (
       params: Omit<
         TestContractParamsWithoutMaps<GreeterTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "greet", params, getContractByCodeHash);

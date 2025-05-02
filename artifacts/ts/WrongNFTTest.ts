@@ -116,7 +116,7 @@ class Factory extends ContractFactory<
     getTokenUri: async (
       params: Omit<
         TestContractParamsWithoutMaps<WrongNFTTestTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params, getContractByCodeHash);
@@ -124,7 +124,7 @@ class Factory extends ContractFactory<
     getCollectionIndex: async (
       params: Omit<
         TestContractParamsWithoutMaps<WrongNFTTestTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
       return testMethod(

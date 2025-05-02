@@ -145,7 +145,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     deposit: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "deposit", params, getContractByCodeHash);
@@ -153,7 +153,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     withdraw: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "withdraw", params, getContractByCodeHash);
@@ -177,7 +177,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     getTotalALPH: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalALPH", params, getContractByCodeHash);
@@ -185,7 +185,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     getTotalTokens: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalTokens", params, getContractByCodeHash);

@@ -31,12 +31,11 @@ function getConfig(options: any): Configuration {
   const configFile = options.config ? (options.config as string) : getConfigFile()
   console.log(`Loading alephium config file: ${configFile}`)
   const config = loadConfig(configFile)
-  const forceRecompile = options.force || config.forceRecompile
-  if (forceRecompile && config.skipRecompileIfDeployedOnMainnet) {
+  if (config.forceRecompile && config.skipRecompileIfDeployedOnMainnet) {
     throw new Error(`The forceRecompile and skipRecompileIfDeployedOnMainnet flags cannot be enabled at the same time`)
   }
 
-  if (forceRecompile && (config.skipRecompileContracts ?? []).length > 0) {
+  if (config.forceRecompile && (config.skipRecompileContracts ?? []).length > 0) {
     throw new Error(`The skipRecompileContracts cannot be specified when forceRecompile is enabled`)
   }
 
@@ -97,7 +96,6 @@ program
   .option('-n, --network <network-type>', 'network type')
   .option('--skipGenerate', 'skip generate typescript code by contract artifacts')
   .option('--debug', 'show detailed debug information such as error stack traces')
-  .option('--force', 'enable force recompile')
   .action(async (options) => {
     try {
       const config = getConfig(options)

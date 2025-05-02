@@ -106,7 +106,7 @@ class Factory extends ContractFactory<
     testOwner: async (
       params: Omit<
         TestContractParamsWithoutMaps<OwnerOnlyTypes.Fields, never>,
-        "args"
+        "testArgs"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "testOwner", params, getContractByCodeHash);

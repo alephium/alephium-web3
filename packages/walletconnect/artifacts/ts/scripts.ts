@@ -9,16 +9,16 @@ import {
   Script,
   SignerProvider,
   HexString,
-  SignExecuteScriptTxResult
 } from "@alephium/web3";
 import { default as MainScriptJson } from "../Main.ral.json";
 
 export namespace Main {
   export async function execute(
+    signer: SignerProvider,
     params: ExecuteScriptParams<{ greeterContractId: HexString }>
   ): Promise<ExecuteScriptResult> {
-    const signerParams = await script.txParamsForExecution(params);
-    return (await params.signer.signAndSubmitExecuteScriptTx(signerParams)) as SignExecuteScriptTxResult;
+    const signerParams = await script.txParamsForExecution(signer, params);
+    return await signer.signAndSubmitExecuteScriptTx(signerParams);
   }
 
   export const script = Script.fromJson(MainScriptJson);

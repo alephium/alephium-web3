@@ -4,7 +4,6 @@
 
 export * from "./Add";
 export * from "./Assert";
-export * from "./AutoFund";
 export * from "./Debug";
 export * from "./DeprecatedNFTTest1";
 export * from "./DeprecatedNFTTest2";

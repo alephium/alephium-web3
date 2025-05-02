@@ -74,7 +74,7 @@ describe('events', function () {
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAddEvent(subscribeOptions)
     for (let i = 0; i < 3; i++) {
-      await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+      await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     }
     await sleep(3000)
 
@@ -98,7 +98,7 @@ describe('events', function () {
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAllEvents(subscribeOptions)
     for (let i = 0; i < 3; i++) {
-      await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+      await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     }
     await sleep(3000)
 
@@ -145,7 +145,7 @@ describe('events', function () {
     const addEvents: Array<AddTypes.AddEvent> = []
     const subscribeOptions = createSubscribeOptions(addEvents)
     const subscription = add.subscribeAddEvent(subscribeOptions)
-    const scriptTx0 = await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+    const scriptTx0 = await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     await sleep(1500)
     expect(eventCount).toEqual(1)
     subscription.unsubscribe()
@@ -156,7 +156,7 @@ describe('events', function () {
     expect(addEvents[0].fields.y).toEqual(1n)
     expect(subscription.currentEventCount()).toEqual(addEvents.length)
 
-    await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+    await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
     await sleep(1500)
     expect(eventCount).toEqual(1)
     expect(addEvents.length).toEqual(1)
@@ -237,7 +237,7 @@ describe('events', function () {
     )
 
     const caller = (await signer.getSelectedAccount()).address
-    await DestroyAdd.execute({ signer, initialFields: { add: add.contractId, caller } })
+    await DestroyAdd.execute(signer, { initialFields: { add: add.contractId, caller } })
 
     await sleep(1500)
     subscription.unsubscribe()

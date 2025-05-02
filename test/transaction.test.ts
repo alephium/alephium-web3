@@ -107,7 +107,7 @@ describe('transactions', function () {
     ).contractInstance
     expect((await addInstance.fetchState()).fields.result).toBe(0n)
 
-    await AddMain.execute({ signer: schnorrSigner, initialFields: { add: addInstance.contractId, array: [2n, 1n] } })
+    await AddMain.execute(schnorrSigner, { initialFields: { add: addInstance.contractId, array: [2n, 1n] } })
     expect((await addInstance.fetchState()).fields.result).toBe(3n)
   })
 
@@ -235,8 +235,7 @@ describe('transactions', function () {
     expect(transactInstance.groupIndex).toBe(2)
 
     await wallet.setSelectedAccount(account2.address)
-    const depositAlphTxParams = await Deposit.script.txParamsForExecution({
-      signer: wallet,
+    const depositAlphTxParams = await Deposit.script.txParamsForExecution(wallet, {
       initialFields: { c: transactInstance.contractId },
       attoAlphAmount: ONE_ALPH
     })
@@ -245,8 +244,7 @@ describe('transactions', function () {
       `[API Error] - Insufficient funds for gas`
     )
 
-    const depositTokenTxParams = await DepositToken.script.txParamsForExecution({
-      signer: wallet,
+    const depositTokenTxParams = await DepositToken.script.txParamsForExecution(wallet, {
       initialFields: { c: transactInstance.contractId, tokenId, amount: 5n },
       attoAlphAmount: DUST_AMOUNT,
       tokens: [{ id: tokenId, amount: 5n }]
@@ -308,8 +306,7 @@ describe('transactions', function () {
     expect(BigInt(account1BalanceBefore.balance)).toBe(ONE_ALPH / 2n)
 
     await wallet.setSelectedAccount(account1.address)
-    const depositTxParams = await Deposit.script.txParamsForExecution({
-      signer: wallet,
+    const depositTxParams = await Deposit.script.txParamsForExecution(wallet, {
       initialFields: { c: transactInstance.contractId },
       attoAlphAmount: ONE_ALPH + DUST_AMOUNT * 3n
     })
@@ -318,8 +315,7 @@ describe('transactions', function () {
       `Failed to request postContractsUnsignedTxExecuteScript, error: [API Error] - Execution error when emulating tx script or contract: Not enough approved balance for address ${account1.address}, tokenId: ALPH, expected: 1000000000000000000, got: 498000000000000000 - Status code: 400`
     )
 
-    const withdrawTxParams = await Withdraw.script.txParamsForExecution({
-      signer: wallet,
+    const withdrawTxParams = await Withdraw.script.txParamsForExecution(wallet, {
       initialFields: { c: transactInstance.contractId }
     })
 
