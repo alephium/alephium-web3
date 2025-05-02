@@ -23,7 +23,9 @@ import {
   buildContractByteCode,
   binToHex,
   hexToBinUnsafe,
-  SignTransferTxResult
+  SignTransferTxResult,
+  SignDeployContractTxResult,
+  SignExecuteScriptTxResult
 } from '@alephium/web3'
 import { getSigners } from '@alephium/web3-test'
 import { unsignedTxCodec } from './index'
@@ -103,10 +105,10 @@ describe('Encode & decode unsigned transactions', function () {
       { names: [], types: [], isMutable: [] },
       []
     )
-    const deployContractResult = await signer1.signAndSubmitDeployContractTx({
+    const deployContractResult = (await signer1.signAndSubmitDeployContractTx({
       signerAddress: signer1.address,
       bytecode: contractByteCode
-    })
+    })) as SignDeployContractTxResult
 
     const scriptCode = `
        TxScript CallTest(testContract: Test) {
@@ -123,11 +125,11 @@ describe('Encode & decode unsigned transactions', function () {
       []
     )
 
-    const buildExecuteScriptTxResult = await signer1.buildExecuteScriptTx({
+    const buildExecuteScriptTxResult = (await signer1.buildExecuteScriptTx({
       signerAddress: signer1.address,
       bytecode: scriptBytecode,
       attoAlphAmount: ONE_ALPH * 4n
-    })
+    })) as SignExecuteScriptTxResult
 
     await checkUnsignedTxCodec(buildExecuteScriptTxResult.unsignedTx)
   })
@@ -173,12 +175,12 @@ describe('Encode & decode unsigned transactions', function () {
       { names: [], types: [], isMutable: [] },
       []
     )
-    const deployContractResult = await signer1.signAndSubmitDeployContractTx({
+    const deployContractResult = (await signer1.signAndSubmitDeployContractTx({
       signerAddress: signer1.address,
       bytecode: contractByteCode,
       issueTokenAmount: 10000n,
       initialAttoAlphAmount: ONE_ALPH * 10n
-    })
+    })) as SignDeployContractTxResult
 
     const scriptCode = `
        TxScript Withdraw(faucetContract: Faucet) {

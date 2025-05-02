@@ -996,7 +996,7 @@ describe('contract', function () {
           inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
           args: { num: BigInt(num) }
         })
-      ).rejects.toThrow('Insufficient funds to cover the minimum amount for contract UTXO')
+      ).rejects.toThrow('Test failed due to insufficient funds to cover the dust amount')
     }
   })
 })

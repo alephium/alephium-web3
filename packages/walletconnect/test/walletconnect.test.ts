@@ -325,7 +325,8 @@ async function verifySign(provider: WalletConnectProvider, walletClient: WalletC
   })
   await checkBalanceDecreasing()
 
-  await Main.execute(provider, {
+  await Main.execute({
+    signer: provider,
     initialFields: { greeterContractId: greeterResult.contractInstance.contractId }
   })
   await checkBalanceDecreasing()
