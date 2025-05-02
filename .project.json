@@ -1,5 +1,5 @@
 {
-  "fullNodeVersion": "v3.12.2",
+  "fullNodeVersion": "v3.12.7",
   "compilerOptionsUsed": {
     "ignoreUnusedConstantsWarnings": false,
     "ignoreUnusedVariablesWarnings": false,
@@ -40,6 +40,12 @@
       "sourceCodeHash": "2cb837275917553343581f13e3c2e33a5943ae1483b887408ff97f93d6f12d3f",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b"
+    },
+    "AutoFund": {
+      "sourceFile": "test/auto_fund.ral",
+      "sourceCodeHash": "befbef42289cb5d3a438bbddfe81724cb3b028f950e9ed2d3256a38092b2e61d",
+      "bytecodeDebugPatch": "=6-2+59=11-1+9=53-1+f=34+7a7e0214696e73657274206174206d617020706174683a2000=27-1+d",
+      "codeHashDebug": "04ee1668e2b37f74641ecaf98e8d34dd3384afe2c140bdbd4275cb36d62ae185"
     },
     "Balances": {
       "sourceFile": "test/struct.ral",
