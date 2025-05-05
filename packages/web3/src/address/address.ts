@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC } from 'elliptic'
+import { ec as EC, eddsa as EdDSA } from 'elliptic'
 import BN from 'bn.js'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import blake from 'blakejs'
@@ -30,7 +30,9 @@ import djb2 from '../utils/djb2'
 import { TraceableError } from '../error'
 import { byteCodec } from '../codec/codec'
 
-const ec = new EC('secp256k1')
+const secp256k1 = new EC('secp256k1')
+const secp256r1 = new EC('p256')
+const ed25519 = new EdDSA('ed25519')
 const PublicKeyHashSize = 32
 
 export enum AddressType {
@@ -226,29 +228,47 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
 export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default' || keyType === 'gl-secp256k1') {
-    const key = ec.keyFromPrivate(privateKey)
-    return key.getPublic(true, 'hex')
-  } else {
-    return ec.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
+  switch (keyType) {
+    case 'default':
+    case 'gl-secp256k1':
+      return secp256k1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+    case 'gl-secp256r1':
+    case 'gl-webauthn':
+      return secp256r1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+    case 'gl-ed25519':
+      return ed25519.keyFromSecret(privateKey).getPublic('hex')
+    case 'bip340-schnorr':
+      return secp256k1.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
   }
+}
+
+function p2pkAddressFromPublicKey(
+  publicKey: string,
+  keyType: 'gl-secp256k1' | 'gl-secp256r1' | 'gl-ed25519' | 'gl-webauthn'
+): string {
+  const keyTypeByte =
+    keyType === 'gl-secp256k1' ? 0x00 : keyType === 'gl-secp256r1' ? 0x01 : keyType === 'gl-ed25519' ? 0x02 : 0x03
+  const publicKeyBytes = new Uint8Array([keyTypeByte, ...hexToBinUnsafe(publicKey)])
+  const checksum = intAs4BytesCodec.encode(djb2(publicKeyBytes))
+  const bytes = new Uint8Array([AddressType.P2PK, ...publicKeyBytes, ...checksum])
+  return bs58.encode(bytes)
 }
 
 export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default') {
-    const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
-    const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
-    return bs58.encode(bytes)
-  } else if (keyType === 'gl-secp256k1') {
-    const publicKeyBytes = new Uint8Array([0x00, ...hexToBinUnsafe(publicKey)])
-    const hashBytes = intAs4BytesCodec.encode(djb2(publicKeyBytes))
-    const bytes = new Uint8Array([0x04, ...publicKeyBytes, ...hashBytes])
-    return bs58.encode(bytes)
-  } else {
-    const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
-    return addressFromScript(lockupScript)
+  switch (keyType) {
+    case 'default': {
+      const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
+      const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
+      return bs58.encode(bytes)
+    }
+    case 'bip340-schnorr': {
+      const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
+      return addressFromScript(lockupScript)
+    }
+    default:
+      return p2pkAddressFromPublicKey(publicKey, keyType)
   }
 }
 

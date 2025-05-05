@@ -259,18 +259,36 @@ describe('address', function () {
     expect(publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
       '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
     )
+    expect(
+      publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45', 'gl-secp256k1')
+    ).toBe('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')
+    expect(
+      publicKeyFromPrivateKey('31311f0cd6c75eb625c718dd810a084537bbee3bf57cc03add0570e9fa907dde', 'gl-secp256r1')
+    ).toBe('031b2ce5f97c227271064705af14fc551bd62faac3f1950b19806f410bda216d96')
+    expect(
+      publicKeyFromPrivateKey('2faf6f6ad8fc5dc7429149d0a2cbf724c138faac0ac95baed57c5a2c0147ef31', 'gl-ed25519')
+    ).toBe('1294599c73fbf283d21f459d726fcd7f1a6db5e17c4fa27f4741930a6a516db9')
+    expect(
+      publicKeyFromPrivateKey('31311f0cd6c75eb625c718dd810a084537bbee3bf57cc03add0570e9fa907dde', 'gl-webauthn')
+    ).toBe('031b2ce5f97c227271064705af14fc551bd62faac3f1950b19806f410bda216d96')
   })
 
   it('should compute address from public key', () => {
-    expect(publicKeyFromPrivateKey('91411e484289ec7e8b3058697f53f9b26fa7305158b4ef1a81adfbabcf090e45')).toBe(
-      '030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc'
-    )
     expect(addressFromPublicKey('030f9f042a9410969f1886f85fa20f6e43176ae23fc5e64db15b3767c84c5db2dc')).toBe(
       '1ACCkgFfmTif46T3qK12znuWjb5Bk9jXpqaeWt2DXx8oc'
     )
     expect(
       addressFromPublicKey('029592852f5d289785904b89a073ff80ee6155c894b1d13ecb16bcf3ac02473e1a', 'gl-secp256k1')
     ).toBe('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')
+    expect(
+      addressFromPublicKey('031b2ce5f97c227271064705af14fc551bd62faac3f1950b19806f410bda216d96', 'gl-secp256r1')
+    ).toBe('3cdSMF7FKdfGQ969vcvHMqSW14xJLN8u9Yucoy6uzHYk2N7VSgBFi')
+    expect(addressFromPublicKey('1294599c73fbf283d21f459d726fcd7f1a6db5e17c4fa27f4741930a6a516db9', 'gl-ed25519')).toBe(
+      'bPYxb2BrXEJnq8FSsbhvh4yaYNi7RsZH86CoZydESu2PLeGCWuH'
+    )
+    expect(
+      addressFromPublicKey('031b2ce5f97c227271064705af14fc551bd62faac3f1950b19806f410bda216d96', 'gl-webauthn')
+    ).toBe('3cvbcPRy7yy6g68BTj559RngyZphe2ySbsns561cBGWFSvmpr5BYi')
     expect(
       addressFromPublicKey('aecfc38a48f5fe7e050fca59de9f8d77fa7a7d9e63af608a95f8839de397f48a', 'bip340-schnorr')
     ).toBe('qvegNNcKFBtkMcZTLj42pki2YDYTvHaGyBxBaWrPaHwj')
