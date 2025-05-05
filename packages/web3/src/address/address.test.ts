@@ -120,6 +120,13 @@ describe('address', function () {
     expect(isContractAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(true)
     expect(() => isAssetAddress('15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGF')).toThrow('Invalid address:')
     expect(() => isContractAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9k')).toThrow('Invalid address:')
+    expect(isGrouplessAddress('bQzqBqFx88QitLeX7oCJh1Xvpr9tKUAFoSo9rhAZukfj6SvTYXh')).toEqual(true)
+    expect(binToHex(addressToBytes('bQzqBqFx88QitLeX7oCJh1Xvpr9tKUAFoSo9rhAZukfj6SvTYXh'))).toEqual(
+      '0402d105a6c69a0be5fb5d45df8a2bd7f442d45fe31a1dac842b8eb5753672d65d446d8b539000'
+    )
+    expect(binToHex(addressToBytes('bQzqBqFx88QitLeX7oCJh1Xvpr9tKUAFoSo9rhAZukfj6SvTYXh:2'))).toEqual(
+      '0402d105a6c69a0be5fb5d45df8a2bd7f442d45fe31a1dac842b8eb5753672d65d446d8b539002'
+    )
     expect(isGrouplessAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK')).toEqual(true)
     expect(isGrouplessAddress('vobthYg1e9tPKhmF96rpkv3akCj7vhvgPpsP4qwZqDw3')).toEqual(false)
     expect(isGrouplessAddress('qeKk7r92Vn2Xjn4GcMEcJ2EwVfVs27kWUpptrWcWsUWC')).toEqual(false)
