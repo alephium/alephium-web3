@@ -21,7 +21,7 @@ const webpack = require('webpack')
 module.exports = {
   mode: 'production',
   entry: {
-    alephium: './dist/src/index.js'
+    alephium: './dist/_cjs/index.js'
   },
   plugins: [
     new webpack.SourceMapDevToolPlugin({ filename: '[file].map' }),
@@ -41,11 +41,14 @@ module.exports = {
     }
   },
   output: {
-    filename: 'alephium-web3-wallet.min.js',
+    filename: '_umd/alephium-web3-wallet.min.js',
     library: {
       name: 'alephium',
       type: 'umd'
     }
+  },
+  experiments: {
+    asyncWebAssembly: true
   },
   optimization: {
     minimize: true

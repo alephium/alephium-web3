@@ -7,19 +7,6 @@
     "web3"
   ],
   "license": "GPL",
-  "main": "dist/src/index.js",
-  "browser": "dist/alephium-web3-wallet.min.js",
-  "types": "dist/src/index.d.ts",
-  "exports": {
-    "node": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
-    },
-    "default": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/alephium-web3-wallet.min.js"
-    }
-  },
   "repository": {
     "type": "git",
     "url": "git@github.com:alephium/alephium-web3.git"
@@ -29,11 +16,25 @@
     "url": "https://github.com/alephium/alephium-web3/issues"
   },
   "author": "Alephium dev <dev@alephium.org>",
-  "scripts": {
-    "build": "rm -rf dist/* && npx tsc --build . && webpack",
-    "test": "jest -i --config ./jest-config.json"
+  "main": "dist/_cjs/index.js",
+  "module": "dist/_esm/index.js",
+  "browser": "dist/_umd/alephium-web3-wallet.min.js",
+  "types": "dist/_types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/_types/index.d.ts",
+      "require": "./dist/_cjs/index.js",
+      "import": "./dist/_esm/index.js"
+    }
   },
   "type": "commonjs",
+  "scripts": {
+    "build": "rm -rf dist/* && npm run build:cjs && npm run build:esm && npm run build:dts && webpack",
+    "build:esm": "tsc --module esnext --outDir dist/_esm --declaration false --declarationMap false --sourceMap true",
+    "build:cjs": "tsc --module commonjs --outDir dist/_cjs --declaration false --declarationMap false --sourceMap true",
+    "build:dts": "tsc --module esnext --outDir dist/_types --declaration true --declarationMap true --sourceMap false --emitDeclarationOnly",
+    "test": "jest -i --config ./jest-config.json"
+  },
   "dependencies": {
     "@alephium/web3": "workspace:^",
     "@noble/secp256k1": "1.7.1",

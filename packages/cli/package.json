@@ -2,6 +2,10 @@
   "name": "@alephium/cli",
   "version": "1.11.7",
   "description": "Alephium command line tool",
+  "keywords": [
+    "alephium",
+    "web3"
+  ],
   "license": "GPL",
   "repository": {
     "type": "git",
@@ -12,15 +16,24 @@
     "url": "https://github.com/alephium/alephium-web3/issues"
   },
   "author": "Alephium dev <dev@alephium.org>",
-  "main": "dist/index.js",
+  "main": "dist/_cjs/index.js",
+  "module": "dist/_esm/index.js",
+  "types": "dist/_types/index.d.ts",
   "exports": {
-    ".": "./dist/index.js"
+    ".": {
+      "types": "./dist/_types/index.d.ts",
+      "require": "./dist/_cjs/index.js",
+      "import": "./dist/_esm/index.js"
+    }
   },
+  "type": "commonjs",
   "scripts": {
-    "build": "rm -rf dist/* && npx tsc --build ."
+    "build": "rm -rf dist/* && npm run build:cjs && npm run build:esm && npm run build:dts",
+    "build:esm": "tsc --module esnext --outDir dist/_esm --declaration false --declarationMap false --sourceMap true",
+    "build:cjs": "tsc --module commonjs --outDir dist/_cjs --declaration false --declarationMap false --sourceMap true",
+    "build:dts": "tsc --module esnext --outDir dist/_types --declaration true --declarationMap true --sourceMap false --emitDeclarationOnly"
   },
   "bin": "cli.js",
-  "type": "commonjs",
   "dependencies": {
     "@alephium/web3": "workspace:^",
     "@alephium/web3-wallet": "workspace:^",
