@@ -34,7 +34,7 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
-export type KeyType = 'default' | 'bip340-schnorr' | 'gl-secp256k1'
+export type KeyType = 'default' | 'bip340-schnorr' | 'gl-secp256k1' | 'gl-secp256r1' | 'gl-ed25519' | 'gl-webauthn'
 
 export interface Account {
   keyType: KeyType
