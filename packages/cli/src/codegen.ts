@@ -273,6 +273,9 @@ function genSubscribeEvent(contractName: string, event: EventSig): string {
     subscribe${eventType}(options: EventSubscribeOptions<${scopedEventType}>, fromCount?: number): EventSubscription {
       return subscribeContractEvent(${contractName}.contract, this, options, "${event.name}", fromCount)
     }
+    subscribe${eventType}WS(options: WsSubscribeOptions<${scopedEventType}>): Promise<WsSubscription> {
+      return subscribeContractEventWS(${contractName}.contract, this, options, "${event.name}")
+    }
   `
 }
 
@@ -284,6 +287,9 @@ function genSubscribeAllEvents(contract: Contract): string {
   return `
     subscribeAllEvents(options: EventSubscribeOptions<${eventTypes}>, fromCount?: number): EventSubscription {
       return subscribeContractEvents(${contract.name}.contract, this, options, fromCount)
+    }
+    subscribeAllEventsWS(options: WsSubscribeOptions<${eventTypes}>): Promise<WsSubscription> {
+      return subscribeContractEventsWS(${contract.name}.contract, this, options)
     }
   `
 }
@@ -520,6 +526,11 @@ function genContract(contract: Contract, artifactRelativePath: string): string {
       TestContractParamsWithoutMaps, TestContractResultWithoutMaps, SignExecuteContractMethodParams,
       SignExecuteScriptTxResult, signExecuteMethod, addStdIdToFields, encodeContractFields, Narrow
     } from '@alephium/web3'
+    ${
+      contract.eventsSig.length > 0
+        ? `import { WsSubscribeOptions, WsSubscription, subscribeContractEventWS, subscribeContractEventsWS } from '@alephium/web3'`
+        : ''
+    }
     import { default as ${contract.name}ContractJson } from '../${toUnixPath(artifactRelativePath)}'
     import { getContractByCodeHash, registerContract } from './contracts'
     ${importStructs()}

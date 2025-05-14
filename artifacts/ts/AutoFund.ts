@@ -33,6 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
+
 import { default as AutoFundContractJson } from "../test/AutoFund.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
 import {

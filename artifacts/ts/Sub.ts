@@ -33,6 +33,12 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
+import {
+  WsSubscribeOptions,
+  WsSubscription,
+  subscribeContractEventWS,
+  subscribeContractEventsWS,
+} from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
 import {
@@ -155,6 +161,11 @@ export class SubInstance extends ContractInstance {
       "Sub",
       fromCount
     );
+  }
+  subscribeSubEventWS(
+    options: WsSubscribeOptions<SubTypes.SubEvent>
+  ): Promise<WsSubscription> {
+    return subscribeContractEventWS(Sub.contract, this, options, "Sub");
   }
 
   view = {

@@ -33,6 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
+
 import { default as DeprecatedNFTTest3ContractJson } from "../nft/DeprecatedNFTTest3.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
 import {
