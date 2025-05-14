@@ -1974,10 +1974,12 @@ export function subscribeContractEventsWS(
   options: WsSubscribeOptions<ContractEvent<any>>
 ): Promise<WsSubscription> {
   const messageCallback = (event: node.ContractEvent) => {
-    return options.messageCallback({
-      ...decodeEvent(contract, instance, event, event.eventIndex),
-      contractAddress: instance.address
-    })
+    if (event.eventIndex != Contract.DebugEventIndex) {
+      return options.messageCallback({
+        ...decodeEvent(contract, instance, event, event.eventIndex),
+        contractAddress: instance.address
+      })
+    }
   }
   return wsSubscribeEvent({ ...options, messageCallback }, instance.address)
 }
