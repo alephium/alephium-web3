@@ -33,6 +33,12 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
+import {
+  WsSubscribeOptions,
+  WsSubscription,
+  subscribeContractEventWS,
+  subscribeContractEventsWS,
+} from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
 import {
@@ -284,6 +290,11 @@ export class AddInstance extends ContractInstance {
       fromCount
     );
   }
+  subscribeAddEventWS(
+    options: WsSubscribeOptions<AddTypes.AddEvent>
+  ): Promise<WsSubscription> {
+    return subscribeContractEventWS(Add.contract, this, options, "Add");
+  }
 
   subscribeAdd1Event(
     options: EventSubscribeOptions<AddTypes.Add1Event>,
@@ -296,6 +307,11 @@ export class AddInstance extends ContractInstance {
       "Add1",
       fromCount
     );
+  }
+  subscribeAdd1EventWS(
+    options: WsSubscribeOptions<AddTypes.Add1Event>
+  ): Promise<WsSubscription> {
+    return subscribeContractEventWS(Add.contract, this, options, "Add1");
   }
 
   subscribeEmptyEvent(
@@ -310,6 +326,11 @@ export class AddInstance extends ContractInstance {
       fromCount
     );
   }
+  subscribeEmptyEventWS(
+    options: WsSubscribeOptions<AddTypes.EmptyEvent>
+  ): Promise<WsSubscription> {
+    return subscribeContractEventWS(Add.contract, this, options, "Empty");
+  }
 
   subscribeAllEvents(
     options: EventSubscribeOptions<
@@ -318,6 +339,13 @@ export class AddInstance extends ContractInstance {
     fromCount?: number
   ): EventSubscription {
     return subscribeContractEvents(Add.contract, this, options, fromCount);
+  }
+  subscribeAllEventsWS(
+    options: WsSubscribeOptions<
+      AddTypes.AddEvent | AddTypes.Add1Event | AddTypes.EmptyEvent
+    >
+  ): Promise<WsSubscription> {
+    return subscribeContractEventsWS(Add.contract, this, options);
   }
 
   view = {

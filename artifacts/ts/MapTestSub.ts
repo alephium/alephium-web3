@@ -33,6 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
+
 import { default as MapTestSubContractJson } from "../test/MapTestSub.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
 import {

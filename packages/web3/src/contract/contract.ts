@@ -97,6 +97,7 @@ import {
 } from '../codec'
 import { TraceableError } from '../error'
 import { SimulationResult } from '../api/api-alephium'
+import { wsSubscribeEvent, WsSubscribeOptions, WsSubscription } from '../ws'
 
 const crypto = new WebCrypto()
 
@@ -1338,6 +1339,22 @@ export function subscribeEventsFromContract<T extends Fields, M extends Contract
   return subscribeToEvents(opt, address, fromCount)
 }
 
+export function subscribeEventsFromContractWS<T extends Fields, M extends ContractEvent<T>>(
+  options: WsSubscribeOptions<M>,
+  address: string,
+  eventIndex: number,
+  decodeFunc: (event: node.ContractEvent) => M
+): Promise<WsSubscription> {
+  const messageCallback = (event: node.ContractEvent) => {
+    if (event.eventIndex !== eventIndex) {
+      return Promise.resolve()
+    }
+    return options.messageCallback(decodeFunc(event))
+  }
+
+  return wsSubscribeEvent({ ...options, messageCallback }, address, eventIndex)
+}
+
 export function addStdIdToFields<F extends Fields>(
   contract: Contract,
   fields: F
@@ -1825,6 +1842,20 @@ export function subscribeContractCreatedEvent(
   )
 }
 
+export function subscribeContractCreatedEventWS(
+  options: WsSubscribeOptions<ContractCreatedEvent>,
+  fromGroup: number
+): Promise<WsSubscription> {
+  checkGroupIndex(fromGroup)
+  const contractAddress = CreateContractEventAddresses[`${fromGroup}`]
+  return subscribeEventsFromContractWS(options, contractAddress, Contract.ContractCreatedEventIndex, (event) => {
+    return {
+      ...decodeContractCreatedEvent(event),
+      contractAddress: contractAddress
+    }
+  })
+}
+
 export function subscribeContractDestroyedEvent(
   options: EventSubscribeOptions<ContractDestroyedEvent>,
   fromGroup: number,
@@ -1844,6 +1875,20 @@ export function subscribeContractDestroyedEvent(
     },
     fromCount
   )
+}
+
+export function subscribeContractDestroyedEventWS(
+  options: WsSubscribeOptions<ContractCreatedEvent>,
+  fromGroup: number
+): Promise<WsSubscription> {
+  checkGroupIndex(fromGroup)
+  const contractAddress = DestroyContractEventAddresses[`${fromGroup}`]
+  return subscribeEventsFromContractWS(options, contractAddress, Contract.ContractDestroyedEventIndex, (event) => {
+    return {
+      ...decodeContractDestroyedEvent(event),
+      contractAddress: contractAddress
+    }
+  })
 }
 
 export function decodeEvent<F extends Fields, M extends ContractEvent<F>>(
@@ -1887,6 +1932,18 @@ export function subscribeContractEvent<F extends Fields, M extends ContractEvent
   )
 }
 
+export function subscribeContractEventWS<F extends Fields, M extends ContractEvent<F>>(
+  contract: Contract,
+  instance: ContractInstance,
+  options: WsSubscribeOptions<M>,
+  eventName: string
+): Promise<WsSubscription> {
+  const eventIndex = contract.eventsSig.findIndex((sig) => sig.name === eventName)
+  return subscribeEventsFromContractWS<F, M>(options, instance.address, eventIndex, (event) =>
+    decodeEvent(contract, instance, event, eventIndex)
+  )
+}
+
 export function subscribeContractEvents(
   contract: Contract,
   instance: ContractInstance,
@@ -1909,6 +1966,22 @@ export function subscribeContractEvents(
     onEventCountChanged: options.onEventCountChanged
   }
   return subscribeToEvents(opt, instance.address, fromCount)
+}
+
+export function subscribeContractEventsWS(
+  contract: Contract,
+  instance: ContractInstance,
+  options: WsSubscribeOptions<ContractEvent<any>>
+): Promise<WsSubscription> {
+  const messageCallback = (event: node.ContractEvent) => {
+    if (event.eventIndex != Contract.DebugEventIndex) {
+      return options.messageCallback({
+        ...decodeEvent(contract, instance, event, event.eventIndex),
+        contractAddress: instance.address
+      })
+    }
+  }
+  return wsSubscribeEvent({ ...options, messageCallback }, instance.address)
 }
 
 export async function callMethod<I extends ContractInstance, F extends Fields, A extends Arguments, R>(

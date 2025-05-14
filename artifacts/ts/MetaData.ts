@@ -33,6 +33,7 @@ import {
   encodeContractFields,
   Narrow,
 } from "@alephium/web3";
+
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
 import {
