@@ -46,7 +46,7 @@ import {
   U256From32Byte,
   U256Gt,
   U256Lt,
-  U256SHL
+  NumericSHL
 } from './instr-codec'
 import {
   Assert,
@@ -294,7 +294,7 @@ describe('Encode & decode contract', function () {
             LoadLocal(7),
             U256Const1,
             U256Const(255n),
-            U256SHL,
+            NumericSHL,
             CopyCreateSubContractWithToken,
             StoreLocal(8),
             I256Const0,
