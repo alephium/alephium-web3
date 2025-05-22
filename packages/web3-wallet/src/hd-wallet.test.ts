@@ -23,9 +23,12 @@ import {
   TOTAL_NUMBER_OF_GROUPS,
   addressFromPublicKey,
   groupOfAddress,
-  MessageHasher
+  MessageHasher,
+  KeyType
 } from '@alephium/web3'
 import {
+  deriveHDWalletPrivateKey,
+  deriveHDWalletPrivateKeyForGroup,
   deriveSchnorrPrivateKey,
   deriveSchnorrPrivateKeyForGroup,
   deriveSecp256K1PrivateKey,
@@ -106,13 +109,18 @@ describe('HD wallet', () => {
     return Math.floor(Math.random() * max)
   }
 
-  it('should derive private key for groups and schnorr', () => {
+  it('should derive private key for groups', () => {
     const startIndex = getRandomInt(1024)
-    Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).forEach((group) => {
-      const [privateKey, index] = deriveSchnorrPrivateKeyForGroup(testMnemonic, group, startIndex)
-      expect(deriveSchnorrPrivateKey(testMnemonic, index)).toBe(privateKey)
-      const address = addressFromPublicKey(publicKeyFromPrivateKey(privateKey, 'bip340-schnorr'), 'bip340-schnorr')
-      expect(groupOfAddress(address)).toBe(group)
+
+    const keyTypes: KeyType[] = ['default', 'bip340-schnorr', 'gl-secp256k1', 'gl-secp256r1'] as KeyType[]
+
+    keyTypes.forEach((keyType) => {
+      Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).forEach((group) => {
+        const [privateKey, index] = deriveHDWalletPrivateKeyForGroup(testMnemonic, group, keyType, startIndex)
+        expect(deriveHDWalletPrivateKey(testMnemonic, keyType, index)).toBe(privateKey)
+        const address = addressFromPublicKey(publicKeyFromPrivateKey(privateKey, keyType), keyType)
+        expect(groupOfAddress(address)).toBe(group)
+      })
     })
   })
 
