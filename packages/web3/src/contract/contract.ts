@@ -1110,8 +1110,8 @@ export abstract class ContractFactory<I extends ContractInstance, F extends Fiel
     const result = await signer.signAndSubmitDeployContractTx(signerParams)
     if ('transferTxs' in result) {
       return {
-        ...result.tx,
-        contractInstance: this.at(result.tx.contractAddress)
+        ...result,
+        contractInstance: this.at(result.contractAddress)
       }
     } else {
       return {
@@ -1159,13 +1159,7 @@ export class ExecutableScript<P extends Fields = Fields, R extends Val | null = 
 
   async execute(params: ExecuteScriptParams<P>): Promise<ExecuteScriptResult> {
     const signerParams = await this.script.txParamsForExecution(params)
-    const result = await params.signer.signAndSubmitExecuteScriptTx(signerParams)
-
-    if ('transferTxs' in result) {
-      return result.tx
-    } else {
-      return result
-    }
+    return await params.signer.signAndSubmitExecuteScriptTx(signerParams)
   }
 
   async call(params: CallScriptParams<P>): Promise<CallScriptResult<R>> {

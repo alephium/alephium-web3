@@ -222,14 +222,16 @@ export abstract class TransactionBuilder {
     // BuildGrouplessTransferTxResult
     if ('transferTxs' in result) {
       return {
+        unsignedTx: result.unsignedTx,
+        gasAmount: result.gasAmount,
+        gasPrice: fromApiNumber256(result.gasPrice),
+        txId: result.txId,
+        fromGroup: result.fromGroup,
+        toGroup: result.toGroup,
         transferTxs: result.transferTxs.map((r) => ({
           ...r,
           gasPrice: fromApiNumber256(r.gasPrice)
-        })),
-        tx: {
-          ...result.transferTx,
-          gasPrice: fromApiNumber256(result.transferTx.gasPrice)
-        }
+        }))
       }
     }
 
@@ -243,18 +245,19 @@ export abstract class TransactionBuilder {
     result: node.BuildDeployContractTxResult
   ): BuildTxResult<SignDeployContractTxResult> {
     if ('transferTxs' in result) {
-      const contractId = binToHex(contractIdFromAddress(result.deployContractTx.contractAddress))
+      const contractId = binToHex(contractIdFromAddress(result.contractAddress))
       return {
+        groupIndex: result.fromGroup,
+        unsignedTx: result.unsignedTx,
+        gasAmount: result.gasAmount,
+        gasPrice: fromApiNumber256(result.gasPrice),
+        txId: result.txId,
+        contractAddress: result.contractAddress,
+        contractId,
         transferTxs: result.transferTxs.map((r) => ({
           ...r,
           gasPrice: fromApiNumber256(r.gasPrice)
-        })),
-        tx: {
-          ...result.deployContractTx,
-          groupIndex: result.deployContractTx.fromGroup,
-          contractId,
-          gasPrice: fromApiNumber256(result.deployContractTx.gasPrice)
-        }
+        }))
       }
     }
 
@@ -272,15 +275,16 @@ export abstract class TransactionBuilder {
   ): BuildTxResult<SignExecuteScriptTxResult> {
     if ('transferTxs' in result) {
       return {
+        groupIndex: result.fromGroup,
+        unsignedTx: result.unsignedTx,
+        txId: result.txId,
+        gasAmount: result.gasAmount,
+        simulationResult: result.simulationResult,
+        gasPrice: fromApiNumber256(result.gasPrice),
         transferTxs: result.transferTxs.map((r) => ({
           ...r,
           gasPrice: fromApiNumber256(r.gasPrice)
-        })),
-        tx: {
-          ...result.executeScriptTx,
-          groupIndex: result.executeScriptTx.fromGroup,
-          gasPrice: fromApiNumber256(result.executeScriptTx.gasPrice)
-        }
+        }))
       }
     }
 
