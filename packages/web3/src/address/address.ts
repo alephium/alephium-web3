@@ -192,7 +192,7 @@ function groupOfP2mpkhAddress(address: Uint8Array): number {
 }
 
 function groupOfP2pkAddress(address: Uint8Array): number {
-  return byteCodec.decode(address.slice(38, 39)) % TOTAL_NUMBER_OF_GROUPS
+  return byteCodec.decode(address.slice(address.length - 1, address.length))
 }
 
 // Pay to script hash address

@@ -99,7 +99,24 @@ export function getHDWalletPath(keyType: KeyType, addressIndex: number): string 
   // Being explicit: we always use coinType 1234 no matter the network.
   const coinType = "1234'"
   // eslint-disable-next-line
-  const keyTypeNum = (keyType === 'default' || keyType === 'gl-secp256k1') ? 0 : 1
+  const keyTypeNum = (() => {
+    switch (keyType) {
+      case 'default':
+        return 0
+      case 'bip340-schnorr':
+        return 1
+      case 'gl-secp256k1':
+        return 2
+      case 'gl-secp256r1':
+        return 3
+      case 'gl-ed25519':
+        return 4
+      case 'gl-webauthn':
+        return 5
+      default:
+        throw new Error(`Unsupported key type: ${keyType}`)
+    }
+  })()
 
   return `m/44'/${coinType}/${keyTypeNum}'/0/${addressIndex}`
 }
@@ -110,6 +127,22 @@ export function getSecp259K1Path(addressIndex: number): string {
 
 export function getSchnorrPath(addressIndex: number): string {
   return getHDWalletPath('bip340-schnorr', addressIndex)
+}
+
+export function getGlSecp256K1Path(addressIndex: number): string {
+  return getHDWalletPath('gl-secp256k1', addressIndex)
+}
+
+export function getGlSecp256R1Path(addressIndex: number): string {
+  return getHDWalletPath('gl-secp256r1', addressIndex)
+}
+
+export function getGlEd25519Path(addressIndex: number): string {
+  return getHDWalletPath('gl-ed25519', addressIndex)
+}
+
+export function getGlWebauthnPath(addressIndex: number): string {
+  return getHDWalletPath('gl-webauthn', addressIndex)
 }
 
 export type HDWalletAccount = Account & { addressIndex: number }
