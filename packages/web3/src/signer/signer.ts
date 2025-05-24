@@ -193,7 +193,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
         txId: response.txId,
         unsignedTx: response.unsignedTx,
         signature,
-        transferTxs,
+        transferTxs
       }
     } else {
       const signature = await this.signRaw(params.signerAddress, response.txId)
