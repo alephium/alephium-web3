@@ -126,23 +126,21 @@ assertType<
   >
 >()
 
-export interface GrouplessBuildTxResult<
+export type GrouplessBuildTxResult<
   T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
-> {
+> = {
   transferTxs: Omit<SignTransferTxResult, 'signature'>[]
-  tx: Omit<T, 'signature'>
-}
+} & Omit<T, 'signature'>
 
 export type BuildTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
   | GrouplessBuildTxResult<T>
   | Omit<T, 'signature'>
 
-export interface GrouplessSignTxResult<
+export type GrouplessSignTxResult<
   T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
-> {
+> = {
   transferTxs: SignTransferTxResult[]
-  tx: T
-}
+} & T
 
 export type SignTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
   | GrouplessSignTxResult<T>

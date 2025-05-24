@@ -299,23 +299,53 @@ export type BuildExecuteScriptTxResult = BuildGrouplessExecuteScriptTxResult | B
 
 /** BuildGrouplessDeployContractTxResult */
 export interface BuildGrouplessDeployContractTxResult {
+  /** @format int32 */
+  fromGroup: number
+  /** @format int32 */
+  toGroup: number
+  unsignedTx: string
+  /** @format gas */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  /** @format 32-byte-hash */
+  txId: string
+  /** @format address */
+  contractAddress: string
   transferTxs: BuildSimpleTransferTxResult[]
-  deployContractTx: BuildSimpleDeployContractTxResult
-  type: string
 }
 
 /** BuildGrouplessExecuteScriptTxResult */
 export interface BuildGrouplessExecuteScriptTxResult {
+  /** @format int32 */
+  fromGroup: number
+  /** @format int32 */
+  toGroup: number
+  unsignedTx: string
+  /** @format gas */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  /** @format 32-byte-hash */
+  txId: string
+  simulationResult: SimulationResult
   transferTxs: BuildSimpleTransferTxResult[]
-  executeScriptTx: BuildSimpleExecuteScriptTxResult
-  type: string
 }
 
 /** BuildGrouplessTransferTxResult */
 export interface BuildGrouplessTransferTxResult {
+  unsignedTx: string
+  /** @format gas */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  /** @format 32-byte-hash */
+  txId: string
+  /** @format int32 */
+  fromGroup: number
+  /** @format int32 */
+  toGroup: number
   transferTxs: BuildSimpleTransferTxResult[]
-  transferTx: BuildSimpleTransferTxResult
-  type: string
 }
 
 /** BuildInfo */
@@ -373,7 +403,6 @@ export interface BuildSimpleDeployContractTxResult {
   txId: string
   /** @format address */
   contractAddress: string
-  type: string
 }
 
 /** BuildSimpleExecuteScriptTxResult */
@@ -390,7 +419,6 @@ export interface BuildSimpleExecuteScriptTxResult {
   /** @format 32-byte-hash */
   txId: string
   simulationResult: SimulationResult
-  type: string
 }
 
 /** BuildSimpleTransferTxResult */
@@ -406,7 +434,6 @@ export interface BuildSimpleTransferTxResult {
   fromGroup: number
   /** @format int32 */
   toGroup: number
-  type: string
 }
 
 /** BuildSweepAddressTransactions */
@@ -623,6 +650,7 @@ export interface CompilerOptions {
   ignoreCheckExternalCallerWarnings?: boolean
   ignoreUnusedFunctionReturnWarnings?: boolean
   skipAbstractContractCheck?: boolean
+  skipTests?: boolean
 }
 
 /** Confirmed */
@@ -1264,6 +1292,7 @@ export interface TestContract {
   args?: Val[]
   existingContracts?: ContractState[]
   inputAssets?: TestInputAsset[]
+  /** @format uint256 */
   dustAmount?: string
 }
 
@@ -1709,7 +1738,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.12.2
+ * @version 3.14.4
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

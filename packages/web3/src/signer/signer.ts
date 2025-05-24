@@ -113,7 +113,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
         await this.submitTransaction(r)
       }
 
-      await this.submitTransaction(signResult.tx)
+      await this.submitTransaction(signResult)
     } else {
       await this.submitTransaction(signResult)
     }
@@ -131,7 +131,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
         await this.submitTransaction(r)
       }
 
-      await this.submitTransaction(signResult.tx)
+      await this.submitTransaction(signResult)
     } else {
       await this.submitTransaction(signResult)
     }
@@ -149,7 +149,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
         await this.submitTransaction(r)
       }
 
-      await this.submitTransaction(signResult.tx)
+      await this.submitTransaction(signResult)
     } else {
       await this.submitTransaction(signResult)
     }
@@ -184,10 +184,16 @@ export abstract class SignerProviderSimple extends SignerProvider {
         })
       }
 
-      const signature = await this.signRaw(params.signerAddress, response.tx.txId)
+      const signature = await this.signRaw(params.signerAddress, response.txId)
       return {
-        transferTxs,
-        tx: { ...response.tx, signature }
+        fromGroup: response.fromGroup,
+        toGroup: response.toGroup,
+        gasAmount: response.gasAmount,
+        gasPrice: response.gasPrice,
+        txId: response.txId,
+        unsignedTx: response.unsignedTx,
+        signature,
+        transferTxs
       }
     } else {
       const signature = await this.signRaw(params.signerAddress, response.txId)
@@ -215,10 +221,18 @@ export abstract class SignerProviderSimple extends SignerProvider {
         })
       }
 
-      const signature = await this.signRaw(params.signerAddress, response.tx.txId)
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+
       return {
-        transferTxs,
-        tx: { ...response.tx, signature }
+        contractAddress: response.contractAddress,
+        contractId: response.contractId,
+        gasAmount: response.gasAmount,
+        gasPrice: response.gasPrice,
+        groupIndex: response.groupIndex,
+        unsignedTx: response.unsignedTx,
+        txId: response.txId,
+        signature,
+        transferTxs
       }
     } else {
       const signature = await this.signRaw(params.signerAddress, response.txId)
@@ -246,10 +260,17 @@ export abstract class SignerProviderSimple extends SignerProvider {
         })
       }
 
-      const signature = await this.signRaw(params.signerAddress, response.tx.txId)
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+
       return {
-        transferTxs,
-        tx: { ...response.tx, signature }
+        gasAmount: response.gasAmount,
+        gasPrice: response.gasPrice,
+        groupIndex: response.groupIndex,
+        unsignedTx: response.unsignedTx,
+        txId: response.txId,
+        simulationResult: response.simulationResult,
+        signature,
+        transferTxs
       }
     } else {
       const signature = await this.signRaw(params.signerAddress, response.txId)
