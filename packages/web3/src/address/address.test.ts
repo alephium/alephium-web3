@@ -83,6 +83,14 @@ describe('address', function () {
     expect(() => validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:j')).toThrow(
       'Invalid group index: j'
     )
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:0')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:1')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:2')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3')).toBeUndefined()
+    expect(() => validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufv')).toThrow('Invalid checksum')
+    expect(() => validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:4')).toThrow('Invalid group index')
+    expect(() => validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:j')).toThrow('Invalid group index')
   })
 
   it('should return if an address is valid', () => {
@@ -102,6 +110,7 @@ describe('address', function () {
     expect(isValidAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:3')).toEqual(true)
     expect(isValidAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:j')).toEqual(false)
     expect(isValidAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:4')).toEqual(false)
+    expect(isValidAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3')).toEqual(true)
   })
 
   it('should get address type', () => {
@@ -172,6 +181,11 @@ describe('address', function () {
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:1')).toBe(1)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:2')).toBe(2)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:3')).toBe(3)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh')).toBe(0)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:0')).toBe(0)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:1')).toBe(1)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:2')).toBe(2)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3')).toBe(3)
   })
 
   it('should calculate the group of lockup script', () => {
@@ -206,7 +220,12 @@ describe('address', function () {
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:0',
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:1',
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:2',
-      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3'
+      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:0',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:1',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:2',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3'
     ]
 
     grouplessAddresses.forEach((address) => {
