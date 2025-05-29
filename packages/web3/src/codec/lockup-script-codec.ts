@@ -19,6 +19,7 @@ import { i32Codec } from './compact-int-codec'
 import { byte32Codec, byteCodec, EnumCodec, ObjectCodec } from './codec'
 import { ArrayCodec } from './array-codec'
 import { PublicKeyLike, safePublicKeyLikeCodec } from './public-key-like-codec'
+import { Checksum } from './checksum-codec'
 
 export type PublicKeyHash = Uint8Array
 export type P2PKH = Uint8Array
@@ -37,6 +38,11 @@ export interface P2PK {
   group: number
 }
 
+export interface P2HMPK {
+  hash: PublicKeyHash
+  group: number
+}
+
 const p2mpkhCodec = new ObjectCodec<P2MPKH>({
   publicKeyHashes: new ArrayCodec(byte32Codec),
   m: i32Codec
@@ -47,17 +53,25 @@ const p2pkCodec = new ObjectCodec<P2PK>({
   group: byteCodec
 })
 
+export const safeHashCodec = new Checksum<PublicKeyHash>(byte32Codec)
+const p2hmpkCodec = new ObjectCodec<P2HMPK>({
+  hash: safeHashCodec,
+  group: byteCodec
+})
+
 export type LockupScript =
   | { kind: 'P2PKH'; value: P2PKH }
   | { kind: 'P2MPKH'; value: P2MPKH }
   | { kind: 'P2SH'; value: P2SH }
   | { kind: 'P2C'; value: P2C }
   | { kind: 'P2PK'; value: P2PK }
+  | { kind: 'P2HMPK'; value: P2HMPK }
 
 export const lockupScriptCodec = new EnumCodec<LockupScript>('lockup script', {
   P2PKH: byte32Codec,
   P2MPKH: p2mpkhCodec,
   P2SH: byte32Codec,
   P2C: byte32Codec,
-  P2PK: p2pkCodec
+  P2PK: p2pkCodec,
+  P2HMPK: p2hmpkCodec
 })
