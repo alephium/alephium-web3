@@ -25,6 +25,16 @@ export class Reader {
     this.bytes = bytes
   }
 
+  getIndex(): number {
+    return this.index
+  }
+
+  getBytes(from: number, to: number): Uint8Array {
+    if (from > to || from < 0) throw new Error(`Invalid range [${from}, ${to})`)
+    if (to > this.bytes.length) throw new Error(`Index out of range, data length: ${this.bytes.length}`)
+    return this.bytes.slice(from, to)
+  }
+
   consumeByte(): number {
     if (this.index >= this.bytes.length) {
       throw new Error(

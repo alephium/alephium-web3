@@ -29,6 +29,8 @@ import { LockupScript } from '../codec/lockup-script-codec'
 import djb2 from '../utils/djb2'
 import { TraceableError } from '../error'
 import { byteCodec } from '../codec/codec'
+import { PublicKeyLike, safePublicKeyLikeCodec } from '../codec/public-key-like-codec'
+import { P2PK } from '../codec/lockup-script-codec'
 
 const secp256k1 = new EC('secp256k1')
 const secp256r1 = new EC('p256')
@@ -79,48 +81,27 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
-  } else if (isGrouplessAddressWithGroup(decoded)) {
-    // [type, keyType, ...publicKey, ...checkSum, ...groupByte]
-    const publicKeyToIndex = decoded.length - 1 - 4
-    const publicKeyLikeBytes = decoded.slice(1, publicKeyToIndex)
-    const checksum = binToHex(decoded.slice(publicKeyToIndex, publicKeyToIndex + 4))
-    const expectedChecksum = binToHex(intAs4BytesCodec.encode(djb2(publicKeyLikeBytes)))
-    if (checksum !== expectedChecksum) {
-      throw new Error(`Invalid checksum for P2PK address: ${address}`)
-    }
-    const group = byteCodec.decode(decoded.slice(decoded.length - 1, decoded.length))
-    validateGroupIndex(group)
-
+  } else if (addressType === AddressType.P2PK) {
+    const p2pk = lockupScriptCodec.decode(decoded).value as P2PK
+    validateGroupIndex(p2pk.group)
     return decoded
   }
 
   throw new Error(`Invalid address: ${address}`)
 }
 
-function isGrouplessAddressWithoutGroup(decoded: Uint8Array): boolean {
-  // An ED25519 public key is 32 bytes; other public keys are 33 bytes.
-  // Format: AddressType(1 byte) + KeyType(1 byte) + PublicKey(32/33 bytes) + Checksum(4 bytes)
-  return decoded[0] === AddressType.P2PK && (decoded.length === 38 || decoded.length === 39)
-}
-
-function isGrouplessAddressWithGroup(decoded: Uint8Array): boolean {
-  // An ED25519 public key is 32 bytes; other public keys are 33 bytes.
-  // Format: AddressType(1 byte) + KeyType(1 byte) + PublicKey(32/33 bytes) + Checksum(4 bytes) + GroupIndex(1 byte)
-  return decoded[0] === AddressType.P2PK && (decoded.length === 39 || decoded.length === 40)
-}
-
 export function addressToBytes(address: string): Uint8Array {
   if (hasExplicitGroupIndex(address)) {
     const groupIndex = parseGroupIndex(address[address.length - 1])
     const decoded = base58ToBytes(address.slice(0, address.length - 2))
-    if (isGrouplessAddressWithoutGroup(decoded)) {
+    if (decoded.length > 0 && decoded[0] === AddressType.P2PK) {
       const groupByte = byteCodec.encode(groupIndex)
       return new Uint8Array([...decoded, ...groupByte])
     }
     throw new Error(`Invalid groupless address: ${address}`)
   } else {
     const decoded = base58ToBytes(address)
-    if (isGrouplessAddressWithoutGroup(decoded)) {
+    if (decoded.length > 0 && decoded[0] === AddressType.P2PK) {
       const group = defaultGroupOfGrouplessAddress(decoded.slice(2, decoded.length - 4))
       const groupByte = byteCodec.encode(group)
       return new Uint8Array([...decoded, ...groupByte])
@@ -246,11 +227,17 @@ function p2pkAddressFromPublicKey(
   publicKey: string,
   keyType: 'gl-secp256k1' | 'gl-secp256r1' | 'gl-ed25519' | 'gl-webauthn'
 ): string {
-  const keyTypeByte =
-    keyType === 'gl-secp256k1' ? 0x00 : keyType === 'gl-secp256r1' ? 0x01 : keyType === 'gl-ed25519' ? 0x02 : 0x03
-  const publicKeyBytes = new Uint8Array([keyTypeByte, ...hexToBinUnsafe(publicKey)])
-  const checksum = intAs4BytesCodec.encode(djb2(publicKeyBytes))
-  const bytes = new Uint8Array([AddressType.P2PK, ...publicKeyBytes, ...checksum])
+  const rawBytes = hexToBinUnsafe(publicKey)
+  const publicKeyLike: PublicKeyLike =
+    keyType === 'gl-secp256k1'
+      ? { kind: 'SecP256K1', value: rawBytes }
+      : keyType === 'gl-secp256r1'
+      ? { kind: 'SecP256R1', value: rawBytes }
+      : keyType === 'gl-ed25519'
+      ? { kind: 'ED25519', value: rawBytes }
+      : { kind: 'WebAuthn', value: rawBytes }
+  const publicKeyBytes = safePublicKeyLikeCodec.encode(publicKeyLike)
+  const bytes = new Uint8Array([AddressType.P2PK, ...publicKeyBytes])
   return bs58.encode(bytes)
 }
 
