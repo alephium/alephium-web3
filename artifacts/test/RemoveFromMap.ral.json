@@ -1,5 +1,5 @@
 {
-  "version": "v3.12.7",
+  "version": "v3.15.1",
   "name": "RemoveFromMap",
   "bytecodeTemplate": "01010300000005{1}0d0c{0}0102",
   "fieldsSig": {

@@ -227,8 +227,8 @@ export abstract class TransactionBuilder {
           gasPrice: fromApiNumber256(r.gasPrice)
         })),
         tx: {
-          ...result.transferTx,
-          gasPrice: fromApiNumber256(result.transferTx.gasPrice)
+          ...result,
+          gasPrice: fromApiNumber256(result.gasPrice)
         }
       }
     }
@@ -243,17 +243,17 @@ export abstract class TransactionBuilder {
     result: node.BuildDeployContractTxResult
   ): BuildTxResult<SignDeployContractTxResult> {
     if ('transferTxs' in result) {
-      const contractId = binToHex(contractIdFromAddress(result.deployContractTx.contractAddress))
+      const contractId = binToHex(contractIdFromAddress(result.contractAddress))
       return {
         transferTxs: result.transferTxs.map((r) => ({
           ...r,
           gasPrice: fromApiNumber256(r.gasPrice)
         })),
         tx: {
-          ...result.deployContractTx,
-          groupIndex: result.deployContractTx.fromGroup,
+          ...result,
+          groupIndex: result.fromGroup,
           contractId,
-          gasPrice: fromApiNumber256(result.deployContractTx.gasPrice)
+          gasPrice: fromApiNumber256(result.gasPrice)
         }
       }
     }
@@ -277,9 +277,9 @@ export abstract class TransactionBuilder {
           gasPrice: fromApiNumber256(r.gasPrice)
         })),
         tx: {
-          ...result.executeScriptTx,
-          groupIndex: result.executeScriptTx.fromGroup,
-          gasPrice: fromApiNumber256(result.executeScriptTx.gasPrice)
+          ...result,
+          groupIndex: result.fromGroup,
+          gasPrice: fromApiNumber256(result.gasPrice)
         }
       }
     }
