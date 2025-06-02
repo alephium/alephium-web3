@@ -41,8 +41,7 @@ import {
 import { binToHex } from '../utils'
 import { randomBytes } from 'crypto'
 import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
-import { intAs4BytesCodec } from '../codec/int-as-4bytes-codec'
-import djb2 from '../utils/djb2'
+import { PublicKeyLike } from '../codec/public-key-like-codec'
 
 describe('address', function () {
   it('should validate address', () => {
@@ -54,7 +53,7 @@ describe('address', function () {
     ).toBeUndefined()
     expect(() =>
       validateAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfA')
-    ).toThrow('Invalid address:')
+    ).toThrow('Invalid encoded public key like kind:')
     expect(validateAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBeUndefined()
     expect(() => validateAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX')).toThrow('Invalid address:')
     expect(validateAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBeUndefined()
@@ -76,7 +75,7 @@ describe('address', function () {
     expect(validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:2')).toBeUndefined()
     expect(validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:3')).toBeUndefined()
     expect(() => validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8Bdjfv')).toThrow(
-      'Invalid checksum for P2PK address:'
+      'Invalid checksum: expected 1251424950, but got 1251424985'
     )
     expect(() => validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:4')).toThrow(
       'Invalid group index: 4'
@@ -197,10 +196,8 @@ describe('address', function () {
     const p2cAddress = addressFromLockupScript(p2c)
     expect(groupOfAddress(p2cAddress)).toBe(groupOfLockupScript(p2c))
 
-    const publicKeyLike = new Uint8Array([0x00, ...bytes4])
-    const checkSum = intAs4BytesCodec.encode(djb2(publicKeyLike))
-    const group = 0
-    const p2pk: LockupScript = { kind: 'P2PK', value: { type: 0, publicKey: bytes4, checkSum, group } }
+    const publicKeyLike: PublicKeyLike = { kind: 'SecP256K1', value: bytes4 }
+    const p2pk: LockupScript = { kind: 'P2PK', value: { publicKeyLike, group: 0 } }
     const p2pkAddress = addressFromLockupScript(p2pk)
     expect(groupOfAddress(p2pkAddress)).toBe(groupOfLockupScript(p2pk))
 
