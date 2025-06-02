@@ -16,9 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { randomBytes } from 'crypto'
-import { LockupScript, lockupScriptCodec, P2PK } from './lockup-script-codec'
+import { LockupScript, lockupScriptCodec, P2HMPK, P2PK, safeHashCodec } from './lockup-script-codec'
 import { byteCodec } from './codec'
 import { PublicKeyLike, safePublicKeyLikeCodec } from './public-key-like-codec'
+import { concatBytes } from '../utils'
 
 describe('LockupScript', function () {
   it('should encode & decode lockup script', function () {
@@ -40,6 +41,14 @@ describe('LockupScript', function () {
     const groupByte = byteCodec.encode(group)
     const p2pk: P2PK = { publicKeyLike, group }
     test(new Uint8Array([0x04, ...encodedPublicKey, ...groupByte]), { kind: 'P2PK', value: p2pk })
+
+    const p2hmpk: P2HMPK = { hash: bytes0, group }
+    const encodedHash = safeHashCodec.encode(bytes0)
+    test(new Uint8Array([0x05, ...encodedHash, ...groupByte]), { kind: 'P2HMPK', value: p2hmpk })
+
+    const invalidEncodedHash = concatBytes([encodedHash.slice(0, encodedHash.length - 2), new Uint8Array([0x00, 0x00])])
+    const invalidP2hmpk = new Uint8Array([0x05, ...invalidEncodedHash, ...groupByte])
+    expect(() => lockupScriptCodec.decode(invalidP2hmpk)).toThrow('Invalid checksum')
   })
 
   function test(encoded: Uint8Array, expected: LockupScript) {

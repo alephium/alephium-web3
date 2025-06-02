@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { randomBytes } from 'crypto'
-import { UnlockScript, unlockScriptCodec } from './unlock-script-codec'
+import { P2HMPK, UnlockScript, unlockScriptCodec } from './unlock-script-codec'
 import { hexToBinUnsafe } from '../utils'
 import { Return } from './instr-codec'
 
@@ -60,6 +60,29 @@ describe('UnlockScript', function () {
       }
     })
     test(new Uint8Array([0x03]), { kind: 'SameAsPrevious', value: 'SameAsPrevious' })
+
+    const p2hmpk: P2HMPK = {
+      publicKeys: [
+        {
+          kind: 'SecP256K1',
+          value: hexToBinUnsafe('bd4633e9b44c83d2d0af346ea0176bbeec2bd9518d760686265ec1c16c33750496')
+        },
+        {
+          kind: 'SecP256R1',
+          value: hexToBinUnsafe('17079c94788a2f67022c6019db74b4d591980db6d07889ce7c442883781f12ced7')
+        },
+        { kind: 'ED25519', value: hexToBinUnsafe('68991de3bd36b8ba38de5457bfaeefc63b16ad6c6d735e3cab326259c407c75a') },
+        {
+          kind: 'WebAuthn',
+          value: hexToBinUnsafe('d8257deb42de07ff159cbe3be953510c7837aa6b818ab322a973e369d7b1cf8c53')
+        }
+      ],
+      publicKeyIndexes: [0, 1, 2, 3]
+    }
+    const p2hmpkEncoded = hexToBinUnsafe(
+      '060400bd4633e9b44c83d2d0af346ea0176bbeec2bd9518d760686265ec1c16c337504960117079c94788a2f67022c6019db74b4d591980db6d07889ce7c442883781f12ced70268991de3bd36b8ba38de5457bfaeefc63b16ad6c6d735e3cab326259c407c75a03d8257deb42de07ff159cbe3be953510c7837aa6b818ab322a973e369d7b1cf8c530400010203'
+    )
+    test(p2hmpkEncoded, { kind: 'P2HMPK', value: p2hmpk })
   })
 
   function test(encoded: Uint8Array, expected: UnlockScript) {
