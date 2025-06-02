@@ -25,6 +25,7 @@ export type PublicKeyHash = Uint8Array
 export type P2PKH = Uint8Array
 export type P2SH = Uint8Array
 export type P2C = Uint8Array
+export type P2HMPKHash = Uint8Array
 
 export const p2cCodec = byte32Codec
 
@@ -39,7 +40,7 @@ export interface P2PK {
 }
 
 export interface P2HMPK {
-  hash: PublicKeyHash
+  hash: P2HMPKHash
   group: number
 }
 
@@ -53,9 +54,9 @@ const p2pkCodec = new ObjectCodec<P2PK>({
   group: byteCodec
 })
 
-export const safeHashCodec = new Checksum<PublicKeyHash>(byte32Codec)
+export const safeP2HMPKHashCodec = new Checksum<P2HMPKHash>(byte32Codec)
 const p2hmpkCodec = new ObjectCodec<P2HMPK>({
-  hash: safeHashCodec,
+  hash: safeP2HMPKHashCodec,
   group: byteCodec
 })
 
