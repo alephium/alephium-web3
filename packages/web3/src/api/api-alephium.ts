@@ -368,18 +368,25 @@ export interface BuildMultisig {
   /** @format address */
   fromAddress: string
   fromPublicKeys: string[]
+  fromPublicKeyTypes?: string[]
+  fromPublicKeyIndexes?: number[]
   destinations: Destination[]
   /** @format gas */
   gas?: number
   /** @format uint256 */
   gasPrice?: string
+  /** @format group-index */
+  group?: number
+  multiSigType?: MultiSigType
 }
 
 /** BuildMultisigAddress */
 export interface BuildMultisigAddress {
   keys: string[]
+  keyTypes?: string[]
   /** @format int32 */
   mrequired: number
+  multiSigType?: MultiSigType
 }
 
 /** BuildMultisigAddressResult */
@@ -438,8 +445,10 @@ export interface BuildSimpleTransferTxResult {
 
 /** BuildSweepAddressTransactions */
 export interface BuildSweepAddressTransactions {
-  /** @format public-key */
+  /** @format hex-string */
   fromPublicKey: string
+  /** @format hex-string */
+  fromPublicKeyType?: string
   /** @format address */
   toAddress: string
   /** @format uint256 */
@@ -454,6 +463,8 @@ export interface BuildSweepAddressTransactions {
   targetBlockHash?: string
   /** @format int32 */
   utxosLimit?: number
+  /** @format group-index */
+  group?: number
 }
 
 /** BuildSweepAddressTransactionsResult */
@@ -470,6 +481,8 @@ export interface BuildSweepMultisig {
   /** @format address */
   fromAddress: string
   fromPublicKeys: string[]
+  fromPublicKeyTypes?: string[]
+  fromPublicKeyIndexes?: number[]
   /** @format address */
   toAddress: string
   /** @format uint256 */
@@ -484,6 +497,9 @@ export interface BuildSweepMultisig {
   utxosLimit?: number
   /** @format block-hash */
   targetBlockHash?: string
+  /** @format group-index */
+  group?: number
+  multiSigType?: MultiSigType
 }
 
 /** BuildTransferTx */
@@ -942,6 +958,9 @@ export interface MinerAddressesInfo {
 /** MisbehaviorAction */
 export type MisbehaviorAction = Ban | Unban
 
+/** MultiSigType */
+export type MultiSigType = P2HMPK | P2MPKH
+
 /** MultipleCallContract */
 export interface MultipleCallContract {
   calls: CallContract[]
@@ -985,6 +1004,16 @@ export interface OutputRef {
   hint: number
   /** @format 32-byte-hash */
   key: string
+}
+
+/** P2HMPK */
+export interface P2HMPK {
+  type: string
+}
+
+/** P2MPKH */
+export interface P2MPKH {
+  type: string
 }
 
 /** PeerAddress */
@@ -1633,8 +1662,8 @@ export class HttpClient<SecurityDataType = unknown> {
           property instanceof Blob
             ? property
             : typeof property === 'object' && property !== null
-            ? JSON.stringify(property)
-            : `${property}`
+              ? JSON.stringify(property)
+              : `${property}`
         )
         return formData
       }, new FormData()),
@@ -1714,18 +1743,18 @@ export class HttpClient<SecurityDataType = unknown> {
       const data = !responseFormat
         ? r
         : await response[responseFormat]()
-            .then((data) => {
-              if (r.ok) {
-                r.data = data
-              } else {
-                r.error = data
-              }
-              return r
-            })
-            .catch((e) => {
-              r.error = e
-              return r
-            })
+          .then((data) => {
+            if (r.ok) {
+              r.data = data
+            } else {
+              r.error = data
+            }
+            return r
+          })
+          .catch((e) => {
+            r.error = e
+            return r
+          })
 
       if (cancelToken) {
         this.abortControllers.delete(cancelToken)
@@ -1738,7 +1767,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.14.4
+ * @version 3.15.1
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -3479,7 +3508,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      */
     postMultisigBuild: (data: BuildMultisig, params: RequestParams = {}) =>
       this.request<
-        BuildSimpleTransferTxResult,
+        BuildTransferTxResult,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/multisig/build`,
