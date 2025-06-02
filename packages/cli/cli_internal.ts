@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3, NetworkId, networkIds, enableDebugMode, isDebugModeEnabled } from '@alephium/web3'
+import { web3, NetworkId, networkIds, enableDebugMode, isDebugModeEnabled, CompilerOptions } from '@alephium/web3'
 import { program } from 'commander'
 import { run as runJestTests } from 'jest'
 import path from 'path'
@@ -42,7 +42,10 @@ function getConfig(options: any): Configuration {
 
   const isDebugModeEnabled = config.enableDebugMode || options.debug
   if (isDebugModeEnabled) enableDebugMode()
-  return { ...config, enableDebugMode: isDebugModeEnabled }
+
+  const compilerOptions = config.compilerOptions ?? DEFAULT_CONFIGURATION_VALUES.compilerOptions
+  const newOptions = options.skipTests ? { ...compilerOptions, skipTests: true } : compilerOptions
+  return { ...config, compilerOptions: newOptions, enableDebugMode: isDebugModeEnabled }
 }
 
 function checkAndGetNetworkId(networkId?: string): NetworkId {
@@ -98,6 +101,7 @@ program
   .option('--skipGenerate', 'skip generate typescript code by contract artifacts')
   .option('--debug', 'show detailed debug information such as error stack traces')
   .option('--force', 'enable force recompile')
+  .option('--skipTests', 'skip running unit tests')
   .action(async (options) => {
     try {
       const config = getConfig(options)

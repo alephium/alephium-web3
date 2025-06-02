@@ -46,7 +46,9 @@ import {
   U256From32Byte,
   U256Gt,
   U256Lt,
-  NumericSHL
+  NumericSHL,
+  Dup,
+  Pop
 } from './instr-codec'
 import {
   Assert,
@@ -251,12 +253,14 @@ describe('Encode & decode contract', function () {
             TokenRemaining,
             U256Const0,
             U256Gt,
+            Dup,
+            IfFalse(6),
+            Pop,
             LoadLocal(0),
             LoadLocal(3),
             TokenRemaining,
             U256Const0,
             U256Gt,
-            BoolAnd,
             U256Const(15n),
             AssertWithErrorCode,
             LoadLocal(2),
