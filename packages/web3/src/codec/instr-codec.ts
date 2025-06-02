@@ -167,6 +167,9 @@ export type Instr =
   | { name: 'GroupOfAddress'; code: 0x8c }
   | { name: 'VerifySignature'; code: 0x8d }
   | { name: 'GetSegregatedWebAuthnSignature'; code: 0x8e }
+  | { name: 'DevInstr'; code: 0x8f; instr: number }
+  | { name: 'I256RoundInfinityDiv'; code: 0x90 }
+  | { name: 'U256RoundInfinityDiv'; code: 0x91 }
   | { name: 'LoadMutField'; code: 0xa0; index: number }
   | { name: 'StoreMutField'; code: 0xa1; index: number }
   | { name: 'ApproveAlph'; code: 0xa2 }
@@ -407,6 +410,11 @@ export const BoolToString: Instr = { name: 'BoolToString', code: 0x8b }
 export const GroupOfAddress: Instr = { name: 'GroupOfAddress', code: 0x8c }
 export const VerifySignature: Instr = { name: 'VerifySignature', code: 0x8d }
 export const GetSegregatedWebAuthnSignature: Instr = { name: 'GetSegregatedWebAuthnSignature', code: 0x8e }
+export const DevInstr: (instr: number) => Instr = (instr: number) => {
+  return { name: 'DevInstr', code: 0x8f, instr }
+}
+export const I256RoundInfinityDiv: Instr = { name: 'I256RoundInfinityDiv', code: 0x90 }
+export const U256RoundInfinityDiv: Instr = { name: 'U256RoundInfinityDiv', code: 0x91 }
 export const LoadMutField: (index: number) => Instr = (index: number) => {
   return { name: 'LoadMutField', code: 0xa0, index }
 }
@@ -769,6 +777,12 @@ export class InstrCodec extends Codec<Instr> {
         return new Uint8Array([0x8d])
       case 'GetSegregatedWebAuthnSignature':
         return new Uint8Array([0x8e])
+      case 'DevInstr':
+        return new Uint8Array([0x8f, ...byteCodec.encode(instr.instr)])
+      case 'I256RoundInfinityDiv':
+        return new Uint8Array([0x90])
+      case 'U256RoundInfinityDiv':
+        return new Uint8Array([0x91])
       case 'LoadMutField':
         return new Uint8Array([0xa0, ...byteCodec.encode(instr.index)])
       case 'StoreMutField':
@@ -1170,6 +1184,12 @@ export class InstrCodec extends Codec<Instr> {
         return VerifySignature
       case 0x8e:
         return GetSegregatedWebAuthnSignature
+      case 0x8f:
+        return DevInstr(byteCodec._decode(input))
+      case 0x90:
+        return I256RoundInfinityDiv
+      case 0x91:
+        return U256RoundInfinityDiv
       case 0xa0:
         return LoadMutField(byteCodec._decode(input))
       case 0xa1:
