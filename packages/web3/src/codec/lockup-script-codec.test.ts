@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { randomBytes } from 'crypto'
-import { LockupScript, lockupScriptCodec, P2HMPK, P2PK, safeHashCodec } from './lockup-script-codec'
+import { LockupScript, lockupScriptCodec, P2HMPK, P2PK, safeP2HMPKHashCodec } from './lockup-script-codec'
 import { byteCodec } from './codec'
 import { PublicKeyLike, safePublicKeyLikeCodec } from './public-key-like-codec'
 import { concatBytes } from '../utils'
@@ -43,7 +43,7 @@ describe('LockupScript', function () {
     test(new Uint8Array([0x04, ...encodedPublicKey, ...groupByte]), { kind: 'P2PK', value: p2pk })
 
     const p2hmpk: P2HMPK = { hash: bytes0, group }
-    const encodedHash = safeHashCodec.encode(bytes0)
+    const encodedHash = safeP2HMPKHashCodec.encode(bytes0)
     test(new Uint8Array([0x05, ...encodedHash, ...groupByte]), { kind: 'P2HMPK', value: p2hmpk })
 
     const invalidEncodedHash = concatBytes([encodedHash.slice(0, encodedHash.length - 2), new Uint8Array([0x00, 0x00])])
