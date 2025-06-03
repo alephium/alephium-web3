@@ -1,12 +1,12 @@
 {
   "name": "@alephium/web3-react",
   "version": "2.0.0-rc.0",
-  "homepage": "https://github.com/alephium/alephium-web3-react",
+  "homepage": "https://github.com/alephium/alephium-web3",
   "license": "GPL",
   "description": "React components for Alephium Web3.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alephium/alephium-web3-react"
+    "url": "git+https://github.com/alephium/alephium-web3"
   },
   "type": "module",
   "exports": {
@@ -52,8 +52,8 @@
     "styled-components": "^5.3.9"
   },
   "peerDependencies": {
-    "react": "17.x || 18.x",
-    "react-dom": "17.x || 18.x"
+    "react": "17.x || 18.x || 19.x",
+    "react-dom": "17.x || 18.x || 19.x"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",

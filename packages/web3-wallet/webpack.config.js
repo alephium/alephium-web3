@@ -30,6 +30,9 @@ module.exports = {
         // The "bip39/src/wordlists" node module consists of json files for multiple languages. We only need English.
         return /.*\/wordlists\/(?!english).*\.json/.test(resource)
       }
+    }),
+    new webpack.ProvidePlugin({
+      Buffer: ['buffer', 'Buffer']
     })
   ],
   resolve: {
@@ -37,7 +40,8 @@ module.exports = {
     fallback: {
       fs: false,
       stream: require.resolve('stream-browserify'),
-      crypto: require.resolve('crypto-browserify')
+      crypto: require.resolve('crypto-browserify'),
+      buffer: require.resolve('buffer/')
     }
   },
   output: {
