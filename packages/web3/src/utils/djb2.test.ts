@@ -30,5 +30,6 @@ describe('djb2', function () {
     check('z', 177695)
     check('foo', 193491849)
     check('bar', 193487034)
+    check('abcdefghijk', -1449674809)
   })
 })

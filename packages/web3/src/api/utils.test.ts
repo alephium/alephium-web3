@@ -27,7 +27,7 @@ describe('utils', function () {
       new TraceableError(
         'Failed to request getAddressesAddressGroup',
         new Error(
-          '[API Error] - Invalid value for: path parameter address (Unable to decode address from 000: 000) - Status code: 400'
+          '[API Error] - Invalid value for: path parameter address (Invalid address 000: 000) - Status code: 400'
         )
       )
     )

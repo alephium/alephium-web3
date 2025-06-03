@@ -41,8 +41,7 @@ import {
 import { binToHex } from '../utils'
 import { randomBytes } from 'crypto'
 import { LockupScript, lockupScriptCodec } from '../codec/lockup-script-codec'
-import { intAs4BytesCodec } from '../codec/int-as-4bytes-codec'
-import djb2 from '../utils/djb2'
+import { PublicKeyLike } from '../codec/public-key-like-codec'
 
 describe('address', function () {
   it('should validate address', () => {
@@ -54,7 +53,7 @@ describe('address', function () {
     ).toBeUndefined()
     expect(() =>
       validateAddress('2jW1n2icPtc55Cdm8TF9FjGH681cWthsaZW3gaUFekFZepJoeyY3ZbY7y5SCtAjyCjLL24c4L2Vnfv3KDdAypCddfA')
-    ).toThrow('Invalid address:')
+    ).toThrow('Invalid encoded public key like kind:')
     expect(validateAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX4')).toBeUndefined()
     expect(() => validateAddress('eBrjfQNeyUCuxE4zpbfMZcbS3PuvbMJDQBCyk4HRHtX')).toThrow('Invalid address:')
     expect(validateAddress('yya86C6UemCeLs5Ztwjcf2Mp2Kkt4mwzzRpBiG6qQ9kj')).toBeUndefined()
@@ -76,7 +75,7 @@ describe('address', function () {
     expect(validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:2')).toBeUndefined()
     expect(validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:3')).toBeUndefined()
     expect(() => validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8Bdjfv')).toThrow(
-      'Invalid checksum for P2PK address:'
+      'Invalid checksum: expected 1251424950, but got 1251424985'
     )
     expect(() => validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:4')).toThrow(
       'Invalid group index: 4'
@@ -84,6 +83,14 @@ describe('address', function () {
     expect(() => validateAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:j')).toThrow(
       'Invalid group index: j'
     )
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:0')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:1')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:2')).toBeUndefined()
+    expect(validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3')).toBeUndefined()
+    expect(() => validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufv')).toThrow('Invalid checksum')
+    expect(() => validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:4')).toThrow('Invalid group index')
+    expect(() => validateAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:j')).toThrow('Invalid group index')
   })
 
   it('should return if an address is valid', () => {
@@ -103,6 +110,7 @@ describe('address', function () {
     expect(isValidAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:3')).toEqual(true)
     expect(isValidAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:j')).toEqual(false)
     expect(isValidAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:4')).toEqual(false)
+    expect(isValidAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3')).toEqual(true)
   })
 
   it('should get address type', () => {
@@ -173,6 +181,11 @@ describe('address', function () {
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:1')).toBe(1)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:2')).toBe(2)
     expect(groupOfAddress('3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK:3')).toBe(3)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh')).toBe(0)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:0')).toBe(0)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:1')).toBe(1)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:2')).toBe(2)
+    expect(groupOfAddress('AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3')).toBe(3)
   })
 
   it('should calculate the group of lockup script', () => {
@@ -197,10 +210,8 @@ describe('address', function () {
     const p2cAddress = addressFromLockupScript(p2c)
     expect(groupOfAddress(p2cAddress)).toBe(groupOfLockupScript(p2c))
 
-    const publicKeyLike = new Uint8Array([0x00, ...bytes4])
-    const checkSum = intAs4BytesCodec.encode(djb2(publicKeyLike))
-    const group = 0
-    const p2pk: LockupScript = { kind: 'P2PK', value: { type: 0, publicKey: bytes4, checkSum, group } }
+    const publicKeyLike: PublicKeyLike = { kind: 'SecP256K1', value: bytes4 }
+    const p2pk: LockupScript = { kind: 'P2PK', value: { publicKeyLike, group: 0 } }
     const p2pkAddress = addressFromLockupScript(p2pk)
     expect(groupOfAddress(p2pkAddress)).toBe(groupOfLockupScript(p2pk))
 
@@ -209,7 +220,12 @@ describe('address', function () {
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:0',
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:1',
       '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:2',
-      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3'
+      '3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:0',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:1',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:2',
+      'AysNhoEDMej7hyoTBnVb2zNSvJ5zSj6LXoB3LwnTv2NGaZ7ufh:3'
     ]
 
     grouplessAddresses.forEach((address) => {
