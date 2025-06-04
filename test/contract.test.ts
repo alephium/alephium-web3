@@ -999,4 +999,35 @@ describe('contract', function () {
       ).rejects.toThrow('Test failed due to insufficient funds to cover the dust amount')
     }
   })
+
+  it('should call tx script with the correct group index', async () => {
+    const signer0 = await getSigner()
+    expect(signer0.account.group).toEqual(0)
+    const signer1 = await getSigner(ONE_ALPH * 10n, 1, 'gl-secp256k1')
+    expect(signer1.account.group).toEqual(1)
+
+    const deployResult0 = await Sub.deploy(signer0, { initialFields: { result: 0n } })
+    const sub = deployResult0.contractInstance
+    expect(sub.groupIndex).toEqual(0)
+
+    const tx0 = await sub.transact.sub({ args: { array: [2n, 1n] }, signer: signer1 })
+    expect(tx0.groupIndex).toEqual(0)
+    const subState = await sub.fetchState()
+    expect(subState.fields.result).toEqual(1n)
+
+    const deployResult1 = await Add.deploy(signer0, { initialFields: { sub: sub.contractId, result: 0n } })
+    const add = deployResult1.contractInstance
+    expect(add.groupIndex).toEqual(0)
+
+    const tx1 = await AddMain.execute({
+      signer: signer1,
+      initialFields: {
+        add: add.contractId,
+        array: [2n, 1n]
+      }
+    })
+    expect(tx1.groupIndex).toEqual(0)
+    const addState = await add.fetchState()
+    expect(addState.fields.result).toEqual(3n)
+  })
 })

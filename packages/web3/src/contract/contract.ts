@@ -41,7 +41,8 @@ import {
   SignExecuteScriptTxParams,
   SignerProvider,
   Address,
-  SignExecuteScriptTxResult
+  SignExecuteScriptTxResult,
+  Account
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -97,6 +98,7 @@ import {
 } from '../codec'
 import { TraceableError } from '../error'
 import { SimulationResult } from '../api/api-alephium'
+import { scriptCodec } from '../codec/script-codec'
 
 const crypto = new WebCrypto()
 
@@ -794,14 +796,17 @@ export class Script extends Artifact {
 
   async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
     const selectedAccount = await params.signer.getSelectedAccount()
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
+    const group = getGroupFromTxScript(bytecode, selectedAccount)
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
-      bytecode: this.buildByteCodeToDeploy(params.initialFields ?? {}),
+      bytecode,
       attoAlphAmount: params.attoAlphAmount,
       tokens: params.tokens,
       gasAmount: params.gasAmount,
-      gasPrice: params.gasPrice
+      gasPrice: params.gasPrice,
+      group
     }
     return signerParams
   }
@@ -813,6 +818,38 @@ export class Script extends Artifact {
       throw new TraceableError(`Failed to build bytecode for script ${this.name}`, error)
     }
   }
+}
+
+function getGroupFromTxScript(bytecode: string, account: Account): number {
+  if (account.keyType === 'default' || account.keyType === 'bip340-schnorr') {
+    return account.group
+  }
+
+  const script = scriptCodec.decode(hexToBinUnsafe(bytecode))
+  const instrs = script.methods.flatMap((method) => method.instrs)
+  for (let index = 0; index < instrs.length - 1; index += 1) {
+    const instr = instrs[`${index}`]
+    const nextInstr = instrs[index + 1]
+    if (
+      instr.name === 'BytesConst' &&
+      instr.value.length === 32 &&
+      (nextInstr.name === 'CallExternal' || nextInstr.name === 'CallExternalBySelector')
+    ) {
+      const groupIndex = instr.value[instr.value.length - 1]
+      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
+        return groupIndex
+      }
+    }
+  }
+  for (const instr of instrs) {
+    if (instr.name === 'BytesConst' && instr.value.length === 32) {
+      const groupIndex = instr.value[instr.value.length - 1]
+      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
+        return groupIndex
+      }
+    }
+  }
+  return account.group
 }
 
 export function fromApiFields(
@@ -1963,7 +2000,8 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
     attoAlphAmount: params.attoAlphAmount,
     tokens: params.tokens,
     gasAmount: params.gasAmount,
-    gasPrice: params.gasPrice
+    gasPrice: params.gasPrice,
+    group: instance.groupIndex
   }
 
   const result = (await signer.signAndSubmitExecuteScriptTx(signerParams)) as SignExecuteScriptTxResult
