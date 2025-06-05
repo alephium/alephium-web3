@@ -110,7 +110,7 @@ export class WalletClient {
       changedChainId = formatChain(this.networkId, wallet.group)
     }
 
-    if (!isCompatibleAddressGroup(wallet.account.group, this.permittedAddressGroup)) {
+    if (!isCompatibleAddressGroup(wallet.account, this.permittedAddressGroup)) {
       throw new Error(`Error changing account, chain ${changedChainId} not permitted`)
     }
 

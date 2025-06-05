@@ -122,7 +122,7 @@ class Factory extends ContractFactory<
     nextCount: async (
       params: Omit<
         TestContractParamsWithoutMaps<InlineTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "nextCount", params, getContractByCodeHash);
@@ -130,7 +130,7 @@ class Factory extends ContractFactory<
     nextCountWithPay: async (
       params: Omit<
         TestContractParamsWithoutMaps<InlineTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(
@@ -143,7 +143,7 @@ class Factory extends ContractFactory<
     nextCountWithoutPay: async (
       params: Omit<
         TestContractParamsWithoutMaps<InlineTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(

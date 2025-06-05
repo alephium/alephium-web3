@@ -23,7 +23,7 @@ import { bs58, hexToBinUnsafe } from '../utils'
 import { unsignedTxCodec } from '../codec'
 import { groupOfAddress } from '../address'
 import { blake2b } from 'blakejs'
-import { web3 } from '../'
+import { SignTransferTxResult, web3 } from '../'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
 describe('transaction utils', () => {
@@ -37,10 +37,10 @@ describe('transaction utils', () => {
     const fromAccount = await signer1.getSelectedAccount()
     const toAccount = await signer2.getSelectedAccount()
 
-    const tx = await signer1.buildTransferTx({
+    const tx = (await signer1.buildTransferTx({
       signerAddress: fromAccount.address,
       destinations: [{ address: toAccount.address, attoAlphAmount: ONE_ALPH }]
-    })
+    })) as Omit<SignTransferTxResult, 'signature'>
 
     const unsignedTx = unsignedTxCodec.decode(hexToBinUnsafe(tx.unsignedTx))
     const [fromGroup, toGroup] = groupIndexOfTransaction(unsignedTx)
@@ -60,10 +60,10 @@ describe('transaction utils', () => {
 
     {
       // Transfer to multisig address
-      const toMultiSig = await signer1.signAndSubmitTransferTx({
+      const toMultiSig = (await signer1.signAndSubmitTransferTx({
         signerAddress: fromAccount.address,
         destinations: [{ address: multisigAddress, attoAlphAmount: ONE_ALPH * 10n }]
-      })
+      })) as SignTransferTxResult
       const unsignedTx = unsignedTxCodec.decode(hexToBinUnsafe(toMultiSig.unsignedTx))
       const [fromGroup, toGroup] = groupIndexOfTransaction(unsignedTx)
       expect(fromGroup).toEqual(groupOfAddress(fromAccount.address))
@@ -93,10 +93,10 @@ describe('transaction utils', () => {
 
     {
       // Transfer to schnorr address
-      const toSchnorrAddressResult = await signer1.signAndSubmitTransferTx({
+      const toSchnorrAddressResult = (await signer1.signAndSubmitTransferTx({
         signerAddress: fromAccount.address,
         destinations: [{ address: schnorrSigner.address, attoAlphAmount: ONE_ALPH }]
-      })
+      })) as SignTransferTxResult
 
       const unsignedTx = unsignedTxCodec.decode(hexToBinUnsafe(toSchnorrAddressResult.unsignedTx))
       const [fromGroup, toGroup] = groupIndexOfTransaction(unsignedTx)
@@ -107,11 +107,11 @@ describe('transaction utils', () => {
 
     {
       // Transfer from schnorr address
-      const fromSchnorrAddressResult = await schnorrSigner.signAndSubmitTransferTx({
+      const fromSchnorrAddressResult = (await schnorrSigner.signAndSubmitTransferTx({
         signerAddress: schnorrSigner.address,
         signerKeyType: 'bip340-schnorr',
         destinations: [{ address: fromAccount.address, attoAlphAmount: ONE_ALPH / 2n }]
-      })
+      })) as SignTransferTxResult
 
       const unsignedTx = unsignedTxCodec.decode(hexToBinUnsafe(fromSchnorrAddressResult.unsignedTx))
       const [fromGroup, toGroup] = groupIndexOfTransaction(unsignedTx)

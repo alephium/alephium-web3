@@ -30,10 +30,13 @@ import {
   instrCodec,
   u256Codec,
   toU256,
-  toI256
+  toI256,
+  intAs4BytesCodec
 } from '../codec'
 import { boolCodec } from '../codec/codec'
 import { TraceableError } from '../error'
+import djb2 from '../utils/djb2'
+import { addressToBytes, groupFromHint } from '../address'
 
 export function encodeByteVec(hex: string): Uint8Array {
   if (!isHexString(hex)) {
@@ -45,7 +48,7 @@ export function encodeByteVec(hex: string): Uint8Array {
 }
 
 export function encodeAddress(address: string): Uint8Array {
-  return bs58.decode(address)
+  return addressToBytes(address)
 }
 
 export enum VmValType {

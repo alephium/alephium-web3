@@ -16,13 +16,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { randomBytes } from 'crypto'
-import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
+import { LockupScript, lockupScriptCodec, P2HMPK, P2PK, safeP2HMPKHashCodec } from './lockup-script-codec'
+import { byteCodec } from './codec'
+import { PublicKeyLike, safePublicKeyLikeCodec } from './public-key-like-codec'
+import { concatBytes } from '../utils'
 
 describe('LockupScript', function () {
   it('should encode & decode lockup script', function () {
     const bytes0 = new Uint8Array(randomBytes(32))
     const bytes1 = new Uint8Array(randomBytes(32))
     const bytes2 = new Uint8Array(randomBytes(32))
+    const bytes3 = new Uint8Array(randomBytes(33))
 
     test(new Uint8Array([0x00, ...bytes0]), { kind: 'P2PKH', value: new Uint8Array(bytes0) })
     const encodedMultisig = new Uint8Array([0x01, 0x03, ...bytes0, ...bytes1, ...bytes2, 0x02])
@@ -30,6 +34,21 @@ describe('LockupScript', function () {
     test(encodedMultisig, { kind: 'P2MPKH', value: p2mpkh })
     test(new Uint8Array([0x02, ...bytes0]), { kind: 'P2SH', value: new Uint8Array(bytes0) })
     test(new Uint8Array([0x03, ...bytes0]), { kind: 'P2C', value: new Uint8Array(bytes0) })
+
+    const publicKeyLike: PublicKeyLike = { kind: 'SecP256K1', value: bytes3 }
+    const encodedPublicKey = safePublicKeyLikeCodec.encode(publicKeyLike)
+    const group = 0
+    const groupByte = byteCodec.encode(group)
+    const p2pk: P2PK = { publicKeyLike, group }
+    test(new Uint8Array([0x04, ...encodedPublicKey, ...groupByte]), { kind: 'P2PK', value: p2pk })
+
+    const p2hmpk: P2HMPK = { hash: bytes0, group }
+    const encodedHash = safeP2HMPKHashCodec.encode(bytes0)
+    test(new Uint8Array([0x05, ...encodedHash, ...groupByte]), { kind: 'P2HMPK', value: p2hmpk })
+
+    const invalidEncodedHash = concatBytes([encodedHash.slice(0, encodedHash.length - 2), new Uint8Array([0x00, 0x00])])
+    const invalidP2hmpk = new Uint8Array([0x05, ...invalidEncodedHash, ...groupByte])
+    expect(() => lockupScriptCodec.decode(invalidP2hmpk)).toThrow('Invalid checksum')
   })
 
   function test(encoded: Uint8Array, expected: LockupScript) {
