@@ -220,7 +220,7 @@ export abstract class TransactionBuilder {
 
   private convertTransferTxResult(result: node.BuildTransferTxResult): BuildTxResult<SignTransferTxResult> {
     // BuildGrouplessTransferTxResult
-    if ('transferTxs' in result) {
+    if ('fundingTxs' in result) {
       return {
         unsignedTx: result.unsignedTx,
         gasAmount: result.gasAmount,
@@ -228,7 +228,7 @@ export abstract class TransactionBuilder {
         txId: result.txId,
         fromGroup: result.fromGroup,
         toGroup: result.toGroup,
-        transferTxs: result.transferTxs.map((r) => ({
+        fundingTxs: result.fundingTxs?.map((r) => ({
           ...r,
           gasPrice: fromApiNumber256(r.gasPrice)
         }))
@@ -244,7 +244,7 @@ export abstract class TransactionBuilder {
   private convertDeployContractTxResult(
     result: node.BuildDeployContractTxResult
   ): BuildTxResult<SignDeployContractTxResult> {
-    if ('transferTxs' in result) {
+    if ('fundingTxs' in result) {
       const contractId = binToHex(contractIdFromAddress(result.contractAddress))
       return {
         groupIndex: result.fromGroup,
@@ -254,7 +254,7 @@ export abstract class TransactionBuilder {
         txId: result.txId,
         contractAddress: result.contractAddress,
         contractId,
-        transferTxs: result.transferTxs.map((r) => ({
+        fundingTxs: result.fundingTxs?.map((r) => ({
           ...r,
           gasPrice: fromApiNumber256(r.gasPrice)
         }))
@@ -273,7 +273,7 @@ export abstract class TransactionBuilder {
   private convertExecuteScriptTxResult(
     result: node.BuildExecuteScriptTxResult
   ): BuildTxResult<SignExecuteScriptTxResult> {
-    if ('transferTxs' in result) {
+    if ('fundingTxs' in result) {
       return {
         groupIndex: result.fromGroup,
         unsignedTx: result.unsignedTx,
@@ -281,7 +281,7 @@ export abstract class TransactionBuilder {
         gasAmount: result.gasAmount,
         simulationResult: result.simulationResult,
         gasPrice: fromApiNumber256(result.gasPrice),
-        transferTxs: result.transferTxs.map((r) => ({
+        fundingTxs: result.fundingTxs?.map((r) => ({
           ...r,
           gasPrice: fromApiNumber256(r.gasPrice)
         }))

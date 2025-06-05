@@ -129,7 +129,7 @@ assertType<
 export type GrouplessBuildTxResult<
   T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
 > = {
-  transferTxs: Omit<SignTransferTxResult, 'signature'>[]
+  fundingTxs?: Omit<SignTransferTxResult, 'signature'>[]
 } & Omit<T, 'signature'>
 
 export type BuildTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
@@ -139,7 +139,7 @@ export type BuildTxResult<T extends SignExecuteScriptTxResult | SignDeployContra
 export type GrouplessSignTxResult<
   T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
 > = {
-  transferTxs: SignTransferTxResult[]
+  fundingTxs?: SignTransferTxResult[]
 } & T
 
 export type SignTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
