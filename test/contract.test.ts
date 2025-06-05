@@ -42,7 +42,8 @@ import {
   MINIMAL_CONTRACT_DEPOSIT,
   getDebugMessagesFromTx,
   getContractCodeByCodeHash,
-  SignDeployContractTxResult
+  SignDeployContractTxResult,
+  TOTAL_NUMBER_OF_GROUPS
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -85,7 +86,7 @@ import {
   InlineTest,
   AutoFund
 } from '../artifacts/ts'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomInt } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
 import { A, Addresses, B, ByteVecs, AssertError, Numbers, ConstantTrue, ConstantFalse } from '../artifacts/ts/constants'
@@ -1001,33 +1002,28 @@ describe('contract', function () {
   })
 
   it('should call tx script with the correct group index', async () => {
-    const signer0 = await getSigner()
-    expect(signer0.account.group).toEqual(0)
-    const signer1 = await getSigner(ONE_ALPH * 10n, 1, 'gl-secp256k1')
-    expect(signer1.account.group).toEqual(1)
+    const targetGroup = randomInt(0, TOTAL_NUMBER_OF_GROUPS)
+    const signer = await getSigner(undefined, targetGroup, 'gl-secp256k1')
 
-    const deployResult0 = await Sub.deploy(signer0, { initialFields: { result: 0n } })
-    const sub = deployResult0.contractInstance
-    expect(sub.groupIndex).toEqual(0)
+    for (let group = 0; group < TOTAL_NUMBER_OF_GROUPS; group += 1) {
+      const deployer = await getSigner(undefined, group)
+      const deployResult0 = await Sub.deploy(deployer, { initialFields: { result: 0n } })
+      const sub = deployResult0.contractInstance
+      expect(sub.groupIndex).toEqual(group)
 
-    const tx0 = await sub.transact.sub({ args: { array: [2n, 1n] }, signer: signer1 })
-    expect(tx0.groupIndex).toEqual(0)
-    const subState = await sub.fetchState()
-    expect(subState.fields.result).toEqual(1n)
+      const tx0 = await sub.transact.sub({ args: { array: [2n, 1n] }, signer })
+      expect(tx0.groupIndex).toEqual(group)
+      const subState = await sub.fetchState()
+      expect(subState.fields.result).toEqual(1n)
 
-    const deployResult1 = await Add.deploy(signer0, { initialFields: { sub: sub.contractId, result: 0n } })
-    const add = deployResult1.contractInstance
-    expect(add.groupIndex).toEqual(0)
+      const deployResult1 = await Add.deploy(deployer, { initialFields: { sub: sub.contractId, result: 0n } })
+      const add = deployResult1.contractInstance
+      expect(add.groupIndex).toEqual(group)
 
-    const tx1 = await AddMain.execute({
-      signer: signer1,
-      initialFields: {
-        add: add.contractId,
-        array: [2n, 1n]
-      }
-    })
-    expect(tx1.groupIndex).toEqual(0)
-    const addState = await add.fetchState()
-    expect(addState.fields.result).toEqual(3n)
+      const tx1 = await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+      expect(tx1.groupIndex).toEqual(group)
+      const addState = await add.fetchState()
+      expect(addState.fields.result).toEqual(3n)
+    }
   })
 })
