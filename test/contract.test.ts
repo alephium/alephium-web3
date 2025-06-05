@@ -101,7 +101,7 @@ describe('contract', function () {
 
     signer = await getSigner()
     signerAccount = signer.account
-    signerGroup = signerAccount.group
+    signerGroup = groupOfAddress(signerAccount.address)
     exposePrivateFunctions = Math.random() < 0.5
 
     expect(signerGroup).toEqual(groupOfAddress(testAddress))

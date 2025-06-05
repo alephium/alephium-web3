@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { publicKeyFromPrivateKey } from '@alephium/web3'
+import { isGroupedAccount, publicKeyFromPrivateKey } from '@alephium/web3'
 import { Account, KeyType, ExplorerProvider, NodeProvider } from '@alephium/web3'
 import { addressFromPublicKey } from '@alephium/web3'
 import { Address } from '@alephium/web3'
@@ -171,6 +171,9 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
     super()
     this.mnemonic = mnemonic
     this.keyType = keyType ?? 'default'
+    if (this.keyType !== 'default' && this.keyType !== 'bip340-schnorr' && this.keyType !== 'gl-secp256k1') {
+      throw new Error(`Invalid key type ${keyType}`)
+    }
     this.passphrase = passphrase
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()
@@ -179,7 +182,8 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
   private getNextFromAddressIndex(targetGroup?: number): number {
     let usedAddressIndex = -1
     for (const account of this._accounts.values()) {
-      if ((targetGroup === undefined || account.group == targetGroup) && account.addressIndex > usedAddressIndex) {
+      const accountGroup = isGroupedAccount(account) ? account.group : groupOfAddress(account.address)
+      if ((targetGroup === undefined || accountGroup == targetGroup) && account.addressIndex > usedAddressIndex) {
         usedAddressIndex = account.addressIndex
       }
     }
