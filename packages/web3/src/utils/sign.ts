@@ -36,9 +36,16 @@ necc.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8A
   return Uint8Array.from(hash.digest())
 }
 
+function checkKeyType(keyType: KeyType) {
+  if (keyType !== 'default' && keyType !== 'bip340-schnorr' && keyType !== 'gl-secp256k1') {
+    throw new Error(`Invalid key type ${keyType}`)
+  }
+}
+
 // hash has to be 32 bytes
 export function sign(hash: string, privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
+  checkKeyType(keyType)
 
   if (keyType === 'default' || keyType === 'gl-secp256k1') {
     const key = ec.keyFromPrivate(privateKey)
@@ -52,6 +59,7 @@ export function sign(hash: string, privateKey: string, _keyType?: KeyType): stri
 
 export function verifySignature(hash: string, publicKey: string, signature: string, _keyType?: KeyType): boolean {
   const keyType = _keyType ?? 'default'
+  checkKeyType(keyType)
 
   try {
     if (keyType === 'default' || keyType === 'gl-secp256k1') {

@@ -162,8 +162,8 @@ export type GrouplessSignTxResult<
 } & T
 
 export type SignTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
-  | GrouplessSignTxResult<T>
   | T
+  | GrouplessSignTxResult<T>
 
 export interface SignUnsignedTxParams {
   signerAddress: string
