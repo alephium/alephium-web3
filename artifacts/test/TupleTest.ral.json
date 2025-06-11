@@ -1,0 +1,90 @@
+{
+  "version": "v3.15.2",
+  "name": "TupleTest",
+  "bytecode": "08060f1f403240414055408e010001010003d334fb7ed41600a100010000000204d3559c0153a001a00202010002020005d36ed73e5616001601a102a101010001010003d3a8c1b3131600a103010000000406d3b7021480ce00ce01ce02ce030201000006021bd314938cbca001a00217011700ce00ce0117031702160016012a1704160216032a170516041605334c031604034a0216050402",
+  "codeHash": "c9f53cc60bdedd52071b1cb97dfe410eba63556bc7fce2e20e912c6a013eac9c",
+  "fieldsSig": {
+    "names": [
+      "value"
+    ],
+    "types": [
+      "(U256,TupleTestStruct)"
+    ],
+    "isMutable": [
+      true
+    ]
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "updateValue0",
+      "paramNames": [
+        "v"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "getA0",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256",
+        "U256"
+      ]
+    },
+    {
+      "name": "updateA0",
+      "paramNames": [
+        "v"
+      ],
+      "paramTypes": [
+        "(U256,U256)"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "updateA1",
+      "paramNames": [
+        "v"
+      ],
+      "paramTypes": [
+        "Bool"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    },
+    {
+      "name": "getB",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "[(U256,U256);2]"
+      ]
+    },
+    {
+      "name": "test",
+      "paramNames": [],
+      "paramTypes": [],
+      "paramIsMutable": [],
+      "returnTypes": [
+        "U256",
+        "Bool"
+      ]
+    }
+  ],
+  "constants": [],
+  "enums": []
+}

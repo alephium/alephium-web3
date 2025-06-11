@@ -41,6 +41,7 @@ import {
   Balances,
   MapValue,
   TokenBalance,
+  TupleTestStruct,
   AllStructs,
 } from "./types";
 

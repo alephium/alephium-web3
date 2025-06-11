@@ -342,6 +342,18 @@
       "bytecodeDebugPatch": "",
       "codeHashDebug": "0b6427253638fa8f32b04e7c5915d41d51b0148a8e219e4881eba5548a42ae41"
     },
+    "TupleTest": {
+      "sourceFile": "test/tuple.ral",
+      "sourceCodeHash": "ce1bb866f6eb6f4a214d6aacc495b1224d418146f1ebab755c62face3fb36ae1",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "c9f53cc60bdedd52071b1cb97dfe410eba63556bc7fce2e20e912c6a013eac9c"
+    },
+    "TupleTestStruct": {
+      "sourceFile": "test/tuple.ral",
+      "sourceCodeHash": "ce1bb866f6eb6f4a214d6aacc495b1224d418146f1ebab755c62face3fb36ae1",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
+    },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",
       "sourceCodeHash": "e15d05c08920b56b57cf23d78b734666b940e8cfe4c5d815d2676c4ce13a228d",

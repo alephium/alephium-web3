@@ -25,3 +25,7 @@ export interface TokenBalance extends Record<string, Val> {
   tokenId: HexString;
   amount: bigint;
 }
+export interface TupleTestStruct extends Record<string, Val> {
+  a: [[bigint, bigint], boolean];
+  b: [[bigint, bigint], [bigint, bigint]];
+}
