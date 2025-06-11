@@ -35,15 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as DebugContractJson } from "../test/Debug.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace DebugTypes {
@@ -85,7 +77,7 @@ export namespace DebugTypes {
 
 class Factory extends ContractFactory<DebugInstance, {}> {
   encodeFields() {
-    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+    return encodeContractFields({}, this.contract.fieldsSig, types.AllStructs);
   }
 
   at(address: string): DebugInstance {
@@ -119,7 +111,7 @@ export const Debug = new Factory(
     DebugContractJson,
     "=4-2+18=11-1+3=10+ca7e020748656c6c6f2c200121",
     "eb4209d8f543d9f623d72578f7ed9b271d62cf396dcce42d10f5e68dba3cecd3",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(Debug);

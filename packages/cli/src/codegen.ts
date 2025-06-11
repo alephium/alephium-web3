@@ -49,7 +49,7 @@ function array(str: string, size: number): string {
   return `[${result}]`
 }
 
-function parseArrayType(tpe: string): string {
+function parseArrayType(tpe: string, addTypesPrefix: boolean): string {
   const ignored = '[;]'
   const tokens: string[] = []
   let acc = ''
@@ -61,21 +61,21 @@ function parseArrayType(tpe: string): string {
       acc = ''
     }
   }
-  const baseTsType = toTsType(tokens[0])
+  const baseTsType = toTsType(tokens[0], addTypesPrefix)
   const sizes = tokens.slice(1).map((str) => parseInt(str))
   return sizes.reduce((acc, size) => array(acc, size), baseTsType)
 }
 
-function parseTupleType(tpe: string): string {
+function parseTupleType(tpe: string, addTypesPrefix: boolean): string {
   const tuple = decodeTupleType(tpe)
   const types = tuple.reduce<string[]>((acc, fieldType) => {
-    acc.push(toTsType(fieldType))
+    acc.push(toTsType(fieldType, addTypesPrefix))
     return acc
   }, [])
   return `[${types.join(', ')}]`
 }
 
-function toTsType(ralphType: string): string {
+function toTsType(ralphType: string, addTypesPrefix = true): string {
   const structs = currentProject.structs
   switch (ralphType) {
     case 'U256':
@@ -90,14 +90,14 @@ function toTsType(ralphType: string): string {
     default: {
       // non-primitive type
       if (ralphType.startsWith('[')) {
-        return parseArrayType(ralphType)
+        return parseArrayType(ralphType, addTypesPrefix)
       }
       if (ralphType.startsWith('(')) {
-        return parseTupleType(ralphType)
+        return parseTupleType(ralphType, addTypesPrefix)
       }
       if (structs.find((s) => s.name === ralphType) !== undefined) {
         // struct type
-        return ralphType
+        return addTypesPrefix ? `types.${ralphType}` : ralphType
       }
       return 'HexString' // contract type
     }
@@ -303,7 +303,7 @@ function genSubscribeAllEvents(contract: Contract): string {
 
 function getStructs(): string {
   const hasStruct = currentProject.structs.length > 0
-  return hasStruct ? 'AllStructs' : '[]'
+  return hasStruct ? 'types.AllStructs' : '[]'
 }
 
 function genEncodeFieldsFunc(contract: Contract): string {
@@ -510,7 +510,7 @@ function getContractFields(contract: Contract): node.FieldsSig {
 function importStructs(): string {
   const structs = currentProject.structs.map((s) => s.name)
   if (structs.length === 0) return ''
-  return `import { ${structs.join(',')}, AllStructs } from './types'`
+  return `import * as types from './types'`
 }
 
 function genContract(contract: Contract, artifactRelativePath: string): string {
@@ -889,7 +889,7 @@ function genStructTypes(outDir: string) {
   const sorted = structs.sort((a, b) => (a.name > b.name ? 1 : -1))
   const interfaces = sorted.map((struct) => {
     const fields = struct.fieldNames
-      .map((field, index) => `${field}: ${toTsType(struct.fieldTypes[`${index}`])}`)
+      .map((field, index) => `${field}: ${toTsType(struct.fieldTypes[`${index}`], false)}`)
       .join(`;`)
     return `export interface ${struct.name} extends Record<string, Val> { ${fields} }`
   })

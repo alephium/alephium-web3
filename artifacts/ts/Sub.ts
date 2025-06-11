@@ -35,15 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as SubContractJson } from "../sub/Sub.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace SubTypes {
@@ -94,7 +86,7 @@ class Factory extends ContractFactory<SubInstance, SubTypes.Fields> {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -126,7 +118,7 @@ export const Sub = new Factory(
     SubContractJson,
     "",
     "3461ebfaca02ad0a3f587a5b67a461c0cbd82d14261407b1d9277ed4ad129234",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(Sub);

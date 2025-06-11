@@ -35,15 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace FakeTokenTestTypes {
@@ -127,7 +119,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -193,7 +185,7 @@ export const FakeTokenTest = new Factory(
     FakeTokenTestContractJson,
     "",
     "52f971cb44d54a5353e94dc8db991d2726f76760af782e79bd8a66a9b5b294b7",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(FakeTokenTest);

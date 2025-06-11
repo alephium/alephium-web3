@@ -35,15 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as WarningsContractJson } from "../test/Warnings.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace WarningsTypes {
@@ -93,7 +85,7 @@ class Factory extends ContractFactory<WarningsInstance, WarningsTypes.Fields> {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -129,7 +121,7 @@ export const Warnings = new Factory(
     WarningsContractJson,
     "",
     "873e095edb39cdb4b11b1157003daeacad06d259a938cd270e22b8e89b75feea",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(Warnings);

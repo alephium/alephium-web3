@@ -35,15 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as DeprecatedNFTTest5ContractJson } from "../nft/DeprecatedNFTTest5.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace DeprecatedNFTTest5Types {
@@ -104,7 +96,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -151,7 +143,7 @@ export const DeprecatedNFTTest5 = new Factory(
     DeprecatedNFTTest5ContractJson,
     "",
     "8b1374f39db98c485af3dd05d0b0ce861e9528f290ca9dc0d7108e8b48b50161",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(DeprecatedNFTTest5);

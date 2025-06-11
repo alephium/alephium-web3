@@ -35,15 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as AddContractJson } from "../add/Add.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace AddTypes {
@@ -68,7 +60,7 @@ export namespace AddTypes {
         array1: [bigint, bigint];
         address: Address;
         array2: [bigint, bigint];
-        addS: AddStruct1;
+        addS: types.AddStruct1;
       }>;
       result: CallContractResult<[bigint, bigint]>;
     };
@@ -125,7 +117,7 @@ export namespace AddTypes {
         array1: [bigint, bigint];
         address: Address;
         array2: [bigint, bigint];
-        addS: AddStruct1;
+        addS: types.AddStruct1;
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -167,7 +159,7 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -193,7 +185,7 @@ class Factory extends ContractFactory<AddInstance, AddTypes.Fields> {
           array1: [bigint, bigint];
           address: Address;
           array2: [bigint, bigint];
-          addS: AddStruct1;
+          addS: types.AddStruct1;
         }
       >
     ): Promise<TestContractResultWithoutMaps<[bigint, bigint]>> => {
@@ -254,7 +246,7 @@ export const Add = new Factory(
     AddContractJson,
     "=12-2+5c=2-2+81=3-1+e=2-2+bc=83-1+97e010a61646450726976617465=266",
     "c8b4522606d53c50b6ff00009a5072ceba32fd8de32b77033e8d74500ccba6d3",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(Add);

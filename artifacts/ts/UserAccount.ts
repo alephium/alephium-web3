@@ -35,22 +35,14 @@ import {
 } from "@alephium/web3";
 import { default as UserAccountContractJson } from "../test/UserAccount.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace UserAccountTypes {
   export type Fields = {
     id: HexString;
     address: Address;
-    balances: Balances;
+    balances: types.Balances;
     name: HexString;
   };
 
@@ -58,7 +50,9 @@ export namespace UserAccountTypes {
 
   export interface CallMethodTable {
     updateBalance: {
-      params: CallContractParams<{ tokens: [TokenBalance, TokenBalance] }>;
+      params: CallContractParams<{
+        tokens: [types.TokenBalance, types.TokenBalance];
+      }>;
       result: CallContractResult<null>;
     };
     updateAddress: {
@@ -67,7 +61,7 @@ export namespace UserAccountTypes {
     };
     getBalances: {
       params: Omit<CallContractParams<{}>, "args">;
-      result: CallContractResult<Balances>;
+      result: CallContractResult<types.Balances>;
     };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
@@ -89,7 +83,7 @@ export namespace UserAccountTypes {
   export interface SignExecuteMethodTable {
     updateBalance: {
       params: SignExecuteContractMethodParams<{
-        tokens: [TokenBalance, TokenBalance];
+        tokens: [types.TokenBalance, types.TokenBalance];
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -116,7 +110,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -128,7 +122,7 @@ class Factory extends ContractFactory<
     updateBalance: async (
       params: TestContractParamsWithoutMaps<
         UserAccountTypes.Fields,
-        { tokens: [TokenBalance, TokenBalance] }
+        { tokens: [types.TokenBalance, types.TokenBalance] }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "updateBalance", params, getContractByCodeHash);
@@ -146,7 +140,7 @@ class Factory extends ContractFactory<
         TestContractParamsWithoutMaps<UserAccountTypes.Fields, never>,
         "args"
       >
-    ): Promise<TestContractResultWithoutMaps<Balances>> => {
+    ): Promise<TestContractResultWithoutMaps<types.Balances>> => {
       return testMethod(this, "getBalances", params, getContractByCodeHash);
     },
   };
@@ -166,7 +160,7 @@ export const UserAccount = new Factory(
     UserAccountContractJson,
     "",
     "4e9f7eac1b76eaa2268b5af6ebb5640252892dc170aad6c1ee7b639131a55816",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(UserAccount);

@@ -35,20 +35,12 @@ import {
 } from "@alephium/web3";
 import { default as TupleTestContractJson } from "../test/TupleTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace TupleTestTypes {
   export type Fields = {
-    value: [bigint, TupleTestStruct];
+    value: [bigint, types.TupleTestStruct];
   };
 
   export type State = ContractState<Fields>;
@@ -135,7 +127,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -211,7 +203,7 @@ export const TupleTest = new Factory(
     TupleTestContractJson,
     "",
     "c9f53cc60bdedd52071b1cb97dfe410eba63556bc7fce2e20e912c6a013eac9c",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(TupleTest);

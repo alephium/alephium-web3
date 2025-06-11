@@ -35,15 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as AutoFundContractJson } from "../test/AutoFund.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  TupleTestStruct,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 import { RalphMap } from "@alephium/web3";
 
 // Custom types for the contract
@@ -88,7 +80,7 @@ export namespace AutoFundTypes {
 
 class Factory extends ContractFactory<AutoFundInstance, {}> {
   encodeFields() {
-    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+    return encodeContractFields({}, this.contract.fieldsSig, types.AllStructs);
   }
 
   at(address: string): AutoFundInstance {
@@ -122,7 +114,7 @@ export const AutoFund = new Factory(
     AutoFundContractJson,
     "=6-2+59=11-1+9=53-1+f=34+7a7e0214696e73657274206174206d617020706174683a2000=27-1+d",
     "04ee1668e2b37f74641ecaf98e8d34dd3384afe2c140bdbd4275cb36d62ae185",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(AutoFund);
