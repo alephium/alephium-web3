@@ -33,7 +33,8 @@ import {
   PrimitiveTypes,
   decodeArrayType,
   fromApiPrimitiveVal,
-  tryGetCallResult
+  tryGetCallResult,
+  decodeTupleType
 } from '../api'
 import {
   SignDeployContractTxParams,
@@ -844,6 +845,13 @@ function buildVal(
   if (type.startsWith('[')) {
     const [baseType, size] = decodeArrayType(type)
     return Array.from(Array(size).keys()).map(() => buildVal(isMutable, baseType, structs, func))
+  }
+  if (type.startsWith('(')) {
+    const tuple = decodeTupleType(type)
+    return tuple.reduce<Val[]>((acc, fieldType) => {
+      acc.push(buildVal(isMutable, fieldType, structs, func))
+      return acc
+    }, [])
   }
   const struct = structs.find((s) => s.name === type)
   if (struct !== undefined) {

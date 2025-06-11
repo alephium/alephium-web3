@@ -16,7 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Val, decodeArrayType, toApiAddress, toApiBoolean, toApiByteVec, toApiNumber256, PrimitiveTypes } from '../api'
+import {
+  Val,
+  decodeArrayType,
+  toApiAddress,
+  toApiBoolean,
+  toApiByteVec,
+  toApiNumber256,
+  PrimitiveTypes,
+  decodeTupleType
+} from '../api'
 import { HexString, binToHex, bs58, hexToBinUnsafe, isHexString } from '../utils'
 import { Fields, FieldsSig, Struct } from './contract'
 import {
@@ -208,6 +217,19 @@ export function calcFieldSize(
     const base = calcFieldSize(baseType, isMutable, structs)
     return { immFields: base.immFields * size, mutFields: base.mutFields * size }
   }
+  if (type.startsWith('(')) {
+    const tuple = decodeTupleType(type)
+    return tuple.reduce(
+      (acc, fieldType) => {
+        const subFieldSize = calcFieldSize(fieldType, isMutable, structs)
+        return {
+          immFields: acc.immFields + subFieldSize.immFields,
+          mutFields: acc.mutFields + subFieldSize.mutFields
+        }
+      },
+      { immFields: 0, mutFields: 0 }
+    )
+  }
   return isMutable ? { immFields: 0, mutFields: 1 } : { immFields: 1, mutFields: 0 }
 }
 
@@ -284,6 +306,11 @@ export function typeLength(typ: string, structs: Struct[]): number {
     return size * typeLength(baseType, structs)
   }
 
+  if (typ.startsWith('(')) {
+    const tuple = decodeTupleType(typ)
+    return tuple.reduce((acc, fieldType) => acc + typeLength(fieldType, structs), 0)
+  }
+
   const struct = structs.find((s) => s.name === typ)
   if (struct !== undefined) {
     return struct.fieldTypes.reduce((acc, fieldType) => acc + typeLength(fieldType, structs), 0)
@@ -321,6 +348,15 @@ function flattenField(
     }
     return value.flatMap((item, index) => {
       return flattenField(isMutable, `${name}[${index}]`, baseType, item, structs)
+    })
+  }
+  if (Array.isArray(value) && type.startsWith('(')) {
+    const tuple = decodeTupleType(type)
+    if (value.length !== tuple.length) {
+      throw Error(`Invalid tuple length, expected ${tuple.length}, got ${value.length}`)
+    }
+    return tuple.flatMap((fieldType, index) => {
+      return flattenField(isMutable, `${name}._${index}`, fieldType, value[`${index}`], structs)
     })
   }
   const struct = structs.find((s) => s.name === type)

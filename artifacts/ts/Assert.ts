@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as AssertContractJson } from "../test/Assert.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace AssertTypes {
@@ -84,7 +77,7 @@ export namespace AssertTypes {
 
 class Factory extends ContractFactory<AssertInstance, {}> {
   encodeFields() {
-    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+    return encodeContractFields({}, this.contract.fieldsSig, types.AllStructs);
   }
 
   at(address: string): AssertInstance {
@@ -118,7 +111,7 @@ export const Assert = new Factory(
     AssertContractJson,
     "",
     "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(Assert);

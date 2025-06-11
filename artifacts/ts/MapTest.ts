@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as MapTestContractJson } from "../test/MapTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 import { RalphMap } from "@alephium/web3";
 
 // Custom types for the contract
@@ -51,7 +44,7 @@ export namespace MapTestTypes {
 
   export interface CallMethodTable {
     insert: {
-      params: CallContractParams<{ key: Address; value: MapValue }>;
+      params: CallContractParams<{ key: Address; value: types.MapValue }>;
       result: CallContractResult<null>;
     };
     update: {
@@ -64,7 +57,7 @@ export namespace MapTestTypes {
     };
     getValue: {
       params: CallContractParams<{ key: Address }>;
-      result: CallContractResult<MapValue>;
+      result: CallContractResult<types.MapValue>;
     };
   }
   export type CallMethodParams<T extends keyof CallMethodTable> =
@@ -87,7 +80,7 @@ export namespace MapTestTypes {
     insert: {
       params: SignExecuteContractMethodParams<{
         key: Address;
-        value: MapValue;
+        value: types.MapValue;
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -110,7 +103,7 @@ export namespace MapTestTypes {
     SignExecuteMethodTable[T]["result"];
 
   export type Maps = {
-    map0?: Map<Address, MapValue>;
+    map0?: Map<Address, types.MapValue>;
     map1?: Map<bigint, bigint>;
     map2?: Map<HexString, bigint>;
   };
@@ -118,7 +111,7 @@ export namespace MapTestTypes {
 
 class Factory extends ContractFactory<MapTestInstance, {}> {
   encodeFields() {
-    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+    return encodeContractFields({}, this.contract.fieldsSig, types.AllStructs);
   }
 
   at(address: string): MapTestInstance {
@@ -130,7 +123,7 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
       params: Omit<
         TestContractParams<
           never,
-          { key: Address; value: MapValue },
+          { key: Address; value: types.MapValue },
           MapTestTypes.Maps
         >,
         "initialFields"
@@ -159,7 +152,7 @@ class Factory extends ContractFactory<MapTestInstance, {}> {
         TestContractParams<never, { key: Address }, MapTestTypes.Maps>,
         "initialFields"
       >
-    ): Promise<TestContractResult<MapValue, MapTestTypes.Maps>> => {
+    ): Promise<TestContractResult<types.MapValue, MapTestTypes.Maps>> => {
       return testMethod(this, "getValue", params, getContractByCodeHash);
     },
   };
@@ -180,7 +173,7 @@ export const MapTest = new Factory(
     MapTestContractJson,
     "=6-2+a8=1-3+128=2-2+ea=1+2=1-2+7=10-2+4025=50+7a7e0214696e73657274206174206d617020706174683a2000=56+7a7e0214696e73657274206174206d617020706174683a2000=54+7a7e0214696e73657274206174206d617020706174683a2000=280-2+33=124+7a7e021472656d6f7665206174206d617020706174683a2000=46+7a7e021472656d6f7665206174206d617020706174683a2000=48+7a7e021472656d6f7665206174206d617020706174683a2000=96",
     "31aed0ff7b29f2cbc2d8360a83f31af4e9db00f0084a7406bd84b7745181373d",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(MapTest);
@@ -192,7 +185,7 @@ export class MapTestInstance extends ContractInstance {
   }
 
   maps = {
-    map0: new RalphMap<Address, MapValue>(
+    map0: new RalphMap<Address, types.MapValue>(
       MapTest.contract,
       this.contractId,
       "map0"

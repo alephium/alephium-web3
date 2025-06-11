@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as NFTTestStdContractJson } from "../nft/NFTTestStd.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace NFTTestStdTypes {
@@ -112,7 +105,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -167,7 +160,7 @@ export const NFTTestStd = new Factory(
     NFTTestStdContractJson,
     "",
     "b7ff3fa8dfacc7ae5edbabd6573d0699dffc5a0f07ad14023f682a201b7bce55",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(NFTTestStd);

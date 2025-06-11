@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as MetaDataContractJson } from "../test/MetaData.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace MetaDataTypes {
@@ -100,7 +93,7 @@ export namespace MetaDataTypes {
 
 class Factory extends ContractFactory<MetaDataInstance, {}> {
   encodeFields() {
-    return encodeContractFields({}, this.contract.fieldsSig, AllStructs);
+    return encodeContractFields({}, this.contract.fieldsSig, types.AllStructs);
   }
 
   at(address: string): MetaDataInstance {
@@ -160,7 +153,7 @@ export const MetaData = new Factory(
     MetaDataContractJson,
     "",
     "5b113459525557465f1cc5aeee453dfd5823d1a6094372cee6067f7466b40896",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(MetaData);

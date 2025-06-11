@@ -29,6 +29,7 @@ export * from "./Sub";
 export * from "./TokenTest";
 export * from "./TokenTestStd";
 export * from "./Transact";
+export * from "./TupleTest";
 export * from "./UserAccount";
 export * from "./Warnings";
 export * from "./WrongNFTTest";
