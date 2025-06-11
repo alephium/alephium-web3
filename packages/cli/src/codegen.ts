@@ -29,7 +29,8 @@ import {
   fromApiPrimitiveVal,
   Val,
   parseMapType,
-  FunctionSig
+  FunctionSig,
+  decodeTupleType
 } from '@alephium/web3'
 import * as prettier from 'prettier'
 import path from 'path'
@@ -65,6 +66,15 @@ function parseArrayType(tpe: string): string {
   return sizes.reduce((acc, size) => array(acc, size), baseTsType)
 }
 
+function parseTupleType(tpe: string): string {
+  const tuple = decodeTupleType(tpe)
+  const types = tuple.reduce<string[]>((acc, fieldType) => {
+    acc.push(toTsType(fieldType))
+    return acc
+  }, [])
+  return `[${types.join(', ')}]`
+}
+
 function toTsType(ralphType: string): string {
   const structs = currentProject.structs
   switch (ralphType) {
@@ -81,6 +91,9 @@ function toTsType(ralphType: string): string {
       // non-primitive type
       if (ralphType.startsWith('[')) {
         return parseArrayType(ralphType)
+      }
+      if (ralphType.startsWith('(')) {
+        return parseTupleType(ralphType)
       }
       if (structs.find((s) => s.name === ralphType) !== undefined) {
         // struct type
