@@ -46,6 +46,7 @@
   },
   "type": "commonjs",
   "dependencies": {
+    "ws": "^8.5.4",
     "@noble/secp256k1": "1.7.1",
     "base-x": "4.0.0",
     "bignumber.js": "^9.1.1",
@@ -67,6 +68,7 @@
     "@types/mock-fs": "^4.13.1",
     "@types/node": "^16.18.23",
     "@types/rewire": "^2.5.28",
+    "@types/ws": "^8.5.4",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "clean-webpack-plugin": "4.0.0",
