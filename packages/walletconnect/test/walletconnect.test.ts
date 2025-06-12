@@ -15,7 +15,14 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { formatChain, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
+import {
+  parseChain,
+  formatChain,
+  formatChainLegacy,
+  parseChainLegacy,
+  ProviderOptions,
+  WalletConnectProvider
+} from '../src/index'
 import { WalletClient } from './shared'
 import { web3, node, NodeProvider, verifySignedMessage, groupOfAddress, NetworkId } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
@@ -112,15 +119,30 @@ describe('Unit tests', function () {
   const expectedAddressGroup0 = 2
   const expectedAddressGroup1 = 1
 
+  it('test formatChainLegacy & parseChainLegacy', () => {
+    expect(formatChainLegacy('devnet', expectedAddressGroup0)).toEqual('alephium:devnet/2')
+    expect(formatChainLegacy('devnet', expectedAddressGroup1)).toEqual('alephium:devnet/1')
+    expect(formatChainLegacy('devnet', undefined)).toEqual('alephium:devnet/-1')
+    expect(() => formatChainLegacy('devnet', -1)).toThrow()
+    expect(parseChainLegacy('alephium:devnet/2')).toEqual({ networkId: 'devnet', addressGroup: 2 })
+    expect(parseChainLegacy('alephium:devnet/1')).toEqual({ networkId: 'devnet', addressGroup: 1 })
+    expect(parseChainLegacy('alephium:devnet/-1')).toEqual({ networkId: 'devnet', addressGroup: undefined })
+    expect(() => parseChainLegacy('alephium:devnet/-2')).toThrow()
+  })
+
   it('test formatChain & parseChain', () => {
-    expect(formatChain('devnet', expectedAddressGroup0)).toEqual('alephium:devnet/2')
-    expect(formatChain('devnet', expectedAddressGroup1)).toEqual('alephium:devnet/1')
-    expect(formatChain('devnet', undefined)).toEqual('alephium:devnet/-1')
-    expect(() => formatChain('devnet', -1)).toThrow()
+    expect(formatChain('devnet', expectedAddressGroup0)).toEqual('alephium:2_devnet')
+    expect(formatChain('devnet', expectedAddressGroup1)).toEqual('alephium:1_devnet')
+    expect(formatChain('devnet', undefined)).toEqual('alephium:-1_devnet')
+    expect(() => formatChain('devnet', -2)).toThrow()
     expect(parseChain('alephium:devnet/2')).toEqual({ networkId: 'devnet', addressGroup: 2 })
     expect(parseChain('alephium:devnet/1')).toEqual({ networkId: 'devnet', addressGroup: 1 })
     expect(parseChain('alephium:devnet/-1')).toEqual({ networkId: 'devnet', addressGroup: undefined })
+    expect(parseChain('alephium:2_devnet')).toEqual({ networkId: 'devnet', addressGroup: 2 })
+    expect(parseChain('alephium:1_devnet')).toEqual({ networkId: 'devnet', addressGroup: 1 })
+    expect(parseChain('alephium:-1_devnet')).toEqual({ networkId: 'devnet', addressGroup: undefined })
     expect(() => parseChain('alephium:devnet/-2')).toThrow()
+    expect(() => parseChain('alephium:-2_devnet')).toThrow()
   })
 
   it('should initialize providers', async () => {
@@ -153,7 +175,7 @@ describe('WalletConnectProvider with single addressGroup', function () {
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
     await provider.connect()
-    expect(provider.permittedChain).toEqual('alephium:devnet/0')
+    expect(provider.permittedChain).toEqual('alephium:0_devnet')
     const selectetAddress = (await provider.getSelectedAccount()).address
     expect(selectetAddress).toEqual(signerA.address)
     await waitWalletConnected(walletClient)
@@ -196,7 +218,7 @@ describe('WalletConnectProvider with single addressGroup', function () {
     // change to account b, which is not supported
     expectThrowsAsync(
       async () => await walletClient.changeAccount(ACCOUNTS.b.privateKey),
-      'Error changing account, chain alephium:devnet/1 not permitted'
+      'Error changing account, chain alephium:1_devnet not permitted'
     )
   })
 
@@ -221,7 +243,7 @@ describe('WalletConnectProvider with arbitrary addressGroup', function () {
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
     await provider.connect()
-    expect(provider.permittedChain).toEqual('alephium:devnet/-1')
+    expect(provider.permittedChain).toEqual('alephium:-1_devnet')
     const selectedAddress = (await provider.getSelectedAccount()).address
     expect(selectedAddress).toEqual(signerA.address)
     await waitWalletConnected(walletClient)
