@@ -16,17 +16,36 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { DappTransactionBuilder, SignTransferChainedTxParams, subscribeToTxStatus } from '../packages/web3'
+import { SignTransferTxResult, SignTransferChainedTxParams, SignUnsignedTxResult } from '../packages/web3'
 import { node, ONE_ALPH, DUST_AMOUNT, MINIMAL_CONTRACT_DEPOSIT } from '../packages/web3'
-import { SubscribeOptions, sleep } from '../packages/web3'
+import { subscribeToTxStatus, SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
 import { TxStatus } from '../packages/web3'
 import { HDWallet, HDWalletAccount, PrivateKeyWallet, generateMnemonic } from '@alephium/web3-wallet'
 import { Add, Sub, AddMain, Transact, Deposit, DepositToken, Withdraw } from '../artifacts/ts'
 import { getSigner, mintToken, testPrivateKeyWallet } from '../packages/web3-test'
-import { TransactionBuilder } from '../packages/web3'
+import { DappTransactionBuilder, TransactionBuilder } from '../packages/web3'
 import { ALPH_TOKEN_ID } from '../packages/web3'
 import { Balance } from '@alephium/web3/src/api/api-alephium'
+
+jest.setTimeout(10_000)
+
+async function signAndSubmitTransactions(
+  transactions: Omit<SignTransferTxResult, 'signature'>[],
+  signer: PrivateKeyWallet
+): Promise<SignUnsignedTxResult[]> {
+  const signedResults: SignTransferTxResult[] = []
+
+  for (const tx of transactions) {
+    const result = await signer.signAndSubmitUnsignedTx({
+      signerAddress: signer.address,
+      unsignedTx: tx.unsignedTx
+    })
+    signedResults.push(result)
+  }
+
+  return signedResults
+}
 
 describe('transactions', function () {
   let signer: PrivateKeyWallet
@@ -34,6 +53,90 @@ describe('transactions', function () {
   beforeAll(async () => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
     signer = await getSigner()
+  })
+
+  it('should build transfer-from-one-to-many-groups', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const signer0 = await getSigner(100n * ONE_ALPH, 1)
+    const signer1 = await getSigner(0n, 2)
+    const signer2 = await getSigner(0n, 3)
+    const signer3 = await getSigner(0n, 3)
+    const signer4 = await getSigner(0n, 0)
+
+    const signer0Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer0.address)
+    expect(BigInt(signer0Balance.balance)).toBe(100n * ONE_ALPH)
+
+    const transferFrom0to1and2 = await TransactionBuilder.from(nodeProvider).buildTransferFromOneToManyGroups(
+      {
+        signerAddress: signer0.address,
+        destinations: [signer1, signer2].map((signer) => ({
+          address: signer.address,
+          attoAlphAmount: 10n * ONE_ALPH
+        }))
+      },
+      await signer0.getPublicKey(signer0.address)
+    )
+
+    const transferFrom0to1and2Result = await signAndSubmitTransactions(transferFrom0to1and2, signer0)
+
+    const signer1Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer1.address)
+    expect(BigInt(signer1Balance.balance)).toBe(10n * ONE_ALPH)
+    const signer2Balance = await nodeProvider.addresses.getAddressesAddressBalance(signer2.address)
+    expect(BigInt(signer2Balance.balance)).toBe(10n * ONE_ALPH)
+
+    const transferFrom1to3and4 = await TransactionBuilder.from(nodeProvider).buildTransferFromOneToManyGroups(
+      {
+        signerAddress: signer1.address,
+        destinations: [signer3, signer4].map((signer) => ({
+          address: signer.address,
+          attoAlphAmount: ONE_ALPH
+        }))
+      },
+      signer1.publicKey
+    )
+
+    const transferFrom1to3and4Result = await signAndSubmitTransactions(transferFrom1to3and4, signer1)
+
+    const transferFrom2to3and4 = await TransactionBuilder.from(nodeProvider).buildTransferFromOneToManyGroups(
+      {
+        signerAddress: signer2.address,
+        destinations: [signer3, signer4].map((signer) => ({
+          address: signer.address,
+          attoAlphAmount: ONE_ALPH
+        }))
+      },
+      signer2.publicKey
+    )
+
+    const transferFrom2to3and4Result = await signAndSubmitTransactions(transferFrom2to3and4, signer2)
+
+    const signer0FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer0.address)
+    const signer1FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer1.address)
+    const signer2FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer2.address)
+    const signer3FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer3.address)
+    const signer4FinalBalance = await nodeProvider.addresses.getAddressesAddressBalance(signer4.address)
+
+    const gasCostTransferFrom0to1and2 = transferFrom0to1and2Result.reduce(
+      (sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice),
+      BigInt(0)
+    )
+    const gasCostTransferFrom1to3and4 = transferFrom1to3and4Result.reduce(
+      (sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice),
+      BigInt(0)
+    )
+    const gasCostTransferFrom2to3and4 = transferFrom2to3and4Result.reduce(
+      (sum, item) => sum + BigInt(item.gasAmount) * BigInt(item.gasPrice),
+      BigInt(0)
+    )
+    const expectedSigner0Balance = 100n * ONE_ALPH - 20n * ONE_ALPH - gasCostTransferFrom0to1and2
+    const expectedSigner1Balance = 10n * ONE_ALPH - 2n * ONE_ALPH - gasCostTransferFrom1to3and4
+    const expectedSigner2Balance = 10n * ONE_ALPH - 2n * ONE_ALPH - gasCostTransferFrom2to3and4
+
+    expect(BigInt(signer0FinalBalance.balance)).toBe(expectedSigner0Balance)
+    expect(BigInt(signer1FinalBalance.balance)).toBe(expectedSigner1Balance)
+    expect(BigInt(signer2FinalBalance.balance)).toBe(expectedSigner2Balance)
+    expect(BigInt(signer3FinalBalance.balance)).toBe(2n * ONE_ALPH)
+    expect(BigInt(signer4FinalBalance.balance)).toBe(2n * ONE_ALPH)
   })
 
   it('should subscribe transaction status', async () => {
