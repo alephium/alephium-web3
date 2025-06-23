@@ -207,13 +207,14 @@ export abstract class TransactionBuilder {
   private buildExecuteScriptTxParams(params: SignExecuteScriptTxParams, publicKey: string): node.BuildExecuteScriptTx {
     TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
 
-    const { attoAlphAmount, tokens, gasPrice, ...rest } = params
+    const { attoAlphAmount, tokens, gasPrice, dustAmount, ...rest } = params
     return {
       fromPublicKey: publicKey,
       fromPublicKeyType: params.signerKeyType,
       attoAlphAmount: toApiNumber256Optional(attoAlphAmount),
       tokens: toApiTokens(tokens),
       gasPrice: toApiNumber256Optional(gasPrice),
+      dustAmount: toApiNumber256Optional(dustAmount),
       ...rest
     }
   }

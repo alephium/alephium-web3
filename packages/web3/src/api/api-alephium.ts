@@ -292,6 +292,8 @@ export interface BuildExecuteScriptTx {
   group?: number
   /** @format double */
   gasEstimationMultiplier?: number
+  /** @format uint256 */
+  dustAmount?: string
 }
 
 /** BuildExecuteScriptTxResult */
@@ -1085,6 +1087,8 @@ export interface RichAssetInput {
   /** @format address */
   address: string
   tokens: Token[]
+  /** @format 32-byte-hash */
+  outputRefTxId: string
 }
 
 /** RichBlockAndEvents */
@@ -1135,6 +1139,8 @@ export interface RichContractInput {
   /** @format address */
   address: string
   tokens: Token[]
+  /** @format 32-byte-hash */
+  outputRefTxId: string
 }
 
 /** RichTransaction */
@@ -1754,7 +1760,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.15.2
+ * @version 3.15.4
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
