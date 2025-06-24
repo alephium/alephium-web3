@@ -160,6 +160,26 @@ export function fromApiPrimitiveVal(value: node.Val, tpe: string, systemEvent = 
   }
 }
 
+export function decodeTupleType(tpe: string): string[] {
+  const str = tpe.slice(1, -1)
+  const types: string[] = []
+  let current = ''
+  let depth = 0
+
+  for (const char of str) {
+    if (char === ',' && depth === 0) {
+      types.push(current)
+      current = ''
+    } else {
+      if (char === '(') depth++
+      if (char === ')') depth--
+      current += char
+    }
+  }
+  if (current !== '') types.push(current)
+  return types
+}
+
 export function decodeArrayType(tpe: string): [string, number] {
   const semiColonIndex = tpe.lastIndexOf(';')
   if (semiColonIndex === -1) {

@@ -33,7 +33,8 @@ import {
   PrimitiveTypes,
   decodeArrayType,
   fromApiPrimitiveVal,
-  tryGetCallResult
+  tryGetCallResult,
+  decodeTupleType
 } from '../api'
 import {
   SignDeployContractTxParams,
@@ -801,7 +802,8 @@ export class Script extends Artifact {
       attoAlphAmount: params.attoAlphAmount,
       tokens: params.tokens,
       gasAmount: params.gasAmount,
-      gasPrice: params.gasPrice
+      gasPrice: params.gasPrice,
+      dustAmount: params.dustAmount
     }
     return signerParams
   }
@@ -844,6 +846,13 @@ function buildVal(
   if (type.startsWith('[')) {
     const [baseType, size] = decodeArrayType(type)
     return Array.from(Array(size).keys()).map(() => buildVal(isMutable, baseType, structs, func))
+  }
+  if (type.startsWith('(')) {
+    const tuple = decodeTupleType(type)
+    return tuple.reduce<Val[]>((acc, fieldType) => {
+      acc.push(buildVal(isMutable, fieldType, structs, func))
+      return acc
+    }, [])
   }
   const struct = structs.find((s) => s.name === type)
   if (struct !== undefined) {
@@ -1190,6 +1199,7 @@ export interface ExecuteScriptParams<P extends Fields = Fields> {
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
+  dustAmount?: Number256
 }
 
 export interface ExecuteScriptResult {
@@ -1239,6 +1249,7 @@ export interface SignExecuteContractMethodParams<T extends Arguments = Arguments
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
+  dustAmount?: Number256
 }
 
 function specialContractAddress(eventIndex: number, groupIndex: number): string {
@@ -1963,7 +1974,8 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
     attoAlphAmount: params.attoAlphAmount,
     tokens: params.tokens,
     gasAmount: params.gasAmount,
-    gasPrice: params.gasPrice
+    gasPrice: params.gasPrice,
+    dustAmount: params.dustAmount
   }
 
   const result = (await signer.signAndSubmitExecuteScriptTx(signerParams)) as SignExecuteScriptTxResult
