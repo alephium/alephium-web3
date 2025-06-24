@@ -42,7 +42,8 @@ import {
   MINIMAL_CONTRACT_DEPOSIT,
   getDebugMessagesFromTx,
   getContractCodeByCodeHash,
-  SignDeployContractTxResult
+  SignDeployContractTxResult,
+  TOTAL_NUMBER_OF_GROUPS
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -86,7 +87,7 @@ import {
   AutoFund,
   TupleTest
 } from '../artifacts/ts'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomInt } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
 import { A, Addresses, B, ByteVecs, AssertError, Numbers, ConstantTrue, ConstantFalse } from '../artifacts/ts/constants'
@@ -998,6 +999,32 @@ describe('contract', function () {
           args: { num: BigInt(num) }
         })
       ).rejects.toThrow('Test failed due to insufficient funds to cover the dust amount')
+    }
+  })
+
+  it('should call tx script with the correct group index', async () => {
+    const targetGroup = randomInt(0, TOTAL_NUMBER_OF_GROUPS)
+    const signer = await getSigner(undefined, targetGroup, 'gl-secp256k1')
+
+    for (let group = 0; group < TOTAL_NUMBER_OF_GROUPS; group += 1) {
+      const deployer = await getSigner(undefined, group)
+      const deployResult0 = await Sub.deploy(deployer, { initialFields: { result: 0n } })
+      const sub = deployResult0.contractInstance
+      expect(sub.groupIndex).toEqual(group)
+
+      const tx0 = await sub.transact.sub({ args: { array: [2n, 1n] }, signer })
+      expect(tx0.groupIndex).toEqual(group)
+      const subState = await sub.fetchState()
+      expect(subState.fields.result).toEqual(1n)
+
+      const deployResult1 = await Add.deploy(deployer, { initialFields: { sub: sub.contractId, result: 0n } })
+      const add = deployResult1.contractInstance
+      expect(add.groupIndex).toEqual(group)
+
+      const tx1 = await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+      expect(tx1.groupIndex).toEqual(group)
+      const addState = await add.fetchState()
+      expect(addState.fields.result).toEqual(3n)
     }
   })
 
