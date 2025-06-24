@@ -43,7 +43,8 @@ import {
   SignChainedTxParams,
   SignChainedTxResult,
   BuildTxResult,
-  SignTxResult
+  SignTxResult,
+  isGroupedAccount
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
@@ -62,7 +63,7 @@ export abstract class SignerProvider {
   static validateAccount(account: Account): void {
     const derivedAddress = addressFromPublicKey(account.publicKey, account.keyType)
     const derivedGroup = groupOfAddress(derivedAddress)
-    if (derivedAddress !== account.address || derivedGroup !== account.group) {
+    if (derivedAddress !== account.address || (isGroupedAccount(account) && derivedGroup !== account.group)) {
       throw Error(`Invalid accounot data: ${JSON.stringify(account)}`)
     }
   }
@@ -108,8 +109,8 @@ export abstract class SignerProviderSimple extends SignerProvider {
   async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTxResult<SignTransferTxResult>> {
     const signResult = await this.signTransferTx(params)
 
-    if ('transferTxs' in signResult) {
-      for (const r of signResult.transferTxs) {
+    if ('fundingTxs' in signResult && signResult.fundingTxs !== undefined) {
+      for (const r of signResult.fundingTxs) {
         await this.submitTransaction(r)
       }
 
@@ -126,8 +127,8 @@ export abstract class SignerProviderSimple extends SignerProvider {
   ): Promise<SignTxResult<SignDeployContractTxResult>> {
     const signResult = await this.signDeployContractTx(params)
 
-    if ('transferTxs' in signResult) {
-      for (const r of signResult.transferTxs) {
+    if ('fundingTxs' in signResult && signResult.fundingTxs !== undefined) {
+      for (const r of signResult.fundingTxs) {
         await this.submitTransaction(r)
       }
 
@@ -144,8 +145,8 @@ export abstract class SignerProviderSimple extends SignerProvider {
   ): Promise<SignTxResult<SignExecuteScriptTxResult>> {
     const signResult = await this.signExecuteScriptTx(params)
 
-    if ('transferTxs' in signResult) {
-      for (const r of signResult.transferTxs) {
+    if ('fundingTxs' in signResult && signResult.fundingTxs !== undefined) {
+      for (const r of signResult.fundingTxs) {
         await this.submitTransaction(r)
       }
 
@@ -174,12 +175,12 @@ export abstract class SignerProviderSimple extends SignerProvider {
   async signTransferTx(params: SignTransferTxParams): Promise<SignTxResult<SignTransferTxResult>> {
     const response = await this.buildTransferTx(params)
 
-    if ('transferTxs' in response) {
+    if ('fundingTxs' in response && response.fundingTxs !== undefined) {
       const transferTxs: SignTransferTxResult[] = []
-      for (let i = 0; i < response.transferTxs.length; i++) {
-        const txSignature = await this.signRaw(params.signerAddress, response.transferTxs[i].txId)
+      for (let i = 0; i < response.fundingTxs.length; i++) {
+        const txSignature = await this.signRaw(params.signerAddress, response.fundingTxs[i].txId)
         transferTxs.push({
-          ...response.transferTxs[i],
+          ...response.fundingTxs[i],
           signature: txSignature
         })
       }
@@ -193,7 +194,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
         txId: response.txId,
         unsignedTx: response.unsignedTx,
         signature,
-        transferTxs
+        fundingTxs: transferTxs
       }
     } else {
       const signature = await this.signRaw(params.signerAddress, response.txId)
@@ -211,12 +212,12 @@ export abstract class SignerProviderSimple extends SignerProvider {
   async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignTxResult<SignDeployContractTxResult>> {
     const response = await this.buildDeployContractTx(params)
 
-    if ('transferTxs' in response) {
+    if ('fundingTxs' in response && response.fundingTxs !== undefined) {
       const transferTxs: SignTransferTxResult[] = []
-      for (let i = 0; i < response.transferTxs.length; i++) {
-        const txSignature = await this.signRaw(params.signerAddress, response.transferTxs[i].txId)
+      for (let i = 0; i < response.fundingTxs.length; i++) {
+        const txSignature = await this.signRaw(params.signerAddress, response.fundingTxs[i].txId)
         transferTxs.push({
-          ...response.transferTxs[i],
+          ...response.fundingTxs[i],
           signature: txSignature
         })
       }
@@ -232,7 +233,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
         unsignedTx: response.unsignedTx,
         txId: response.txId,
         signature,
-        transferTxs
+        fundingTxs: transferTxs
       }
     } else {
       const signature = await this.signRaw(params.signerAddress, response.txId)
@@ -250,12 +251,12 @@ export abstract class SignerProviderSimple extends SignerProvider {
   async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignTxResult<SignExecuteScriptTxResult>> {
     const response = await this.buildExecuteScriptTx(params)
 
-    if ('transferTxs' in response) {
+    if ('fundingTxs' in response && response.fundingTxs !== undefined) {
       const transferTxs: SignTransferTxResult[] = []
-      for (let i = 0; i < response.transferTxs.length; i++) {
-        const txSignature = await this.signRaw(params.signerAddress, response.transferTxs[i].txId)
+      for (let i = 0; i < response.fundingTxs.length; i++) {
+        const txSignature = await this.signRaw(params.signerAddress, response.fundingTxs[i].txId)
         transferTxs.push({
-          ...response.transferTxs[i],
+          ...response.fundingTxs[i],
           signature: txSignature
         })
       }
@@ -270,7 +271,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
         txId: response.txId,
         simulationResult: response.simulationResult,
         signature,
-        transferTxs
+        fundingTxs: transferTxs
       }
     } else {
       const signature = await this.signRaw(params.signerAddress, response.txId)

@@ -84,7 +84,8 @@ import {
   MapTestSub,
   UserAccountTypes,
   InlineTest,
-  AutoFund
+  AutoFund,
+  TupleTest
 } from '../artifacts/ts'
 import { randomBytes, randomInt } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
@@ -102,7 +103,7 @@ describe('contract', function () {
 
     signer = await getSigner()
     signerAccount = signer.account
-    signerGroup = signerAccount.group
+    signerGroup = groupOfAddress(signerAccount.address)
     exposePrivateFunctions = Math.random() < 0.5
 
     expect(signerGroup).toEqual(groupOfAddress(testAddress))
@@ -281,13 +282,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(63)
-    sourceFiles.slice(0, 30).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(30, 48).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(48, 50).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(50, 57).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    expect(sourceFiles.length).toEqual(65)
+    sourceFiles.slice(0, 31).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(31, 49).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(49, 51).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(51, 58).forEach((i) => expect(i.type).toEqual(3)) // interfaces
     sourceFiles.slice(60, 57).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[62].type).toEqual(5) // constants
+    expect(sourceFiles[64].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -1025,5 +1026,36 @@ describe('contract', function () {
       const addState = await add.fetchState()
       expect(addState.fields.result).toEqual(3n)
     }
+  })
+
+  it('should test tuple', async () => {
+    const deployResult = await TupleTest.deploy(signer, {
+      initialFields: {
+        value: [
+          0n,
+          {
+            a: [[1n, 2n], false],
+            b: [
+              [3n, 4n],
+              [5n, 6n]
+            ]
+          }
+        ]
+      }
+    })
+    const tupleInstance = deployResult.contractInstance
+    expect((await tupleInstance.view.getA0()).returns).toEqual([1n, 2n])
+    expect((await tupleInstance.view.getB()).returns).toEqual([
+      [3n, 4n],
+      [5n, 6n]
+    ])
+    expect((await tupleInstance.view.test()).returns).toEqual([7n, false])
+    await tupleInstance.transact.updateValue0({ signer, args: { v: 1n } })
+    expect((await tupleInstance.fetchState()).fields.value[0]).toEqual(1n)
+    await tupleInstance.transact.updateA0({ signer, args: { v: [7n, 8n] } })
+    expect((await tupleInstance.fetchState()).fields.value[1].a[0]).toEqual([7n, 8n])
+    await tupleInstance.transact.updateA1({ signer, args: { v: true } })
+    expect((await tupleInstance.fetchState()).fields.value[1].a[1]).toEqual(true)
+    expect((await tupleInstance.view.test()).returns).toEqual([15n, true])
   })
 })

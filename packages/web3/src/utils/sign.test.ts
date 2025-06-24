@@ -20,8 +20,11 @@ import EC from 'elliptic'
 
 import { sign, verifySignature } from './sign'
 import { publicKeyFromPrivateKey } from '../address'
+import { KeyType } from '../signer'
 
 describe('Signing', function () {
+  const invalidKeyTypes: KeyType[] = ['gl-ed25519', 'gl-secp256r1', 'gl-webauthn']
+
   it('should sign and verify secp2561k1 signature', () => {
     const ec = new EC.ec('secp256k1')
     const key = ec.genKeyPair()
@@ -31,6 +34,9 @@ describe('Signing', function () {
     const hash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
     const signature = sign(hash, privateKey, 'default')
     expect(verifySignature(hash, publicKey, signature, 'default')).toEqual(true)
+    invalidKeyTypes.forEach((keyType) => {
+      expect(() => sign(hash, privateKey, keyType)).toThrow('Invalid key type')
+    })
   })
 
   it('shoud sign and verify secp256k1 signature with groupless address', () => {
@@ -42,6 +48,9 @@ describe('Signing', function () {
     const hash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
     const signature = sign(hash, privateKey, 'gl-secp256k1')
     expect(verifySignature(hash, publicKey, signature, 'gl-secp256k1')).toEqual(true)
+    invalidKeyTypes.forEach((keyType) => {
+      expect(() => verifySignature(hash, publicKey, signature, keyType)).toThrow('Invalid key type')
+    })
   })
 
   it('should sign and verify schnorr signature', () => {

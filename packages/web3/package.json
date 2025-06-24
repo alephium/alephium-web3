@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "main": "dist/src/index.js",
@@ -33,7 +33,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "3.15.1",
+    "alephium_version": "3.15.4",
     "explorer_backend_version": "2.3.2"
   },
   "scripts": {

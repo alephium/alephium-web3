@@ -33,7 +33,8 @@ import {
   PrimitiveTypes,
   decodeArrayType,
   fromApiPrimitiveVal,
-  tryGetCallResult
+  tryGetCallResult,
+  decodeTupleType
 } from '../api'
 import {
   SignDeployContractTxParams,
@@ -42,7 +43,8 @@ import {
   SignerProvider,
   Address,
   SignExecuteScriptTxResult,
-  Account
+  Account,
+  isGroupedAccount
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -806,7 +808,8 @@ export class Script extends Artifact {
       tokens: params.tokens,
       gasAmount: params.gasAmount,
       gasPrice: params.gasPrice,
-      group
+      group,
+      dustAmount: params.dustAmount
     }
     return signerParams
   }
@@ -821,9 +824,7 @@ export class Script extends Artifact {
 }
 
 function getGroupFromTxScript(bytecode: string, account: Account): number {
-  if (account.keyType === 'default' || account.keyType === 'bip340-schnorr') {
-    return account.group
-  }
+  if (isGroupedAccount(account)) return account.group
 
   const script = scriptCodec.decode(hexToBinUnsafe(bytecode))
   const instrs = script.methods.flatMap((method) => method.instrs)
@@ -849,7 +850,7 @@ function getGroupFromTxScript(bytecode: string, account: Account): number {
       }
     }
   }
-  return account.group
+  return groupOfAddress(account.address)
 }
 
 export function fromApiFields(
@@ -881,6 +882,13 @@ function buildVal(
   if (type.startsWith('[')) {
     const [baseType, size] = decodeArrayType(type)
     return Array.from(Array(size).keys()).map(() => buildVal(isMutable, baseType, structs, func))
+  }
+  if (type.startsWith('(')) {
+    const tuple = decodeTupleType(type)
+    return tuple.reduce<Val[]>((acc, fieldType) => {
+      acc.push(buildVal(isMutable, fieldType, structs, func))
+      return acc
+    }, [])
   }
   const struct = structs.find((s) => s.name === type)
   if (struct !== undefined) {
@@ -1227,6 +1235,7 @@ export interface ExecuteScriptParams<P extends Fields = Fields> {
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
+  dustAmount?: Number256
 }
 
 export interface ExecuteScriptResult {
@@ -1276,6 +1285,7 @@ export interface SignExecuteContractMethodParams<T extends Arguments = Arguments
   tokens?: Token[]
   gasAmount?: number
   gasPrice?: Number256
+  dustAmount?: Number256
 }
 
 function specialContractAddress(eventIndex: number, groupIndex: number): string {
@@ -2001,7 +2011,8 @@ export async function signExecuteMethod<I extends ContractInstance, F extends Fi
     tokens: params.tokens,
     gasAmount: params.gasAmount,
     gasPrice: params.gasPrice,
-    group: instance.groupIndex
+    group: instance.groupIndex,
+    dustAmount: params.dustAmount
   }
 
   const result = (await signer.signAndSubmitExecuteScriptTx(signerParams)) as SignExecuteScriptTxResult

@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as MapTestSubContractJson } from "../test/MapTestSub.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace MapTestSubTypes {
@@ -54,7 +47,7 @@ export namespace MapTestSubTypes {
 
   export interface CallMethodTable {
     init: {
-      params: CallContractParams<{ caller: Address; value: MapValue }>;
+      params: CallContractParams<{ caller: Address; value: types.MapValue }>;
       result: CallContractResult<HexString>;
     };
   }
@@ -78,7 +71,7 @@ export namespace MapTestSubTypes {
     init: {
       params: SignExecuteContractMethodParams<{
         caller: Address;
-        value: MapValue;
+        value: types.MapValue;
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -97,7 +90,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -109,7 +102,7 @@ class Factory extends ContractFactory<
     init: async (
       params: TestContractParamsWithoutMaps<
         MapTestSubTypes.Fields,
-        { caller: Address; value: MapValue }
+        { caller: Address; value: types.MapValue }
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "init", params, getContractByCodeHash);
@@ -131,7 +124,7 @@ export const MapTestSub = new Factory(
     MapTestSubContractJson,
     "",
     "755ebb4ca4c436991cc8363fedb6840abf16857a6c326983376db9e68fe8c985",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(MapTestSub);

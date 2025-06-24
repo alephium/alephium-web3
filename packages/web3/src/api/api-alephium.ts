@@ -292,6 +292,8 @@ export interface BuildExecuteScriptTx {
   group?: number
   /** @format double */
   gasEstimationMultiplier?: number
+  /** @format uint256 */
+  dustAmount?: string
 }
 
 /** BuildExecuteScriptTxResult */
@@ -312,7 +314,7 @@ export interface BuildGrouplessDeployContractTxResult {
   txId: string
   /** @format address */
   contractAddress: string
-  transferTxs: BuildSimpleTransferTxResult[]
+  fundingTxs?: BuildSimpleTransferTxResult[]
 }
 
 /** BuildGrouplessExecuteScriptTxResult */
@@ -329,7 +331,7 @@ export interface BuildGrouplessExecuteScriptTxResult {
   /** @format 32-byte-hash */
   txId: string
   simulationResult: SimulationResult
-  transferTxs: BuildSimpleTransferTxResult[]
+  fundingTxs?: BuildSimpleTransferTxResult[]
 }
 
 /** BuildGrouplessTransferTxResult */
@@ -345,7 +347,7 @@ export interface BuildGrouplessTransferTxResult {
   fromGroup: number
   /** @format int32 */
   toGroup: number
-  transferTxs: BuildSimpleTransferTxResult[]
+  fundingTxs?: BuildSimpleTransferTxResult[]
 }
 
 /** BuildInfo */
@@ -377,7 +379,7 @@ export interface BuildMultisig {
   gasPrice?: string
   /** @format group-index */
   group?: number
-  multiSigType?: MultiSigType
+  multiSigType?: 'P2HMPK' | 'P2MPKH'
 }
 
 /** BuildMultisigAddress */
@@ -386,7 +388,7 @@ export interface BuildMultisigAddress {
   keyTypes?: string[]
   /** @format int32 */
   mrequired: number
-  multiSigType?: MultiSigType
+  multiSigType?: 'P2HMPK' | 'P2MPKH'
 }
 
 /** BuildMultisigAddressResult */
@@ -499,7 +501,7 @@ export interface BuildSweepMultisig {
   targetBlockHash?: string
   /** @format group-index */
   group?: number
-  multiSigType?: MultiSigType
+  multiSigType?: 'P2HMPK' | 'P2MPKH'
 }
 
 /** BuildTransferTx */
@@ -958,9 +960,6 @@ export interface MinerAddressesInfo {
 /** MisbehaviorAction */
 export type MisbehaviorAction = Ban | Unban
 
-/** MultiSigType */
-export type MultiSigType = P2HMPK | P2MPKH
-
 /** MultipleCallContract */
 export interface MultipleCallContract {
   calls: CallContract[]
@@ -1004,16 +1003,6 @@ export interface OutputRef {
   hint: number
   /** @format 32-byte-hash */
   key: string
-}
-
-/** P2HMPK */
-export interface P2HMPK {
-  type: string
-}
-
-/** P2MPKH */
-export interface P2MPKH {
-  type: string
 }
 
 /** PeerAddress */
@@ -1098,6 +1087,8 @@ export interface RichAssetInput {
   /** @format address */
   address: string
   tokens: Token[]
+  /** @format 32-byte-hash */
+  outputRefTxId: string
 }
 
 /** RichBlockAndEvents */
@@ -1148,6 +1139,8 @@ export interface RichContractInput {
   /** @format address */
   address: string
   tokens: Token[]
+  /** @format 32-byte-hash */
+  outputRefTxId: string
 }
 
 /** RichTransaction */
@@ -1767,7 +1760,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 3.15.1
+ * @version 3.15.4
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
