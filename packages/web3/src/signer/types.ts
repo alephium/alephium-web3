@@ -239,3 +239,8 @@ export interface EnableOptionsBase {
 
   onDisconnected: () => Promise<void> | void
 }
+
+export interface SweepTxParams extends Omit<node.BuildSweepAddressTransactions, 'fromPublicKey' | 'fromPublicKeyType'> {
+  signerAddress: string
+  signerKeyType?: KeyType
+}
