@@ -44,7 +44,8 @@ import {
   SignChainedTxResult,
   BuildTxResult,
   SignTxResult,
-  isGroupedAccount
+  isGroupedAccount,
+  SweepTxParams
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
@@ -120,6 +121,21 @@ export abstract class SignerProviderSimple extends SignerProvider {
     }
 
     return signResult
+  }
+
+  async signAndSubmitSweepTxs(params: SweepTxParams): Promise<SubmissionResult[]> {
+    const { unsignedTxs } = await this.buildSweepTxs(params)
+
+    const results: SubmissionResult[] = []
+
+    for (const { txId, unsignedTx } of unsignedTxs) {
+      const signature = await this.signRaw(params.signerAddress, txId)
+      const result = await this.submitTransaction({ unsignedTx, signature })
+
+      results.push(result)
+    }
+
+    return results
   }
 
   async signAndSubmitDeployContractTx(
@@ -204,6 +220,13 @@ export abstract class SignerProviderSimple extends SignerProvider {
 
   async buildTransferTx(params: SignTransferTxParams): Promise<BuildTxResult<SignTransferTxResult>> {
     return TransactionBuilder.from(this.nodeProvider).buildTransferTx(
+      params,
+      await this.getPublicKey(params.signerAddress)
+    )
+  }
+
+  async buildSweepTxs(params: SweepTxParams): Promise<node.BuildSweepAddressTransactionsResult> {
+    return TransactionBuilder.from(this.nodeProvider).buildSweepTxs(
       params,
       await this.getPublicKey(params.signerAddress)
     )

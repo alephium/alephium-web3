@@ -37,7 +37,6 @@ import {
   SignUnsignedTxResult,
   BuildTxResult,
   GrouplessBuildTxResult,
-  SweepParams,
   SweepTxParams
 } from './types'
 import { unsignedTxCodec } from '../codec'
@@ -196,7 +195,7 @@ export abstract class TransactionBuilder {
     }
   }
 
-  private buildSweepTxParams(params: SweepParams, publicKey: string): node.BuildSweepAddressTransactions {
+  private buildSweepTxParams(params: SweepTxParams, publicKey: string): node.BuildSweepAddressTransactions {
     const { signerKeyType, ...rest } = params
 
     TransactionBuilder.validatePublicKey(params, publicKey, signerKeyType)
