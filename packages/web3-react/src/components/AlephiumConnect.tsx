@@ -48,6 +48,7 @@ import {
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
 import { Connectors, ConnectResult, createDefaultConnectors } from '../utils/connector'
 import { useInjectedProviders } from '../hooks/useInjectedProviders'
+import { isCompatibleAddressGroup } from '@alephium/walletconnect-provider'
 
 export const ConnectSettingProvider: React.FC<{
   theme?: Theme
@@ -155,7 +156,7 @@ export const AlephiumConnectProvider: React.FC<{
     }
     if (
       result.network === _network &&
-      (_addressGroup === undefined || result.account.group === _addressGroup) &&
+      isCompatibleAddressGroup(result.account, _addressGroup) &&
       (_keyType === undefined || result.account.keyType === _keyType)
     ) {
       return result

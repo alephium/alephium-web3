@@ -210,7 +210,8 @@ describe('transact', function () {
     })
     const instance1 = deploy1.contractInstance
 
-    const deposits = await MultiDeposit.execute(signer, {
+    const deposits = await MultiDeposit.execute({
+      signer,
       attoAlphAmount: ONE_ALPH * 2n,
       tokens: [{ id: tokenId, amount: 10n ** 18n * 2n }],
       initialFields: { c: [instance0.address, instance1.address], tokenId }
@@ -235,7 +236,8 @@ describe('transact', function () {
     expect((await instance0.view.getTotalTokens()).returns).toBe(10n ** 18n)
     expect((await instance1.view.getTotalTokens()).returns).toBe(10n ** 18n)
 
-    const withdraws = await MultiWithdraw.execute(signer, {
+    const withdraws = await MultiWithdraw.execute({
+      signer,
       attoAlphAmount: DUST_AMOUNT * 2n,
       initialFields: { c: [instance0.address, instance1.address] }
     })

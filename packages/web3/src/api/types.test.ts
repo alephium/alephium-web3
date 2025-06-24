@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ZERO_ADDRESS } from '../constants'
-import { getDefaultPrimitiveValue, toApiAddress, toApiByteVec, toApiNumber256 } from './index'
+import { decodeTupleType, getDefaultPrimitiveValue, toApiAddress, toApiByteVec, toApiNumber256 } from './index'
 
 describe('ralph types', function () {
   it('should check u256/i256', () => {
@@ -64,5 +64,11 @@ describe('ralph types', function () {
     expect(getDefaultPrimitiveValue('ByteVec')).toEqual('')
 
     expect(() => getDefaultPrimitiveValue('[Bool;4]')).toThrowError('Expected primitive type, got [Bool;4]')
+  })
+
+  it('should decode tuple types', () => {
+    expect(decodeTupleType('(U256,I256)')).toEqual(['U256', 'I256'])
+    expect(decodeTupleType('(U256,(U256,I256))')).toEqual(['U256', '(U256,I256)'])
+    expect(decodeTupleType('(U256,((U256,I256),Bool),Bool)')).toEqual(['U256', '((U256,I256),Bool)', 'Bool'])
   })
 })

@@ -30,38 +30,34 @@ import { default as UpdateMapValueScriptJson } from "../test/UpdateMapValue.ral.
 import { default as UpdateUserAccountScriptJson } from "../test/UpdateUserAccount.ral.json";
 import { default as WithdrawScriptJson } from "../test/Withdraw.ral.json";
 import { default as WithdrawNFTCollectionTestScriptJson } from "../nft/WithdrawNFTCollectionTest.ral.json";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 export const AddMain = new ExecutableScript<{
   add: HexString;
   array: [bigint, bigint];
-}>(Script.fromJson(AddMainScriptJson, "", AllStructs), getContractByCodeHash);
+}>(
+  Script.fromJson(AddMainScriptJson, "", types.AllStructs),
+  getContractByCodeHash
+);
 
 export const CallScript0 = new ExecutableScript<
   { mapTest: HexString; key: Address },
-  MapValue
+  types.MapValue
 >(
-  Script.fromJson(CallScript0ScriptJson, "", AllStructs),
+  Script.fromJson(CallScript0ScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const CallScript1 = new ExecutableScript<
   { mapTest: HexString; key: Address; userAccount: HexString },
-  [MapValue, Balances]
+  [types.MapValue, types.Balances]
 >(
-  Script.fromJson(CallScript1ScriptJson, "", AllStructs),
+  Script.fromJson(CallScript1ScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const Deposit = new ExecutableScript<{ c: HexString }>(
-  Script.fromJson(DepositScriptJson, "", AllStructs),
+  Script.fromJson(DepositScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -70,7 +66,7 @@ export const DepositToken = new ExecutableScript<{
   tokenId: HexString;
   amount: bigint;
 }>(
-  Script.fromJson(DepositTokenScriptJson, "", AllStructs),
+  Script.fromJson(DepositTokenScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -78,23 +74,23 @@ export const DestroyAdd = new ExecutableScript<{
   add: HexString;
   caller: Address;
 }>(
-  Script.fromJson(DestroyAddScriptJson, "", AllStructs),
+  Script.fromJson(DestroyAddScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const GreeterMain = new ExecutableScript<{
   greeterContractId: HexString;
 }>(
-  Script.fromJson(GreeterMainScriptJson, "", AllStructs),
+  Script.fromJson(GreeterMainScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const InsertIntoMap = new ExecutableScript<{
   mapTest: HexString;
   from: Address;
-  value: MapValue;
+  value: types.MapValue;
 }>(
-  Script.fromJson(InsertIntoMapScriptJson, "", AllStructs),
+  Script.fromJson(InsertIntoMapScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -103,7 +99,7 @@ export const MintNFTTest = new ExecutableScript<{
   uri: HexString;
   royalty: boolean;
 }>(
-  Script.fromJson(MintNFTTestScriptJson, "", AllStructs),
+  Script.fromJson(MintNFTTestScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -111,14 +107,14 @@ export const MultiDeposit = new ExecutableScript<{
   c: [HexString, HexString];
   tokenId: HexString;
 }>(
-  Script.fromJson(MultiDepositScriptJson, "", AllStructs),
+  Script.fromJson(MultiDepositScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const MultiWithdraw = new ExecutableScript<{
   c: [HexString, HexString];
 }>(
-  Script.fromJson(MultiWithdrawScriptJson, "", AllStructs),
+  Script.fromJson(MultiWithdrawScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -126,7 +122,7 @@ export const RemoveFromMap = new ExecutableScript<{
   mapTest: HexString;
   key: Address;
 }>(
-  Script.fromJson(RemoveFromMapScriptJson, "", AllStructs),
+  Script.fromJson(RemoveFromMapScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -136,12 +132,12 @@ export const TemplateArrayVar = new ExecutableScript<{
   bytes: HexString;
   numbers1: [bigint, bigint, bigint];
 }>(
-  Script.fromJson(TemplateArrayVarScriptJson, "", AllStructs),
+  Script.fromJson(TemplateArrayVarScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const TestAssert = new ExecutableScript<{ assert: HexString }>(
-  Script.fromJson(TestAssertScriptJson, "", AllStructs),
+  Script.fromJson(TestAssertScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -149,21 +145,21 @@ export const UpdateMapValue = new ExecutableScript<{
   mapTest: HexString;
   key: Address;
 }>(
-  Script.fromJson(UpdateMapValueScriptJson, "", AllStructs),
+  Script.fromJson(UpdateMapValueScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const UpdateUserAccount = new ExecutableScript<{
   account: HexString;
-  tokens: [TokenBalance, TokenBalance];
+  tokens: [types.TokenBalance, types.TokenBalance];
   address: Address;
 }>(
-  Script.fromJson(UpdateUserAccountScriptJson, "", AllStructs),
+  Script.fromJson(UpdateUserAccountScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
 export const Withdraw = new ExecutableScript<{ c: HexString }>(
-  Script.fromJson(WithdrawScriptJson, "", AllStructs),
+  Script.fromJson(WithdrawScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );
 
@@ -171,6 +167,6 @@ export const WithdrawNFTCollectionTest = new ExecutableScript<{
   collection: HexString;
   amount: bigint;
 }>(
-  Script.fromJson(WithdrawNFTCollectionTestScriptJson, "", AllStructs),
+  Script.fromJson(WithdrawNFTCollectionTestScriptJson, "", types.AllStructs),
   getContractByCodeHash
 );

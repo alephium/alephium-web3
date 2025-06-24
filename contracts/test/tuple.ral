@@ -1,0 +1,37 @@
+struct TupleTestStruct {
+  mut a: ((U256, U256), Bool),
+  b: [(U256, U256); 2]
+}
+
+Contract TupleTest(mut value: (U256, TupleTestStruct)) {
+  @using(checkExternalCaller = false, updateFields = true)
+  pub fn updateValue0(v: U256) -> () {
+    value._0 = v
+  }
+
+  pub fn getA0() -> (U256, U256) {
+    return value._1.a._0
+  }
+
+  @using(checkExternalCaller = false, updateFields = true)
+  pub fn updateA0(v: (U256, U256)) -> () {
+    value._1.a._0 = v
+  }
+
+  @using(checkExternalCaller = false, updateFields = true)
+  pub fn updateA1(v: Bool) -> () {
+    value._1.a._1 = v
+  }
+
+  pub fn getB() -> [(U256, U256); 2] {
+    return value._1.b
+  }
+
+  pub fn test() -> (U256, Bool) {
+    let a0 = value._1.a._0
+    let b0 = value._1.b[0]
+    let sum0 = a0._0 + a0._1
+    let sum1 = b0._0 + b0._1
+    return if (sum0 > sum1) (sum0, true) else (sum1, false)
+  }
+}

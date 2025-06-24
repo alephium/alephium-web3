@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as GreeterContractJson } from "../greeter/Greeter.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace GreeterTypes {
@@ -99,7 +92,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -111,7 +104,7 @@ class Factory extends ContractFactory<GreeterInstance, GreeterTypes.Fields> {
     greet: async (
       params: Omit<
         TestContractParamsWithoutMaps<GreeterTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "greet", params, getContractByCodeHash);
@@ -133,7 +126,7 @@ export const Greeter = new Factory(
     GreeterContractJson,
     "",
     "4bbf82c83dcb0a3df905c290fbc12a19ce5160a7b655c1a347913481da12d747",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(Greeter);

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { Contract, web3, decodeArrayType, hexToBinUnsafe, binToHex } from '@alephium/web3'
+import { Contract, web3, decodeArrayType, hexToBinUnsafe, binToHex, decodeTupleType } from '@alephium/web3'
 import { Method } from './method-codec'
 import { contractCodec } from './contract-codec'
 import {
@@ -46,7 +46,9 @@ import {
   U256From32Byte,
   U256Gt,
   U256Lt,
-  U256SHL
+  NumericSHL,
+  Dup,
+  Pop
 } from './instr-codec'
 import {
   Assert,
@@ -251,12 +253,14 @@ describe('Encode & decode contract', function () {
             TokenRemaining,
             U256Const0,
             U256Gt,
+            Dup,
+            IfFalse(6),
+            Pop,
             LoadLocal(0),
             LoadLocal(3),
             TokenRemaining,
             U256Const0,
             U256Gt,
-            BoolAnd,
             U256Const(15n),
             AssertWithErrorCode,
             LoadLocal(2),
@@ -294,7 +298,7 @@ describe('Encode & decode contract', function () {
             LoadLocal(7),
             U256Const1,
             U256Const(255n),
-            U256SHL,
+            NumericSHL,
             CopyCreateSubContractWithToken,
             StoreLocal(8),
             I256Const0,
@@ -358,6 +362,10 @@ describe('Encode & decode contract', function () {
     if (type.startsWith('[')) {
       const [baseType, size] = decodeArrayType(type)
       return size * getTypeLength(baseType)
+    }
+    if (type.startsWith('(')) {
+      const tuple = decodeTupleType(type)
+      return tuple.reduce((acc, fieldType) => acc + getTypeLength(fieldType), 0)
     }
     return 1
   }
