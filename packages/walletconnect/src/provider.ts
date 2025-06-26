@@ -50,7 +50,9 @@ import {
   EnableOptionsBase,
   SignChainedTxParams,
   SignChainedTxResult,
-  TraceableError
+  TraceableError,
+  isGroupedAccount,
+  isGrouplessAccount
 } from '@alephium/web3'
 
 import { ALEPHIUM_DEEP_LINK, LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -487,7 +489,7 @@ export class WalletConnectProvider extends SignerProvider {
     return !!parsedAccounts.find(
       (account) =>
         networkId === account.networkId &&
-        (addressGroup === undefined || account.group === addressGroup) &&
+        isCompatibleAddressGroup(account, addressGroup) &&
         (keyType === undefined || account.keyType === keyType)
     )
   }
@@ -506,7 +508,7 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     const newAccount = parsedAccounts[0]
-    if (!isCompatibleAddressGroup(newAccount.group, this.addressGroup)) {
+    if (!isCompatibleAddressGroup(newAccount, this.addressGroup)) {
       throw Error('The new account belongs to an unexpected address group')
     }
 
@@ -519,8 +521,12 @@ export function isCompatibleChain(chain: string): boolean {
   return chain.startsWith(`${PROVIDER_NAMESPACE}:`)
 }
 
-export function isCompatibleAddressGroup(group: number, expectedAddressGroup: AddressGroup): boolean {
-  return expectedAddressGroup === undefined || expectedAddressGroup === group
+export function isCompatibleAddressGroup(account: Account, expectedAddressGroup: AddressGroup): boolean {
+  return (
+    expectedAddressGroup === undefined ||
+    isGrouplessAccount(account) ||
+    (isGroupedAccount(account) && expectedAddressGroup === account.group)
+  )
 }
 
 export function formatChain(networkId: NetworkId, addressGroup: AddressGroup): string {

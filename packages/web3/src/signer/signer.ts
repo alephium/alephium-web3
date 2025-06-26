@@ -41,7 +41,8 @@ import {
   KeyType,
   MessageHasher,
   SignChainedTxParams,
-  SignChainedTxResult
+  SignChainedTxResult,
+  isGroupedAccount
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
@@ -60,7 +61,7 @@ export abstract class SignerProvider {
   static validateAccount(account: Account): void {
     const derivedAddress = addressFromPublicKey(account.publicKey, account.keyType)
     const derivedGroup = groupOfAddress(derivedAddress)
-    if (derivedAddress !== account.address || derivedGroup !== account.group) {
+    if (derivedAddress !== account.address || (isGroupedAccount(account) && derivedGroup !== account.group)) {
       throw Error(`Invalid accounot data: ${JSON.stringify(account)}`)
     }
   }
