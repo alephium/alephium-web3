@@ -16,27 +16,33 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC } from 'elliptic'
+import { ec as EC, eddsa as EdDSA } from 'elliptic'
 import BN from 'bn.js'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import blake from 'blakejs'
 import bs58, { base58ToBytes } from '../utils/bs58'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
-import { P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
+import { P2PK, P2HMPK, P2MPKH, lockupScriptCodec } from '../codec/lockup-script-codec'
 import { i32Codec } from '../codec'
 import { LockupScript } from '../codec/lockup-script-codec'
 import djb2 from '../utils/djb2'
 import { TraceableError } from '../error'
+import { byteCodec } from '../codec/codec'
+import { PublicKeyLike, safePublicKeyLikeCodec } from '../codec/public-key-like-codec'
 
-const ec = new EC('secp256k1')
+const secp256k1 = new EC('secp256k1')
+const secp256r1 = new EC('p256')
+const ed25519 = new EdDSA('ed25519')
 const PublicKeyHashSize = 32
 
 export enum AddressType {
   P2PKH = 0x00,
   P2MPKH = 0x01,
   P2SH = 0x02,
-  P2C = 0x03
+  P2C = 0x03,
+  P2PK = 0x04,
+  P2HMPK = 0x05
 }
 
 export function validateAddress(address: string) {
@@ -53,7 +59,7 @@ export function isValidAddress(address: string): boolean {
 }
 
 function decodeAndValidateAddress(address: string): Uint8Array {
-  const decoded = base58ToBytes(address)
+  const decoded = addressToBytes(address)
   if (decoded.length === 0) throw new Error('Address is empty')
   const addressType = decoded[0]
   if (addressType === AddressType.P2MPKH) {
@@ -75,14 +81,68 @@ function decodeAndValidateAddress(address: string): Uint8Array {
   } else if (addressType === AddressType.P2PKH || addressType === AddressType.P2SH || addressType === AddressType.P2C) {
     // [type, ...hash]
     if (decoded.length === 33) return decoded
+  } else if (addressType === AddressType.P2PK) {
+    const p2pk = lockupScriptCodec.decode(decoded).value as P2PK
+    validateGroupIndex(p2pk.group)
+    return decoded
+  } else if (addressType === AddressType.P2HMPK) {
+    const p2hmpk = lockupScriptCodec.decode(decoded).value as P2HMPK
+    validateGroupIndex(p2hmpk.group)
+    return decoded
   }
 
   throw new Error(`Invalid address: ${address}`)
 }
 
+export function addressToBytes(address: string): Uint8Array {
+  if (hasExplicitGroupIndex(address)) {
+    const groupIndex = parseGroupIndex(address[address.length - 1])
+    const decoded = base58ToBytes(address.slice(0, address.length - 2))
+    if (decoded.length > 0 && isGrouplessType(decoded[0])) {
+      const groupByte = byteCodec.encode(groupIndex)
+      return new Uint8Array([...decoded, ...groupByte])
+    }
+    throw new Error(`Invalid groupless address: ${address}`)
+  } else {
+    const decoded = base58ToBytes(address)
+    if (decoded.length > 0 && isGrouplessType(decoded[0])) {
+      const group = defaultGroupOfGrouplessAddress(decoded.slice(2, decoded.length - 4))
+      const groupByte = byteCodec.encode(group)
+      return new Uint8Array([...decoded, ...groupByte])
+    }
+    return decoded
+  }
+}
+
 export function isAssetAddress(address: string) {
   const addressType = decodeAndValidateAddress(address)[0]
-  return addressType === AddressType.P2PKH || addressType === AddressType.P2MPKH || addressType === AddressType.P2SH
+  return (
+    addressType === AddressType.P2PKH ||
+    addressType === AddressType.P2MPKH ||
+    addressType === AddressType.P2SH ||
+    addressType === AddressType.P2PK ||
+    addressType === AddressType.P2HMPK
+  )
+}
+
+function isGrouplessType(type: number): boolean {
+  return type === AddressType.P2PK || type === AddressType.P2HMPK
+}
+
+export function isGrouplessAddress(address: string) {
+  return isGrouplessType(decodeAndValidateAddress(address)[0])
+}
+
+export function isGrouplessAddressWithoutGroupIndex(address: string) {
+  return !hasExplicitGroupIndex(address) && isGrouplessAddress(address)
+}
+
+export function isGrouplessAddressWithGroupIndex(address: string) {
+  return hasExplicitGroupIndex(address) && isGrouplessAddress(address)
+}
+
+export function defaultGroupOfGrouplessAddress(bytes: Uint8Array): number {
+  return (bytes[bytes.length - 1] & 0xff) % TOTAL_NUMBER_OF_GROUPS
 }
 
 export function isContractAddress(address: string) {
@@ -95,12 +155,14 @@ export function groupOfAddress(address: string): number {
   const addressType = decoded[0]
   const addressBody = decoded.slice(1)
 
-  if (addressType == AddressType.P2PKH) {
+  if (addressType === AddressType.P2PKH) {
     return groupOfP2pkhAddress(addressBody)
-  } else if (addressType == AddressType.P2MPKH) {
+  } else if (addressType === AddressType.P2MPKH) {
     return groupOfP2mpkhAddress(addressBody)
-  } else if (addressType == AddressType.P2SH) {
+  } else if (addressType === AddressType.P2SH) {
     return groupOfP2shAddress(addressBody)
+  } else if (isGrouplessType(addressType)) {
+    return groupOfGrouplessAddress(addressBody)
   } else {
     // Contract Address
     const id = contractIdFromAddress(address)
@@ -110,17 +172,21 @@ export function groupOfAddress(address: string): number {
 
 // Pay to public key hash address
 function groupOfP2pkhAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address)
+  return groupFromBytes(address)
 }
 
 // Pay to multiple public key hash address
 function groupOfP2mpkhAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address.slice(1, 33))
+  return groupFromBytes(address.slice(1, 33))
+}
+
+function groupOfGrouplessAddress(address: Uint8Array): number {
+  return address[address.length - 1] % TOTAL_NUMBER_OF_GROUPS
 }
 
 // Pay to script hash address
 function groupOfP2shAddress(address: Uint8Array): number {
-  return groupFromBytesForAssetAddress(address)
+  return groupFromBytes(address)
 }
 
 export function contractIdFromAddress(address: string): Uint8Array {
@@ -151,24 +217,53 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
 export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default') {
-    const key = ec.keyFromPrivate(privateKey)
-    return key.getPublic(true, 'hex')
-  } else {
-    return ec.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
+  switch (keyType) {
+    case 'default':
+    case 'gl-secp256k1':
+      return secp256k1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+    case 'gl-secp256r1':
+    case 'gl-webauthn':
+      return secp256r1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+    case 'gl-ed25519':
+      return ed25519.keyFromSecret(privateKey).getPublic('hex')
+    case 'bip340-schnorr':
+      return secp256k1.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
   }
+}
+
+function p2pkAddressFromPublicKey(
+  publicKey: string,
+  keyType: 'gl-secp256k1' | 'gl-secp256r1' | 'gl-ed25519' | 'gl-webauthn'
+): string {
+  const rawBytes = hexToBinUnsafe(publicKey)
+  const publicKeyLike: PublicKeyLike =
+    keyType === 'gl-secp256k1'
+      ? { kind: 'SecP256K1', value: rawBytes }
+      : keyType === 'gl-secp256r1'
+      ? { kind: 'SecP256R1', value: rawBytes }
+      : keyType === 'gl-ed25519'
+      ? { kind: 'ED25519', value: rawBytes }
+      : { kind: 'WebAuthn', value: rawBytes }
+  const publicKeyBytes = safePublicKeyLikeCodec.encode(publicKeyLike)
+  const bytes = new Uint8Array([AddressType.P2PK, ...publicKeyBytes])
+  return bs58.encode(bytes)
 }
 
 export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
-  if (keyType === 'default') {
-    const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
-    const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
-    return bs58.encode(bytes)
-  } else {
-    const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
-    return addressFromScript(lockupScript)
+  switch (keyType) {
+    case 'default': {
+      const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
+      const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
+      return bs58.encode(bytes)
+    }
+    case 'bip340-schnorr': {
+      const lockupScript = hexToBinUnsafe(`0101000000000458144020${publicKey}8685`)
+      return addressFromScript(lockupScript)
+    }
+    default:
+      return p2pkAddressFromPublicKey(publicKey, keyType)
   }
 }
 
@@ -215,11 +310,13 @@ export function subContractId(parentContractId: string, pathInHex: string, group
 
 export function groupOfLockupScript(lockupScript: LockupScript): number {
   if (lockupScript.kind === 'P2PKH') {
-    return groupFromBytesForAssetAddress(lockupScript.value)
+    return groupFromBytes(lockupScript.value)
   } else if (lockupScript.kind === 'P2MPKH') {
-    return groupFromBytesForAssetAddress(lockupScript.value.publicKeyHashes[0])
+    return groupFromBytes(lockupScript.value.publicKeyHashes[0])
   } else if (lockupScript.kind === 'P2SH') {
-    return groupFromBytesForAssetAddress(lockupScript.value)
+    return groupFromBytes(lockupScript.value)
+  } else if (lockupScript.kind === 'P2PK' || lockupScript.kind === 'P2HMPK') {
+    return lockupScript.value.group % TOTAL_NUMBER_OF_GROUPS
   } else {
     // P2C
     const contractId = lockupScript.value
@@ -227,8 +324,45 @@ export function groupOfLockupScript(lockupScript: LockupScript): number {
   }
 }
 
-function groupFromBytesForAssetAddress(bytes: Uint8Array): number {
+export function groupFromBytes(bytes: Uint8Array): number {
   const hint = djb2(bytes) | 1
+  return groupFromHint(hint)
+}
+
+export function groupFromHint(hint: number): number {
   const hash = xorByte(hint)
   return hash % TOTAL_NUMBER_OF_GROUPS
+}
+
+export function hasExplicitGroupIndex(address: string): boolean {
+  return address.length > 2 && address[address.length - 2] === ':'
+}
+
+export function addressWithoutExplicitGroupIndex(address: string): string {
+  if (hasExplicitGroupIndex(address)) {
+    return address.slice(0, address.length - 2)
+  }
+  return address
+}
+
+export function addressFromLockupScript(lockupScript: LockupScript): string {
+  if (lockupScript.kind === 'P2PK' || lockupScript.kind === 'P2HMPK') {
+    const groupByte = lockupScriptCodec.encode(lockupScript).slice(-1)
+    const address = bs58.encode(lockupScriptCodec.encode(lockupScript).slice(0, -1))
+    return `${address}:${groupByte}`
+  } else {
+    return bs58.encode(lockupScriptCodec.encode(lockupScript))
+  }
+}
+
+function parseGroupIndex(groupIndexStr: string): number {
+  return validateGroupIndex(parseInt(groupIndexStr), groupIndexStr)
+}
+
+function validateGroupIndex(groupIndex: number, groupIndexStr?: string): number {
+  if (isNaN(groupIndex) || groupIndex < 0 || groupIndex >= TOTAL_NUMBER_OF_GROUPS) {
+    throw new Error(`Invalid group index: ${groupIndexStr ?? groupIndex}`)
+  }
+
+  return groupIndex
 }

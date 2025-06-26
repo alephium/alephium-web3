@@ -34,13 +34,32 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
-export type KeyType = 'default' | 'bip340-schnorr'
+export type GroupedKeyType = 'default' | 'bip340-schnorr'
+export type GrouplessKeyType = 'gl-secp256k1' | 'gl-secp256r1' | 'gl-ed25519' | 'gl-webauthn'
 
-export interface Account {
-  keyType: KeyType
+export type KeyType = GroupedKeyType | GrouplessKeyType
+
+export interface GroupedAccount {
+  keyType: GroupedKeyType
   address: string
   group: number
   publicKey: string
+}
+
+export interface GrouplessAccount {
+  keyType: GrouplessKeyType
+  address: string
+  publicKey: string
+}
+
+export type Account = GroupedAccount | GrouplessAccount
+
+export function isGroupedAccount(account: Account): account is GroupedAccount {
+  return account.keyType === 'default' || account.keyType === 'bip340-schnorr'
+}
+
+export function isGrouplessAccount(account: Account): account is GrouplessAccount {
+  return account.keyType !== 'default' && account.keyType !== 'bip340-schnorr'
 }
 
 export type SignerAddress = { signerAddress: string; signerKeyType?: KeyType }
@@ -54,6 +73,7 @@ export interface SignTransferTxParams {
   utxos?: OutputRef[]
   gasAmount?: number
   gasPrice?: Number256
+  group?: number
 }
 assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransferTx>>>()
 export interface SignTransferTxResult {
@@ -77,6 +97,7 @@ export interface SignDeployContractTxParams {
   issueTokenTo?: string
   gasAmount?: number
   gasPrice?: Number256
+  group?: number
 }
 assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignDeployContractTxResult {
@@ -105,6 +126,8 @@ export interface SignExecuteScriptTxParams {
   gasAmount?: number
   gasPrice?: Number256
   gasEstimationMultiplier?: number
+  group?: number
+  dustAmount?: Number256
 }
 assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {

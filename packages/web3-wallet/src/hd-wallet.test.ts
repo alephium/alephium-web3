@@ -23,7 +23,9 @@ import {
   TOTAL_NUMBER_OF_GROUPS,
   addressFromPublicKey,
   groupOfAddress,
-  MessageHasher
+  MessageHasher,
+  isGroupedAccount,
+  Account
 } from '@alephium/web3'
 import {
   deriveSchnorrPrivateKey,
@@ -117,15 +119,18 @@ describe('HD wallet', () => {
   })
 
   it('should derive account', async () => {
+    function groupOf(account: Account): number {
+      return isGroupedAccount(account) ? account.group : groupOfAddress(account.address)
+    }
     const wallet = new HDWallet({ mnemonic: testMnemonic, passphrase: 'Alephium' })
     const account0 = wallet.deriveAndAddNewAccount(0)
     const account1 = wallet.deriveAndAddNewAccount(1)
     const account2 = wallet.deriveAndAddNewAccount(2)
     const account3 = wallet.deriveAndAddNewAccount(3)
-    expect(account0.group).toBe(0)
-    expect(account1.group).toBe(1)
-    expect(account2.group).toBe(2)
-    expect(account3.group).toBe(3)
+    expect(groupOf(account0)).toBe(0)
+    expect(groupOf(account1)).toBe(1)
+    expect(groupOf(account2)).toBe(2)
+    expect(groupOf(account3)).toBe(3)
     expect(account0.publicKey).toEqual(
       publicKeyFromPrivateKey('62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce')
     )
@@ -147,10 +152,10 @@ describe('HD wallet', () => {
     const newAccount1 = wallet.deriveAndAddNewAccount(1)
     const newAccount2 = wallet.deriveAndAddNewAccount(2)
     const newAccount3 = wallet.deriveAndAddNewAccount(3)
-    expect(newAccount0.group).toBe(0)
-    expect(newAccount1.group).toBe(1)
-    expect(newAccount2.group).toBe(2)
-    expect(newAccount3.group).toBe(3)
+    expect(groupOf(newAccount0)).toBe(0)
+    expect(groupOf(newAccount1)).toBe(1)
+    expect(groupOf(newAccount2)).toBe(2)
+    expect(groupOf(newAccount3)).toBe(3)
     expect(newAccount0.addressIndex).toBeGreaterThan(account0.addressIndex)
     expect(newAccount1.addressIndex).toBeGreaterThan(account1.addressIndex)
     expect(newAccount2.addressIndex).toBeGreaterThan(account2.addressIndex)
