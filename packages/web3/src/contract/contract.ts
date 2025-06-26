@@ -1056,6 +1056,7 @@ export interface DeployContractParams<P extends Fields = Fields> {
   gasAmount?: number
   gasPrice?: Number256
   exposePrivateFunctions?: boolean
+  group?: number
 }
 assertType<
   Eq<

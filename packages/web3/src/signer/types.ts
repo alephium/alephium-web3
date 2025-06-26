@@ -54,6 +54,7 @@ export interface SignTransferTxParams {
   utxos?: OutputRef[]
   gasAmount?: number
   gasPrice?: Number256
+  group?: number
 }
 assertType<Eq<keyof SignTransferTxParams, keyof TxBuildParams<node.BuildTransferTx>>>()
 export interface SignTransferTxResult {
@@ -77,6 +78,7 @@ export interface SignDeployContractTxParams {
   issueTokenTo?: string
   gasAmount?: number
   gasPrice?: Number256
+  group?: number
 }
 assertType<Eq<keyof SignDeployContractTxParams, keyof TxBuildParams<node.BuildDeployContractTx>>>()
 export interface SignDeployContractTxResult {
@@ -105,6 +107,8 @@ export interface SignExecuteScriptTxParams {
   gasAmount?: number
   gasPrice?: Number256
   gasEstimationMultiplier?: number
+  group?: number
+  dustAmount?: Number256
 }
 assertType<Eq<keyof SignExecuteScriptTxParams, keyof TxBuildParams<node.BuildExecuteScriptTx>>>()
 export interface SignExecuteScriptTxResult {
