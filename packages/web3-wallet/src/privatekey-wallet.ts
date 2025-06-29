@@ -45,7 +45,7 @@ export class PrivateKeyWallet extends SignerProviderSimple {
     return Promise.resolve(this.account)
   }
 
-  protected getPublicKey(address: string): Promise<string> {
+  getPublicKey(address: string): Promise<string> {
     if (address !== this.address) {
       throw Error('The signer address is invalid')
     }

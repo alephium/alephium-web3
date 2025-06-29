@@ -128,7 +128,7 @@ export abstract class SignerProviderSimple extends SignerProvider {
     return signResults
   }
 
-  protected abstract getPublicKey(address: string): Promise<string>
+  abstract getPublicKey(address: string): Promise<string>
 
   async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
     const response = await this.buildTransferTx(params)
