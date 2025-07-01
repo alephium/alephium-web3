@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as NFTTestContractJson } from "../nft/NFTTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace NFTTestTypes {
@@ -101,7 +94,7 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -113,7 +106,7 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
     getTokenUri: async (
       params: Omit<
         TestContractParamsWithoutMaps<NFTTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getTokenUri", params, getContractByCodeHash);
@@ -121,7 +114,7 @@ class Factory extends ContractFactory<NFTTestInstance, NFTTestTypes.Fields> {
     getCollectionIndex: async (
       params: Omit<
         TestContractParamsWithoutMaps<NFTTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<[HexString, bigint]>> => {
       return testMethod(
@@ -148,7 +141,7 @@ export const NFTTest = new Factory(
     NFTTestContractJson,
     "",
     "4897086210869e612d82995b765a447c5319a55a56e8a0c3c07b4d9ca81e15b1",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(NFTTest);

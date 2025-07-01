@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as MapTestWrapperContractJson } from "../test/MapTestWrapper.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace MapTestWrapperTypes {
@@ -54,7 +47,7 @@ export namespace MapTestWrapperTypes {
 
   export interface CallMethodTable {
     insert: {
-      params: CallContractParams<{ key: Address; value: MapValue }>;
+      params: CallContractParams<{ key: Address; value: types.MapValue }>;
       result: CallContractResult<null>;
     };
     update: {
@@ -86,7 +79,7 @@ export namespace MapTestWrapperTypes {
     insert: {
       params: SignExecuteContractMethodParams<{
         key: Address;
-        value: MapValue;
+        value: types.MapValue;
       }>;
       result: SignExecuteScriptTxResult;
     };
@@ -113,7 +106,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -125,7 +118,7 @@ class Factory extends ContractFactory<
     insert: async (
       params: TestContractParamsWithoutMaps<
         MapTestWrapperTypes.Fields,
-        { key: Address; value: MapValue }
+        { key: Address; value: types.MapValue }
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "insert", params, getContractByCodeHash);
@@ -163,7 +156,7 @@ export const MapTestWrapper = new Factory(
     MapTestWrapperContractJson,
     "",
     "1d525d3e4cbd1c8f4c0431bf6881e888eeebae012a14532530097f62dd766e9a",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(MapTestWrapper);
