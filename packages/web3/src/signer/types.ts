@@ -34,8 +34,12 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
-export type GroupedKeyType = 'default' | 'bip340-schnorr'
-export type GrouplessKeyType = 'gl-secp256k1' | 'gl-secp256r1' | 'gl-ed25519' | 'gl-webauthn'
+export const groupedKeyTypes = ['default', 'bip340-schnorr'] as const
+export const grouplessKeyTypes = ['gl-secp256k1', 'gl-secp256r1', 'gl-ed25519', 'gl-webauthn'] as const
+export const keyTypes = [...groupedKeyTypes, ...grouplessKeyTypes] as const
+
+export type GroupedKeyType = (typeof groupedKeyTypes)[number]
+export type GrouplessKeyType = (typeof grouplessKeyTypes)[number]
 
 export type KeyType = GroupedKeyType | GrouplessKeyType
 
@@ -54,12 +58,20 @@ export interface GrouplessAccount {
 
 export type Account = GroupedAccount | GrouplessAccount
 
+export function isGroupedKeyType(keyType: KeyType): keyType is GroupedKeyType {
+  return keyType === 'default' || keyType === 'bip340-schnorr'
+}
+
+export function isGrouplessKeyType(keyType: KeyType): keyType is GrouplessKeyType {
+  return keyType !== 'default' && keyType !== 'bip340-schnorr'
+}
+
 export function isGroupedAccount(account: Account): account is GroupedAccount {
-  return account.keyType === 'default' || account.keyType === 'bip340-schnorr'
+  return isGroupedKeyType(account.keyType)
 }
 
 export function isGrouplessAccount(account: Account): account is GrouplessAccount {
-  return account.keyType !== 'default' && account.keyType !== 'bip340-schnorr'
+  return isGrouplessKeyType(account.keyType)
 }
 
 export type SignerAddress = { signerAddress: string; signerKeyType?: KeyType }
