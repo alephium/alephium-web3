@@ -36,7 +36,8 @@ import {
   SignUnsignedTxParams,
   SignUnsignedTxResult,
   BuildTxResult,
-  GrouplessBuildTxResult
+  GrouplessBuildTxResult,
+  SweepTxParams
 } from './types'
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
@@ -74,6 +75,14 @@ export abstract class TransactionBuilder {
     const data = this.buildTransferTxParams(params, publicKey)
     const response = await this.nodeProvider.transactions.postTransactionsBuild(data)
     return this.convertTransferTxResult(response)
+  }
+
+  async buildSweepTxs(params: SweepTxParams, publicKey: string): Promise<node.BuildSweepAddressTransactionsResult> {
+    TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
+    const data = this.buildSweepTxParams(params, publicKey)
+    const response = await this.nodeProvider.transactions.postTransactionsSweepAddressBuild(data)
+
+    return response
   }
 
   async buildDeployContractTx(
@@ -182,6 +191,18 @@ export abstract class TransactionBuilder {
       fromPublicKeyType: params.signerKeyType,
       destinations: toApiDestinations(destinations),
       gasPrice: toApiNumber256Optional(gasPrice),
+      ...rest
+    }
+  }
+
+  private buildSweepTxParams(params: SweepTxParams, publicKey: string): node.BuildSweepAddressTransactions {
+    const { signerKeyType, ...rest } = params
+
+    TransactionBuilder.validatePublicKey(params, publicKey, signerKeyType)
+
+    return {
+      fromPublicKey: publicKey,
+      fromPublicKeyType: params.signerKeyType,
       ...rest
     }
   }
