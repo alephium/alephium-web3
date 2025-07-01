@@ -22,11 +22,11 @@ import { contractCodec } from './contract-codec'
 import {
   ApproveAlph,
   AssertWithErrorCode,
-  BoolAnd,
   ByteVecConcat,
   ByteVecNeq,
   CallLocal,
   CopyCreateSubContractWithToken,
+  Dup,
   Encode,
   I256Const0,
   IfFalse,
@@ -35,6 +35,7 @@ import {
   LoadMutField,
   Log5,
   MethodSelector,
+  Pop,
   Return,
   StoreLocal,
   StoreMutField,
@@ -46,9 +47,7 @@ import {
   U256From32Byte,
   U256Gt,
   U256Lt,
-  NumericSHL,
-  Dup,
-  Pop
+  NumericSHL
 } from './instr-codec'
 import {
   Assert,
