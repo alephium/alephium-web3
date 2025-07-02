@@ -414,13 +414,20 @@ export class WalletConnectProvider extends SignerProvider {
     }
 
     if (!args.method.startsWith('alph_request')) {
-      const signerAddress = args.params?.signerAddress
-      if (typeof signerAddress === 'undefined') {
-        throw new Error('Cannot request without signerAddress')
-      }
-      const selectedAddress = (await this.getSelectedAccount()).address
-      if (signerAddress !== selectedAddress) {
-        throw new Error(`Invalid signer address: ${args.params.signerAddress}`)
+      if (args.method === 'alph_signAndSubmitChainedTx') {
+        const signerAddresses = args.params?.map((param) => param?.signerAddress)
+        if (signerAddresses?.some((address) => address === undefined)) {
+          throw new Error('Cannot request without signerAddress in every transaction')
+        }
+      } else {
+        const signerAddress = args.params?.signerAddress
+        if (typeof signerAddress === 'undefined') {
+          throw new Error('Cannot request without signerAddress')
+        }
+        const selectedAddress = (await this.getSelectedAccount()).address
+        if (signerAddress !== selectedAddress) {
+          throw new Error(`Invalid signer address: ${args.params.signerAddress}`)
+        }
       }
     }
 
