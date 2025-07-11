@@ -16,6 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { SimulationResult } from '../api/api-alephium'
 import { ContractInstance } from './contract'
 
 export interface ExecutionResult {
@@ -37,4 +38,5 @@ export interface DeployContractExecutionResult<I extends ContractInstance = Cont
 
 export interface RunScriptResult extends ExecutionResult {
   groupIndex: number
+  simulationResult: SimulationResult
 }

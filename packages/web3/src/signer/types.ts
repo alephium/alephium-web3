@@ -34,8 +34,12 @@ export interface Destination {
 }
 assertType<Eq<keyof Destination, keyof node.Destination>>
 
-export type GroupedKeyType = 'default' | 'bip340-schnorr'
-export type GrouplessKeyType = 'gl-secp256k1' | 'gl-secp256r1' | 'gl-ed25519' | 'gl-webauthn'
+export const groupedKeyTypes = ['default', 'bip340-schnorr'] as const
+export const grouplessKeyTypes = ['gl-secp256k1', 'gl-secp256r1', 'gl-ed25519', 'gl-webauthn'] as const
+export const keyTypes = [...groupedKeyTypes, ...grouplessKeyTypes] as const
+
+export type GroupedKeyType = (typeof groupedKeyTypes)[number]
+export type GrouplessKeyType = (typeof grouplessKeyTypes)[number]
 
 export type KeyType = GroupedKeyType | GrouplessKeyType
 
@@ -54,17 +58,25 @@ export interface GrouplessAccount {
 
 export type Account = GroupedAccount | GrouplessAccount
 
+export function isGroupedKeyType(keyType: KeyType): keyType is GroupedKeyType {
+  return keyType === 'default' || keyType === 'bip340-schnorr'
+}
+
+export function isGrouplessKeyType(keyType: KeyType): keyType is GrouplessKeyType {
+  return keyType !== 'default' && keyType !== 'bip340-schnorr'
+}
+
 export function isGroupedAccount(account: Account): account is GroupedAccount {
-  return account.keyType === 'default' || account.keyType === 'bip340-schnorr'
+  return isGroupedKeyType(account.keyType)
 }
 
 export function isGrouplessAccount(account: Account): account is GrouplessAccount {
-  return account.keyType !== 'default' && account.keyType !== 'bip340-schnorr'
+  return isGrouplessKeyType(account.keyType)
 }
 
 export type SignerAddress = { signerAddress: string; signerKeyType?: KeyType }
 type TxBuildParams<T> = Omit<T, 'fromPublicKey' | 'fromPublicKeyType' | 'targetBlockHash'> & SignerAddress
-type SignResult<T> = Omit<T, 'gasPrice'> & { signature: string; gasPrice: Number256 }
+type SignResult<T> = Omit<T, 'gasPrice' | 'type'> & { signature: string; gasPrice: Number256 }
 
 export interface SignTransferTxParams {
   signerAddress: string
@@ -85,7 +97,7 @@ export interface SignTransferTxResult {
   gasAmount: number
   gasPrice: Number256
 }
-assertType<Eq<SignTransferTxResult, SignResult<node.BuildTransferTxResult>>>()
+assertType<Eq<SignTransferTxResult, SignResult<node.BuildSimpleTransferTxResult>>>()
 
 export interface SignDeployContractTxParams {
   signerAddress: string
@@ -113,7 +125,7 @@ export interface SignDeployContractTxResult {
 assertType<
   Eq<
     Omit<SignDeployContractTxResult, 'groupIndex'>,
-    Omit<SignResult<node.BuildDeployContractTxResult> & { contractId: string }, 'fromGroup' | 'toGroup'>
+    Omit<SignResult<node.BuildSimpleDeployContractTxResult> & { contractId: string }, 'fromGroup' | 'toGroup'>
   >
 >()
 
@@ -142,9 +154,29 @@ export interface SignExecuteScriptTxResult {
 assertType<
   Eq<
     Omit<SignExecuteScriptTxResult, 'groupIndex'>,
-    Omit<SignResult<node.BuildExecuteScriptTxResult>, 'fromGroup' | 'toGroup'>
+    Omit<SignResult<node.BuildSimpleExecuteScriptTxResult>, 'fromGroup' | 'toGroup'>
   >
 >()
+
+export type GrouplessBuildTxResult<
+  T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
+> = {
+  fundingTxs?: Omit<SignTransferTxResult, 'signature'>[]
+} & Omit<T, 'signature'>
+
+export type BuildTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
+  | GrouplessBuildTxResult<T>
+  | Omit<T, 'signature'>
+
+export type GrouplessSignTxResult<
+  T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult
+> = {
+  fundingTxs?: SignTransferTxResult[]
+} & T
+
+export type SignTxResult<T extends SignExecuteScriptTxResult | SignDeployContractTxResult | SignTransferTxResult> =
+  | T
+  | GrouplessSignTxResult<T>
 
 export interface SignUnsignedTxParams {
   signerAddress: string

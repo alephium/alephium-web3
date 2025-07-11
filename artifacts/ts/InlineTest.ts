@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as InlineTestContractJson } from "../test/InlineTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace InlineTestTypes {
@@ -110,7 +103,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -122,7 +115,7 @@ class Factory extends ContractFactory<
     nextCount: async (
       params: Omit<
         TestContractParamsWithoutMaps<InlineTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "nextCount", params, getContractByCodeHash);
@@ -130,7 +123,7 @@ class Factory extends ContractFactory<
     nextCountWithPay: async (
       params: Omit<
         TestContractParamsWithoutMaps<InlineTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(
@@ -143,7 +136,7 @@ class Factory extends ContractFactory<
     nextCountWithoutPay: async (
       params: Omit<
         TestContractParamsWithoutMaps<InlineTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(
@@ -170,7 +163,7 @@ export const InlineTest = new Factory(
     InlineTestContractJson,
     "=3-1+3=4+40454054=86+000100000109b413c32386f26fc10000a9a0000d2aa100a00002000000000106a0000d2aa100a00002",
     "f8d74ceeaa346ad74b340afb8b1ddf6be2e5a90384561b03f0b7161dd0e45b12",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(InlineTest);

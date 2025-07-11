@@ -73,5 +73,20 @@
       true,
       true
     ]
+  },
+  {
+    "name": "TupleTestStruct",
+    "fieldNames": [
+      "a",
+      "b"
+    ],
+    "fieldTypes": [
+      "((U256,U256),Bool)",
+      "[(U256,U256);2]"
+    ],
+    "isMutable": [
+      true,
+      false
+    ]
   }
 ]

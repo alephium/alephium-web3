@@ -28,7 +28,8 @@ import {
   Address,
   TOTAL_NUMBER_OF_GROUPS,
   binToHex,
-  TraceableError
+  TraceableError,
+  KeyType
 } from '@alephium/web3'
 import { NodeWallet, PrivateKeyWallet } from '@alephium/web3-wallet'
 import { randomBytes } from 'crypto'
@@ -85,7 +86,7 @@ function checkGroup(group: number) {
   }
 }
 
-export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promise<PrivateKeyWallet> {
+export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0, keyType?: KeyType): Promise<PrivateKeyWallet> {
   checkGroup(group)
 
   try {
@@ -95,7 +96,7 @@ export async function getSigner(alphAmount = ONE_ALPH * 100n, group = 0): Promis
     if (availableBalance < alphAmount) {
       throw new Error('Not enough balance, please restart the devnet')
     }
-    const wallet = PrivateKeyWallet.Random(group)
+    const wallet = PrivateKeyWallet.Random(group, nodeProvider, keyType)
     if (alphAmount > 0n) {
       const destinations = [{ address: wallet.address, attoAlphAmount: alphAmount }]
       await testPrivateKeyWallet.signAndSubmitTransferTx({ signerAddress: testAddress, destinations })

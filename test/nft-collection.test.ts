@@ -197,7 +197,8 @@ describe('nft collection', function () {
 
       const balanceBefore = await nodeProvider.addresses.getAddressesAddressBalance(nftCollectionInstance.address)
       expect(balanceBefore.balanceHint).toEqual('2 ALPH')
-      await WithdrawNFTCollectionTest.execute(signer, {
+      await WithdrawNFTCollectionTest.execute({
+        signer,
         initialFields: {
           collection: nftCollectionInstance.contractId,
           amount: ONE_ALPH
@@ -226,7 +227,8 @@ describe('nft collection', function () {
   ) {
     const royalty = nftCollectionTest instanceof NFTCollectionWithRoyaltyTestInstance
     await expect(nftCollectionTest.view.nftByIndex({ args: { index: tokenIndex } })).rejects.toThrow(Error)
-    await MintNFTTest.execute(signer, {
+    await MintNFTTest.execute({
+      signer,
       initialFields: {
         nftCollectionContractId: nftCollectionTest.contractId,
         uri: nftUri,
@@ -266,7 +268,7 @@ describe('nft collection', function () {
       ...initialFields,
       uri: 'https://cryptopunks.app/cryptopunks/details/1'
     }
-    await expect(MintNFTTest.execute(signer, { initialFields: invalidInitialFields0 })).rejects.toThrowError(
+    await expect(MintNFTTest.execute({ signer, initialFields: invalidInitialFields0 })).rejects.toThrowError(
       'Failed to build bytecode for script MintNFTTest, error: Failed to encode the field uri, error: Invalid hex-string: https://cryptopunks.app/cryptopunks/details/1'
     )
 
@@ -274,7 +276,7 @@ describe('nft collection', function () {
       ...initialFields,
       nftCollectionContractId: '09fdf4189d4b5d70dc02d6e3d05b6e603f9ee78ea76af61b5b0638f88333fdzz'
     }
-    await expect(MintNFTTest.execute(signer, { initialFields: invalidInitialFields1 })).rejects.toThrowError(
+    await expect(MintNFTTest.execute({ signer, initialFields: invalidInitialFields1 })).rejects.toThrowError(
       'Failed to build bytecode for script MintNFTTest, error: Failed to encode the field nftCollectionContractId, error: Invalid hex-string: 09fdf4189d4b5d70dc02d6e3d05b6e603f9ee78ea76af61b5b0638f88333fdzz'
     )
   })

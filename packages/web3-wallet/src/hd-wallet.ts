@@ -98,7 +98,25 @@ export function getHDWalletPath(keyType: KeyType, addressIndex: number): string 
   }
   // Being explicit: we always use coinType 1234 no matter the network.
   const coinType = "1234'"
-  const keyTypeNum = keyType === 'default' ? 0 : 1
+  // eslint-disable-next-line
+  const keyTypeNum = (() => {
+    switch (keyType) {
+      case 'default':
+        return 0
+      case 'bip340-schnorr':
+        return 1
+      case 'gl-secp256k1':
+        return 2
+      case 'gl-secp256r1':
+        return 3
+      case 'gl-ed25519':
+        return 4
+      case 'gl-webauthn':
+        return 5
+      default:
+        throw new Error(`Unsupported key type: ${keyType}`)
+    }
+  })()
 
   return `m/44'/${coinType}/${keyTypeNum}'/0/${addressIndex}`
 }
@@ -109,6 +127,22 @@ export function getSecp259K1Path(addressIndex: number): string {
 
 export function getSchnorrPath(addressIndex: number): string {
   return getHDWalletPath('bip340-schnorr', addressIndex)
+}
+
+export function getGlSecp256K1Path(addressIndex: number): string {
+  return getHDWalletPath('gl-secp256k1', addressIndex)
+}
+
+export function getGlSecp256R1Path(addressIndex: number): string {
+  return getHDWalletPath('gl-secp256r1', addressIndex)
+}
+
+export function getGlEd25519Path(addressIndex: number): string {
+  return getHDWalletPath('gl-ed25519', addressIndex)
+}
+
+export function getGlWebauthnPath(addressIndex: number): string {
+  return getHDWalletPath('gl-webauthn', addressIndex)
 }
 
 export type HDWalletAccount = Account & { addressIndex: number }
@@ -137,6 +171,9 @@ export class HDWallet extends SignerProviderWithCachedAccounts<HDWalletAccount> 
     super()
     this.mnemonic = mnemonic
     this.keyType = keyType ?? 'default'
+    if (this.keyType !== 'default' && this.keyType !== 'bip340-schnorr' && this.keyType !== 'gl-secp256k1') {
+      throw new Error(`Invalid key type ${keyType}`)
+    }
     this.passphrase = passphrase
     this.nodeProvider = nodeProvider ?? web3.getCurrentNodeProvider()
     this.explorerProvider = explorerProvider ?? web3.getCurrentExplorerProvider()

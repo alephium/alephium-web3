@@ -24,12 +24,13 @@ import {
   addressFromPublicKey,
   groupOfAddress,
   MessageHasher,
-  isGroupedAccount,
-  Account
+  KeyType,
+  Account,
+  isGroupedAccount
 } from '@alephium/web3'
 import {
-  deriveSchnorrPrivateKey,
-  deriveSchnorrPrivateKeyForGroup,
+  deriveHDWalletPrivateKey,
+  deriveHDWalletPrivateKeyForGroup,
   deriveSecp256K1PrivateKey,
   deriveSecp256K1PrivateKeyForGroup,
   generateMnemonic,
@@ -37,6 +38,8 @@ import {
 } from './hd-wallet'
 
 describe('HD wallet', () => {
+  const keyTypes: KeyType[] = ['default', 'bip340-schnorr', 'gl-secp256k1'] as KeyType[]
+
   beforeAll(() => {
     web3.setCurrentNodeProvider('http://127.0.0.1:22973')
   })
@@ -108,58 +111,64 @@ describe('HD wallet', () => {
     return Math.floor(Math.random() * max)
   }
 
-  it('should derive private key for groups and schnorr', () => {
+  it('should derive private key for groups', () => {
     const startIndex = getRandomInt(1024)
-    Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).forEach((group) => {
-      const [privateKey, index] = deriveSchnorrPrivateKeyForGroup(testMnemonic, group, startIndex)
-      expect(deriveSchnorrPrivateKey(testMnemonic, index)).toBe(privateKey)
-      const address = addressFromPublicKey(publicKeyFromPrivateKey(privateKey, 'bip340-schnorr'), 'bip340-schnorr')
-      expect(groupOfAddress(address)).toBe(group)
+
+    keyTypes.forEach((keyType) => {
+      Array.from(Array(TOTAL_NUMBER_OF_GROUPS).keys()).forEach((group) => {
+        const [privateKey, index] = deriveHDWalletPrivateKeyForGroup(testMnemonic, group, keyType, startIndex)
+        expect(deriveHDWalletPrivateKey(testMnemonic, keyType, index)).toBe(privateKey)
+        const address = addressFromPublicKey(publicKeyFromPrivateKey(privateKey, keyType), keyType)
+        expect(groupOfAddress(address)).toBe(group)
+      })
     })
   })
 
-  it('should derive account', async () => {
+  it('should derive account', () => {
     function groupOf(account: Account): number {
       return isGroupedAccount(account) ? account.group : groupOfAddress(account.address)
     }
-    const wallet = new HDWallet({ mnemonic: testMnemonic, passphrase: 'Alephium' })
-    const account0 = wallet.deriveAndAddNewAccount(0)
-    const account1 = wallet.deriveAndAddNewAccount(1)
-    const account2 = wallet.deriveAndAddNewAccount(2)
-    const account3 = wallet.deriveAndAddNewAccount(3)
-    expect(groupOf(account0)).toBe(0)
-    expect(groupOf(account1)).toBe(1)
-    expect(groupOf(account2)).toBe(2)
-    expect(groupOf(account3)).toBe(3)
-    expect(account0.publicKey).toEqual(
-      publicKeyFromPrivateKey('62814353f0fac259b448441898f294b17eff73ab1fd6a7fc4b8216f7e039bdce')
-    )
-    expect(account1.publicKey).toEqual(
-      publicKeyFromPrivateKey('f62df0157aec61806d51480425e1f7a4950e13fa9a2de87988ae1d861e09d2ae')
-    )
-    expect(account2.publicKey).toEqual(
-      publicKeyFromPrivateKey('cae87098274ff447f785bc408a71b3416d6140bd824e623375959cbf43d2a2d5')
-    )
-    expect(account3.publicKey).toEqual(
-      publicKeyFromPrivateKey('9fce4cb835651c8d2aeed1daead8bd04ab314d586e9b8423ee0d7a264cb8608e')
-    )
-    expect(await wallet.getAccount(account0.address)).toStrictEqual(account0)
-    expect(await wallet.getAccount(account1.address)).toStrictEqual(account1)
-    expect(await wallet.getAccount(account2.address)).toStrictEqual(account2)
-    expect(await wallet.getAccount(account3.address)).toStrictEqual(account3)
 
-    const newAccount0 = wallet.deriveAndAddNewAccount(0)
-    const newAccount1 = wallet.deriveAndAddNewAccount(1)
-    const newAccount2 = wallet.deriveAndAddNewAccount(2)
-    const newAccount3 = wallet.deriveAndAddNewAccount(3)
-    expect(groupOf(newAccount0)).toBe(0)
-    expect(groupOf(newAccount1)).toBe(1)
-    expect(groupOf(newAccount2)).toBe(2)
-    expect(groupOf(newAccount3)).toBe(3)
-    expect(newAccount0.addressIndex).toBeGreaterThan(account0.addressIndex)
-    expect(newAccount1.addressIndex).toBeGreaterThan(account1.addressIndex)
-    expect(newAccount2.addressIndex).toBeGreaterThan(account2.addressIndex)
-    expect(newAccount3.addressIndex).toBeGreaterThan(account3.addressIndex)
+    keyTypes.forEach(async (keyType) => {
+      const wallet = new HDWallet({ mnemonic: testMnemonic, passphrase: 'Alephium', keyType })
+      const account0 = wallet.deriveAndAddNewAccount(0)
+      const account1 = wallet.deriveAndAddNewAccount(1)
+      const account2 = wallet.deriveAndAddNewAccount(2)
+      const account3 = wallet.deriveAndAddNewAccount(3)
+      expect(groupOf(account0)).toBe(0)
+      expect(groupOf(account1)).toBe(1)
+      expect(groupOf(account2)).toBe(2)
+      expect(groupOf(account3)).toBe(3)
+      expect(account0.publicKey).toEqual(
+        publicKeyFromPrivateKey(deriveHDWalletPrivateKeyForGroup(testMnemonic, 0, keyType, 0, 'Alephium')[0], keyType)
+      )
+      expect(account1.publicKey).toEqual(
+        publicKeyFromPrivateKey(deriveHDWalletPrivateKeyForGroup(testMnemonic, 1, keyType, 0, 'Alephium')[0], keyType)
+      )
+      expect(account2.publicKey).toEqual(
+        publicKeyFromPrivateKey(deriveHDWalletPrivateKeyForGroup(testMnemonic, 2, keyType, 0, 'Alephium')[0], keyType)
+      )
+      expect(account3.publicKey).toEqual(
+        publicKeyFromPrivateKey(deriveHDWalletPrivateKeyForGroup(testMnemonic, 3, keyType, 0, 'Alephium')[0], keyType)
+      )
+      expect(await wallet.getAccount(account0.address)).toStrictEqual(account0)
+      expect(await wallet.getAccount(account1.address)).toStrictEqual(account1)
+      expect(await wallet.getAccount(account2.address)).toStrictEqual(account2)
+      expect(await wallet.getAccount(account3.address)).toStrictEqual(account3)
+
+      const newAccount0 = wallet.deriveAndAddNewAccount(0)
+      const newAccount1 = wallet.deriveAndAddNewAccount(1)
+      const newAccount2 = wallet.deriveAndAddNewAccount(2)
+      const newAccount3 = wallet.deriveAndAddNewAccount(3)
+      expect(groupOf(newAccount0)).toBe(0)
+      expect(groupOf(newAccount1)).toBe(1)
+      expect(groupOf(newAccount2)).toBe(2)
+      expect(groupOf(newAccount3)).toBe(3)
+      expect(newAccount0.addressIndex).toBeGreaterThan(account0.addressIndex)
+      expect(newAccount1.addressIndex).toBeGreaterThan(account1.addressIndex)
+      expect(newAccount2.addressIndex).toBeGreaterThan(account2.addressIndex)
+      expect(newAccount3.addressIndex).toBeGreaterThan(account3.addressIndex)
+    })
   })
 
   const message = '09282cae7d2a81d8e6a5d436dc64bd2eaefeaaef1d086739bf6be4d37be0ad3a'
@@ -194,5 +203,12 @@ describe('HD wallet', () => {
     await test(wallet, 'blake2b')
     await test(wallet, 'sha256')
     await test(wallet, 'identity')
+  })
+
+  it('should check key type', () => {
+    const invalidKeyTypes: KeyType[] = ['gl-ed25519', 'gl-secp256r1', 'gl-webauthn']
+    invalidKeyTypes.forEach((keyType) => {
+      expect(() => new HDWallet({ mnemonic: testMnemonic, keyType })).toThrow('Invalid key type')
+    })
   })
 })

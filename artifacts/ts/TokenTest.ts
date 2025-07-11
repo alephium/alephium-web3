@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as TokenTestContractJson } from "../token/TokenTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace TokenTestTypes {
@@ -121,7 +114,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -133,7 +126,7 @@ class Factory extends ContractFactory<
     getSymbol: async (
       params: Omit<
         TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getSymbol", params, getContractByCodeHash);
@@ -141,7 +134,7 @@ class Factory extends ContractFactory<
     getName: async (
       params: Omit<
         TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getName", params, getContractByCodeHash);
@@ -149,7 +142,7 @@ class Factory extends ContractFactory<
     getDecimals: async (
       params: Omit<
         TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getDecimals", params, getContractByCodeHash);
@@ -157,7 +150,7 @@ class Factory extends ContractFactory<
     getTotalSupply: async (
       params: Omit<
         TestContractParamsWithoutMaps<TokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalSupply", params, getContractByCodeHash);
@@ -179,7 +172,7 @@ export const TokenTest = new Factory(
     TokenTestContractJson,
     "",
     "a2800413eb2c5c23d48068db23df5f8eeaba04653e12c8ed59d589720d96dadd",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(TokenTest);
