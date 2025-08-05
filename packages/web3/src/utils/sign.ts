@@ -38,7 +38,7 @@ necc.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8A
 
 function checkKeyType(keyType: KeyType) {
   if (keyType !== 'default' && keyType !== 'bip340-schnorr' && keyType !== 'gl-secp256k1') {
-    throw new Error(`Invalid key type ${keyType}`)
+    throw new Error(`Invalid key type ${keyType}, only supports secp256k1 and schnorr for now`)
   }
 }
 
