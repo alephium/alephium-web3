@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { BlockSubscribeOptions, BlockSubscriptionBase, ReorgCallback } from './block'
+import { BlockSubscribeOptions, BlockSubscriptionBase, ReorgCallback, waitForBlockFromGroupAndRetry } from './block'
 import * as node from '../api/api-alephium'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 
@@ -162,4 +162,85 @@ describe('block subscription', function () {
       this.blockByHash = buildBlockByHashMap(chains)
     }
   }
+})
+
+describe('waitForBlockFromGroupAndRetry', function () {
+  it('should wait for block from target group and execute action when found', async () => {
+    let callCount = 0
+    const block1 = {
+      hash: 'test-block-1',
+      timestamp: Date.now(),
+      chainFrom: 1, // Different group
+      chainTo: 1,
+      height: 1,
+      deps: [],
+      transactions: [],
+      nonce: '',
+      version: 0,
+      depStateHash: '',
+      txsHash: '',
+      target: '',
+      ghostUncles: []
+    }
+    const block2 = {
+      ...block1,
+      hash: 'test-block-2',
+      chainFrom: 2, // Target group
+      chainTo: 2
+    }
+    const mockNodeProvider = {
+      blockflow: {
+        getBlockflowBlocks: jest.fn().mockImplementation(() => {
+          callCount++
+          if (callCount <= 2) {
+            return Promise.resolve({
+              blocks: [[block1]]
+            })
+          } else {
+            return Promise.resolve({
+              blocks: [[block1, block2]]
+            })
+          }
+        })
+      }
+    } as any
+
+    const action = jest.fn().mockResolvedValue('success')
+    const result = await waitForBlockFromGroupAndRetry(2, action, mockNodeProvider, 100)
+    expect(result).toBe('success')
+    expect(action).toHaveBeenCalledTimes(1)
+    expect(callCount).toBeGreaterThan(2)
+  })
+
+  it('should handle action errors', async () => {
+    const mockNodeProvider = {
+      blockflow: {
+        getBlockflowBlocks: jest.fn().mockResolvedValue({
+          blocks: [
+            [
+              {
+                hash: 'test-block',
+                timestamp: Date.now(),
+                chainFrom: 1,
+                chainTo: 1,
+                height: 1,
+                deps: [],
+                transactions: [],
+                nonce: '',
+                version: 0,
+                depStateHash: '',
+                txsHash: '',
+                target: '',
+                ghostUncles: []
+              }
+            ]
+          ]
+        })
+      }
+    } as any
+
+    const action = jest.fn().mockRejectedValue(new Error('Action failed'))
+    await expect(waitForBlockFromGroupAndRetry(1, action, mockNodeProvider, 500)).rejects.toThrow('Action failed')
+    expect(action).toHaveBeenCalledTimes(1)
+  })
 })

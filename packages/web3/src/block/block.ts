@@ -180,3 +180,35 @@ export class BlockSubscription extends BlockSubscriptionBase {
     }
   }
 }
+
+export async function waitForBlockFromGroupAndRetry<T>(
+  fromGroup: number,
+  action: () => Promise<T>,
+  nodeProvider?: NodeProvider,
+  pollingInterval?: number
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const options: BlockSubscribeOptions = {
+      pollingInterval: pollingInterval ?? 1000,
+      messageCallback: async (blocks: node.BlockEntry[]) => {
+        const hasBlockFromGroup = blocks.some((block) => block.chainFrom === fromGroup)
+        if (hasBlockFromGroup) {
+          subscription.unsubscribe()
+          try {
+            const result = await action()
+            resolve(result)
+          } catch (error) {
+            reject(error)
+          }
+        }
+      },
+      errorCallback: (err: any) => {
+        subscription.unsubscribe()
+        reject(err)
+      }
+    }
+
+    const subscription = new BlockSubscription(options, Date.now(), nodeProvider)
+    subscription.subscribe()
+  })
+}

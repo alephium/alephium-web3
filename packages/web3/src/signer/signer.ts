@@ -48,6 +48,7 @@ import {
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
+import { waitForBlockFromGroupAndRetry } from '../block'
 
 export abstract class SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
@@ -165,7 +166,16 @@ export abstract class SignerProviderSimple extends SignerProvider {
   override async signAndSubmitChainedTx(params: SignChainedTxParams[]): Promise<SignChainedTxResult[]> {
     const signResults = await this.signChainedTx(params)
     for (const r of signResults) {
-      await this.submitTransaction(r)
+      const fromGroup = r.type === 'Transfer' ? r.fromGroup : r.groupIndex
+      try {
+        await this.submitTransaction(r)
+      } catch (error: any) {
+        if (error.toString().includes('NonExistInput')) {
+          await waitForBlockFromGroupAndRetry(fromGroup, () => this.submitTransaction(r), this.nodeProvider)
+        } else {
+          throw error
+        }
+      }
     }
     return signResults
   }
