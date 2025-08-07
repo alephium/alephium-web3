@@ -41,7 +41,9 @@ import {
   ZERO_ADDRESS,
   MINIMAL_CONTRACT_DEPOSIT,
   getDebugMessagesFromTx,
-  getContractCodeByCodeHash
+  getContractCodeByCodeHash,
+  SignDeployContractTxResult,
+  TOTAL_NUMBER_OF_GROUPS
 } from '../packages/web3'
 import { Contract, Script, getContractIdFromUnsignedTx } from '../packages/web3'
 import {
@@ -81,9 +83,11 @@ import {
   MapTestWrapper,
   MapTestSub,
   UserAccountTypes,
-  InlineTest
+  InlineTest,
+  AutoFund,
+  TupleTest
 } from '../artifacts/ts'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomInt } from 'crypto'
 import { TokenBalance } from '../artifacts/ts/types'
 import { ProjectArtifact, Project } from '../packages/cli/src/project'
 import { A, Addresses, B, ByteVecs, AssertError, Numbers, ConstantTrue, ConstantFalse } from '../artifacts/ts/constants'
@@ -130,7 +134,7 @@ describe('contract', function () {
     const subState = Sub.stateForTest({ result: 0n })
     const testResult = await Add.tests.add({
       initialFields: { sub: subState.contractId, result: 0n },
-      testArgs: { array: [2n, 1n] },
+      args: { array: [2n, 1n] },
       existingContracts: [subState]
     })
     expect(testResult.returns).toEqual([3n, 1n])
@@ -173,7 +177,7 @@ describe('contract', function () {
 
     const testResultPrivate = await Add.tests.addPrivate({
       initialFields: { sub: subState.contractId, result: 0n },
-      testArgs: { array: [2n, 1n] },
+      args: { array: [2n, 1n] },
       existingContracts: [subState]
     })
     expect(testResultPrivate.returns).toEqual([3n, 1n])
@@ -197,7 +201,7 @@ describe('contract', function () {
     expect(addContractState0.address).toEqual(add.address)
     expect(addContractState0.contractId).toEqual(add.contractId)
 
-    const mainScriptTx = await AddMain.execute(signer, { initialFields: { add: add.contractId, array: [2n, 1n] } })
+    const mainScriptTx = await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
 
     // Check state for add/sub after main script is executed
@@ -232,7 +236,7 @@ describe('contract', function () {
     expect(contractState.address).toEqual(greeter.address)
     expect(contractState.contractId).toEqual(greeter.contractId)
 
-    const mainScriptTx = await GreeterMain.execute(signer, { initialFields: { greeterContractId: greeter.contractId } })
+    const mainScriptTx = await GreeterMain.execute({ signer, initialFields: { greeterContractId: greeter.contractId } })
     expect(mainScriptTx.groupIndex).toEqual(signerGroup)
   })
 
@@ -248,10 +252,10 @@ describe('contract', function () {
     )
     const payer = signer.address
     const testResult = await Add.tests.createSubContract({
-      address: addAddress,
+      contractAddress: addAddress,
       group: groupIndex,
       initialFields: { sub: subState.contractId, result: 0n },
-      testArgs: { a: 0n, path: subContractPath, subContractId: subState.contractId, payer },
+      args: { a: 0n, path: subContractPath, subContractId: subState.contractId, payer },
       existingContracts: [subState],
       inputAssets: [{ address: payer, asset: { alphAmount: ONE_ALPH * 2n } }]
     })
@@ -278,13 +282,13 @@ describe('contract', function () {
 
   it('should load source files by order', async () => {
     const sourceFiles = await Project['loadSourceFiles']('.', './contracts') // `loadSourceFiles` is a private method
-    expect(sourceFiles.length).toEqual(62)
-    sourceFiles.slice(0, 29).forEach((c) => expect(c.type).toEqual(0)) // contracts
-    sourceFiles.slice(29, 47).forEach((s) => expect(s.type).toEqual(1)) // scripts
-    sourceFiles.slice(47, 49).forEach((i) => expect(i.type).toEqual(2)) // abstract class
-    sourceFiles.slice(49, 56).forEach((i) => expect(i.type).toEqual(3)) // interfaces
-    sourceFiles.slice(59, 56).forEach((i) => expect(i.type).toEqual(4)) // structs
-    expect(sourceFiles[61].type).toEqual(5) // constants
+    expect(sourceFiles.length).toEqual(65)
+    sourceFiles.slice(0, 31).forEach((c) => expect(c.type).toEqual(0)) // contracts
+    sourceFiles.slice(31, 49).forEach((s) => expect(s.type).toEqual(1)) // scripts
+    sourceFiles.slice(49, 51).forEach((i) => expect(i.type).toEqual(2)) // abstract class
+    sourceFiles.slice(51, 58).forEach((i) => expect(i.type).toEqual(3)) // interfaces
+    sourceFiles.slice(60, 57).forEach((i) => expect(i.type).toEqual(4)) // structs
+    expect(sourceFiles[64].type).toEqual(5) // constants
   })
 
   it('should load contract from json', () => {
@@ -334,19 +338,20 @@ describe('contract', function () {
     expect(Numbers.C).toEqual((1n << 256n) - 1n)
 
     const contractAddress = randomContractAddress()
-    expectAssertionError(Assert.tests.test({ address: contractAddress }), contractAddress, AssertError)
+    expectAssertionError(Assert.tests.test({ contractAddress }), contractAddress, AssertError)
 
     const assertDeployResult = await Assert.deploy(signer, { initialFields: {}, exposePrivateFunctions })
     const assertAddress = assertDeployResult.contractInstance.address
 
     expectAssertionError(
-      TestAssert.execute(signer, { initialFields: { assert: assertAddress } }),
+      TestAssert.execute({ signer, initialFields: { assert: assertAddress } }),
       assertAddress,
       AssertError
     )
 
     expectAssertionError(
-      TestAssert.execute(signer, {
+      TestAssert.execute({
+        signer,
         initialFields: { assert: assertAddress },
         gasAmount: DEFAULT_GAS_AMOUNT
       }),
@@ -431,7 +436,8 @@ describe('contract', function () {
   })
 
   it('should support template array variables in script', async () => {
-    await TemplateArrayVar.execute(signer, {
+    await TemplateArrayVar.execute({
+      signer,
       initialFields: {
         address: testAddress,
         numbers0: [
@@ -450,15 +456,15 @@ describe('contract', function () {
 
     const test0 = OwnerOnly.tests.testOwner({
       initialFields: { owner: parentAddress },
-      address: address,
-      callerAddress: randomContractAddress()
+      contractAddress: address,
+      callerContractAddress: randomContractAddress()
     })
     expectAssertionError(test0, address, 0)
 
     const test1 = await OwnerOnly.tests.testOwner({
       initialFields: { owner: parentAddress },
-      address: address,
-      callerAddress: parentAddress
+      contractAddress: address,
+      callerContractAddress: parentAddress
     })
     // expectAssertionError(test2, address, 0)
     expect(test1.returns).toEqual(null)
@@ -484,7 +490,8 @@ describe('contract', function () {
     const balances0 = await result.contractInstance.view.getBalances()
     expect(balances0.returns).toEqual(initialFields.balances)
 
-    await UpdateUserAccount.execute(signer, {
+    await UpdateUserAccount.execute({
+      signer,
       initialFields: {
         address: signer.address,
         account: result.contractInstance.contractId,
@@ -503,7 +510,7 @@ describe('contract', function () {
 
   it('should test map(unit test)', async () => {
     const insertResult = await MapTest.tests.insert({
-      testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
+      args: { key: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }]
     })
     expect(insertResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 10n })
@@ -516,7 +523,7 @@ describe('contract', function () {
         map1: new Map([[1n, 10n]]),
         map2: new Map([['0011', 10n]])
       },
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
     expect(updateResult.maps?.map0?.get(signer.address)).toEqual({ id: 1n, balance: 11n })
@@ -529,7 +536,7 @@ describe('contract', function () {
         map1: new Map([[1n, 10n]]),
         map2: new Map([['0011', 10n]])
       },
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }]
     })
     expect(removeResult.maps?.map0?.get(signer.address)).toEqual(undefined)
@@ -541,7 +548,7 @@ describe('contract', function () {
     const mapTestId = randomContractId()
     const mapTestAddress = addressFromContractId(mapTestId)
     const insertResult = await MapTestWrapper.tests.insert({
-      testArgs: { key: signer.address, value: { id: 1n, balance: 10n } },
+      args: { key: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }],
       initialFields: { inner: mapTestId },
       existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
@@ -552,7 +559,7 @@ describe('contract', function () {
     expect(mapTestState0.maps?.map2?.get('0011')).toEqual(10n)
 
     const updateResult = await MapTestWrapper.tests.update({
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialFields: { inner: mapTestId },
       existingContracts: [
@@ -569,7 +576,7 @@ describe('contract', function () {
     expect(mapTestState1.maps?.map2?.get('0011')).toEqual(11n)
 
     const removeResult = await MapTestWrapper.tests.remove({
-      testArgs: { key: signer.address },
+      args: { key: signer.address },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialFields: { inner: mapTestId },
       existingContracts: [
@@ -590,7 +597,7 @@ describe('contract', function () {
     const mapTestId = randomContractId()
     const mapTestAddress = addressFromContractId(mapTestId)
     const initResult = await MapTestSub.tests.init({
-      testArgs: { caller: signer.address, value: { id: 1n, balance: 10n } },
+      args: { caller: signer.address, value: { id: 1n, balance: 10n } },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH * 3n } }],
       initialFields: { mapTestTemplateId: mapTestId },
       existingContracts: [MapTest.stateForTest({}, undefined, mapTestAddress)]
@@ -605,7 +612,8 @@ describe('contract', function () {
     const result = await MapTest.deploy(signer, { initialFields: {}, exposePrivateFunctions })
 
     const mapTest = result.contractInstance
-    await InsertIntoMap.execute(signer, {
+    await InsertIntoMap.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         from: signer.address,
@@ -625,7 +633,8 @@ describe('contract', function () {
     expect(await mapTest.maps.map2.contains('0011')).toEqual(true)
     expect(await mapTest.maps.map2.get('0011')).toEqual(10n)
 
-    await UpdateMapValue.execute(signer, {
+    await UpdateMapValue.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         key: signer.address
@@ -636,7 +645,8 @@ describe('contract', function () {
     expect(await mapTest.maps.map1.get(1n)).toEqual(11n)
     expect(await mapTest.maps.map2.get('0011')).toEqual(11n)
 
-    await RemoveFromMap.execute(signer, {
+    await RemoveFromMap.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         key: signer.address
@@ -792,10 +802,10 @@ describe('contract', function () {
     expect(encoded.encodedImmFields).toEqual(encodedImmFields)
     expect(encoded.encodedMutFields).toEqual(encodedMutFields)
 
-    const result = await signer.signAndSubmitDeployContractTx({
+    const result = (await signer.signAndSubmitDeployContractTx({
       signerAddress: signer.address,
       bytecode: UserAccount.contract.bytecode + binToHex(encodedImmFields) + binToHex(encodedMutFields)
-    })
+    })) as SignDeployContractTxResult
     const contractInstance = UserAccount.at(result.contractAddress)
     expect((await contractInstance.fetchState()).fields).toEqual(contractFields)
   })
@@ -803,7 +813,8 @@ describe('contract', function () {
   it('should call TxScript', async () => {
     const result0 = await MapTest.deploy(signer, { initialFields: {}, exposePrivateFunctions })
     const mapTest = result0.contractInstance
-    await InsertIntoMap.execute(signer, {
+    await InsertIntoMap.execute({
+      signer,
       initialFields: {
         mapTest: mapTest.contractId,
         from: signer.address,
@@ -922,7 +933,7 @@ describe('contract', function () {
   it('should test inline functions(unit test)', async () => {
     const contractAddress = randomContractAddress()
     const result0 = await InlineTest.tests.nextCountWithPay({
-      address: contractAddress,
+      contractAddress: contractAddress,
       initialFields: { count: 0n },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialAsset: { alphAmount: ONE_ALPH }
@@ -932,7 +943,7 @@ describe('contract', function () {
     expect(assets0.alphAmount).toEqual(ONE_ALPH + ONE_ALPH / 100n)
 
     const result1 = await InlineTest.tests.nextCountWithoutPay({
-      address: contractAddress,
+      contractAddress: contractAddress,
       initialFields: { count: 0n },
       initialAsset: { alphAmount: ONE_ALPH }
     })
@@ -941,7 +952,7 @@ describe('contract', function () {
     expect(assets1.alphAmount).toEqual(ONE_ALPH)
 
     const result2 = await InlineTest.tests.nextCount({
-      address: contractAddress,
+      contractAddress: contractAddress,
       initialFields: { count: 0n },
       inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
       initialAsset: { alphAmount: ONE_ALPH }
@@ -972,5 +983,79 @@ describe('contract', function () {
     const state2 = await instance.fetchState()
     expect(state2.fields.count).toEqual(4n)
     expect(state2.asset.alphAmount).toEqual(ONE_ALPH + (ONE_ALPH / 100n) * 2n)
+  })
+
+  it('should test auto fund', async () => {
+    for (let num = 0; num <= 3; num += 1) {
+      await AutoFund.tests.insert({
+        inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+        args: { num: BigInt(num) }
+      })
+    }
+    for (let num = 4; num <= 6; num += 1) {
+      await expect(
+        AutoFund.tests.insert({
+          inputAssets: [{ address: signer.address, asset: { alphAmount: ONE_ALPH } }],
+          args: { num: BigInt(num) }
+        })
+      ).rejects.toThrow('Test failed due to insufficient funds to cover the dust amount')
+    }
+  })
+
+  it('should call tx script with the correct group index', async () => {
+    const targetGroup = randomInt(0, TOTAL_NUMBER_OF_GROUPS)
+    const signer = await getSigner(undefined, targetGroup, 'gl-secp256k1')
+
+    for (let group = 0; group < TOTAL_NUMBER_OF_GROUPS; group += 1) {
+      const deployer = await getSigner(undefined, group)
+      const deployResult0 = await Sub.deploy(deployer, { initialFields: { result: 0n } })
+      const sub = deployResult0.contractInstance
+      expect(sub.groupIndex).toEqual(group)
+
+      const tx0 = await sub.transact.sub({ args: { array: [2n, 1n] }, signer })
+      expect(tx0.groupIndex).toEqual(group)
+      const subState = await sub.fetchState()
+      expect(subState.fields.result).toEqual(1n)
+
+      const deployResult1 = await Add.deploy(deployer, { initialFields: { sub: sub.contractId, result: 0n } })
+      const add = deployResult1.contractInstance
+      expect(add.groupIndex).toEqual(group)
+
+      const tx1 = await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+      expect(tx1.groupIndex).toEqual(group)
+      const addState = await add.fetchState()
+      expect(addState.fields.result).toEqual(3n)
+    }
+  })
+
+  it('should test tuple', async () => {
+    const deployResult = await TupleTest.deploy(signer, {
+      initialFields: {
+        value: [
+          0n,
+          {
+            a: [[1n, 2n], false],
+            b: [
+              [3n, 4n],
+              [5n, 6n]
+            ]
+          }
+        ]
+      }
+    })
+    const tupleInstance = deployResult.contractInstance
+    expect((await tupleInstance.view.getA0()).returns).toEqual([1n, 2n])
+    expect((await tupleInstance.view.getB()).returns).toEqual([
+      [3n, 4n],
+      [5n, 6n]
+    ])
+    expect((await tupleInstance.view.test()).returns).toEqual([7n, false])
+    await tupleInstance.transact.updateValue0({ signer, args: { v: 1n } })
+    expect((await tupleInstance.fetchState()).fields.value[0]).toEqual(1n)
+    await tupleInstance.transact.updateA0({ signer, args: { v: [7n, 8n] } })
+    expect((await tupleInstance.fetchState()).fields.value[1].a[0]).toEqual([7n, 8n])
+    await tupleInstance.transact.updateA1({ signer, args: { v: true } })
+    expect((await tupleInstance.fetchState()).fields.value[1].a[1]).toEqual(true)
+    expect((await tupleInstance.view.test()).returns).toEqual([15n, true])
   })
 })

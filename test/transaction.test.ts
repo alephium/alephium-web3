@@ -16,7 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { DappTransactionBuilder, SignTransferChainedTxParams, subscribeToTxStatus } from '../packages/web3'
+import {
+  DappTransactionBuilder,
+  SignDeployContractTxResult,
+  SignExecuteScriptTxResult,
+  SignTransferChainedTxParams,
+  subscribeToTxStatus
+} from '../packages/web3'
 import { node, ONE_ALPH, DUST_AMOUNT, MINIMAL_CONTRACT_DEPOSIT } from '../packages/web3'
 import { SubscribeOptions, sleep } from '../packages/web3'
 import { web3 } from '../packages/web3'
@@ -42,7 +48,7 @@ describe('transactions', function () {
       initialFields: { result: 0n },
       initialTokenAmounts: []
     })
-    const subDeployTx = await signer.buildDeployContractTx(txParams)
+    const subDeployTx = (await signer.buildDeployContractTx(txParams)) as SignDeployContractTxResult
 
     let txStatus: TxStatus | undefined = undefined
     let counter = 0
@@ -101,7 +107,7 @@ describe('transactions', function () {
     ).contractInstance
     expect((await addInstance.fetchState()).fields.result).toBe(0n)
 
-    await AddMain.execute(schnorrSigner, { initialFields: { add: addInstance.contractId, array: [2n, 1n] } })
+    await AddMain.execute({ signer: schnorrSigner, initialFields: { add: addInstance.contractId, array: [2n, 1n] } })
     expect((await addInstance.fetchState()).fields.result).toBe(3n)
   })
 
@@ -229,7 +235,8 @@ describe('transactions', function () {
     expect(transactInstance.groupIndex).toBe(2)
 
     await wallet.setSelectedAccount(account2.address)
-    const depositAlphTxParams = await Deposit.script.txParamsForExecution(wallet, {
+    const depositAlphTxParams = await Deposit.script.txParamsForExecution({
+      signer: wallet,
       initialFields: { c: transactInstance.contractId },
       attoAlphAmount: ONE_ALPH
     })
@@ -238,7 +245,8 @@ describe('transactions', function () {
       `[API Error] - Insufficient funds for gas`
     )
 
-    const depositTokenTxParams = await DepositToken.script.txParamsForExecution(wallet, {
+    const depositTokenTxParams = await DepositToken.script.txParamsForExecution({
+      signer: wallet,
       initialFields: { c: transactInstance.contractId, tokenId, amount: 5n },
       attoAlphAmount: DUST_AMOUNT,
       tokens: [{ id: tokenId, amount: 5n }]
@@ -300,7 +308,8 @@ describe('transactions', function () {
     expect(BigInt(account1BalanceBefore.balance)).toBe(ONE_ALPH / 2n)
 
     await wallet.setSelectedAccount(account1.address)
-    const depositTxParams = await Deposit.script.txParamsForExecution(wallet, {
+    const depositTxParams = await Deposit.script.txParamsForExecution({
+      signer: wallet,
       initialFields: { c: transactInstance.contractId },
       attoAlphAmount: ONE_ALPH + DUST_AMOUNT * 3n
     })
@@ -309,7 +318,8 @@ describe('transactions', function () {
       `Failed to request postContractsUnsignedTxExecuteScript, error: [API Error] - Execution error when emulating tx script or contract: Not enough approved balance for address ${account1.address}, tokenId: ALPH, expected: 1000000000000000000, got: 498000000000000000 - Status code: 400`
     )
 
-    const withdrawTxParams = await Withdraw.script.txParamsForExecution(wallet, {
+    const withdrawTxParams = await Withdraw.script.txParamsForExecution({
+      signer: wallet,
       initialFields: { c: transactInstance.contractId }
     })
 
@@ -384,7 +394,7 @@ describe('transactions', function () {
         attoAlphAmount: ONE_ALPH
       })
       .getResult()
-    const tx0 = await signer.signAndSubmitExecuteScriptTx(unsignedTx0)
+    const tx0 = (await signer.signAndSubmitExecuteScriptTx(unsignedTx0)) as SignExecuteScriptTxResult
     const balance0 = await nodeProvider.addresses.getAddressesAddressBalance(signer.address)
     expect(BigInt(tokenBalance(balance0, tokenId)!)).toEqual(ONE_ALPH * 10n)
     expect(BigInt(balance0.balance)).toEqual(
@@ -421,7 +431,7 @@ describe('transactions', function () {
         retLength: 1
       })
       .getResult()
-    const tx1 = await signer.signAndSubmitExecuteScriptTx(unsignedTx1)
+    const tx1 = (await signer.signAndSubmitExecuteScriptTx(unsignedTx1)) as SignExecuteScriptTxResult
     const balance1 = await nodeProvider.addresses.getAddressesAddressBalance(signer.address)
     expect(BigInt(tokenBalance(balance1, tokenId)!)).toEqual(ONE_ALPH * 9n)
     expect(BigInt(balance1.balance)).toEqual(

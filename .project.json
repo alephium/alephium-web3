@@ -8,7 +8,8 @@
     "ignoreUpdateFieldsCheckWarnings": false,
     "ignoreCheckExternalCallerWarnings": false,
     "ignoreUnusedFunctionReturnWarnings": false,
-    "skipAbstractContractCheck": false
+    "skipAbstractContractCheck": false,
+    "skipTests": false
   },
   "infos": {
     "Add": {
@@ -40,6 +41,12 @@
       "sourceCodeHash": "2cb837275917553343581f13e3c2e33a5943ae1483b887408ff97f93d6f12d3f",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "46dc5e3835be6551dacbf81565912ec67575aa77522312ceed88472817735d6b"
+    },
+    "AutoFund": {
+      "sourceFile": "test/auto_fund.ral",
+      "sourceCodeHash": "befbef42289cb5d3a438bbddfe81724cb3b028f950e9ed2d3256a38092b2e61d",
+      "bytecodeDebugPatch": "=6-2+59=11-1+9=53-1+f=34+7a7e0214696e73657274206174206d617020706174683a2000=27-1+d",
+      "codeHashDebug": "04ee1668e2b37f74641ecaf98e8d34dd3384afe2c140bdbd4275cb36d62ae185"
     },
     "Balances": {
       "sourceFile": "test/struct.ral",
@@ -295,7 +302,7 @@
     },
     "Sub": {
       "sourceFile": "sub/sub.ral",
-      "sourceCodeHash": "c8b669babea2f36bdb8f92afb17747bfb9eecb13ac17c5a02388426c91a4434e",
+      "sourceCodeHash": "0c0d51a2a668da04bf33fdf71fa1d60386d6e06b0e15cb7f75e416d7542ccf56",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "3461ebfaca02ad0a3f587a5b67a461c0cbd82d14261407b1d9277ed4ad129234"
     },
@@ -334,6 +341,18 @@
       "sourceCodeHash": "732c5dee7df9c1362a8b97ec6308c94e38795d15341b900563b0005cb2c5261c",
       "bytecodeDebugPatch": "",
       "codeHashDebug": "0b6427253638fa8f32b04e7c5915d41d51b0148a8e219e4881eba5548a42ae41"
+    },
+    "TupleTest": {
+      "sourceFile": "test/tuple.ral",
+      "sourceCodeHash": "ce1bb866f6eb6f4a214d6aacc495b1224d418146f1ebab755c62face3fb36ae1",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": "c9f53cc60bdedd52071b1cb97dfe410eba63556bc7fce2e20e912c6a013eac9c"
+    },
+    "TupleTestStruct": {
+      "sourceFile": "test/tuple.ral",
+      "sourceCodeHash": "ce1bb866f6eb6f4a214d6aacc495b1224d418146f1ebab755c62face3fb36ae1",
+      "bytecodeDebugPatch": "",
+      "codeHashDebug": ""
     },
     "UpdateMapValue": {
       "sourceFile": "test/map.ral",

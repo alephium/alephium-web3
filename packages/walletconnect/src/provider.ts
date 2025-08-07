@@ -52,7 +52,10 @@ import {
   SignChainedTxResult,
   TraceableError,
   isGroupedAccount,
-  isGrouplessAccount
+  isGrouplessAccount,
+  keyTypes,
+  isGroupedKeyType,
+  KeyType
 } from '@alephium/web3'
 
 import { ALEPHIUM_DEEP_LINK, LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -558,13 +561,18 @@ export function formatAccount(permittedChain: string, account: Account): string 
 }
 
 export function parseAccount(account: string): Account & { networkId: NetworkId } {
-  const [_namespace, networkId, _group, publicKey, keyType] = account.replace(/\//g, ':').split(':')
-  const address = addressFromPublicKey(publicKey)
-  const group = groupOfAddress(address)
-  if (keyType !== 'default' && keyType !== 'bip340-schnorr') {
-    throw Error(`Invalid key type: ${keyType}`)
+  const [_namespace, networkId, _group, publicKey, _keyType] = account.replace(/\//g, ':').split(':')
+  if (!(keyTypes as readonly string[]).includes(_keyType)) {
+    throw Error(`Invalid key type: ${_keyType}`)
   }
-  return { address, group, publicKey, keyType, networkId: networkId as NetworkId }
+  const keyType = _keyType as KeyType
+  const address = addressFromPublicKey(publicKey, keyType)
+  if (isGroupedKeyType(keyType)) {
+    const group = groupOfAddress(address)
+    return { address, group, publicKey, keyType, networkId: networkId as NetworkId }
+  } else {
+    return { address, publicKey, keyType, networkId: networkId as NetworkId }
+  }
 }
 
 function redirectToDeepLink() {

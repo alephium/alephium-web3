@@ -1,0 +1,37 @@
+{
+  "version": "v4.0.0",
+  "name": "AutoFund",
+  "bytecode": "00014040010101020017d3f59c1e39b413c4016345785d8a0000a90c170116011600314c0dca140a5f5f6d61705f5f305f5f16014044b11601d2010116010d2a17014a2f",
+  "codeHash": "a151f4b64bd66f02b83826d4aa26a0d1030f959f88fc8cb7579a55feaeee5869",
+  "fieldsSig": {
+    "names": [],
+    "types": [],
+    "isMutable": []
+  },
+  "eventsSig": [],
+  "functions": [
+    {
+      "name": "insert",
+      "paramNames": [
+        "num"
+      ],
+      "paramTypes": [
+        "U256"
+      ],
+      "paramIsMutable": [
+        false
+      ],
+      "returnTypes": []
+    }
+  ],
+  "constants": [],
+  "enums": [],
+  "mapsSig": {
+    "names": [
+      "map"
+    ],
+    "types": [
+      "Map[U256,U256]"
+    ]
+  }
+}

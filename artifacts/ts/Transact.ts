@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as TransactContractJson } from "../test/Transact.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace TransactTypes {
@@ -133,7 +126,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -145,7 +138,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     deposit: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "deposit", params, getContractByCodeHash);
@@ -153,7 +146,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     withdraw: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "withdraw", params, getContractByCodeHash);
@@ -177,7 +170,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     getTotalALPH: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalALPH", params, getContractByCodeHash);
@@ -185,7 +178,7 @@ class Factory extends ContractFactory<TransactInstance, TransactTypes.Fields> {
     getTotalTokens: async (
       params: Omit<
         TestContractParamsWithoutMaps<TransactTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalTokens", params, getContractByCodeHash);
@@ -207,7 +200,7 @@ export const Transact = new Factory(
     TransactContractJson,
     "",
     "0b6427253638fa8f32b04e7c5915d41d51b0148a8e219e4881eba5548a42ae41",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(Transact);

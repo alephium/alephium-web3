@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as NFTCollectionTestContractJson } from "../nft/NFTCollectionTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace NFTCollectionTestTypes {
@@ -131,7 +124,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -143,7 +136,7 @@ class Factory extends ContractFactory<
     getCollectionUri: async (
       params: Omit<
         TestContractParamsWithoutMaps<NFTCollectionTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(
@@ -156,7 +149,7 @@ class Factory extends ContractFactory<
     totalSupply: async (
       params: Omit<
         TestContractParamsWithoutMaps<NFTCollectionTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "totalSupply", params, getContractByCodeHash);
@@ -202,7 +195,7 @@ export const NFTCollectionTest = new Factory(
     NFTCollectionTestContractJson,
     "",
     "087f9292bb326a4d39a6fac09928cb25edf2837718f830f3a166a937f8724779",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(NFTCollectionTest);

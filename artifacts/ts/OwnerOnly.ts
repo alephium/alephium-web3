@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as OwnerOnlyContractJson } from "../test/OwnerOnly.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace OwnerOnlyTypes {
@@ -94,7 +87,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -106,7 +99,7 @@ class Factory extends ContractFactory<
     testOwner: async (
       params: Omit<
         TestContractParamsWithoutMaps<OwnerOnlyTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "testOwner", params, getContractByCodeHash);
@@ -128,7 +121,7 @@ export const OwnerOnly = new Factory(
     OwnerOnlyContractJson,
     "",
     "c8ecfd7b7e1f3d0169d80e0abb59702516eeff301d47e0e7be70a631bd9414ca",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(OwnerOnly);

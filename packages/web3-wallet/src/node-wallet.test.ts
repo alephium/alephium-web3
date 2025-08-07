@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { web3 } from '@alephium/web3'
+import { SignTransferTxResult, web3 } from '@alephium/web3'
 import { randomBytes } from 'crypto'
 import { NodeWallet } from './node-wallet'
 import { testNodeWallet } from '@alephium/web3-test'
@@ -46,10 +46,10 @@ describe('node wallet', () => {
     const toAccount = accounts[0]
     for (const fromAccount of accounts) {
       await wallet.setSelectedAccount(fromAccount.address)
-      const tx = await wallet.buildTransferTx({
+      const tx = (await wallet.buildTransferTx({
         signerAddress: fromAccount.address,
         destinations: [{ address: toAccount.address, attoAlphAmount: BigInt(1e18) }]
-      })
+      })) as Omit<SignTransferTxResult, 'signature'>
       await wallet.signAndSubmitUnsignedTx({ unsignedTx: tx.unsignedTx, signerAddress: fromAccount.address })
     }
   })

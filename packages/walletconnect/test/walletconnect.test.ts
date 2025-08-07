@@ -15,13 +15,33 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import { formatChain, parseChain, ProviderOptions, WalletConnectProvider } from '../src/index'
+import {
+  formatAccount,
+  formatChain,
+  parseAccount,
+  parseChain,
+  ProviderOptions,
+  WalletConnectProvider
+} from '../src/index'
 import { WalletClient } from './shared'
-import { web3, node, NodeProvider, verifySignedMessage, groupOfAddress, NetworkId } from '@alephium/web3'
+import {
+  web3,
+  node,
+  NodeProvider,
+  verifySignedMessage,
+  groupOfAddress,
+  NetworkId,
+  binToHex,
+  Account,
+  groupedKeyTypes,
+  grouplessKeyTypes,
+  addressFromPublicKey
+} from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
 import { sleep } from '@alephium/web3'
+import { randomBytes, randomInt } from 'crypto'
 
 const NETWORK_ID = 'devnet'
 const ADDRESS_GROUP = 0
@@ -121,6 +141,40 @@ describe('Unit tests', function () {
     expect(parseChain('alephium:devnet/1')).toEqual({ networkId: 'devnet', addressGroup: 1 })
     expect(parseChain('alephium:devnet/-1')).toEqual({ networkId: 'devnet', addressGroup: undefined })
     expect(() => parseChain('alephium:devnet/-2')).toThrow()
+  })
+
+  it('test formatAccount & parseAccount', () => {
+    const publicKey0 = binToHex(randomBytes(33))
+    const keyType0 = groupedKeyTypes[randomInt(0, groupedKeyTypes.length)]
+    const address0 = addressFromPublicKey(publicKey0, keyType0)
+    const groupIndex = groupOfAddress(address0)
+    const account0: Account = {
+      keyType: keyType0,
+      group: groupIndex,
+      address: address0,
+      publicKey: publicKey0
+    }
+    const permittedChain = formatChain('devnet', groupIndex)
+    expect(formatAccount(permittedChain, account0)).toEqual(`alephium:devnet/${groupIndex}:${publicKey0}/${keyType0}`)
+    expect(parseAccount(`alephium:devnet/${groupIndex}:${publicKey0}/${keyType0}`)).toEqual({
+      ...account0,
+      networkId: 'devnet'
+    })
+
+    const keyType1 = grouplessKeyTypes[randomInt(0, grouplessKeyTypes.length)]
+    const publicKey1 = keyType1 === 'gl-ed25519' ? binToHex(randomBytes(32)) : publicKey0
+    const address1 = addressFromPublicKey(publicKey1, keyType1)
+    const account1: Account = {
+      keyType: keyType1,
+      address: address1,
+      publicKey: publicKey1
+    }
+    expect(formatAccount(permittedChain, account1)).toEqual(`alephium:devnet/${groupIndex}:${publicKey1}/${keyType1}`)
+    expect(parseAccount(`alephium:devnet/${groupIndex}:${publicKey1}/${keyType1}`)).toEqual({
+      ...account1,
+      networkId: 'devnet'
+    })
+    expect(() => parseAccount(`alephium:devnet/${groupIndex}:${publicKey1}/invalid-key`)).toThrow('Invalid key type')
   })
 
   it('should initialize providers', async () => {
@@ -325,7 +379,8 @@ async function verifySign(provider: WalletConnectProvider, walletClient: WalletC
   })
   await checkBalanceDecreasing()
 
-  await Main.execute(provider, {
+  await Main.execute({
+    signer: provider,
     initialFields: { greeterContractId: greeterResult.contractInstance.contractId }
   })
   await checkBalanceDecreasing()

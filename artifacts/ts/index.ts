@@ -4,6 +4,7 @@
 
 export * from "./Add";
 export * from "./Assert";
+export * from "./AutoFund";
 export * from "./Debug";
 export * from "./DeprecatedNFTTest1";
 export * from "./DeprecatedNFTTest2";
@@ -28,6 +29,7 @@ export * from "./Sub";
 export * from "./TokenTest";
 export * from "./TokenTestStd";
 export * from "./Transact";
+export * from "./TupleTest";
 export * from "./UserAccount";
 export * from "./Warnings";
 export * from "./WrongNFTTest";

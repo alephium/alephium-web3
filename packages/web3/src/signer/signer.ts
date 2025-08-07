@@ -42,6 +42,8 @@ import {
   MessageHasher,
   SignChainedTxParams,
   SignChainedTxResult,
+  BuildTxResult,
+  SignTxResult,
   isGroupedAccount
 } from './types'
 import { TransactionBuilder } from './tx-builder'
@@ -66,9 +68,13 @@ export abstract class SignerProvider {
     }
   }
 
-  abstract signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult>
-  abstract signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult>
-  abstract signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult>
+  abstract signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTxResult<SignTransferTxResult>>
+  abstract signAndSubmitDeployContractTx(
+    params: SignDeployContractTxParams
+  ): Promise<SignTxResult<SignDeployContractTxResult>>
+  abstract signAndSubmitExecuteScriptTx(
+    params: SignExecuteScriptTxParams
+  ): Promise<SignTxResult<SignExecuteScriptTxResult>>
   abstract signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult>
   abstract signAndSubmitChainedTx(params: SignChainedTxParams[]): Promise<SignChainedTxResult[]>
 
@@ -100,19 +106,55 @@ export abstract class SignerProviderSimple extends SignerProvider {
     return this.nodeProvider.transactions.postTransactionsSubmit(data)
   }
 
-  async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
+  async signAndSubmitTransferTx(params: SignTransferTxParams): Promise<SignTxResult<SignTransferTxResult>> {
     const signResult = await this.signTransferTx(params)
-    await this.submitTransaction(signResult)
+
+    if ('fundingTxs' in signResult && signResult.fundingTxs !== undefined) {
+      for (const r of signResult.fundingTxs) {
+        await this.submitTransaction(r)
+      }
+
+      await this.submitTransaction(signResult)
+    } else {
+      await this.submitTransaction(signResult)
+    }
+
     return signResult
   }
-  async signAndSubmitDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
+
+  async signAndSubmitDeployContractTx(
+    params: SignDeployContractTxParams
+  ): Promise<SignTxResult<SignDeployContractTxResult>> {
     const signResult = await this.signDeployContractTx(params)
-    await this.submitTransaction(signResult)
+
+    if ('fundingTxs' in signResult && signResult.fundingTxs !== undefined) {
+      for (const r of signResult.fundingTxs) {
+        await this.submitTransaction(r)
+      }
+
+      await this.submitTransaction(signResult)
+    } else {
+      await this.submitTransaction(signResult)
+    }
+
     return signResult
   }
-  async signAndSubmitExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
+
+  async signAndSubmitExecuteScriptTx(
+    params: SignExecuteScriptTxParams
+  ): Promise<SignTxResult<SignExecuteScriptTxResult>> {
     const signResult = await this.signExecuteScriptTx(params)
-    await this.submitTransaction(signResult)
+
+    if ('fundingTxs' in signResult && signResult.fundingTxs !== undefined) {
+      for (const r of signResult.fundingTxs) {
+        await this.submitTransaction(r)
+      }
+
+      await this.submitTransaction(signResult)
+    } else {
+      await this.submitTransaction(signResult)
+    }
+
     return signResult
   }
   async signAndSubmitUnsignedTx(params: SignUnsignedTxParams): Promise<SignUnsignedTxResult> {
@@ -130,41 +172,114 @@ export abstract class SignerProviderSimple extends SignerProvider {
 
   protected abstract getPublicKey(address: string): Promise<string>
 
-  async signTransferTx(params: SignTransferTxParams): Promise<SignTransferTxResult> {
+  async signTransferTx(params: SignTransferTxParams): Promise<SignTxResult<SignTransferTxResult>> {
     const response = await this.buildTransferTx(params)
-    const signature = await this.signRaw(params.signerAddress, response.txId)
-    return { signature, ...response }
+
+    if ('fundingTxs' in response && response.fundingTxs !== undefined) {
+      const transferTxs: SignTransferTxResult[] = []
+      for (let i = 0; i < response.fundingTxs.length; i++) {
+        const txSignature = await this.signRaw(params.signerAddress, response.fundingTxs[i].txId)
+        transferTxs.push({
+          ...response.fundingTxs[i],
+          signature: txSignature
+        })
+      }
+
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+      return {
+        fromGroup: response.fromGroup,
+        toGroup: response.toGroup,
+        gasAmount: response.gasAmount,
+        gasPrice: response.gasPrice,
+        txId: response.txId,
+        unsignedTx: response.unsignedTx,
+        signature,
+        fundingTxs: transferTxs
+      }
+    } else {
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+      return { signature, ...response }
+    }
   }
 
-  async buildTransferTx(params: SignTransferTxParams): Promise<Omit<SignTransferTxResult, 'signature'>> {
+  async buildTransferTx(params: SignTransferTxParams): Promise<BuildTxResult<SignTransferTxResult>> {
     return TransactionBuilder.from(this.nodeProvider).buildTransferTx(
       params,
       await this.getPublicKey(params.signerAddress)
     )
   }
 
-  async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignDeployContractTxResult> {
+  async signDeployContractTx(params: SignDeployContractTxParams): Promise<SignTxResult<SignDeployContractTxResult>> {
     const response = await this.buildDeployContractTx(params)
-    const signature = await this.signRaw(params.signerAddress, response.txId)
-    return { signature, ...response }
+
+    if ('fundingTxs' in response && response.fundingTxs !== undefined) {
+      const transferTxs: SignTransferTxResult[] = []
+      for (let i = 0; i < response.fundingTxs.length; i++) {
+        const txSignature = await this.signRaw(params.signerAddress, response.fundingTxs[i].txId)
+        transferTxs.push({
+          ...response.fundingTxs[i],
+          signature: txSignature
+        })
+      }
+
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+
+      return {
+        contractAddress: response.contractAddress,
+        contractId: response.contractId,
+        gasAmount: response.gasAmount,
+        gasPrice: response.gasPrice,
+        groupIndex: response.groupIndex,
+        unsignedTx: response.unsignedTx,
+        txId: response.txId,
+        signature,
+        fundingTxs: transferTxs
+      }
+    } else {
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+      return { signature, ...response }
+    }
   }
 
-  async buildDeployContractTx(
-    params: SignDeployContractTxParams
-  ): Promise<Omit<SignDeployContractTxResult, 'signature'>> {
+  async buildDeployContractTx(params: SignDeployContractTxParams): Promise<BuildTxResult<SignDeployContractTxResult>> {
     return TransactionBuilder.from(this.nodeProvider).buildDeployContractTx(
       params,
       await this.getPublicKey(params.signerAddress)
     )
   }
 
-  async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignExecuteScriptTxResult> {
+  async signExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<SignTxResult<SignExecuteScriptTxResult>> {
     const response = await this.buildExecuteScriptTx(params)
-    const signature = await this.signRaw(params.signerAddress, response.txId)
-    return { signature, ...response }
+
+    if ('fundingTxs' in response && response.fundingTxs !== undefined) {
+      const transferTxs: SignTransferTxResult[] = []
+      for (let i = 0; i < response.fundingTxs.length; i++) {
+        const txSignature = await this.signRaw(params.signerAddress, response.fundingTxs[i].txId)
+        transferTxs.push({
+          ...response.fundingTxs[i],
+          signature: txSignature
+        })
+      }
+
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+
+      return {
+        gasAmount: response.gasAmount,
+        gasPrice: response.gasPrice,
+        groupIndex: response.groupIndex,
+        unsignedTx: response.unsignedTx,
+        txId: response.txId,
+        simulationResult: response.simulationResult,
+        signature,
+        fundingTxs: transferTxs
+      }
+    } else {
+      const signature = await this.signRaw(params.signerAddress, response.txId)
+      return { signature, ...response }
+    }
   }
 
-  async buildExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<Omit<SignExecuteScriptTxResult, 'signature'>> {
+  async buildExecuteScriptTx(params: SignExecuteScriptTxParams): Promise<BuildTxResult<SignExecuteScriptTxResult>> {
     return TransactionBuilder.from(this.nodeProvider).buildExecuteScriptTx(
       params,
       await this.getPublicKey(params.signerAddress)

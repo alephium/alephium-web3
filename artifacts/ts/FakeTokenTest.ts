@@ -35,14 +35,7 @@ import {
 } from "@alephium/web3";
 import { default as FakeTokenTestContractJson } from "../token/FakeTokenTest.ral.json";
 import { getContractByCodeHash, registerContract } from "./contracts";
-import {
-  AddStruct1,
-  AddStruct2,
-  Balances,
-  MapValue,
-  TokenBalance,
-  AllStructs,
-} from "./types";
+import * as types from "./types";
 
 // Custom types for the contract
 export namespace FakeTokenTestTypes {
@@ -126,7 +119,7 @@ class Factory extends ContractFactory<
     return encodeContractFields(
       addStdIdToFields(this.contract, fields),
       this.contract.fieldsSig,
-      AllStructs
+      types.AllStructs
     );
   }
 
@@ -138,7 +131,7 @@ class Factory extends ContractFactory<
     getSymbol: async (
       params: Omit<
         TestContractParamsWithoutMaps<FakeTokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getSymbol", params, getContractByCodeHash);
@@ -146,7 +139,7 @@ class Factory extends ContractFactory<
     getName: async (
       params: Omit<
         TestContractParamsWithoutMaps<FakeTokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<HexString>> => {
       return testMethod(this, "getName", params, getContractByCodeHash);
@@ -154,7 +147,7 @@ class Factory extends ContractFactory<
     getDecimals: async (
       params: Omit<
         TestContractParamsWithoutMaps<FakeTokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getDecimals", params, getContractByCodeHash);
@@ -162,7 +155,7 @@ class Factory extends ContractFactory<
     getTotalSupply: async (
       params: Omit<
         TestContractParamsWithoutMaps<FakeTokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<bigint>> => {
       return testMethod(this, "getTotalSupply", params, getContractByCodeHash);
@@ -170,7 +163,7 @@ class Factory extends ContractFactory<
     foo: async (
       params: Omit<
         TestContractParamsWithoutMaps<FakeTokenTestTypes.Fields, never>,
-        "testArgs"
+        "args"
       >
     ): Promise<TestContractResultWithoutMaps<null>> => {
       return testMethod(this, "foo", params, getContractByCodeHash);
@@ -192,7 +185,7 @@ export const FakeTokenTest = new Factory(
     FakeTokenTestContractJson,
     "",
     "52f971cb44d54a5353e94dc8db991d2726f76760af782e79bd8a66a9b5b294b7",
-    AllStructs
+    types.AllStructs
   )
 );
 registerContract(FakeTokenTest);

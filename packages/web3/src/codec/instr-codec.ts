@@ -20,7 +20,7 @@ import { ArrayCodec } from './array-codec'
 import { i256Codec, u256Codec, i32Codec } from './compact-int-codec'
 import { ByteString, byteStringCodec, byteStringsCodec } from './bytestring-codec'
 import { LockupScript, lockupScriptCodec } from './lockup-script-codec'
-import { assert, byteCodec, Codec } from './codec'
+import { byteCodec, Codec } from './codec'
 import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { Reader } from './reader'
 export type Instr =
@@ -80,11 +80,11 @@ export type Instr =
   | { name: 'U256ModAdd'; code: 0x35 }
   | { name: 'U256ModSub'; code: 0x36 }
   | { name: 'U256ModMul'; code: 0x37 }
-  | { name: 'U256BitAnd'; code: 0x38 }
-  | { name: 'U256BitOr'; code: 0x39 }
-  | { name: 'U256Xor'; code: 0x3a }
-  | { name: 'U256SHL'; code: 0x3b }
-  | { name: 'U256SHR'; code: 0x3c }
+  | { name: 'NumericBitAnd'; code: 0x38 }
+  | { name: 'NumericBitOr'; code: 0x39 }
+  | { name: 'NumericXor'; code: 0x3a }
+  | { name: 'NumericSHL'; code: 0x3b }
+  | { name: 'NumericSHR'; code: 0x3c }
   | { name: 'I256ToU256'; code: 0x3d }
   | { name: 'I256ToByteVec'; code: 0x3e }
   | { name: 'U256ToI256'; code: 0x3f }
@@ -165,6 +165,11 @@ export type Instr =
   | { name: 'I256ToString'; code: 0x8a }
   | { name: 'BoolToString'; code: 0x8b }
   | { name: 'GroupOfAddress'; code: 0x8c }
+  | { name: 'VerifySignature'; code: 0x8d }
+  | { name: 'GetSegregatedWebAuthnSignature'; code: 0x8e }
+  | { name: 'DevInstr'; code: 0x8f; instr: number }
+  | { name: 'I256RoundInfinityDiv'; code: 0x90 }
+  | { name: 'U256RoundInfinityDiv'; code: 0x91 }
   | { name: 'LoadMutField'; code: 0xa0; index: number }
   | { name: 'StoreMutField'; code: 0xa1; index: number }
   | { name: 'ApproveAlph'; code: 0xa2 }
@@ -218,6 +223,8 @@ export type Instr =
   | { name: 'CreateMapEntry'; code: 0xd2; immFieldsNum: number; mutFieldsNum: number }
   | { name: 'MethodSelector'; code: 0xd3; selector: number }
   | { name: 'CallExternalBySelector'; code: 0xd4; selector: number }
+  | { name: 'ExternalCallerContractId'; code: 0xd5 }
+  | { name: 'ExternalCallerAddress'; code: 0xd6 }
 export const CallLocalCode = 0x00
 export const CallExternalCode = 0x01
 export const I256ConstCode = 0x12
@@ -230,6 +237,7 @@ export const JumpCode = 0x4a
 export const IfTrueCode = 0x4b
 export const IfFalseCode = 0x4c
 export const DEBUGCode = 0x7e
+export const DevInstrCode = 0x8f
 export const LoadMutFieldCode = 0xa0
 export const StoreMutFieldCode = 0xa1
 export const LoadImmFieldCode = 0xce
@@ -308,11 +316,11 @@ export const U256Ge: Instr = { name: 'U256Ge', code: 0x34 }
 export const U256ModAdd: Instr = { name: 'U256ModAdd', code: 0x35 }
 export const U256ModSub: Instr = { name: 'U256ModSub', code: 0x36 }
 export const U256ModMul: Instr = { name: 'U256ModMul', code: 0x37 }
-export const U256BitAnd: Instr = { name: 'U256BitAnd', code: 0x38 }
-export const U256BitOr: Instr = { name: 'U256BitOr', code: 0x39 }
-export const U256Xor: Instr = { name: 'U256Xor', code: 0x3a }
-export const U256SHL: Instr = { name: 'U256SHL', code: 0x3b }
-export const U256SHR: Instr = { name: 'U256SHR', code: 0x3c }
+export const NumericBitAnd: Instr = { name: 'NumericBitAnd', code: 0x38 }
+export const NumericBitOr: Instr = { name: 'NumericBitOr', code: 0x39 }
+export const NumericXor: Instr = { name: 'NumericXor', code: 0x3a }
+export const NumericSHL: Instr = { name: 'NumericSHL', code: 0x3b }
+export const NumericSHR: Instr = { name: 'NumericSHR', code: 0x3c }
 export const I256ToU256: Instr = { name: 'I256ToU256', code: 0x3d }
 export const I256ToByteVec: Instr = { name: 'I256ToByteVec', code: 0x3e }
 export const U256ToI256: Instr = { name: 'U256ToI256', code: 0x3f }
@@ -401,6 +409,13 @@ export const U256ToString: Instr = { name: 'U256ToString', code: 0x89 }
 export const I256ToString: Instr = { name: 'I256ToString', code: 0x8a }
 export const BoolToString: Instr = { name: 'BoolToString', code: 0x8b }
 export const GroupOfAddress: Instr = { name: 'GroupOfAddress', code: 0x8c }
+export const VerifySignature: Instr = { name: 'VerifySignature', code: 0x8d }
+export const GetSegregatedWebAuthnSignature: Instr = { name: 'GetSegregatedWebAuthnSignature', code: 0x8e }
+export const DevInstr: (instr: number) => Instr = (instr: number) => {
+  return { name: 'DevInstr', code: 0x8f, instr }
+}
+export const I256RoundInfinityDiv: Instr = { name: 'I256RoundInfinityDiv', code: 0x90 }
+export const U256RoundInfinityDiv: Instr = { name: 'U256RoundInfinityDiv', code: 0x91 }
 export const LoadMutField: (index: number) => Instr = (index: number) => {
   return { name: 'LoadMutField', code: 0xa0, index }
 }
@@ -472,6 +487,8 @@ export const MethodSelector: (selector: number) => Instr = (selector: number) =>
 export const CallExternalBySelector: (selector: number) => Instr = (selector: number) => {
   return { name: 'CallExternalBySelector', code: 0xd4, selector }
 }
+export const ExternalCallerContractId: Instr = { name: 'ExternalCallerContractId', code: 0xd5 }
+export const ExternalCallerAddress: Instr = { name: 'ExternalCallerAddress', code: 0xd6 }
 export class InstrCodec extends Codec<Instr> {
   encode(instr: Instr): Uint8Array {
     switch (instr.name) {
@@ -587,15 +604,15 @@ export class InstrCodec extends Codec<Instr> {
         return new Uint8Array([0x36])
       case 'U256ModMul':
         return new Uint8Array([0x37])
-      case 'U256BitAnd':
+      case 'NumericBitAnd':
         return new Uint8Array([0x38])
-      case 'U256BitOr':
+      case 'NumericBitOr':
         return new Uint8Array([0x39])
-      case 'U256Xor':
+      case 'NumericXor':
         return new Uint8Array([0x3a])
-      case 'U256SHL':
+      case 'NumericSHL':
         return new Uint8Array([0x3b])
-      case 'U256SHR':
+      case 'NumericSHR':
         return new Uint8Array([0x3c])
       case 'I256ToU256':
         return new Uint8Array([0x3d])
@@ -757,6 +774,16 @@ export class InstrCodec extends Codec<Instr> {
         return new Uint8Array([0x8b])
       case 'GroupOfAddress':
         return new Uint8Array([0x8c])
+      case 'VerifySignature':
+        return new Uint8Array([0x8d])
+      case 'GetSegregatedWebAuthnSignature':
+        return new Uint8Array([0x8e])
+      case 'DevInstr':
+        return new Uint8Array([0x8f, ...byteCodec.encode(instr.instr)])
+      case 'I256RoundInfinityDiv':
+        return new Uint8Array([0x90])
+      case 'U256RoundInfinityDiv':
+        return new Uint8Array([0x91])
       case 'LoadMutField':
         return new Uint8Array([0xa0, ...byteCodec.encode(instr.index)])
       case 'StoreMutField':
@@ -863,6 +890,10 @@ export class InstrCodec extends Codec<Instr> {
         return new Uint8Array([0xd3, ...intAs4BytesCodec.encode(instr.selector)])
       case 'CallExternalBySelector':
         return new Uint8Array([0xd4, ...intAs4BytesCodec.encode(instr.selector)])
+      case 'ExternalCallerContractId':
+        return new Uint8Array([0xd5])
+      case 'ExternalCallerAddress':
+        return new Uint8Array([0xd6])
     }
   }
   _decode(input: Reader): Instr {
@@ -981,15 +1012,15 @@ export class InstrCodec extends Codec<Instr> {
       case 0x37:
         return U256ModMul
       case 0x38:
-        return U256BitAnd
+        return NumericBitAnd
       case 0x39:
-        return U256BitOr
+        return NumericBitOr
       case 0x3a:
-        return U256Xor
+        return NumericXor
       case 0x3b:
-        return U256SHL
+        return NumericSHL
       case 0x3c:
-        return U256SHR
+        return NumericSHR
       case 0x3d:
         return I256ToU256
       case 0x3e:
@@ -1150,6 +1181,16 @@ export class InstrCodec extends Codec<Instr> {
         return BoolToString
       case 0x8c:
         return GroupOfAddress
+      case 0x8d:
+        return VerifySignature
+      case 0x8e:
+        return GetSegregatedWebAuthnSignature
+      case 0x8f:
+        return DevInstr(byteCodec._decode(input))
+      case 0x90:
+        return I256RoundInfinityDiv
+      case 0x91:
+        return U256RoundInfinityDiv
       case 0xa0:
         return LoadMutField(byteCodec._decode(input))
       case 0xa1:
@@ -1256,6 +1297,10 @@ export class InstrCodec extends Codec<Instr> {
         return MethodSelector(intAs4BytesCodec._decode(input))
       case 0xd4:
         return CallExternalBySelector(intAs4BytesCodec._decode(input))
+      case 0xd5:
+        return ExternalCallerContractId
+      case 0xd6:
+        return ExternalCallerAddress
       default:
         throw new Error(`Unknown instr code: ${code}`)
     }
