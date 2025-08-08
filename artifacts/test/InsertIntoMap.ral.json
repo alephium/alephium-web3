@@ -1,5 +1,5 @@
 {
-  "version": "v4.0.0",
+  "version": "v4.2.0",
   "name": "InsertIntoMap",
   "bytecodeTemplate": "01010300020010{2}{3}17011700{1}d10f2ca2{1}160016010f0c{0}0100",
   "fieldsSig": {
