@@ -155,6 +155,7 @@ export interface BlockEntry {
   /** @format hex-string */
   target: string
   ghostUncles: GhostUncleBlockEntry[]
+  conflictedTxs?: string[]
 }
 
 /** BlockHeaderEntry */
@@ -686,6 +687,21 @@ export interface Confirmed {
   type: string
 }
 
+/** Conflicted */
+export interface Conflicted {
+  /** @format block-hash */
+  blockHash: string
+  /** @format int32 */
+  txIndex: number
+  /** @format int32 */
+  chainConfirmations: number
+  /** @format int32 */
+  fromGroupConfirmations: number
+  /** @format int32 */
+  toGroupConfirmations: number
+  type: string
+}
+
 /** Constant */
 export interface Constant {
   name: string
@@ -1121,6 +1137,7 @@ export interface RichBlockEntry {
   /** @format hex-string */
   target: string
   ghostUncles: GhostUncleBlockEntry[]
+  conflictedTxs?: string[]
 }
 
 /** RichBlocksAndEventsPerTimeStampRange */
@@ -1400,7 +1417,7 @@ export interface TxNotFound {
 }
 
 /** TxStatus */
-export type TxStatus = Confirmed | MemPooled | TxNotFound
+export type TxStatus = Confirmed | Conflicted | MemPooled | TxNotFound
 
 /** UTXO */
 export interface UTXO {
@@ -1760,7 +1777,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 4.0.0
+ * @version 4.2.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {

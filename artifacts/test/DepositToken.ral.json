@@ -1,5 +1,5 @@
 {
-  "version": "v4.0.0",
+  "version": "v4.2.0",
   "name": "DepositToken",
   "bytecodeTemplate": "01010300000009b4{1}{2}a3{2}0d0c{0}0102",
   "fieldsSig": {
