@@ -1,5 +1,5 @@
 {
-  "version": "v4.2.0",
+  "version": "v4.2.3",
   "name": "CallScript1",
   "bytecodeTemplate": "0101000000070a{1}0d0e{0}01030c11{2}010202",
   "fieldsSig": {

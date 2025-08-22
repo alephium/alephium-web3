@@ -330,6 +330,12 @@ export class Project {
     }
   }
 
+  static checkTestError(result: node.CompileProjectResult) {
+    if (result.testError !== undefined) {
+      throw new Error(result.testError)
+    }
+  }
+
   contract(name: string): Contract {
     const contract = this.contracts.get(name)
     if (typeof contract === 'undefined') {
@@ -637,6 +643,8 @@ export class Project {
       forceRecompile,
       errorOnWarnings
     )
+    Project.checkTestError(result)
+
     const project = new Project(
       contractsRootDir,
       artifactsRootDir,

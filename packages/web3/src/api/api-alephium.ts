@@ -646,6 +646,7 @@ export interface CompileProjectResult {
   constants?: Constant[]
   enums?: Enum[]
   warnings?: string[]
+  testError?: string
 }
 
 /** CompileScriptResult */
@@ -1777,7 +1778,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 4.2.0
+ * @version 4.2.3
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -2787,13 +2788,20 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @summary Get the UTXOs of an address
      * @request GET:/addresses/{address}/utxos
      */
-    getAddressesAddressUtxos: (address: string, params: RequestParams = {}) =>
+    getAddressesAddressUtxos: (
+      address: string,
+      query?: {
+        'error-if-exceed-max-utxos'?: boolean
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<
         UTXOs,
         BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
       >({
         path: `/addresses/${address}/utxos`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params
       }).then(convertHttpResponse),
