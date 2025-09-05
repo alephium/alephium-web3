@@ -796,10 +796,26 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
+  getBytecodeAndGroup<P extends Fields>(account: Account, fields: P): [string, number] {
+    const bytecode = this.buildByteCodeToDeploy(fields)
+    if (isGroupedAccount(account)) {
+      return [bytecode, account.group]
+    }
+
+    const group = getGroupFromTxScript(bytecode)
+    const defaultGroup = groupOfAddress(account.address)
+    if (group === undefined || group === defaultGroup) {
+      return [bytecode, defaultGroup]
+    }
+
+    const newFields = ralph.updateFieldsWithGroup(fields, group) as P
+    const newBytecode = this.buildByteCodeToDeploy(newFields)
+    return [newBytecode, group]
+  }
+
   async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
     const selectedAccount = await params.signer.getSelectedAccount()
-    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
-    const group = getGroupFromTxScript(bytecode, selectedAccount)
+    const [bytecode, group] = this.getBytecodeAndGroup(selectedAccount, params.initialFields ?? {})
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
@@ -823,9 +839,7 @@ export class Script extends Artifact {
   }
 }
 
-function getGroupFromTxScript(bytecode: string, account: Account): number {
-  if (isGroupedAccount(account)) return account.group
-
+function getGroupFromTxScript(bytecode: string): number | undefined {
   const script = scriptCodec.decode(hexToBinUnsafe(bytecode))
   const instrs = script.methods.flatMap((method) => method.instrs)
   for (let index = 0; index < instrs.length - 1; index += 1) {
@@ -850,7 +864,7 @@ function getGroupFromTxScript(bytecode: string, account: Account): number {
       }
     }
   }
-  return groupOfAddress(account.address)
+  return undefined
 }
 
 export function fromApiFields(
