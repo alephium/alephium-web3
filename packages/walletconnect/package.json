@@ -1,7 +1,7 @@
 {
   "name": "@alephium/walletconnect-provider",
   "description": "Alephium Provider for WalletConnect Protocol",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "Alephium dev",
   "homepage": "https://github.com/alephium/alephium-web3",
   "repository": {
