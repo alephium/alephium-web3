@@ -44,7 +44,8 @@ import {
   Address,
   SignExecuteScriptTxResult,
   Account,
-  isGroupedAccount
+  isGroupedAccount,
+  getGroupFromTxScript
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -61,13 +62,7 @@ import {
   isHexString,
   hexToString
 } from '../utils'
-import {
-  contractIdFromAddress,
-  groupOfAddress,
-  addressFromContractId,
-  subContractId,
-  isGrouplessAddressWithoutGroupIndex
-} from '../address'
+import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
@@ -100,7 +95,6 @@ import {
 } from '../codec'
 import { TraceableError } from '../error'
 import { SimulationResult } from '../api/api-alephium'
-import { scriptCodec } from '../codec/script-codec'
 
 const crypto = new WebCrypto()
 
@@ -837,34 +831,6 @@ export class Script extends Artifact {
       throw new TraceableError(`Failed to build bytecode for script ${this.name}`, error)
     }
   }
-}
-
-function getGroupFromTxScript(bytecode: string): number | undefined {
-  const script = scriptCodec.decode(hexToBinUnsafe(bytecode))
-  const instrs = script.methods.flatMap((method) => method.instrs)
-  for (let index = 0; index < instrs.length - 1; index += 1) {
-    const instr = instrs[`${index}`]
-    const nextInstr = instrs[index + 1]
-    if (
-      instr.name === 'BytesConst' &&
-      instr.value.length === 32 &&
-      (nextInstr.name === 'CallExternal' || nextInstr.name === 'CallExternalBySelector')
-    ) {
-      const groupIndex = instr.value[instr.value.length - 1]
-      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
-        return groupIndex
-      }
-    }
-  }
-  for (const instr of instrs) {
-    if (instr.name === 'BytesConst' && instr.value.length === 32) {
-      const groupIndex = instr.value[instr.value.length - 1]
-      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
-        return groupIndex
-      }
-    }
-  }
-  return undefined
 }
 
 export function fromApiFields(
