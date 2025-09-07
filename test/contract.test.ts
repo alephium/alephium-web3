@@ -1074,7 +1074,7 @@ describe('contract', function () {
         from: grouplessSigner.address,
         value: { id: 1n, balance: 10n }
       })
-      grouplessSigner.signAndSubmitExecuteScriptTx({
+      await grouplessSigner.signAndSubmitExecuteScriptTx({
         signerAddress: grouplessSigner.address,
         signerKeyType: grouplessSigner.account.keyType,
         bytecode: bytecode,
