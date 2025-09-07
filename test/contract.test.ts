@@ -1058,4 +1058,42 @@ describe('contract', function () {
     expect((await tupleInstance.fetchState()).fields.value[1].a[1]).toEqual(true)
     expect((await tupleInstance.view.test()).returns).toEqual([15n, true])
   })
+
+  it('should be able to call contract using groupless addresses', async () => {
+    const result = await MapTest.deploy(signer, { initialFields: {}, exposePrivateFunctions })
+    expect(result.contractInstance.groupIndex).toEqual(0)
+    const mapTest = result.contractInstance
+
+    const group = randomInt(1, TOTAL_NUMBER_OF_GROUPS)
+    const grouplessSigner = await getSigner(ONE_ALPH * 10n, group, 'gl-secp256k1')
+    expect(groupOfAddress(grouplessSigner.account.address)).not.toEqual(0)
+
+    if (Math.random() < 0.5) {
+      const bytecode = InsertIntoMap.script.buildByteCodeToDeploy({
+        mapTest: mapTest.contractId,
+        from: grouplessSigner.address,
+        value: { id: 1n, balance: 10n }
+      })
+      grouplessSigner.signAndSubmitExecuteScriptTx({
+        signerAddress: grouplessSigner.address,
+        signerKeyType: grouplessSigner.account.keyType,
+        bytecode: bytecode,
+        attoAlphAmount: ONE_ALPH * 2n
+      })
+    } else {
+      await InsertIntoMap.execute({
+        signer: grouplessSigner,
+        initialFields: {
+          mapTest: mapTest.contractId,
+          from: grouplessSigner.address,
+          value: { id: 1n, balance: 10n }
+        },
+        attoAlphAmount: ONE_ALPH * 2n
+      })
+    }
+    expect(await mapTest.maps.map0.contains(`${grouplessSigner.address}:0`)).toEqual(true)
+    expect(await mapTest.maps.map0.get(`${grouplessSigner.address}:0`)).toEqual({ id: 1n, balance: 10n })
+    expect(await mapTest.maps.map0.contains(grouplessSigner.address)).toEqual(false)
+    expect(await mapTest.maps.map0.contains(signer.address)).toEqual(false)
+  })
 })
