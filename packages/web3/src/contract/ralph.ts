@@ -399,32 +399,6 @@ function checkPrimitiveValue(name: string, ralphType: string, value: Val): strin
   throw Error(`Invalid value ${value} for ${name}, expected a value of type ${ralphType}`)
 }
 
-export function updateFieldsWithGroup(fields: Fields, group: number): Fields {
-  const newFields: Fields = {}
-  for (const key in fields) {
-    const value = fields[`${key}`]
-    newFields[`${key}`] = updateValWithGroup(value, group)
-  }
-  return newFields
-}
-
-function updateValWithGroup(value: Val, group: number): Val {
-  if (typeof value === 'string') {
-    if (!isValidAddress(value)) return value
-    if (isGrouplessAddressWithoutGroupIndex(value)) return `${value}:${group}`
-    return value
-  }
-
-  if (Array.isArray(value)) {
-    return value.map((v) => updateValWithGroup(v, group))
-  }
-
-  if (typeof value === 'object') {
-    return updateFieldsWithGroup(value as Fields, group)
-  }
-  return value
-}
-
 const scriptFieldRegex = /\{([0-9]*)\}/g
 
 export function buildScriptByteCode(

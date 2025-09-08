@@ -42,10 +42,7 @@ import {
   SignExecuteScriptTxParams,
   SignerProvider,
   Address,
-  SignExecuteScriptTxResult,
-  Account,
-  isGroupedAccount,
-  getGroupFromTxScript
+  SignExecuteScriptTxResult
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -790,26 +787,9 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  getBytecodeAndGroup<P extends Fields>(account: Account, fields: P): [string, number] {
-    const bytecode = this.buildByteCodeToDeploy(fields)
-    if (isGroupedAccount(account)) {
-      return [bytecode, account.group]
-    }
-
-    const group = getGroupFromTxScript(bytecode)
-    const defaultGroup = groupOfAddress(account.address)
-    if (group === undefined || group === defaultGroup) {
-      return [bytecode, defaultGroup]
-    }
-
-    const newFields = ralph.updateFieldsWithGroup(fields, group) as P
-    const newBytecode = this.buildByteCodeToDeploy(newFields)
-    return [newBytecode, group]
-  }
-
   async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
     const selectedAccount = await params.signer.getSelectedAccount()
-    const [bytecode, group] = this.getBytecodeAndGroup(selectedAccount, params.initialFields ?? {})
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
@@ -818,7 +798,6 @@ export class Script extends Artifact {
       tokens: params.tokens,
       gasAmount: params.gasAmount,
       gasPrice: params.gasPrice,
-      group,
       dustAmount: params.dustAmount
     }
     return signerParams

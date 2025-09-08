@@ -208,7 +208,7 @@ export abstract class TransactionBuilder {
   }
 
   private static checkAndGetParams(params: SignExecuteScriptTxParams): SignExecuteScriptTxParams {
-    if (isGroupedKeyType(params.signerKeyType ?? 'default') || params.group !== undefined) {
+    if (isGroupedKeyType(params.signerKeyType ?? 'default')) {
       return params
     }
 
@@ -216,7 +216,7 @@ export abstract class TransactionBuilder {
       throw new Error('Invalid signer key type for groupless address')
     }
 
-    const group = getGroupFromTxScript(params.bytecode)
+    const group = params.group ?? getGroupFromTxScript(params.bytecode)
     const defaultGroup = groupOfAddress(params.signerAddress)
     if (group === undefined || group === defaultGroup) {
       return { ...params, group: defaultGroup }

@@ -470,36 +470,6 @@ describe('contract', function () {
     expect(utils.binToHex(ralph.encodeMapKey('00112233', 'ByteVec'))).toEqual('00112233')
   })
 
-  it('should update fields with group', () => {
-    const groupedAddress = '15EM5rGtt7dPRZScE4Z9oL2EDfj84JnoSgq3NNgdcGFyu'
-    expect(groupOfAddress(groupedAddress)).toEqual(0)
-    const grouplessAddress = '3cUqhqEgt8qFAokkD7qRsy9Q2Q9S1LEiSdogbBmaq7CnshB8BdjfK'
-    expect(groupOfAddress(grouplessAddress)).toEqual(2)
-
-    expect(ralph.updateFieldsWithGroup({ sender: groupedAddress }, 1)).toEqual({ sender: groupedAddress })
-    expect(ralph.updateFieldsWithGroup({ sender: grouplessAddress }, 1)).toEqual({ sender: `${grouplessAddress}:1` })
-    expect(ralph.updateFieldsWithGroup({ sender: `${grouplessAddress}:2` }, 1)).toEqual({
-      sender: `${grouplessAddress}:2`
-    })
-    expect(
-      ralph.updateFieldsWithGroup({ bytes: '0011', isValid: true, amount: '1000', address: grouplessAddress }, 1)
-    ).toEqual({
-      bytes: '0011',
-      isValid: true,
-      amount: '1000',
-      address: `${grouplessAddress}:1`
-    })
-    expect(ralph.updateFieldsWithGroup({ addresses: [groupedAddress, groupedAddress] }, 1)).toEqual({
-      addresses: [groupedAddress, groupedAddress]
-    })
-    expect(ralph.updateFieldsWithGroup({ addresses: [groupedAddress, grouplessAddress] }, 1)).toEqual({
-      addresses: [groupedAddress, `${grouplessAddress}:1`]
-    })
-    expect(ralph.updateFieldsWithGroup({ addresses: [grouplessAddress, grouplessAddress] }, 1)).toEqual({
-      addresses: [`${grouplessAddress}:1`, `${grouplessAddress}:1`]
-    })
-  })
-
   // it('should test buildByteCode', async () => {
   //   const compiled = {
   //     type: 'TemplateContractByteCode',
