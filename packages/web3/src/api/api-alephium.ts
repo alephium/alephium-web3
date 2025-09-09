@@ -1501,7 +1501,7 @@ export interface ValByteVec {
 
 /** ValI256 */
 export interface ValI256 {
-  /** @format bigint */
+  /** @format int256 */
   value: string
   type: string
 }
@@ -1778,7 +1778,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 4.2.3
+ * @version 4.2.4
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
