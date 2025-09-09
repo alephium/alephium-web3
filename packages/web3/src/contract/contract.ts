@@ -42,9 +42,7 @@ import {
   SignExecuteScriptTxParams,
   SignerProvider,
   Address,
-  SignExecuteScriptTxResult,
-  Account,
-  isGroupedAccount
+  SignExecuteScriptTxResult
 } from '../signer'
 import * as ralph from './ralph'
 import {
@@ -61,13 +59,7 @@ import {
   isHexString,
   hexToString
 } from '../utils'
-import {
-  contractIdFromAddress,
-  groupOfAddress,
-  addressFromContractId,
-  subContractId,
-  isGrouplessAddressWithoutGroupIndex
-} from '../address'
+import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
@@ -100,7 +92,6 @@ import {
 } from '../codec'
 import { TraceableError } from '../error'
 import { SimulationResult } from '../api/api-alephium'
-import { scriptCodec } from '../codec/script-codec'
 
 const crypto = new WebCrypto()
 
@@ -796,26 +787,9 @@ export class Script extends Artifact {
     return JSON.stringify(object, null, 2)
   }
 
-  getBytecodeAndGroup<P extends Fields>(account: Account, fields: P): [string, number] {
-    const bytecode = this.buildByteCodeToDeploy(fields)
-    if (isGroupedAccount(account)) {
-      return [bytecode, account.group]
-    }
-
-    const group = getGroupFromTxScript(bytecode)
-    const defaultGroup = groupOfAddress(account.address)
-    if (group === undefined || group === defaultGroup) {
-      return [bytecode, defaultGroup]
-    }
-
-    const newFields = ralph.updateFieldsWithGroup(fields, group) as P
-    const newBytecode = this.buildByteCodeToDeploy(newFields)
-    return [newBytecode, group]
-  }
-
   async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
     const selectedAccount = await params.signer.getSelectedAccount()
-    const [bytecode, group] = this.getBytecodeAndGroup(selectedAccount, params.initialFields ?? {})
+    const bytecode = this.buildByteCodeToDeploy(params.initialFields ?? {})
     const signerParams: SignExecuteScriptTxParams = {
       signerAddress: selectedAccount.address,
       signerKeyType: selectedAccount.keyType,
@@ -824,7 +798,6 @@ export class Script extends Artifact {
       tokens: params.tokens,
       gasAmount: params.gasAmount,
       gasPrice: params.gasPrice,
-      group,
       dustAmount: params.dustAmount
     }
     return signerParams
@@ -837,34 +810,6 @@ export class Script extends Artifact {
       throw new TraceableError(`Failed to build bytecode for script ${this.name}`, error)
     }
   }
-}
-
-function getGroupFromTxScript(bytecode: string): number | undefined {
-  const script = scriptCodec.decode(hexToBinUnsafe(bytecode))
-  const instrs = script.methods.flatMap((method) => method.instrs)
-  for (let index = 0; index < instrs.length - 1; index += 1) {
-    const instr = instrs[`${index}`]
-    const nextInstr = instrs[index + 1]
-    if (
-      instr.name === 'BytesConst' &&
-      instr.value.length === 32 &&
-      (nextInstr.name === 'CallExternal' || nextInstr.name === 'CallExternalBySelector')
-    ) {
-      const groupIndex = instr.value[instr.value.length - 1]
-      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
-        return groupIndex
-      }
-    }
-  }
-  for (const instr of instrs) {
-    if (instr.name === 'BytesConst' && instr.value.length === 32) {
-      const groupIndex = instr.value[instr.value.length - 1]
-      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
-        return groupIndex
-      }
-    }
-  }
-  return undefined
 }
 
 export function fromApiFields(

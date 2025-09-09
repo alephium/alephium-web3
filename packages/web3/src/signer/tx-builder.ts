@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { binToHex, hexToBinUnsafe } from '../utils'
 import { fromApiNumber256, node, NodeProvider, toApiNumber256Optional, toApiTokens } from '../api'
-import { addressFromPublicKey, contractIdFromAddress } from '../address'
+import { addressFromPublicKey, contractIdFromAddress, groupOfAddress, isGrouplessAddress } from '../address'
 import { toApiDestinations } from './signer'
 import {
   SignChainedTxParams,
@@ -36,7 +36,7 @@ import {
   SignUnsignedTxParams,
   SignUnsignedTxResult,
   BuildTxResult,
-  GrouplessBuildTxResult
+  isGroupedKeyType
 } from './types'
 import { unsignedTxCodec } from '../codec'
 import { groupIndexOfTransaction } from '../transaction'
@@ -47,6 +47,9 @@ import {
   BuildExecuteScriptTxResult,
   BuildTransferTxResult
 } from '../api/api-alephium'
+import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
+import { scriptCodec } from '../codec/script-codec'
+import { LockupScript } from '../codec/lockup-script-codec'
 
 export abstract class TransactionBuilder {
   abstract get nodeProvider(): NodeProvider
@@ -204,13 +207,34 @@ export abstract class TransactionBuilder {
     }
   }
 
+  private static checkAndGetParams(params: SignExecuteScriptTxParams): SignExecuteScriptTxParams {
+    if (isGroupedKeyType(params.signerKeyType ?? 'default')) {
+      return params
+    }
+
+    if (!isGrouplessAddress(params.signerAddress)) {
+      throw new Error('Invalid signer key type for groupless address')
+    }
+
+    const group = params.group ?? getGroupFromTxScript(params.bytecode)
+    const defaultGroup = groupOfAddress(params.signerAddress)
+    if (group === undefined || group === defaultGroup) {
+      return { ...params, group: defaultGroup }
+    }
+
+    const newBytecode = updateBytecodeWithGroup(params.bytecode, group)
+    const newParams = { ...params, bytecode: newBytecode }
+    return { ...newParams, group }
+  }
+
   private buildExecuteScriptTxParams(params: SignExecuteScriptTxParams, publicKey: string): node.BuildExecuteScriptTx {
     TransactionBuilder.validatePublicKey(params, publicKey, params.signerKeyType)
 
-    const { attoAlphAmount, tokens, gasPrice, dustAmount, ...rest } = params
+    const newParams = TransactionBuilder.checkAndGetParams(params)
+    const { signerKeyType, attoAlphAmount, tokens, gasPrice, dustAmount, ...rest } = newParams
     return {
       fromPublicKey: publicKey,
-      fromPublicKeyType: params.signerKeyType,
+      fromPublicKeyType: signerKeyType,
       attoAlphAmount: toApiNumber256Optional(attoAlphAmount),
       tokens: toApiTokens(tokens),
       gasPrice: toApiNumber256Optional(gasPrice),
@@ -295,4 +319,48 @@ export abstract class TransactionBuilder {
       gasPrice: fromApiNumber256(result.gasPrice)
     }
   }
+}
+
+export function getGroupFromTxScript(bytecode: string): number | undefined {
+  const script = scriptCodec.decode(hexToBinUnsafe(bytecode))
+  const instrs = script.methods.flatMap((method) => method.instrs)
+  for (let index = 0; index < instrs.length - 1; index += 1) {
+    const instr = instrs[`${index}`]
+    const nextInstr = instrs[index + 1]
+    if (
+      instr.name === 'BytesConst' &&
+      instr.value.length === 32 &&
+      (nextInstr.name === 'CallExternal' || nextInstr.name === 'CallExternalBySelector')
+    ) {
+      const groupIndex = instr.value[instr.value.length - 1]
+      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
+        return groupIndex
+      }
+    }
+  }
+  for (const instr of instrs) {
+    if (instr.name === 'BytesConst' && instr.value.length === 32) {
+      const groupIndex = instr.value[instr.value.length - 1]
+      if (groupIndex >= 0 && groupIndex < TOTAL_NUMBER_OF_GROUPS) {
+        return groupIndex
+      }
+    }
+  }
+  return undefined
+}
+
+export function updateBytecodeWithGroup(bytecode: string, group: number): string {
+  const script = scriptCodec.decode(hexToBinUnsafe(bytecode))
+  const newMethods = script.methods.map((method) => {
+    const newInstrs = method.instrs.map((instr) => {
+      if (instr.name === 'AddressConst' && instr.value.kind === 'P2PK') {
+        const newLockupScript: LockupScript = { ...instr.value, value: { ...instr.value.value, group } }
+        return { ...instr, value: newLockupScript }
+      }
+      return instr
+    })
+    return { ...method, instrs: newInstrs }
+  })
+  const bytes = scriptCodec.encode({ methods: newMethods })
+  return binToHex(bytes)
 }
