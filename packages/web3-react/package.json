@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-react",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "homepage": "https://github.com/alephium/alephium-web3",
   "license": "GPL",
   "description": "React components for Alephium Web3.",
