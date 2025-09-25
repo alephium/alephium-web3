@@ -16,16 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { Connector } from '../types'
+import { isMobile } from '../utils'
 import Logos from './../assets/logos'
 
 let supportedConnectors: Connector[] = []
+
+const _isMobile = isMobile()
 
 if (typeof window != 'undefined') {
   supportedConnectors = [
     {
       id: 'injected',
-      name: 'Extension Wallet',
-      shortName: 'Browser',
+      name: _isMobile ? 'Mobile wallet' : 'Extension wallet',
+      shortName: _isMobile ? 'Mobile' : 'Browser',
       logos: {
         default: <Logos.AlephiumIcon />,
         mobile: (
