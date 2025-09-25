@@ -426,7 +426,7 @@ export class WalletConnectProvider extends SignerProvider {
 
     try {
       const isSignRequest = args.method.startsWith('alph_sign')
-      if (isSignRequest) {
+      if (isSignRequest && !isMobile()) {
         redirectToDeepLink()
       }
       const response = await this.client.request<T>({
