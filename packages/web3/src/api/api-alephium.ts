@@ -468,6 +468,7 @@ export interface BuildSweepAddressTransactions {
   utxosLimit?: number
   /** @format group-index */
   group?: number
+  sweepAlphOnly?: boolean
 }
 
 /** BuildSweepAddressTransactionsResult */
@@ -503,6 +504,7 @@ export interface BuildSweepMultisig {
   /** @format group-index */
   group?: number
   multiSigType?: 'P2HMPK' | 'P2MPKH'
+  sweepAlphOnly?: boolean
 }
 
 /** BuildTransferTx */
@@ -1778,7 +1780,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 4.2.3
+ * @version 4.2.5
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
