@@ -597,7 +597,7 @@ export async function deploy<Settings = unknown>(
   let project: Project | undefined = undefined
   if (configuration.skipRecompileOnDeployment !== true) {
     project = await Project.compile(
-      configuration.compilerOptions,
+      { ...(configuration.compilerOptions ?? {}), skipTests: true },
       path.resolve(process.cwd()),
       configuration.sourceDir ?? DEFAULT_CONFIGURATION_VALUES.sourceDir,
       artifactDir,
