@@ -17,6 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { ExplorerProvider, NodeProvider } from './api'
+import { NetworkId } from './utils'
 
 let _currentNodeProvider: NodeProvider | undefined = undefined
 
@@ -61,4 +62,27 @@ export function setCurrentExplorerProvider(
 // as ExplorerProvider is not necessary for all applications
 export function getCurrentExplorerProvider(): ExplorerProvider | undefined {
   return _currentExplorerProvider
+}
+
+const DEFAULT_PROVIDER_URLS = {
+  mainnet: {
+    nodeUrl: 'https://node.mainnet.alephium.org',
+    explorerUrl: 'https://backend.mainnet.alephium.org'
+  },
+  testnet: {
+    nodeUrl: 'https://node.testnet.alephium.org',
+    explorerUrl: 'https://backend.testnet.alephium.org'
+  },
+  devnet: {
+    nodeUrl: 'http://127.0.0.1:22973',
+    explorerUrl: 'http://127.0.0.1:9090'
+  }
+}
+
+export function getDefaultNodeProvider(networkId: NetworkId): NodeProvider {
+  return new NodeProvider(DEFAULT_PROVIDER_URLS[networkId].nodeUrl)
+}
+
+export function getDefaultExplorerProvider(networkId: NetworkId): ExplorerProvider {
+  return new ExplorerProvider(DEFAULT_PROVIDER_URLS[networkId].explorerUrl)
 }

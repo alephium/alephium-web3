@@ -55,7 +55,8 @@ import {
   isGrouplessAccount,
   keyTypes,
   isGroupedKeyType,
-  KeyType
+  KeyType,
+  web3
 } from '@alephium/web3'
 
 import { ALEPHIUM_DEEP_LINK, LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -129,15 +130,34 @@ export class WalletConnectProvider extends SignerProvider {
 
     this.methods = opts.methods ?? [...RELAY_METHODS]
     if (this.methods.includes('alph_requestNodeApi')) {
-      this.nodeProvider = NodeProvider.Remote(this.requestNodeAPI)
+      console.warn(
+        'alph_requestNodeApi is deprecated. Use SDK node provider instead of forwarding through WalletConnect.'
+      )
+      this.nodeProvider = this.resolveNodeProvider()
     } else {
       this.nodeProvider = undefined
     }
     if (this.methods.includes('alph_requestExplorerApi')) {
-      this.explorerProvider = ExplorerProvider.Remote(this.requestExplorerAPI)
+      console.warn(
+        'alph_requestExplorerApi is deprecated. Use SDK explorer provider instead of forwarding through WalletConnect.'
+      )
+      this.explorerProvider = this.resolveExplorerProvider()
     } else {
       this.explorerProvider = undefined
     }
+  }
+
+  private resolveNodeProvider(): NodeProvider {
+    try {
+      return web3.getCurrentNodeProvider()
+    } catch (error) {
+      return web3.getDefaultNodeProvider(this.networkId)
+    }
+  }
+
+  private resolveExplorerProvider(): ExplorerProvider {
+    const provider = web3.getCurrentExplorerProvider()
+    return provider ?? web3.getDefaultExplorerProvider(this.networkId)
   }
 
   public async connect(): Promise<void> {
@@ -452,14 +472,6 @@ export class WalletConnectProvider extends SignerProvider {
     } catch (error: any) {
       throw new TraceableError(`Failed to request ${args.method}`, error)
     }
-  }
-
-  private requestNodeAPI = (args: ApiRequestArguments): Promise<any> => {
-    return this.typedRequest('alph_requestNodeApi', args)
-  }
-
-  private requestExplorerAPI = (args: ApiRequestArguments): Promise<any> => {
-    return this.typedRequest('alph_requestExplorerApi', args)
   }
 
   private updateNamespace(namespaces: SessionTypes.Namespaces) {
