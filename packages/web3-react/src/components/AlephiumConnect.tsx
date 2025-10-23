@@ -134,7 +134,7 @@ export const AlephiumConnectProvider: React.FC<{
 
   const [_network, setNetwork] = useState<NetworkId>(network)
   const [_addressGroup, setAddressGroup] = useState<number | undefined>(addressGroup)
-  const [_keyType, setKeyType] = useState<KeyType>(keyType ?? 'default')
+  const [_keyType, setKeyType] = useState<KeyType | undefined>(keyType)
   const allInjectedProviders = useInjectedProviders()
   const defaultConnectors = useMemo(() => createDefaultConnectors(allInjectedProviders), [allInjectedProviders])
   const allConnectors: Connectors = useMemo(() => {
@@ -147,7 +147,7 @@ export const AlephiumConnectProvider: React.FC<{
 
   useEffect(() => setNetwork(network), [network])
   useEffect(() => setAddressGroup(addressGroup), [addressGroup])
-  useEffect(() => setKeyType(keyType ?? 'default'), [keyType])
+  useEffect(() => setKeyType(keyType), [keyType])
 
   const lastConnectedAccount = useMemo(() => {
     const result = getLastConnectedAccount()
@@ -236,7 +236,7 @@ export const AlephiumConnectProvider: React.FC<{
     setNetwork,
     addressGroup: _addressGroup,
     setAddressGroup,
-    keyType: _keyType ?? 'default',
+    keyType: _keyType,
     setKeyType,
     account,
     connectionStatus,
