@@ -55,8 +55,8 @@ export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected'
 export type AlephiumConnectContextValue = {
   addressGroup?: number
   setAddressGroup: (addressGroup: number | undefined) => void
-  keyType: KeyType
-  setKeyType: (keyType: KeyType) => void
+  keyType?: KeyType
+  setKeyType: (keyType: KeyType | undefined) => void
   network: NetworkId
   setNetwork: (network: NetworkId) => void
   account?: Account
