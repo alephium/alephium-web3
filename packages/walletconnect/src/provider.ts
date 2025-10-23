@@ -55,7 +55,8 @@ import {
   isGrouplessAccount,
   keyTypes,
   isGroupedKeyType,
-  KeyType
+  KeyType,
+  web3
 } from '@alephium/web3'
 
 import { ALEPHIUM_DEEP_LINK, LOGGER, PROVIDER_NAMESPACE, RELAY_METHODS, RELAY_URL } from './constants'
@@ -129,15 +130,28 @@ export class WalletConnectProvider extends SignerProvider {
 
     this.methods = opts.methods ?? [...RELAY_METHODS]
     if (this.methods.includes('alph_requestNodeApi')) {
-      this.nodeProvider = NodeProvider.Remote(this.requestNodeAPI)
+      this.nodeProvider = this.resolveNodeProvider()
     } else {
       this.nodeProvider = undefined
     }
     if (this.methods.includes('alph_requestExplorerApi')) {
-      this.explorerProvider = ExplorerProvider.Remote(this.requestExplorerAPI)
+      this.explorerProvider = this.resolveExplorerProvider()
     } else {
       this.explorerProvider = undefined
     }
+  }
+
+  private resolveNodeProvider(): NodeProvider {
+    try {
+      return web3.getCurrentNodeProvider()
+    } catch (error) {
+      return web3.getDefaultNodeProvider(this.networkId)
+    }
+  }
+
+  private resolveExplorerProvider(): ExplorerProvider {
+    const provider = web3.getCurrentExplorerProvider()
+    return provider ?? web3.getDefaultExplorerProvider(this.networkId)
   }
 
   public async connect(): Promise<void> {
