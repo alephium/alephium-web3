@@ -28,7 +28,9 @@ export const RELAY_METHODS = [
   'alph_signAndSubmitChainedTx',
   'alph_signUnsignedTx',
   'alph_signMessage',
+  // Deprecated: use SDK node provider instead of forwarding through WalletConnect.
   'alph_requestNodeApi',
+  // Deprecated: use SDK explorer provider instead of forwarding through WalletConnect.
   'alph_requestExplorerApi'
 ] as const
 

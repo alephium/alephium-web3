@@ -130,11 +130,17 @@ export class WalletConnectProvider extends SignerProvider {
 
     this.methods = opts.methods ?? [...RELAY_METHODS]
     if (this.methods.includes('alph_requestNodeApi')) {
+      console.warn(
+        'alph_requestNodeApi is deprecated. Use SDK node provider instead of forwarding through WalletConnect.'
+      )
       this.nodeProvider = this.resolveNodeProvider()
     } else {
       this.nodeProvider = undefined
     }
     if (this.methods.includes('alph_requestExplorerApi')) {
+      console.warn(
+        'alph_requestExplorerApi is deprecated. Use SDK explorer provider instead of forwarding through WalletConnect.'
+      )
       this.explorerProvider = this.resolveExplorerProvider()
     } else {
       this.explorerProvider = undefined
@@ -466,14 +472,6 @@ export class WalletConnectProvider extends SignerProvider {
     } catch (error: any) {
       throw new TraceableError(`Failed to request ${args.method}`, error)
     }
-  }
-
-  private requestNodeAPI = (args: ApiRequestArguments): Promise<any> => {
-    return this.typedRequest('alph_requestNodeApi', args)
-  }
-
-  private requestExplorerAPI = (args: ApiRequestArguments): Promise<any> => {
-    return this.typedRequest('alph_requestExplorerApi', args)
   }
 
   private updateNamespace(namespaces: SessionTypes.Namespaces) {

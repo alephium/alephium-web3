@@ -69,10 +69,16 @@ type RelayMethodsTable = {
     params: SignMessageParams
     result: SignMessageResult
   }
+  /**
+   * @deprecated Use SDK node provider instead of forwarding through WalletConnect.
+   */
   alph_requestNodeApi: {
     params: ApiRequestArguments
     result: any
   }
+  /**
+   * @deprecated Use SDK explorer provider instead of forwarding through WalletConnect.
+   */
   alph_requestExplorerApi: {
     params: ApiRequestArguments
     result: any
