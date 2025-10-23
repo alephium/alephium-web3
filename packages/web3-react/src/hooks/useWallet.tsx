@@ -78,7 +78,7 @@ export type WalletConfig = {
   setNetwork: (network: NetworkId) => void
   addressGroup?: number
   setAddressGroup: (addressGroup: number | undefined) => void
-  keyType: KeyType
+  keyType?: KeyType
   setKeyType: (keyType: KeyType) => void
 }
 
