@@ -52,12 +52,10 @@ describe('events', function () {
       .contractInstance
   }
 
-  function createSubscribeOptions<T>(events: Array<T>): EventSubscribeOptions<T> {
+  function _createSubscribeOptions<T>(callback: (e: T) => Promise<void> | void): EventSubscribeOptions<T> {
     return {
       pollingInterval: 500,
-      messageCallback: (event: T) => {
-        events.push(event)
-      },
+      messageCallback: callback,
       errorCallback: (error: any, subscription) => {
         console.log(error)
         subscription.unsubscribe()
@@ -68,27 +66,46 @@ describe('events', function () {
     }
   }
 
+  function createSubscribeOptions<T>(events: Array<T>): EventSubscribeOptions<T> {
+    return _createSubscribeOptions((event: T) => {
+      events.push(event)
+    })
+  }
+
   it('should subscribe contract events', async () => {
     const add = await deployContract(signer)
-    const addEvents: Array<AddTypes.AddEvent> = []
-    const subscribeOptions = createSubscribeOptions(addEvents)
-    const subscription = add.subscribeAddEvent(subscribeOptions)
-    for (let i = 0; i < 3; i++) {
-      await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [2n, 1n] } })
+    let addEvents: Array<AddTypes.AddEvent> = []
+    const size = 3
+    for (let i = 0; i < size; i++) {
+      await AddMain.execute({ signer, initialFields: { add: add.contractId, array: [BigInt(i), BigInt(i)] } })
     }
-    await sleep(3000)
 
-    expect(addEvents.length).toEqual(3)
-    addEvents.forEach((event) => {
-      expect(event.fields.x).toEqual(2n)
-      expect(event.fields.y).toEqual(1n)
+    const subscribeOptions0 = _createSubscribeOptions(async (event: AddTypes.AddEvent) => {
+      const duration = 500 - Number(event.fields.x) * 200
+      await sleep(duration)
+      addEvents.push(event)
     })
-    expect(subscription.currentEventCount()).toEqual(addEvents.length)
+    const subscription0 = add.subscribeAddEvent(subscribeOptions0)
+    await sleep(2000)
+    expect(addEvents.length).toEqual(size)
+
+    expect(addEvents.map((e) => Number(e.fields.x))).toEqual(Array.from({ length: size }, (_, i) => i))
+    expect(subscription0.currentEventCount()).toEqual(addEvents.length)
+    subscription0.unsubscribe()
+
+    addEvents = []
+    const subscribeOptions1: EventSubscribeOptions<AddTypes.AddEvent> = { ...subscribeOptions0, parallel: true }
+    const subscription1 = add.subscribeAddEvent(subscribeOptions1)
+    await sleep(2000)
+    expect(addEvents.length).toEqual(size)
+
+    expect(addEvents.map((e) => Number(e.fields.x))).toEqual(Array.from({ length: size }, (_, i) => i).reverse())
+    expect(subscription1.currentEventCount()).toEqual(addEvents.length)
+    subscription1.unsubscribe()
+
     const currentContractEventsCount = await add.getContractEventsCurrentCount()
     expect(currentContractEventsCount).toEqual(addEvents.length)
-    expect(eventCount).toEqual(3)
-
-    subscription.unsubscribe()
+    expect(eventCount).toEqual(size)
   }, 15000)
 
   it('should subscribe all events', async () => {

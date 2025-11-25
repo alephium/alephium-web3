@@ -23,18 +23,21 @@ import { ContractEvents } from '../api/api-alephium'
 
 export interface EventSubscribeOptions<Message> extends SubscribeOptions<Message> {
   onEventCountChanged?: (eventCount: number) => Promise<void> | void
+  parallel?: boolean
 }
 
 export class EventSubscription extends Subscription<node.ContractEvent> {
   readonly contractAddress: string
   private fromCount: number
   private onEventCountChanged?: (eventCount: number) => Promise<void> | void
+  private parallel = false
 
   constructor(options: EventSubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
     super(options)
     this.contractAddress = contractAddress
     this.fromCount = typeof fromCount === 'undefined' ? 0 : fromCount
     this.onEventCountChanged = options.onEventCountChanged
+    this.parallel = options.parallel ?? false
   }
 
   currentEventCount(): number {
@@ -61,8 +64,15 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
         return
       }
 
-      const promises = events.events.map((event) => this.messageCallback(event))
-      await Promise.all(promises)
+      if (this.parallel) {
+        const promises = events.events.map((event) => this.messageCallback(event))
+        await Promise.all(promises)
+      } else {
+        for (const event of events.events) {
+          await this.messageCallback(event)
+        }
+      }
+
       this.fromCount = events.nextStart
 
       if (this.onEventCountChanged !== undefined) {

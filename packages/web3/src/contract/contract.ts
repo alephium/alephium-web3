@@ -1334,7 +1334,8 @@ export function subscribeEventsFromContract<T extends Fields, M extends Contract
     pollingInterval: options.pollingInterval,
     messageCallback: messageCallback,
     errorCallback: errorCallback,
-    onEventCountChanged: options.onEventCountChanged
+    onEventCountChanged: options.onEventCountChanged,
+    parallel: options.parallel
   }
   return subscribeToEvents(opt, address, fromCount)
 }
@@ -1907,7 +1908,8 @@ export function subscribeContractEvents(
     pollingInterval: options.pollingInterval,
     messageCallback: messageCallback,
     errorCallback: errorCallback,
-    onEventCountChanged: options.onEventCountChanged
+    onEventCountChanged: options.onEventCountChanged,
+    parallel: options.parallel
   }
   return subscribeToEvents(opt, instance.address, fromCount)
 }
