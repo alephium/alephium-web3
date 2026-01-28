@@ -59,7 +59,15 @@ import {
   isHexString,
   hexToString
 } from '../utils'
-import { contractIdFromAddress, groupOfAddress, addressFromContractId, subContractId } from '../address'
+import {
+  contractIdFromAddress,
+  groupOfAddress,
+  addressFromContractId,
+  subContractId,
+  isGrouplessAddress,
+  isValidAddress,
+  addressWithoutExplicitGroupIndex
+} from '../address'
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
@@ -1923,8 +1931,9 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
 ): Promise<CallContractResult<R>> {
   const methodIndex = contract.contract.getMethodIndex(methodName)
   const txId = params?.txId ?? randomTxId()
+  const callArgs = getCallMethodArgs(params.args ?? {}, instance.groupIndex)
   const callParams = contract.contract.toApiCallContract(
-    { ...params, txId: txId, args: params.args === undefined ? {} : params.args },
+    { ...params, txId: txId, args: callArgs },
     instance.groupIndex,
     instance.address,
     methodIndex
@@ -1933,6 +1942,33 @@ export async function callMethod<I extends ContractInstance, F extends Fields, A
   const callResult = contract.contract.fromApiCallContractResult(result, txId, methodIndex, getContractByCodeHash)
   contract.contract.printDebugMessages(methodName, callResult.debugMessages)
   return callResult as CallContractResult<R>
+}
+
+function tryGetCallMethodAddressArg(maybeAddress: string, groupIndex: number): Val {
+  if (!isValidAddress(maybeAddress)) return maybeAddress
+  if (isGrouplessAddress(maybeAddress)) {
+    const rawAddress = addressWithoutExplicitGroupIndex(maybeAddress)
+    return `${rawAddress}:${groupIndex}`
+  }
+  return maybeAddress
+}
+
+function getCallMethodArgsFromVal(val: Val, groupIndex: number): Val {
+  if (typeof val === 'string') {
+    return tryGetCallMethodAddressArg(val, groupIndex)
+  }
+  if (Array.isArray(val)) {
+    return val.map((v) => getCallMethodArgsFromVal(v, groupIndex))
+  }
+  return val
+}
+
+function getCallMethodArgs<A extends Arguments>(args: A, groupIndex: number): A {
+  const newArgs: Arguments = {}
+  for (const [key, value] of Object.entries(args)) {
+    newArgs[`${key}`] = getCallMethodArgsFromVal(value, groupIndex)
+  }
+  return newArgs as A
 }
 
 export async function signExecuteMethod<I extends ContractInstance, F extends Fields, A extends Arguments, R>(
@@ -2199,8 +2235,9 @@ export async function multicallMethods<I extends ContractInstance, F extends Fie
       const [methodName, params] = entry
       const methodIndex = contract.contract.getMethodIndex(methodName)
       const txId = params?.txId ?? randomTxId()
+      const callArgs = getCallMethodArgs(params.args ?? {}, instance.groupIndex)
       return contract.contract.toApiCallContract(
-        { ...params, txId: txId, args: params.args === undefined ? {} : params.args },
+        { ...params, txId: txId, args: callArgs },
         instance.groupIndex,
         instance.address,
         methodIndex
