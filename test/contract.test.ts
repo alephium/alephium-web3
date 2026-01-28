@@ -1068,6 +1068,7 @@ describe('contract', function () {
     const grouplessSigner = await getSigner(ONE_ALPH * 10n, group, 'gl-secp256k1')
     expect(groupOfAddress(grouplessSigner.account.address)).not.toEqual(0)
 
+    // transact
     if (Math.random() < 0.5) {
       const bytecode = InsertIntoMap.script.buildByteCodeToDeploy({
         mapTest: mapTest.contractId,
@@ -1095,5 +1096,19 @@ describe('contract', function () {
     expect(await mapTest.maps.map0.get(`${grouplessSigner.address}:0`)).toEqual({ id: 1n, balance: 10n })
     expect(await mapTest.maps.map0.contains(grouplessSigner.address)).toEqual(false)
     expect(await mapTest.maps.map0.contains(signer.address)).toEqual(false)
+
+    // view
+    expect((await mapTest.view.getValue({ args: { key: `${grouplessSigner.address}` } })).returns).toEqual({
+      id: 1n,
+      balance: 10n
+    })
+    expect((await mapTest.view.getValue({ args: { key: `${grouplessSigner.address}:0` } })).returns).toEqual({
+      id: 1n,
+      balance: 10n
+    })
+    expect((await mapTest.view.getValue({ args: { key: `${grouplessSigner.address}:1` } })).returns).toEqual({
+      id: 1n,
+      balance: 10n
+    })
   })
 })
