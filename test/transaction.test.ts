@@ -17,7 +17,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import {
+  binToHex,
+  bs58,
+  calcTxId,
   DappTransactionBuilder,
+  groupOfAddress,
+  hexToBinUnsafe,
   SignDeployContractTxResult,
   SignExecuteScriptTxResult,
   SignTransferChainedTxParams,
@@ -33,6 +38,7 @@ import { getSigner, mintToken, testPrivateKeyWallet } from '../packages/web3-tes
 import { TransactionBuilder } from '../packages/web3'
 import { ALPH_TOKEN_ID } from '../packages/web3'
 import { Balance } from '@alephium/web3/src/api/api-alephium'
+import { codec } from '@alephium/web3'
 
 describe('transactions', function () {
   let signer: PrivateKeyWallet
@@ -449,4 +455,71 @@ describe('transactions', function () {
   function tokenBalance(balance: Balance, tokenId: string): string | undefined {
     return balance.tokenBalances?.find((t) => t.id === tokenId)?.amount
   }
+
+  it.only('should build tx', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
+    const signer0 = await getSigner(ONE_ALPH)
+    const signer1 = await getSigner(ONE_ALPH)
+    expect(groupOfAddress(signer0.address)).toEqual(groupOfAddress(signer1.address))
+
+    const toWallet = PrivateKeyWallet.Random()
+    const toAddress = toWallet.address
+    const toLockupScript = codec.lockupScript.lockupScriptCodec.decode(bs58.decode(toAddress))
+    const balance0 = await nodeProvider.addresses.getAddressesAddressBalance(toAddress)
+    expect(BigInt(balance0.balance)).toEqual(0n)
+
+    const utxos0 = await nodeProvider.addresses.getAddressesAddressUtxos(signer0.address)
+    const utxos1 = await nodeProvider.addresses.getAddressesAddressUtxos(signer1.address)
+    expect(utxos0.utxos.length).toEqual(1)
+    expect(utxos1.utxos.length).toEqual(1)
+
+    const unlockScript0: codec.unlockScript.UnlockScript = { kind: 'P2PKH', value: hexToBinUnsafe(signer0.publicKey) }
+    const unlockScript1: codec.unlockScript.UnlockScript = { kind: 'P2PKH', value: hexToBinUnsafe(signer1.publicKey) }
+
+    const unlockScript0Hex = binToHex(codec.unlockScript.unlockScriptCodec.encode(unlockScript0))
+    const unlockScript1Hex = binToHex(codec.unlockScript.unlockScriptCodec.encode(unlockScript1))
+    const inputs0 = codec.InputCodec.fromAssetInputs(
+      utxos0.utxos.map((utxo) => {
+        return { outputRef: utxo.ref, unlockScript: unlockScript0Hex }
+      })
+    )
+    const inputs1 = codec.InputCodec.fromAssetInputs(
+      utxos1.utxos.map((utxo) => {
+        return { outputRef: utxo.ref, unlockScript: unlockScript1Hex }
+      })
+    )
+
+    const gasAmount = 20000
+    const gasPrice = 100000000000n
+    const outputAmount = ONE_ALPH * 2n - BigInt(gasAmount) * gasPrice
+    const unsignedTx: codec.UnsignedTx = {
+      version: 0,
+      networkId: 4, // devnet
+      statefulScript: { kind: 'None', value: undefined },
+      gasAmount,
+      gasPrice,
+      inputs: [...inputs0, ...inputs1],
+      fixedOutputs: [
+        {
+          amount: outputAmount,
+          lockupScript: toLockupScript,
+          lockTime: 0n,
+          tokens: [],
+          additionalData: new Uint8Array()
+        }
+      ]
+    }
+    const encoded = codec.unsignedTxCodec.encode(unsignedTx)
+    const txId = calcTxId(encoded)
+    const signature0 = await signer0.signRaw(signer0.address, txId)
+    const signature1 = await signer1.signRaw(signer1.address, txId)
+
+    await nodeProvider.multisig.postMultisigSubmit({
+      unsignedTx: binToHex(encoded),
+      signatures: [signature0, signature1]
+    })
+
+    const balance1 = await nodeProvider.addresses.getAddressesAddressBalance(toAddress)
+    expect(BigInt(balance1.balance)).toEqual(outputAmount)
+  })
 })

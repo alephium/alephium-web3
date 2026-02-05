@@ -364,3 +364,7 @@ export function updateBytecodeWithGroup(bytecode: string, group: number): string
   const bytes = scriptCodec.encode({ methods: newMethods })
   return binToHex(bytes)
 }
+
+export function calcTxId(unsignedTx: Uint8Array): string {
+  return binToHex(blakeHash(unsignedTx))
+}
