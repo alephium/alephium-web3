@@ -6,7 +6,7 @@
   "description": "React components for Alephium Web3.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alephium/alephium-web3"
+    "url": "git+https://github.com/alephium/alephium-web3.git"
   },
   "type": "module",
   "exports": {
