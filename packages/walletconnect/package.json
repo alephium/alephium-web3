@@ -6,7 +6,7 @@
   "homepage": "https://github.com/alephium/alephium-web3",
   "repository": {
     "type": "git",
-    "url": "git@github.com:alephium/alephium-web3.git"
+    "url": "git+https://github.com/alephium/alephium-web3.git"
   },
   "license": "Apache-2.0",
   "main": "dist/cjs/index.js",
