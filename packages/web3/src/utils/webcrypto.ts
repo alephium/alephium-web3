@@ -31,7 +31,8 @@ export class WebCrypto {
     }
     const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength)
 
-    if (isBrowser) {
+    // Prefer global Web Crypto (e.g. react-native-get-random-values) for mobile compatibility
+    if (globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
       globalThis.crypto.getRandomValues(bytes)
     } else {
       randomFillSync(bytes)
