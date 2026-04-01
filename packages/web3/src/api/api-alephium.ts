@@ -1566,7 +1566,6 @@ export interface WalletUnlock {
   mnemonicPassphrase?: string
 }
 
-import 'cross-fetch/polyfill'
 import { convertHttpResponse } from './utils'
 
 export type QueryParamsType = Record<string | number, any>

@@ -51,7 +51,7 @@
     "bignumber.js": "^9.1.1",
     "blakejs": "1.2.1",
     "bn.js": "5.2.1",
-    "cross-fetch": "^3.1.5",
+
     "crypto-browserify": "^3.12.0",
     "elliptic": "6.6.1",
     "eventemitter3": "^4.0.7",

@@ -637,7 +637,6 @@ export enum Currencies {
   Cny = 'cny'
 }
 
-import 'cross-fetch/polyfill'
 import { convertHttpResponse } from './utils'
 
 export type QueryParamsType = Record<string | number, any>
