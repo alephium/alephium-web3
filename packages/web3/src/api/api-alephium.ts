@@ -1031,8 +1031,6 @@ export interface PeerAddress {
   /** @format int32 */
   restPort: number
   /** @format int32 */
-  wsPort: number
-  /** @format int32 */
   minerApiPort: number
 }
 
