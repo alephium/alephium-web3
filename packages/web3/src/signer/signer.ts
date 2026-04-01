@@ -16,11 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { createHash } from 'crypto'
 import { ExplorerProvider, fromApiNumber256, fromApiTokens, NodeProvider, toApiNumber256, toApiTokens } from '../api'
 import { node } from '../api'
 import * as utils from '../utils'
-import blake from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
+import { sha256 } from '@noble/hashes/sha256'
 import {
   Account,
   Address,
@@ -380,13 +380,11 @@ export function extendMessage(message: string): string {
 export function hashMessage(message: string, hasher: MessageHasher): string {
   switch (hasher) {
     case 'alephium':
-      return utils.binToHex(blake.blake2b(extendMessage(message), undefined, 32))
+      return utils.binToHex(blake2b(new TextEncoder().encode(extendMessage(message)), { dkLen: 32 }))
     case 'sha256':
-      const sha256 = createHash('sha256')
-      sha256.update(new TextEncoder().encode(message))
-      return utils.binToHex(sha256.digest())
+      return utils.binToHex(sha256(new TextEncoder().encode(message)))
     case 'blake2b':
-      return utils.binToHex(blake.blake2b(message, undefined, 32))
+      return utils.binToHex(blake2b(new TextEncoder().encode(message), { dkLen: 32 }))
     case 'identity':
       return message
     default:

@@ -46,12 +46,12 @@
   },
   "type": "commonjs",
   "dependencies": {
+    "@noble/curves": "^1.9.7",
+    "@noble/hashes": "^1.8.0",
     "@noble/secp256k1": "1.7.1",
     "base-x": "4.0.0",
     "bignumber.js": "^9.1.1",
-    "blakejs": "1.2.1",
     "bn.js": "5.2.1",
-
     "crypto-browserify": "^3.12.0",
     "elliptic": "6.6.1",
     "eventemitter3": "^4.0.7",
@@ -60,6 +60,8 @@
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.21.3",
+    "@size-limit/esbuild": "^11.0.0",
+    "@size-limit/file": "^11.0.0",
     "@types/elliptic": "^6.4.18",
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^9.0.13",
@@ -85,6 +87,7 @@
     "process": "^0.11.10",
     "rewire": "^6.0.0",
     "shelljs": "^0.8.5",
+    "size-limit": "^11.0.0",
     "swagger-typescript-api": "12.0.3",
     "terser-webpack-plugin": "^5.3.7",
     "ts-jest": "^28.0.8",

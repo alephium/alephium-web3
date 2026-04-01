@@ -19,7 +19,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import { ec as EC, eddsa as EdDSA } from 'elliptic'
 import BN from 'bn.js'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
-import blake from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
 import bs58, { base58ToBytes } from '../utils/bs58'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
@@ -254,7 +254,7 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
 
   switch (keyType) {
     case 'default': {
-      const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
+      const hash = blake2b(hexToBinUnsafe(publicKey), { dkLen: 32 })
       const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
       return bs58.encode(bytes)
     }
@@ -268,7 +268,7 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
 }
 
 export function addressFromScript(script: Uint8Array): string {
-  const scriptHash = blake.blake2b(script, undefined, 32)
+  const scriptHash = blake2b(script, { dkLen: 32 })
   return bs58.encode(new Uint8Array([AddressType.P2SH, ...scriptHash]))
 }
 
@@ -286,7 +286,7 @@ export function addressFromTokenId(tokenId: string): string {
 export function contractIdFromTx(txId: string, outputIndex: number): string {
   const txIdBin = hexToBinUnsafe(txId)
   const data = new Uint8Array([...txIdBin, outputIndex])
-  const hash = blake.blake2b(data, undefined, 32)
+  const hash = blake2b(data, { dkLen: 32 })
   return binToHex(hash)
 }
 
@@ -301,10 +301,7 @@ export function subContractId(parentContractId: string, pathInHex: string, group
     throw new Error(`Invalid path: ${pathInHex}, expected hex string`)
   }
   const data = concatBytes([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
-  const bytes = new Uint8Array([
-    ...blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32).slice(0, -1),
-    group
-  ])
+  const bytes = new Uint8Array([...blake2b(blake2b(data, { dkLen: 32 }), { dkLen: 32 }).slice(0, -1), group])
   return binToHex(bytes)
 }
 

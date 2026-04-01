@@ -71,7 +71,7 @@ import {
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
-import * as blake from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
 import { isContractDebugMessageEnabled } from '../debug'
 import {
   contract,
@@ -279,7 +279,7 @@ export class Contract extends Artifact {
       fieldLength: decodedDebugContract.fieldLength,
       methods: methods
     })
-    const codeHashForTesting = blake.blake2b(bytecodeForTesting, undefined, 32)
+    const codeHashForTesting = blake2b(bytecodeForTesting, { dkLen: 32 })
     this.bytecodeForTesting = binToHex(bytecodeForTesting)
     this.codeHashForTesting = binToHex(codeHashForTesting)
     return this.bytecodeForTesting
@@ -1418,7 +1418,7 @@ function genCodeForType(type: string, structs: Struct[]): { bytecode: string; co
     methods: [loadImmFieldByIndex, loadMutFieldByIndex, storeMutFieldByIndex, destroy]
   }
   const bytecode = contract.contractCodec.encodeContract(c)
-  const codeHash = blake.blake2b(bytecode, undefined, 32)
+  const codeHash = blake2b(bytecode, { dkLen: 32 })
   return { bytecode: binToHex(bytecode), codeHash: binToHex(codeHash) }
 }
 
@@ -2285,7 +2285,7 @@ export const getContractIdFromUnsignedTx = async (
   const result = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx })
   const outputIndex = result.unsignedTx.fixedOutputs.length
   const hex = result.unsignedTx.txId + outputIndex.toString(16).padStart(8, '0')
-  const hashHex = binToHex(blake.blake2b(hexToBinUnsafe(hex), undefined, 32))
+  const hashHex = binToHex(blake2b(hexToBinUnsafe(hex), { dkLen: 32 }))
   return hashHex.slice(0, 62) + result.fromGroup.toString(16).padStart(2, '0')
 }
 
