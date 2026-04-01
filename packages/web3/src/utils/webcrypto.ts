@@ -16,12 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { webcrypto, randomFillSync } from 'crypto'
-
-const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'
+// With Node >= 18, globalThis.crypto is available natively in Node, browsers,
+// and edge runtimes. No polyfills or Node 'crypto' imports needed.
 
 export class WebCrypto {
-  subtle = isBrowser ? globalThis.crypto.subtle : webcrypto ? webcrypto.subtle : crypto.subtle
+  subtle = globalThis.crypto.subtle
 
   public getRandomValues<T extends ArrayBufferView | null>(array: T): T {
     if (!ArrayBuffer.isView(array)) {
@@ -30,13 +29,7 @@ export class WebCrypto {
       )
     }
     const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength)
-
-    // Prefer global Web Crypto (e.g. react-native-get-random-values) for mobile compatibility
-    if (globalThis.crypto && typeof globalThis.crypto.getRandomValues === 'function') {
-      globalThis.crypto.getRandomValues(bytes)
-    } else {
-      randomFillSync(bytes)
-    }
+    globalThis.crypto.getRandomValues(bytes)
     return array
   }
 }
