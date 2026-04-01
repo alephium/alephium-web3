@@ -16,7 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import EC from 'elliptic'
+import * as secp from '@noble/secp256k1'
+import { binToHex } from '../utils'
 
 import { sign, verifySignature } from './sign'
 import { publicKeyFromPrivateKey } from '../address'
@@ -25,11 +26,15 @@ import { KeyType } from '../signer'
 describe('Signing', function () {
   const invalidKeyTypes: KeyType[] = ['gl-ed25519', 'gl-secp256r1', 'gl-webauthn']
 
+  function generateKeyPair() {
+    const privateKeyBytes = secp.utils.randomPrivateKey()
+    const privateKey = binToHex(privateKeyBytes)
+    const publicKey = binToHex(secp.getPublicKey(privateKeyBytes, true))
+    return { privateKey, publicKey }
+  }
+
   it('should sign and verify secp2561k1 signature', () => {
-    const ec = new EC.ec('secp256k1')
-    const key = ec.genKeyPair()
-    const privateKey = key.getPrivate().toString('hex')
-    const publicKey = key.getPublic().encode('hex', true)
+    const { privateKey, publicKey } = generateKeyPair()
 
     const hash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
     const signature = sign(hash, privateKey, 'default')
@@ -40,9 +45,7 @@ describe('Signing', function () {
   })
 
   it('shoud sign and verify secp256k1 signature with groupless address', () => {
-    const ec = new EC.ec('secp256k1')
-    const key = ec.genKeyPair()
-    const privateKey = key.getPrivate().toString('hex', 64)
+    const { privateKey } = generateKeyPair()
     const publicKey = publicKeyFromPrivateKey(privateKey, 'gl-secp256k1')
 
     const hash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
@@ -54,9 +57,7 @@ describe('Signing', function () {
   })
 
   it('should sign and verify schnorr signature', () => {
-    const ec = new EC.ec('secp256k1')
-    const key = ec.genKeyPair()
-    const privateKey = key.getPrivate().toString('hex', 64)
+    const { privateKey } = generateKeyPair()
     const publicKey = publicKeyFromPrivateKey(privateKey, 'bip340-schnorr')
 
     const hash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'

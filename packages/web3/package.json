@@ -46,14 +46,12 @@
   },
   "type": "commonjs",
   "dependencies": {
-    "@noble/curves": "^1.9.7",
-    "@noble/hashes": "^1.8.0",
+    "@noble/curves": "1.6.0",
+    "@noble/hashes": "1.6.1",
     "@noble/secp256k1": "1.7.1",
     "base-x": "4.0.0",
     "bignumber.js": "^9.1.1",
-    "bn.js": "5.2.1",
     "crypto-browserify": "^3.12.0",
-    "elliptic": "6.6.1",
     "eventemitter3": "^4.0.7",
     "path-browserify": "^1.0.1",
     "stream-browserify": "^3.0.0"
@@ -62,7 +60,7 @@
     "@babel/eslint-parser": "^7.21.3",
     "@size-limit/esbuild": "^11.0.0",
     "@size-limit/file": "^11.0.0",
-    "@types/elliptic": "^6.4.18",
+
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^27.5.2",

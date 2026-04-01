@@ -16,8 +16,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC, eddsa as EdDSA } from 'elliptic'
-import BN from 'bn.js'
+import * as secp from '@noble/secp256k1'
+import { p256 } from '@noble/curves/p256'
+import { ed25519 } from '@noble/curves/ed25519'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import { blake2b } from '@noble/hashes/blake2b'
 import bs58, { base58ToBytes } from '../utils/bs58'
@@ -31,9 +32,6 @@ import { TraceableError } from '../error'
 import { byteCodec } from '../codec/codec'
 import { PublicKeyLike, safePublicKeyLikeCodec } from '../codec/public-key-like-codec'
 
-const secp256k1 = new EC('secp256k1')
-const secp256r1 = new EC('p256')
-const ed25519 = new EdDSA('ed25519')
 const PublicKeyHashSize = 32
 
 export enum AddressType {
@@ -220,14 +218,14 @@ export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType):
   switch (keyType) {
     case 'default':
     case 'gl-secp256k1':
-      return secp256k1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+      return binToHex(secp.getPublicKey(privateKey, true))
     case 'gl-secp256r1':
     case 'gl-webauthn':
-      return secp256r1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+      return binToHex(p256.getPublicKey(privateKey, true))
     case 'gl-ed25519':
-      return ed25519.keyFromSecret(privateKey).getPublic('hex')
+      return binToHex(ed25519.getPublicKey(privateKey))
     case 'bip340-schnorr':
-      return secp256k1.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
+      return secp.Point.fromPrivateKey(privateKey).toHex(true).slice(2)
   }
 }
 
