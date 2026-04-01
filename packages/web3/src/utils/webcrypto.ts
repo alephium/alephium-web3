@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-// With Node >= 18, globalThis.crypto is available natively in Node, browsers,
-// and edge runtimes. No polyfills or Node 'crypto' imports needed.
+// With Node >= 20, globalThis.crypto (including .subtle) is available natively
+// in Node, browsers, and edge runtimes. No polyfills or Node 'crypto' imports needed.
 
 export class WebCrypto {
   subtle = globalThis.crypto.subtle
