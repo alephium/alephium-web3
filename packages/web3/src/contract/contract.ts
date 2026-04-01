@@ -567,6 +567,7 @@ export class Contract extends Artifact {
     return {
       txId: txId,
       blockHash: event.blockHash,
+      timestamp: event.timestamp,
       contractAddress: event.contractAddress,
       name: name,
       eventIndex: event.eventIndex,
@@ -1009,6 +1010,7 @@ export interface TestContractParams<
 export interface ContractEvent<T extends Fields = Fields> {
   txId: string
   blockHash: string
+  timestamp: number
   contractAddress: string
   eventIndex: number
   name: string
@@ -1302,6 +1304,7 @@ export function decodeContractCreatedEvent(event: node.ContractEvent): Omit<Cont
   return {
     blockHash: event.blockHash,
     txId: event.txId,
+    timestamp: event.timestamp,
     eventIndex: event.eventIndex,
     name: Contract.ContractCreatedEvent.name,
     fields: toContractCreatedEventFields(fields)
@@ -1315,6 +1318,7 @@ export function decodeContractDestroyedEvent(
   return {
     blockHash: event.blockHash,
     txId: event.txId,
+    timestamp: event.timestamp,
     eventIndex: event.eventIndex,
     name: Contract.ContractDestroyedEvent.name,
     fields: { address: fields['address'] as Address }

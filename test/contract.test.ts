@@ -131,6 +131,7 @@ describe('contract', function () {
   })
 
   it('should test contract (1)', async () => {
+    const nodeProvider = web3.getCurrentNodeProvider()
     const subState = Sub.stateForTest({ result: 0n })
     const testResult = await Add.tests.add({
       initialFields: { sub: subState.contractId, result: 0n },
@@ -147,33 +148,57 @@ describe('contract', function () {
     expect(contract1.fields.sub).toEqual(subState.contractId)
     expect(contract1.fields.result).toEqual(3n)
 
-    const checkEvents = (eventList: ContractEvent<Fields>[]) => {
+    const checkEvents = async (eventList: ContractEvent<Fields>[], testing: boolean) => {
       const events = eventList.sort((a, b) => a.name.localeCompare(b.name))
       const event0 = events[0] as AddTypes.AddEvent
       expect(event0.name).toEqual('Add')
       expect(event0.eventIndex).toEqual(0)
       expect(event0.fields.x).toEqual(2n)
       expect(event0.fields.y).toEqual(1n)
+      if (testing) {
+        expect(event0.timestamp).toBeDefined
+      } else {
+        const blockHeader0 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event0.blockHash)
+        expect(event0.timestamp).toEqual(blockHeader0.timestamp)
+      }
 
       const event1 = events[1] as AddTypes.Add1Event
       expect(event1.name).toEqual('Add1')
       expect(event1.eventIndex).toEqual(1)
       expect(event1.fields.a).toEqual(2n)
       expect(event1.fields.b).toEqual(1n)
+      if (testing) {
+        expect(event1.timestamp).toBeDefined
+      } else {
+        const blockHeader1 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event1.blockHash)
+        expect(event1.timestamp).toEqual(blockHeader1.timestamp)
+      }
 
       const event2 = events[2] as AddTypes.EmptyEvent
       expect(event2.name).toEqual('Empty')
       expect(event2.eventIndex).toEqual(2)
       expect(event2.fields).toEqual({})
+      if (testing) {
+        expect(event2.timestamp).toBeDefined
+      } else {
+        const blockHeader2 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event2.blockHash)
+        expect(event2.timestamp).toEqual(blockHeader2.timestamp)
+      }
 
       const event3 = events[3] as SubTypes.SubEvent
       expect(event3.name).toEqual('Sub')
       expect(event3.eventIndex).toEqual(0)
       expect(event3.fields.x).toEqual(2n)
       expect(event3.fields.y).toEqual(1n)
+      if (testing) {
+        expect(event3.timestamp).toBeDefined
+      } else {
+        const blockHeader3 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event3.blockHash)
+        expect(event3.timestamp).toEqual(blockHeader3.timestamp)
+      }
     }
 
-    checkEvents(testResult.events)
+    checkEvents(testResult.events, true)
 
     const testResultPrivate = await Add.tests.addPrivate({
       initialFields: { sub: subState.contractId, result: 0n },
@@ -217,7 +242,7 @@ describe('contract', function () {
       interestedContracts: [sub.address]
     })
     expect(callResult.returns).toEqual([6n, 2n])
-    checkEvents(callResult.events)
+    checkEvents(callResult.events, false)
   })
 
   it('should test contract (2)', async () => {
