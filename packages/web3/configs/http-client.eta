@@ -1,6 +1,7 @@
 <% const { config } = it; %>
 <% /* https://github.com/acacode/swagger-typescript-api/tree/next/templates/base/http-clients/ */ %>
+<% const baseClient = includeFile(`@base/http-clients/fetch-http-client`, it) %>
 
-import { convertHttpResponse } from './utils'
+import { convertHttpResponse, stringify } from './utils'
 
-<%~ includeFile(`@base/http-clients/fetch-http-client`, it) %>
+<%~ baseClient.replace(/JSON\.stringify\(/g, 'stringify(') %>

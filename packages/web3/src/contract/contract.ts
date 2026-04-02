@@ -33,7 +33,8 @@ import {
   decodeArrayType,
   fromApiPrimitiveVal,
   tryGetCallResult,
-  decodeTupleType
+  decodeTupleType,
+  stringify
 } from '../api'
 import {
   SignDeployContractTxParams,
@@ -401,7 +402,7 @@ export class Contract extends Artifact {
     if (this.stdInterfaceId !== undefined) {
       object.stdInterfaceId = this.stdInterfaceId
     }
-    return JSON.stringify(object, null, 2)
+    return stringify(object, null, 2)
   }
 
   getInitialFieldsWithDefaultValues(): Fields {
@@ -793,7 +794,7 @@ export class Script extends Artifact {
       fieldsSig: this.fieldsSig,
       functions: this.functions
     }
-    return JSON.stringify(object, null, 2)
+    return stringify(object, null, 2)
   }
 
   async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
@@ -1616,7 +1617,7 @@ export async function getDebugMessagesFromTx(txId: HexString, provider?: NodePro
             message: hexToString(e.fields[0].value as string)
           }
         } else {
-          throw new Error(`Invalid debug log: ${JSON.stringify(e.fields)}`)
+          throw new Error(`Invalid debug log: ${stringify(e.fields)}`)
         }
       })
   } else {
