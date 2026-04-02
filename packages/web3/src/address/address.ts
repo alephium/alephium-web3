@@ -16,10 +16,11 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC, eddsa as EdDSA } from 'elliptic'
-import BN from 'bn.js'
+import * as secp from '@noble/secp256k1'
+import { p256 } from '@noble/curves/p256'
+import { ed25519 } from '@noble/curves/ed25519'
 import { TOTAL_NUMBER_OF_GROUPS } from '../constants'
-import blake from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
 import bs58, { base58ToBytes } from '../utils/bs58'
 import { binToHex, concatBytes, hexToBinUnsafe, isHexString, xorByte } from '../utils'
 import { KeyType } from '../signer'
@@ -31,9 +32,6 @@ import { TraceableError } from '../error'
 import { byteCodec } from '../codec/codec'
 import { PublicKeyLike, safePublicKeyLikeCodec } from '../codec/public-key-like-codec'
 
-const secp256k1 = new EC('secp256k1')
-const secp256r1 = new EC('p256')
-const ed25519 = new EdDSA('ed25519')
 const PublicKeyHashSize = 32
 
 export enum AddressType {
@@ -220,14 +218,14 @@ export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType):
   switch (keyType) {
     case 'default':
     case 'gl-secp256k1':
-      return secp256k1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+      return binToHex(secp.getPublicKey(privateKey, true))
     case 'gl-secp256r1':
     case 'gl-webauthn':
-      return secp256r1.keyFromPrivate(privateKey).getPublic(true, 'hex')
+      return binToHex(p256.getPublicKey(privateKey, true))
     case 'gl-ed25519':
-      return ed25519.keyFromSecret(privateKey).getPublic('hex')
+      return binToHex(ed25519.getPublicKey(privateKey))
     case 'bip340-schnorr':
-      return secp256k1.g.mul(new BN(privateKey, 16)).encode('hex', true).slice(2)
+      return secp.Point.fromPrivateKey(privateKey).toHex(true).slice(2)
   }
 }
 
@@ -254,7 +252,7 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
 
   switch (keyType) {
     case 'default': {
-      const hash = blake.blake2b(hexToBinUnsafe(publicKey), undefined, 32)
+      const hash = blake2b(hexToBinUnsafe(publicKey), { dkLen: 32 })
       const bytes = new Uint8Array([AddressType.P2PKH, ...hash])
       return bs58.encode(bytes)
     }
@@ -268,7 +266,7 @@ export function addressFromPublicKey(publicKey: string, _keyType?: KeyType): str
 }
 
 export function addressFromScript(script: Uint8Array): string {
-  const scriptHash = blake.blake2b(script, undefined, 32)
+  const scriptHash = blake2b(script, { dkLen: 32 })
   return bs58.encode(new Uint8Array([AddressType.P2SH, ...scriptHash]))
 }
 
@@ -286,7 +284,7 @@ export function addressFromTokenId(tokenId: string): string {
 export function contractIdFromTx(txId: string, outputIndex: number): string {
   const txIdBin = hexToBinUnsafe(txId)
   const data = new Uint8Array([...txIdBin, outputIndex])
-  const hash = blake.blake2b(data, undefined, 32)
+  const hash = blake2b(data, { dkLen: 32 })
   return binToHex(hash)
 }
 
@@ -301,10 +299,7 @@ export function subContractId(parentContractId: string, pathInHex: string, group
     throw new Error(`Invalid path: ${pathInHex}, expected hex string`)
   }
   const data = concatBytes([hexToBinUnsafe(parentContractId), hexToBinUnsafe(pathInHex)])
-  const bytes = new Uint8Array([
-    ...blake.blake2b(blake.blake2b(data, undefined, 32), undefined, 32).slice(0, -1),
-    group
-  ])
+  const bytes = new Uint8Array([...blake2b(blake2b(data, { dkLen: 32 }), { dkLen: 32 }).slice(0, -1), group])
   return binToHex(bytes)
 }
 

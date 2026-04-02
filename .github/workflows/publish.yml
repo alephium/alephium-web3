@@ -57,7 +57,7 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Publish to npm
-        run: npm run publish -- --tag ${{ needs.get_dist_tag.outputs.DIST_TAG }}
+        run: pnpm publish -- --tag ${{ needs.get_dist_tag.outputs.DIST_TAG }}
 
   release:
     runs-on: ubuntu-latest

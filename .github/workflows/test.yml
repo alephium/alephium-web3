@@ -39,8 +39,8 @@ jobs:
           echo ""
           echo "Alephium full node is up"
           sleep 5
-      - run: pnpm install
-      - run: npm run build
-      - run: npm run lint
-      - run: npm run test
-      - run: npm run codegen && test -z "$(git status --porcelain)"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm codegen && test -z "$(git status --porcelain)"

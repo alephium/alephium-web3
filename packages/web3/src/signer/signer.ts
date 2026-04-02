@@ -16,11 +16,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { createHash } from 'crypto'
-import { ExplorerProvider, fromApiNumber256, fromApiTokens, NodeProvider, toApiNumber256, toApiTokens } from '../api'
+import {
+  ExplorerProvider,
+  fromApiNumber256,
+  fromApiTokens,
+  NodeProvider,
+  stringify,
+  toApiNumber256,
+  toApiTokens
+} from '../api'
 import { node } from '../api'
-import * as utils from '../utils'
-import blake from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
+import { sha256 } from '@noble/hashes/sha256'
 import {
   Account,
   Address,
@@ -48,6 +55,7 @@ import {
 } from './types'
 import { TransactionBuilder } from './tx-builder'
 import { addressFromPublicKey, groupOfAddress } from '../address'
+import { binToHex, verifySignature } from '../utils'
 
 export abstract class SignerProvider {
   abstract get nodeProvider(): NodeProvider | undefined
@@ -64,7 +72,7 @@ export abstract class SignerProvider {
     const derivedAddress = addressFromPublicKey(account.publicKey, account.keyType)
     const derivedGroup = groupOfAddress(derivedAddress)
     if (derivedAddress !== account.address || (isGroupedAccount(account) && derivedGroup !== account.group)) {
-      throw Error(`Invalid accounot data: ${JSON.stringify(account)}`)
+      throw Error(`Invalid accounot data: ${stringify(account)}`)
     }
   }
 
@@ -380,13 +388,11 @@ export function extendMessage(message: string): string {
 export function hashMessage(message: string, hasher: MessageHasher): string {
   switch (hasher) {
     case 'alephium':
-      return utils.binToHex(blake.blake2b(extendMessage(message), undefined, 32))
+      return binToHex(blake2b(new TextEncoder().encode(extendMessage(message)), { dkLen: 32 }))
     case 'sha256':
-      const sha256 = createHash('sha256')
-      sha256.update(new TextEncoder().encode(message))
-      return utils.binToHex(sha256.digest())
+      return binToHex(sha256(new TextEncoder().encode(message)))
     case 'blake2b':
-      return utils.binToHex(blake.blake2b(message, undefined, 32))
+      return binToHex(blake2b(new TextEncoder().encode(message), { dkLen: 32 }))
     case 'identity':
       return message
     default:
@@ -402,7 +408,7 @@ export function verifySignedMessage(
   keyType?: KeyType
 ): boolean {
   const messageHash = hashMessage(message, messageHasher)
-  return utils.verifySignature(messageHash, publicKey, signature, keyType)
+  return verifySignature(messageHash, publicKey, signature, keyType)
 }
 
 export function toApiDestination(data: Destination): node.Destination {

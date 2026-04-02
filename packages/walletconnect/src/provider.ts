@@ -51,6 +51,7 @@ import {
   SignChainedTxParams,
   SignChainedTxResult,
   TraceableError,
+  stringify,
   isGroupedAccount,
   isGrouplessAccount,
   keyTypes,
@@ -456,10 +457,13 @@ export class WalletConnectProvider extends SignerProvider {
       if (isSignRequest && !isMobile()) {
         redirectToDeepLink()
       }
+      // Sanitize BigInt values to strings before passing to WalletConnect client,
+      // which internally uses JSON.stringify and cannot handle BigInt natively.
+      const sanitizedParams = JSON.parse(stringify(args.params))
       const response = await this.client.request<T>({
         request: {
           method: args.method,
-          params: args.params
+          params: sanitizedParams
         },
         chainId: this.permittedChain,
         topic: this.session?.topic

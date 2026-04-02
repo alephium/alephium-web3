@@ -16,17 +16,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import EC from 'elliptic'
 import assert from 'assert'
 
 import * as utils from './utils'
+import { sign, verifySignature } from './sign'
+import { hashMessage } from '../signer'
+import { publicKeyFromPrivateKey } from '../address'
 
 describe('utils', function () {
   it('should throw an error when decoding invalid signature', () => {
-    const ec = new EC.ec('secp256k1')
     const signature = 'signature-with-wrong-length'
 
-    expect(() => utils.signatureDecode(ec, signature)).toThrowError('Invalid signature length')
+    expect(() => utils.signatureDecode(signature)).toThrowError('Invalid signature length')
   })
 
   it('should compress signature', () => {
@@ -63,20 +64,26 @@ describe('utils', function () {
       ]
     ]
 
-    const ec = new EC.ec('secp256k1')
-
     vectors.forEach((vector) => {
       const privateKey = vector[1]
       const signatureExpected = vector[2]
-      const keyPair = ec.keyFromPrivate(privateKey)
-
       const message = vector[0]
-      const sha256 = ec.hash().update(message).digest()
-      const typedSig = keyPair.sign(sha256)
-      const signature = utils.encodeSignature(typedSig)
+
+      // Hash the message with sha256 (same as the test vectors expect)
+      const msgHash = hashMessage(message, 'sha256')
+
+      // Sign using the library's sign function
+      const signature = sign(msgHash, privateKey)
       assert.deepStrictEqual(signature, signatureExpected)
 
-      const anotherSig = utils.encodeHexSignature(typedSig.r.toString('hex'), typedSig.s.toString('hex'))
+      // Verify the signature using the library's verify function
+      const publicKey = publicKeyFromPrivateKey(privateKey, 'default')
+      expect(verifySignature(msgHash, publicKey, signature)).toBe(true)
+
+      // Test encodeHexSignature produces the same result
+      const r = signature.slice(0, 64)
+      const s = signature.slice(64, 128)
+      const anotherSig = utils.encodeHexSignature(r, s)
       expect(anotherSig).toBe(signature)
     })
   })

@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-wallet",
-  "version": "2.0.10",
+  "version": "2.1.0-test.0",
   "description": "Simple wallets for Alephium",
   "keywords": [
     "alephium",
@@ -30,6 +30,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "scripts": {
+    "clean": "rm -rf node_modules dist",
     "build": "rm -rf dist/* && npx tsc --build . && webpack",
     "test": "jest -i --config ./jest-config.json"
   },
@@ -57,7 +58,7 @@
     "webpack-cli": "^4.10.0"
   },
   "engines": {
-    "node": ">=14.0.0",
+    "node": ">=20.0.0",
     "npm": ">=7.0.0"
   }
 }

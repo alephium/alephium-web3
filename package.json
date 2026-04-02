@@ -19,7 +19,7 @@
     "typescript": "^4.9.5"
   },
   "scripts": {
-    "clean": "rm -rf .parcel-cache && pnpm -r run clean",
+    "clean": "rm -rf node_modules .parcel-cache && pnpm -r run clean",
     "build": "pnpm --stream -r run build",
     "codegen": "ts-node --swc gen.ts",
     "test": "jest -i --config ./jest-config.json --forceExit",
@@ -40,7 +40,7 @@
     "trailingComma": "none"
   },
   "engines": {
-    "node": ">=14.0.0",
+    "node": ">=20.0.0",
     "npm": ">=7.0.0",
     "pnpm": ">=7.0.0"
   },

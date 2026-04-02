@@ -15,10 +15,10 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
-import blake from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
 
 export function blakeHash(raw: Uint8Array) {
-  return blake.blake2b(raw, undefined, 32)
+  return blake2b(raw, { dkLen: 32 })
 }
 
 export function djbIntHash(bytes: Uint8Array): number {

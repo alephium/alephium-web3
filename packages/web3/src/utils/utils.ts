@@ -16,42 +16,31 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC, SignatureInput } from 'elliptic'
-import BN from 'bn.js'
+import * as secp256k1 from '@noble/secp256k1'
 import { TOTAL_NUMBER_OF_GROUPS, TOTAL_NUMBER_OF_CHAINS } from '../constants'
 
 export const networkIds = ['mainnet', 'testnet', 'devnet'] as const
 export type NetworkId = (typeof networkIds)[number]
 export type HexString = string
 
-const ec = new EC('secp256k1')
-
-export function encodeSignature(signature: EC.Signature | { r: BN; s: BN }): string {
-  let sNormalized = signature.s
-  if (ec.n && signature.s.cmp(ec.nh) === 1) {
-    sNormalized = ec.n.sub(signature.s)
-  }
-
-  const r = signature.r.toString('hex', 66).slice(2)
-  const s = sNormalized.toString('hex', 66).slice(2)
-  return r + s
+export function encodeSignature(signature: { r: bigint; s: bigint }): string {
+  const sig = new secp256k1.Signature(signature.r, signature.s).normalizeS()
+  return sig.toCompactHex()
 }
 
 export function encodeHexSignature(rHex: string, sHex: string): string {
-  return encodeSignature({ r: new BN(rHex, 'hex'), s: new BN(sHex, 'hex') })
+  return encodeSignature({ r: BigInt('0x' + rHex), s: BigInt('0x' + sHex) })
 }
 
 // the signature should be in hex string format for 64 bytes
-export function signatureDecode(ec: EC, signature: string): SignatureInput {
+export function signatureDecode(signature: string): { r: string; s: string } {
   if (signature.length !== 128) {
     throw new Error('Invalid signature length')
   }
 
-  const sHex = signature.slice(64, 128)
-  const s = new BN(sHex, 'hex')
-  if (ec.n && s.cmp(ec.nh) < 1) {
-    const decoded = { r: signature.slice(0, 64), s: sHex }
-    return decoded
+  const sig = secp256k1.Signature.fromCompact(signature)
+  if (!sig.hasHighS()) {
+    return { r: signature.slice(0, 64), s: signature.slice(64, 128) }
   } else {
     throw new Error('The signature is not normalized')
   }

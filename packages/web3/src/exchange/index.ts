@@ -21,8 +21,6 @@ export {
   getSenderAddress,
   isALPHTransferTx,
   getALPHDepositInfo,
-  BaseDepositInfo,
-  TokenDepositInfo,
-  DepositInfo,
   getDepositInfo
 } from './exchange'
+export type { BaseDepositInfo, TokenDepositInfo, DepositInfo } from './exchange'
