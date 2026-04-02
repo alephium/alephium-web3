@@ -10,18 +10,18 @@
   },
   "license": "Apache-2.0",
   "sideEffects": false,
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/types/index.d.ts",
+  "main": "dist/_cjs/index.js",
+  "module": "dist/_esm/index.js",
+  "types": "dist/_types/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/index.mjs"
+        "types": "./dist/_types/index.d.ts",
+        "default": "./dist/_esm/index.js"
       },
       "require": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/_types/index.d.ts",
+        "default": "./dist/_cjs/index.js"
       }
     }
   },
@@ -34,7 +34,10 @@
   ],
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "tsup && tsc --emitDeclarationOnly --declaration --outDir dist/types",
+    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm && pnpm build:types",
+    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "build:types": "tsc --project tsconfig.build.json --outDir dist/_types --emitDeclarationOnly --declaration --declarationMap",
     "test": "jest --detectOpenHandles -i --force-exit --config ./jest-config.json",
     "lint": "eslint -c '.eslintrc' './{src,test}/**/*.ts'",
     "lint:fix": "eslint -c '.eslintrc' --fix './{src,test}/**/*.ts'"
@@ -72,7 +75,6 @@
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "tslib": "^2.5.0",
-    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   },
   "engines": {
