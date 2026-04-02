@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { promises as fsPromises } from 'fs'
 import {
   fromApiNumber256,
   toApiNumber256,
@@ -378,7 +377,8 @@ export class Contract extends Artifact {
     codeHashDebug: string,
     structs: Struct[] = []
   ): Promise<Contract> {
-    const content = await fsPromises.readFile(path)
+    const fs = await import('fs')
+    const content = await fs.promises.readFile(path)
     const artifact = JSON.parse(content.toString())
     return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug, structs)
   }
@@ -779,7 +779,8 @@ export class Script extends Artifact {
   }
 
   static async fromArtifactFile(path: string, bytecodeDebugPatch: string, structs: Struct[] = []): Promise<Script> {
-    const content = await fsPromises.readFile(path)
+    const fs = await import('fs')
+    const content = await fs.promises.readFile(path)
     const artifact = JSON.parse(content.toString())
     return this.fromJson(artifact, bytecodeDebugPatch, structs)
   }

@@ -17,6 +17,7 @@
     "dist/"
   ],
   "scripts": {
+    "clean": "rm -rf node_modules dist",
     "build": "rollup -c",
     "dev": "rollup -c -w"
   },

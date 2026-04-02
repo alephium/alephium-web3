@@ -30,6 +30,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "scripts": {
+    "clean": "rm -rf node_modules dist",
     "build": "rm -rf dist/* && npx tsc --build . && webpack",
     "test": "jest -i --config ./jest-config.json"
   },
