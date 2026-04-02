@@ -1,6 +1,6 @@
 {
   "name": "@alephium/cli",
-  "version": "2.0.10",
+  "version": "2.1.0-test.0",
   "description": "Alephium command line tool",
   "license": "GPL",
   "repository": {
@@ -27,7 +27,6 @@
     "@alephium/web3-wallet": "workspace:^",
     "@swc/core": "^1.4.1",
     "commander": "^9.5.0",
-
     "crypto-js": "^4.2.0",
     "fs-extra": "^10.1.0",
     "jest": "^28.1.3",
