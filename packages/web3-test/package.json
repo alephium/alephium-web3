@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-test",
-  "version": "2.1.0-test.0",
+  "version": "3.0.0-test.0",
   "description": "Utility functions for Alephium test",
   "keywords": [
     "alephium",
@@ -40,7 +40,8 @@
     "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
-    "crypto-browserify": "^3.12.0"
+    "crypto-browserify": "^3.12.0",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=20.0.0",

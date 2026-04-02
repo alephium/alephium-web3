@@ -1089,7 +1089,7 @@ export interface DeployContractParams<P extends Fields = Fields> {
 }
 assertType<
   Eq<
-    Omit<DeployContractParams<undefined>, 'initialFields' | 'exposePrivateFunctions'>,
+    Omit<DeployContractParams<Fields>, 'initialFields' | 'exposePrivateFunctions'>,
     Omit<SignDeployContractTxParams, 'signerAddress' | 'signerKeyType' | 'bytecode'>
   >
 >

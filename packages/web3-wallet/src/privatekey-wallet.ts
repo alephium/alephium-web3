@@ -16,12 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC } from 'elliptic'
+import * as secp from '@noble/secp256k1'
 import { Account, KeyType, ExplorerProvider, NodeProvider, SignerProviderSimple, utils, web3 } from '@alephium/web3'
 import { publicKeyFromPrivateKey, addressFromPublicKey, groupOfAddress } from '@alephium/web3'
 import { deriveHDWalletPrivateKey, deriveHDWalletPrivateKeyForGroup } from './hd-wallet'
-
-const ec = new EC('secp256k1')
 
 // In-memory HDWallet for simple use cases.
 export class PrivateKeyWallet extends SignerProviderSimple {
@@ -79,9 +77,9 @@ export class PrivateKeyWallet extends SignerProviderSimple {
   }
 
   static Random(targetGroup?: number, nodeProvider?: NodeProvider, keyType?: KeyType): PrivateKeyWallet {
-    const keyPair = ec.genKeyPair()
+    const privateKeyBytes = secp.utils.randomPrivateKey()
     const wallet = new PrivateKeyWallet({
-      privateKey: keyPair.getPrivate().toString('hex', 64),
+      privateKey: utils.binToHex(privateKeyBytes),
       keyType,
       nodeProvider
     })

@@ -221,9 +221,9 @@ export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType):
       return binToHex(secp.getPublicKey(privateKey, true))
     case 'gl-secp256r1':
     case 'gl-webauthn':
-      return binToHex(p256.getPublicKey(privateKey, true))
+      return binToHex(p256.getPublicKey(hexToBinUnsafe(privateKey), true))
     case 'gl-ed25519':
-      return binToHex(ed25519.getPublicKey(privateKey))
+      return binToHex(ed25519.getPublicKey(hexToBinUnsafe(privateKey)))
     case 'bip340-schnorr':
       return secp.Point.fromPrivateKey(privateKey).toHex(true).slice(2)
   }

@@ -1,7 +1,7 @@
 {
   "name": "@alephium/walletconnect-provider",
   "description": "Alephium Provider for WalletConnect Protocol",
-  "version": "2.1.0-test.0",
+  "version": "3.0.0-test.0",
   "author": "Alephium dev",
   "homepage": "https://github.com/alephium/alephium-web3",
   "repository": {
@@ -9,10 +9,22 @@
     "url": "git+https://github.com/alephium/alephium-web3.git"
   },
   "license": "Apache-2.0",
-  "main": "dist/cjs/index.js",
-  "browser": "dist/umd/index.min.js",
-  "types": "dist/cjs/index.d.ts",
-  "unpkg": "dist/umd/index.min.js",
+  "sideEffects": false,
+  "main": "dist/_cjs/index.js",
+  "module": "dist/_esm/index.js",
+  "types": "dist/_types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/_types/index.d.ts",
+        "default": "./dist/_esm/index.js"
+      },
+      "require": {
+        "types": "./dist/_types/index.d.ts",
+        "default": "./dist/_cjs/index.js"
+      }
+    }
+  },
   "files": [
     "dist"
   ],
@@ -22,41 +34,31 @@
   ],
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build:cjs": "npx tsc -p tsconfig.cjs.json",
-    "build:umd": "webpack",
-    "build": "rm -rf dist && pnpm build:cjs && pnpm build:umd",
+    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm && pnpm build:types",
+    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "build:types": "tsc --project tsconfig.build.json --outDir dist/_types --emitDeclarationOnly --declaration --declarationMap",
     "test": "jest --detectOpenHandles -i --force-exit --config ./jest-config.json",
-    "test:watch": "env TS_NODE_PROJECT=\"tsconfig.cjs.json\" jest --timeout 3000 --exit -r ts-node/register --watch --watch-files . ./test/**/*.spec.ts",
-    "watch": "tsc -p tsconfig.json --watch",
     "lint": "eslint -c '.eslintrc' './{src,test}/**/*.ts'",
     "lint:fix": "eslint -c '.eslintrc' --fix './{src,test}/**/*.ts'"
   },
   "dependencies": {
     "@alephium/web3": "workspace:^",
     "@alephium/web3-wallet": "workspace:^",
+    "@walletconnect/core": "2.17.3",
+    "@walletconnect/keyvaluestorage": "1.1.1",
     "@walletconnect/sign-client": "2.17.3",
     "@walletconnect/types": "2.17.3",
     "@walletconnect/utils": "2.17.3",
-    "@walletconnect/core": "2.17.3",
-    "@walletconnect/keyvaluestorage": "1.1.1",
-    "eventemitter3": "^4.0.7",
-    "async-sema": "^3.1.1"
+    "async-sema": "^3.1.1",
+    "eventemitter3": "^4.0.7"
   },
   "devDependencies": {
-    "@babel/cli": "^7.21.0",
-    "@babel/core": "^7.21.4",
-    "@babel/node": "^7.20.7",
-    "@babel/polyfill": "^7.12.1",
-    "@babel/preset-env": "^7.21.4",
-    "@babel/preset-typescript": "^7.21.4",
-    "@babel/register": "^7.21.0",
     "@types/jest": "^29.5.0",
-    "@types/node": "^16.18.23",
+    "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "@walletconnect/jsonrpc-utils": "1.0.3",
-    "core-js": "^3.29.1",
-    "crypto-browserify": "^3.12.0",
     "eslint": "^8.37.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-standard": "^17.0.0",
@@ -69,15 +71,11 @@
     "eslint-plugin-standard": "^4.1.0",
     "jest": "^29.5.0",
     "lokijs": "^1.5.12",
-    "path-browserify": "^1.0.1",
     "prettier": "^2.8.7",
-    "stream-browserify": "^3.0.0",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "tslib": "^2.5.0",
-    "typescript": "^4.9.5",
-    "webpack": "5.94.0",
-    "webpack-cli": "4.10.0"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=20.0.0",

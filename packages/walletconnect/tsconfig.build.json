@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "src/**/*.test.ts"],
+  "compilerOptions": {
+    "lib": ["esnext", "dom", "esnext.asynciterable"],
+    "skipLibCheck": true,
+    "removeComments": true,
+    "sourceMap": true
+  }
+}
