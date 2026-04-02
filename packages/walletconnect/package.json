@@ -9,10 +9,22 @@
     "url": "git+https://github.com/alephium/alephium-web3.git"
   },
   "license": "Apache-2.0",
-  "main": "dist/cjs/index.js",
-  "browser": "dist/umd/index.min.js",
-  "types": "dist/cjs/index.d.ts",
-  "unpkg": "dist/umd/index.min.js",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/types/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
   "files": [
     "dist"
   ],
@@ -22,12 +34,8 @@
   ],
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build:cjs": "npx tsc -p tsconfig.cjs.json",
-    "build:umd": "webpack",
-    "build": "rm -rf dist && pnpm build:cjs && pnpm build:umd",
+    "build": "tsup && tsc --emitDeclarationOnly --declaration --outDir dist/types",
     "test": "jest --detectOpenHandles -i --force-exit --config ./jest-config.json",
-    "test:watch": "env TS_NODE_PROJECT=\"tsconfig.cjs.json\" jest --timeout 3000 --exit -r ts-node/register --watch --watch-files . ./test/**/*.spec.ts",
-    "watch": "tsc -p tsconfig.json --watch",
     "lint": "eslint -c '.eslintrc' './{src,test}/**/*.ts'",
     "lint:fix": "eslint -c '.eslintrc' --fix './{src,test}/**/*.ts'"
   },
@@ -43,20 +51,11 @@
     "eventemitter3": "^4.0.7"
   },
   "devDependencies": {
-    "@babel/cli": "^7.21.0",
-    "@babel/core": "^7.21.4",
-    "@babel/node": "^7.20.7",
-    "@babel/polyfill": "^7.12.1",
-    "@babel/preset-env": "^7.21.4",
-    "@babel/preset-typescript": "^7.21.4",
-    "@babel/register": "^7.21.0",
     "@types/jest": "^29.5.0",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "@walletconnect/jsonrpc-utils": "1.0.3",
-    "core-js": "^3.29.1",
-    "crypto-browserify": "^3.12.0",
     "eslint": "^8.37.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-standard": "^17.0.0",
@@ -69,15 +68,12 @@
     "eslint-plugin-standard": "^4.1.0",
     "jest": "^29.5.0",
     "lokijs": "^1.5.12",
-    "path-browserify": "^1.0.1",
     "prettier": "^2.8.7",
-    "stream-browserify": "^3.0.0",
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "tslib": "^2.5.0",
-    "typescript": "^5.9.3",
-    "webpack": "5.94.0",
-    "webpack-cli": "4.10.0"
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=20.0.0",
