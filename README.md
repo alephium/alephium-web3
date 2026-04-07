@@ -59,10 +59,11 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
 - `--declaration` — emits `.d.ts` type declarations alongside `.js` files, so CJS consumers get CJS-flavored types.
 - `--verbatimModuleSyntax false` — allows tsc to transform `import`/`export` to `require()`/`module.exports`.
 
-**`build:esm`**: `tsc --declaration`
+**`build:esm`**: `tsc --declaration && tsc-alias --resolve-full-paths`
 - Inherits `--module es2020` and `--moduleResolution bundler` from root tsconfig.
 - `--declaration` — emits `.d.ts` type declarations alongside `.js` files, so ESM consumers get ESM-flavored types.
 - The `"sideEffects": false` in the nested `package.json` enables tree-shaking for bundlers that check the nearest `package.json` to the resolved file.
+- **`tsc-alias --resolve-full-paths`** — post-processes the ESM output to add `.js` extensions to all relative import paths (e.g., `from './api'` becomes `from './api/index.js'`). This is necessary because strict ESM resolvers (Node.js with `"type": "module"`, Vitest) require explicit file extensions — bare directory imports like `'./api'` don't resolve in ESM. TypeScript deliberately does not rewrite import specifiers during compilation ([by design](https://github.com/microsoft/TypeScript/issues/16577)), so a post-processing step is needed. The CJS output does not need this because Node's `require()` handles directory resolution natively.
 
 #### Package fields
 

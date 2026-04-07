@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "3.0.0-test.3",
+  "version": "3.0.0-test.5",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "type": "commonjs",
@@ -67,7 +67,7 @@
     "clean": "rm -rf node_modules dist",
     "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm",
     "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --declaration --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
-    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && tsc-alias --project tsconfig.build.json --outDir dist/_esm --resolve-full-paths && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
     "check": "publint && attw --pack --ignore-rules internal-resolution-error",
     "test": "jest -i --config ./jest-config.json",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
@@ -115,6 +115,7 @@
     "swagger-typescript-api": "12.0.3",
     "ts-jest": "^28.0.8",
     "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.16",
     "tslib": "^2.5.0",
     "typescript": "^5.9.3"
   },
