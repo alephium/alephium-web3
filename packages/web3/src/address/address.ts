@@ -212,7 +212,7 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
   return groupOfAddress(addressFromPublicKey(publicKeyFromPrivateKey(privateKey, keyType), keyType))
 }
 
-export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
+export function publicKeyFromPrivateKey(privateKey: string | Uint8Array, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
   switch (keyType) {
@@ -221,9 +221,9 @@ export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType):
       return binToHex(secp.getPublicKey(privateKey, true))
     case 'gl-secp256r1':
     case 'gl-webauthn':
-      return binToHex(p256.getPublicKey(hexToBinUnsafe(privateKey), true))
+      return binToHex(p256.getPublicKey(privateKey, true))
     case 'gl-ed25519':
-      return binToHex(ed25519.getPublicKey(hexToBinUnsafe(privateKey)))
+      return binToHex(ed25519.getPublicKey(privateKey))
     case 'bip340-schnorr':
       return secp.Point.fromPrivateKey(privateKey).toHex(true).slice(2)
   }
