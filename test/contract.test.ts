@@ -156,7 +156,7 @@ describe('contract', function () {
       expect(event0.fields.x).toEqual(2n)
       expect(event0.fields.y).toEqual(1n)
       if (testing) {
-        expect(event0.timestamp).toBeDefined
+        expect(event0.timestamp).toBeDefined()
       } else {
         const blockHeader0 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event0.blockHash)
         expect(event0.timestamp).toEqual(blockHeader0.timestamp)
@@ -168,7 +168,7 @@ describe('contract', function () {
       expect(event1.fields.a).toEqual(2n)
       expect(event1.fields.b).toEqual(1n)
       if (testing) {
-        expect(event1.timestamp).toBeDefined
+        expect(event1.timestamp).toBeDefined()
       } else {
         const blockHeader1 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event1.blockHash)
         expect(event1.timestamp).toEqual(blockHeader1.timestamp)
@@ -179,7 +179,7 @@ describe('contract', function () {
       expect(event2.eventIndex).toEqual(2)
       expect(event2.fields).toEqual({})
       if (testing) {
-        expect(event2.timestamp).toBeDefined
+        expect(event2.timestamp).toBeDefined()
       } else {
         const blockHeader2 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event2.blockHash)
         expect(event2.timestamp).toEqual(blockHeader2.timestamp)
@@ -191,7 +191,7 @@ describe('contract', function () {
       expect(event3.fields.x).toEqual(2n)
       expect(event3.fields.y).toEqual(1n)
       if (testing) {
-        expect(event3.timestamp).toBeDefined
+        expect(event3.timestamp).toBeDefined()
       } else {
         const blockHeader3 = await nodeProvider.blockflow.getBlockflowBlocksBlockHash(event3.blockHash)
         expect(event3.timestamp).toEqual(blockHeader3.timestamp)
