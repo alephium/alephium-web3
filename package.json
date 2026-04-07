@@ -23,6 +23,7 @@
     "build": "pnpm --stream -r run build",
     "codegen": "ts-node --swc gen.ts",
     "test": "jest -i --config ./jest-config.json --forceExit",
+    "check": "pnpm -r run --if-present check",
     "lint": "eslint . --ext ts,.tsx",
     "lint:fix": "eslint . --fix --ext .ts,.tsx",
     "audit": "npm audit --omit=dev",

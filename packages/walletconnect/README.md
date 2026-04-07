@@ -1,22 +1,27 @@
-# Alephium Walletconnect
+# `@alephium/walletconnect-provider`
 
-## Getting started
+Alephium provider for the WalletConnect protocol.
 
-```
-npm i @alephium/walletconnect-provider@0.3.0
-```
+## Build
 
-## Test
-
-Start services by runing the following command in the [docker](docker/) folder:
+This package uses a tsc dual-build to produce dual CJS/ESM output with proper type declarations. See the [monorepo README](../../README.md#build-system) for details on the build system, flags, and exports configuration.
 
 ```
-docker-compose up -d
+pnpm build    # Build CJS + ESM + types
+pnpm check    # Run publint + attw packaging checks
+pnpm test     # Run unit tests (requires WalletConnect relay — see below)
 ```
 
-After all services are successfully up and running, run the following
-command in the project root directory:
+## Testing
+
+Start the required services (Alephium node, Redis, WalletConnect relay) from the monorepo root:
 
 ```
-npm run test
+cd docker && docker-compose up -d
+```
+
+Then run:
+
+```
+pnpm test
 ```

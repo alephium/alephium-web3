@@ -30,7 +30,99 @@ There are a few packages in this repository:
 
 ## Development
 
-Please refer to `package.json`.
+### Build System
+
+The modernized packages (`@alephium/web3`, `@alephium/web3-wallet`, `@alephium/walletconnect-provider`) use a **tsc dual-build** approach (same pattern as [viem](https://github.com/wevm/viem)):
+
+```
+pnpm build
+```
+
+Each package runs two `tsc` passes that output to separate directories:
+
+| Output | Directory | Description |
+|---|---|---|
+| CJS + types | `dist/_cjs/` | CommonJS for Node.js `require()` consumers |
+| ESM + types | `dist/_esm/` | ES Modules for bundlers and modern Node.js `import` consumers |
+
+Each output directory contains a nested `package.json` that tells Node.js how to interpret the `.js` files:
+- `dist/_cjs/package.json` → `{"type": "commonjs"}`
+- `dist/_esm/package.json` → `{"type": "module", "sideEffects": false}`
+
+This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and ESM unambiguous.
+
+#### Build flags explained
+
+**`build:cjs`**: `tsc --module commonjs --moduleResolution node --declaration --verbatimModuleSyntax false`
+- `--module commonjs` — overrides the root tsconfig's `es2020` to emit `require()`/`module.exports`. The `"type": "commonjs"` in the root `package.json` only affects Node.js runtime, not tsc.
+- `--moduleResolution node` — overrides the root's `bundler` to use Node's CJS resolution algorithm.
+- `--declaration` — emits `.d.ts` type declarations alongside `.js` files, so CJS consumers get CJS-flavored types.
+- `--verbatimModuleSyntax false` — allows tsc to transform `import`/`export` to `require()`/`module.exports`.
+
+**`build:esm`**: `tsc --declaration`
+- Inherits `--module es2020` and `--moduleResolution bundler` from root tsconfig.
+- `--declaration` — emits `.d.ts` type declarations alongside `.js` files, so ESM consumers get ESM-flavored types.
+- The `"sideEffects": false` in the nested `package.json` enables tree-shaking for bundlers that check the nearest `package.json` to the resolved file.
+
+#### Package fields
+
+```json
+{
+  "type": "commonjs",
+  "sideEffects": false,
+  "main": "dist/_cjs/index.js",
+  "module": "dist/_esm/index.js",
+  "types": "dist/_cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/_esm/index.d.ts",
+        "default": "./dist/_esm/index.js"
+      },
+      "require": {
+        "types": "./dist/_cjs/index.d.ts",
+        "default": "./dist/_cjs/index.js"
+      }
+    }
+  }
+}
+```
+
+**`"type": "commonjs"`** — declares the package's default module type. Without this, Node.js auto-detects the type on each file access, causing a small performance hit ([publint suggestion](https://publint.dev/)). We use `"commonjs"` (not `"module"`) because:
+- The package root contains source files, config files, and scripts that are CJS
+- The `dist/_esm/` directory overrides this with its own `{"type": "module"}` nested `package.json`
+- Jest runs in CJS mode and loads files relative to the package root
+
+**`"sideEffects": false`** — tells bundlers (webpack, Vite, Rollup) that all modules in this package are pure — importing a module without using its exports has no observable effect. This enables aggressive tree-shaking: if a consumer imports only `isValidAddress`, the bundler can safely drop all other modules.
+
+**`"main"`** — entry point for Node.js `require('@alephium/web3')` and legacy bundlers that don't understand `exports`. Points to the CJS output.
+
+**`"module"`** — entry point for legacy bundlers (webpack 4, older Rollup) that look for ESM via this non-standard field. Modern bundlers use `exports` instead, but `module` provides a fallback.
+
+**`"types"`** — entry point for TypeScript when `moduleResolution` is `"node"` (node10). Points to the CJS type declarations since `"type": "commonjs"` packages default to CJS resolution.
+
+**`"exports"`** — the modern entry point map. Runtimes and bundlers that support it use `exports` over `main`/`module`/`types`. Each condition (`import`/`require`) has its own `types` entry pointing to the type declarations in the corresponding output directory. This ensures CJS consumers get CJS-flavored type declarations and ESM consumers get ESM-flavored type declarations, avoiding [FalseCJS](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseCJS.md) and [FalseESM](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseESM.md) type issues.
+
+### Package Quality Checks
+
+```
+pnpm check
+```
+
+Runs [publint](https://publint.dev/) and [@arethetypeswrong/cli](https://arethetypeswrong.github.io/) on the modernized packages.
+
+- **publint** validates that `package.json` fields, `exports`, and file references are correct.
+- **attw** checks that TypeScript types resolve correctly for consumers using different module resolution strategies (`node10`, `node16`, `bundler`).
+
+The `internal-resolution-error` rule is ignored in attw because the `node16 (from ESM)` resolution mode requires `.js` extensions in all import paths within type declaration files. Since tsc does not rewrite import paths in emitted `.d.ts` files, bare specifiers like `'./api'` fail strict ESM resolution. This is a [known limitation](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/InternalResolutionError.md) affecting most dual CJS/ESM packages, including viem. The `node10`, `node16 (from CJS)`, and `bundler` resolution modes all resolve correctly.
+
+### Testing
+
+```
+pnpm test
+```
+
+Runs Jest across all packages. The root `jest-config.json` overrides ts-jest to use `--module commonjs` so that tests run in CJS mode (Jest does not support ESM natively). The `transformIgnorePatterns` setting allows Jest to transform `@noble` and `@scure` packages.
 
 
 [test-badge]: https://github.com/alephium/alephium-web3/actions/workflows/test.yml/badge.svg

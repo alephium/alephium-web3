@@ -3,18 +3,19 @@
   "version": "3.0.0-test.0",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
+  "type": "commonjs",
   "sideEffects": false,
   "main": "dist/_cjs/index.js",
   "module": "dist/_esm/index.js",
-  "types": "dist/_types/index.d.ts",
+  "types": "dist/_cjs/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/_types/index.d.ts",
+        "types": "./dist/_esm/index.d.ts",
         "default": "./dist/_esm/index.js"
       },
       "require": {
-        "types": "./dist/_types/index.d.ts",
+        "types": "./dist/_cjs/index.d.ts",
         "default": "./dist/_cjs/index.js"
       }
     }
@@ -34,10 +35,10 @@
   },
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm && pnpm build:types",
-    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
-    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
-    "build:types": "tsc --project tsconfig.build.json --outDir dist/_types --emitDeclarationOnly --declaration --declarationMap",
+    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm",
+    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --declaration --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "check": "publint && attw --pack --ignore-rules internal-resolution-error",
     "test": "jest -i --config ./jest-config.json",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
     "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
@@ -54,6 +55,7 @@
     "eventemitter3": "^4.0.7"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@babel/eslint-parser": "^7.21.3",
     "@size-limit/esbuild": "^11.0.0",
     "@size-limit/file": "^11.0.0",
@@ -76,6 +78,7 @@
     "mock-socket": "^9.2.1",
     "prettier": "^2.8.7",
     "process": "^0.11.10",
+    "publint": "^0.3.18",
     "rewire": "^6.0.0",
     "shelljs": "^0.8.5",
     "size-limit": "^11.0.0",

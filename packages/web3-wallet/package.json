@@ -7,18 +7,19 @@
     "web3"
   ],
   "license": "GPL",
+  "type": "commonjs",
   "sideEffects": false,
   "main": "dist/_cjs/index.js",
   "module": "dist/_esm/index.js",
-  "types": "dist/_types/index.d.ts",
+  "types": "dist/_cjs/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/_types/index.d.ts",
+        "types": "./dist/_esm/index.d.ts",
         "default": "./dist/_esm/index.js"
       },
       "require": {
-        "types": "./dist/_types/index.d.ts",
+        "types": "./dist/_cjs/index.d.ts",
         "default": "./dist/_cjs/index.js"
       }
     }
@@ -34,10 +35,10 @@
   "author": "Alephium dev <dev@alephium.org>",
   "scripts": {
     "clean": "rm -rf node_modules dist",
-    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm && pnpm build:types",
-    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
-    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
-    "build:types": "tsc --project tsconfig.build.json --outDir dist/_types --emitDeclarationOnly --declaration --declarationMap",
+    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm",
+    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --declaration --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "check": "publint && attw --pack --ignore-rules internal-resolution-error",
     "test": "jest -i --config ./jest-config.json"
   },
   "dependencies": {
@@ -47,11 +48,13 @@
     "@scure/bip39": "^1.5.0"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@types/jest": "^27.5.2",
     "@types/mock-fs": "^4.13.1",
     "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
+    "publint": "^0.3.18",
     "typescript": "^5.9.3"
   },
   "engines": {
