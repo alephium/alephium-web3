@@ -83,7 +83,9 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
         "types": "./dist/_cjs/index.d.ts",
         "default": "./dist/_cjs/index.js"
       }
-    }
+    },
+    "./api/explorer": { ... },
+    "./api/node": { ... }
   }
 }
 ```
@@ -102,6 +104,30 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
 **`"types"`** — entry point for TypeScript when `moduleResolution` is `"node"` (node10). Points to the CJS type declarations since `"type": "commonjs"` packages default to CJS resolution.
 
 **`"exports"`** — the modern entry point map. Runtimes and bundlers that support it use `exports` over `main`/`module`/`types`. Each condition (`import`/`require`) has its own `types` entry pointing to the type declarations in the corresponding output directory. This ensures CJS consumers get CJS-flavored type declarations and ESM consumers get ESM-flavored type declarations, avoiding [FalseCJS](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseCJS.md) and [FalseESM](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseESM.md) type issues.
+
+#### Sub-path exports
+
+`@alephium/web3` exposes the generated API types via sub-path exports:
+
+```ts
+// Node API types (generated from the Alephium full node OpenAPI spec)
+import { Balance, Transaction } from '@alephium/web3/api/node'
+
+// Explorer API types (generated from the explorer backend OpenAPI spec)
+import { FungibleTokenMetadata, MempoolTransaction } from '@alephium/web3/api/explorer'
+```
+
+These replace the old deep imports into the package's internal directory structure:
+
+```ts
+// ❌ Old (v2) — reaches into internal dist structure
+import { FungibleTokenMetadata } from '@alephium/web3/dist/src/api/api-explorer'
+
+// ✅ New (v3) — stable public sub-path
+import { FungibleTokenMetadata } from '@alephium/web3/api/explorer'
+```
+
+The `typesVersions` field provides fallback resolution for TypeScript consumers using `moduleResolution: "node"` (which doesn't support `exports`).
 
 ### Package Quality Checks
 

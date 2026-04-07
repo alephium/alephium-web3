@@ -18,6 +18,36 @@
         "types": "./dist/_cjs/index.d.ts",
         "default": "./dist/_cjs/index.js"
       }
+    },
+    "./api/explorer": {
+      "import": {
+        "types": "./dist/_esm/api/api-explorer.d.ts",
+        "default": "./dist/_esm/api/api-explorer.js"
+      },
+      "require": {
+        "types": "./dist/_cjs/api/api-explorer.d.ts",
+        "default": "./dist/_cjs/api/api-explorer.js"
+      }
+    },
+    "./api/node": {
+      "import": {
+        "types": "./dist/_esm/api/api-alephium.d.ts",
+        "default": "./dist/_esm/api/api-alephium.js"
+      },
+      "require": {
+        "types": "./dist/_cjs/api/api-alephium.d.ts",
+        "default": "./dist/_cjs/api/api-alephium.js"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "api/explorer": [
+        "dist/_cjs/api/api-explorer.d.ts"
+      ],
+      "api/node": [
+        "dist/_cjs/api/api-alephium.d.ts"
+      ]
     }
   },
   "repository": {
