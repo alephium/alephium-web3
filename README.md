@@ -142,6 +142,35 @@ Runs [publint](https://publint.dev/) and [@arethetypeswrong/cli](https://arethet
 
 The `internal-resolution-error` rule is ignored in attw because the `node16 (from ESM)` resolution mode requires `.js` extensions in all import paths within type declaration files. Since tsc does not rewrite import paths in emitted `.d.ts` files, bare specifiers like `'./api'` fail strict ESM resolution. This is a [known limitation](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/InternalResolutionError.md) affecting most dual CJS/ESM packages, including viem. The `node10`, `node16 (from CJS)`, and `bundler` resolution modes all resolve correctly.
 
+### React Native / Expo
+
+When using `@alephium/web3` in a React Native environment (Expo or bare), two workarounds are needed:
+
+**1. `react-native-get-random-values`** — `@noble/secp256k1` requires `crypto.getRandomValues`, which is not available in React Native by default. Install the package and load it before any `@alephium/web3` import:
+
+```ts
+// index.ts (entry point)
+require('react-native-get-random-values')
+// ... then load your app
+```
+
+**2. Empty `fs` shim** — `@alephium/web3`'s `contract.ts` contains a dynamic `import('fs')` for file-based contract loading (a Node-only feature). Metro resolves all imports statically during bundling, even dynamic ones, so it will fail without a shim. The code path is never actually called in React Native.
+
+Create `shims/fs.js`:
+```js
+module.exports = {}
+```
+
+Add it to your `metro.config.js`:
+```js
+config.resolver.extraNodeModules = {
+  ...config.resolver.extraNodeModules,
+  fs: path.resolve(__dirname, 'shims/fs.js')
+}
+```
+
+> **Note:** If using pnpm, add `node-linker=hoisted` to `.npmrc` — Metro is incompatible with pnpm's strict symlink layout.
+
 ### Testing
 
 ```
