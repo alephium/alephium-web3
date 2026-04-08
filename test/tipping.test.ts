@@ -16,7 +16,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { NodeProvider, convertAlphAmountWithDecimals, number256ToNumber, DEFAULT_GAS_ALPH_AMOUNT } from '@alephium/web3'
+import {
+  NodeProvider,
+  convertAlphAmountWithDecimals,
+  number256ToNumber,
+  DEFAULT_GAS_ALPH_AMOUNT,
+  web3
+} from '@alephium/web3'
 import { testNodeWallet } from '@alephium/web3-test'
 import { PrivateKeyWallet, deriveHDWalletPrivateKey } from '@alephium/web3-wallet'
 import * as bip39 from 'bip39'
@@ -78,6 +84,10 @@ class TippingBot {
 }
 
 describe('tippingbot', function () {
+  beforeAll(() => {
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
+  })
+
   it('should work', async function () {
     const nodeProvider = new NodeProvider('http://127.0.0.1:22973')
     const mnemonic = bip39.generateMnemonic()

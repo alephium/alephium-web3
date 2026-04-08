@@ -16,11 +16,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { DUST_AMOUNT, ONE_ALPH, ScriptSimulator, stringify } from '@alephium/web3'
+import { DUST_AMOUNT, ONE_ALPH, ScriptSimulator, stringify, web3 } from '@alephium/web3'
 import { getSigner, mintToken } from '@alephium/web3-test'
 import { MultiDeposit, MultiWithdraw, Transact } from '../artifacts/ts'
 
 describe('transact', function () {
+  beforeAll(() => {
+    web3.setCurrentNodeProvider('http://127.0.0.1:22973', undefined, fetch)
+  })
   it('should use transact methods for ALPH', async function () {
     const signer = await getSigner(ONE_ALPH * 10n)
     const { tokenId } = await mintToken(signer.address, 10n * 10n ** 18n)

@@ -17,7 +17,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 import { blake2b } from '@noble/hashes/blake2b'
 
-export function blakeHash(raw: Uint8Array) {
+export function blakeHash(raw: Uint8Array): Uint8Array {
   return blake2b(raw, { dkLen: 32 })
 }
 

@@ -93,4 +93,7 @@ export const unlockScriptCodec = new EnumCodec<UnlockScript>('unlock script', {
   P2HMPK: p2hmpkCodec
 })
 
-export const encodedSameAsPrevious = unlockScriptCodec.encode({ kind: 'SameAsPrevious', value: 'SameAsPrevious' })
+export const encodedSameAsPrevious: Uint8Array = unlockScriptCodec.encode({
+  kind: 'SameAsPrevious',
+  value: 'SameAsPrevious'
+})
