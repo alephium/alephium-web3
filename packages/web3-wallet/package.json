@@ -40,7 +40,7 @@
     "clean": "rm -rf dist",
     "clean:all": "pnpm clean && rm -rf node_modules",
     "check": "publint && attw --pack --ignore-rules internal-resolution-error",
-    "test": "jest -i --config ./jest-config.json"
+    "test": "vitest run"
   },
   "dependencies": {
     "@alephium/web3": "workspace:^",
@@ -50,9 +50,6 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
-    "@types/jest": "^27.5.2",
-    "@types/mock-fs": "^4.13.1",
-    "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "publint": "^0.3.18",

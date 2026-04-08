@@ -1,5 +1,5 @@
 {
-  "plugins": ["security", "jest"],
+  "plugins": ["security"],
   "extends": [
     "prettier",
     "plugin:prettier/recommended",
@@ -28,6 +28,6 @@
   "env": {
     "node": true,
     "es6": true,
-    "jest/globals": true
+    "vitest/globals": true
   }
 }

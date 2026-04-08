@@ -26,7 +26,7 @@
     "build": "pnpm clean && tsc --build .",
     "clean": "rm -rf dist",
     "clean:all": "pnpm clean && rm -rf node_modules",
-    "test": "jest -i --config ./jest-config.json"
+    "test": "vitest run"
   },
   "type": "commonjs",
   "dependencies": {
@@ -34,15 +34,10 @@
     "@alephium/web3-wallet": "workspace:^"
   },
   "devDependencies": {
-    "@types/find-up": "^2.1.1",
-    "@types/fs-extra": "^9.0.13",
-    "@types/jest": "^27.5.2",
-    "@types/mock-fs": "^4.13.1",
-    "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
-    "crypto-browserify": "^3.12.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.1"
   },
   "engines": {
     "node": ">=20.0.0",
