@@ -27,7 +27,6 @@
   },
   "env": {
     "node": true,
-    "es6": true,
-    "vitest/globals": true
+    "es6": true
   }
 }
