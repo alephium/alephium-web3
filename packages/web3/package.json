@@ -88,8 +88,6 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
     "@babel/eslint-parser": "^7.21.3",
-    "@size-limit/esbuild": "^11.0.0",
-    "@size-limit/file": "^11.0.0",
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^27.5.2",
