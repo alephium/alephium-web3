@@ -94,7 +94,7 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
 **`"type": "commonjs"`** — declares the package's default module type. Without this, Node.js auto-detects the type on each file access, causing a small performance hit ([publint suggestion](https://publint.dev/)). We use `"commonjs"` (not `"module"`) because:
 - The package root contains source files, config files, and scripts that are CJS
 - The `dist/_esm/` directory overrides this with its own `{"type": "module"}` nested `package.json`
-- Jest runs in CJS mode and loads files relative to the package root
+- Vitest runs tests relative to the package root
 
 **`"sideEffects": false`** — tells bundlers (webpack, Vite, Rollup) that all modules in this package are pure — importing a module without using its exports has no observable effect. This enables aggressive tree-shaking: if a consumer imports only `isValidAddress`, the bundler can safely drop all other modules.
 
@@ -178,7 +178,7 @@ config.resolver.extraNodeModules = {
 pnpm test
 ```
 
-Runs Jest across all packages. The root `jest-config.json` overrides ts-jest to use `--module commonjs` so that tests run in CJS mode (Jest does not support ESM natively). The `transformIgnorePatterns` setting allows Jest to transform `@noble` and `@scure` packages.
+Runs Vitest across all packages. The root `vitest.config.ts` configures test discovery, globals, and coverage. Vitest handles ESM natively, so no special transforms or ignore patterns are needed for `@noble` and `@scure` packages.
 
 
 [test-badge]: https://github.com/alephium/alephium-web3/actions/workflows/test.yml/badge.svg
