@@ -402,7 +402,7 @@ export class Project {
     const artifactPath = newArtifact.sourceInfo.getArtifactPath(this.artifactsRootDir)
     let oldArtifact: Contract
     try {
-      oldArtifact = await Contract.fromArtifactFile(artifactPath, '', '')
+      oldArtifact = await Contract.fromArtifactFile(artifactPath, fsPromises.readFile, '', '')
     } catch (error) {
       throw new TraceableError(`Failed to load contract artifact, contract: ${newArtifact.sourceInfo.name}`, error)
     }
@@ -700,13 +700,19 @@ export class Project {
         if (sourceInfo.type === SourceKind.Contract) {
           const artifact = await Contract.fromArtifactFile(
             artifactDir,
+            fsPromises.readFile,
             info.bytecodeDebugPatch,
             info.codeHashDebug,
             structs
           )
           contracts.set(artifact.name, new Compiled(sourceInfo, artifact, []))
         } else if (sourceInfo.type === SourceKind.Script) {
-          const artifact = await Script.fromArtifactFile(artifactDir, info.bytecodeDebugPatch, structs)
+          const artifact = await Script.fromArtifactFile(
+            artifactDir,
+            fsPromises.readFile,
+            info.bytecodeDebugPatch,
+            structs
+          )
           scripts.set(artifact.name, new Compiled(sourceInfo, artifact, []))
         }
       }

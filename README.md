@@ -145,9 +145,9 @@ The `internal-resolution-error` rule is ignored in attw because the `node16 (fro
 
 ### React Native / Expo
 
-When using `@alephium/web3` in a React Native environment (Expo or bare), two workarounds are needed:
+When using `@alephium/web3` in a React Native environment (Expo or bare), one workaround is needed:
 
-**1. `react-native-get-random-values`** — `@noble/secp256k1` requires `crypto.getRandomValues`, which is not available in React Native by default. Install the package and load it before any `@alephium/web3` import:
+**`react-native-get-random-values`** — `@noble/secp256k1` requires `crypto.getRandomValues`, which is not available in React Native by default. Install the package and load it before any `@alephium/web3` import:
 
 ```ts
 // index.ts (entry point)
@@ -155,7 +155,7 @@ require('react-native-get-random-values')
 // ... then load your app
 ```
 
-**2. Empty `fs` shim** — `@alephium/web3`'s `contract.ts` contains a dynamic `import('fs')` for file-based contract loading (a Node-only feature). Metro resolves all imports statically during bundling, even dynamic ones, so it will fail without a shim. The code path is never actually called in React Native.
+> **Note:** If using pnpm, add `node-linker=hoisted` to `.npmrc` — Metro is incompatible with pnpm's strict symlink layout.
 
 Create `shims/fs.js`:
 ```js

@@ -43,6 +43,25 @@ stringify({ amount: 1000n })
 
 The `encrypt` and `decrypt` functions have been removed. If you were using them, you can implement equivalent functionality using the Web Crypto API or a library like `@metamask/browser-passworder`.
 
+### `Contract.fromArtifactFile` and `Script.fromArtifactFile` signature changed
+
+These methods now require a `readFile` function as the second parameter instead of using Node's `fs` internally. This makes the package fully isomorphic — no `fs` import anywhere in the SDK.
+
+```ts
+// ❌ v2
+const contract = await Contract.fromArtifactFile(path, bytecodeDebugPatch, codeHashDebug, structs)
+
+// ✅ v3
+import { promises as fsPromises } from 'fs'
+const contract = await Contract.fromArtifactFile(
+  path,
+  fsPromises.readFile,
+  bytecodeDebugPatch,
+  codeHashDebug,
+  structs
+)
+```
+
 ### `publicKeyFromPrivateKey` accepts `Uint8Array`
 
 The function now accepts `string | Uint8Array` for the private key parameter. This is backward compatible — existing string-based code continues to work. Passing `Uint8Array` allows secure memory cleanup after use.
@@ -102,7 +121,7 @@ If your project uses `vite-plugin-node-polyfills`, `rollup-plugin-node-polyfills
 
 ### Simplified setup
 
-v2 required up to 12 workarounds for React Native. v3 requires only 2 (plus pnpm-specific config):
+v2 required up to 12 workarounds for React Native. v3 requires only 1 (plus pnpm-specific config):
 
 **1. `react-native-get-random-values`**
 
@@ -113,25 +132,9 @@ Install and load before any `@alephium/web3` import:
 require('react-native-get-random-values')
 ```
 
-**2. Empty `fs` shim**
-
-`contract.ts` contains a dynamic `import('fs')` that Metro resolves statically. Create an empty shim:
-
-```js
-// shims/fs.js
-module.exports = {}
-```
-
-Add to `metro.config.js`:
-
-```js
-config.resolver.extraNodeModules = {
-  ...config.resolver.extraNodeModules,
-  fs: path.resolve(__dirname, 'shims/fs.js')
-}
-```
-
 **pnpm users:** Add `node-linker=hoisted` to `.npmrc` (Metro is incompatible with pnpm's strict symlink layout).
+
+No `fs` shim needed — the `fromArtifactFile` methods (which used `fs`) have been removed from v3.
 
 ### What you can remove
 
