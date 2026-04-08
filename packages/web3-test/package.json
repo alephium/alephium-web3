@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-test",
-  "version": "3.0.0-test.7",
+  "version": "3.0.0-test.8",
   "description": "Utility functions for Alephium test",
   "keywords": [
     "alephium",
@@ -8,10 +8,12 @@
   ],
   "license": "GPL",
   "main": "dist/src/index.js",
-  "browser": "dist/alephium-web3.min.js",
   "types": "dist/src/index.d.ts",
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    }
   },
   "repository": {
     "type": "git",
@@ -34,6 +36,7 @@
     "@alephium/web3-wallet": "workspace:^"
   },
   "devDependencies": {
+    "@types/jest": "^27.5.2",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "typescript": "^5.9.3",

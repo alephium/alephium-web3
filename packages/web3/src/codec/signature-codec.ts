@@ -21,4 +21,4 @@ import { FixedSizeCodec } from './codec'
 export type Signature = Uint8Array
 
 export const signatureCodec = new FixedSizeCodec(64)
-export const signaturesCodec = new ArrayCodec(signatureCodec)
+export const signaturesCodec: ArrayCodec<Uint8Array> = new ArrayCodec(signatureCodec)
