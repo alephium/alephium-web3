@@ -23,8 +23,9 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "scripts": {
-    "clean": "rm -rf node_modules dist",
-    "build": "rm -rf dist/* && npx tsc --build .",
+    "build": "pnpm clean && tsc --build .",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules",
     "test": "jest -i --config ./jest-config.json"
   },
   "type": "commonjs",

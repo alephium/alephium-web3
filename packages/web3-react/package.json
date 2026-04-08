@@ -25,10 +25,11 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules build",
     "start": "rollup --config rollup.config.dev.js -w",
     "dev": "rollup --config rollup.config.dev.js -w",
     "build": "rollup --config rollup.config.prod.js",
+    "clean": "rm -rf build",
+    "clean:all": "pnpm clean && rm -rf node_modules",
     "lint": "eslint src --ext .ts,tsx"
   },
   "keywords": [

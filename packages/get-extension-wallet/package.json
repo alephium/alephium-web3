@@ -17,9 +17,10 @@
     "dist/"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules dist",
     "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "dev": "rollup -c -w",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules"
   },
   "type": "commonjs",
   "devDependencies": {

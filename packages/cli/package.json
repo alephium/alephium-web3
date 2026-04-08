@@ -17,8 +17,9 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "clean": "rm -rf node_modules dist",
-    "build": "rm -rf dist/* && npx tsc --build ."
+    "build": "pnpm clean && tsc --build .",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules"
   },
   "bin": "cli.js",
   "type": "commonjs",

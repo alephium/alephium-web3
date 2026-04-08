@@ -19,8 +19,9 @@
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "clean": "rm -rf node_modules .parcel-cache && pnpm -r run clean",
     "build": "pnpm --stream -r run build",
+    "clean": "pnpm -r run clean",
+    "clean:all": "pnpm -r run --if-present clean:all && rm -rf node_modules",
     "codegen": "ts-node --swc gen.ts",
     "test": "jest -i --config ./jest-config.json --forceExit",
     "check": "pnpm -r run --if-present check",
