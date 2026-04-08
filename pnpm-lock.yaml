@@ -277,6 +277,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.1.1
+        version: 3.2.4(@types/node@20.19.37)(jiti@2.6.1)(sass@1.98.0)(terser@5.46.1)
 
   packages/web3:
     dependencies:
@@ -362,6 +365,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.1.1
+        version: 3.2.4(@types/node@20.19.37)(jiti@2.6.1)(sass@1.98.0)(terser@5.46.1)
 
   packages/web3-react:
     dependencies:
@@ -509,6 +515,9 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      vitest:
+        specifier: ^3.1.1
+        version: 3.2.4(@types/node@20.19.37)(jiti@2.6.1)(sass@1.98.0)(terser@5.46.1)
 
 packages:
 
