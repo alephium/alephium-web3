@@ -17,8 +17,10 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
 import * as secp256k1 from '@noble/secp256k1'
+import { bytesToHex } from '@noble/hashes/utils'
 import { TOTAL_NUMBER_OF_GROUPS, TOTAL_NUMBER_OF_CHAINS } from '../constants'
 
+export const binToHex = bytesToHex
 export const networkIds = ['mainnet', 'testnet', 'devnet'] as const
 export type NetworkId = (typeof networkIds)[number]
 export type HexString = string
@@ -65,12 +67,6 @@ export function hexToBinUnsafe(hex: string): Uint8Array {
     bytes.push(parseInt(hex.slice(i, i + 2), 16))
   }
   return new Uint8Array(bytes)
-}
-
-export function binToHex(bin: Uint8Array): string {
-  return Array.from(bin)
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('')
 }
 
 export function blockChainIndex(blockHash: HexString): { fromGroup: number; toGroup: number } {

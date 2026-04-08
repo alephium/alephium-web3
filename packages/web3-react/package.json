@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-react",
-  "version": "2.1.0-test.0",
+  "version": "3.0.0-test.6",
   "homepage": "https://github.com/alephium/alephium-web3",
   "license": "GPL",
   "description": "React components for Alephium Web3.",
@@ -25,10 +25,11 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules build",
     "start": "rollup --config rollup.config.dev.js -w",
     "dev": "rollup --config rollup.config.dev.js -w",
     "build": "rollup --config rollup.config.prod.js",
+    "clean": "rm -rf build",
+    "clean:all": "pnpm clean && rm -rf node_modules",
     "lint": "eslint src --ext .ts,tsx"
   },
   "keywords": [
@@ -42,7 +43,6 @@
     "@alephium/get-extension-wallet": "workspace:^",
     "@alephium/walletconnect-provider": "workspace:^",
     "@alephium/walletconnect-qrcode-modal": "^0.1.0",
-    "use-sync-external-store": "^1.2.2",
     "buffer": "^6.0.3",
     "detect-browser": "^5.3.0",
     "framer-motion": "^6.5.1",
@@ -50,7 +50,8 @@
     "react-transition-state": "^1.1.5",
     "react-use-measure": "^2.1.1",
     "resize-observer-polyfill": "^1.5.1",
-    "styled-components": "^5.3.9"
+    "styled-components": "^5.3.9",
+    "use-sync-external-store": "^1.2.2"
   },
   "peerDependencies": {
     "react": "17.x || 18.x || 19.x",
@@ -58,19 +59,19 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@types/node": "^16.18.23",
+    "@types/node": "^20.0.0",
     "@types/qrcode": "^1.5.0",
     "@types/react": "^18.0.31",
     "@types/react-dom": "^18.0.11",
     "@types/styled-components": "^5.1.26",
-    "eslint-plugin-react-hooks": "^4.6.0",
     "@types/use-sync-external-store": "^0.0.6",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "rollup": "^2.79.2",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.34.1",
     "rollup-plugin-visualizer": "^5.9.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.9.3"
   },
   "resolutions": {
     "react": "^18.0.0",

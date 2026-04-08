@@ -212,7 +212,7 @@ export function groupOfPrivateKey(privateKey: string, keyType?: KeyType): number
   return groupOfAddress(addressFromPublicKey(publicKeyFromPrivateKey(privateKey, keyType), keyType))
 }
 
-export function publicKeyFromPrivateKey(privateKey: string, _keyType?: KeyType): string {
+export function publicKeyFromPrivateKey(privateKey: string | Uint8Array, _keyType?: KeyType): string {
   const keyType = _keyType ?? 'default'
 
   switch (keyType) {
