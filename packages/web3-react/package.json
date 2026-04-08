@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-react",
-  "version": "3.0.0-test.0",
+  "version": "3.0.0-test.6",
   "homepage": "https://github.com/alephium/alephium-web3",
   "license": "GPL",
   "description": "React components for Alephium Web3.",
@@ -25,10 +25,11 @@
     "README.md"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules build",
     "start": "rollup --config rollup.config.dev.js -w",
     "dev": "rollup --config rollup.config.dev.js -w",
     "build": "rollup --config rollup.config.prod.js",
+    "clean": "rm -rf build",
+    "clean:all": "pnpm clean && rm -rf node_modules",
     "lint": "eslint src --ext .ts,tsx"
   },
   "keywords": [

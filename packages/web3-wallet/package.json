@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3-wallet",
-  "version": "3.0.0-test.0",
+  "version": "3.0.0-test.6",
   "description": "Simple wallets for Alephium",
   "keywords": [
     "alephium",
@@ -34,27 +34,26 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "scripts": {
-    "clean": "rm -rf node_modules dist",
-    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm",
+    "build": "pnpm clean && pnpm build:cjs && pnpm build:esm",
     "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --declaration --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
-    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && tsc-alias --project tsconfig.build.json --outDir dist/_esm --resolve-full-paths && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules",
     "check": "publint && attw --pack --ignore-rules internal-resolution-error",
-    "test": "jest -i --config ./jest-config.json"
+    "test": "vitest run"
   },
   "dependencies": {
     "@alephium/web3": "workspace:^",
-    "@noble/secp256k1": "1.7.1",
-    "@scure/bip32": "^1.2.0",
-    "@scure/bip39": "^1.5.0"
+    "@noble/secp256k1": "1.7.2",
+    "@scure/bip32": "1.7.0",
+    "@scure/bip39": "1.6.0"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
-    "@types/jest": "^27.5.2",
-    "@types/mock-fs": "^4.13.1",
-    "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "publint": "^0.3.18",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.9.3"
   },
   "engines": {

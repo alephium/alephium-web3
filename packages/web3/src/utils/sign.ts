@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { binToHex, encodeSignature, hexToBinUnsafe, signatureDecode } from '../utils'
+import { binToHex, encodeSignature, hexToBinUnsafe } from '../utils'
 import { KeyType } from '../signer'
 import * as secp from '@noble/secp256k1'
 import { sha256 } from '@noble/hashes/sha256'
@@ -61,8 +61,7 @@ export function verifySignature(hash: string, publicKey: string, signature: stri
 
   try {
     if (keyType === 'default' || keyType === 'gl-secp256k1') {
-      const decoded = signatureDecode(signature)
-      const sig = secp.Signature.fromCompact(decoded.r + decoded.s)
+      const sig = secp.Signature.fromCompact(signature)
       return secp.verify(sig, hexToBinUnsafe(hash), hexToBinUnsafe(publicKey))
     } else {
       return secp.schnorr.verifySync(hexToBinUnsafe(signature), hexToBinUnsafe(hash), hexToBinUnsafe(publicKey))

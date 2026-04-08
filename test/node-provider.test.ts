@@ -45,10 +45,10 @@ describe('node provider', () => {
     const sourceFunc1 = nodeProvider.wallets.getWallets.toString()
     const proxyFunc1 = proxy.wallets.getWallets.toString()
     expect(sourceFunc1).toEqual(sourceFunc0)
-    expect(sourceFunc1).not.toEqual(`() => Promise.reject('')`)
+    expect(sourceFunc1).not.toContain('Promise.reject')
     expect(proxyFunc1).not.toEqual(proxyFunc0)
     expect(proxyFunc1).not.toEqual(sourceFunc1)
-    expect(proxyFunc1).toEqual(`() => Promise.reject('')`)
+    expect(proxyFunc1).toContain('Promise.reject')
   })
 
   it('should guess the token type', async () => {

@@ -1,6 +1,6 @@
 {
   "name": "@alephium/get-extension-wallet",
-  "version": "3.0.0-test.0",
+  "version": "3.0.0-test.6",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -17,9 +17,10 @@
     "dist/"
   ],
   "scripts": {
-    "clean": "rm -rf node_modules dist",
     "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "dev": "rollup -c -w",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules"
   },
   "type": "commonjs",
   "devDependencies": {

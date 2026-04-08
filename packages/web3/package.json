@@ -1,6 +1,6 @@
 {
   "name": "@alephium/web3",
-  "version": "3.0.0-test.0",
+  "version": "3.0.0-test.6",
   "description": "A JS/TS library to interact with the Alephium platform",
   "license": "GPL",
   "type": "commonjs",
@@ -18,6 +18,36 @@
         "types": "./dist/_cjs/index.d.ts",
         "default": "./dist/_cjs/index.js"
       }
+    },
+    "./api/explorer": {
+      "import": {
+        "types": "./dist/_esm/api/api-explorer.d.ts",
+        "default": "./dist/_esm/api/api-explorer.js"
+      },
+      "require": {
+        "types": "./dist/_cjs/api/api-explorer.d.ts",
+        "default": "./dist/_cjs/api/api-explorer.js"
+      }
+    },
+    "./api/node": {
+      "import": {
+        "types": "./dist/_esm/api/api-alephium.d.ts",
+        "default": "./dist/_esm/api/api-alephium.js"
+      },
+      "require": {
+        "types": "./dist/_cjs/api/api-alephium.d.ts",
+        "default": "./dist/_cjs/api/api-alephium.js"
+      }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "api/explorer": [
+        "dist/_cjs/api/api-explorer.d.ts"
+      ],
+      "api/node": [
+        "dist/_cjs/api/api-alephium.d.ts"
+      ]
     }
   },
   "repository": {
@@ -34,12 +64,13 @@
     "explorer_backend_version": "3.3.2"
   },
   "scripts": {
-    "clean": "rm -rf node_modules dist",
-    "build": "rm -rf dist && pnpm build:cjs && pnpm build:esm",
+    "build": "pnpm clean && pnpm build:cjs && pnpm build:esm",
     "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --declaration --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
-    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && tsc-alias --project tsconfig.build.json --outDir dist/_esm --resolve-full-paths && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules",
     "check": "publint && attw --pack --ignore-rules internal-resolution-error",
-    "test": "jest -i --config ./jest-config.json",
+    "test": "vitest run",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
     "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
     "update-schema:explorer": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-explorer.ts -p https://raw.githubusercontent.com/alephium/explorer-backend/v${npm_package_config_explorer_backend_version}/app/src/main/resources/explorer-backend-openapi.json",
@@ -47,9 +78,9 @@
     "size": "npx size-limit"
   },
   "dependencies": {
-    "@noble/curves": "1.6.0",
-    "@noble/hashes": "1.6.1",
-    "@noble/secp256k1": "1.7.1",
+    "@noble/curves": "1.9.7",
+    "@noble/hashes": "1.8.0",
+    "@noble/secp256k1": "1.7.2",
     "base-x": "4.0.0",
     "bignumber.js": "^9.1.1",
     "eventemitter3": "^4.0.7"
@@ -57,34 +88,23 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
     "@babel/eslint-parser": "^7.21.3",
-    "@size-limit/esbuild": "^11.0.0",
-    "@size-limit/file": "^11.0.0",
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^9.0.13",
-    "@types/jest": "^27.5.2",
-    "@types/mock-fs": "^4.13.1",
     "@types/node": "^20.0.0",
-    "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-security": "1.6.0",
-    "jest": "^28.1.3",
-    "jest-localstorage-mock": "^2.4.26",
-    "jest-websocket-mock": "^2.4.0",
-    "mock-fs": "^5.2.0",
-    "mock-socket": "^9.2.1",
     "prettier": "^2.8.7",
     "process": "^0.11.10",
     "publint": "^0.3.18",
-    "rewire": "^6.0.0",
     "shelljs": "^0.8.5",
     "size-limit": "^11.0.0",
     "swagger-typescript-api": "12.0.3",
-    "ts-jest": "^28.0.8",
     "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.16",
     "tslib": "^2.5.0",
     "typescript": "^5.9.3"
   },

@@ -371,15 +371,14 @@ export class Contract extends Artifact {
     )
   }
 
-  // support both 'code.ral' and 'code.ral.json'
   static async fromArtifactFile(
     path: string,
+    readFile: (path: string) => Promise<string | Uint8Array>,
     bytecodeDebugPatch: string,
     codeHashDebug: string,
     structs: Struct[] = []
   ): Promise<Contract> {
-    const fs = await import('fs')
-    const content = await fs.promises.readFile(path)
+    const content = await readFile(path)
     const artifact = JSON.parse(content.toString())
     return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug, structs)
   }
@@ -779,9 +778,13 @@ export class Script extends Artifact {
     )
   }
 
-  static async fromArtifactFile(path: string, bytecodeDebugPatch: string, structs: Struct[] = []): Promise<Script> {
-    const fs = await import('fs')
-    const content = await fs.promises.readFile(path)
+  static async fromArtifactFile(
+    path: string,
+    readFile: (path: string) => Promise<string | Uint8Array>,
+    bytecodeDebugPatch: string,
+    structs: Struct[] = []
+  ): Promise<Script> {
+    const content = await readFile(path)
     const artifact = JSON.parse(content.toString())
     return this.fromJson(artifact, bytecodeDebugPatch, structs)
   }

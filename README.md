@@ -59,10 +59,11 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
 - `--declaration` — emits `.d.ts` type declarations alongside `.js` files, so CJS consumers get CJS-flavored types.
 - `--verbatimModuleSyntax false` — allows tsc to transform `import`/`export` to `require()`/`module.exports`.
 
-**`build:esm`**: `tsc --declaration`
+**`build:esm`**: `tsc --declaration && tsc-alias --resolve-full-paths`
 - Inherits `--module es2020` and `--moduleResolution bundler` from root tsconfig.
 - `--declaration` — emits `.d.ts` type declarations alongside `.js` files, so ESM consumers get ESM-flavored types.
 - The `"sideEffects": false` in the nested `package.json` enables tree-shaking for bundlers that check the nearest `package.json` to the resolved file.
+- **`tsc-alias --resolve-full-paths`** — post-processes the ESM output to add `.js` extensions to all relative import paths (e.g., `from './api'` becomes `from './api/index.js'`). This is necessary because strict ESM resolvers (Node.js with `"type": "module"`, Vitest) require explicit file extensions — bare directory imports like `'./api'` don't resolve in ESM. TypeScript deliberately does not rewrite import specifiers during compilation ([by design](https://github.com/microsoft/TypeScript/issues/16577)), so a post-processing step is needed. The CJS output does not need this because Node's `require()` handles directory resolution natively.
 
 #### Package fields
 
@@ -83,7 +84,9 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
         "types": "./dist/_cjs/index.d.ts",
         "default": "./dist/_cjs/index.js"
       }
-    }
+    },
+    "./api/explorer": { ... },
+    "./api/node": { ... }
   }
 }
 ```
@@ -91,7 +94,7 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
 **`"type": "commonjs"`** — declares the package's default module type. Without this, Node.js auto-detects the type on each file access, causing a small performance hit ([publint suggestion](https://publint.dev/)). We use `"commonjs"` (not `"module"`) because:
 - The package root contains source files, config files, and scripts that are CJS
 - The `dist/_esm/` directory overrides this with its own `{"type": "module"}` nested `package.json`
-- Jest runs in CJS mode and loads files relative to the package root
+- Vitest runs tests relative to the package root
 
 **`"sideEffects": false`** — tells bundlers (webpack, Vite, Rollup) that all modules in this package are pure — importing a module without using its exports has no observable effect. This enables aggressive tree-shaking: if a consumer imports only `isValidAddress`, the bundler can safely drop all other modules.
 
@@ -102,6 +105,30 @@ This approach avoids the need for `.cjs`/`.mjs` extensions while keeping CJS and
 **`"types"`** — entry point for TypeScript when `moduleResolution` is `"node"` (node10). Points to the CJS type declarations since `"type": "commonjs"` packages default to CJS resolution.
 
 **`"exports"`** — the modern entry point map. Runtimes and bundlers that support it use `exports` over `main`/`module`/`types`. Each condition (`import`/`require`) has its own `types` entry pointing to the type declarations in the corresponding output directory. This ensures CJS consumers get CJS-flavored type declarations and ESM consumers get ESM-flavored type declarations, avoiding [FalseCJS](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseCJS.md) and [FalseESM](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseESM.md) type issues.
+
+#### Sub-path exports
+
+`@alephium/web3` exposes the generated API types via sub-path exports:
+
+```ts
+// Node API types (generated from the Alephium full node OpenAPI spec)
+import { Balance, Transaction } from '@alephium/web3/api/node'
+
+// Explorer API types (generated from the explorer backend OpenAPI spec)
+import { FungibleTokenMetadata, MempoolTransaction } from '@alephium/web3/api/explorer'
+```
+
+These replace the old deep imports into the package's internal directory structure:
+
+```ts
+// ❌ Old (v2) — reaches into internal dist structure
+import { FungibleTokenMetadata } from '@alephium/web3/dist/src/api/api-explorer'
+
+// ✅ New (v3) — stable public sub-path
+import { FungibleTokenMetadata } from '@alephium/web3/api/explorer'
+```
+
+The `typesVersions` field provides fallback resolution for TypeScript consumers using `moduleResolution: "node"` (which doesn't support `exports`).
 
 ### Package Quality Checks
 
@@ -116,13 +143,42 @@ Runs [publint](https://publint.dev/) and [@arethetypeswrong/cli](https://arethet
 
 The `internal-resolution-error` rule is ignored in attw because the `node16 (from ESM)` resolution mode requires `.js` extensions in all import paths within type declaration files. Since tsc does not rewrite import paths in emitted `.d.ts` files, bare specifiers like `'./api'` fail strict ESM resolution. This is a [known limitation](https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/InternalResolutionError.md) affecting most dual CJS/ESM packages, including viem. The `node10`, `node16 (from CJS)`, and `bundler` resolution modes all resolve correctly.
 
+### React Native / Expo
+
+When using `@alephium/web3` in a React Native environment (Expo or bare), one workaround is needed:
+
+**`react-native-get-random-values`** — `@noble/secp256k1` requires `crypto.getRandomValues`, which is not available in React Native by default. Install the package and load it before any `@alephium/web3` import:
+
+```ts
+// index.ts (entry point)
+require('react-native-get-random-values')
+// ... then load your app
+```
+
+> **Note:** If using pnpm, add `node-linker=hoisted` to `.npmrc` — Metro is incompatible with pnpm's strict symlink layout.
+
+Create `shims/fs.js`:
+```js
+module.exports = {}
+```
+
+Add it to your `metro.config.js`:
+```js
+config.resolver.extraNodeModules = {
+  ...config.resolver.extraNodeModules,
+  fs: path.resolve(__dirname, 'shims/fs.js')
+}
+```
+
+> **Note:** If using pnpm, add `node-linker=hoisted` to `.npmrc` — Metro is incompatible with pnpm's strict symlink layout.
+
 ### Testing
 
 ```
 pnpm test
 ```
 
-Runs Jest across all packages. The root `jest-config.json` overrides ts-jest to use `--module commonjs` so that tests run in CJS mode (Jest does not support ESM natively). The `transformIgnorePatterns` setting allows Jest to transform `@noble` and `@scure` packages.
+Runs Vitest across all packages. The root `vitest.config.ts` configures test discovery, globals, and coverage. Vitest handles ESM natively, so no special transforms or ignore patterns are needed for `@noble` and `@scure` packages.
 
 
 [test-badge]: https://github.com/alephium/alephium-web3/actions/workflows/test.yml/badge.svg
