@@ -17,6 +17,7 @@ overrides:
   elliptic@>=2.0.0 <=6.6.0: '>=6.6.0'
   elliptic@>=5.2.1 <=6.6.0: '>=6.6.0'
   micromatch@<4.0.8: '>=4.0.8'
+  lodash@<4.18.0: '>=4.18.0'
 
 importers:
 
@@ -3400,9 +3401,6 @@ packages:
 
   lodash.upperfirst@4.3.1:
     resolution: {integrity: sha512-sReKOYJIJf74dhJONhU4e0/shzi1trVbSWDOhKYE5XV2O+H7Sb2Dihwuc7xWxVl+DgFPyTqIN3zMfT9cq5iWDg==}
-
-  lodash@4.17.21:
-    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
   lodash@4.18.1:
     resolution: {integrity: sha512-dMInicTPVE8d1e5otfwmmjlxkZoUpiVLwyeTdUsi/Caj/gfzzblBcCE5sRHV/AsjuCmxWrte2TNGSYuCeCq+0Q==}
@@ -8094,8 +8092,6 @@ snapshots:
 
   lodash.upperfirst@4.3.1: {}
 
-  lodash@4.17.21: {}
-
   lodash@4.18.1: {}
 
   lokijs@1.5.12: {}
@@ -8231,7 +8227,7 @@ snapshots:
 
   node-emoji@1.11.0:
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.18.1
 
   node-emoji@2.2.0:
     dependencies:
@@ -9165,7 +9161,7 @@ snapshots:
       didyoumean: 1.2.2
       eta: 2.2.0
       js-yaml: 4.1.0
-      lodash: 4.17.21
+      lodash: 4.18.1
       make-dir: 3.1.0
       nanoid: 3.3.4
       node-emoji: 1.11.0
