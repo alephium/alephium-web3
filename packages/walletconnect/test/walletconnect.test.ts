@@ -83,6 +83,7 @@ const TEST_RELAY_URL = process.env.TEST_RELAY_URL ? process.env.TEST_RELAY_URL :
 const TEST_APP_METADATA = {
   name: 'Test App',
   description: 'Test App for WalletConnect',
+  namespace: 'alephium',
   url: 'https://walletconnect.com/',
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
@@ -90,6 +91,7 @@ const TEST_APP_METADATA = {
 const TEST_WALLET_METADATA = {
   name: 'Test Wallet',
   description: 'Test Wallet for WalletConnect',
+  namespace: 'alephium',
   url: 'https://walletconnect.com/',
   icons: ['https://avatars.githubusercontent.com/u/37784886']
 }
@@ -110,6 +112,7 @@ const TEST_WALLET_CLIENT_OPTS = {
   networkId: NETWORK_ID as NetworkId,
   rpcUrl: RPC_URL,
   activePrivateKey: ACCOUNTS.a.privateKey,
+  namespace: 'alephium',
   relayUrl: TEST_RELAY_URL,
   metadata: TEST_WALLET_METADATA
 }
