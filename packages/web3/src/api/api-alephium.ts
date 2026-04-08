@@ -723,6 +723,8 @@ export interface ContractEvent {
   blockHash: string
   /** @format 32-byte-hash */
   txId: string
+  /** @format int64 */
+  timestamp: number
   /** @format int32 */
   eventIndex: number
   fields: Val[]
@@ -732,6 +734,8 @@ export interface ContractEvent {
 export interface ContractEventByBlockHash {
   /** @format 32-byte-hash */
   txId: string
+  /** @format int64 */
+  timestamp: number
   /** @format address */
   contractAddress: string
   /** @format int32 */
@@ -743,6 +747,8 @@ export interface ContractEventByBlockHash {
 export interface ContractEventByTxId {
   /** @format block-hash */
   blockHash: string
+  /** @format int64 */
+  timestamp: number
   /** @format address */
   contractAddress: string
   /** @format int32 */
@@ -1503,7 +1509,7 @@ export interface ValByteVec {
 
 /** ValI256 */
 export interface ValI256 {
-  /** @format bigint */
+  /** @format int256 */
   value: string
   type: string
 }
@@ -1779,7 +1785,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 4.2.5
+ * @version 4.4.1
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
