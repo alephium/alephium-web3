@@ -76,7 +76,8 @@
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.16",
     "tslib": "^2.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.1"
   },
   "engines": {
     "node": ">=20.0.0",
