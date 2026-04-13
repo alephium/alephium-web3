@@ -216,29 +216,29 @@ export class WalletClient {
     // auto-approve
     this.client.on('session_proposal', async (proposal: SignClientTypes.EventArguments['session_proposal']) => {
       if (typeof this.client === 'undefined') throw new Error('Sign Client not inititialized')
-      const { id, requiredNamespaces, relays } = proposal.params
+      const { id, requiredNamespaces, optionalNamespaces, relays } = proposal.params
 
-      const requiredAlephiumNamespace = requiredNamespaces[PROVIDER_NAMESPACE]
-      if (requiredAlephiumNamespace === undefined) {
+      const alephiumNamespace = optionalNamespaces?.[PROVIDER_NAMESPACE] ?? requiredNamespaces?.[PROVIDER_NAMESPACE]
+      if (alephiumNamespace === undefined) {
         throw new Error(`${PROVIDER_NAMESPACE} namespace is required for session proposal`)
       }
 
-      const requiredChains = requiredNamespaces[PROVIDER_NAMESPACE].chains || []
-      if (requiredChains.length !== 1) {
+      const chains = alephiumNamespace.chains || []
+      if (chains.length !== 1) {
         throw new Error(
-          `Only single chain is allowed in ${PROVIDER_NAMESPACE} namespace during session proposal, proposed chains: ${requiredChains}`
+          `Only single chain is allowed in ${PROVIDER_NAMESPACE} namespace during session proposal, proposed chains: ${chains}`
         )
       }
 
-      const requiredChain = requiredChains[0]
+      const requiredChain = chains[0]
       const { networkId, addressGroup } = parseChain(requiredChain)
       this.networkId = networkId
       this.permittedAddressGroup = addressGroup
 
       this.namespace = {
-        methods: requiredAlephiumNamespace.methods,
-        events: requiredAlephiumNamespace.events,
-        accounts: [this.chainAccount(requiredAlephiumNamespace.chains || [])]
+        methods: alephiumNamespace.methods,
+        events: alephiumNamespace.events,
+        accounts: [this.chainAccount(alephiumNamespace.chains || [])]
       }
 
       const namespaces = { alephium: this.namespace }
