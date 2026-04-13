@@ -201,9 +201,13 @@ describe('WalletConnectProvider with single addressGroup', function () {
 
   beforeAll(async () => {
     provider = await WalletConnectProvider.init({
-      ...TEST_PROVIDER_OPTS
+      ...TEST_PROVIDER_OPTS,
+      customStoragePrefix: 'test-single-provider'
     })
-    walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
+    walletClient = await WalletClient.init(provider, {
+      ...TEST_WALLET_CLIENT_OPTS,
+      customStoragePrefix: 'test-single-wallet'
+    })
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
     await provider.connect()
@@ -269,9 +273,13 @@ describe('WalletConnectProvider with arbitrary addressGroup', function () {
     provider = await WalletConnectProvider.init({
       ...TEST_PROVIDER_OPTS,
       networkId: NETWORK_ID,
-      addressGroup: undefined
+      addressGroup: undefined,
+      customStoragePrefix: 'test-arbitrary-provider'
     })
-    walletClient = await WalletClient.init(provider, TEST_WALLET_CLIENT_OPTS)
+    walletClient = await WalletClient.init(provider, {
+      ...TEST_WALLET_CLIENT_OPTS,
+      customStoragePrefix: 'test-arbitrary-wallet'
+    })
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
     await provider.connect()

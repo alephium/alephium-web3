@@ -158,3 +158,28 @@ The following are no longer needed for `@alephium/web3` (they may still be neede
 The SDK is now built with TypeScript 5.9 and uses `moduleResolution: "bundler"` internally. Consumers using `moduleResolution: "node"` (the default) are supported via the `typesVersions` field — no changes needed on your side.
 
 If you upgrade your own project to `moduleResolution: "bundler"`, the `exports` field in `package.json` will be used for type resolution, which is more accurate.
+
+---
+
+## WalletConnect
+
+### `@alephium/walletconnect-provider` now uses `optionalNamespaces`
+
+The provider's `connect()` method now sends namespaces via `optionalNamespaces` instead of the deprecated `requiredNamespaces`. This follows WalletConnect SDK 2.21.6+, which auto-converts `requiredNamespaces` to `optionalNamespaces` internally.
+
+**If your app is a dApp (initiates WalletConnect connections):** No changes needed. The provider handles this internally.
+
+**If your app is a wallet (responds to session proposals):** Update your `session_proposal` handler to read from `optionalNamespaces`, falling back to `requiredNamespaces` for backward compatibility with older dApps:
+
+```ts
+// ❌ v2
+const { requiredNamespaces } = proposal.params
+const alephiumNamespace = requiredNamespaces['alephium']
+
+// ✅ v3
+const { requiredNamespaces, optionalNamespaces } = proposal.params
+const alephiumNamespace =
+  optionalNamespaces?.['alephium'] ?? requiredNamespaces?.['alephium']
+```
+
+This change is required because WalletConnect SDK 2.21.6+ moves all `requiredNamespaces` into `optionalNamespaces` before sending the proposal. Wallet code that only reads `requiredNamespaces` will see an empty object.
