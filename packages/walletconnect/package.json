@@ -73,7 +73,7 @@
     "lokijs": "^1.5.12",
     "prettier": "^2.8.7",
     "publint": "^0.3.18",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tslib": "^2.5.0",
     "typescript": "^5.9.3",

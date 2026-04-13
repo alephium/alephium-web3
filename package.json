@@ -12,7 +12,7 @@
     "@types/node": "^20.0.0",
     "@scure/bip39": "1.6.0",
     "eslint": "^8.37.0",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "vitest": "^3.1.1"
   },
@@ -59,10 +59,15 @@
       "elliptic@>=5.2.1 <=6.6.0": ">=6.6.0",
       "micromatch@<4.0.8": ">=4.0.8",
       "lodash@<4.18.0": ">=4.18.0",
-      "minimatch@<3.1.3": "=3.1.3",
+      "minimatch@<3.1.4": "=3.1.4",
       "flatted@<3.4.2": "=3.4.2",
       "picomatch@<2.3.2": "=2.3.2",
-      "nanoid@<3.3.8": "=3.3.8"
+      "nanoid@<3.3.8": "=3.3.8",
+      "cross-spawn@<7.0.5": "=7.0.5",
+      "serialize-javascript@<7.0.5": "=7.0.5",
+      "js-yaml@>=4.0.0 <4.1.1": "=4.1.1",
+      "ajv@<6.14.0": "=6.14.0",
+      "diff@<4.0.4": "=4.0.4"
     }
   },
   "packageManager": "pnpm@9.12.0+sha512.4abf725084d7bcbafbd728bfc7bee61f2f791f977fd87542b3579dcb23504d170d46337945e4c66485cd12d588a0c0e570ed9c477e7ccdd8507cf05f3f92eaca"
