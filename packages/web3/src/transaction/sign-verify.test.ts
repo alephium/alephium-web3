@@ -16,7 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import EC from 'elliptic'
+import * as secp from '@noble/secp256k1'
+import { binToHex } from '../utils'
 
 import { transactionSign, transactionVerifySignature } from './sign-verify'
 
@@ -37,10 +38,9 @@ describe('transaction', function () {
   })
 
   it('should sign and verify signature', () => {
-    const ec = new EC.ec('secp256k1')
-    const key = ec.genKeyPair()
-    const privateKey = key.getPrivate().toString('hex')
-    const publicKey = key.getPublic().encode('hex', true)
+    const privateKeyBytes = secp.utils.randomPrivateKey()
+    const privateKey = binToHex(privateKeyBytes)
+    const publicKey = binToHex(secp.getPublicKey(privateKeyBytes, true))
 
     const txHash = '8fc5f0d120b730f97f6cea5f02ae4a6ee7bf451d9261c623ea69d85e870201d2'
     const signature = transactionSign(txHash, privateKey)

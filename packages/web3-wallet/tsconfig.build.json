@@ -3,10 +3,7 @@
   "include": ["src/**/*"],
   "exclude": ["node_modules", "src/**/*.test.ts", "src/**/fixtures/*"],
   "compilerOptions": {
-    "outDir": "dist/src",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "verbatimModuleSyntax": false,
-    "skipLibCheck": true
+    "removeComments": true,
+    "sourceMap": true
   }
 }

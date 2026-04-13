@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { promises as fsPromises } from 'fs'
 import {
   fromApiNumber256,
   toApiNumber256,
@@ -34,7 +33,8 @@ import {
   decodeArrayType,
   fromApiPrimitiveVal,
   tryGetCallResult,
-  decodeTupleType
+  decodeTupleType,
+  stringify
 } from '../api'
 import {
   SignDeployContractTxParams,
@@ -71,7 +71,7 @@ import {
 import { getCurrentNodeProvider } from '../global'
 import { EventSubscribeOptions, EventSubscription, subscribeToEvents } from './events'
 import { MINIMAL_CONTRACT_DEPOSIT, ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
-import * as blake from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
 import { isContractDebugMessageEnabled } from '../debug'
 import {
   contract,
@@ -279,7 +279,7 @@ export class Contract extends Artifact {
       fieldLength: decodedDebugContract.fieldLength,
       methods: methods
     })
-    const codeHashForTesting = blake.blake2b(bytecodeForTesting, undefined, 32)
+    const codeHashForTesting = blake2b(bytecodeForTesting, { dkLen: 32 })
     this.bytecodeForTesting = binToHex(bytecodeForTesting)
     this.codeHashForTesting = binToHex(codeHashForTesting)
     return this.bytecodeForTesting
@@ -371,14 +371,14 @@ export class Contract extends Artifact {
     )
   }
 
-  // support both 'code.ral' and 'code.ral.json'
   static async fromArtifactFile(
     path: string,
+    readFile: (path: string) => Promise<string | Uint8Array>,
     bytecodeDebugPatch: string,
     codeHashDebug: string,
     structs: Struct[] = []
   ): Promise<Contract> {
-    const content = await fsPromises.readFile(path)
+    const content = await readFile(path)
     const artifact = JSON.parse(content.toString())
     return Contract.fromJson(artifact, bytecodeDebugPatch, codeHashDebug, structs)
   }
@@ -401,7 +401,7 @@ export class Contract extends Artifact {
     if (this.stdInterfaceId !== undefined) {
       object.stdInterfaceId = this.stdInterfaceId
     }
-    return JSON.stringify(object, null, 2)
+    return stringify(object, null, 2)
   }
 
   getInitialFieldsWithDefaultValues(): Fields {
@@ -779,8 +779,13 @@ export class Script extends Artifact {
     )
   }
 
-  static async fromArtifactFile(path: string, bytecodeDebugPatch: string, structs: Struct[] = []): Promise<Script> {
-    const content = await fsPromises.readFile(path)
+  static async fromArtifactFile(
+    path: string,
+    readFile: (path: string) => Promise<string | Uint8Array>,
+    bytecodeDebugPatch: string,
+    structs: Struct[] = []
+  ): Promise<Script> {
+    const content = await readFile(path)
     const artifact = JSON.parse(content.toString())
     return this.fromJson(artifact, bytecodeDebugPatch, structs)
   }
@@ -793,7 +798,7 @@ export class Script extends Artifact {
       fieldsSig: this.fieldsSig,
       functions: this.functions
     }
-    return JSON.stringify(object, null, 2)
+    return stringify(object, null, 2)
   }
 
   async txParamsForExecution<P extends Fields>(params: ExecuteScriptParams<P>): Promise<SignExecuteScriptTxParams> {
@@ -1089,7 +1094,7 @@ export interface DeployContractParams<P extends Fields = Fields> {
 }
 assertType<
   Eq<
-    Omit<DeployContractParams<undefined>, 'initialFields' | 'exposePrivateFunctions'>,
+    Omit<DeployContractParams<Fields>, 'initialFields' | 'exposePrivateFunctions'>,
     Omit<SignDeployContractTxParams, 'signerAddress' | 'signerKeyType' | 'bytecode'>
   >
 >
@@ -1422,7 +1427,7 @@ function genCodeForType(type: string, structs: Struct[]): { bytecode: string; co
     methods: [loadImmFieldByIndex, loadMutFieldByIndex, storeMutFieldByIndex, destroy]
   }
   const bytecode = contract.contractCodec.encodeContract(c)
-  const codeHash = blake.blake2b(bytecode, undefined, 32)
+  const codeHash = blake2b(bytecode, { dkLen: 32 })
   return { bytecode: binToHex(bytecode), codeHash: binToHex(codeHash) }
 }
 
@@ -1619,7 +1624,7 @@ export async function getDebugMessagesFromTx(txId: HexString, provider?: NodePro
             message: hexToString(e.fields[0].value as string)
           }
         } else {
-          throw new Error(`Invalid debug log: ${JSON.stringify(e.fields)}`)
+          throw new Error(`Invalid debug log: ${stringify(e.fields)}`)
         }
       })
   } else {
@@ -2289,7 +2294,7 @@ export const getContractIdFromUnsignedTx = async (
   const result = await nodeProvider.transactions.postTransactionsDecodeUnsignedTx({ unsignedTx })
   const outputIndex = result.unsignedTx.fixedOutputs.length
   const hex = result.unsignedTx.txId + outputIndex.toString(16).padStart(8, '0')
-  const hashHex = binToHex(blake.blake2b(hexToBinUnsafe(hex), undefined, 32))
+  const hashHex = binToHex(blake2b(hexToBinUnsafe(hex), { dkLen: 32 }))
   return hashHex.slice(0, 62) + result.fromGroup.toString(16).padStart(2, '0')
 }
 

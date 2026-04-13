@@ -1,5 +1,5 @@
 {
-  "plugins": ["security", "header", "jest"],
+  "plugins": ["security"],
   "extends": [
     "prettier",
     "plugin:prettier/recommended",
@@ -8,7 +8,6 @@
   ],
   "parser": "@typescript-eslint/parser",
   "rules": {
-    "header/header": [2, "./configs/header.js"],
     "@typescript-eslint/require-await": ["error"],
     "no-var": ["error"],
     "object-curly-spacing": ["error", "always"]
@@ -28,7 +27,6 @@
   },
   "env": {
     "node": true,
-    "es6": true,
-    "jest/globals": true
+    "es6": true
   }
 }

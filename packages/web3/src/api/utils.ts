@@ -16,7 +16,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import 'cross-fetch/polyfill'
 import * as node from '../api/api-alephium'
 
 export function convertHttpResponse<T>(response: { status: number; data: T; error?: { detail: string } }): T {
@@ -51,3 +50,16 @@ export function isBalanceEqual(b0: node.Balance, b1: node.Balance): boolean {
     isTokenBalanceEqual(b0.lockedTokenBalances, b1.lockedTokenBalances)
   )
 }
+
+// Drop-in replacement for JSON.stringify that handles BigInt values
+// by converting them to strings. This avoids the need for a global
+// BigInt.prototype.toJSON monkey-patch, enabling "sideEffects": false.
+export const stringify: typeof JSON.stringify = (value: any, replacer?: any, space?: any) =>
+  JSON.stringify(
+    value,
+    (key: string, value_: any) => {
+      const value = typeof value_ === 'bigint' ? value_.toString() : value_
+      return typeof replacer === 'function' ? replacer(key, value) : value
+    },
+    space
+  )

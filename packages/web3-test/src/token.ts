@@ -112,7 +112,10 @@ async function createAndTransferToken(
   return (await deployer.signAndSubmitExecuteScriptTx(params)) as SignExecuteScriptTxResult
 }
 
-export async function mintToken(recipient: Address, amount: bigint) {
+export async function mintToken(
+  recipient: Address,
+  amount: bigint
+): Promise<SignExecuteScriptTxResult & { tokenId: string; contractId: string; contractAddress: string }> {
   const group = groupOfAddress(recipient)
   const nodeProvider = await tryGetDevnetNodeProvider()
   const deployer = new PrivateKeyWallet({ privateKey: testPrivateKeys[`${group}`], nodeProvider })

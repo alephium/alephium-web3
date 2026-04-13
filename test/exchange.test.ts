@@ -34,7 +34,8 @@ import {
   waitForTxConfirmation,
   SignTransferTxResult
 } from '@alephium/web3'
-import * as bip39 from 'bip39'
+import { generateMnemonic } from '@scure/bip39'
+import { wordlist } from '@scure/bip39/wordlists/english'
 import { testPrivateKey } from '@alephium/web3-test'
 
 const WithdrawFee = ONE_ALPH
@@ -117,7 +118,7 @@ class Exchange {
     this.depositTxs = []
     this.withdrawTxs = []
     this.sweepTxs = []
-    this.hotAddressMnemonic = bip39.generateMnemonic()
+    this.hotAddressMnemonic = generateMnemonic(wordlist)
     this.wallet = this.getWalletByPathIndex(0)
     this.hotAddressPathIndexes = new Map()
     this.hotAddresses = []

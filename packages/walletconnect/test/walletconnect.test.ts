@@ -126,7 +126,7 @@ export const TEST_SIGN_CLIENT_OPTIONS: SignClientTypes.Options = {
   metadata: TEST_APP_METADATA
 }
 
-jest.setTimeout(30_000)
+vi.setConfig({ testTimeout: 30_000 })
 
 describe('Unit tests', function () {
   const expectedAddressGroup0 = 2
