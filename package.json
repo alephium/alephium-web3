@@ -46,28 +46,10 @@
   },
   "pnpm": {
     "overrides": {
-      "semver@<7.5.2": ">=7.5.2",
-      "protobufjs@>=6.10.0 <7.2.4": ">=7.2.4",
-      "@babel/traverse": ">=7.23.2",
-      "browserify-sign": ">=4.2.2",
-      "axios": ">=1.6.0",
-      "word-wrap": ">=1.2.4",
-      "braces@<3.0.3": ">=3.0.3",
-      "ws@<7.5.10": "^7.5.10",
-      "elliptic@>=4.0.0 <=6.6.0": ">=6.6.0",
-      "elliptic@>=2.0.0 <=6.6.0": ">=6.6.0",
-      "elliptic@>=5.2.1 <=6.6.0": ">=6.6.0",
-      "micromatch@<4.0.8": ">=4.0.8",
       "lodash@<4.18.0": ">=4.18.0",
-      "minimatch@<3.1.4": "=3.1.4",
-      "flatted@<3.4.2": "=3.4.2",
-      "picomatch@<2.3.2": "=2.3.2",
       "nanoid@<3.3.8": "=3.3.8",
-      "cross-spawn@<7.0.5": "=7.0.5",
       "serialize-javascript@<7.0.5": "=7.0.5",
-      "js-yaml@>=4.0.0 <4.1.1": "=4.1.1",
-      "ajv@<6.14.0": "=6.14.0",
-      "diff@<4.0.4": "=4.0.4"
+      "js-yaml@>=4.0.0 <4.1.1": "=4.1.1"
     }
   },
   "packageManager": "pnpm@9.12.0+sha512.4abf725084d7bcbafbd728bfc7bee61f2f791f977fd87542b3579dcb23504d170d46337945e4c66485cd12d588a0c0e570ed9c477e7ccdd8507cf05f3f92eaca"

@@ -164,7 +164,7 @@ export class WalletConnectProvider extends SignerProvider {
   public async connect(): Promise<void> {
     if (!this.session) {
       const { uri, approval } = await this.client.connect({
-        requiredNamespaces: {
+        optionalNamespaces: {
           alephium: {
             chains: [this.permittedChain],
             methods: this.methods,
