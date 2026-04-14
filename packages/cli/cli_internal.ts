@@ -18,7 +18,9 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { web3, NetworkId, networkIds, enableDebugMode, isDebugModeEnabled, CompilerOptions } from '@alephium/web3'
 import { program } from 'commander'
-import { startVitest } from 'vitest/node'
+// Lazy-loaded via dynamic import() because vitest 3.x is ESM-only
+// and this file runs under ts-node in CJS mode.
+type StartVitest = typeof import('vitest/node')['startVitest']
 import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
@@ -153,6 +155,7 @@ program
     const testPath = options.path as string
     const cliFilters = options.file ? [options.file as string] : []
 
+    const { startVitest } = await (import('vitest/node') as Promise<{ startVitest: StartVitest }>)
     const vitest = await startVitest('test', cliFilters, {
       include: [`${testPath}/**/*.{test,spec}.{js,jsx,ts,tsx}`],
       globals: true,
