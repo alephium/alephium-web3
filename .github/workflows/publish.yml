@@ -58,11 +58,7 @@ jobs:
         run: pnpm build
       - name: Publish to npm
         run: |
-          PUBLISH_ARGS="--access public --tag ${{ needs.get_dist_tag.outputs.DIST_TAG }}"
-          if [ "${{ needs.get_dist_tag.outputs.DIST_TAG }}" = "test" ]; then
-            PUBLISH_ARGS="--no-git-checks $PUBLISH_ARGS"
-          fi
-          pnpm -r publish $PUBLISH_ARGS
+          pnpm -r publish --no-git-checks --access public --tag ${{ needs.get_dist_tag.outputs.DIST_TAG }}
 
   release:
     runs-on: ubuntu-latest
