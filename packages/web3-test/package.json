@@ -17,7 +17,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alephium/alephium-web3.git"
+    "url": "git+https://github.com/alephium/alephium-web3.git",
+    "directory": "packages/web3-test"
   },
   "homepage": "https://github.com/alephium/alephium-web3",
   "bugs": {

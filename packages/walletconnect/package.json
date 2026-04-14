@@ -6,7 +6,8 @@
   "homepage": "https://github.com/alephium/alephium-web3",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alephium/alephium-web3.git"
+    "url": "git+https://github.com/alephium/alephium-web3.git",
+    "directory": "packages/walletconnect"
   },
   "license": "Apache-2.0",
   "type": "commonjs",
