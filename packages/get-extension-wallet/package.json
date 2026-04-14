@@ -1,6 +1,6 @@
 {
   "name": "@alephium/get-extension-wallet",
-  "version": "2.0.11",
+  "version": "3.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -18,7 +18,9 @@
   ],
   "scripts": {
     "build": "rollup -c",
-    "dev": "rollup -c -w"
+    "dev": "rollup -c -w",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules"
   },
   "type": "commonjs",
   "devDependencies": {
@@ -30,7 +32,7 @@
     "@rollup/plugin-typescript": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
-    "esbuild": "^0.14.54",
+    "esbuild": "^0.25.0 ",
     "eslint": "^8.37.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-prettier": "^4.2.1",
@@ -44,7 +46,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.60.0",
     "tslib": "^2.5.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "@alephium/web3": "workspace:^",

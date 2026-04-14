@@ -1,23 +1,27 @@
 {
   "name": "@alephium/web3-wallet",
-  "version": "2.0.11",
+  "version": "3.0.0",
   "description": "Simple wallets for Alephium",
   "keywords": [
     "alephium",
     "web3"
   ],
   "license": "GPL",
-  "main": "dist/src/index.js",
-  "browser": "dist/alephium-web3-wallet.min.js",
-  "types": "dist/src/index.d.ts",
+  "type": "commonjs",
+  "sideEffects": false,
+  "main": "dist/_cjs/index.js",
+  "module": "dist/_esm/index.js",
+  "types": "dist/_cjs/index.d.ts",
   "exports": {
-    "node": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/src/index.js"
-    },
-    "default": {
-      "types": "./dist/src/index.d.ts",
-      "default": "./dist/alephium-web3-wallet.min.js"
+    ".": {
+      "import": {
+        "types": "./dist/_esm/index.d.ts",
+        "default": "./dist/_esm/index.js"
+      },
+      "require": {
+        "types": "./dist/_cjs/index.d.ts",
+        "default": "./dist/_cjs/index.js"
+      }
     }
   },
   "repository": {
@@ -30,34 +34,31 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "scripts": {
-    "build": "rm -rf dist/* && npx tsc --build . && webpack",
-    "test": "jest -i --config ./jest-config.json"
+    "build": "pnpm clean && pnpm build:cjs && pnpm build:esm",
+    "build:cjs": "tsc --project tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/_cjs --declaration --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/_cjs/package.json",
+    "build:esm": "tsc --project tsconfig.build.json --outDir dist/_esm --declaration && tsc-alias --project tsconfig.build.json --outDir dist/_esm --resolve-full-paths && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/_esm/package.json",
+    "clean": "rm -rf dist",
+    "clean:all": "pnpm clean && rm -rf node_modules",
+    "check": "publint && attw --pack --ignore-rules internal-resolution-error",
+    "test": "vitest run"
   },
-  "type": "commonjs",
   "dependencies": {
     "@alephium/web3": "workspace:^",
-    "@noble/secp256k1": "1.7.1",
-    "@types/node": "^16.18.23",
-    "bip32": "3.1.0",
-    "bip39": "3.0.4",
-    "buffer": "6.0.3",
-    "elliptic": "6.6.1",
-    "fs-extra": "10.0.1"
+    "@noble/secp256k1": "1.7.2",
+    "@scure/bip32": "1.7.0",
+    "@scure/bip39": "1.6.0"
   },
   "devDependencies": {
-    "@types/find-up": "^2.1.1",
-    "@types/fs-extra": "^9.0.13",
-    "@types/jest": "^27.5.2",
-    "@types/mock-fs": "^4.13.1",
-    "@types/rewire": "^2.5.28",
+    "@arethetypeswrong/cli": "^0.18.2",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
-    "crypto-browserify": "^3.12.0",
-    "webpack": "^5.94.0",
-    "webpack-cli": "^4.10.0"
+    "publint": "^0.3.18",
+    "tsc-alias": "^1.8.16",
+    "typescript": "^5.9.3",
+    "vitest": "^3.1.1"
   },
   "engines": {
-    "node": ">=14.0.0",
+    "node": ">=20.0.0",
     "npm": ">=7.0.0"
   }
 }

@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "templates", "src/**/*.test.ts", "src/**/fixtures/*"],
+  "compilerOptions": {
+    "removeComments": true,
+    "sourceMap": true
+  }
+}

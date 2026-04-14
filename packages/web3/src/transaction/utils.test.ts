@@ -22,7 +22,7 @@ import { ONE_ALPH, TOTAL_NUMBER_OF_GROUPS } from '../constants'
 import { bs58, hexToBinUnsafe } from '../utils'
 import { unsignedTxCodec } from '../codec'
 import { groupOfAddress } from '../address'
-import { blake2b } from 'blakejs'
+import { blake2b } from '@noble/hashes/blake2b'
 import { SignTransferTxResult, web3 } from '../'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
 
@@ -122,7 +122,7 @@ describe('transaction utils', () => {
   })
 
   function toPublicKeyHash(publicKey: string): Uint8Array {
-    return blake2b(hexToBinUnsafe(publicKey), undefined, 32)
+    return blake2b(hexToBinUnsafe(publicKey), { dkLen: 32 })
   }
 
   function randomGroup(): number {

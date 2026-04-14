@@ -16,24 +16,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { ec as EC } from 'elliptic'
-import { binToHex, encodeSignature, hexToBinUnsafe, signatureDecode } from '../utils'
+import { binToHex, encodeSignature, hexToBinUnsafe } from '../utils'
 import { KeyType } from '../signer'
-import * as necc from '@noble/secp256k1'
-import { createHash, createHmac } from 'crypto'
+import * as secp from '@noble/secp256k1'
+import { sha256 } from '@noble/hashes/sha256'
+import { hmac } from '@noble/hashes/hmac'
 
-const ec = new EC('secp256k1')
-
-necc.utils.sha256Sync = (...messages: Uint8Array[]): Uint8Array => {
-  const sha256 = createHash('sha256')
-  for (const message of messages) sha256.update(message)
-  return sha256.digest()
+secp.utils.sha256Sync = (...messages: Uint8Array[]): Uint8Array => {
+  const h = sha256.create()
+  for (const message of messages) h.update(message)
+  return h.digest()
 }
 
-necc.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8Array => {
-  const hash = createHmac('sha256', key)
-  messages.forEach((m) => hash.update(m))
-  return Uint8Array.from(hash.digest())
+secp.utils.hmacSha256Sync = (key: Uint8Array, ...messages: Uint8Array[]): Uint8Array => {
+  const h = hmac.create(sha256, key)
+  for (const message of messages) h.update(message)
+  return h.digest()
 }
 
 function checkKeyType(keyType: KeyType) {
@@ -48,11 +46,11 @@ export function sign(hash: string, privateKey: string, _keyType?: KeyType): stri
   checkKeyType(keyType)
 
   if (keyType === 'default' || keyType === 'gl-secp256k1') {
-    const key = ec.keyFromPrivate(privateKey)
-    const signature = key.sign(hash)
-    return encodeSignature(signature)
+    const sig = secp.signSync(hexToBinUnsafe(hash), hexToBinUnsafe(privateKey), { der: false })
+    const signature = secp.Signature.fromCompact(sig)
+    return encodeSignature({ r: signature.r, s: signature.s })
   } else {
-    const signature = necc.schnorr.signSync(hexToBinUnsafe(hash), hexToBinUnsafe(privateKey))
+    const signature = secp.schnorr.signSync(hexToBinUnsafe(hash), hexToBinUnsafe(privateKey))
     return binToHex(signature)
   }
 }
@@ -63,10 +61,10 @@ export function verifySignature(hash: string, publicKey: string, signature: stri
 
   try {
     if (keyType === 'default' || keyType === 'gl-secp256k1') {
-      const key = ec.keyFromPublic(publicKey, 'hex')
-      return key.verify(hash, signatureDecode(ec, signature))
+      const sig = secp.Signature.fromCompact(signature)
+      return secp.verify(sig, hexToBinUnsafe(hash), hexToBinUnsafe(publicKey))
     } else {
-      return necc.schnorr.verifySync(hexToBinUnsafe(signature), hexToBinUnsafe(hash), hexToBinUnsafe(publicKey))
+      return secp.schnorr.verifySync(hexToBinUnsafe(signature), hexToBinUnsafe(hash), hexToBinUnsafe(publicKey))
     }
   } catch (error) {
     return false

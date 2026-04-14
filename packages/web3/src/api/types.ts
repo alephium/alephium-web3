@@ -22,6 +22,7 @@ import { isDebugModeEnabled } from '../debug'
 import { TraceableError } from '../error'
 import { assertType, base58ToBytes, binToHex, bs58, Eq, isBase58, isHexString } from '../utils'
 import * as node from './api-alephium'
+import { stringify } from './utils'
 
 export type Number256 = bigint | string
 export type Val = Number256 | boolean | string | Val[] | ValObject | Map<Val, Val>
@@ -209,12 +210,12 @@ async function call(args: ApiRequestArguments, handler: ApiRequestHandler): Prom
   const debugModeEnabled = isDebugModeEnabled()
   const { path, method, params } = args
   if (debugModeEnabled) {
-    console.log(`[REQUEST] ${path} ${method} ${JSON.stringify(params)}`)
+    console.log(`[REQUEST] ${path} ${method} ${stringify(params)}`)
   }
   try {
     const response = await handler(args)
     if (debugModeEnabled) {
-      console.log(`[RESPONSE] ${path} ${method} ${JSON.stringify(response)}`)
+      console.log(`[RESPONSE] ${path} ${method} ${stringify(response)}`)
     }
     return response
   } catch (error) {

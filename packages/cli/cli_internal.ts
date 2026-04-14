@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 
 import { web3, NetworkId, networkIds, enableDebugMode, isDebugModeEnabled, CompilerOptions } from '@alephium/web3'
 import { program } from 'commander'
-import { run as runJestTests } from 'jest'
+import { startVitest } from 'vitest/node'
 import path from 'path'
 import { deployAndSaveProgress } from './scripts/deploy'
 import { Configuration, DEFAULT_CONFIGURATION_VALUES } from './src/types'
@@ -150,33 +150,21 @@ program
   .option('-v, --verbose', 'display individual test results with the test suite hierarchy', false)
   .option('-s, --silent', 'prevent tests from printing messages through the console', false)
   .action(async (options) => {
-    const jestOptions: string[] = []
     const testPath = options.path as string
-    const jestConfig = {
-      transform: {
-        '^.+\\.(t|j)sx?$': 'ts-jest'
-      },
-      testRegex: `/${testPath}/.*(test|spec)\\.(jsx?|tsx?)$`
-    }
-    const jestConfigStr = JSON.stringify(jestConfig)
+    const cliFilters = options.file ? [options.file as string] : []
 
-    if (options.file) {
-      jestOptions.push(options.file as string)
+    const vitest = await startVitest('test', cliFilters, {
+      include: [`${testPath}/**/*.{test,spec}.{js,jsx,ts,tsx}`],
+      globals: true,
+      testNamePattern: options.grep as string | undefined,
+      fileParallelism: !options.runInBand,
+      reporters: options.verbose ? ['verbose'] : options.silent ? [] : ['default'],
+      silent: options.silent as boolean
+    })
+
+    if (vitest) {
+      await vitest.close()
     }
-    if (options.grep) {
-      jestOptions.push('-t', options.grep as string)
-    }
-    if (options.runInBand) {
-      jestOptions.push('-i')
-    }
-    if (options.verbose) {
-      jestOptions.push('--verbose')
-    }
-    if (options.silent) {
-      jestOptions.push('--silent')
-    }
-    jestOptions.push('--config', jestConfigStr, '--detectOpenHandles', '--useStderr')
-    await runJestTests(jestOptions)
   })
 
 function tryGetScriptIndex(str: string | undefined): number | undefined {

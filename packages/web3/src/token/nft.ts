@@ -19,7 +19,6 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 // JSON Schema for the NFT metadata, which is pointed to by the value
 // returned from the `getTokenUri` method of the NFT contract
 
-import 'cross-fetch/polyfill'
 import { NFTCollectionUriMetaData, NFTTokenUriMetaData } from '../api'
 import { TraceableError } from '../error'
 

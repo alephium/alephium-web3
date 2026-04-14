@@ -16,18 +16,19 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import { isGroupedAccount, publicKeyFromPrivateKey } from '@alephium/web3'
+import { isGroupedAccount, publicKeyFromPrivateKey, utils } from '@alephium/web3'
 import { Account, KeyType, ExplorerProvider, NodeProvider } from '@alephium/web3'
 import { addressFromPublicKey } from '@alephium/web3'
 import { Address } from '@alephium/web3'
 import { groupOfAddress } from '@alephium/web3'
 import { groupOfPrivateKey, SignerProviderWithCachedAccounts, TOTAL_NUMBER_OF_GROUPS, web3 } from '@alephium/web3'
-import * as bip39 from 'bip39'
-import { bip32 } from './noble-wrapper'
+import { generateMnemonic as _generateMnemonic, mnemonicToSeedSync } from '@scure/bip39'
+import { wordlist } from '@scure/bip39/wordlists/english'
+import { HDKey } from '@scure/bip32'
 import { PrivateKeyWallet } from './privatekey-wallet'
 
 export function generateMnemonic(wordLength?: 12 | 24): string {
-  return bip39.generateMnemonic(wordLength === 12 ? 128 : 256)
+  return _generateMnemonic(wordlist, wordLength === 12 ? 128 : 256)
 }
 
 export function deriveHDWalletPrivateKey(
@@ -36,14 +37,14 @@ export function deriveHDWalletPrivateKey(
   _fromAddressIndex?: number,
   passphrase?: string
 ): string {
-  const seed = bip39.mnemonicToSeedSync(mnemonic, passphrase)
-  const masterKey = bip32.fromSeed(seed)
+  const seed = mnemonicToSeedSync(mnemonic, passphrase)
+  const masterKey = HDKey.fromMasterSeed(seed)
   const fromAddressIndex = _fromAddressIndex ?? 0
-  const keyPair = masterKey.derivePath(getHDWalletPath(keyType, fromAddressIndex))
+  const child = masterKey.derive(getHDWalletPath(keyType, fromAddressIndex))
 
-  if (!keyPair.privateKey) throw new Error('Missing private key')
+  if (!child.privateKey) throw new Error('Missing private key')
 
-  return keyPair.privateKey.toString('hex')
+  return utils.binToHex(child.privateKey)
 }
 
 export function deriveSecp256K1PrivateKey(mnemonic: string, fromAddressIndex?: number, passphrase?: string): string {
