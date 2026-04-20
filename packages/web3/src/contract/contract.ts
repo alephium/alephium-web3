@@ -1884,6 +1884,7 @@ export function decodeEvent<F extends Fields, M extends ContractEvent<F>>(
     blockHash: event.blockHash,
     txId: event.txId,
     eventIndex: event.eventIndex,
+    timestamp: event.timestamp,
     name: eventSig.name,
     fields: fields
   } as M
