@@ -22,7 +22,9 @@ import { lockupScriptCodec } from './lockup-script-codec'
 
 describe('AssetOutputCodec', () => {
   it('should convert p2pk asset outputs to fixed asset outputs', () => {
-    const lockupScript = lockupScriptCodec.decode(addressToBytes('3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3'))
+    const lockupScript = lockupScriptCodec.decode(
+      addressToBytes('3cUrKAb5KWuf61XkPorWJyNBicXG5gYTf7ZHZDKYudB4nkpD9Uu9U:3')
+    )
     if (lockupScript.kind !== 'P2PK') {
       throw new Error('Expected P2PK lockup script')
     }
