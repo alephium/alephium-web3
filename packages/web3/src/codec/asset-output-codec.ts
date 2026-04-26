@@ -20,12 +20,13 @@ import { u256Codec } from './compact-int-codec'
 import { intAs4BytesCodec } from './int-as-4bytes-codec'
 import { timestampCodec } from './timestamp-codec'
 import { ByteString, byteStringCodec } from './bytestring-codec'
-import { LockupScript, P2MPKH, P2PKH, P2SH, lockupScriptCodec } from './lockup-script-codec'
+import { LockupScript, P2HMPK, P2MPKH, P2PK, P2PKH, P2SH, lockupScriptCodec } from './lockup-script-codec'
 import { FixedAssetOutput } from '../api/api-alephium'
 import { blakeHash, createHint } from './hash'
-import { bs58, binToHex, hexToBinUnsafe, concatBytes } from '../utils'
+import { binToHex, hexToBinUnsafe, concatBytes, xorByte } from '../utils'
 import { ObjectCodec } from './codec'
 import { Token, tokensCodec } from './token-codec'
+import { addressFromLockupScript, addressToBytes } from '../address'
 
 export interface AssetOutput {
   amount: bigint
@@ -33,6 +34,21 @@ export interface AssetOutput {
   lockTime: bigint
   tokens: Token[]
   additionalData: ByteString
+}
+
+function createGroupedHint(input: Uint8Array, group: number): number {
+  const initialHint = createHint(input)
+  const newByte0 = ((initialHint >> 24) & 0xff) ^ xorByte(initialHint) ^ (group & 0xff)
+  const newHintValue = ((newByte0 & 0xff) << 24) | (initialHint & 0x00ffffff)
+  return newHintValue | 1
+}
+
+function createP2PKHint(outputLockupScript: P2PK): number {
+  return createGroupedHint(outputLockupScript.publicKeyLike.value, outputLockupScript.group)
+}
+
+function createP2HMPKHint(outputLockupScript: P2HMPK): number {
+  return createGroupedHint(outputLockupScript.hash, outputLockupScript.group)
 }
 
 export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
@@ -53,7 +69,7 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
     const scriptType = output.lockupScript.kind
     const key = binToHex(blakeHash(concatBytes([txIdBytes, intAs4BytesCodec.encode(index)])))
     const outputLockupScript = output.lockupScript.value
-    const address = bs58.encode(lockupScriptCodec.encode(output.lockupScript))
+    const address = addressFromLockupScript(output.lockupScript)
 
     let hint: number | undefined = undefined
     if (scriptType === 'P2PKH') {
@@ -62,6 +78,10 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
       hint = createHint((outputLockupScript as P2MPKH).publicKeyHashes[0])
     } else if (scriptType === 'P2SH') {
       hint = createHint(outputLockupScript as P2SH)
+    } else if (scriptType === 'P2PK') {
+      hint = createP2PKHint(outputLockupScript as P2PK)
+    } else if (scriptType === 'P2HMPK') {
+      hint = createP2HMPKHint(outputLockupScript as P2HMPK)
     } else if (scriptType === 'P2C') {
       throw new Error(`P2C script type not allowed for asset output`)
     } else {
@@ -80,7 +100,7 @@ export class AssetOutputCodec extends ObjectCodec<AssetOutput> {
   static fromFixedAssetOutput(fixedOutput: FixedAssetOutput): AssetOutput {
     const amount = BigInt(fixedOutput.attoAlphAmount)
     const lockTime = BigInt(fixedOutput.lockTime)
-    const lockupScript: LockupScript = lockupScriptCodec.decode(bs58.decode(fixedOutput.address))
+    const lockupScript: LockupScript = lockupScriptCodec.decode(addressToBytes(fixedOutput.address))
     const tokens = fixedOutput.tokens.map((token) => {
       return {
         tokenId: hexToBinUnsafe(token.id),
