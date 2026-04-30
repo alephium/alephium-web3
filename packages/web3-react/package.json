@@ -31,7 +31,8 @@
     "build": "rollup --config rollup.config.prod.js",
     "clean": "rm -rf build",
     "clean:all": "pnpm clean && rm -rf node_modules",
-    "lint": "eslint src --ext .ts,tsx"
+    "lint": "eslint src --ext .ts,tsx",
+    "test": "vitest run"
   },
   "keywords": [
     "react-hook",
@@ -66,16 +67,16 @@
     "@types/react-dom": "^18.0.11",
     "@types/styled-components": "^5.1.26",
     "@types/use-sync-external-store": "^0.0.6",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "happy-dom": "^20.9.0",
+    "vitest": "^3.1.1",
     "rollup": "^2.79.2",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.37.0",
     "rollup-plugin-visualizer": "^5.9.0",
     "typescript": "^5.9.3"
-  },
-  "resolutions": {
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0"
   }
 }

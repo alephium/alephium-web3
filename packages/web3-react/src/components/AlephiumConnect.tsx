@@ -48,6 +48,7 @@ import {
 import { getLastConnectedAccount, removeLastConnectedAccount } from '../utils/storage'
 import { Connectors, ConnectResult, createDefaultConnectors } from '../utils/connector'
 import { useInjectedProviders } from '../hooks/useInjectedProviders'
+import { injectedProviderStore } from '../utils/injectedProviders'
 import { isCompatibleAddressGroup } from '@alephium/walletconnect-provider'
 
 export const ConnectSettingProvider: React.FC<{
@@ -186,17 +187,22 @@ export const AlephiumConnectProvider: React.FC<{
   )
 
   useEffect(() => {
-    const func = async () => {
-      const onDisconnected = () => {
-        removeLastConnectedAccount()
-        updateAccount(undefined)
-        updateSignerProvider(undefined)
-      }
-      const onConnected = (result: ConnectResult) => {
-        updateAccount(result.account)
-        updateSignerProvider(result.signerProvider)
-      }
+    let cancelled = false
+    let retrying = false
+    let unsubscribe: (() => void) | undefined
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
 
+    const onDisconnected = () => {
+      removeLastConnectedAccount()
+      updateAccount(undefined)
+      updateSignerProvider(undefined)
+    }
+    const onConnected = (result: ConnectResult) => {
+      updateAccount(result.account)
+      updateSignerProvider(result.signerProvider)
+    }
+
+    const tryAutoConnect = async (): Promise<boolean> => {
       try {
         const lastConnectorId = lastConnectedAccount?.connectorId
         const allConnectorIds = Array.from(connectorIds)
@@ -216,18 +222,61 @@ export const AlephiumConnectProvider: React.FC<{
               onConnected
             })
             if (result !== undefined) {
-              return
+              return true
             }
           }
         }
       } catch (error) {
         console.error(error)
       }
-
-      onDisconnected()
+      return false
     }
 
-    func()
+    const cleanup = () => {
+      if (unsubscribe) {
+        unsubscribe()
+        unsubscribe = undefined
+      }
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId)
+        timeoutId = undefined
+      }
+    }
+
+    const run = async () => {
+      const connected = await tryAutoConnect()
+      if (cancelled) return
+
+      if (connected) {
+        return
+      }
+
+      // Initial attempt failed; subscribe for late-arriving providers
+      unsubscribe = injectedProviderStore.subscribe(() => {
+        if (cancelled || retrying) return
+        retrying = true
+        tryAutoConnect().then((success) => {
+          retrying = false
+          if (cancelled) return
+          if (success) {
+            cleanup()
+          }
+        })
+      })
+
+      timeoutId = setTimeout(() => {
+        if (cancelled) return
+        cleanup()
+        onDisconnected()
+      }, 3000)
+    }
+
+    run()
+
+    return () => {
+      cancelled = true
+      cleanup()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
