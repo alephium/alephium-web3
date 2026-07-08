@@ -187,6 +187,20 @@ export interface ContractParent {
   parent?: string
 }
 
+/** DecodeUnsignedTx */
+export interface DecodeUnsignedTx {
+  unsignedTx: string
+}
+
+/** DecodeUnsignedTxResult */
+export interface DecodeUnsignedTxResult {
+  /** @format group-index */
+  fromGroup: number
+  /** @format group-index */
+  toGroup: number
+  unsignedTx: UnsignedTransaction
+}
+
 /** Event */
 export interface Event {
   /** @format block-hash */
@@ -539,6 +553,11 @@ export interface TransactionInfo {
 /** TransactionLike */
 export type TransactionLike = AcceptedTransaction | PendingTransaction
 
+/** TxStatusType */
+export enum TxStatusType {
+  Conflicted = 'conflicted'
+}
+
 /** Unauthorized */
 export interface Unauthorized {
   detail: string
@@ -548,6 +567,21 @@ export interface Unauthorized {
 export interface Unknown {
   id: string
   type: string
+}
+
+/** UnsignedTransaction */
+export interface UnsignedTransaction {
+  /** @format 32-byte-hash */
+  hash: string
+  version: number
+  networkId: number
+  scriptOpt?: string
+  /** @format int32 */
+  gasAmount: number
+  /** @format uint256 */
+  gasPrice: string
+  inputs?: Input[]
+  outputs?: Output[]
 }
 
 /** Val */
@@ -955,6 +989,44 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Transactions
+     * @name GetTransactions
+     * @summary List transactions
+     * @request GET:/transactions
+     */
+    getTransactions: (
+      query?: {
+        status?: TxStatusType
+        /**
+         * Page number
+         * @format int32
+         * @min 1
+         */
+        page?: number
+        /**
+         * Number of items per page
+         * @format int32
+         * @min 0
+         * @max 100
+         */
+        limit?: number
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        Transaction[],
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/transactions`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
      * @name GetTransactionsTransactionHash
      * @summary Get a transaction with hash
      * @request GET:/transactions/{transaction_hash}
@@ -966,6 +1038,27 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       >({
         path: `/transactions/${transactionHash}`,
         method: 'GET',
+        format: 'json',
+        ...params
+      }).then(convertHttpResponse),
+
+    /**
+     * No description
+     *
+     * @tags Transactions
+     * @name PostTransactionsDecodeUnsignedTx
+     * @summary Decode an unsigned transaction
+     * @request POST:/transactions/decode-unsigned-tx
+     */
+    postTransactionsDecodeUnsignedTx: (data: DecodeUnsignedTx, params: RequestParams = {}) =>
+      this.request<
+        DecodeUnsignedTxResult,
+        BadRequest | Unauthorized | NotFound | InternalServerError | ServiceUnavailable | GatewayTimeout
+      >({
+        path: `/transactions/decode-unsigned-tx`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params
       }).then(convertHttpResponse)

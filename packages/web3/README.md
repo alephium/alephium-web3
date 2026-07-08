@@ -10,6 +10,8 @@ See [MIGRATION.md](MIGRATION.md) for a complete guide to upgrading from v2 to v3
 
 This package uses a tsc dual-build to produce dual CJS/ESM output with proper type declarations. See the [monorepo README](../../README.md#build-system) for details on the build system, flags, and exports configuration.
 
+For websocket usage, see [src/ws/README.md](src/ws/README.md).
+
 ```
 pnpm build    # Build CJS + ESM + types
 pnpm check    # Run publint + attw packaging checks

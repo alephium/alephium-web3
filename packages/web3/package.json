@@ -61,8 +61,8 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "4.4.1",
-    "explorer_backend_version": "3.3.2"
+    "alephium_version": "4.5.5",
+    "explorer_backend_version": "3.3.7"
   },
   "scripts": {
     "build": "pnpm clean && pnpm build:cjs && pnpm build:esm",
@@ -71,6 +71,10 @@
     "clean": "rm -rf dist",
     "clean:all": "pnpm clean && rm -rf node_modules",
     "check": "publint && attw --pack --ignore-rules internal-resolution-error",
+    "ws:listen": "ts-node --transpile-only scripts/ws-listener.ts",
+    "ws:listen:block": "ts-node --transpile-only scripts/ws-listener.ts block",
+    "ws:listen:tx": "ts-node --transpile-only scripts/ws-listener.ts tx",
+    "ws:listen:contract": "ts-node --transpile-only scripts/ws-listener.ts contract",
     "test": "vitest run",
     "update-schemas": "npm run update-schema:alephium && npm run update-schema:explorer",
     "update-schema:alephium": "npx swagger-typescript-api --disable-throw-on-error -t ./configs -o ./src/api -n api-alephium.ts -p https://raw.githubusercontent.com/alephium/alephium/v${npm_package_config_alephium_version}/api/src/main/resources/openapi.json",
@@ -83,6 +87,7 @@
     "@noble/hashes": "1.8.0",
     "@noble/secp256k1": "1.7.2",
     "base-x": "4.0.1",
+    "ws": "^8.21.0",
     "bignumber.js": "^9.1.1",
     "eventemitter3": "^4.0.7"
   },
@@ -92,6 +97,7 @@
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^9.0.13",
     "@types/node": "^20.0.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
