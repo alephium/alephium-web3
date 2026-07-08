@@ -7,7 +7,6 @@
       {
         "address": "127.0.0.1",
         "restPort": 12973,
-        "wsPort": 11973,
         "minerApiPort": 10973
       }
     ],
