@@ -78,7 +78,54 @@ describe('WebSocketClient', () => {
     await expect(client.unsubscribe(txSubscriptionId)).resolves.toBe(true)
     await expect(client.unsubscribe(contractEventsSubscriptionId)).resolves.toBe(true)
   }, 20_000)
+
+  test('should reconnect and resubscribe when the connection drops', async () => {
+    const droppedClient = new WebSocketClient(WS_ENDPOINT)
+    await waitForConnection(droppedClient)
+    await droppedClient.subscribeToBlock()
+
+    let blocks = 0
+    droppedClient.onBlockNotification(() => {
+      blocks += 1
+    })
+
+    await mineOneBlock()
+    await waitFor(() => blocks > 0, 'a block notification before the drop')
+
+    const reconnected = new Promise<void>((resolve) => droppedClient.on('reconnected', () => resolve()))
+
+    // The node discards a connection's subscriptions when its socket closes, so recovering
+    // from this needs more than reopening the connection.
+    terminateUnderlyingSocket(droppedClient)
+    await reconnected
+
+    const blocksBeforeDrop = blocks
+    await mineOneBlock()
+    await waitFor(() => blocks > blocksBeforeDrop, 'notifications to resume after the reconnect')
+
+    droppedClient.disconnect()
+  }, 30_000)
 })
+
+// Severs the TCP connection the way a network fault or a node restart would, without
+// reaching for the container the node happens to be running in.
+function terminateUnderlyingSocket(client: WebSocketClient): void {
+  const internals = client as unknown as { ws: { terminate: () => void } }
+  internals.ws.terminate()
+}
+
+async function mineOneBlock(): Promise<void> {
+  await web3.getCurrentNodeProvider().miners.postMinersCpuMiningMineOneBlock({ fromGroup: 0, toGroup: 0 })
+}
+
+async function waitFor(condition: () => boolean, description: string, timeout = 15_000): Promise<void> {
+  const deadline = Date.now() + timeout
+  while (Date.now() < deadline) {
+    if (condition()) return
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  }
+  throw new Error(`Timed out after ${timeout}ms waiting for: ${description}`)
+}
 
 function waitForConnection(client: WebSocketClient): Promise<void> {
   return new Promise((resolve) => {
