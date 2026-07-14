@@ -49,13 +49,22 @@ export interface WsResponseError {
   }
 }
 
+export type WsNotificationType = 'Block' | 'Tx' | 'ContractEvent'
+
 export interface WsSubscriptionNotification<T = unknown> {
   jsonrpc: '2.0'
   method: 'subscription'
   params: {
+    type: WsNotificationType
     subscription: string
     result: T
   }
+}
+
+const SUBSCRIPTION_KIND_BY_NOTIFICATION_TYPE: Record<WsNotificationType, WsSubscriptionKind> = {
+  Block: 'block',
+  Tx: 'tx',
+  ContractEvent: 'contract'
 }
 
 export type WsResponse<T = unknown> = WsResponseSuccess<T> | WsResponseError
@@ -73,11 +82,6 @@ type SubscriptionListener<T> = (params: WsSubscriptionNotification<T>['params'])
 
 // The node forgets a subscription when its connection closes, and hands out a new id on
 // resubscribe. The request params are therefore what we keep, not the id we got back.
-interface WsSubscription {
-  kind: WsSubscriptionKind
-  params: WsSubscriptionParams
-}
-
 interface PendingRequest {
   resolve: (result: string | boolean) => void
   reject: (reason: unknown) => void
@@ -113,6 +117,8 @@ function isWsSubscriptionMessage(message: unknown): message is WsSubscriptionNot
     message.method === 'subscription' &&
     isObject(message.params) &&
     typeof message.params.subscription === 'string' &&
+    typeof message.params.type === 'string' &&
+    message.params.type in SUBSCRIPTION_KIND_BY_NOTIFICATION_TYPE &&
     'result' in message.params
   )
 }
@@ -131,7 +137,7 @@ export class WebSocketClient extends EventEmitter {
   private reconnectAttempts: number
   private reconnectTimer?: ReturnType<typeof setTimeout>
   private notifications: WsSubscriptionNotification<NotificationPayload>[]
-  private subscriptions: Map<string, WsSubscription>
+  private subscriptions: Map<string, WsSubscriptionParams>
   private pendingRequests: Map<number, PendingRequest>
 
   constructor(url: string, options: WebSocketClientOptions = {}) {
@@ -181,22 +187,19 @@ export class WebSocketClient extends EventEmitter {
   }
 
   public subscribeToBlock(): Promise<string> {
-    return this.subscribeAndRegisterKind('block', ['block'])
+    return this.subscribeAndRegister(['block'])
   }
 
   public subscribeToTx(): Promise<string> {
-    return this.subscribeAndRegisterKind('tx', ['tx'])
+    return this.subscribeAndRegister(['tx'])
   }
 
   public subscribeToContractEvents(addresses: string[]): Promise<string> {
-    return this.subscribeAndRegisterKind('contract', ['contract', { addresses: normalizeContractAddresses(addresses) }])
+    return this.subscribeAndRegister(['contract', { addresses: normalizeContractAddresses(addresses) }])
   }
 
   public subscribeToFilteredContractEvents(eventIndex: number, addresses: string[]): Promise<string> {
-    return this.subscribeAndRegisterKind('contract', [
-      'contract',
-      { eventIndex, addresses: normalizeContractAddresses(addresses) }
-    ])
+    return this.subscribeAndRegister(['contract', { eventIndex, addresses: normalizeContractAddresses(addresses) }])
   }
 
   public async unsubscribe(subscriptionId: string): Promise<boolean> {
@@ -299,9 +302,9 @@ export class WebSocketClient extends EventEmitter {
     const previousSubscriptions = [...this.subscriptions.values()]
     this.subscriptions.clear()
 
-    for (const subscription of previousSubscriptions) {
-      const subscriptionId = await this.subscribe('subscribe', subscription.params)
-      this.subscriptions.set(subscriptionId, subscription)
+    for (const params of previousSubscriptions) {
+      const subscriptionId = await this.subscribe('subscribe', params)
+      this.subscriptions.set(subscriptionId, params)
     }
 
     // Notifications produced while we were disconnected are gone for good. Consumers that
@@ -314,12 +317,13 @@ export class WebSocketClient extends EventEmitter {
       const message: unknown = JSON.parse(data.toString())
       if (isWsSubscriptionMessage(message)) {
         this.notifications.push(message)
-        const subscription = this.subscriptions.get(message.params.subscription)
+        // Routed by what the notification says it is, not by what we recorded when the
+        // subscription was acknowledged: the node starts sending as soon as it registers the
+        // subscription, which can be before we have processed its response.
+        const kind = SUBSCRIPTION_KIND_BY_NOTIFICATION_TYPE[message.params.type]
         this.emit('notification', message.params)
         this.emit(`notification_${message.params.subscription}`, message.params)
-        if (subscription !== undefined) {
-          this.emit(`notification:${subscription.kind}`, message.params)
-        }
+        this.emit(`notification:${kind}`, message.params)
         return
       }
 
@@ -383,9 +387,9 @@ export class WebSocketClient extends EventEmitter {
     })
   }
 
-  private async subscribeAndRegisterKind(kind: WsSubscriptionKind, params: WsSubscriptionParams): Promise<string> {
+  private async subscribeAndRegister(params: WsSubscriptionParams): Promise<string> {
     const subscriptionId = await this.subscribe('subscribe', params)
-    this.subscriptions.set(subscriptionId, { kind, params })
+    this.subscriptions.set(subscriptionId, params)
     return subscriptionId
   }
 
@@ -395,7 +399,7 @@ export class WebSocketClient extends EventEmitter {
   ): void {
     const eventName = `notification:${kind}`
     for (const notification of this.notifications) {
-      if (this.subscriptions.get(notification.params.subscription)?.kind === kind) {
+      if (SUBSCRIPTION_KIND_BY_NOTIFICATION_TYPE[notification.params.type] === kind) {
         callback(notification.params as unknown as WsSubscriptionNotification<T>['params'])
       }
     }
