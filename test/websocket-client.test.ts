@@ -156,8 +156,10 @@ function waitForNotifications(
         tx = true
       }
 
-      clearTimeout(timeout)
-      resolve({ block, tx })
+      if (block && tx) {
+        clearTimeout(timeout)
+        resolve({ block, tx })
+      }
     })
   })
 }
