@@ -16,14 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
 
-import {
-  ONE_ALPH,
-  SignTransferTxResult,
-  waitForTxConfirmation,
-  web3,
-  WebSocketClient
-} from '../packages/web3'
-import {  PrivateKeyWallet } from '@alephium/web3-wallet'
+import { ONE_ALPH, SignTransferTxResult, waitForTxConfirmation, web3, WebSocketClient } from '../packages/web3'
+import { PrivateKeyWallet } from '@alephium/web3-wallet'
 import { getSigner, randomContractAddress } from '@alephium/web3-test'
 
 const NODE_PROVIDER = 'http://127.0.0.1:22973'
@@ -59,18 +53,17 @@ describe('WebSocketClient', () => {
     console.log('******* blockSubscriptionId: ', blockSubscriptionId)
     const txSubscriptionId = await client.subscribeToTx()
     console.log('******* txSubscriptionId: ', txSubscriptionId)
-    const contractEventsSubscriptionId = await client.subscribeToContractEvents([
-      randomContractAddress()
-    ])
+    const contractEventsSubscriptionId = await client.subscribeToContractEvents([randomContractAddress()])
 
-    const notificationsPromise = waitForNotifications(client,
-                                                      //{
-    //   block: true,
-    //   tx: true
-    // }
-                                                     )
+    const notificationsPromise = waitForNotifications(
+      client
+      //{
+      //   block: true,
+      //   tx: true
+      // }
+    )
 
-    const ret  = await signAndSubmitTx()
+    const ret = await signAndSubmitTx()
     console.log('******* ret: ', ret)
 
     await waitForTxConfirmation(ret.txId, 1, 1000)
@@ -94,7 +87,7 @@ function waitForConnection(client: WebSocketClient): Promise<void> {
 }
 
 function waitForNotifications(
-  client: WebSocketClient,
+  client: WebSocketClient
   //expected: { block?: boolean; tx?: boolean }
 ): Promise<{ block: boolean; tx: boolean }> {
   return new Promise((resolve, reject) => {
@@ -102,11 +95,7 @@ function waitForNotifications(
     let tx = false
 
     const timeout = setTimeout(() => {
-      reject(
-        new Error(
-          `Timeout waiting for notifications. Received: block=${block}, tx=${tx}`
-        )
-      )
+      reject(new Error(`Timeout waiting for notifications. Received: block=${block}, tx=${tx}`))
     }, 20_000)
 
     client.onNotification((params) => {

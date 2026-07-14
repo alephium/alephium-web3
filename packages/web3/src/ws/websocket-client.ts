@@ -18,11 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/>.
 import WebSocket from 'ws'
 import { EventEmitter } from 'eventemitter3'
 
-import type {
-  BlockAndEvents,
-  ContractEventByBlockHash,
-  TransactionTemplate
-} from '../api/api-alephium'
+import type { BlockAndEvents, ContractEventByBlockHash, TransactionTemplate } from '../api/api-alephium'
 
 export type WsSubscriptionKind = 'block' | 'tx' | 'contract'
 
@@ -123,8 +119,7 @@ export class WebSocketClient extends EventEmitter {
     this.subscriptionKinds = new Map()
 
     const headers = options.apiKey ? { 'X-API-KEY': options.apiKey } : undefined
-    this.ws =
-      headers === undefined ? new WebSocket(url) : new WebSocket(url, undefined, { headers })
+    this.ws = headers === undefined ? new WebSocket(url) : new WebSocket(url, undefined, { headers })
 
     this.ws.on('open', () => {
       this.isConnected = true
@@ -172,7 +167,10 @@ export class WebSocketClient extends EventEmitter {
 
   public subscribe(method: 'subscribe', params: WsSubscriptionParams): Promise<string>
   public subscribe(method: 'unsubscribe', params: [string]): Promise<boolean>
-  public subscribe(method: 'subscribe' | 'unsubscribe', params: WsSubscriptionParams | [string]): Promise<string | boolean> {
+  public subscribe(
+    method: 'subscribe' | 'unsubscribe',
+    params: WsSubscriptionParams | [string]
+  ): Promise<string | boolean> {
     const id = this.getRequestId()
     const request: WsSubscriptionRequest = {
       jsonrpc: '2.0',
@@ -204,10 +202,7 @@ export class WebSocketClient extends EventEmitter {
   }
 
   public subscribeToContractEvents(addresses: string[]): Promise<string> {
-    return this.subscribeAndRegisterKind('contract', [
-      'contract',
-      { addresses: normalizeContractAddresses(addresses) }
-    ])
+    return this.subscribeAndRegisterKind('contract', ['contract', { addresses: normalizeContractAddresses(addresses) }])
   }
 
   public subscribeToFilteredContractEvents(eventIndex: number, addresses: string[]): Promise<string> {
@@ -257,10 +252,7 @@ export class WebSocketClient extends EventEmitter {
     this.ws.close()
   }
 
-  private async subscribeAndRegisterKind(
-    kind: WsSubscriptionKind,
-    params: WsSubscriptionParams
-  ): Promise<string> {
+  private async subscribeAndRegisterKind(kind: WsSubscriptionKind, params: WsSubscriptionParams): Promise<string> {
     const subscriptionId = (await this.subscribe('subscribe', params)) as string
     this.subscriptionKinds.set(subscriptionId, kind)
     return subscriptionId
