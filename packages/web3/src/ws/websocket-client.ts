@@ -71,6 +71,23 @@ type NotificationPayload = BlockAndEvents | TransactionTemplate | ContractEventB
 type NotificationListener = (params: WsSubscriptionNotification<NotificationPayload>['params']) => void
 type SubscriptionListener<T> = (params: WsSubscriptionNotification<T>['params']) => void
 
+// The node forgets a subscription when its connection closes, and hands out a new id on
+// resubscribe. The request params are therefore what we keep, not the id we got back.
+interface WsSubscription {
+  kind: WsSubscriptionKind
+  params: WsSubscriptionParams
+}
+
+interface PendingRequest {
+  resolve: (result: string | boolean) => void
+  reject: (reason: unknown) => void
+  timer: ReturnType<typeof setTimeout>
+}
+
+const REQUEST_TIMEOUT_MS = 10_000
+const INITIAL_RECONNECT_DELAY_MS = 500
+const MAX_RECONNECT_DELAY_MS = 30_000
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
 }
@@ -106,59 +123,30 @@ function normalizeContractAddresses(addresses: string[]): string[] {
 
 export class WebSocketClient extends EventEmitter {
   private ws: WebSocket
+  private readonly url: string
+  private readonly headers?: Record<string, string>
   private requestId: number
   private isConnected: boolean
+  private isClosing: boolean
+  private reconnectAttempts: number
+  private reconnectTimer?: ReturnType<typeof setTimeout>
   private notifications: WsSubscriptionNotification<NotificationPayload>[]
-  private subscriptionKinds: Map<string, WsSubscriptionKind>
+  private subscriptions: Map<string, WsSubscription>
+  private pendingRequests: Map<number, PendingRequest>
 
   constructor(url: string, options: WebSocketClientOptions = {}) {
     super()
+    this.url = url
+    this.headers = options.apiKey ? { 'X-API-KEY': options.apiKey } : undefined
     this.requestId = 0
     this.isConnected = false
+    this.isClosing = false
+    this.reconnectAttempts = 0
     this.notifications = []
-    this.subscriptionKinds = new Map()
+    this.subscriptions = new Map()
+    this.pendingRequests = new Map()
 
-    const headers = options.apiKey ? { 'X-API-KEY': options.apiKey } : undefined
-    this.ws = headers === undefined ? new WebSocket(url) : new WebSocket(url, undefined, { headers })
-
-    this.ws.on('open', () => {
-      this.isConnected = true
-      this.emit('connected')
-    })
-
-    this.ws.on('message', (data: WebSocket.Data) => {
-      try {
-        const message: unknown = JSON.parse(data.toString())
-        if (isWsSubscriptionMessage(message)) {
-          this.notifications.push(message)
-          const kind = this.subscriptionKinds.get(message.params.subscription)
-          this.emit('notification', message.params)
-          this.emit(`notification_${message.params.subscription}`, message.params)
-          if (kind !== undefined) {
-            this.emit(`notification:${kind}`, message.params)
-          }
-          return
-        }
-
-        if (isWsResponseError(message) || isWsResponseSuccess(message)) {
-          this.emit(`response_${message.id}`, message)
-          return
-        }
-
-        this.emit('error', new Error('Unsupported websocket message'))
-      } catch (error) {
-        this.emit('error', error)
-      }
-    })
-
-    this.ws.on('close', () => {
-      this.isConnected = false
-      this.emit('disconnected')
-    })
-
-    this.ws.on('error', (error) => {
-      this.emit('error', error)
-    })
+    this.ws = this.connect()
   }
 
   public isOpen(): boolean {
@@ -167,10 +155,12 @@ export class WebSocketClient extends EventEmitter {
 
   public subscribe(method: 'subscribe', params: WsSubscriptionParams): Promise<string>
   public subscribe(method: 'unsubscribe', params: [string]): Promise<boolean>
-  public subscribe(
+  public async subscribe(
     method: 'subscribe' | 'unsubscribe',
     params: WsSubscriptionParams | [string]
   ): Promise<string | boolean> {
+    await this.waitUntilOpen()
+
     const id = this.getRequestId()
     const request: WsSubscriptionRequest = {
       jsonrpc: '2.0',
@@ -180,15 +170,12 @@ export class WebSocketClient extends EventEmitter {
     }
 
     return new Promise((resolve, reject) => {
-      this.once(`response_${id}`, (response: WsResponse) => {
-        if ('result' in response) {
-          resolve(response.result as string | boolean)
-          return
-        }
+      const timer = setTimeout(() => {
+        this.pendingRequests.delete(id)
+        reject(new Error(`Websocket ${method} request timed out after ${REQUEST_TIMEOUT_MS}ms`))
+      }, REQUEST_TIMEOUT_MS)
 
-        reject(response.error)
-      })
-
+      this.pendingRequests.set(id, { resolve, reject, timer })
       this.ws.send(JSON.stringify(request))
     })
   }
@@ -212,8 +199,10 @@ export class WebSocketClient extends EventEmitter {
     ])
   }
 
-  public unsubscribe(subscriptionId: string): Promise<boolean> {
-    return this.subscribe('unsubscribe', [subscriptionId]) as Promise<boolean>
+  public async unsubscribe(subscriptionId: string): Promise<boolean> {
+    const result = await this.subscribe('unsubscribe', [subscriptionId])
+    this.subscriptions.delete(subscriptionId)
+    return result
   }
 
   public onConnected(callback: () => void): void {
@@ -246,15 +235,157 @@ export class WebSocketClient extends EventEmitter {
   }
 
   public disconnect(): void {
-    this.removeAllListeners()
-    this.ws.removeAllListeners()
-    this.subscriptionKinds.clear()
+    this.isClosing = true
+
+    if (this.reconnectTimer !== undefined) {
+      clearTimeout(this.reconnectTimer)
+      this.reconnectTimer = undefined
+    }
+
+    this.rejectPendingRequests(new Error('Websocket client disconnected'))
+    this.subscriptions.clear()
     this.ws.close()
   }
 
+  private connect(): WebSocket {
+    const ws =
+      this.headers === undefined
+        ? new WebSocket(this.url)
+        : new WebSocket(this.url, undefined, { headers: this.headers })
+
+    ws.on('open', () => {
+      const isReconnect = this.reconnectAttempts > 0
+      this.isConnected = true
+      this.reconnectAttempts = 0
+      this.emit('connected')
+
+      if (isReconnect) {
+        this.resubscribeAll().catch((error) => this.emit('error', error))
+      }
+    })
+
+    ws.on('message', (data: WebSocket.Data) => this.handleMessage(data))
+
+    ws.on('close', () => {
+      this.isConnected = false
+      this.rejectPendingRequests(new Error('Websocket connection closed'))
+      this.emit('disconnected')
+
+      if (this.isClosing) {
+        return
+      }
+
+      this.scheduleReconnect()
+    })
+
+    ws.on('error', (error) => this.emit('error', error))
+
+    return ws
+  }
+
+  private scheduleReconnect(): void {
+    const delay = Math.min(INITIAL_RECONNECT_DELAY_MS * 2 ** this.reconnectAttempts, MAX_RECONNECT_DELAY_MS)
+    // Jitter, so that every client of a restarted node does not stampede it in lockstep.
+    const jitteredDelay = delay * (0.5 + Math.random() / 2)
+    this.reconnectAttempts += 1
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = undefined
+      this.ws = this.connect()
+    }, jitteredDelay)
+  }
+
+  private async resubscribeAll(): Promise<void> {
+    const previousSubscriptions = [...this.subscriptions.values()]
+    this.subscriptions.clear()
+
+    for (const subscription of previousSubscriptions) {
+      const subscriptionId = await this.subscribe('subscribe', subscription.params)
+      this.subscriptions.set(subscriptionId, subscription)
+    }
+
+    // Notifications produced while we were disconnected are gone for good. Consumers that
+    // need completeness must reconcile over the REST API from their last known state.
+    this.emit('reconnected')
+  }
+
+  private handleMessage(data: WebSocket.Data): void {
+    try {
+      const message: unknown = JSON.parse(data.toString())
+      if (isWsSubscriptionMessage(message)) {
+        this.notifications.push(message)
+        const subscription = this.subscriptions.get(message.params.subscription)
+        this.emit('notification', message.params)
+        this.emit(`notification_${message.params.subscription}`, message.params)
+        if (subscription !== undefined) {
+          this.emit(`notification:${subscription.kind}`, message.params)
+        }
+        return
+      }
+
+      if (isWsResponseError(message) || isWsResponseSuccess(message)) {
+        this.settleRequest(message)
+        return
+      }
+
+      this.emit('error', new Error('Unsupported websocket message'))
+    } catch (error) {
+      this.emit('error', error)
+    }
+  }
+
+  private settleRequest(response: WsResponse): void {
+    if (response.id === undefined) {
+      return
+    }
+
+    const pendingRequest = this.pendingRequests.get(response.id)
+    if (pendingRequest === undefined) {
+      return
+    }
+
+    clearTimeout(pendingRequest.timer)
+    this.pendingRequests.delete(response.id)
+
+    if ('result' in response) {
+      pendingRequest.resolve(response.result as string | boolean)
+      return
+    }
+
+    pendingRequest.reject(response.error)
+  }
+
+  private rejectPendingRequests(error: Error): void {
+    for (const [id, pendingRequest] of this.pendingRequests) {
+      clearTimeout(pendingRequest.timer)
+      this.pendingRequests.delete(id)
+      pendingRequest.reject(error)
+    }
+  }
+
+  private waitUntilOpen(): Promise<void> {
+    if (this.isConnected) {
+      return Promise.resolve()
+    }
+
+    return new Promise((resolve, reject) => {
+      const onConnected = () => {
+        clearTimeout(timer)
+        resolve()
+      }
+
+      const timer = setTimeout(() => {
+        this.off('connected', onConnected)
+        reject(new Error(`Timed out after ${REQUEST_TIMEOUT_MS}ms waiting for the websocket to open`))
+      }, REQUEST_TIMEOUT_MS)
+
+      this.once('connected', onConnected)
+    })
+  }
+
   private async subscribeAndRegisterKind(kind: WsSubscriptionKind, params: WsSubscriptionParams): Promise<string> {
-    const subscriptionId = (await this.subscribe('subscribe', params)) as string
-    this.subscriptionKinds.set(subscriptionId, kind)
+    const subscriptionId = await this.subscribe('subscribe', params)
+    this.subscriptions.set(subscriptionId, { kind, params })
     return subscriptionId
   }
 
@@ -264,7 +395,7 @@ export class WebSocketClient extends EventEmitter {
   ): void {
     const eventName = `notification:${kind}`
     for (const notification of this.notifications) {
-      if (this.subscriptionKinds.get(notification.params.subscription) === kind) {
+      if (this.subscriptions.get(notification.params.subscription)?.kind === kind) {
         callback(notification.params as unknown as WsSubscriptionNotification<T>['params'])
       }
     }
