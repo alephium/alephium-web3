@@ -19,7 +19,7 @@
   },
   "types": "./build/index.d.ts",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "files": [
     "build",
@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.0.0",
     "@types/qrcode": "^1.5.0",
     "@types/react": "^18.0.31",
     "@types/react-dom": "^18.0.11",

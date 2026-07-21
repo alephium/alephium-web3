@@ -36,13 +36,13 @@
     "prettier": "^2.8.7"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.0.0",
     "@types/prettier": "^2.7.2",
     "ts-node": "^10.9.2",
     "typescript": "5.9.3"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "npm": ">=7.0.0"
   }
 }
