@@ -26,9 +26,7 @@ describe('utils', function () {
     await expect(provider.addresses.getAddressesAddressGroup('000')).rejects.toThrowError(
       new TraceableError(
         'Failed to request getAddressesAddressGroup',
-        new Error(
-          '[API Error] - Invalid value for: path parameter address ($: 000) - Status code: 400'
-        )
+        new Error('[API Error] - Invalid value for: path parameter address ($: 000) - Status code: 400')
       )
     )
   })
