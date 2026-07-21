@@ -61,7 +61,7 @@
   },
   "author": "Alephium dev <dev@alephium.org>",
   "config": {
-    "alephium_version": "4.4.1",
+    "alephium_version": "4.5.5",
     "explorer_backend_version": "3.3.2"
   },
   "scripts": {
@@ -91,7 +91,7 @@
     "@babel/eslint-parser": "^7.21.3",
     "@types/find-up": "^2.1.1",
     "@types/fs-extra": "^9.0.13",
-    "@types/node": "^20.0.0",
+    "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
@@ -111,7 +111,7 @@
     "vitest": "^3.1.1"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "npm": ">=7.0.0"
   }
 }

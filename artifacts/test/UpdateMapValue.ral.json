@@ -1,5 +1,5 @@
 {
-  "version": "v4.4.1",
+  "version": "v4.5.5",
   "name": "UpdateMapValue",
   "bytecodeTemplate": "01010300000005{1}0d0c{0}0101",
   "fieldsSig": {

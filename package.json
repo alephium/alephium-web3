@@ -8,13 +8,13 @@
     "@alephium/web3-wallet": "workspace:*"
   },
   "devDependencies": {
-    "@swc/core": "^1.4.1",
-    "@types/node": "^20.0.0",
     "@scure/bip39": "1.6.0",
-    "eslint": "^8.37.0",
+    "@swc/core": "^1.15.46",
+    "@types/node": "^22.20.1",
+    "eslint": "^8.57.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "vitest": "^3.1.1"
+    "vitest": "^3.2.7"
   },
   "scripts": {
     "build": "pnpm --stream -r run build",
@@ -40,7 +40,7 @@
     "trailingComma": "none"
   },
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.0.0",
     "npm": ">=7.0.0",
     "pnpm": ">=7.0.0"
   },
