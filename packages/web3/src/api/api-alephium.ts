@@ -725,6 +725,8 @@ export interface ContractEvent {
   txId: string
   /** @format int64 */
   timestamp: number
+  /** @format address */
+  contractAddress: string
   /** @format int32 */
   eventIndex: number
   fields: Val[]
@@ -1785,7 +1787,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Alephium API
- * @version 4.5.5
+ * @version 4.6.0
  * @baseUrl ../
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
