@@ -98,7 +98,6 @@ const ConnectWithInjector: React.FC<{
   const [injectedProviderId, setInjectedProviderId] = useState<InjectedProviderId | undefined>(
     providers.length !== 0 ? getInjectedProviderId(providers[0]) : undefined
   )
-  console.log(`providers size: ${providers.length}`)
   const { connect } = useConnect()
 
   const [id, setId] = useState(connectorId)

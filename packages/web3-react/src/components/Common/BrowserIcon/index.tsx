@@ -35,10 +35,8 @@ const BrowserIcon = React.forwardRef(({ browser }: BrowserIconProps, ref: React.
       icon = browsers.FireFox
       break
     case 'edge':
+    case 'edge-chromium':
       icon = browsers.Edge
-      break
-    case 'brave':
-      //   icon = browsers.Brave;
       break
   }
   if (!icon) return <></>
