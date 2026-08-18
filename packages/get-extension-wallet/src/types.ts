@@ -54,13 +54,13 @@ export abstract class AlephiumWindowObject extends InteractiveSignerProvider<Ena
   abstract request: (message: RequestMessage) => Promise<boolean>
 }
 
+export type ExtensionStore = 'chrome' | 'firefox'
+
 export type WalletProvider = {
   id: string
   name: string
   icon: string
-  downloads:
-    | { chrome?: `https://chrome.google.com/webstore/detail/${string}` }
-    | { firefox?: `https://addons.mozilla.org/en-US/firefox/addon/${string}` }
+  downloads: Record<ExtensionStore, `https://${string}`>
 }
 
 export function providerInitializedEvent(id: string): string {

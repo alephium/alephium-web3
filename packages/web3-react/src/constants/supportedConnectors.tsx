@@ -15,6 +15,8 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/>.
 */
+import { alephiumProvider } from '@alephium/get-extension-wallet'
+import { Browser } from 'detect-browser'
 import { Connector } from '../types'
 import { isMobile } from '../utils'
 import Logos from './../assets/logos'
@@ -22,6 +24,14 @@ import Logos from './../assets/logos'
 let supportedConnectors: Connector[] = []
 
 const _isMobile = isMobile()
+
+const { chrome: chromeWebStore, firefox: firefoxAddOns } = alephiumProvider.downloads
+
+const extensionStoreUrls: Partial<Record<Browser, string>> = {
+  chrome: chromeWebStore,
+  'edge-chromium': chromeWebStore,
+  firefox: firefoxAddOns
+}
 
 if (typeof window != 'undefined') {
   supportedConnectors = [
@@ -54,6 +64,7 @@ if (typeof window != 'undefined') {
         transparent: <Logos.AlephiumIcon />
       },
       scannable: false,
+      extensions: _isMobile ? undefined : extensionStoreUrls,
       extensionIsInstalled: () => {
         return Boolean(window['alephiumProviders'])
       }

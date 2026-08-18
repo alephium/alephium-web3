@@ -273,7 +273,6 @@ const Modal: React.FC<ModalProps> = ({ open, pages, pageId, positionInside, inli
                 >
                   <span>{context.errorMessage}</span>
                   <div
-                    onClick={() => console.log('click')}
                     style={{
                       position: 'absolute',
                       right: 24,
