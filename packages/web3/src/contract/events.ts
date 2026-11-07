@@ -26,18 +26,20 @@ export interface EventSubscribeOptions<Message> extends SubscribeOptions<Message
   parallel?: boolean
 }
 
-export class EventSubscription extends Subscription<node.ContractEvent> {
+export interface BatchedEventSubscribeOptions<Message> extends SubscribeOptions<Message[]> {
+  onEventCountChanged?: (eventCount: number) => Promise<void> | void
+}
+
+abstract class EventSubscriptionBase<Message> extends Subscription<Message> {
   readonly contractAddress: string
   private fromCount: number
   private onEventCountChanged?: (eventCount: number) => Promise<void> | void
-  private parallel = false
 
-  constructor(options: EventSubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
+  constructor(options: EventSubscribeOptions<Message>, contractAddress: string, fromCount?: number) {
     super(options)
     this.contractAddress = contractAddress
     this.fromCount = typeof fromCount === 'undefined' ? 0 : fromCount
     this.onEventCountChanged = options.onEventCountChanged
-    this.parallel = options.parallel ?? false
   }
 
   currentEventCount(): number {
@@ -58,20 +60,16 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
   }
 
   override async polling(): Promise<void> {
+    if (this.cancelled) {
+      return
+    }
     try {
       const events = await this.getEvents(this.fromCount)
-      if (this.fromCount === events.nextStart) {
+      if (this.cancelled || this.fromCount === events.nextStart) {
         return
       }
 
-      if (this.parallel) {
-        const promises = events.events.map((event) => this.messageCallback(event))
-        await Promise.all(promises)
-      } else {
-        for (const event of events.events) {
-          await this.messageCallback(event)
-        }
-      }
+      await this.handleEvents(events.events)
 
       this.fromCount = events.nextStart
 
@@ -84,6 +82,40 @@ export class EventSubscription extends Subscription<node.ContractEvent> {
       await this.errorCallback(err, this)
     }
   }
+
+  protected abstract handleEvents(events: node.ContractEvent[]): Promise<void>
+}
+
+export class EventSubscription extends EventSubscriptionBase<node.ContractEvent> {
+  private parallel: boolean
+
+  constructor(options: EventSubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
+    super(options, contractAddress, fromCount)
+    this.parallel = options.parallel ?? false
+  }
+
+  protected override async handleEvents(events: node.ContractEvent[]): Promise<void> {
+    if (this.parallel) {
+      await Promise.all(events.map((event) => this.messageCallback(event)))
+    } else {
+      for (const event of events) {
+        await this.messageCallback(event)
+      }
+    }
+  }
+}
+
+/** Delivers each non-empty node response as one batch, preserving the node's event order. */
+export class BatchedEventSubscription extends EventSubscriptionBase<node.ContractEvent[]> {
+  constructor(options: BatchedEventSubscribeOptions<node.ContractEvent>, contractAddress: string, fromCount?: number) {
+    super(options, contractAddress, fromCount)
+  }
+
+  protected override async handleEvents(events: node.ContractEvent[]): Promise<void> {
+    if (events.length > 0) {
+      await this.messageCallback(events)
+    }
+  }
 }
 
 export function subscribeToEvents(
@@ -92,6 +124,17 @@ export function subscribeToEvents(
   fromCount?: number
 ): EventSubscription {
   const subscription = new EventSubscription(options, contractAddress, fromCount)
+  subscription.subscribe()
+  return subscription
+}
+
+/** Starts polling immediately; the cursor advances only after the batch callback succeeds. */
+export function subscribeToEventBatches(
+  options: BatchedEventSubscribeOptions<node.ContractEvent>,
+  contractAddress: string,
+  fromCount?: number
+): BatchedEventSubscription {
+  const subscription = new BatchedEventSubscription(options, contractAddress, fromCount)
   subscription.subscribe()
   return subscription
 }
