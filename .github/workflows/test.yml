@@ -44,4 +44,7 @@ jobs:
       - run: pnpm check
       - run: pnpm lint
       - run: pnpm test
+        env:
+          # Unavailable on fork PRs: relay integration tests report an explicit skip.
+          TEST_PROJECT_ID: ${{ secrets.TEST_PROJECT_ID }}
       - run: pnpm codegen && test -z "$(git status --porcelain)"

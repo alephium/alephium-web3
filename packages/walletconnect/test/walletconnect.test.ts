@@ -24,6 +24,8 @@ import {
   WalletConnectProvider
 } from '../src/index'
 import { WalletClient } from './shared'
+import { disconnectTestSession } from './shared/disconnectTestSession'
+import { createRelayTestConfig } from './shared/relayTestConfig'
 import {
   web3,
   node,
@@ -38,10 +40,10 @@ import {
   addressFromPublicKey
 } from '@alephium/web3'
 import { PrivateKeyWallet } from '@alephium/web3-wallet'
-import { SignClientTypes } from '@walletconnect/types'
 import { Greeter, Main } from '../artifacts/ts'
 import { sleep } from '@alephium/web3'
 import { randomBytes, randomInt } from 'crypto'
+import type SignClient from '@walletconnect/sign-client'
 
 const NETWORK_ID = 'devnet'
 const ADDRESS_GROUP = 0
@@ -78,7 +80,13 @@ const ACCOUNTS = {
 
 const ONE_ALPH = 10n ** 18n
 
-const TEST_RELAY_URL = process.env.TEST_RELAY_URL ? process.env.TEST_RELAY_URL : 'ws://localhost:5555'
+const relayTestConfig = createRelayTestConfig(process.env)
+const hasProjectId = relayTestConfig.projectId !== undefined
+if (!hasProjectId) {
+  console.warn(
+    'Skipping WalletConnect relay integration tests: set TEST_PROJECT_ID to a Reown project ID to enable them.'
+  )
+}
 
 const TEST_APP_METADATA = {
   name: 'Test App',
@@ -102,31 +110,17 @@ const TEST_PROVIDER_OPTS: ProviderOptions = {
   },
 
   metadata: TEST_APP_METADATA,
-  logger: 'error',
-  relayUrl: TEST_RELAY_URL
+  logger: 'error'
 }
 
 const TEST_WALLET_CLIENT_OPTS = {
   networkId: NETWORK_ID as NetworkId,
   rpcUrl: RPC_URL,
   activePrivateKey: ACCOUNTS.a.privateKey,
-  relayUrl: TEST_RELAY_URL,
   metadata: TEST_WALLET_METADATA
 }
 
-export const TEST_PROJECT_ID = process.env.TEST_PROJECT_ID ? process.env.TEST_PROJECT_ID : undefined
-
-export const TEST_SIGN_CLIENT_OPTIONS: SignClientTypes.Options = {
-  logger: 'error',
-  relayUrl: TEST_RELAY_URL,
-  projectId: TEST_PROJECT_ID,
-  storageOptions: {
-    database: ':memory:'
-  },
-  metadata: TEST_APP_METADATA
-}
-
-vi.setConfig({ testTimeout: 30_000 })
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 })
 
 describe('Unit tests', function () {
   const expectedAddressGroup0 = 2
@@ -177,24 +171,49 @@ describe('Unit tests', function () {
     expect(() => parseAccount(`alephium:devnet/${groupIndex}:${publicKey1}/invalid-key`)).toThrow('Invalid key type')
   })
 
-  it('should initialize providers', async () => {
-    const provider0 = await WalletConnectProvider.init(TEST_PROVIDER_OPTS)
-    expect(provider0.nodeProvider !== undefined).toEqual(true)
-    expect(provider0.explorerProvider !== undefined).toEqual(true)
-    const provider1 = await WalletConnectProvider.init({ ...TEST_PROVIDER_OPTS, methods: [] })
-    expect(provider1.nodeProvider === undefined).toEqual(true)
-    expect(provider1.explorerProvider === undefined).toEqual(true)
+  it.skipIf(!hasProjectId)('should initialize providers', async () => {
+    const providers: WalletConnectProvider[] = []
+    try {
+      const provider0 = await WalletConnectProvider.init({
+        ...TEST_PROVIDER_OPTS,
+        ...relayTestConfig.clientOptions('init', 'provider0')
+      })
+      providers.push(provider0)
+      expect(provider0.nodeProvider !== undefined).toEqual(true)
+      expect(provider0.explorerProvider !== undefined).toEqual(true)
+      const provider1 = await WalletConnectProvider.init({
+        ...TEST_PROVIDER_OPTS,
+        ...relayTestConfig.clientOptions('init', 'provider1'),
+        methods: []
+      })
+      providers.push(provider1)
+      expect(provider1.nodeProvider === undefined).toEqual(true)
+      expect(provider1.explorerProvider === undefined).toEqual(true)
+    } finally {
+      await closeTestClients(...providers.map(({ client }) => client))
+    }
   })
 })
 
+async function closeTestClients(...clients: (SignClient | undefined)[]) {
+  await Promise.all(
+    clients.map(async (client) => {
+      if (!client) return
+      client.core.heartbeat.stop()
+      await client.core.relayer.transportClose()
+    })
+  )
+}
+
 async function waitWalletConnected(client: WalletClient) {
-  if (client.topic === undefined) {
-    await sleep(500)
-    await waitWalletConnected(client)
+  const deadline = Date.now() + 30_000
+  while (client.topic === undefined) {
+    if (Date.now() >= deadline) throw new Error('Timed out waiting for WalletConnect session acknowledgement')
+    await sleep(100)
   }
 }
 
-describe('WalletConnectProvider with single addressGroup', function () {
+describe.skipIf(!hasProjectId)('WalletConnectProvider with single addressGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -202,11 +221,11 @@ describe('WalletConnectProvider with single addressGroup', function () {
   beforeAll(async () => {
     provider = await WalletConnectProvider.init({
       ...TEST_PROVIDER_OPTS,
-      customStoragePrefix: 'test-single-provider'
+      ...relayTestConfig.clientOptions('single', 'provider')
     })
     walletClient = await WalletClient.init(provider, {
       ...TEST_WALLET_CLIENT_OPTS,
-      customStoragePrefix: 'test-single-wallet'
+      ...relayTestConfig.clientOptions('single', 'wallet')
     })
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
@@ -218,27 +237,23 @@ describe('WalletConnectProvider with single addressGroup', function () {
   })
 
   afterAll(async () => {
-    if (!walletClient.disconnected) {
-      // disconnect provider
-      await Promise.all([
-        new Promise<void>((resolve) => {
-          provider.on('session_delete', () => {
-            resolve()
-          })
-        }),
-        walletClient.disconnect()
-      ])
+    try {
+      if (walletClient && !walletClient.disconnected && walletClient.topic) {
+        await disconnectTestSession(provider, () => walletClient.disconnect())
+      }
+      if (walletClient) expect(walletClient.client?.session.values.length).toEqual(0)
+    } finally {
+      await closeTestClients(provider?.client, walletClient?.client)
     }
-    // expect provider to be disconnected
-    expect(walletClient.client?.session.values.length).toEqual(0)
   })
 
   it('should forward requests', async () => {
-    await provider.nodeProvider!.infos.getInfosVersion()
+    if (!provider.nodeProvider) throw new Error('Node API forwarding was not initialized')
+    await provider.nodeProvider.infos.getInfosVersion()
   })
 
   it('should sign', async () => {
-    await verifySign(provider, walletClient)
+    await verifySign(provider)
   })
 
   it('accountChanged', async () => {
@@ -252,7 +267,7 @@ describe('WalletConnectProvider with single addressGroup', function () {
     await verifyAccountsChange(ACCOUNTS.a.privateKey, ACCOUNTS.a.address, provider, walletClient)
 
     // change to account b, which is not supported
-    expectThrowsAsync(
+    await expectThrowsAsync(
       async () => await walletClient.changeAccount(ACCOUNTS.b.privateKey),
       'Error changing account, chain alephium:devnet/1 not permitted'
     )
@@ -264,7 +279,7 @@ describe('WalletConnectProvider with single addressGroup', function () {
   })
 })
 
-describe('WalletConnectProvider with arbitrary addressGroup', function () {
+describe.skipIf(!hasProjectId)('WalletConnectProvider with arbitrary addressGroup', function () {
   let provider: WalletConnectProvider
   let walletClient: WalletClient
   let walletAddress: string
@@ -274,11 +289,11 @@ describe('WalletConnectProvider with arbitrary addressGroup', function () {
       ...TEST_PROVIDER_OPTS,
       networkId: NETWORK_ID,
       addressGroup: undefined,
-      customStoragePrefix: 'test-arbitrary-provider'
+      ...relayTestConfig.clientOptions('arbitrary', 'provider')
     })
     walletClient = await WalletClient.init(provider, {
       ...TEST_WALLET_CLIENT_OPTS,
-      customStoragePrefix: 'test-arbitrary-wallet'
+      ...relayTestConfig.clientOptions('arbitrary', 'wallet')
     })
     walletAddress = walletClient.signer.address
     expect(walletAddress).toEqual(ACCOUNTS.a.address)
@@ -290,23 +305,18 @@ describe('WalletConnectProvider with arbitrary addressGroup', function () {
   })
 
   afterAll(async () => {
-    if (!walletClient.disconnected) {
-      // disconnect provider
-      await Promise.all([
-        new Promise<void>((resolve) => {
-          provider.on('session_delete', () => {
-            resolve()
-          })
-        }),
-        walletClient.disconnect()
-      ])
+    try {
+      if (walletClient && !walletClient.disconnected && walletClient.topic) {
+        await disconnectTestSession(provider, () => walletClient.disconnect())
+      }
+      if (walletClient) expect(walletClient.client?.session.values.length).toEqual(0)
+    } finally {
+      await closeTestClients(provider?.client, walletClient?.client)
     }
-    // expect provider to be disconnected
-    expect(walletClient.client?.session.values.length).toEqual(0)
   })
 
   it('should sign', async () => {
-    await verifySign(provider, walletClient)
+    await verifySign(provider)
   })
 
   it('accountChanged', async () => {
@@ -328,7 +338,7 @@ async function verifyNetworkChange(
   walletClient: WalletClient
 ) {
   await Promise.all([
-    new Promise<void>((resolve, _reject) => {
+    new Promise<void>((resolve) => {
       provider.on('session_delete', () => {
         resolve()
       })
@@ -358,15 +368,19 @@ async function verifyAccountsChange(
   ])
 }
 
-async function verifySign(provider: WalletConnectProvider, walletClient: WalletClient) {
+async function verifySign(provider: WalletConnectProvider) {
   let balance: node.Balance
   async function checkBalanceDecreasing() {
-    delay(500)
-    const balance1 = await nodeProvider.addresses.getAddressesAddressBalance(ACCOUNTS.a.address)
-    if (balance1.balance >= balance.balance || balance1.balance === '0') {
-      checkBalanceDecreasing()
+    const deadline = Date.now() + 10_000
+    while (Date.now() < deadline) {
+      await delay(500)
+      const nextBalance = await nodeProvider.addresses.getAddressesAddressBalance(ACCOUNTS.a.address)
+      if (BigInt(nextBalance.balance) < BigInt(balance.balance)) {
+        balance = nextBalance
+        return
+      }
     }
-    balance = balance1
+    throw new Error('Devnet balance did not decrease after the signed transaction')
   }
 
   const selectedAddress = (await provider.getSelectedAccount()).address
@@ -406,6 +420,6 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function expectThrowsAsync(method: () => Promise<any>, errorMessage: string) {
-  expect(method()).rejects.toThrow(errorMessage)
+async function expectThrowsAsync(method: () => Promise<unknown>, errorMessage: string) {
+  await expect(method()).rejects.toThrow(errorMessage)
 }
